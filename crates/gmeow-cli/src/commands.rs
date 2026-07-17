@@ -2693,18 +2693,134 @@ pub fn slice_lint(
 
 // ── slice brief ──────────────────────────────────────────────────────────────
 
-/// `gmeow slice brief` — assemble and render a `gmeow:AuthoringPacket` for a slice
-/// directory, computed over the slice's OWN sources (module.ttl, mappings/, i18n/).
+/// `gmeow slice brief` — render a slice's `gmeow:AuthoringPacket`(s) in one of two
+/// explicit modes (exactly one source, both/neither is a hard error):
 ///
-/// The per-term exemplar tiers come from the SINGLE canonical library tiering
-/// [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
-/// pipeline stage uses, gated by SHACL per-term conformance against the SAME repo
-/// shape union — so an in-repo slice's live CLI brief and its committed
-/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The repo
-/// root (holding `generated/shapes/`) is resolved by walking up from the slice dir. A
-/// `--batch` out of range returns a typed hard failure through [`fail`] (a non-zero
-/// exit), never a panic or an empty packet.
+/// * a slice `dir` → LIVE re-assembly over the slice's OWN sources (module.ttl,
+///   mappings/, i18n/), gated by SHACL per-term conformance against the repo shape
+///   union (needs a checkout with `generated/shapes/`) — see [`slice_brief_live`].
+/// * `--from-bundle <slice>` → serve the PRE-ASSEMBLED packet(s) straight from the
+///   embedded gmeow.gts bundle, checkout-free — see [`slice_brief_from_bundle`].
+///
+/// The live path's per-term exemplar tiers come from the SINGLE canonical library
+/// tiering [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The
+/// bundle path runs the SAME [`gmeow_pipeline::mcp::extract_authoring_packets`] core the
+/// MCP `slice_brief` tool serves. A `--batch` out of range is a typed hard failure
+/// through [`fail`] (a non-zero exit) on both paths, never a panic or an empty packet.
 pub fn slice_brief(
+    reporter: &dyn Reporter,
+    dir: Option<&Path>,
+    from_bundle: Option<&str>,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Exactly one source: LIVE re-assembly from a slice `dir`, or the pre-assembled
+    // packet served `--from-bundle`. Both/neither is a hard error (explicit selection,
+    // no silent default).
+    match (dir, from_bundle) {
+        (Some(_), Some(_)) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.ambiguous-source",
+            "pass EITHER a slice directory OR --from-bundle <slice>, not both".to_string(),
+        ),
+        (None, None) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.missing-source",
+            "pass a slice directory (live re-assembly) or --from-bundle <slice> (bundle serve)"
+                .to_string(),
+        ),
+        (None, Some(slice)) => slice_brief_from_bundle(reporter, slice, axis, batch, format),
+        (Some(dir), None) => slice_brief_live(reporter, dir, axis, batch, format),
+    }
+}
+
+/// `gmeow slice brief --from-bundle <slice>` — serve the pre-assembled authoring
+/// packet(s) for a slice straight from the embedded gmeow.gts bundle, via the SAME
+/// [`gmeow_pipeline::mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
+/// runs (one implementation, not two). Checkout-free: no repo root, no SHACL shape union.
+fn slice_brief_from_bundle(
+    reporter: &dyn Reporter,
+    slice: &str,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    let out = match gmeow_pipeline::mcp::slice_brief_from_bundle(
+        BUNDLE_GTS,
+        slice,
+        axis,
+        batch.map(u64::from),
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.bundle",
+                format!("cannot serve packet for slice {slice:?}: {e}"),
+            );
+        }
+    };
+    let rendered = match format {
+        "json" => serde_json::to_string_pretty(&out).unwrap_or_else(|_| out.to_string()),
+        "turtle" => out
+            .get("turtle")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        "human" => render_bundle_brief_human(&out),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    println!("{rendered}");
+    0
+}
+
+/// A compact human summary of a bundle-served authoring brief: per-packet identity,
+/// term/exemplar counts, coverage margins, and the covered-term IRIs (whose full
+/// definitions resolve via `gmeow lookup`).
+fn render_bundle_brief_human(out: &serde_json::Value) -> String {
+    let mut s = String::new();
+    let slice = out.get("slice").and_then(|v| v.as_str()).unwrap_or("?");
+    let count = out
+        .get("packet_count")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    s.push_str(&format!("slice {slice} — {count} packet(s)\n"));
+    if let Some(packets) = out.get("packets").and_then(|v| v.as_array()) {
+        for p in packets {
+            let iri = p.get("packet_iri").and_then(|v| v.as_str()).unwrap_or("?");
+            let terms = p.get("term_count").and_then(|v| v.as_i64()).unwrap_or(0);
+            let axis = p.get("axis").and_then(|v| v.as_str()).unwrap_or("?");
+            let batch = p.get("batch").and_then(|v| v.as_i64()).unwrap_or(0);
+            let grounding = p
+                .get("grounding")
+                .and_then(|v| v.as_array())
+                .map_or(0, Vec::len);
+            s.push_str(&format!(
+                "\n{iri}\n  axis {axis}, batch {batch}, {terms} term(s), {grounding} grounding cell(s)\n"
+            ));
+            if let Some(covers) = p.get("covers_terms").and_then(|v| v.as_array()) {
+                for t in covers {
+                    if let Some(t) = t.as_str() {
+                        s.push_str(&format!("  - {t}\n"));
+                    }
+                }
+            }
+        }
+    }
+    s
+}
+
+/// `gmeow slice brief <dir>` — the live, checkout-anchored re-assembly path.
+fn slice_brief_live(
     reporter: &dyn Reporter,
     dir: &Path,
     axis: Option<&str>,
