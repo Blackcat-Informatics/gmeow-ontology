@@ -2279,8 +2279,9 @@ impl McpServer {
                  the isolated-world verdict CORROBORATES it (admissible) — append it to the \
                  append-only candidate library. A refuted or open candidate is never admitted and \
                  stages nothing. `formula`/`kb`/`standpoint` are as conjecture_test; optional \
-                 `for_slice`/`for_packet` record target provenance; `dry_run=true` returns the \
-                 verdict but writes nothing.",
+                 `for_slice`/`for_packet` record target provenance; optional `max_steps`/\
+                 `max_answers` bound the isolated-world reasoning budget (as conjecture_test); \
+                 `dry_run=true` returns the verdict but writes nothing.",
                 &[
                     ("formula", "string"),
                     ("kb", "string"),
@@ -2289,6 +2290,8 @@ impl McpServer {
                     ("for_slice", "string"),
                     ("for_packet", "string"),
                     ("dry_run", "boolean"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
                 ],
             ),
             tool(
