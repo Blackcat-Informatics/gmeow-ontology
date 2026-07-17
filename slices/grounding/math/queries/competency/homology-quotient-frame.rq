@@ -11,3 +11,4 @@ SELECT ?homology ?cycle ?boundary WHERE {
         math:homologyCycles ?cycle ;
         math:homologyBoundaries ?boundary .
 }
+ORDER BY ?homology
