@@ -7,19 +7,20 @@
 //! The proof-carrying backward engine (`crate::physical::resolve_fol`) and its
 //! Curry–Howard proof checker (`crate::physical::proof::check`) are `pub(crate)` behind
 //! the private `physical` module, so no other crate can reach them. This module is the
-//! single thin, honest `pub` façade over them: it holds a corpus of shipped
-//! *goal-directed demonstrator programs* (structured — function-symbol — logic programs
-//! the flat query text-parser cannot express, so they are built directly against the
-//! resolver's `TermDag`), evaluates each through [`resolve_fol`], validates every answer's
-//! proof with [`check`], and projects the checked answers + their content-addressed
-//! derivation IRIs into RDF-serializable data the `gmeow-pipeline`
+//! single thin, honest `pub` façade over them: it lowers the AUTHORED
+//! `logic:ReasoningProgram` corpus (structured — function-symbol — logic programs the flat
+//! query text-parser cannot express) into the resolver's `TermDag` via
+//! [`evaluate_reasoning_programs`], evaluates each through [`resolve_fol`], validates every
+//! answer's proof with [`check`], and projects the checked answers + their
+//! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
 //! It is NOT a fork of the engine: it constructs programs and reads back the engine's own
-//! [`FolOutcome`], never re-implementing resolution. Task 8 appends the substantial
-//! demonstrators (append/member, WFS negation, math sub-sort) to
-//! [`shipped_demonstrators`]; this module ships the minimal Peano-addition demonstrator so
-//! the stage has a real, proof-checked answer to fold.
+//! [`FolOutcome`], never re-implementing resolution. There is exactly ONE production source
+//! of goal-directed programs — the authored `logic:ReasoningProgram` cells compiled by
+//! `gmeow-logic-compile` (see `slices/grounding/logic/examples/reasoning-programs.ttl`);
+//! the earlier hand-interned Rust-constant demonstrator corpus has been removed
+//! (GREENFIELD — no second source of goal-directed programs may remain).
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -109,21 +110,6 @@ pub struct GoalDirectedEvaluation {
     pub verdict_probe_atoms: Vec<String>,
 }
 
-/// Evaluate every shipped goal-directed demonstrator: run each through the proof-carrying
-/// backward resolver, [`check`] every answer's proof (a proof that does not re-derive its
-/// answer atom HARD-fails — no unchecked answer ever ships), record each demonstrator's
-/// probed three-valued WFS verdicts, and return the deterministic, RDF-serializable
-/// evaluations. This is the pipeline stage's single entry point.
-pub fn evaluate_shipped_demonstrators() -> gmeow_errors::Result<Vec<GoalDirectedEvaluation>> {
-    let mut evals = Vec::new();
-    for demo in shipped_demonstrators() {
-        let built = (demo.build)();
-        evals.push(evaluate_demonstrator(demo.name, demo.description, built)?);
-    }
-    evals.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(evals)
-}
-
 /// A fully interned demonstrator: its structured program, the order-sorted context to
 /// resolve it under (`SortContext::default()` for the unsorted demonstrators), and the ground
 /// atoms whose three-valued WFS verdict is projected. Building interns everything into one
@@ -141,82 +127,11 @@ struct BuiltDemonstrator {
     verdict_probes: Vec<NodeId>,
 }
 
-/// A shipped demonstrator: its stable name, description, and a builder that interns the
-/// structured program (and any sort context / verdict probes) into a fresh [`TermDag`].
-struct Demonstrator {
-    name: &'static str,
-    description: &'static str,
-    build: fn() -> BuiltDemonstrator,
-}
-
-/// The shipped demonstrator corpus — a SET, so appending a demonstrator is a one-line
-/// addition, never a stage rewrite. Each entry makes one native backward-engine capability
-/// observable in `graph/goal-directed` of `gmeow.gts`:
-///
-/// - `peano-add` / `member-cons` — structured (function-symbol) resolution with checkable
-///   proofs (Peano successors; `member` enumeration over `cons`/`nil` lists);
-/// - `win-wfs-negation` — three-valued SLG-WFS negation over a cyclic move graph (the
-///   `undefined` loop verdict, alongside founded `true`/`false`);
-/// - `math-subsort` / `math-subsort-control` — order-sorted unification against the authored
-///   `math:` subsort tower (ℤ ⊑ ℝ accepts; an incomparable sort rejects).
-fn shipped_demonstrators() -> Vec<Demonstrator> {
-    vec![
-        Demonstrator {
-            name: "peano-add",
-            description: "Peano addition by structural recursion — the minimal structured \
-                          goal-directed demonstrator: one fact clause add(zero,Y,Y), one rule \
-                          clause add(s(X),Y,s(Z)) :- add(X,Y,Z), and the query \
-                          ?- add(s(s(zero)),s(zero),R), backward-resolved to R = s(s(s(zero))) \
-                          with a Curry–Howard-checkable proof.",
-            build: build_peano_add,
-        },
-        Demonstrator {
-            name: "member-cons",
-            description: "List membership over cons/nil constructors — a structured \
-                          goal-directed demonstrator with a base clause member(X,cons(X,T)) \
-                          and a recursive clause member(X,cons(H,T)) :- member(X,T). The query \
-                          ?- member(M,cons(a,cons(b,cons(c,nil)))) enumerates M ∈ {a,b,c}, each \
-                          answer carrying a Curry–Howard-checkable proof of its list position.",
-            build: build_member_cons,
-        },
-        Demonstrator {
-            name: "win-wfs-negation",
-            description: "Three-valued well-founded negation (SLG-WFS) over the canonical game \
-                          win(X) :- move(X,Y), not win(Y) on the move graph \
-                          {move(a,b), move(b,a), move(c,d)}. The a⇄b cycle traps win(a)/win(b) \
-                          in a negative loop ⇒ undefined; win(c) is a founded win (move to the \
-                          lost d) ⇒ true; win(d) has no move ⇒ false. The undefined verdict is \
-                          the well-founded model, never a fabricated true/false.",
-            build: build_win_wfs,
-        },
-        Demonstrator {
-            name: "math-subsort",
-            description: "Order-sorted unification against the authored math: subsort tower \
-                          ℕ⊑ℤ⊑ℚ⊑ℝ⊑ℂ (slices/grounding/math/module.ttl). The fact p(one) with \
-                          one:Integer answers the query ?- p(X) with X:RealNumber ONLY because \
-                          order-sorted unification consults ℤ⊑ℝ; the proof-checked answer is \
-                          X = one.",
-            build: build_math_subsort,
-        },
-        Demonstrator {
-            name: "math-subsort-control",
-            description: "The negative control for order-sorted unification: the same fact \
-                          p(one) with one:Integer against the query ?- p(X) where X:Set is a \
-                          sort INCOMPARABLE to Integer in the math: tower. Integer ⋢ Set, so \
-                          order-sorted unification correctly refuses the binding and the query \
-                          has NO answer — the observable evidence that the sort lattice gates \
-                          resolution rather than being ignored.",
-            build: build_math_subsort_control,
-        },
-    ]
-}
-
-/// Evaluate one built program (a hand-interned demonstrator, or one lowered from a compiled
-/// `logic:ReasoningProgram` by [`lower_reasoning_program`]): resolve its goal, validate +
-/// project each answer, and record each verdict probe's three-valued WFS verdict. `name` /
-/// `description` are taken as plain string slices (rather than folded into
-/// [`BuiltDemonstrator`] itself) because a compiled program's identity is a runtime `String`
-/// (its authored IRI), not the `&'static str` the hand-built corpus uses.
+/// Evaluate one built program (lowered from a compiled `logic:ReasoningProgram` by
+/// [`lower_reasoning_program`]): resolve its goal, validate + project each answer, and
+/// record each verdict probe's three-valued WFS verdict. `name` / `description` are taken as
+/// plain string slices (rather than folded into [`BuiltDemonstrator`] itself) because a
+/// compiled program's identity is a runtime `String` (its authored IRI).
 fn evaluate_demonstrator(
     name: &str,
     description: &str,
@@ -338,27 +253,16 @@ fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
     dag.intern_leaf(TermValue::iri(s.to_owned()))
 }
 
-/// Intern a function application `pred(args…)` under a program-local operator surface.
-fn app(dag: &mut TermDag, pred: &str, args: Vec<NodeId>) -> NodeId {
-    let op = dag.intern_leaf(TermValue::iri(pred.to_owned()));
-    dag.intern_app(op, args)
-}
-
-/// Intern a demonstrator clause's content-addressed rule-IRI handle.
-fn rule_handle(dag: &mut TermDag, name: &str, idx: usize) -> crate::physical::id::TermId {
-    dag.intern_atom(&TermValue::iri(rule_iri(name, idx)))
-}
-
 // ─────────────────────────────────────────────────────────────────────────────────────
 // The reasoning-program compiler: `ReasoningProgramIr` → `BuiltDemonstrator` (Task 4).
 // ─────────────────────────────────────────────────────────────────────────────────────
 //
-// This is the SECOND, production source of goal-directed programs: it lowers an
+// This is the SOLE production source of goal-directed programs: it lowers an
 // authored+compiled `logic:ReasoningProgram` (`gmeow_logic_compile::ir::ReasoningProgramIr`,
-// Task 3) into the exact `FolProgram`/`SortContext`/verdict-probe shape the hand-interned
-// demonstrators above build, then reuses `evaluate_demonstrator` unchanged — there is no
-// second engine, only a second source feeding the same evaluation/proof-check/verdict/
-// projection pipeline. Task 7 removes the hand-interned source; both coexist here.
+// Task 3) into the `FolProgram`/`SortContext`/verdict-probe shape [`evaluate_demonstrator`]
+// resolves, proof-checks, verdict-probes, and projects — there is no second engine, and
+// (as of Task 7) no second SOURCE either: the earlier hand-interned Rust-constant
+// demonstrator corpus has been removed.
 //
 // ## One lowering, policy-parameterized on the free-variable seam
 //
@@ -381,8 +285,7 @@ fn rule_handle(dag: &mut TermDag, name: &str, idx: usize) -> crate::physical::id
 // occurrence of a name in one scope mints a fresh [`TermDag::fresh_meta`], every LATER
 // occurrence of that SAME name in the SAME scope reuses it, and a fresh [`VarScope`] per
 // clause/query/probe means the SAME name in two DIFFERENT clauses mints two DIFFERENT
-// metavariables (exactly how the hand-built demonstrators above give each clause its own
-// `fresh_meta` calls). The `Bound`/de-Bruijn path in `lower.rs` is untouched — quantified
+// metavariables. The `Bound`/de-Bruijn path in `lower.rs` is untouched — quantified
 // sub-formulas inside a clause (if any) still resolve through the shared de-Bruijn machinery.
 
 /// The per-scope variable→metavariable map a single clause/query/probe lowers under: the
@@ -508,8 +411,7 @@ fn reasoning_program_err(detail: String) -> gmeow_errors::Diag {
 
 /// The local (last path-segment) name of an IRI, falling back to the whole IRI when it
 /// carries no `/`/`#` separator (or ends with one) — the [`GoalDirectedEvaluation::name`]
-/// surface for a compiled reasoning program (mirrors the hand-built demonstrators' stable
-/// short names).
+/// surface for a compiled reasoning program.
 fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#'])
         .next()
@@ -517,9 +419,9 @@ fn local_name(iri: &str) -> &str {
         .unwrap_or(iri)
 }
 
-/// Lower one compiled [`ReasoningProgramIr`] into the SAME [`BuiltDemonstrator`] shape the
-/// hand-interned demonstrators build: its own fresh [`TermDag`], the compiled [`FolProgram`],
-/// the [`SortContext`] seeded from `subsort_edges` (the caller's reasoned `rdfs:subClassOf`
+/// Lower one compiled [`ReasoningProgramIr`] into a [`BuiltDemonstrator`]: its own fresh
+/// [`TermDag`], the compiled [`FolProgram`], the [`SortContext`] seeded from `subsort_edges`
+/// (the caller's reasoned `rdfs:subClassOf`
 /// closure, narrowed to the sorts this program's `variable_sorts` actually reference — the
 /// narrowing is the caller's job, per M5/F-4), and the lowered verdict probes.
 ///
@@ -631,13 +533,12 @@ fn lower_reasoning_program(
 }
 
 /// Evaluate a compiled set of `logic:ReasoningProgram`s — the authored clause-set-plus-goal
-/// surface (Tasks 1-3) — against the reasoned `rdfs:subClassOf` closure (`subsort_edges`,
-/// narrowed by the caller to the sorts these programs actually reference). This is the
-/// production SOURCE swap Task 4 makes: [`lower_reasoning_program`] compiles each program
-/// into the exact shape [`evaluate_demonstrator`] already knows how to resolve, proof-check,
-/// verdict-probe, and project — this module gains a second source of goal-directed programs,
-/// not a second engine. `Unsupported` stays a HARD FAIL (surfaced by [`evaluate_demonstrator`]
-/// exactly as it is for a hand-built demonstrator).
+/// surface (Tasks 1-3), the SOLE production source of goal-directed programs — against the
+/// reasoned `rdfs:subClassOf` closure (`subsort_edges`, narrowed by the caller to the sorts
+/// these programs actually reference). [`lower_reasoning_program`] compiles each program into
+/// the exact shape [`evaluate_demonstrator`] resolves, proof-checks, verdict-probes, and
+/// projects — there is no second engine. `Unsupported` stays a HARD FAIL (surfaced by
+/// [`evaluate_demonstrator`]).
 pub fn evaluate_reasoning_programs(
     programs: &[ReasoningProgramIr],
     subsort_edges: &[(String, String)],
@@ -919,283 +820,6 @@ fn cross_check_forward_agreement(
     Ok(())
 }
 
-/// The Peano-addition demonstrator: `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).`
-/// with the goal `?- add(s(s(zero)),s(zero),R).` interned into a fresh [`TermDag`]. The
-/// function symbols (`add`/`s`/`zero`) are program-local surfaces, not dereferenceable
-/// terms; the rule IRIs are gmeow-namespaced so the derivation identity is stable.
-fn build_peano_add() -> BuiltDemonstrator {
-    let mut dag = TermDag::new();
-    let zero = leaf(&mut dag, "zero");
-
-    // Fact clause: add(zero, Y, Y).
-    let (_, y) = dag.fresh_meta();
-    let fact_head = app(&mut dag, "add", vec![zero, y, y]);
-    let fact_rule = rule_handle(&mut dag, "peano-add", 0);
-
-    // Rule clause: add(s(X), Y, s(Z)) :- add(X, Y, Z).
-    let (_, x) = dag.fresh_meta();
-    let (_, y2) = dag.fresh_meta();
-    let (_, z) = dag.fresh_meta();
-    let sx = app(&mut dag, "s", vec![x]);
-    let sz = app(&mut dag, "s", vec![z]);
-    let rule_head = app(&mut dag, "add", vec![sx, y2, sz]);
-    let rule_body = app(&mut dag, "add", vec![x, y2, z]);
-    let step_rule = rule_handle(&mut dag, "peano-add", 1);
-
-    // Goal: add(s(s(zero)), s(zero), R).
-    let s_zero = app(&mut dag, "s", vec![zero]);
-    let ss_zero = app(&mut dag, "s", vec![s_zero]);
-    let s_zero_g = app(&mut dag, "s", vec![zero]);
-    let (_, r) = dag.fresh_meta();
-    let goal = app(&mut dag, "add", vec![ss_zero, s_zero_g, r]);
-
-    let program = FolProgram {
-        clauses: vec![
-            FolClause {
-                head: fact_head,
-                body: vec![],
-                rule_iri: fact_rule,
-            },
-            FolClause {
-                head: rule_head,
-                body: vec![FolLit::Pos(rule_body)],
-                rule_iri: step_rule,
-            },
-        ],
-        goal,
-        goal_vars: vec![(r, "R".to_owned())],
-        meta_sorts: HashMap::new(),
-    };
-    BuiltDemonstrator {
-        dag,
-        program,
-        ctx: SortContext::default(),
-        verdict_probes: Vec::new(),
-    }
-}
-
-/// The list-membership demonstrator over `cons`/`nil`:
-/// `member(X,cons(X,T)). member(X,cons(H,T)) :- member(X,T).` with the goal
-/// `?- member(M,cons(a,cons(b,cons(c,nil))))`, enumerating M ∈ {a,b,c}. A clearly-structured
-/// positive program: each answer's proof re-derives the atom by descending the cons spine.
-fn build_member_cons() -> BuiltDemonstrator {
-    let mut dag = TermDag::new();
-    let cons = |dag: &mut TermDag, h: NodeId, t: NodeId| app(dag, "cons", vec![h, t]);
-    let nil = leaf(&mut dag, "nil");
-    let a = leaf(&mut dag, "a");
-    let b = leaf(&mut dag, "b");
-    let c = leaf(&mut dag, "c");
-
-    // Base clause: member(X, cons(X, T)).
-    let (_, x) = dag.fresh_meta();
-    let (_, t) = dag.fresh_meta();
-    let cons_x_t = cons(&mut dag, x, t);
-    let base_head = app(&mut dag, "member", vec![x, cons_x_t]);
-    let base_rule = rule_handle(&mut dag, "member-cons", 0);
-
-    // Recursive clause: member(X, cons(H, T)) :- member(X, T).
-    let (_, x2) = dag.fresh_meta();
-    let (_, h2) = dag.fresh_meta();
-    let (_, t2) = dag.fresh_meta();
-    let cons_h_t = cons(&mut dag, h2, t2);
-    let step_head = app(&mut dag, "member", vec![x2, cons_h_t]);
-    let step_body = app(&mut dag, "member", vec![x2, t2]);
-    let step_rule = rule_handle(&mut dag, "member-cons", 1);
-
-    // Goal: member(M, cons(a, cons(b, cons(c, nil)))).
-    let cn = cons(&mut dag, c, nil);
-    let bcn = cons(&mut dag, b, cn);
-    let list = cons(&mut dag, a, bcn);
-    let (_, m) = dag.fresh_meta();
-    let goal = app(&mut dag, "member", vec![m, list]);
-
-    let program = FolProgram {
-        clauses: vec![
-            FolClause {
-                head: base_head,
-                body: vec![],
-                rule_iri: base_rule,
-            },
-            FolClause {
-                head: step_head,
-                body: vec![FolLit::Pos(step_body)],
-                rule_iri: step_rule,
-            },
-        ],
-        goal,
-        goal_vars: vec![(m, "M".to_owned())],
-        meta_sorts: HashMap::new(),
-    };
-    BuiltDemonstrator {
-        dag,
-        program,
-        ctx: SortContext::default(),
-        verdict_probes: Vec::new(),
-    }
-}
-
-/// The three-valued SLG-WFS negation demonstrator: `win(X) :- move(X,Y), not win(Y)` over the
-/// move graph `{move(a,b), move(b,a), move(c,d)}`. The a⇄b cycle is an even negative loop, so
-/// the well-founded model leaves win(a)/win(b) `undefined`; win(c) is a founded win (its only
-/// move is to the lost d) so it is `true`; win(d) has no outgoing move so it is `false`. The
-/// verdict probes make all four verdicts observable in `graph/goal-directed`.
-fn build_win_wfs() -> BuiltDemonstrator {
-    let mut dag = TermDag::new();
-    let a = leaf(&mut dag, "a");
-    let b = leaf(&mut dag, "b");
-    let c = leaf(&mut dag, "c");
-    let d = leaf(&mut dag, "d");
-
-    // Facts: move(a,b). move(b,a). move(c,d).
-    let move_ab = app(&mut dag, "move", vec![a, b]);
-    let move_ba = app(&mut dag, "move", vec![b, a]);
-    let move_cd = app(&mut dag, "move", vec![c, d]);
-
-    // Rule: win(X) :- move(X, Y), not win(Y).
-    let (_, x) = dag.fresh_meta();
-    let (_, yv) = dag.fresh_meta();
-    let win_x = app(&mut dag, "win", vec![x]);
-    let move_xy = app(&mut dag, "move", vec![x, yv]);
-    let win_y = app(&mut dag, "win", vec![yv]);
-
-    // Goal: ?- win(W).
-    let (_, w) = dag.fresh_meta();
-    let goal = app(&mut dag, "win", vec![w]);
-
-    let clauses = vec![
-        FolClause {
-            head: move_ab,
-            body: vec![],
-            rule_iri: rule_handle(&mut dag, "win-wfs-negation", 0),
-        },
-        FolClause {
-            head: move_ba,
-            body: vec![],
-            rule_iri: rule_handle(&mut dag, "win-wfs-negation", 1),
-        },
-        FolClause {
-            head: move_cd,
-            body: vec![],
-            rule_iri: rule_handle(&mut dag, "win-wfs-negation", 2),
-        },
-        FolClause {
-            head: win_x,
-            body: vec![FolLit::Pos(move_xy), FolLit::Neg(win_y)],
-            rule_iri: rule_handle(&mut dag, "win-wfs-negation", 3),
-        },
-    ];
-
-    // Probe every position's win-verdict so the undefined loop and the founded true/false
-    // atoms are all serialized.
-    let win_a = app(&mut dag, "win", vec![a]);
-    let win_b = app(&mut dag, "win", vec![b]);
-    let win_c = app(&mut dag, "win", vec![c]);
-    let win_d = app(&mut dag, "win", vec![d]);
-
-    let program = FolProgram {
-        clauses,
-        goal,
-        goal_vars: vec![(w, "W".to_owned())],
-        meta_sorts: HashMap::new(),
-    };
-    BuiltDemonstrator {
-        dag,
-        program,
-        ctx: SortContext::default(),
-        verdict_probes: vec![win_a, win_b, win_c, win_d],
-    }
-}
-
-/// The math IRIs of the authored subsort tower `ℕ ⊑ ℤ ⊑ ℚ ⊑ ℝ ⊑ ℂ`, sourced from
-/// `slices/grounding/math/module.ttl` (`math:NaturalNumber rdfs:subClassOf math:Integer`, …).
-/// These are the load-bearing sort surfaces — the constant/predicate/rule surfaces of the
-/// subsort demonstrators are program-local, but the sorts cite the canonical `math:` tower so
-/// the order-sorted lattice is not a second source of truth.
-mod math_sort {
-    pub(super) const NATURAL: &str = "https://blackcatinformatics.ca/math/NaturalNumber";
-    pub(super) const INTEGER: &str = "https://blackcatinformatics.ca/math/Integer";
-    pub(super) const RATIONAL: &str = "https://blackcatinformatics.ca/math/RationalNumber";
-    pub(super) const REAL: &str = "https://blackcatinformatics.ca/math/RealNumber";
-    pub(super) const COMPLEX: &str = "https://blackcatinformatics.ca/math/ComplexNumber";
-    /// A sort deliberately INCOMPARABLE to the numeric tower (`math:Set`), for the control.
-    pub(super) const SET: &str = "https://blackcatinformatics.ca/math/Set";
-}
-
-/// Build the shared parts of an order-sorted subsort demonstrator: the fact `p(one)` with
-/// `one : Integer`, the goal `?- p(X)` with `X : x_sort`, and the [`SortContext`] carrying the
-/// authored `ℕ⊑ℤ⊑ℚ⊑ℝ⊑ℂ` covering edges. `x_sort` is `math:RealNumber` for the positive case
-/// (ℤ⊑ℝ, so the Integer constant binds) and `math:Set` for the incomparable control (Integer
-/// ⋢ Set, so the binding is refused). Returns everything as a [`BuiltDemonstrator`].
-fn build_math_subsort_with(name: &str, x_sort_iri: &str) -> BuiltDemonstrator {
-    let mut dag = TermDag::new();
-
-    // The authored subsort tower ℕ⊑ℤ⊑ℚ⊑ℝ⊑ℂ (covering edges from math/module.ttl). The
-    // reflexive-transitive closure gives ℤ⊑ℝ, which is what makes the positive query resolve.
-    let natural = leaf(&mut dag, math_sort::NATURAL);
-    let integer = leaf(&mut dag, math_sort::INTEGER);
-    let rational = leaf(&mut dag, math_sort::RATIONAL);
-    let real = leaf(&mut dag, math_sort::REAL);
-    let complex = leaf(&mut dag, math_sort::COMPLEX);
-    let edges = [
-        (natural, integer),
-        (integer, rational),
-        (rational, real),
-        (real, complex),
-    ];
-    let order = SortOrder::from_subclass_edges(&edges);
-
-    // Constant `one` tagged as an Integer (a program-local individual, Integer-sorted).
-    let one = leaf(&mut dag, "one");
-    let mut term_sorts: HashMap<NodeId, NodeId> = HashMap::new();
-    term_sorts.insert(one, integer);
-    let ctx = SortContext::new(order, term_sorts, HashMap::new());
-
-    // Fact: p(one).
-    let fact = app(&mut dag, "p", vec![one]);
-    let fact_rule = rule_handle(&mut dag, name, 0);
-
-    // Goal: ?- p(X), with X declared at the requested sort.
-    let (xm, x) = dag.fresh_meta();
-    let goal = app(&mut dag, "p", vec![x]);
-    let x_sort = leaf(&mut dag, x_sort_iri);
-    let mut meta_sorts: HashMap<crate::physical::id::MetaId, NodeId> = HashMap::new();
-    meta_sorts.insert(xm, x_sort);
-
-    let program = FolProgram {
-        clauses: vec![FolClause {
-            head: fact,
-            body: vec![],
-            rule_iri: fact_rule,
-        }],
-        goal,
-        goal_vars: vec![(x, "X".to_owned())],
-        meta_sorts,
-    };
-    BuiltDemonstrator {
-        dag,
-        program,
-        ctx,
-        verdict_probes: Vec::new(),
-    }
-}
-
-/// The positive order-sorted demonstrator: `X : RealNumber` accepts the `Integer`-sorted
-/// constant `one` because order-sorted unification consults `ℤ ⊑ ℝ`.
-fn build_math_subsort() -> BuiltDemonstrator {
-    build_math_subsort_with("math-subsort", math_sort::REAL)
-}
-
-/// The negative control: `X : Set` is incomparable to `Integer`, so the binding is refused
-/// and the query has no answer — the observable evidence the lattice gates resolution.
-fn build_math_subsort_control() -> BuiltDemonstrator {
-    build_math_subsort_with("math-subsort-control", math_sort::SET)
-}
-
-/// The gmeow-namespaced content-addressing anchor for a demonstrator clause's rule IRI.
-fn rule_iri(name: &str, idx: usize) -> String {
-    format!("{GMEOW}goal-directed/{name}/rule/{idx}")
-}
-
 /// The query individual IRI of a demonstrator.
 fn query_iri(name: &str) -> String {
     format!("{GMEOW}goal-directed/{name}")
@@ -1357,17 +981,22 @@ fn escape_literal(s: &str) -> String {
 mod tests {
     use super::*;
 
+    /// The `math:` subsort tower IRIs the order-sorted demonstrator tests below reason
+    /// over — literal references to the AUTHORED grounding vocabulary
+    /// (`slices/grounding/math/module.ttl`), not a second source of the tower itself (the
+    /// tower's edges are always supplied as `subsort_edges`, never hardcoded here).
+    const TEST_MATH_INTEGER: &str = "https://blackcatinformatics.ca/math/Integer";
+    const TEST_MATH_REAL: &str = "https://blackcatinformatics.ca/math/RealNumber";
+
     // ── Task 4: compiled `logic:ReasoningProgram` → `FolProgram`, via `lower_reasoning_program` ──
     //
     // These parse a `logic:ReasoningProgram` from a Turtle fixture (the SAME authoring
     // vocabulary `crates/logic-compile`'s own frontend tests exercise), compile it to
-    // `ReasoningProgramIr` (Task 3), then run it through `evaluate_reasoning_programs` —
-    // proving the COMPILED source produces the identical proof-checked answers the
-    // hand-interned `build_peano_add`/`build_member_cons` demonstrators above assert.
+    // `ReasoningProgramIr` (Task 3), then run it through `evaluate_reasoning_programs` — the
+    // SOLE production path for goal-directed programs.
 
     /// `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).` with goal
-    /// `?- add(s(s(zero)),s(zero),R)`, authored as a `logic:ReasoningProgram`. Mirrors
-    /// [`build_peano_add`] exactly, but as parsed RDF rather than hand-interned DAG nodes.
+    /// `?- add(s(s(zero)),s(zero),R)`, authored as a `logic:ReasoningProgram`.
     const PEANO_ADD_REASONING_PROGRAM_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
         @prefix ex: <https://example.org/goal-directed-test/> .\n\
@@ -1439,9 +1068,8 @@ mod tests {
         assert_eq!(peano.answers.len(), 1, "2 + 1 has exactly one answer");
         let ans = &peano.answers[0];
         // Every constant/function-symbol in the compiled path is a REAL RDF IRI (rendered in
-        // full), unlike the hand-built demonstrators' program-local bare-string surfaces
-        // (`"zero"`, `"s"`, …) — so the expected surfaces are built from the same `ex:`
-        // namespace the fixture authors its symbols under.
+        // full) — so the expected surfaces are built from the same `ex:` namespace the
+        // fixture authors its symbols under.
         const EX: &str = "https://example.org/goal-directed-test/";
         let zero = format!("{EX}zero");
         let s = |inner: &str| format!("{EX}s({inner})");
@@ -1567,8 +1195,7 @@ mod tests {
 
     // ── Task 4 M5/F-4: compiled math-subsort + incomparable control, term_sorts seeded ──
     //
-    // Mirrors `build_math_subsort_with` (the hand-built positive/control pair above), but
-    // AUTHORED: `ex:one` is an ordinary domain individual, typed `math:Integer` by a plain
+    // `ex:one` is an ordinary domain individual, typed `math:Integer` by a plain
     // `rdf:type` triple (never `logic:` structural vocabulary, so the stage's L3 fold drops
     // it — `ReasoningProgramIr::constant_sorts`, Task 4's fix, is what recovers it). Program
     // A's query variable is declared `math:RealNumber`; program B's (the control) is
@@ -1626,7 +1253,7 @@ mod tests {
         assert_eq!(prog.reasoning_programs.len(), 2);
 
         const EX: &str = "https://example.org/goal-directed-test/";
-        let subsort_edges = [(math_sort::INTEGER.to_owned(), math_sort::REAL.to_owned())];
+        let subsort_edges = [(TEST_MATH_INTEGER.to_owned(), TEST_MATH_REAL.to_owned())];
 
         // Under the ℤ⊑ℝ reasoned edge: program A (RealNumber-sorted X) resolves to exactly
         // the Integer constant `one`; program B (the Set-sorted control) resolves to NOTHING
@@ -1851,47 +1478,35 @@ mod tests {
         );
     }
 
-    #[test]
-    fn peano_add_demonstrator_resolves_and_proof_checks() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
-        let peano = evals
-            .iter()
-            .find(|e| e.name == "peano-add")
-            .expect("the peano-add demonstrator is shipped");
-        assert_eq!(peano.status, "ok");
-        assert_eq!(peano.answers.len(), 1, "2 + 1 has exactly one answer");
-        let ans = &peano.answers[0];
-        assert_eq!(
-            ans.bindings.get("R").map(String::as_str),
-            Some("s(s(s(zero)))"),
-            "2 + 1 = 3 in Peano successors"
-        );
-        assert_eq!(ans.atom, "add(s(s(zero)),s(zero),s(s(s(zero))))");
-        assert!(ans.proof_checks, "the shipped answer is proof-checked");
-        assert!(
-            ans.derivation_iri.starts_with("https://"),
-            "the answer carries a content-addressed derivation IRI: {}",
-            ans.derivation_iri
-        );
-    }
+    // ── Task 7: the authored/compiled path is now the SOLE source — every demonstrator
+    // behavior below is asserted directly against `evaluate_reasoning_programs` over a
+    // parsed `logic:ReasoningProgram` fixture, never a hand-interned Rust-constant corpus.
 
     #[test]
-    fn projection_carries_answer_atom_and_derivation_iri() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+    fn compiled_peano_add_projection_carries_answer_atom_and_derivation_iri() {
+        let (prog, _) =
+            gmeow_logic_compile::frontend::parse_logic_str(PEANO_ADD_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate the compiled reasoning program");
         let nt = project_goal_directed(&evals);
         assert!(
             nt.contains("GoalDirectedQuery"),
             "the projection types the query"
         );
+        const EX: &str = "https://example.org/goal-directed-test/";
+        let expected_atom = format!(
+            "{EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),{EX}s({EX}s({EX}s({EX}zero))))"
+        );
         assert!(
-            nt.contains("add(s(s(zero)),s(zero),s(s(s(zero))))"),
+            nt.contains(&expected_atom),
             "the projection carries the ground answer atom:\n{nt}"
         );
         assert!(
             nt.contains("goalDirectedDerivation"),
             "the projection carries the proof-derivation IRI predicate"
         );
-        // Deterministic: a second projection is byte-identical.
+        // Deterministic: a second projection of the SAME evals is byte-identical.
         let nt2 = project_goal_directed(&evals);
         assert_eq!(nt, nt2, "the projection is byte-stable");
     }
@@ -1899,8 +1514,13 @@ mod tests {
     // ── U2: the authored PROGRAM STRUCTURE itself is projected, not only its answers ────
 
     #[test]
-    fn projection_carries_the_authored_peano_program_structure_and_is_byte_stable_across_runs() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+    fn compiled_peano_add_projection_carries_the_authored_program_structure_and_is_byte_stable_across_runs()
+     {
+        let (prog, _) =
+            gmeow_logic_compile::frontend::parse_logic_str(PEANO_ADD_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate the compiled reasoning program");
         let nt = project_goal_directed(&evals);
         assert!(
             nt.contains("GoalDirectedProgram"),
@@ -1920,22 +1540,20 @@ mod tests {
         );
         // The Peano program's own fact clause and the recursive rule's body both surface as
         // rendered `goalDirectedClause` literals.
+        const EX: &str = "https://example.org/goal-directed-test/";
         assert!(
-            nt.contains("add(zero,"),
+            nt.contains(&format!("{EX}add({EX}zero,")),
             "the Peano fact clause add(zero,Y,Y). is projected:\n{nt}"
         );
         assert!(
-            nt.contains(" :- add("),
+            nt.contains(&format!(" :- {EX}add(")),
             "the Peano recursive rule's antecedent is projected:\n{nt}"
         );
         // The query linkage: the peano-add query node's `hasGoalDirectedProgram` object is a
         // `GoalDirectedProgram` individual carrying that SAME program's `goalDirectedProgramQuery`
         // literal, equal to the query node's own `goalDirectedGoal` literal (the SAME `render`
         // surface, reused rather than re-derived).
-        let peano = evals
-            .iter()
-            .find(|e| e.name == "peano-add")
-            .expect("the peano-add demonstrator is shipped");
+        let peano = &evals[0];
         let expected_query_triple =
             format!("<{GMEOW}goalDirectedProgramQuery> \"{}\" .", peano.goal);
         assert!(
@@ -1946,7 +1564,8 @@ mod tests {
 
         // Byte-stability ACROSS two independent evaluations (not merely two projections of
         // the same `evals`): content-addressed, never interning/mint-order dependent.
-        let evals2 = evaluate_shipped_demonstrators().expect("second evaluation");
+        let evals2 =
+            evaluate_reasoning_programs(&prog.reasoning_programs, &[]).expect("second evaluation");
         let nt2 = project_goal_directed(&evals2);
         assert_eq!(
             nt, nt2,
@@ -1957,21 +1576,15 @@ mod tests {
     // ── Positive structured demonstrator: member over cons/nil ──────────────────────────
 
     #[test]
-    fn member_cons_demonstrator_enumerates_structured_answers_with_proofs() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
-        let member = evals
-            .iter()
-            .find(|e| e.name == "member-cons")
-            .expect("the member-cons demonstrator is shipped");
+    fn compiled_member_cons_projection_carries_structured_answers_and_derivation() {
+        let (prog, _) =
+            gmeow_logic_compile::frontend::parse_logic_str(MEMBER_CONS_REASONING_PROGRAM_TTL, None)
+                .expect("parse succeeds");
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+            .expect("evaluate the compiled reasoning program");
+        let member = &evals[0];
         assert_eq!(member.status, "ok");
-        // The three list elements are enumerated as structured answers.
-        let mut bound: Vec<String> = member
-            .answers
-            .iter()
-            .map(|a| a.bindings["M"].clone())
-            .collect();
-        bound.sort();
-        assert_eq!(bound, vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]);
+        const EX: &str = "https://example.org/goal-directed-test/";
         // Each answer is proof-checked and carries a content-addressed derivation IRI over the
         // cons spine (a genuine structured atom, not a flat binary one).
         for ans in &member.answers {
@@ -1983,19 +1596,18 @@ mod tests {
                 ans.derivation_iri
             );
             assert!(
-                ans.atom.starts_with("member(") && ans.atom.contains("cons("),
+                ans.atom.starts_with(&format!("{EX}member("))
+                    && ans.atom.contains(&format!("{EX}cons(")),
                 "the answer atom is a structured cons-list membership: {}",
                 ans.atom
             );
         }
-    }
 
-    #[test]
-    fn projection_carries_structured_member_answers_and_derivation() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
         let nt = project_goal_directed(&evals);
+        let expected_atom =
+            format!("{EX}member({EX}a,{EX}cons({EX}a,{EX}cons({EX}b,{EX}cons({EX}c,{EX}nil))))");
         assert!(
-            nt.contains("member(a,cons(a,cons(b,cons(c,nil))))"),
+            nt.contains(&expected_atom),
             "the projection carries a structured member answer atom:\n{nt}"
         );
         // Every member answer surfaces a derivation IRI triple.
@@ -2009,23 +1621,76 @@ mod tests {
     }
 
     // ── WFS negation demonstrator: three-valued verdicts including undefined ─────────────
+    //
+    // No authored-path test above exercises `logic:verdictProbe`s, so this test is what
+    // proves the compiled path carries the three-valued SLG-WFS verdict surface end to end.
+    // Unlike the fixtures above, this parses the REAL committed corpus
+    // (`slices/grounding/logic/examples/reasoning-programs.ttl`) via [`authored_reasoning_programs`]
+    // rather than an inline TTL literal: a standalone inline copy of `ex:winWfs`'s
+    // `logic:and`-conjoined positive+negative body was found (empirically, while authoring
+    // this test) to compile to a DIFFERENT literal order than the SAME text does inside the
+    // full corpus file — `logic:and`/`logic:or` carry no `logic:conjunctIndex` analogous to
+    // `logic:argument`'s `logic:termIndex`, so `crate::physical::lower`'s conjunct order is
+    // only as stable as the frontend's per-document blank-node interning, not the authored
+    // text order. That is a pre-existing frontend/vocabulary gap (never introduced or fixed
+    // by Task 7's GREENFIELD removal), so this test sidesteps it by exercising the ACTUAL
+    // shipped fixture rather than reproducing an order-sensitive fragment out of context.
+
+    /// Parse the REAL authored demonstrator corpus
+    /// (`slices/grounding/logic/examples/reasoning-programs.ttl`) through the exact same
+    /// production frontend entry point `gmeow-pipeline`'s `stage-compile-logic` uses.
+    fn authored_reasoning_programs() -> Vec<ReasoningProgramIr> {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("slices/grounding/logic/examples/reasoning-programs.ttl");
+        let (prog, diags) = gmeow_logic_compile::frontend::parse_logic_path(&path, None)
+            .expect("parse the authored reasoning-programs cell");
+        assert!(
+            diags
+                .iter()
+                .all(|d| d.severity != gmeow_logic_compile::frontend::Severity::Error),
+            "unexpected error diagnostics: {diags:#?}"
+        );
+        assert!(
+            !prog.reasoning_programs.is_empty(),
+            "the authored cell carries at least one logic:ReasoningProgram"
+        );
+        prog.reasoning_programs
+    }
 
     #[test]
-    fn win_wfs_demonstrator_carries_three_valued_verdicts() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
-        let win = evals
+    fn compiled_win_wfs_reasoning_program_carries_three_valued_verdicts() {
+        let programs = authored_reasoning_programs();
+        let win_program = programs
             .iter()
-            .find(|e| e.name == "win-wfs-negation")
-            .expect("the win-wfs-negation demonstrator is shipped");
+            .find(|p| p.iri.ends_with("winWfs"))
+            .cloned()
+            .expect("ex:winWfs is authored in the reasoning-programs cell");
+
+        let evals = evaluate_reasoning_programs(std::slice::from_ref(&win_program), &[])
+            .expect("evaluate the compiled win-wfs reasoning program");
+        assert_eq!(evals.len(), 1);
+        let win = &evals[0];
         assert_eq!(win.status, "ok");
+
+        const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
         // The only well-founded-TRUE goal answer is win(c).
         let ws: Vec<String> = win
             .answers
             .iter()
             .map(|a| a.bindings["W"].clone())
             .collect();
-        assert_eq!(ws, vec!["c".to_owned()], "only c is a founded win: {ws:?}");
+        assert_eq!(
+            ws,
+            vec![format!("{EX}c")],
+            "only c is a founded win: {ws:?}"
+        );
+        for ans in &win.answers {
+            assert!(ans.proof_checks, "the win answer is proof-checked");
+        }
 
+        let atom_of = |local: &str| format!("{EX}win({EX}{local})");
         let verdict_of = |atom: &str| {
             win.verdicts
                 .iter()
@@ -2035,18 +1700,23 @@ mod tests {
                 .as_str()
         };
         // The a⇄b negative loop is well-founded UNDEFINED (never a fabricated true/false).
-        assert_eq!(verdict_of("win(a)"), "undefined", "even cycle ⇒ undefined");
-        assert_eq!(verdict_of("win(b)"), "undefined", "even cycle ⇒ undefined");
+        assert_eq!(
+            verdict_of(&atom_of("a")),
+            "undefined",
+            "even cycle ⇒ undefined"
+        );
+        assert_eq!(
+            verdict_of(&atom_of("b")),
+            "undefined",
+            "even cycle ⇒ undefined"
+        );
         // The founded positions are a definite true/false.
-        assert_eq!(verdict_of("win(c)"), "true", "move to lost d ⇒ won");
-        assert_eq!(verdict_of("win(d)"), "false", "no move ⇒ lost");
-    }
+        assert_eq!(verdict_of(&atom_of("c")), "true", "move to lost d ⇒ won");
+        assert_eq!(verdict_of(&atom_of("d")), "false", "no move ⇒ lost");
 
-    #[test]
-    fn projection_carries_undefined_and_founded_wfs_verdicts() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+        // The distinctive SLG-WFS surface projects: an undefined verdict AND both founded
+        // verdicts.
         let nt = project_goal_directed(&evals);
-        // The distinctive SLG-WFS surface: an undefined verdict AND both founded verdicts.
         let has_verdict = |atom: &str, verdict: &str| {
             nt.lines()
                 .any(|l| l.contains("goalDirectedVerdictAtom") && l.contains(atom))
@@ -2059,76 +1729,69 @@ mod tests {
             "the projection carries at least one undefined WFS verdict (SLG-WFS is non-dark):\n{nt}"
         );
         assert!(
-            has_verdict("win(a)", "undefined"),
+            has_verdict(&atom_of("a"), "undefined"),
             "win(a) is serialized as undefined:\n{nt}"
         );
         assert!(
-            has_verdict("win(c)", "true"),
+            has_verdict(&atom_of("c"), "true"),
             "win(c) is serialized as a founded true:\n{nt}"
         );
         assert!(
-            has_verdict("win(d)", "false"),
+            has_verdict(&atom_of("d"), "false"),
             "win(d) is serialized as a founded false:\n{nt}"
+        );
+
+        // Byte-stability across two independent evaluations.
+        let evals2 = evaluate_reasoning_programs(std::slice::from_ref(&win_program), &[])
+            .expect("second evaluation");
+        let nt2 = project_goal_directed(&evals2);
+        assert_eq!(
+            nt, nt2,
+            "the win-wfs projection is byte-identical across independent evaluations"
         );
     }
 
     // ── Math sub-sort demonstrator (order-sorted ℤ ⊑ ℝ) + incomparable control ───────────
 
     #[test]
-    fn math_subsort_demonstrator_resolves_only_via_the_lattice() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
-        let subsort = evals
-            .iter()
-            .find(|e| e.name == "math-subsort")
-            .expect("the math-subsort demonstrator is shipped");
-        assert_eq!(subsort.status, "ok");
-        assert_eq!(
-            subsort.answers.len(),
-            1,
-            "an Integer constant binds a RealNumber variable (ℤ ⊑ ℝ): {:?}",
-            subsort.answers
-        );
-        let ans = &subsort.answers[0];
-        assert_eq!(
-            ans.bindings.get("X").map(String::as_str),
-            Some("one"),
-            "the subsort-unified answer binds X = one"
-        );
-        assert_eq!(ans.atom, "p(one)", "the answer atom is p(one)");
-        assert!(ans.proof_checks, "the subsort answer is proof-checked");
-
-        // The incomparable control yields NO answer (Integer ⋢ Set).
-        let control = evals
-            .iter()
-            .find(|e| e.name == "math-subsort-control")
-            .expect("the math-subsort-control demonstrator is shipped");
-        assert_eq!(control.status, "ok");
-        assert!(
-            control.answers.is_empty(),
-            "an Integer constant does NOT bind an incomparable-sort (Set) variable: {:?}",
-            control.answers
-        );
-    }
-
-    #[test]
-    fn projection_carries_the_subsort_unified_answer() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+    fn compiled_math_subsort_projection_carries_the_subsort_unified_answer() {
+        let (prog, _) = gmeow_logic_compile::frontend::parse_logic_str(
+            MATH_SUBSORT_REASONING_PROGRAMS_TTL,
+            None,
+        )
+        .expect("parse succeeds");
+        let subsort_edges = [(TEST_MATH_INTEGER.to_owned(), TEST_MATH_REAL.to_owned())];
+        let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &subsort_edges)
+            .expect("evaluate the compiled reasoning programs");
         let nt = project_goal_directed(&evals);
+        const EX: &str = "https://example.org/goal-directed-test/";
         assert!(
-            nt.contains("<https://blackcatinformatics.ca/gmeow/goalDirectedAtom> \"p(one)\""),
+            nt.contains(&format!(
+                "<https://blackcatinformatics.ca/gmeow/goalDirectedAtom> \"{EX}p({EX}one)\""
+            )),
             "the projection carries the subsort-unified answer atom p(one):\n{nt}"
         );
         assert!(
-            nt.contains("\"X = one\""),
+            nt.contains(&format!("\"X = {EX}one\"")),
             "the projection carries the subsort-unified binding X = one:\n{nt}"
         );
     }
 
-    // ── Every shipped demonstrator answer proof-checks; whole projection is non-vacuous ──
+    // ── Every compiled reasoning-program answer proof-checks; whole projection is
+    // non-vacuous and byte-stable — the authored-path equivalent of the retired
+    // `evaluate_shipped_demonstrators()` corpus sweep, over the SAME six programs
+    // `slices/grounding/logic/examples/reasoning-programs.ttl` ships. ──────────────────────
 
     #[test]
-    fn every_shipped_answer_proof_checks_and_projection_is_deterministic() {
-        let evals = evaluate_shipped_demonstrators().expect("evaluate demonstrators");
+    fn every_compiled_reasoning_program_answer_proof_checks_and_projection_is_deterministic() {
+        // The REAL committed corpus — all six authored programs (peano-add, member-cons, the
+        // math-subsort positive/control pair, reachability, win-wfs) in ONE parse — the
+        // authored-path equivalent of the retired `evaluate_shipped_demonstrators()` corpus
+        // sweep.
+        let programs = authored_reasoning_programs();
+        let subsort_edges = [(TEST_MATH_INTEGER.to_owned(), TEST_MATH_REAL.to_owned())];
+        let evals = evaluate_reasoning_programs(&programs, &subsort_edges)
+            .expect("evaluate the merged compiled corpus");
         let mut total_answers = 0usize;
         for eval in &evals {
             for ans in &eval.answers {
@@ -2142,14 +1805,15 @@ mod tests {
         }
         assert!(
             total_answers >= 5,
-            "the corpus ships several proof-checked answers (peano + 3 members + subsort): \
-             got {total_answers}"
+            "the corpus ships several proof-checked answers (peano + 3 members + subsort + \
+             reachability + win-wfs): got {total_answers}"
         );
 
         // Two evaluations produce byte-identical serialization (no hash-iteration order).
         let nt_first = project_goal_directed(&evals);
         assert!(!nt_first.is_empty(), "the projection is non-empty");
-        let evals2 = evaluate_shipped_demonstrators().expect("second evaluation");
+        let evals2 =
+            evaluate_reasoning_programs(&programs, &subsort_edges).expect("second evaluation");
         let nt_second = project_goal_directed(&evals2);
         assert_eq!(
             nt_first, nt_second,
