@@ -42,6 +42,8 @@
     "https://blackcatinformatics.ca/gmeow/supersededBy|http://www.w3.org/2004/02/skos/core#definition"
   ],
   "slices/core/rights/i18n/fr.po": [
+    "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/AtomicConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ConflictStrategy|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ConstraintLogic|http://www.w3.org/2000/01/rdf-schema#label",
@@ -53,6 +55,8 @@
     "https://blackcatinformatics.ca/gmeow/LeftOperand|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/LicenseFamily|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/License|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/LogicalConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/Mark|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/Permission|http://www.w3.org/2000/01/rdf-schema#label",
@@ -249,6 +253,8 @@
     "https://blackcatinformatics.ca/gmeow/usageInfo|http://www.w3.org/2000/01/rdf-schema#label"
   ],
   "slices/core/rights/i18n/zh.po": [
+    "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/AtomicConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ConflictStrategy|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ConstraintLogic|http://www.w3.org/2000/01/rdf-schema#label",
@@ -260,6 +266,8 @@
     "https://blackcatinformatics.ca/gmeow/LeftOperand|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/LicenseFamily|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/License|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/LogicalConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/Mark|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/Permission|http://www.w3.org/2000/01/rdf-schema#label",
