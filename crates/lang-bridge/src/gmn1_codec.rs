@@ -80,6 +80,10 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The RDF 1.2 `rdf:reifies` predicate. A reifier binding `x rdf:reifies <<( s p o )>>`
+/// materializes into exactly this predicate over an [`RdfTerm::Triple`] object — the same
+/// shape [`classify_reference`]'s triple-term arm already round-trips.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const CLASS_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
 const CLASS_SCRIPT: &str = "https://blackcatinformatics.ca/lang/Script";
 const CLASS_GMN_CODEBOOK: &str = "https://blackcatinformatics.ca/gmeow/GmnCodebook";
@@ -159,9 +163,43 @@ impl Gmn0Model {
     /// into the codec's canonical iteration order (a superset of, and independent from,
     /// RDFC-1.0's own blank-label canonicalization — that happens at comparison time via
     /// [`canonical_nquads`](Self::canonical_nquads)).
+    ///
+    /// RDF 1.2 native (purrdf) stores `rdf:reifies` reifier bindings and their folded
+    /// annotations in SEPARATE side-tables ([`RdfDataset::owned_reifiers`] /
+    /// [`RdfDataset::owned_annotations`]), NOT in the base quad table. A reifier authored
+    /// in Turtle (`x rdf:reifies <<( s p o )>>` plus its annotations) is therefore absent
+    /// from [`RdfDataset::owned_quads`]. This constructor MATERIALIZES those side-tables
+    /// into the explicit quad shape the codec's triple-term/annotation round-trip already
+    /// expects — so RDF-star losslessness is reachable through the real ingestion path, not
+    /// only through hand-built quads:
+    ///
+    /// * each reifier → `reifier rdf:reifies <<( statement )>>` (an [`RdfTerm::Triple`]
+    ///   object), in the reifier's own graph;
+    /// * each annotation → `reifier predicate object`, in the annotation's own graph.
+    ///
+    /// `graph` is preserved faithfully: a default-graph reifier (`graph: None`) becomes a
+    /// default-graph quad (round-trips); a named-graph reifier becomes a named-graph quad
+    /// (the codec then honestly hits the `lang:GmnGraphOutOfDomain` default-graph boundary,
+    /// exactly as a named-graph base quad does — not special-cased away). The materialized
+    /// quads join the same deterministic sort/dedup as the base quads.
     #[must_use]
     pub fn from_dataset(ds: &RdfDataset) -> Self {
         let mut quads: Vec<RdfQuad> = ds.owned_quads().collect();
+        for reifier in ds.owned_reifiers() {
+            let object = RdfTerm::Triple(Box::new(reifier.statement.clone()));
+            let mut quad = RdfQuad::new(reifier.reifier.clone(), RDF_REIFIES, object);
+            quad.graph_name = reifier.graph.clone();
+            quads.push(quad);
+        }
+        for annotation in ds.owned_annotations() {
+            let mut quad = RdfQuad::new(
+                annotation.reifier.clone(),
+                annotation.predicate.clone(),
+                annotation.object.clone(),
+            );
+            quad.graph_name = annotation.graph.clone();
+            quads.push(quad);
+        }
         quads.sort_by_key(quad_sort_key);
         quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
         Self { quads }

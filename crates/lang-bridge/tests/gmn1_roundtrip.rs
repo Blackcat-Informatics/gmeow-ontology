@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 use gmeow_lang_bridge::{
     Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read,
-    gmn1_write, gmn1_write_tabular, round_trip_check,
+    gmn1_write, gmn1_write_tabular, per_claim_round_trip_check, round_trip_check,
 };
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, parse_dataset};
 
@@ -612,6 +612,75 @@ fn reifier_with_folded_annotations_round_trips_losslessly() {
         document.text, rewritten.text,
         "reifier round-trip must be byte-idempotent"
     );
+}
+
+#[test]
+fn turtle_authored_reifier_reaches_the_production_codec_path() {
+    // The PRODUCTION-reachability witness: a reifier authored in RDF 1.2 Turtle bytes
+    // (`s p o ~ :reifier {| … |}`) must reach the codec through the REAL ingestion path —
+    // `purrdf::parse_dataset` -> `Gmn0Model::from_dataset` -> `gmn1_write` -> `gmn1_read` —
+    // NOT a hand-materialization helper. purrdf stores the `rdf:reifies` binding and its
+    // folded annotations in side-tables outside `owned_quads`; a `from_dataset` that read
+    // `owned_quads` alone would SILENTLY DROP this reifier, making RDF-star losslessness
+    // test-only. This test freezes that the real constructor materializes them.
+    let ttl = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix logic: <{LOGIC}> .\n\
+         gmeow:doorGate1 gmeow:hasState logic:Open ~ gmeow:reifier1 {{|\n\
+         \x20   gmeow:accordingTo gmeow:sensorStandpoint ;\n\
+         \x20   gmeow:hasAvailableEvidence gmeow:span42\n\
+         |}} .\n"
+    );
+    let ds =
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("RDF 1.2 reifier Turtle parses");
+
+    // Sanity: purrdf DID route the reifier/annotations into the side-tables (not owned_quads),
+    // so `from_dataset` reaching them is the load-bearing behavior under test, not a no-op.
+    assert_eq!(
+        ds.owned_reifiers().count(),
+        1,
+        "the reifier must land in purrdf's reifier side-table, outside owned_quads"
+    );
+    assert_eq!(
+        ds.owned_annotations().count(),
+        2,
+        "both folded annotations must land in purrdf's annotation side-table"
+    );
+
+    // The REAL constructor — the exact call the production GMN-1 gate uses.
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    // The materialized reifier + annotation quads are present (they would be absent if
+    // `from_dataset` still read only `owned_quads`).
+    assert!(
+        model
+            .quads
+            .iter()
+            .any(|q| q.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+        "the materialized rdf:reifies quad must be in the GMN-0 model built from the real dataset"
+    );
+
+    round_trip_check(&model, &dictionary)
+        .expect("a Turtle-authored reifier must round-trip through the production path");
+
+    let document = gmn1_write(&model, &dictionary).expect("reifier writes");
+    assert!(
+        document.text.contains("rdf__reifies")
+            && document
+                .text
+                .contains("o: ( gmeow__doorGate1 gmeow__hasState "),
+        "the production path must fold the reifier's triple-term object into a record:\n{}",
+        document.text
+    );
+
+    let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "the reconstructed reifier model must be canonically equal to the source"
+    );
+    per_claim_round_trip_check(&model, &dictionary)
+        .expect("the per-claim inversion witness must hold over the Turtle-authored reifier");
 }
 
 #[test]
