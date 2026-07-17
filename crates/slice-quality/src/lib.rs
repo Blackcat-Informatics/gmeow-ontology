@@ -96,6 +96,31 @@ pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDatase
     })
 }
 
+/// Parse and UNION N in-memory Turtle documents into one dataset — the in-memory
+/// counterpart to [`dataset_from_paths`]. Used to reconstruct a rubric from bytes read
+/// out of git history (`git show <base>:<path>`) rather than the working tree, so the
+/// ratchet gate's merge-base floor reconstruction can union every slice's module.ttl at
+/// the base exactly as [`governance_source_modules`] unions them on disk.
+///
+/// # Errors
+/// Returns a message if any document fails to parse or the union cannot be frozen.
+pub fn dataset_from_texts(texts: &[&str]) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for (i, text) in texts.iter().enumerate() {
+        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("in-memory turtle document #{i}: {e}"),
+            })
+        })?;
+        builder.push_dataset(&ds);
+    }
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })
+}
+
 /// The canonical rubric module, relative to `repo_root` — the single on-disk file
 /// the CENTRALIZED half of the rubric (the tier ladder, the quality axes, and the
 /// guarded [`ProjectionVocabulary`] registry) is loaded from. The DISTRIBUTED half
@@ -156,6 +181,24 @@ fn repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
     let module_refs: Vec<&Path> = modules.iter().map(PathBuf::as_path).collect();
     let widened = rubric::load_rubric(&*dataset_from_paths(&module_refs)?)?;
 
+    segregate_rubric(canonical, widened)
+}
+
+/// Assemble the SEGREGATED rubric from a CANONICAL (rubric-module-only) load and a
+/// WIDENED (unioned-across-slices) load: keep the centralized [`MeasurementStandard`] +
+/// [`ProjectionVocabulary`] registry from `canonical`, take the distributed
+/// floor / tier-floor / ceiling / exemption commitments from `widened`, and HARD-FAIL
+/// (the centralized-authority guard) if `widened` carries any `gmeow:QualityAxis` /
+/// `gmeow:QualityTier` / `gmeow:ProjectionVocabulary` the canonical load does not. This
+/// is the SINGLE home of the segregation+guard, shared by the repo-root loader
+/// ([`repo_rubric`]) and the ratchet gate's merge-base reconstruction (which builds its
+/// two loads from git-history bytes via [`dataset_from_texts`]), so the guard can never
+/// diverge between the working-tree gate and the base comparand.
+///
+/// # Errors
+/// Returns the centralized-authority-violation diagnostic when a centralized individual
+/// is authored outside the rubric slice.
+pub fn segregate_rubric(canonical: Rubric, widened: Rubric) -> gmeow_errors::Result<Rubric> {
     if widened.standard != canonical.standard
         || widened.floors.vocabularies != canonical.floors.vocabularies
     {

@@ -300,12 +300,20 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     0
 }
 
-/// The canonical, ontology-resident home of the committed floors: the rubric slice
-/// module the gate reads BOTH the per-axis measured-score floors
-/// (`gmeow:AxisFloorCommitment`) and the per-slice roll-up tier floors
-/// (`gmeow:SliceTierFloor`) out of, and the file the floor-monotonicity check diffs
-/// against its merge-base version. The governance TSVs are no longer read.
+/// The canonical, ontology-resident home of the CENTRALIZED rubric authority — the
+/// measurement standard (tier ladder + axes) and the guarded-vocabulary registry. The
+/// per-slice floor/tier-floor/ceiling COMMITMENTS are no longer confined here: they are
+/// authored across every slice's `module.ttl` (the distributed governance-source
+/// authority, `gmeow_slice_quality::governance_source_modules`) and the gate reads them
+/// through the shared segregated loader. This const remains the rubric-module anchor for
+/// the merge-base reconstruction ([`base_rubric_at`]) and the seed-command paste hints.
 const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
+
+/// The human-facing source label prefixing floor / ceiling / registry monotonicity
+/// violation messages. The messages themselves already name the offending slice / axis /
+/// vocabulary; this labels the authoring surface, which is now every slice's `module.ttl`
+/// rather than one rubric module.
+const GOVERNANCE_SOURCE_LABEL: &str = "governance floors (authored across slices' module.ttl)";
 
 /// The generated per-axis floor projection path named in a per-axis floor failure
 /// message — the lossy TSV view of the ontology-resident commitments, kept only as
@@ -573,21 +581,18 @@ pub fn slice_quality_gate() -> i32 {
         }
         BaseRef::Resolved(base) => {
             let mut mono: Vec<String> = Vec::new();
-            // Both floor levels are diffed against the ONE rubric module at the base.
-            match git_show_base(&root, &base, RUBRIC_MODULE) {
-                BaseFile::Absent => note(
+            // The floor / ceiling / registry ratchets are diffed against the base rubric
+            // reconstructed over EVERY slice's module.ttl at the base (not one file), so a
+            // floor lowered in ANY slice is caught — not only one authored in the rubric.
+            match base_rubric_at(&root, &base) {
+                Ok(None) => note(
                     "gmeow-dev.slice-quality.gate",
                     format!(
-                        "slice-quality-gate: floor-monotonicity check SKIPPED for {RUBRIC_MODULE} — the file is absent at base {base} (brand-new file, nothing to regress against)"
+                        "slice-quality-gate: floor-monotonicity check SKIPPED — {RUBRIC_MODULE} is absent at base {base} (brand-new rubric, nothing to regress against)"
                     ),
                 ),
-                BaseFile::Error(e) => return fail(format!("slice-quality-gate: {e}")),
-                BaseFile::Contents(text) => {
-                    let base_rubric =
-                        match load_rubric_from_ttl(&text, &format!("{base}:{RUBRIC_MODULE}")) {
-                            Ok(r) => r,
-                            Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                        };
+                Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                Ok(Some(base_rubric)) => {
                     // Tier floors: project the base commitments through the SAME
                     // ladder-resolving projection the working set used.
                     let base_floors = match tier_floors_from_rubric(&base_rubric) {
@@ -595,7 +600,7 @@ pub fn slice_quality_gate() -> i32 {
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
                     let tier_mono = gmeow_slice_quality::gate::tier_floor_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_floors,
                         &floors,
                         |slice| live_slices.contains(slice),
@@ -607,7 +612,7 @@ pub fn slice_quality_gate() -> i32 {
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
                     let axis_mono = gmeow_slice_quality::gate::axis_floor_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_axis,
                         &axis_floors,
                         |slice, axis| live_slices.contains(slice) && live_axes.contains(axis),
@@ -618,7 +623,7 @@ pub fn slice_quality_gate() -> i32 {
                     // committed ceiling shared by base and working may never RISE.
                     let base_ceilings = ceilings_from_rubric(&base_rubric);
                     let cmono = gmeow_slice_quality::gate::projection_ceiling_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_ceilings,
                         &working_ceilings,
                     );
@@ -630,7 +635,7 @@ pub fn slice_quality_gate() -> i32 {
                     // default ceiling, or expanding an exemption set all red the gate,
                     // so the gate cannot be quietly weakened without raising a cell.
                     mono.extend(gmeow_slice_quality::gate::registry_ratchet_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_rubric.floors.vocabularies,
                         &rubric.floors.vocabularies,
                     ));
@@ -661,7 +666,7 @@ pub fn slice_quality_gate() -> i32 {
                             let bm = base_res.get(key).copied().unwrap_or(0);
                             if *committed > bm {
                                 mono.push(format!(
-                                    "{RUBRIC_MODULE}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
+                                    "{GOVERNANCE_SOURCE_LABEL}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
                                 ));
                             }
                         }
@@ -1163,6 +1168,7 @@ fn tier_floors_from_rubric(
 /// # Errors
 /// A HARD FAIL when the base module text cannot be parsed/frozen or is not a
 /// structurally-complete rubric — the gate never compares against an unreadable base.
+#[cfg(test)]
 fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_errors::Result<Rubric> {
     let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
         .map_err(|e| sqe(format!("{source_label}: parse failed: {e}")))?;
@@ -1172,6 +1178,67 @@ fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_errors::Result<
         .freeze()
         .map_err(|e| sqe(format!("{source_label}: dataset freeze failed: {e}")))?;
     gmeow_slice_quality::rubric::load_rubric(&frozen)
+}
+
+/// Reconstruct the whole SEGREGATED rubric as it existed at merge base `base`, unioning
+/// EVERY working-tree slice's `module.ttl` read at the base ref (mirroring
+/// [`measure_base_residues`]' multi-file base read) so the floor-monotonicity diff
+/// compares the working floor set against the base floor set authored across ALL slices,
+/// not only the single rubric module. The centralized measurement standard + vocabulary
+/// registry come from the rubric module at base; the distributed floor / tier-floor /
+/// ceiling commitments come from the base union — segregated through the SAME
+/// [`gmeow_slice_quality::segregate_rubric`] the working-tree loader uses, so the base
+/// comparand can never diverge from how the working set is assembled.
+///
+/// Returns `Ok(None)` when the rubric module itself is ABSENT at base (a merge base
+/// predating the rubric slice, or a brand-new file) — the earlier single-file check
+/// skipped the monotonicity diff in exactly that case, so this preserves that behavior.
+/// A slice whose `module.ttl` is absent at base contributes nothing (its working floors
+/// read as additions — allowed). Because the diff keys on `(slice, axis)` rather than on
+/// file, a floor MOVED between two slice modules base→working still compares by value.
+///
+/// # Errors
+/// HARD-FAILS on any `git` failure other than a legitimately-absent path (propagated
+/// from [`git_show_base`]), on a Turtle parse/freeze failure of a present base module,
+/// or on the centralized-authority guard (a centralized individual authored outside the
+/// rubric slice at base).
+fn base_rubric_at(root: &Path, base: &str) -> gmeow_errors::Result<Option<Rubric>> {
+    // Centralized half: the rubric module at base. Absent → skip the whole diff.
+    let rubric_text = match git_show_base(root, base, RUBRIC_MODULE) {
+        BaseFile::Absent => return Ok(None),
+        BaseFile::Error(e) => return Err(sqe(e)),
+        BaseFile::Contents(text) => text,
+    };
+    let canonical =
+        gmeow_slice_quality::rubric::load_rubric(&*gmeow_slice_quality::dataset_from_texts(&[
+            rubric_text.as_str(),
+        ])?)?;
+
+    // Distributed half: every discovered slice's module.ttl read at base, unioned (the
+    // rubric slice is itself discovered, so the union carries the tier ladder + axes the
+    // widened load requires).
+    let mut union_texts: Vec<String> = Vec::new();
+    for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
+        let rel = dir
+            .join("module.ttl")
+            .strip_prefix(root)
+            .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        match git_show_base(root, base, &rel) {
+            BaseFile::Absent => {}
+            BaseFile::Error(e) => return Err(sqe(e)),
+            BaseFile::Contents(text) => union_texts.push(text),
+        }
+    }
+    let union_refs: Vec<&str> = union_texts.iter().map(String::as_str).collect();
+    let widened = gmeow_slice_quality::rubric::load_rubric(
+        &*gmeow_slice_quality::dataset_from_texts(&union_refs)?,
+    )?;
+
+    Ok(Some(gmeow_slice_quality::segregate_rubric(
+        canonical, widened,
+    )?))
 }
 
 /// The set of every Rust *item* name defined anywhere under `crates/` — built by a
@@ -2172,5 +2239,198 @@ mod seed_floors_tests {
     fn both_selectors_hard_fail() {
         // (f) Both --axis and --all-axes → hard fail (mutually exclusive).
         assert_ne!(slice_quality_seed_floors(Some("axisGmn1Coverage"), true), 0);
+    }
+}
+
+/// Git-backed coverage for the floor-MONOTONICITY base reconstruction over ALL slices.
+/// Before the widening, the base side of the raise-only ratchet read floors from a
+/// single `git show <base>:slices/core/slice-quality-rubric/module.ttl`, so a floor
+/// authored in a NON-rubric slice and then lowered read as a fresh addition (allowed) —
+/// the monotonicity ratchet was blind to it. These tests build a real two-state git
+/// repo (a base commit authoring a non-rubric floor, a working tree lowering/deleting
+/// it) and drive the real [`base_rubric_at`] multi-slice `git show` reconstruction, so
+/// they fail against the pre-widening single-file base read and pass after it.
+#[cfg(test)]
+mod base_monotonicity_git_tests {
+    use super::*;
+    use gmeow_slice_quality::gate::axis_floor_monotonicity;
+    use std::process::Command;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    /// A structurally-complete minimal rubric module (a two-rung ladder, one axis, one
+    /// threshold) — the CENTRALIZED authority the base reconstruction reads from the
+    /// rubric slice.
+    fn rubric_module() -> String {
+        format!(
+            r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisGmn1Coverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "gmn1_coverage_axis" ;
+    gmeow:axisDimension gmeow:dimGmn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrGmn .
+gmeow:thrGmn a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+        )
+    }
+
+    /// A DEMO (non-rubric) slice `module.ttl` authoring one `gmeow:AxisFloorCommitment`
+    /// against the demo slice on `axisGmn1Coverage` at `floor`.
+    fn demo_module(floor: &str) -> String {
+        format!(
+            r#"@prefix gmeow: <{NS}> .
+gmeow:afc-demo a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisGmn1Coverage ;
+    gmeow:floorValue {floor} .
+"#
+        )
+    }
+
+    struct GitFixture {
+        root: std::path::PathBuf,
+    }
+    impl Drop for GitFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    /// Run a git command in `root`, isolated from user/system config (never signs).
+    fn git(root: &std::path::Path, args: &[&str]) {
+        let out = Command::new("git")
+            .current_dir(root)
+            .env("LC_ALL", "C")
+            .env("HOME", root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(args)
+            .output()
+            .expect("git runs");
+        assert!(
+            out.status.success(),
+            "git {args:?} failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    /// Build a git repo fixture holding the rubric slice + a demo slice authoring a
+    /// non-rubric floor at `base_floor`, commit it (the merge base), and return the
+    /// fixture and the base commit SHA. The caller then rewrites the working tree.
+    fn fixture_with_base_floor(base_floor: &str) -> (GitFixture, String) {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut root = std::env::temp_dir();
+        root.push(format!("gmeow-basemono-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let fx = GitFixture { root: root.clone() };
+
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(rubric_dir.join("manifest.ttl"), "# rubric slice\n").unwrap();
+        std::fs::write(rubric_dir.join("module.ttl"), rubric_module()).unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        std::fs::write(demo_dir.join("module.ttl"), demo_module(base_floor)).unwrap();
+
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "user.email", "test@example.com"]);
+        git(&root, &["config", "user.name", "Test"]);
+        git(&root, &["config", "commit.gpgsign", "false"]);
+        git(&root, &["add", "-A"]);
+        git(&root, &["commit", "-q", "-m", "base"]);
+        let out = Command::new("git")
+            .current_dir(&root)
+            .env("HOME", &root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(["rev-parse", "HEAD"])
+            .output()
+            .expect("git rev-parse runs");
+        assert!(out.status.success(), "git rev-parse failed");
+        let base = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+        (fx, base)
+    }
+
+    fn demo_key() -> (String, String) {
+        (format!("{NS}sliceDemo"), "axisGmn1Coverage".to_owned())
+    }
+
+    #[test]
+    fn base_reconstruction_sees_a_non_rubric_floor_and_reds_a_lowering() {
+        // Base commit authors a non-rubric floor at 0.90; working tree lowers it to 0.50.
+        let (fx, base) = fixture_with_base_floor("0.9");
+        std::fs::write(
+            fx.root.join("slices/demo/demo/module.ttl"),
+            demo_module("0.5"),
+        )
+        .unwrap();
+
+        // The base rubric reconstructed over ALL slices' module.ttl at base MUST carry
+        // the demo slice's 0.90 floor — proving the multi-slice git-show base
+        // reconstruction sees floors authored OUTSIDE the rubric module (the whole point
+        // of the widening; the single-file base read never saw it).
+        let base_rubric = base_rubric_at(&fx.root, &base)
+            .expect("base reconstruction succeeds")
+            .expect("rubric module present at base");
+        let base_axis = axis_floors_from_rubric(&base_rubric).unwrap();
+        assert_eq!(
+            base_axis.get(&demo_key()).copied(),
+            Some(0.9),
+            "base reconstruction must see the non-rubric slice's floor"
+        );
+
+        // The working set, through the real segregated loader, carries 0.50.
+        let work_rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let work_axis = axis_floors_from_rubric(&work_rubric).unwrap();
+        assert_eq!(work_axis.get(&demo_key()).copied(), Some(0.5));
+
+        // The monotonicity comparator, fed the REAL reconstructed base map, reds the
+        // lowering and names the non-rubric slice.
+        let mono =
+            axis_floor_monotonicity(GOVERNANCE_SOURCE_LABEL, &base_axis, &work_axis, |_, _| true);
+        assert!(
+            mono.violations
+                .iter()
+                .any(|v| v.contains("sliceDemo") && v.contains("LOWERED")),
+            "a lowered non-rubric floor must red naming the slice: {:?}",
+            mono.violations
+        );
+    }
+
+    #[test]
+    fn base_reconstruction_reds_a_still_live_non_rubric_floor_deletion() {
+        let (fx, base) = fixture_with_base_floor("0.9");
+        // Working tree DELETES the demo floor entirely (only the prefix line remains).
+        std::fs::write(
+            fx.root.join("slices/demo/demo/module.ttl"),
+            format!("@prefix gmeow: <{NS}> .\n"),
+        )
+        .unwrap();
+
+        let base_rubric = base_rubric_at(&fx.root, &base).unwrap().unwrap();
+        let base_axis = axis_floors_from_rubric(&base_rubric).unwrap();
+        let work_rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let work_axis = axis_floors_from_rubric(&work_rubric).unwrap();
+        assert_eq!(base_axis.get(&demo_key()).copied(), Some(0.9));
+        assert_eq!(work_axis.get(&demo_key()).copied(), None);
+
+        // The slice is still live → deleting its committed floor is a hard violation.
+        let mono =
+            axis_floor_monotonicity(GOVERNANCE_SOURCE_LABEL, &base_axis, &work_axis, |_, _| true);
+        assert!(
+            mono.violations
+                .iter()
+                .any(|v| v.contains("sliceDemo") && v.contains("DELETED")),
+            "a still-live non-rubric floor deletion must red naming the slice: {:?}",
+            mono.violations
+        );
     }
 }
