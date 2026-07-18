@@ -1653,6 +1653,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/profiles/memory.ttl",
     "generated/profiles/music.ttl",
     "generated/profiles/narrative.ttl",
+    "generated/profiles/purremb.ttl",
     "generated/projections/activitystreams.edoal.ttl",
     "generated/projections/bibframe.edoal.ttl",
     "generated/projections/bibo.edoal.ttl",
