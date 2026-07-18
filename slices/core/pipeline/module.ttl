@@ -978,7 +978,9 @@ gmeow:stage-export-research-objects
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "research-objects" ;
     gmeow:producesFormat "ro-crate" ;
-    gmeow:dataflowConsumes gmeow:stage-mappings .
+    gmeow:dataflowConsumes
+        gmeow:stage-export-evals ,
+        gmeow:stage-mappings .
 
 gmeow:stage-export-references
     a gmeow:PipelineStage ;
