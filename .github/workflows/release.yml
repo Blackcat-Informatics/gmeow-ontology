@@ -38,6 +38,14 @@ jobs:
         with:
           toolchain: nightly
 
+      # `make release` -> `make build` -> the $(RUST_READY_STAMP) prereq runs
+      # `cargo nextest run --no-run --workspace`, so the release runner needs
+      # cargo-nextest just like the ci.yml jobs do.
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@16b05812d776ae1dfaabc8277e421fb6d2506419 # v2
+        with:
+          tool: cargo-nextest
+
       - name: Build release artifacts
         run: make release
 
