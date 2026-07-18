@@ -778,8 +778,10 @@ pub fn run_full_scoped_with_progress(
 
             // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
             // bundle to disk (the terminal's sole output — without this a stale
-            // `merge=ours` bundle survives an `integrate-main` + update, the exact
-            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // local bundle survives an `integrate-main` + update, the exact trap
+            // CLAUDE.md warns about). The bundle is a git-ignored local product with
+            // no committed copy to fall back on, so it must be regenerated, never
+            // trusted stale. In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
             // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
