@@ -38,10 +38,11 @@ ep:saProjectionNotSubclassEmbedding a gmeow:StructuralAssertion ;
 ep:saNoLegacyRdfContainers a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModuleAndExamples ;
-    gmeow:saRationale "The slice module and its examples must be RDF-1.2-only: no rdf:Bag/rdf:Seq/rdf:Alt/rdf:li (CT11)." ;
+    gmeow:saRationale "The slice module and its examples must be RDF-1.2-only: no rdf:Bag/rdf:Seq/rdf:Alt/rdf:li and no rdf:_N container-membership predicate (CT11)." ;
     gmeow:saPattern """
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         ASK {
           { ?s a rdf:Bag } UNION { ?s a rdf:Seq } UNION { ?s a rdf:Alt } UNION { ?s rdf:li ?o }
+          UNION { ?s ?p ?o . FILTER(STRSTARTS(STR(?p), "http://www.w3.org/1999/02/22-rdf-syntax-ns#_")) }
         }
     """ .

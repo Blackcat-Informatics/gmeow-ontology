@@ -142,12 +142,41 @@ surface against the opened container compares SHA-256 to SHA-256, and checks a
 projection's `gmeow:projectionSourceDigest` against its source's BLAKE3
 `gmeow:contentDigest` within GMEOW's own space.
 
+### 3.1 What a projection's identity covers
+
+A projection's IDENTITY is its own `gmeow:contentDigest`, and that digest folds
+over the projection's **logical content**, never over the packed matrix bytes
+directly: the effective space it commits to (`gmeow:hasVectorSpaceContract`), the
+ordered target namespace (`gmeow:hasTargetSet`), the recorded source / head-id
+provenance, the disclosure controls, and the container/manifest digests it
+records — including `gmeow:recordsModelContractDigest`, the container's SHA-256
+over the stored-matrix contract. The stored matrix is container-internal (the
+"exact stored matrix" row above) and is never inlined into the graph; it reaches a
+projection's identity ONLY transitively, through that recorded model-contract
+digest.
+
+This makes the identity model and the `gmeow:reproducibilityLevel` vocabulary
+(Section 4, Section 6) internally consistent. A `gmeow:reproducibleExact` family
+yields the same matrix bytes on rebuild, hence the same recorded
+`gmeow:recordsModelContractDigest`, hence the **same** projection
+`gmeow:contentDigest` — one identity, byte-identical on rebuild. A
+`gmeow:reproducibleWithinTolerance` or `gmeow:regenerableOnly` family may yield
+different vectors on rebuild, hence a different recorded model-contract digest,
+hence a **different** projection `gmeow:contentDigest`: the rebuilt projection is a
+NEW identity that supersedes the old one, never a silent in-place mutation of the
+same identity. "Identical input plus identical contract yields a byte-identical
+projection identity" (Section 6) is therefore the `gmeow:reproducibleExact` case
+stated exactly; the tolerant and regenerable levels do not weaken it — they
+describe rebuilds whose differing bytes mint a fresh, superseding identity.
+
 ## 4. Required and optional metadata
 
 A conforming `gmeow:EmbeddingProjection` carries, as **required** content:
 
 - `gmeow:hasVectorSpaceContract` — exactly one committed effective space
-  (functional; enforced as an `owl:someValuesFrom` requiredness restriction).
+  (functional; requiredness is carried by an `owl:allValuesFrom` restriction plus
+  a `logic:ClosureEntry` closing the world (`logic:ClosedWorldClosure`), which the
+  pipeline lowers to `sh:minCount 1` — never an `owl:someValuesFrom` restriction).
 - `gmeow:projectionSource` — exactly one content-addressed source information
   object (functional).
 - `gmeow:hasSensitivity` — exactly one `gmeow:SensitivityLevel` (reused kernel).

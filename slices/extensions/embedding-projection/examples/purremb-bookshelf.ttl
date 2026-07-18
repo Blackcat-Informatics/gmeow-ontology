@@ -176,9 +176,12 @@ ex:tgtStmt a gmeow:VectorTarget ;
     gmeow:targetOrdinal    "2"^^xsd:nonNegativeInteger .
 
 # The ordered target NAMESPACE projection A's matrix rows map to (row 0 → doc,
-# row 1 → chunk, row 2 → statement). Its gmeow:contentDigest identity folds over the
-# ordered membership; it equals the target-table digest the profile surfaces record
-# (C5c), tying the row→target namespace to the sidecar/container manifests.
+# row 1 → chunk, row 2 → statement). Its gmeow:contentDigest is a GMEOW BLAKE3 digest
+# folded over the ordered membership; it IDENTIFIES THE SAME target table the profile
+# surfaces record as gmeow:recordsTargetTableDigest (C5c), but in a SEPARATE identity
+# system — the surfaces carry PurRDF's SHA-256 value, a distinct algorithm and value,
+# NOT equal to this BLAKE3 digest. The two are cross-checked as agreeing references to
+# one referent, never equated byte-for-byte.
 ex:targetSetA a gmeow:TargetSet ;
     rdfs:label "projection A target set (row order: document, chunk, statement)"@en ;
     gmeow:contentDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" ;

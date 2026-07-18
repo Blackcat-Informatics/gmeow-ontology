@@ -267,7 +267,7 @@ gmeow:VectorTarget
     skos:example "ex:vt1 a gmeow:VectorTarget ; gmeow:vectorTargetKind gmeow:vectorTargetChunk ; gmeow:targetsResource ex:chunk42 ; gmeow:targetParent ex:doc7 ; gmeow:targetByteStart 1024 ; gmeow:targetByteEnd 2048 ; gmeow:targetOrdinal 42 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using gmeow:targetOrdinal as identity (it is a non-identifying acceleration hint — the target resource is the identity) and avoid a bespoke property for the statement-term case (use native rdf:reifies at the instance layer)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint a gmeow:VectorTarget per vector row, classify it with gmeow:vectorTargetKind, bind its exact target with gmeow:targetsResource (or, for a statement term, an rdf:reifies quoted triple at the instance layer), place it in its subject-family hierarchy with gmeow:targetParent, optionally record its source byte span with gmeow:targetByteStart/gmeow:targetByteEnd, and optionally carry a row ordinal with gmeow:targetOrdinal as an acceleration hint only."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:VectorTarget per vector row, classify it with gmeow:vectorTargetKind, bind its exact target with gmeow:targetsResource (for a statement term, point gmeow:targetsResource at the rdf:reifies REIFIER NODE that reifies the triple, not at the quoted triple itself), place it in its subject-family hierarchy with gmeow:targetParent, optionally record its source byte span with gmeow:targetByteStart/gmeow:targetByteEnd, and optionally carry a row ordinal with gmeow:targetOrdinal as an acceleration hint only."@x-gmeow-english ;
     gmeow:useWhen "Use to bind one vector row in a projection to the exact ontology resource it embeds — the audit record that turns an anonymous vector slot into a resolvable claim about a term, statement, document, chunk, or summary."@x-gmeow-english .
 
 gmeow:VectorTargetKind
@@ -754,7 +754,7 @@ gmeow:targetsResource
     skos:example "ex:vt1 gmeow:targetsResource ex:chunk42 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting an rdfs:range on it (the range is left open so it admits terms, documents, chunks, summaries, and statement reifiers alike) and avoid inventing a bespoke statement-target property; point at the statement's reifier node for the statement case."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert exactly one gmeow:targetsResource from a gmeow:VectorTarget to the embedded resource; for a statement term, point it at an rdf:reifies quoted triple rather than minting a bespoke property."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:targetsResource from a gmeow:VectorTarget to the embedded resource; for a statement term, point it at the rdf:reifies REIFIER NODE that reifies the target triple (as in the definition and worked example — `ex:vt gmeow:targetsResource ex:stmtReifier`), not at the quoted triple itself, rather than minting a bespoke property."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a vector row to the exact resource it embeds — leaving the range open so any embeddable IRI, including a reified statement, is admissible."@x-gmeow-english .
 
 gmeow:tokenizerContract
