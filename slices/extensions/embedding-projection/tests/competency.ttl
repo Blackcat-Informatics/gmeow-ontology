@@ -95,6 +95,13 @@ ep:shapeLegacyEmpty a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "s" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
 
+ep:shapeSurfaceExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "surface" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeSurfaceEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "surface" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
 # =========================================================================== #
 # CT1 — source-digest match (C1). Violation over the drift fixture; empty over  #
 # the scene (every projection records its source's live digest).                #
@@ -338,6 +345,29 @@ ep:epCqManifestContainerDisagreeClean a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqResultShape ep:shapeProjEmpty ;
     gmeow:cqRationale "The scene's ex:containerSurfaceA and ex:manifestSurfaceA record identical source digests — zero disagreements." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# CT10-robustness — every surface records all three digests individually. A      #
+# surface omitting one silently dodges the agreement constraint for that digest  #
+# (which only fires when BOTH surfaces carry it), so omission is itself invalid.  #
+# Violation over the omitting fixture; empty over the scene.                      #
+# =========================================================================== #
+ep:epCqSurfaceDigestOmitted a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/surface-digest-omitted.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-surface-digest-omitted.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeSurfaceExact ;
+    gmeow:cqRationale "A profile surface omitting a required shared-referent digest (here the manifest lacks gmeow:recordsTargetTableDigest) is caught: ce:omitManifest — it would otherwise dodge the container/manifest target-table agreement check by omission." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "surface" ; gmeow:cellValueIri ce:omitManifest ] ] .
+
+ep:epCqSurfaceDigestOmittedClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/surface-digest-omitted.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeSurfaceEmpty ;
+    gmeow:cqRationale "The scene's ex:containerSurfaceA and ex:manifestSurfaceA each record all three shared-referent digests — zero omitting surfaces." ;
     gmeow:cqExpectRowCount 0 .
 
 # =========================================================================== #
