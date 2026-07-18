@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT1 counter-example (Don't): a projection whose resolved gmeow:projectionSource
+# carries NO gmeow:contentDigest — the source's byte identity is absent. The
+# projection is complete in every other respect: it RECORDS a gmeow:projectionSourceDigest,
+# binds an effective vector space over a content-addressed family, states a sensitivity
+# EQUAL to its source's (so gmeow:SecurityMonotonicityConstraint is idle), and declares a
+# reproducibility level. The sole defect is the digest-less source. This closes the hole
+# gmeow:SourceDigestMatchConstraint cannot reach: with no source gmeow:contentDigest,
+# that constraint's guard is unsatisfiable and it passes VACUOUSLY — so the exact-source
+# byte binding is silently escapable. gmeow:ProjectionSourceDigestPresentConstraint
+# rejects exactly this: its existence consequent demands the source carry a
+# gmeow:contentDigest. Triggers source-digest-absent.rq (→ ce:absentProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+# The source pack carries NO gmeow:contentDigest — the sole defect. It is otherwise a
+# well-typed information object whose sensitivity equals the projection's.
+ce:absentPack a gmeow:InformationObject ;
+    gmeow:hasSensitivity gmeow:sensitivityInternal .
+
+ce:absentModel a gmeow:SoftwareAgent .
+
+ce:absentFamily a gmeow:EmbeddingFamily ;
+    gmeow:embeddingModel ce:absentModel ;
+    gmeow:contentDigest "blake3:2222000011112222333344445555666677778888999900001111222233334444" .
+
+ce:absentNormL2 a gmeow:NormalizationKind .
+
+ce:absentVsc a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:absentFamily ;
+    gmeow:embeddingDimensions "256"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      gmeow:distanceMetricCosine ;
+    gmeow:normalizationKind   ce:absentNormL2 ;
+    gmeow:contentDigest       "blake3:3333000011112222333344445555666677778888999900001111222233334444" .
+
+# Complete in every other respect; the projection records a source digest and points at
+# a source that carries NONE — so gmeow:SourceDigestMatchConstraint's guard is vacuous.
+ce:absentProj a gmeow:EmbeddingProjection ;
+    gmeow:projectionSource       ce:absentPack ;
+    gmeow:projectionSourceDigest "blake3:aaaa000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasVectorSpaceContract ce:absentVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityInternal ;
+    gmeow:reproducibilityLevel   gmeow:regenerableOnly .

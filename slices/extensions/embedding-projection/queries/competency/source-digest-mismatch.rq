@@ -1,0 +1,16 @@
+# CT1 — source-digest match (violation finder). A gmeow:EmbeddingProjection whose
+# RECORDED gmeow:projectionSourceDigest disagrees with the live gmeow:contentDigest
+# of its resolved gmeow:projectionSource: the projection was built over different
+# bytes than it now points at. Empty over the clean scene; returns the offending
+# projection over a drifted counter-example. Independent SPARQL twin of
+# gmeow:SourceDigestMatchConstraint (C1), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:projectionSourceDigest ?recorded ;
+        gmeow:projectionSource ?src .
+  ?src gmeow:contentDigest ?actual .
+  FILTER(STR(?recorded) != STR(?actual))
+}
+ORDER BY ?proj

@@ -1,0 +1,23 @@
+# Vector-space contract comparability core complete (violation finder). A
+# gmeow:VectorSpaceContract whose v1-mandatory comparability core is INCOMPLETE — it
+# omits any of the family anchor gmeow:effectiveOfFamily, the effective/prefix
+# dimension gmeow:embeddingDimensions, the metric gmeow:distanceMetric, or the
+# per-prefix normalization gmeow:normalizationKind. These three space-level axes plus
+# the family anchor are the properties two vectors must share to be comparable, so
+# each is individually required rather than merely folded into the digest. Independent
+# SPARQL twin of that requiredness (allValuesFrom carrier + class-scoped ClosureEntry,
+# lowered to sh:minCount 1) — the live, reasoning-independent check of the same
+# invariant the derived SHACL surface enforces. Empty over a scene whose every
+# effective space names all four; non-empty over a contract missing one.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?vsc WHERE {
+  ?vsc a gmeow:VectorSpaceContract .
+  FILTER NOT EXISTS {
+    ?vsc gmeow:effectiveOfFamily   ?fam ;
+         gmeow:embeddingDimensions ?dim ;
+         gmeow:distanceMetric      ?metric ;
+         gmeow:normalizationKind   ?norm .
+  }
+}
+ORDER BY ?vsc
