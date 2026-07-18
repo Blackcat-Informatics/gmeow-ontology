@@ -1314,7 +1314,7 @@ pub fn reason_program_closure_dataset(
 ///
 /// `surface_to_value` only ever yields an IRI, a blank node, or a literal, so a triple
 /// term is a hard error rather than a silent drop (the no-optionality discipline).
-fn term_value_to_rdf_term(value: &TermValue) -> gmeow_errors::Result<RdfTerm> {
+pub(crate) fn term_value_to_rdf_term(value: &TermValue) -> gmeow_errors::Result<RdfTerm> {
     Ok(match value {
         TermValue::Iri(iri) => RdfTerm::iri(iri.clone()),
         TermValue::Blank { label, .. } => RdfTerm::blank_node(label.clone()),

@@ -1,0 +1,9 @@
+# A content-addressed delta's retirement/suppression rows: retire the base `edge`
+# a -> b. Plain Turtle triples (default graph); the `gmeow logic session` loader
+# re-homes them into the single session world exactly as the additions are, so the
+# committed delta carries a NON-EMPTY suppression. Applied alongside `additions.ttl`
+# (which inserts c -> d), the net maintained EDB is {b->c, c->d} and the derived
+# closure drops every `reach` that depended on a->b (a->b, a->c, a->d).
+@prefix ex: <https://example.org/session/> .
+
+ex:a ex:edge ex:b .
