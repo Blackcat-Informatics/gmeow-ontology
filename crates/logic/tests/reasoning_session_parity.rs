@@ -140,6 +140,119 @@ fn ac1_post_insert_checkpoint_restore_reproduces_post_insert_closure() {
     );
 }
 
+/// AC1 (composition proof) — a checkpoint minted AFTER a committed SUPPRESSION (retract),
+/// restored from the BASE EDB, must reproduce the POST-RETRACT full-recompute closure AND
+/// per-fact provenance — proving the replayed suppression is preserved across the
+/// persist→restore boundary.
+///
+/// This exercises the `CommittedDelta.retirement_nquads` replay branch the post-insert
+/// round-trip never populates. The delta retires `retract_edge` (an EDB fact present in
+/// `base`); restore re-materializes the FULL base EDB (still holding `retract_edge`) then
+/// replays the committed delta, so a dropped/hollow retirement would restore the base
+/// (pre-retract) closure — strictly LARGER than the asserted post-retract closure — and
+/// diverge the head. The assertion therefore fails loudly if the suppression is not
+/// replayed.
+fn drive_post_retract_checkpoint_restore(
+    program: &LogicProgram,
+    idb: &[String],
+    base: &[(&str, &str)],
+    retract_edge: (&str, &str),
+) {
+    let (contract, annotation) = baseline_contracts();
+    let edb_full = edge_dataset(base);
+    // The EDB the post-retract closure is defined over: the base minus the retired edge.
+    let remaining: Vec<(&str, &str)> = base
+        .iter()
+        .copied()
+        .filter(|edge| *edge != retract_edge)
+        .collect();
+    let edb_retracted = edge_dataset(&remaining);
+
+    let mut session =
+        ReasoningSession::open(&edb_full, program, &contract, &annotation).expect("open");
+    // Commit a suppression-only delta that retires one base EDB edge.
+    apply_expecting_applied(
+        &mut session,
+        empty_dataset(),
+        vec![Suppression::new(edge_dataset(&[retract_edge]))],
+    );
+    let post_retract_closure = session_derived(&session, idb);
+    // Sanity: the live post-retract closure is the retracted-EDB full recompute, and is
+    // strictly different from (a proper subset of) the base closure — the retract bit.
+    assert_eq!(
+        post_retract_closure,
+        oracle_derived(program, &edb_retracted, idb),
+        "live post-retract closure matches full recompute over the retracted EDB"
+    );
+    assert_ne!(
+        post_retract_closure,
+        oracle_derived(program, &edb_full, idb),
+        "the suppression genuinely shrank the closure below the base"
+    );
+
+    // Mint the checkpoint AFTER the retract, then restore from the FULL base EDB.
+    let post_head = session.head().to_owned();
+    let checkpoint = session.checkpoint();
+    assert!(
+        !checkpoint.deltas.is_empty(),
+        "a post-retract checkpoint carries the committed delta"
+    );
+    // The committed delta carries a NON-EMPTY retirement payload — the replay branch the
+    // F3 fix added is now genuinely populated (not a hollow, never-exercised path).
+    assert!(
+        checkpoint
+            .deltas
+            .iter()
+            .any(|delta| delta.retirement_nquads.iter().any(|row| !row.is_empty())),
+        "the checkpoint's committed delta carries a non-empty retirement payload"
+    );
+
+    let restored =
+        ReasoningSession::restore(&checkpoint, &edb_full, program, &contract, &annotation)
+            .expect("post-retract checkpoint restores by replay");
+
+    // The restore reproduces the post-retract head, closure, AND per-fact provenance — the
+    // suppression survived the persist→restore boundary; no revert-to-base.
+    assert_eq!(
+        restored.head(),
+        post_head,
+        "restore reproduces the committed post-retract head (not the base head)"
+    );
+    assert_eq!(
+        session_derived(&restored, idb),
+        post_retract_closure,
+        "restore reproduces the exact post-retract closure (the suppression survived replay)"
+    );
+    assert_eq!(
+        session_derived(&restored, idb),
+        oracle_derived(program, &edb_retracted, idb),
+        "restored closure equals the post-retract full recompute (not the base)"
+    );
+    assert_provenance_parity(program, idb, &restored, &edb_retracted);
+}
+
+#[test]
+fn ac1_post_retract_checkpoint_restore_reproduces_post_retract_closure() {
+    drive_post_retract_checkpoint_restore(
+        &transitive_program(),
+        &idb_reach(),
+        &[("a", "b"), ("b", "c"), ("c", "d")],
+        ("c", "d"),
+    );
+    drive_post_retract_checkpoint_restore(
+        &projection_program(),
+        &idb_reach(),
+        &[("a", "b"), ("b", "c"), ("c", "d")],
+        ("c", "d"),
+    );
+    drive_post_retract_checkpoint_restore(
+        &mutual_program(),
+        &idb_pq(),
+        &[("a", "b"), ("b", "c"), ("c", "d"), ("d", "e")],
+        ("d", "e"),
+    );
+}
+
 /// Build a delta from the session's current authorization + transition anchors and apply
 /// it, asserting the genuine-incremental `Applied` variant. Returns the committed
 /// `consumed_steps` so a crash/replay caller can compare it.
