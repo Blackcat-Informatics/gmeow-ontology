@@ -55,7 +55,7 @@ Depends on `kernel` (`gmeow:SocialObject`, `gmeow:Entity`, `gmeow:Determinacy`, 
 
 The concepts mapping set is authored in
 [`slices/core/concepts/mappings/equivalences.ttl`](./mappings/equivalences.ttl) and compiled to
-[`generated/mappings/gmeow-concepts.sssom.tsv`](../../../generated/mappings/gmeow-concepts.sssom.tsv).
+`generated/mappings/gmeow-concepts.sssom.tsv` (materialized by `make sync`).
 All alignments are by reference (Principle 5); GMEOW never imports an external axiom.
 
 | GMEOW term | External target(s) | Predicate | Note |

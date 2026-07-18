@@ -160,7 +160,7 @@ pub fn sync(
 ) -> i32 {
     let root = project_root();
     if list_paths {
-        println!("{}", gmeow_pipeline::committed_generated_paths().join(" "));
+        println!("{}", gmeow_pipeline::retained_product_paths().join(" "));
         return 0;
     }
     if metadata {

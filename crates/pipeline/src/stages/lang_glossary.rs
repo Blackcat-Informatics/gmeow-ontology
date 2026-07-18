@@ -1106,8 +1106,17 @@ mod tests {
         // The committed vartrans path is registered as an RDF-fanout class (routed to a named
         // graph, never an opaque blob), and its fanout graph IRI is an identity in both
         // directions — the SAME invariant the gate + the snapshot rely on to fold it back.
+        // RDF-fanout membership is derived from the authored gmeow:fanoutExtracts rows of the
+        // pipeline-slice source (the single data authority that replaced the retired
+        // is_rdf_fanout_class hand-list), so load the source and consult RdfFanoutClasses.
+        let module_ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl"))
+            .expect("read pipeline module.ttl");
+        let source =
+            purrdf::parse_dataset(&module_ttl, "text/turtle", None).expect("parse pipeline source");
         assert!(
-            crate::stages::superset::is_rdf_fanout_class(GLOSSARY_VARTRANS_PATH),
+            crate::stages::superset::RdfFanoutClasses::from_source(&source)
+                .expect("build RdfFanoutClasses from the pipeline source")
+                .contains(GLOSSARY_VARTRANS_PATH),
             "the vartrans .ttl must be an RDF-fanout class, not an opaque REP_GENERATED blob"
         );
         let iri = crate::stages::superset::rdf_fanout_graph_iri(GLOSSARY_VARTRANS_PATH)

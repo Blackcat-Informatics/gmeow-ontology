@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-affect"
 description = "GMEOW affect-intensity geometry: exact-rational inner-product-space over a metric Gram matrix, read from an RDF graph"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

@@ -152,6 +152,21 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// The independently-authored expected-output inventory (`gmeow:expectsGeneratedOutput`,
+    /// hand-written TTL in the pipeline slice) and the bundle's reconstructed projection
+    /// disagree: a declared `generated/` output the bundle no longer produces (a deterministic
+    /// carrier drop the two-generation determinism gate cannot see), or a derivable prefix
+    /// family whose authored members do not exactly equal the members the carrier's
+    /// reconstruction graphs yield. A HARD FAIL (completeness) — the authored inventory is a
+    /// DIFFERENT source from the carrier's `files.keys()`, so a silent capability degradation
+    /// (a dropped consumed output on a clean clone) is caught here, not hidden.
+    pub struct ExpectedOutputMissing { message: String }
+    code = "pipeline.contract.expected-output";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "authored expected-output inventory and the reconstructed bundle disagree: {}", message;
+}
+
+define_diag_kind! {
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
     /// cache is never silently repaired (no-optionality).
     pub struct CacheMismatch { expected: String, actual: String }
@@ -311,6 +326,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     AttachDeclMismatch::CODE,
     AttachDrift::CODE,
     FanoutBijection::CODE,
+    ExpectedOutputMissing::CODE,
     CacheMismatch::CODE,
     StageFailed::CODE,
     Transform::CODE,
@@ -356,6 +372,7 @@ pub fn register_all() -> Vec<Code> {
         AttachDeclMismatch::register(),
         AttachDrift::register(),
         FanoutBijection::register(),
+        ExpectedOutputMissing::register(),
         CacheMismatch::register(),
         StageFailed::register(),
         Transform::register(),

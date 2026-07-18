@@ -94,8 +94,8 @@ pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Di
 
     let written = rewritten.iter().filter(|&&b| b).count();
     let mut expected = projection.files.keys().cloned().collect::<BTreeSet<_>>();
-    // The terminal bundle is fanout's source rather than one of its projections.
-    // The optional full release bundle is likewise outside the flat projection.
+    // The terminal bundle is fanout's own source rather than one of its projections,
+    // so it must never be pruned as stale — it is the single EXCLUDED path.
     expected.extend(crate::stages::superset::EXCLUDED.map(str::to_string));
     let removed = remove_stale_generated(root, &expected)?;
     Ok(FanoutReport {

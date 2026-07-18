@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-pipeline"
 description = "GMEOW DAG-driven single-pass build executor: typed stages over an in-memory RDF dataflow, dogfooding the build graph from gmeow: slice individuals (#861)"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
