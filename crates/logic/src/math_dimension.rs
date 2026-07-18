@@ -13,8 +13,9 @@
 //!
 //! Each violation is a `Severity::Error` [`Finding`] naming the typed `math:`
 //! failure class it decides (`math:DimensionalInhomogeneity`,
-//! `math:MalformedDimension`, `math:NonPositiveDefiniteNorm`), so a single such
-//! finding hard-fails the gate. It is the executable lowering of
+//! `math:MalformedDimension`, `math:AsymmetricGramMatrix`,
+//! `math:NonPositiveDefiniteNorm`), so a single such finding hard-fails the gate.
+//! It is the executable lowering of
 //! `math:dimensionalHomogeneityLaw`, `math:integralDimensionCompositionLaw`, and the
 //! Gram positive-definiteness constraint authored in the `math:` slice: the laws are
 //! the source, this gate the enforcement.
@@ -26,6 +27,7 @@ use gmeow_math::{
     index_dataset, load_gram, subjects,
 };
 use purrdf::RdfDataset;
+use std::collections::BTreeMap;
 
 /// Namespace root for the `math:` measure-and-dimension vocabulary.
 const MATH: &str = "https://blackcatinformatics.ca/math/";
@@ -36,6 +38,8 @@ const CODE_INHOMOGENEITY: &str = "verify.math.dimensional-inhomogeneity";
 const CODE_MALFORMED: &str = "verify.math.malformed-dimension";
 /// The finding code for a non-positive-definite authored Gram / metric form.
 const CODE_NON_PD: &str = "verify.math.non-positive-definite-norm";
+/// The finding code for an authored Gram matrix that is not symmetric.
+const CODE_ASYMMETRIC: &str = "verify.math.asymmetric-gram-matrix";
 
 fn math(local: &str) -> String {
     format!("{MATH}{local}")
@@ -239,19 +243,78 @@ fn check_integral_composition(index: &TripleIndex, findings: &mut Vec<Finding>) 
     }
 }
 
-/// Positive-definiteness: every authored `math:GramMatrix` used as a metric form —
-/// one carrying `math:definiteness math:positiveDefinite`, or `math:representsForm` a
-/// form that does — must be positive-definite, certified by the exact-rational LDLᵀ
-/// factorization ([`InnerProductSpace::ldlt_pivots`], all pivots `> 0` by Sylvester's
-/// criterion). A non-PD such form raises `math:NonPositiveDefiniteNorm`. This is the
-/// sole positive-definiteness enforcement point; the runtime distance builtin trusts
-/// it. SHACL/Datalog cannot compute an LDLᵀ factorization, so the certificate is
+/// The first off-diagonal cell `(i, j)` (with `i < j`) whose explicitly-authored
+/// transpose mate `(j, i)` carries a DIFFERENT exact-rational value — the witness
+/// that a declared Gram matrix is not symmetric — returned as `(i, j, v_ij, v_ji)`.
+///
+/// An un-authored transpose mate is NOT an asymmetry: authoring only the upper (or
+/// lower) triangle is the ordinary idiom, and the caller's symmetric fill mirrors a
+/// lone cell across the diagonal. Only two conflicting explicit entries witness a
+/// genuine non-symmetric authoring. Returns `None` when the matrix is symmetric.
+fn first_asymmetric_cell(
+    cells: &[(usize, usize, Rational)],
+) -> Option<(usize, usize, Rational, Rational)> {
+    let mut authored: BTreeMap<(usize, usize), Rational> = BTreeMap::new();
+    for &(row, col, value) in cells {
+        authored.insert((row, col), value);
+    }
+    for (&(row, col), value) in &authored {
+        if row >= col {
+            continue;
+        }
+        if let Some(mate) = authored.get(&(col, row))
+            && mate != value
+        {
+            return Some((row, col, *value, *mate));
+        }
+    }
+    None
+}
+
+/// Symmetry + positive-definiteness of every authored `math:GramMatrix`.
+///
+/// A Gram matrix is the coordinate matrix of a *symmetric* bilinear form, so it must
+/// equal its own transpose. Two explicitly-authored transpose mates `(i,j)` and
+/// `(j,i)` carrying different values contradict that and raise
+/// `math:AsymmetricGramMatrix` (an un-authored mate is the ordinary upper-triangle
+/// authoring idiom, mirrored by the symmetric fill, never an asymmetry). This runs
+/// FIRST: the LDLᵀ factorization below assumes symmetry, so an asymmetric matrix is
+/// never handed to it (the finding is raised and the matrix skipped).
+///
+/// Then, every Gram used as a metric form — one carrying `math:definiteness
+/// math:positiveDefinite`, or `math:representsForm` a form that does — must be
+/// positive-definite, certified by the exact-rational LDLᵀ factorization
+/// ([`InnerProductSpace::ldlt_pivots`], all pivots `> 0` by Sylvester's criterion). A
+/// non-PD such form raises `math:NonPositiveDefiniteNorm`. This is the sole
+/// positive-definiteness enforcement point; the runtime distance builtin trusts it.
+/// SHACL/Datalog cannot compute an LDLᵀ factorization, so the certificate is
 /// necessarily native.
 fn check_gram_positive_definiteness(index: &TripleIndex, findings: &mut Vec<Finding>) {
     let definiteness = math("definiteness");
     let positive_definite = math("positiveDefinite");
     let represents_form = math("representsForm");
     for gram in subjects_of_type(index, &math("GramMatrix")) {
+        // Load the exact-rational cells. A Gram that cannot be loaded (missing
+        // cells/indices) is a structural malformation the cardinality shapes catch,
+        // not a symmetry/definiteness verdict; skip.
+        let Ok(cells) = load_gram(index, &gram) else {
+            continue;
+        };
+        // Symmetry FIRST — the LDLᵀ certificate below assumes a symmetric matrix, so
+        // an asymmetric Gram must be caught and skipped before it reaches the factor.
+        if let Some((i, j, vij, vji)) = first_asymmetric_cell(&cells) {
+            findings.push(error(
+                CODE_ASYMMETRIC,
+                format!(
+                    "math:AsymmetricGramMatrix: Gram matrix {gram} authors entry \
+                     ({i},{j}) = {} but its transpose mate ({j},{i}) = {} differs — a \
+                     Gram matrix of a symmetric bilinear form must equal its transpose",
+                    vij.ratio_string(),
+                    vji.ratio_string()
+                ),
+            ));
+            continue;
+        }
         let self_pd =
             first_iri(index, &gram, &definiteness).as_deref() == Some(positive_definite.as_str());
         let form_pd = first_iri(index, &gram, &represents_form)
@@ -265,12 +328,8 @@ fn check_gram_positive_definiteness(index: &TripleIndex, findings: &mut Vec<Find
             // (e.g. a metric of Lorentzian signature); it is out of scope here.
             continue;
         }
-        // Load the exact-rational cells and fill the declared symmetric dense matrix.
-        // A Gram that cannot be loaded (missing cells/indices) is a structural
-        // malformation the cardinality shapes catch, not a definiteness verdict; skip.
-        let Ok(cells) = load_gram(index, &gram) else {
-            continue;
-        };
+        // Fill the declared symmetric dense matrix from the (now-verified symmetric)
+        // cells.
         let Some(dim) = cells
             .iter()
             .flat_map(|(r, c, _)| [*r, *c])

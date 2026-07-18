@@ -167,10 +167,6 @@ pub(crate) enum BuiltinError {
     /// A dimension-vector transport was not well-formed (wrong arity or an
     /// unparsable exponent). Anchors `math:MalformedDimension`.
     MalformedDimension,
-    /// A bilinear form / Gram matrix presented for evaluation was not symmetric.
-    /// Anchors `math:AsymmetricGramMatrix`.
-    #[allow(dead_code)] // producer: Task-3 bilinear-form (Gram matrix) evaluation.
-    AsymmetricForm,
 }
 
 /// The outcome of moded builtin evaluation against a partial substitution.

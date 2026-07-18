@@ -264,6 +264,58 @@ fn positive_definite_gram_passes() {
     );
 }
 
+/// A 2×2 Gram matrix authoring BOTH transpose off-diagonals explicitly, with
+/// conflicting values `off01 = a01_num/a01_den` at (0,1) and `off10 = a10_num/a10_den`
+/// at (1,0) — a genuinely non-symmetric authored matrix. Diagonal is unit and it is
+/// authored `math:positiveDefinite`.
+fn gram_2x2_asymmetric(a01_num: i128, a01_den: i128, a10_num: i128, a10_den: i128) -> String {
+    format!(
+        "{PREFIXES}\
+         ex:g a math:GramMatrix ; math:definiteness math:positiveDefinite ;\n\
+           math:hasEntry ex:e00 , ex:e11 , ex:e01 , ex:e10 .\n\
+         ex:e00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:one .\n\
+         ex:e11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue ex:one .\n\
+         ex:e01 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:off01 .\n\
+         ex:e10 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:off10 .\n\
+         ex:one a math:RationalValue ; math:numerator 1 ; math:denominator 1 .\n\
+         ex:off01 a math:RationalValue ; math:numerator {a01_num} ; math:denominator {a01_den} .\n\
+         ex:off10 a math:RationalValue ; math:numerator {a10_num} ; math:denominator {a10_den} .\n"
+    )
+}
+
+#[test]
+fn asymmetric_gram_is_flagged() {
+    // (0,1) = 1/4 but its transpose mate (1,0) = 3/4 — a non-symmetric authored
+    // Gram must raise math:AsymmetricGramMatrix.
+    let f = findings(&gram_2x2_asymmetric(1, 4, 3, 4));
+    assert!(
+        has_class(&f, "math:AsymmetricGramMatrix"),
+        "an authored Gram whose transpose mates differ must raise \
+         math:AsymmetricGramMatrix: {f:?}"
+    );
+    // The symmetry gate runs BEFORE LDLᵀ, so an asymmetric matrix is not also
+    // reported as non-positive-definite from a factor that assumes symmetry.
+    assert!(
+        !has_class(&f, "math:NonPositiveDefiniteNorm"),
+        "an asymmetric Gram is skipped before the LDLᵀ certificate: {f:?}"
+    );
+}
+
+#[test]
+fn upper_triangle_only_gram_is_symmetric() {
+    // The ordinary idiom: author only the (0,1) off-diagonal; the absent (1,0) mate is
+    // mirrored by the symmetric fill, NOT an asymmetry.
+    let upper_only = gram_2x2(1, 4).replace(
+        " math:hasEntry ex:e00 , ex:e11 , ex:e01 , ex:e10 .",
+        " math:hasEntry ex:e00 , ex:e11 , ex:e01 .",
+    );
+    let f = findings(&upper_only);
+    assert!(
+        !has_class(&f, "math:AsymmetricGramMatrix"),
+        "authoring only the upper triangle is symmetric, not an asymmetry: {f:?}"
+    );
+}
+
 #[test]
 fn gram_not_claimed_positive_definite_is_out_of_scope() {
     // The same indefinite matrix, but with NO positive-definite claim, is a legitimate
