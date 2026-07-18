@@ -1294,6 +1294,11 @@ gmeow:UsesScaleFunctionalConstraintProceduralConstraintShape
     logic:formalizes gmeow:UsesScaleTargetShape ;
     logic:preservationKind logic:ValidationOnly .
 
+gmeow:WithMetricAgreementConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes gmeow:WithMetricAgreementShape ;
+    logic:preservationKind logic:ValidationOnly .
+
 gmeow:WithdrawnDoxasticTenureSuppressionConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:DoxasticTenure ;

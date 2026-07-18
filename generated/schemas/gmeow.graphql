@@ -2810,6 +2810,7 @@ type EmbeddingProjection {
   gmeowHasSensitivity: GmeowScalar
   gmeowHasVectorSpaceContract: GmeowScalar
   gmeowProjectionSource: GmeowScalar
+  gmeowProjectionSourceDigest: GmeowScalar
   gmeowReproducibilityLevel: GmeowScalar
   id: String
   type: GmeowScalar
@@ -2820,6 +2821,7 @@ input EmbeddingProjectionInput {
   gmeowHasSensitivity: GmeowScalar
   gmeowHasVectorSpaceContract: GmeowScalar
   gmeowProjectionSource: GmeowScalar
+  gmeowProjectionSourceDigest: GmeowScalar
   gmeowReproducibilityLevel: GmeowScalar
   id: String
   type: GmeowScalar

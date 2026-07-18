@@ -8613,11 +8613,15 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:declassifies"
+        ],
         "type": "object"
       },
       "DegreeOfFreedom": {
@@ -8867,6 +8871,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -8910,6 +8915,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -8953,11 +8959,17 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:approximationRecall",
+          "gmeow:indexOfProjection",
+          "gmeow:indexOverSpace"
+        ],
         "type": "object"
       },
       "Desire": {
@@ -10571,11 +10583,15 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:contentDigest"
+        ],
         "type": "object"
       },
       "EmbeddingProjection": {
@@ -10626,6 +10642,7 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -10669,6 +10686,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -10700,6 +10718,53 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:projectionSourceDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -10707,6 +10772,7 @@
           "gmeow:reproducibilityLevel": {
             "anyOf": [
               {
+                "$comment": "gmeow:ReproducibilityLevel has no NodeShape; node reference only",
                 "enum": [
                   {
                     "@id": "gmeow:regenerableOnly"
@@ -10717,10 +10783,20 @@
                   {
                     "@id": "gmeow:reproducibleWithinTolerance"
                   }
-                ]
+                ],
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
+                  "$comment": "gmeow:ReproducibilityLevel has no NodeShape; node reference only",
                   "enum": [
                     {
                       "@id": "gmeow:regenerableOnly"
@@ -10731,13 +10807,30 @@
                     {
                       "@id": "gmeow:reproducibleWithinTolerance"
                     }
-                  ]
+                  ],
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:hasSensitivity",
+          "gmeow:hasVectorSpaceContract",
+          "gmeow:projectionSource",
+          "gmeow:projectionSourceDigest",
+          "gmeow:reproducibilityLevel"
+        ],
         "type": "object"
       },
       "EmbodimentAssignment": {
@@ -11718,11 +11811,15 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:contentDigest"
+        ],
         "type": "object"
       },
       "ExtractedRelationship": {
@@ -39824,6 +39921,7 @@
                   ],
                   "type": "object"
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -39867,11 +39965,16 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:profileSurfaceKind",
+          "gmeow:profileSurfaceOf"
+        ],
         "type": "object"
       },
       "Prohibition": {
@@ -44595,11 +44698,15 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:contentDigest"
+        ],
         "type": "object"
       },
       "Task": {
@@ -46439,6 +46546,7 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -46482,11 +46590,16 @@
                     }
                   ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:contentDigest",
+          "gmeow:effectiveOfFamily"
+        ],
         "type": "object"
       },
       "VectorTarget": {

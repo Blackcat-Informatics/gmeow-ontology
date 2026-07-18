@@ -406,7 +406,7 @@
 
 <https://blackcatinformatics.ca/gmeow/DeclassificationAct-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DeclassificationAct> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/declassifies> ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/declassifies> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] .
 
 <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom> ;
@@ -432,9 +432,9 @@
 
 <https://blackcatinformatics.ca/gmeow/DerivedVectorIndex-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedVectorIndex> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/indexOverSpace> ; sh:class <https://blackcatinformatics.ca/gmeow/VectorSpaceContract> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/indexOfProjection> ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/approximationRecall> ; sh:class <https://blackcatinformatics.ca/math/Quantity> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/indexOverSpace> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/VectorSpaceContract> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/indexOfProjection> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/approximationRecall> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/math/Quantity> ] .
 
 <https://blackcatinformatics.ca/gmeow/Desire-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Desire> ;
@@ -500,14 +500,15 @@
 
 <https://blackcatinformatics.ca/gmeow/EmbeddingFamily-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingFamily> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:nodeKind sh:Literal ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/EmbeddingProjection-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasSensitivity> ; sh:class <https://blackcatinformatics.ca/gmeow/SensitivityLevel> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/projectionSource> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> ; sh:in ( <https://blackcatinformatics.ca/gmeow/regenerableOnly> <https://blackcatinformatics.ca/gmeow/reproducibleExact> <https://blackcatinformatics.ca/gmeow/reproducibleWithinTolerance> ) ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasVectorSpaceContract> ; sh:class <https://blackcatinformatics.ca/gmeow/VectorSpaceContract> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasSensitivity> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/SensitivityLevel> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/projectionSource> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/reproducibilityLevel> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/ReproducibilityLevel> ; sh:in ( <https://blackcatinformatics.ca/gmeow/regenerableOnly> <https://blackcatinformatics.ca/gmeow/reproducibleExact> <https://blackcatinformatics.ca/gmeow/reproducibleWithinTolerance> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasVectorSpaceContract> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/VectorSpaceContract> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/projectionSourceDigest> ; sh:minCount 1 ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment> ;
@@ -564,7 +565,7 @@
 
 <https://blackcatinformatics.ca/gmeow/ExternalBinding-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ExternalBinding> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:nodeKind sh:Literal ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> ;
@@ -1264,8 +1265,8 @@
 
 <https://blackcatinformatics.ca/gmeow/ProfileSurface-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ProfileSurface> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> ; sh:class <https://blackcatinformatics.ca/gmeow/ProfileSurfaceKind> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/ProfileSurfaceKind> ] .
 
 <https://blackcatinformatics.ca/gmeow/Prohibition-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Prohibition> ;
@@ -1562,7 +1563,7 @@
 
 <https://blackcatinformatics.ca/gmeow/TargetSet-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/TargetSet> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:nodeKind sh:Literal ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/Task-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Task> ;
@@ -1665,12 +1666,12 @@
 
 <https://blackcatinformatics.ca/gmeow/VectorSpaceContract-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/VectorSpaceContract> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:nodeKind sh:Literal ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/effectiveOfFamily> ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingFamily> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/effectiveOfFamily> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbeddingFamily> ] .
 
 <https://blackcatinformatics.ca/gmeow/VectorTarget-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/VectorTarget> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vectorTargetKind> ; sh:class <https://blackcatinformatics.ca/gmeow/VectorTargetKind> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vectorTargetKind> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/VectorTargetKind> ] .
 
 <https://blackcatinformatics.ca/gmeow/VerificationResult-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/VerificationResult> ;

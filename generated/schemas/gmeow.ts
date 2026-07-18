@@ -1972,13 +1972,16 @@ export type DeclassificationAct = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:declassifies"?: ((EmbeddingProjection | {
+  readonly "gmeow:declassifies": ((EmbeddingProjection | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((EmbeddingProjection | {
+        }) | readonly [(EmbeddingProjection | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2035,27 +2038,36 @@ export type DerivedVectorIndex = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:approximationRecall"?: ((MathQuantity | {
+  readonly "gmeow:approximationRecall": ((MathQuantity | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((MathQuantity | {
+        }) | readonly [(MathQuantity | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
-  readonly "gmeow:indexOfProjection"?: ((EmbeddingProjection | {
+            }), ...Array<(MathQuantity | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:indexOfProjection": ((EmbeddingProjection | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((EmbeddingProjection | {
+        }) | readonly [(EmbeddingProjection | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
-  readonly "gmeow:indexOverSpace"?: ((VectorSpaceContract | {
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:indexOverSpace": ((VectorSpaceContract | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((VectorSpaceContract | {
+        }) | readonly [(VectorSpaceContract | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
+            }), ...Array<(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2388,15 +2400,19 @@ export type EmbeddingFamily = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:contentDigest"?: (({
+  readonly "gmeow:contentDigest": (({
           readonly "@type"?: string;
           readonly "@value": JsonValue;
           readonly [key: string]: JsonValue;
-        } | string) | readonly (({
+        } | string) | readonly [({
               readonly "@type"?: string;
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
-            } | string))[]);
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2404,34 +2420,41 @@ export type EmbeddingProjection = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:hasSensitivity"?: (SensitivityLevelEnum | readonly (SensitivityLevelEnum)[]);
-  readonly "gmeow:hasVectorSpaceContract"?: ((VectorSpaceContract | {
+  readonly "gmeow:hasSensitivity": (SensitivityLevelEnum | readonly (SensitivityLevelEnum)[]);
+  readonly "gmeow:hasVectorSpaceContract": ((VectorSpaceContract | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((VectorSpaceContract | {
+        }) | readonly [(VectorSpaceContract | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
-  readonly "gmeow:projectionSource"?: ({
+            }), ...Array<(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:projectionSource": ({
         readonly "@id": string;
         readonly [key: string]: JsonValue;
-      } | readonly ({
+      } | readonly [{
             readonly "@id": string;
             readonly [key: string]: JsonValue;
-          })[]);
-  readonly "gmeow:reproducibilityLevel"?: (({
-          readonly "@id": "gmeow:regenerableOnly";
-        } | {
-          readonly "@id": "gmeow:reproducibleExact";
-        } | {
-          readonly "@id": "gmeow:reproducibleWithinTolerance";
-        }) | readonly (({
-              readonly "@id": "gmeow:regenerableOnly";
-            } | {
-              readonly "@id": "gmeow:reproducibleExact";
-            } | {
-              readonly "@id": "gmeow:reproducibleWithinTolerance";
-            }))[]);
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly "gmeow:projectionSourceDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:reproducibilityLevel": (ReproducibilityLevelEnum | readonly (ReproducibilityLevelEnum)[]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2650,15 +2673,19 @@ export type ExternalBinding = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:contentDigest"?: (({
+  readonly "gmeow:contentDigest": (({
           readonly "@type"?: string;
           readonly "@value": JsonValue;
           readonly [key: string]: JsonValue;
-        } | string) | readonly (({
+        } | string) | readonly [({
               readonly "@type"?: string;
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
-            } | string))[]);
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -5262,14 +5289,17 @@ export type ProfileSurface = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:profileSurfaceKind"?: (ProfileSurfaceKindEnum | readonly (ProfileSurfaceKindEnum)[]);
-  readonly "gmeow:profileSurfaceOf"?: ((EmbeddingProjection | {
+  readonly "gmeow:profileSurfaceKind": (ProfileSurfaceKindEnum | readonly (ProfileSurfaceKindEnum)[]);
+  readonly "gmeow:profileSurfaceOf": ((EmbeddingProjection | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((EmbeddingProjection | {
+        }) | readonly [(EmbeddingProjection | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -6067,15 +6097,19 @@ export type TargetSet = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:contentDigest"?: (({
+  readonly "gmeow:contentDigest": (({
           readonly "@type"?: string;
           readonly "@value": JsonValue;
           readonly [key: string]: JsonValue;
-        } | string) | readonly (({
+        } | string) | readonly [({
               readonly "@type"?: string;
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
-            } | string))[]);
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -6513,22 +6547,29 @@ export type VectorSpaceContract = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
-  readonly "gmeow:contentDigest"?: (({
+  readonly "gmeow:contentDigest": (({
           readonly "@type"?: string;
           readonly "@value": JsonValue;
           readonly [key: string]: JsonValue;
-        } | string) | readonly (({
+        } | string) | readonly [({
               readonly "@type"?: string;
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
-            } | string))[]);
-  readonly "gmeow:effectiveOfFamily"?: ((EmbeddingFamily | {
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:effectiveOfFamily": ((EmbeddingFamily | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
-        }) | readonly ((EmbeddingFamily | {
+        }) | readonly [(EmbeddingFamily | {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
-            }))[]);
+            }), ...Array<(EmbeddingFamily | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 

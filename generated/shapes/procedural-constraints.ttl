@@ -2568,6 +2568,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/usesScale> ?a . $this <https://blackcatinformatics.ca/gmeow/usesScale> ?b . FILTER ( ?a != ?b ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/WithMetricAgreementConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/WithMetricAgreementShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/overVectorSpace> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A similarity observation's gmeow:withMetric must equal its gmeow:overVectorSpace's gmeow:distanceMetric — a disagreeing metric is a hard fail." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/overVectorSpace> ?vsc . $this <https://blackcatinformatics.ca/gmeow/withMetric> ?m . ?vsc <https://blackcatinformatics.ca/gmeow/distanceMetric> ?sm . FILTER ( ?m != ?sm ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/WithdrawnDoxasticTenureSuppressionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DoxasticTenure> ;

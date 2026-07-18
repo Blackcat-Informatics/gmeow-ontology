@@ -4501,6 +4501,7 @@
       "gmeow:hasSensitivity": "gmeowHasSensitivity",
       "gmeow:hasVectorSpaceContract": "gmeowHasVectorSpaceContract",
       "gmeow:projectionSource": "gmeowProjectionSource",
+      "gmeow:projectionSourceDigest": "gmeowProjectionSourceDigest",
       "gmeow:reproducibilityLevel": "gmeowReproducibilityLevel"
     },
     "#/$defs/EmbodimentAssignment": {

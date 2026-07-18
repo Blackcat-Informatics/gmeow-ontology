@@ -4855,8 +4855,9 @@ classes:
           - inlined: true
             range: InlineDefsDeclassificationActPropertiesGmeowDeclassifiesAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:declassifies
     class_uri: gmeow:DeclassificationAct
     extra_slots:
@@ -5016,8 +5017,9 @@ classes:
           - inlined: true
             range: InlineDefsDerivedVectorIndexPropertiesGmeowApproximationRecallAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:approximationRecall
       gmeow:indexOfProjection:
         alias: gmeow:indexOfProjection
@@ -5033,8 +5035,9 @@ classes:
           - inlined: true
             range: InlineDefsDerivedVectorIndexPropertiesGmeowIndexOfProjectionAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:indexOfProjection
       gmeow:indexOverSpace:
         alias: gmeow:indexOverSpace
@@ -5050,8 +5053,9 @@ classes:
           - inlined: true
             range: InlineDefsDerivedVectorIndexPropertiesGmeowIndexOverSpaceAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:indexOverSpace
     class_uri: gmeow:DerivedVectorIndex
     extra_slots:
@@ -5845,8 +5849,9 @@ classes:
             range: InlineDefsEmbeddingFamilyPropertiesGmeowContentDigestAnyOf1ItemsAnyOf0Object
           - range: string
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:contentDigest
     class_uri: gmeow:EmbeddingFamily
     extra_slots:
@@ -5877,7 +5882,7 @@ classes:
         - list_elements_ordered: true
           multivalued: true
           range: SensitivityLevelEnum
-        required: false
+        required: true
         slot_uri: gmeow:hasSensitivity
       gmeow:hasVectorSpaceContract:
         alias: gmeow:hasVectorSpaceContract
@@ -5893,8 +5898,9 @@ classes:
           - inlined: true
             range: InlineDefsEmbeddingProjectionPropertiesGmeowHasVectorSpaceContractAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:hasVectorSpaceContract
       gmeow:projectionSource:
         alias: gmeow:projectionSource
@@ -5904,18 +5910,35 @@ classes:
         - inlined: true
           inlined_as_list: true
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
           range: InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceAnyOf1ItemsObject
-        required: false
+        required: true
         slot_uri: gmeow:projectionSource
+      gmeow:projectionSourceDigest:
+        alias: gmeow:projectionSourceDigest
+        any_of:
+        - any_of:
+          - inlined: true
+            range: InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf0AnyOf0Object
+          - range: string
+        - any_of:
+          - inlined: true
+            range: InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf1ItemsAnyOf0Object
+          - range: string
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:projectionSourceDigest
       gmeow:reproducibilityLevel:
         alias: gmeow:reproducibilityLevel
         any_of:
-        - range: InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf0Enum
+        - range: ReproducibilityLevelEnum
         - list_elements_ordered: true
           multivalued: true
-          range: InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf1ItemsEnum
-        required: false
+          range: ReproducibilityLevelEnum
+        required: true
         slot_uri: gmeow:reproducibilityLevel
     class_uri: gmeow:EmbeddingProjection
     extra_slots:
@@ -6467,8 +6490,9 @@ classes:
             range: InlineDefsExternalBindingPropertiesGmeowContentDigestAnyOf1ItemsAnyOf0Object
           - range: string
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:contentDigest
     class_uri: gmeow:ExternalBinding
     extra_slots:
@@ -11161,6 +11185,32 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
+  InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf0AnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf0AnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf1ItemsAnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsEmbeddingProjectionPropertiesGmeowProjectionSourceDigestAnyOf1ItemsAnyOf0Object
     extra_slots:
       allowed: true
   InlineDefsEmbeddingPropertiesGmeowEmbeddingModelAnyOf1Object:
@@ -35510,7 +35560,7 @@ classes:
         - list_elements_ordered: true
           multivalued: true
           range: ProfileSurfaceKindEnum
-        required: false
+        required: true
         slot_uri: gmeow:profileSurfaceKind
       gmeow:profileSurfaceOf:
         alias: gmeow:profileSurfaceOf
@@ -35526,8 +35576,9 @@ classes:
           - inlined: true
             range: InlineDefsProfileSurfacePropertiesGmeowProfileSurfaceOfAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:profileSurfaceOf
     class_uri: gmeow:ProfileSurface
     extra_slots:
@@ -37607,8 +37658,9 @@ classes:
             range: InlineDefsTargetSetPropertiesGmeowContentDigestAnyOf1ItemsAnyOf0Object
           - range: string
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:contentDigest
     class_uri: gmeow:TargetSet
     extra_slots:
@@ -41731,8 +41783,9 @@ classes:
             range: InlineDefsVectorSpaceContractPropertiesGmeowContentDigestAnyOf1ItemsAnyOf0Object
           - range: string
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:contentDigest
       gmeow:effectiveOfFamily:
         alias: gmeow:effectiveOfFamily
@@ -41748,8 +41801,9 @@ classes:
           - inlined: true
             range: InlineDefsVectorSpaceContractPropertiesGmeowEffectiveOfFamilyAnyOf1ItemsAnyOf1Object
           list_elements_ordered: true
+          minimum_cardinality: 1
           multivalued: true
-        required: false
+        required: true
         slot_uri: gmeow:effectiveOfFamily
     class_uri: gmeow:VectorSpaceContract
     extra_slots:
@@ -43160,24 +43214,6 @@ enums:
     enum_uri: gmeow:InlineDefsDiastolicPropertiesGmeowOpenehr_bloodpressure_unitsEnum
     permissible_values:
       mm[Hg]: {}
-  InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf0Enum:
-    enum_uri: gmeow:InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf0Enum
-    permissible_values:
-      gmeow:regenerableOnly:
-        meaning: gmeow:regenerableOnly
-      gmeow:reproducibleExact:
-        meaning: gmeow:reproducibleExact
-      gmeow:reproducibleWithinTolerance:
-        meaning: gmeow:reproducibleWithinTolerance
-  InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf1ItemsEnum:
-    enum_uri: gmeow:InlineDefsEmbeddingProjectionPropertiesGmeowReproducibilityLevelAnyOf1ItemsEnum
-    permissible_values:
-      gmeow:regenerableOnly:
-        meaning: gmeow:regenerableOnly
-      gmeow:reproducibleExact:
-        meaning: gmeow:reproducibleExact
-      gmeow:reproducibleWithinTolerance:
-        meaning: gmeow:reproducibleWithinTolerance
   InlineDefsMathPValuePropertiesMathAlternativeSidednessAnyOf0Enum:
     enum_uri: gmeow:InlineDefsMathPValuePropertiesMathAlternativeSidednessAnyOf0Enum
     permissible_values:
