@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/embedding-projection>
+    a gmeow:Slice ;
+    rdfs:label "embedding-projection"@x-gmeow-english ;
+    skos:definition "The embedding-projection slice of the GMEOW ontology (extension tier): GMEOW Embedding Projection Module. It models the .purremb pack-level embedding projection as auditable ontology content — a generated, content-addressed, LOSSY projection over an exact source pack that AGGREGATES graphrag's per-object gmeow:Embedding rows under a comparability contract (gmeow:VectorSpaceContract, identified by its gmeow:contentDigest), binds each vector row to its exact target (gmeow:VectorTarget), records operational ranked-retrieval as gmeow:SimilarityObservation (never entailment), carries get-leg determinism (gmeow:reproducibilityLevel) and disclosure sensitivity with an explicit gmeow:DeclassificationAct, and exposes non-authoritative accelerators (gmeow:DerivedVectorIndex). Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    dcterms:title "GMEOW Embedding Projection Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/graphrag> ,
+        <https://blackcatinformatics.ca/gmeow/slices/notation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/gts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:sliceProfile "purremb" ;
+    gmeow:sliceConsumer "Project Lillith's bookshelf/document environment — the .purremb embedding-projection packages that ship a bookshelf's vectors as content-addressed, sensitivity-guarded ontology payloads beside the documents they embed, so 'which exact vectors, over which vector space, from which certified source, at what get-leg determinism?' is auditable provenance rather than an opaque sidecar (P12, P15)."@x-gmeow-english .

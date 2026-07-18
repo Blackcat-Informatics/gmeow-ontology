@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT4b counter-example (Don't): a gmeow:TargetSet whose member gmeow:VectorTarget
+# carries NO gmeow:targetOrdinal. The member has an exact identity (a
+# gmeow:targetsResource), so it satisfies C4 — but with no ordinal the set's row
+# order is unreconstructable and the "same digest ⇔ same ordered membership" claim
+# is unvalidatable. Triggers targetset-unordered.rq (→ ce:unorderedMember) and
+# violates gmeow:TargetSetOrderedMembershipConstraint.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:unorderedSet a gmeow:TargetSet ;
+    gmeow:contentDigest   "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0009" ;
+    gmeow:targetSetMember ce:unorderedMember .
+
+ce:unorderedMember a gmeow:VectorTarget ;
+    gmeow:vectorTargetKind gmeow:vectorTargetChunk ;
+    gmeow:targetsResource  ce:someChunk .

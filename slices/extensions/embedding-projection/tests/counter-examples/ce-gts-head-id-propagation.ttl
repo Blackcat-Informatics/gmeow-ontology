@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# R1 counter-example (Don't): a projection over a CERTIFIED source (the source carries
+# a gmeow:gtsHeadId) that fails to propagate a matching gmeow:projectionSourceGtsHeadId
+# — the committed history was dropped. Triggers gts-head-id-propagation.rq
+# (→ ce:droppedHeadProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:certifiedPack a gmeow:InformationObject ;
+    gmeow:contentDigest "blake3:pk00000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:gtsHeadId     "blake3:hd00000011112222333344445555666677778888999900001111222233334444" .
+
+ce:droppedHeadProj a gmeow:EmbeddingProjection ;
+    gmeow:projectionSource       ce:certifiedPack ;
+    gmeow:projectionSourceDigest "blake3:pk00000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasVectorSpaceContract ce:droppedHeadVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityInternal .

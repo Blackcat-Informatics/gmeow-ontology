@@ -1,0 +1,21 @@
+# R5 — container/manifest agreement across ALL recorded digests (violation finder).
+# The CT10 disagreement finder GENERALIZED over all three recorded-digest predicates:
+# a gmeow:EmbeddingProjection whose gmeow:surfaceContainer and gmeow:surfaceManifest
+# profile surfaces disagree on the source-pack, model-contract, OR target-table
+# digest (gmeow:recordsSourceDigest / gmeow:recordsModelContractDigest /
+# gmeow:recordsTargetTableDigest). Independent SPARQL twin of the three profile-surface
+# agreement constraints (C5a/C5b/C5c).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?sc gmeow:profileSurfaceOf ?proj ; gmeow:profileSurfaceKind gmeow:surfaceContainer .
+  ?sm gmeow:profileSurfaceOf ?proj ; gmeow:profileSurfaceKind gmeow:surfaceManifest .
+  {
+    ?sc gmeow:recordsSourceDigest ?x . ?sm gmeow:recordsSourceDigest ?y . FILTER(STR(?x) != STR(?y))
+  } UNION {
+    ?sc gmeow:recordsModelContractDigest ?x . ?sm gmeow:recordsModelContractDigest ?y . FILTER(STR(?x) != STR(?y))
+  } UNION {
+    ?sc gmeow:recordsTargetTableDigest ?x . ?sm gmeow:recordsTargetTableDigest ?y . FILTER(STR(?x) != STR(?y))
+  }
+}
+ORDER BY ?proj
