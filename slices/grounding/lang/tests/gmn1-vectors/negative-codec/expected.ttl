@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Codec-tier negative vectors and the EXACT lang: failure class each must raise through the
+# production codec. A ".gmn" vector is a read-negative (gmn1_read), an ".in.ttl" vector is a
+# write-negative (gmn1_write) — the direction is read off the file extension. rdfs:label names
+# the vector file; gmeow:enforcesFailureClass names the lang:LangConformanceFailure it raises.
+# GmnCodebookDigestMismatch / GmnMissingEnvelopeField are GRAPH-tier, never codec-byte, negatives
+# (see ../negative-graph/), so they never appear here.
+
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+[ rdfs:label "neg-noncanonical-order.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnNonCanonicalOrder ] .
+
+[ rdfs:label "neg-malformed-number-exp.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnMalformedNumber ] .
+
+[ rdfs:label "neg-malformed-number-frac.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnMalformedNumber ] .
+
+[ rdfs:label "neg-undeclared-dialect.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnUndeclaredDialectVersion ] .
+
+[ rdfs:label "neg-uncovered-term.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnUncoveredTerm ] .
+
+[ rdfs:label "neg-err-missing-id.gmn" ;
+  gmeow:enforcesFailureClass lang:GmnNonDecodableGrammar ] .
+
+[ rdfs:label "neg-non-nfc-literal.in.ttl" ;
+  gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ] .
+
+[ rdfs:label "neg-non-nfc-triple-term.in.ttl" ;
+  gmeow:enforcesFailureClass lang:GmnNonCanonicalCodepoint ] .

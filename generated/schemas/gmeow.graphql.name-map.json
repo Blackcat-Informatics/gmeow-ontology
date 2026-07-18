@@ -4587,6 +4587,7 @@
       "@type": "type",
       "gmeow:accordingTo": "gmeowAccordingTo",
       "gmeow:contentDigest": "gmeowContentDigest",
+      "gmeow:gmnCodebookDigest": "gmeowGmnCodebookDigest",
       "gmeow:gmnDictionaryVersion": "gmeowGmnDictionaryVersion",
       "gmeow:gmnEnvelopeCorrespondence": "gmeowGmnEnvelopeCorrespondence",
       "gmeow:gmnGlyphTableVersion": "gmeowGmnGlyphTableVersion",

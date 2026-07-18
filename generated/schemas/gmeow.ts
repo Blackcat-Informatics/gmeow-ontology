@@ -2844,6 +2844,7 @@ export type GmnEnvelope = {
   readonly "@type"?: (string | readonly (string)[]);
   readonly "gmeow:accordingTo": JsonValue;
   readonly "gmeow:contentDigest": JsonValue;
+  readonly "gmeow:gmnCodebookDigest": JsonValue;
   readonly "gmeow:gmnDictionaryVersion": JsonValue;
   readonly "gmeow:gmnEnvelopeCorrespondence"?: JsonValue;
   readonly "gmeow:gmnGlyphTableVersion": JsonValue;
