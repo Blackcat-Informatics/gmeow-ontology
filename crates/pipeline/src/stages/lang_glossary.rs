@@ -45,7 +45,7 @@
 //! All identities are content-addressed and the N-Triples are sorted + deduped, so the
 //! corpus is byte-reproducible (no clock, no randomness).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
@@ -54,6 +54,9 @@ use gmeow_docs::i18n_compile::{
     authored_turtle_files, declared_homograph_sources, is_candidate_translation, language_from_po,
     parse_po,
 };
+use gmeow_logic_compile::ir::PreservationKind;
+use gmeow_logic_compile::loss_ledger::LossLedger;
+use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_validate::distinctiveness::skeleton;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
@@ -65,8 +68,35 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 /// section headers), reconstructed by the superset gate from the `REP_GENERATED` archive.
 pub const GLOSSARY_TABLE_PATH: &str = "generated/catalog/glossary.md";
 
+/// Committed logical path of the OntoLex `vartrans:translation` interop lowering — the
+/// RDF-native terminology projection of `graph/lang-glossary-corpus`: one
+/// `vartrans:Translation` per reviewed source→target crossing, relating the source and
+/// target `ontolex:LexicalSense`, grouped in a per-language `vartrans:TranslationSet`. A
+/// byte-decorated opaque fanout member (a `# GENERATED` banner) riding
+/// `stage-export-glossary`, reconstructed by the superset gate from `REP_GENERATED`.
+pub const GLOSSARY_VARTRANS_PATH: &str = "generated/projections/glossary.vartrans.ttl";
+
+/// Committed logical path of the TBX (ISO-30042 TermBase eXchange) interop lowering — the
+/// standard terminology-interchange XML projection of `graph/lang-glossary-corpus`: one
+/// `<termEntry>` per lexical concept, one `<langSet>` per language, one `<tig><term>` per
+/// term. A byte-decorated opaque fanout member (an XML prolog + `<!-- GENERATED -->` banner)
+/// riding `stage-export-glossary`, reconstructed by the superset gate from `REP_GENERATED`.
+pub const GLOSSARY_TBX_PATH: &str = "generated/projections/glossary.tbx";
+
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// The OntoLex-Lemon core namespace — the RDF-native terminology structure the vartrans
+/// lowering reuses (`ontolex:LexicalEntry`/`LexicalSense`/`Form`/`writtenRep`/`reference`).
+const ONTOLEX_NS: &str = "http://www.w3.org/ns/lemon/ontolex#";
+/// The OntoLex-Lemon variation-and-translation module namespace — the crossing itself
+/// (`vartrans:Translation`/`translation`/`source`/`target`/`TranslationSet`/`trans`).
+const VARTRANS_NS: &str = "http://www.w3.org/ns/lemon/vartrans#";
+/// Dublin Core Terms — the `dct:language` tag on a target lexical entry.
+const DCT_NS: &str = "http://purl.org/dc/terms/";
+/// The example-instance base every minted vartrans projection individual lives under (the
+/// forward `glossary → OntoLex vartrans` peer of the sibling `lang:` projection bases).
+const VARTRANS_BASE: &str = "http://example.org/lang/glossary-vartrans/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The example-instance base every minted glossary IRI lives under — shared with the
 /// sibling `lang:` corpora so the competency queries scope with the same `STRSTARTS`.
@@ -419,6 +449,377 @@ fn render_glossary_table(entries: &[Entry]) -> String {
     out
 }
 
+// ── The two external interop lowerings (Principle-17 generated lowering artifacts) ──────
+//
+// Both project the SAME reviewed-crossing [`Entry`] list ([`build_entries`]) the graph folds
+// — never a second `.po` parse — so the interchange files and the graph cannot drift. Both
+// are LOSSY sound-under-approximations: they carry the term↔term crossing faithfully but drop
+// the sense law-spine (the `logic:Correspondence` on the `lang:TranslationUnit`), the
+// crossing's `logic:preservationKind`, the annotation-predicate provenance, and the homograph
+// declaration; TBX additionally flattens the whole Frege-triangle sense structure and the term
+// IRI grounding. Every drop is enumerated in the paired `lang:ProjectionEmission` record
+// ([`build_lowering_corpus`]) so honest-lossy is a passing conformance state and silent-lossy
+// is a red build (`lang:UndeclaredUnsupportedConstruct`).
+
+/// Render the OntoLex `vartrans:translation` lowering as deterministic Turtle: each reviewed
+/// crossing becomes a `vartrans:Translation` relating a source `ontolex:LexicalSense` (REUSING
+/// the carried `lang:Sense` identity, the OntoLex peer) to a per-crossing target
+/// `ontolex:LexicalSense`, both `ontolex:reference`-ing the carried `lang:LexicalConcept`, and
+/// grouped in a per-language `vartrans:TranslationSet`. Sorted + deduped over full-IRI
+/// statements (a valid Turtle subset), so the artifact is byte-reproducible (no clock, no
+/// randomness).
+fn render_vartrans_ttl(entries: &[Entry]) -> String {
+    let mut lines: Vec<String> = Vec::new();
+    for e in entries {
+        let sense_local = localname(&e.sense_iri);
+        let entry_local = localname(&e.entry_iri);
+        // The source lexical entry/form/sense: keyed by the carried sense (language-independent),
+        // so two languages of one term share one source sense — the OntoLex synonymy peer.
+        let src_entry = format!("{VARTRANS_BASE}entry-src/{sense_local}");
+        let src_form = format!("{VARTRANS_BASE}form-src/{sense_local}");
+        let src_sense = e.sense_iri.clone();
+        // The target lexical entry/form/sense + the crossing: keyed per crossing (a distinct
+        // rendering per (term, language, predicate) crossing).
+        let tgt_entry = format!("{VARTRANS_BASE}entry-tgt/{entry_local}");
+        let tgt_form = format!("{VARTRANS_BASE}form-tgt/{entry_local}");
+        let tgt_sense = format!("{VARTRANS_BASE}sense-tgt/{entry_local}");
+        let translation = format!("{VARTRANS_BASE}translation/{entry_local}");
+        let trans_set = format!("{VARTRANS_BASE}set/{}", e.lang);
+
+        lines.push(triple(
+            &src_entry,
+            RDF_TYPE,
+            &iri(ONTOLEX_NS, "LexicalEntry"),
+        ));
+        lines.push(triple(
+            &src_entry,
+            &iri(ONTOLEX_NS, "canonicalForm"),
+            &src_form,
+        ));
+        lines.push(triple(&src_entry, &iri(ONTOLEX_NS, "sense"), &src_sense));
+        lines.push(triple(&src_form, RDF_TYPE, &iri(ONTOLEX_NS, "Form")));
+        lines.push(triple_langlit(
+            &src_form,
+            &iri(ONTOLEX_NS, "writtenRep"),
+            &e.source,
+            "en",
+        ));
+        lines.push(triple(
+            &src_sense,
+            RDF_TYPE,
+            &iri(ONTOLEX_NS, "LexicalSense"),
+        ));
+        lines.push(triple(
+            &src_sense,
+            &iri(ONTOLEX_NS, "reference"),
+            &e.concept_iri,
+        ));
+
+        lines.push(triple(
+            &tgt_entry,
+            RDF_TYPE,
+            &iri(ONTOLEX_NS, "LexicalEntry"),
+        ));
+        lines.push(triple(
+            &tgt_entry,
+            &iri(ONTOLEX_NS, "canonicalForm"),
+            &tgt_form,
+        ));
+        lines.push(triple(&tgt_entry, &iri(ONTOLEX_NS, "sense"), &tgt_sense));
+        lines.push(triple_lit(&tgt_entry, &iri(DCT_NS, "language"), &e.lang));
+        lines.push(triple(&tgt_form, RDF_TYPE, &iri(ONTOLEX_NS, "Form")));
+        lines.push(triple_langlit(
+            &tgt_form,
+            &iri(ONTOLEX_NS, "writtenRep"),
+            &e.translation,
+            &e.lang,
+        ));
+        lines.push(triple(
+            &tgt_sense,
+            RDF_TYPE,
+            &iri(ONTOLEX_NS, "LexicalSense"),
+        ));
+        lines.push(triple(
+            &tgt_sense,
+            &iri(ONTOLEX_NS, "reference"),
+            &e.concept_iri,
+        ));
+
+        lines.push(triple(
+            &translation,
+            RDF_TYPE,
+            &iri(VARTRANS_NS, "Translation"),
+        ));
+        lines.push(triple(
+            &translation,
+            &iri(VARTRANS_NS, "source"),
+            &src_sense,
+        ));
+        lines.push(triple(
+            &translation,
+            &iri(VARTRANS_NS, "target"),
+            &tgt_sense,
+        ));
+        lines.push(triple(
+            &trans_set,
+            RDF_TYPE,
+            &iri(VARTRANS_NS, "TranslationSet"),
+        ));
+        lines.push(triple(&trans_set, &iri(VARTRANS_NS, "trans"), &translation));
+    }
+    lines.sort();
+    lines.dedup();
+    let mut out = String::from(VARTRANS_HEADER);
+    for line in &lines {
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
+}
+
+/// The `# GENERATED` Turtle banner of the vartrans lowering (why it rides an opaque
+/// byte-decorated archive member rather than a canonical named-graph fold).
+const VARTRANS_HEADER: &str = "# GENERATED by gmeow lang-glossary — DO NOT EDIT.\n# OntoLex vartrans:translation lowering of the per-slice terminology glossary\n# (graph/lang-glossary-corpus): one vartrans:Translation per reviewed source→target\n# crossing, relating the source and target ontolex:LexicalSense, grouped in a per-language\n# vartrans:TranslationSet. A LOSSY sound under-approximation — the sense law-spine\n# (logic:Correspondence), the crossing's preservation kind, the predicate provenance, and the\n# homograph declaration are dropped. The honest drop list rides the lang:ProjectionEmission\n# \"OntoLex vartrans\" record in graph/lang-projection-corpus.\n\n";
+
+/// Render the TBX (ISO-30042 TermBase eXchange) lowering as deterministic XML: one
+/// `<termEntry>` per lexical concept (the grouping key the glossary already folds on), one
+/// `<langSet xml:lang=…>` per language (English source + each target rendering), one
+/// `<tig><term>` per distinct term. Grouped and sorted by concept then language then term, XML
+/// escaped, no clock — so the termbase is byte-reproducible.
+fn render_tbx(entries: &[Entry]) -> String {
+    // concept → language → sorted distinct terms. The English source rides the "en" langSet;
+    // each target rendering rides its own language langSet.
+    let mut concepts: BTreeMap<&str, BTreeMap<&str, BTreeSet<&str>>> = BTreeMap::new();
+    for e in entries {
+        let by_lang = concepts.entry(e.concept_iri.as_str()).or_default();
+        by_lang.entry("en").or_default().insert(e.source.as_str());
+        by_lang
+            .entry(e.lang.as_str())
+            .or_default()
+            .insert(e.translation.as_str());
+    }
+
+    let mut out = String::from(TBX_HEADER);
+    for (concept, by_lang) in &concepts {
+        let id = format!("c-{}", localname(concept));
+        out.push_str(&format!("      <termEntry id=\"{}\">\n", xml_attr(&id)));
+        for (lang, terms) in by_lang {
+            out.push_str(&format!(
+                "        <langSet xml:lang=\"{}\">\n",
+                xml_attr(lang)
+            ));
+            for term in terms {
+                out.push_str("          <tig>\n");
+                out.push_str(&format!("            <term>{}</term>\n", xml_text(term)));
+                out.push_str("          </tig>\n");
+            }
+            out.push_str("        </langSet>\n");
+        }
+        out.push_str("      </termEntry>\n");
+    }
+    out.push_str(TBX_FOOTER);
+    out
+}
+
+/// The XML prolog + `<!-- GENERATED -->` banner + `<martif>` head of the TBX termbase.
+const TBX_HEADER: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- GENERATED by gmeow lang-glossary — DO NOT EDIT. -->\n<martif type=\"TBX\" xml:lang=\"en\">\n  <martifHeader>\n    <fileDesc>\n      <sourceDesc>\n        <p>Projected from the GMEOW per-slice terminology glossary (graph/lang-glossary-corpus): one termEntry per lexical concept, one langSet per language, one tig per term. A LOSSY sound under-approximation — the Frege-triangle sense structure, the crossing's logic:Correspondence law-spine and preservation kind, the predicate provenance, the homograph declaration, and the term IRI grounding are dropped. The honest drop list rides the lang:ProjectionEmission \"TBX (ISO 30042)\" record in graph/lang-projection-corpus.</p>\n      </sourceDesc>\n    </fileDesc>\n  </martifHeader>\n  <text>\n    <body>\n";
+
+/// The `<martif>` tail of the TBX termbase.
+const TBX_FOOTER: &str = "    </body>\n  </text>\n</martif>\n";
+
+/// Escape a value for XML element content (`&`, `<`, `>`).
+fn xml_text(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+/// Escape a value for a double-quoted XML attribute (`&`, `<`, `>`, `"`).
+fn xml_attr(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+/// A language-tagged N-Triples/Turtle literal object (`"text"@lang`).
+fn triple_langlit(subject: &str, predicate: &str, text: &str, lang: &str) -> String {
+    format!("<{subject}> <{predicate}> {}@{lang} .", nt_literal(text))
+}
+
+// ── The honest per-target loss ledger (the `lang:ProjectionEmission` records) ─────────────
+
+/// The assembled glossary interop-lowering corpus: the two `lang:ProjectionEmission` records
+/// (folded into `graph/lang-projection-corpus` by the mappings stage), the two honest lossy
+/// loss-ledger rows, and the loss store their enumerated drops are interned into.
+pub struct GlossaryLoweringCorpus {
+    /// The deterministic, sorted N-Triples of the two `lang:ProjectionEmission` records —
+    /// appended to `graph/lang-projection-corpus` alongside the sibling `lang:` emissions.
+    pub emission_ntriples: Vec<u8>,
+    /// One honest lossy `ProjectionResult` per target (`SoundUnderApproximation`). The rows
+    /// carry only identity/judgment; their enumerated drops live in [`loss`](Self::loss).
+    pub ledger: Vec<ProjectionResult>,
+    /// The loss store each target's enumerated drops are interned into, keyed by target focus.
+    /// The mappings stage unions it into the single report loss store.
+    pub loss: LossLedger,
+}
+
+/// One glossary interop target: its human-readable emission name, its loss-ledger focus key,
+/// whether its artifact is RDF, and the ordered list of constructs it drops (the honest
+/// `lang:unsupportedConstruct` set — enumerated because both targets are lossy).
+struct LoweringTarget {
+    name: &'static str,
+    ledger_key: &'static str,
+    is_rdf: bool,
+    drops: &'static [&'static str],
+}
+
+/// The two shipped glossary interop lowerings. Every drop is a construct the glossary corpus
+/// carries that the target cannot: an undeclared drop trips `lang:UndeclaredUnsupportedConstruct`
+/// (the overclaim floor, over bundle data), so honest-lossy is the only passing state.
+const LOWERING_TARGETS: &[LoweringTarget] = &[
+    LoweringTarget {
+        name: "OntoLex vartrans",
+        ledger_key: "glossary-lowering:ontolex-vartrans",
+        is_rdf: true,
+        // vartrans is RDF-native and keeps the sense/concept structure; it still drops the
+        // crossing's law-spine and provenance.
+        drops: &[
+            "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)",
+            "the crossing's logic:preservationKind judgment",
+            "the gmeow:glossaryPredicate annotation-predicate provenance",
+            "the lang:DeclaredTerminologyHomograph declaration that split the concept",
+        ],
+    },
+    LoweringTarget {
+        name: "TBX (ISO 30042)",
+        ledger_key: "glossary-lowering:tbx",
+        is_rdf: false,
+        // TBX is a flat concept/langSet/term termbase; it flattens the whole Frege triangle and
+        // the term IRI grounding on top of the crossing law-spine and provenance.
+        drops: &[
+            "the OntoLex Frege-triangle sense structure (lang:Sense / lang:evokes / lang:LexicalConcept)",
+            "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)",
+            "the crossing's logic:preservationKind judgment",
+            "the gmeow:glossaryPredicate annotation-predicate provenance",
+            "the lang:DeclaredTerminologyHomograph declaration that split the concept",
+            "the gmeow:glossaryTerm IRI grounding (TBX terms are plain strings)",
+        ],
+    },
+];
+
+/// Build the two glossary interop lowerings' honest loss ledger: for each target, one
+/// `lang:ProjectionEmission` record (folded into `graph/lang-projection-corpus`) declaring its
+/// target name, the projected source senses, its `SoundUnderApproximation` preservation kind,
+/// and every dropped construct — plus its `ProjectionResult` row + interned drops. Derived from
+/// the SAME reviewed-crossing [`build_entries`] list the rendered artifacts and the graph
+/// project, never a second parse.
+pub fn build_lowering_corpus(root: &Path) -> Result<GlossaryLoweringCorpus, gmeow_errors::Diag> {
+    let entries = build_entries(root)?;
+    Ok(build_lowering_from_entries(&entries))
+}
+
+/// Fold the interop-lowering loss ledger from the in-memory [`Entry`] list (the shared
+/// derivation, so the emission records, the rendered artifacts, and the glossary graph never
+/// drift). Exposed to the test module and [`build_lowering_corpus`].
+fn build_lowering_from_entries(entries: &[Entry]) -> GlossaryLoweringCorpus {
+    // The distinct source senses the lowerings project FROM (a `lang:Sense`, the range
+    // lang:projectsSource names). Sense-grain, sorted + deduped: two languages of one term
+    // share one source sense, so the record names each source sense once.
+    let mut senses: Vec<&str> = entries.iter().map(|e| e.sense_iri.as_str()).collect();
+    senses.sort_unstable();
+    senses.dedup();
+
+    let mut lines: Vec<String> = Vec::new();
+    let mut ledger: Vec<ProjectionResult> = Vec::new();
+    let mut loss = LossLedger::new();
+
+    for target in LOWERING_TARGETS {
+        let emission_iri = example(
+            "glossary-projection-emission",
+            &digest16("glossary-projection-emission", target.name),
+        );
+        lines.push(triple(
+            &emission_iri,
+            RDF_TYPE,
+            &iri(LANG_NS, "ProjectionEmission"),
+        ));
+        lines.push(triple_lit(
+            &emission_iri,
+            &iri(LANG_NS, "projectionTargetName"),
+            target.name,
+        ));
+        for sense in &senses {
+            lines.push(triple(
+                &emission_iri,
+                &iri(LANG_NS, "projectsSource"),
+                sense,
+            ));
+        }
+        // NOT Exact — both lowerings drop structure; a sound under-approximation (the emitted
+        // term↔term crossings are entailed, but the projection is incomplete).
+        lines.push(triple(
+            &emission_iri,
+            &iri(LOGIC_NS, "preservationKind"),
+            &PreservationKind::SoundUnder.iri(),
+        ));
+        for drop in target.drops {
+            lines.push(triple_lit(
+                &emission_iri,
+                &iri(LANG_NS, "unsupportedConstruct"),
+                drop,
+            ));
+        }
+
+        // The honest lossy ledger row + its interned drops (the same overclaim-floored
+        // plumbing the sibling `lang:` lowerings use). SoundUnder with a non-empty residue
+        // clears assert_no_overclaim.
+        let drops_owned: Vec<String> = target.drops.iter().map(|d| (*d).to_owned()).collect();
+        loss.record_projection_drops(
+            target.ledger_key,
+            PreservationKind::SoundUnder,
+            &drops_owned,
+            &drops_owned,
+        );
+        ledger.push(ProjectionResult {
+            target: target.ledger_key.to_owned(),
+            content: format!(
+                "glossary crossings lowered to {}: sound under-approximation (term↔term carried; \
+                 {} construct(s) dropped)",
+                target.name,
+                target.drops.len()
+            ),
+            is_rdf: target.is_rdf,
+            preservation: PreservationKind::SoundUnder,
+            complexity: "n/a".to_owned(),
+        });
+    }
+
+    lines.sort();
+    lines.dedup();
+    let mut emission_ntriples = lines.join("\n");
+    emission_ntriples.push('\n');
+    GlossaryLoweringCorpus {
+        emission_ntriples: emission_ntriples.into_bytes(),
+        ledger,
+        loss,
+    }
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────────────────
 
 /// The `stage-export-glossary` export leaf: the committed human-readable terminology
@@ -472,6 +873,17 @@ impl Stage for GlossaryTableStage {
         let md = render_glossary_table(&entries);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GLOSSARY_TABLE_PATH.to_string(), md.into_bytes());
+        // The two external terminology-interchange lowerings (Principle-17 generated
+        // lowerings), projected from the SAME reviewed-crossing entry list — byte-decorated
+        // opaque REP_GENERATED members riding this leaf alongside the readable table.
+        artifacts.insert(
+            GLOSSARY_VARTRANS_PATH.to_string(),
+            render_vartrans_ttl(&entries).into_bytes(),
+        );
+        artifacts.insert(
+            GLOSSARY_TBX_PATH.to_string(),
+            render_tbx(&entries).into_bytes(),
+        );
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
@@ -602,6 +1014,137 @@ mod tests {
         assert_eq!(
             localname("https://blackcatinformatics.ca/gmeow/EntityExistence"),
             "EntityExistence"
+        );
+    }
+
+    #[test]
+    fn vartrans_lowering_projects_crossings_over_reused_ontolex_structure() {
+        // The OntoLex vartrans lowering projects the SAME reviewed-crossing entry list, reusing
+        // the carried lang:Sense (as the ontolex:LexicalSense peer) and lang:LexicalConcept.
+        let entries = build_entries(&repo_root()).expect("build entries");
+        let ttl = render_vartrans_ttl(&entries);
+        assert!(
+            ttl.starts_with("# GENERATED by gmeow lang-glossary"),
+            "vartrans carries the GENERATED banner: {}",
+            &ttl[..ttl.len().min(80)]
+        );
+        // Real vartrans + OntoLex structure.
+        assert!(ttl.contains(&iri(VARTRANS_NS, "Translation")));
+        assert!(ttl.contains(&iri(VARTRANS_NS, "TranslationSet")));
+        assert!(ttl.contains(&iri(VARTRANS_NS, "source")));
+        assert!(ttl.contains(&iri(VARTRANS_NS, "target")));
+        assert!(ttl.contains(&iri(ONTOLEX_NS, "LexicalSense")));
+        assert!(ttl.contains(&iri(ONTOLEX_NS, "writtenRep")));
+        // The carried sense + concept identities are REUSED (the lowering references, never
+        // re-mints, the OntoLex structure the glossary corpus already carries).
+        let one = &entries[0];
+        assert!(
+            ttl.contains(&format!("<{}> ", one.sense_iri)),
+            "the vartrans source sense reuses the carried lang:Sense IRI"
+        );
+        assert!(
+            ttl.contains(&format!("<{}> .", one.concept_iri)),
+            "the vartrans senses reference the carried lang:LexicalConcept IRI"
+        );
+        // A known reviewed crossing rides the lowering as a lang-tagged writtenRep.
+        assert!(
+            ttl.contains("\"Existence d'entité\"@fr"),
+            "the EntityExistence French rendering must be a fr writtenRep"
+        );
+        // Deterministic (no clock, no randomness).
+        assert_eq!(ttl, render_vartrans_ttl(&entries));
+    }
+
+    #[test]
+    fn tbx_lowering_projects_concepts_and_escapes_xml() {
+        let entries = build_entries(&repo_root()).expect("build entries");
+        let tbx = render_tbx(&entries);
+        assert!(tbx.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"));
+        assert!(tbx.contains("<martif type=\"TBX\" xml:lang=\"en\">"));
+        assert!(tbx.trim_end().ends_with("</martif>"));
+        assert!(
+            tbx.contains("<termEntry id=\"c-"),
+            "one termEntry per concept"
+        );
+        assert!(
+            tbx.contains("<langSet xml:lang=\"en\">"),
+            "the English source langSet"
+        );
+        assert!(
+            tbx.contains("<langSet xml:lang=\"fr\">"),
+            "a French target langSet"
+        );
+        assert!(
+            tbx.contains("<term>Existence d'entité</term>"),
+            "the EntityExistence French rendering must ride a fr tig"
+        );
+        // Deterministic.
+        assert_eq!(tbx, render_tbx(&entries));
+        // XML escaping is total: a term with markup metacharacters is escaped, never raw.
+        let escaped = xml_text("a & b < c > d");
+        assert_eq!(escaped, "a &amp; b &lt; c &gt; d");
+        assert_eq!(xml_attr("x\"y"), "x&quot;y");
+    }
+
+    #[test]
+    fn glossary_lowerings_fold_two_honest_lossy_emissions() {
+        use gmeow_logic_compile::projections::assert_no_overclaim;
+
+        let corpus = build_lowering_corpus(&repo_root()).expect("build lowering corpus");
+        let nt = String::from_utf8(corpus.emission_ntriples.clone()).expect("utf8");
+
+        // Exactly two ProjectionEmission records, one per target.
+        let record_count = nt
+            .matches(&format!("<{}> .", iri(LANG_NS, "ProjectionEmission")))
+            .count();
+        assert_eq!(record_count, 2, "one lang:ProjectionEmission per target");
+        assert!(nt.contains("\"OntoLex vartrans\""));
+        assert!(nt.contains("\"TBX (ISO 30042)\""));
+
+        // Each emission declares a NON-Exact preservation kind and enumerates ≥1 drop, and
+        // names its source senses — the shape gate + UndeclaredUnsupportedConstruct floor.
+        assert!(nt.contains(&PreservationKind::SoundUnder.iri()));
+        assert!(!nt.contains(&PreservationKind::Exact.iri()));
+        assert!(nt.contains(&iri(LANG_NS, "unsupportedConstruct")));
+        assert!(nt.contains(&iri(LANG_NS, "projectsSource")));
+
+        // Two honest lossy ledger rows, each clearing the overclaim floor (SoundUnder with a
+        // non-empty enumerated residue).
+        assert_eq!(corpus.ledger.len(), 2);
+        for row in &corpus.ledger {
+            assert_eq!(row.preservation, PreservationKind::SoundUnder);
+            let residue_owned = corpus.loss.projection_drops_for(&row.target);
+            assert!(
+                !residue_owned.is_empty(),
+                "a lossy lowering must intern its enumerated drops: {}",
+                row.target
+            );
+            let residue: Vec<&str> = residue_owned.iter().map(String::as_str).collect();
+            assert_no_overclaim(&row.target, row.preservation, &residue)
+                .unwrap_or_else(|e| panic!("overclaim floor violated: {e}"));
+        }
+
+        // Every named source is a carried glossary sense (the lang:Sense projectsSource range).
+        let entries = build_entries(&repo_root()).expect("entries");
+        let sense_marker = format!("<{}> <", iri(LANG_NS, "projectsSource"));
+        for line in nt.lines() {
+            if let Some(idx) = line.find(&sense_marker) {
+                let obj = line[idx + sense_marker.len()..]
+                    .trim_end_matches(" .")
+                    .trim_end_matches('>');
+                assert!(
+                    entries.iter().any(|e| e.sense_iri == obj),
+                    "projectsSource {obj} is not a carried glossary sense"
+                );
+            }
+        }
+
+        // Deterministic emission bytes.
+        assert_eq!(
+            corpus.emission_ntriples,
+            build_lowering_corpus(&repo_root())
+                .expect("b")
+                .emission_ntriples
         );
     }
 
