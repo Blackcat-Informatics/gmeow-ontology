@@ -34,12 +34,22 @@ gmeow:DeclassificationAct
             a logic:Restriction ;
             logic:onProperty gmeow:declassifies ;
             logic:allValuesFrom gmeow:EmbeddingProjection ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:wasGeneratedBy ;
+            logic:allValuesFrom gmeow:Activity ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:wasAssociatedWith ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "The explicit, reviewable act that ALONE permits an embedding projection's disclosure sensitivity (gmeow:hasSensitivity) to sit below its source pack's — a reified gmeow:Activity, attributed by the EXISTING gmeow:wasGeneratedBy/gmeow:wasDerivedFrom provenance, that records WHO declassified WHAT and on what authority. Sensitivity never drops silently: absent a DeclassificationAct pointing at a projection, a projection inherits (never undercuts) its source's classification (P15). This is a disclosure-control act, NOT a get-leg determinism claim (gmeow:reproducibilityLevel) nor a correspondence-preservation judgment."@x-gmeow-english ;
-    skos:example "ex:declass1 a gmeow:DeclassificationAct ; gmeow:declassifies ex:proj1 ; gmeow:wasGeneratedBy ex:reviewInvocation ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid lowering a projection's sensitivity below its source without a DeclassificationAct (silent capability degradation is forbidden — the review is the whole point) and avoid conflating it with regeneration determinism or correspondence preservation."@x-gmeow-english ;
+    skos:example "ex:declass1 a gmeow:DeclassificationAct ; gmeow:declassifies ex:proj1 ; gmeow:wasGeneratedBy ex:reviewInvocation ; gmeow:wasAssociatedWith ex:reviewer ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid lowering a projection's sensitivity below its source without a DeclassificationAct (silent capability degradation is forbidden — the review is the whole point), avoid minting a BARE act that only gmeow:declassifies but names no reviewing invocation (gmeow:wasGeneratedBy) and no authorizing agent (gmeow:wasAssociatedWith) — an unreviewable act is itself invalid and never warrants a drop — and avoid conflating it with regeneration determinism or correspondence preservation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint a gmeow:DeclassificationAct, point it at the projection with gmeow:declassifies, attribute it with the existing gmeow:wasGeneratedBy (the reviewing invocation) and gmeow:wasDerivedFrom (the source classification), and let the projection carry the lowered gmeow:hasSensitivity only in its scope."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:DeclassificationAct, point it at the projection with gmeow:declassifies, make it REVIEWABLE by attributing it with the REQUIRED gmeow:wasGeneratedBy (the reviewing invocation/activity) and the REQUIRED gmeow:wasAssociatedWith (the authorizing reviewing agent) — both are mandatory (allValuesFrom carrier + ClosedWorldClosure), so a bare act is rejected — carry gmeow:wasDerivedFrom (the source classification), and let the projection carry the lowered gmeow:hasSensitivity only in its scope."@x-gmeow-english ;
     gmeow:useWhen "Use to record the explicit human/agent review that authorizes a projection to be disclosed at a lower sensitivity than its source pack — the audit anchor for 'why is this projection public when its source is confidential?'."@x-gmeow-english .
 
 gmeow:DerivedVectorIndex
@@ -316,11 +326,11 @@ gmeow:declassifies
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "declassifies"@x-gmeow-english ;
     rdfs:range gmeow:EmbeddingProjection ;
-    skos:definition "Relates a gmeow:DeclassificationAct to the embedding projection whose disclosure sensitivity it authorizes below its source's. Presence of this edge is the ONLY warrant for a projection's gmeow:hasSensitivity to undercut its source pack's classification — no edge, no drop (P15)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:DeclassificationAct to the embedding projection whose disclosure sensitivity it authorizes below its source's. This edge is NECESSARY but NOT SUFFICIENT: the drop is warranted only when the declassifying act is also REVIEWABLE — carrying its reviewing invocation (gmeow:wasGeneratedBy) and authorizing agent (gmeow:wasAssociatedWith). A bare edge on an unattributed act warrants nothing — no reviewable act, no drop (P15)."@x-gmeow-english ;
     skos:example "ex:declass1 gmeow:declassifies ex:proj1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid pointing it at anything but a gmeow:EmbeddingProjection and avoid treating a lowered sensitivity as valid without this edge — the act is the audit warrant."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at anything but a gmeow:EmbeddingProjection and avoid treating a lowered sensitivity as valid on the strength of this edge alone — the drop needs a REVIEWABLE act (with gmeow:wasGeneratedBy and gmeow:wasAssociatedWith), not a bare declassifies assertion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:declassifies from a gmeow:DeclassificationAct to the projection it reviews; the reviewing provenance rides the existing gmeow:wasGeneratedBy on the act."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:declassifies from a gmeow:DeclassificationAct to the projection it reviews, and make the act reviewable by also attributing its reviewing invocation with gmeow:wasGeneratedBy and its authorizing agent with gmeow:wasAssociatedWith — both are required, so the declassifies edge alone never authorizes the drop."@x-gmeow-english ;
     gmeow:useWhen "Use to bind the reviewable declassification act to the exact projection it authorizes for lower-sensitivity disclosure."@x-gmeow-english .
 
 gmeow:effectiveOfFamily
@@ -1167,6 +1177,8 @@ gmeow:DerivedVectorIndex logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/profileSurfaceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ExternalBinding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/declassifies" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasGeneratedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAssociatedWith" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorTarget ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vectorTargetKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
@@ -1258,9 +1270,9 @@ gmeow:SecurityMonotonicityConstraint
     rdfs:label "Security monotonicity constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's sensitivity rank is LOWER than its gmeow:projectionSource's (the source is more sensitive, gmeow:sensitivityRank source > projection), an explicit gmeow:DeclassificationAct that gmeow:declassifies the projection must exist. Absent that reviewable act, a projection may never sit below its source's classification — disclosure sensitivity never degrades silently (P15)."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's sensitivity rank is LOWER than its gmeow:projectionSource's (the source is more sensitive, gmeow:sensitivityRank source > projection), an explicit, REVIEWABLE gmeow:DeclassificationAct that gmeow:declassifies the projection must exist — reviewable meaning the act itself carries both a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith). A BARE act that merely asserts gmeow:declassifies with no review provenance does NOT satisfy the existential — an unattributed drop is exactly the silent degradation P15/area-5 forbid. Absent that reviewable act, a projection may never sit below its source's classification; absence never implies a legitimate drop."@x-gmeow-english ;
     logic:formalizes gmeow:SecurityMonotonicityShape ;
-    logic:message "A projection whose sensitivity is below its source's requires an explicit gmeow:DeclassificationAct declassifying it — sensitivity never drops silently (P15)." ;
+    logic:message "A projection whose sensitivity is below its source's requires an explicit REVIEWABLE gmeow:DeclassificationAct declassifying it — one carrying a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith); a bare, unattributed act never warrants the drop (P15)." ;
     logic:integrity logic:smonForall .
 logic:smonForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "ps" ] , [ logic:termIndex 2 ; logic:termVariable "pr" ] , [ logic:termIndex 3 ; logic:termVariable "src" ] , [ logic:termIndex 4 ; logic:termVariable "ss" ] , [ logic:termIndex 5 ; logic:termVariable "sr" ] ;
@@ -1282,13 +1294,21 @@ logic:smonSrcRank a logic:Formula ; logic:relation gmeow:sensitivityRank ;
 logic:smonGt a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sr" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
 logic:smonExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "act" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "inv" ] , [ logic:termIndex 2 ; logic:termVariable "agent" ] ;
     logic:exists logic:smonBody .
-logic:smonBody a logic:Formula ; logic:and logic:smonActType , logic:smonDeclassifies .
+# The witnessing act must be REVIEWABLE: it must gmeow:declassifies the projection AND
+# carry both a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent
+# (gmeow:wasAssociatedWith). A bare, unattributed act never satisfies the existential —
+# absence of a reviewable act never implies a legitimate drop (area-5, P15).
+logic:smonBody a logic:Formula ; logic:and logic:smonActType , logic:smonDeclassifies , logic:smonReviewInv , logic:smonReviewAgent .
 logic:smonActType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DeclassificationAct ] .
 logic:smonDeclassifies a logic:Formula ; logic:relation gmeow:declassifies ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:smonReviewInv a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "inv" ] .
+logic:smonReviewAgent a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "agent" ] .
 
 # C4 (CT4): a vector target must carry an EXACT identity — a gmeow:targetsResource
 # OR a gmeow:contentDigest — never a bare gmeow:targetOrdinal (a non-identifying

@@ -256,6 +256,30 @@ ep:epCqSecurityMonotonicClean a gmeow:CompetencyQuestion ;
     gmeow:cqExpectRowCount 0 .
 
 # =========================================================================== #
+# CT7 — REVIEWABLE declassification (C3, strengthened). Violation over a         #
+# projection dropped below its source by a BARE, unattributed act (no reviewing  #
+# invocation, no authorizing agent); empty over the scene, whose ex:declassAct   #
+# carries both gmeow:wasGeneratedBy and gmeow:wasAssociatedWith. Closes the       #
+# area-5 hole: a bare declassifies edge never warrants the drop.                 #
+# =========================================================================== #
+ep:epCqDeclassUnreviewed a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/declass-unreviewed.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-declass-unreviewed.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection dropped below its source's sensitivity by a BARE gmeow:DeclassificationAct that names no reviewing invocation and no authorizing agent is caught: ce:leakyProj — the unattributed act is not reviewable." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:leakyProj ] ] .
+
+ep:epCqDeclassUnreviewedClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/declass-unreviewed.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "The scene's lower-sensitivity ex:bookshelfProjPublic is authorized by ex:declassAct, which carries BOTH gmeow:wasGeneratedBy (ex:declassReview) and gmeow:wasAssociatedWith (ex:disclosureReviewer) — the act is reviewable, so zero unreviewed drops." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
 # CT8 — derived index fully bound. Violation over an index missing               #
 # gmeow:indexOverSpace; empty over the scene.                                    #
 # =========================================================================== #
