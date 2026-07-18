@@ -114,6 +114,7 @@ mod tests {
             let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
                 .unwrap_or_else(|e| panic!("{graph}: demonstrator turtle must parse: {e}"));
             let rules: Vec<_> = crate::reason::dl::authored_existential_rules(dataset.as_ref())
+                .unwrap_or_else(|e| panic!("{graph}: demonstrator rules must assemble: {e}"))
                 .into_values()
                 .flatten()
                 .collect();
