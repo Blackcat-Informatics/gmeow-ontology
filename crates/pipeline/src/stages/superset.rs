@@ -82,9 +82,11 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     let dataset = read_dataset(gts_bytes)?;
     let dataset = dataset.as_ref();
     let blob_members = read_blob_members(gts_bytes)?;
-    // The path↔representative map as DATA: the authored gmeow:fanoutExtracts rows read
-    // back from the bundle (the pipeline slice rides in the default graph). The gate reads
-    // these rows instead of branching in Rust (PIPELINE_SPINE §6/§7).
+    // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
+    // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
+    // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
+    // riding the meta-level fanout-manifest graph). The gate reads them as data instead of
+    // branching in Rust (PIPELINE_SPINE §6/§7).
     let rules = read_fanout_rules(dataset)?;
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -122,7 +124,7 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // Inline blob members: the opaque + byte-decorated committed files under
     // `generated/`. Source archive members (`shapes/`, `slices/`, `dsl/`) are carried
     // for self-sufficiency but are not `generated/` targets — skip them.
-    for (path, bytes) in blob_members {
+    for (path, bytes) in blob_members.files {
         if !path.starts_with("generated/") {
             continue;
         }
@@ -133,10 +135,23 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
         }
     }
 
-    // Bijection completeness HARD-FAIL: the promoted gmeow:fanoutExtracts rows must be a
-    // bijection over the reconstruction graphs — no path unmapped/ambiguous, no stale row —
-    // so reading the map from data never silently drops a path from fanout.
-    check_fanout_bijection(&rules, &reconstructed_paths)?;
+    // Family-scope the two bijections so an opaque row can never claim a named-graph path
+    // and vice versa: the RDF-fanout / EDOAL rows are proved against the reconstruction
+    // graphs, the opaque rows against the generated-opaque archive members.
+    let (opaque_rules, named_rules): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+        .into_iter()
+        .partition(|r| r.family == FanoutFamily::Opaque);
+
+    // Bijection completeness HARD-FAIL (named graphs): the authored gmeow:fanoutExtracts
+    // rows must be a bijection over the reconstruction graphs — no path unmapped/ambiguous,
+    // no stale row — so reading the map from data never silently drops a path from fanout.
+    check_fanout_bijection(&named_rules, &reconstructed_paths)?;
+
+    // Bijection completeness HARD-FAIL (opaque archive): every generated-opaque archive
+    // member resolves to exactly one emitted opaque row and every opaque row is claimed by
+    // exactly one member — so the opaque byte lane is a DECLARED, bijection-checked
+    // inventory, not a silent hidden set the superset gate never sees.
+    check_opaque_bijection(&opaque_rules, &blob_members.opaque_paths)?;
 
     Ok(BundleProjection { files })
 }
@@ -154,6 +169,12 @@ enum GraphForm {
     /// N-Quads re-rooted into the graph's OWN fanout IRI: the committed `.nq`
     /// carries the fanout container IRI itself as its 4th column. RDFC-canonical.
     NQuadsSelf,
+    /// No named-graph fold: the committed path rides as a byte-exact member of the
+    /// inline generated-opaque archive blob (the `"opaque"` family). Never produces a
+    /// [`GraphRep`] — [`graph_rep_for_path`] skips opaque rules — so it is never handed
+    /// to [`reconstruct_graph`]; the enum arm exists only so [`read_fanout_rules`] can
+    /// round-trip the `"blob"` form string of an opaque row.
+    Blob,
 }
 
 /// A committed path carried as the fold of one named graph: the backing graph IRI
@@ -171,13 +192,19 @@ enum FanoutFamily {
     RdfFanout,
     /// `graph/projections/<stem>.edoal` for `generated/projections/<stem>.edoal.ttl`.
     Edoal,
+    /// No reconstruction graph: the committed path is a byte-exact member of the inline
+    /// generated-opaque archive blob (`REP_GENERATED`). These rows are EMITTED by the
+    /// carrier (one per archive member), never authored, and are bijection-checked
+    /// against the blob members by [`check_opaque_bijection`] — family-scoped so they
+    /// never cross-contaminate the RDF-fanout / EDOAL named-graph bijection.
+    Opaque,
 }
 
 /// One parsed `gmeow:FanoutExtraction` row — the DATA the superset gate reads in place
 /// of the former hard-coded path↔representative branches (`graph_rep_for_path` /
 /// `is_rdf_fanout_class` form selection).
 #[derive(Debug, Clone)]
-struct FanoutRule {
+pub(crate) struct FanoutRule {
     /// The committed path (exact) or directory prefix (prefix), per `match_prefix`.
     path: String,
     /// `true` = prefix match, `false` = exact match.
@@ -191,6 +218,20 @@ struct FanoutRule {
 }
 
 impl FanoutRule {
+    /// Whether this is an `opaque`-family row (a byte-exact archive member, not a
+    /// named-graph fold). Crate-visible so the carrier's emit-side tests can assert the
+    /// gate's OWN reader recovered the opaque rows it emitted.
+    #[cfg(test)]
+    pub(crate) fn is_opaque(&self) -> bool {
+        self.family == FanoutFamily::Opaque
+    }
+
+    /// The committed path (exact) or directory prefix this rule matches.
+    #[cfg(test)]
+    pub(crate) fn path(&self) -> &str {
+        &self.path
+    }
+
     /// Whether this rule matches a committed `generated/` path.
     fn matches(&self, path: &str) -> bool {
         if self.match_prefix {
@@ -301,7 +342,9 @@ fn optional_literal(
 /// fresh scan of the whole dataset (O(R) total instead of O(R·M) over R rows and M
 /// fields). `BTreeMap` (not `HashMap`) keeps subject — and hence row — order
 /// deterministic.
-fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
+pub(crate) fn read_fanout_rules(
+    dataset: &RdfDataset,
+) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
     let mut by_subject: BTreeMap<String, Vec<purrdf::RdfQuad>> = BTreeMap::new();
@@ -338,6 +381,7 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
             match mandatory_literal(&by_subject, row, "extractsGraphFamily", GMEOW)?.as_str() {
                 "rdf-fanout" => FanoutFamily::RdfFanout,
                 "edoal" => FanoutFamily::Edoal,
+                "opaque" => FanoutFamily::Opaque,
                 other => {
                     return Err(stage_err(&format!(
                         "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
@@ -349,12 +393,33 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
             "ntriples" => GraphForm::NTriples,
             "nquads-self" => GraphForm::NQuadsSelf,
             "nquads-diagnostics" => GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI),
+            "blob" => GraphForm::Blob,
             other => {
                 return Err(stage_err(&format!(
                     "fanout row {row} has unknown gmeow:extractsForm {other:?}"
                 )));
             }
         };
+        // The `opaque`/`blob` pairing is total: an opaque family MUST carry the blob form
+        // (and an exact match — an opaque member is one byte-exact archive entry, never a
+        // prefix family) and the blob form MUST be opaque. Any other pairing is a
+        // malformed row — HARD FAIL (no-optionality), so a hand-authored opaque row that
+        // forgets the pairing never silently degrades to a named-graph fold.
+        let is_opaque = family == FanoutFamily::Opaque;
+        let is_blob = form == GraphForm::Blob;
+        if is_opaque != is_blob {
+            return Err(stage_err(&format!(
+                "fanout row {row} pairs gmeow:extractsGraphFamily/{family:?} with \
+                 gmeow:extractsForm/{form:?} (the \"opaque\" family and \"blob\" form are \
+                 mutually required)"
+            )));
+        }
+        if is_opaque && match_prefix {
+            return Err(stage_err(&format!(
+                "opaque fanout row {row} must use gmeow:extractsMatch \"exact\" (an opaque \
+                 archive member is one byte-exact entry, never a prefix family)"
+            )));
+        }
         rules.push(FanoutRule {
             path,
             match_prefix,
@@ -373,10 +438,16 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
 /// matched rule's family; the form is the rule's declared form, so `file == fold` holds
 /// by construction (the producing stage emits with the same form).
 fn graph_rep_for_path(rules: &[FanoutRule], path: &str) -> Option<GraphRep> {
-    let rule = rules.iter().find(|r| r.matches(path))?;
+    // Opaque rows carry no named-graph rep (they reconstruct from the archive blob), so
+    // they are skipped here — a byte-decorated RDF path (`.ttl`) that now has an opaque row
+    // still falls through to its blob member, never a phantom named-graph fold.
+    let rule = rules
+        .iter()
+        .find(|r| r.family != FanoutFamily::Opaque && r.matches(path))?;
     let iri = match rule.family {
         FanoutFamily::Edoal => edoal_projection_graph_iri(path)?,
         FanoutFamily::RdfFanout => rdf_fanout_graph_iri(path)?,
+        FanoutFamily::Opaque => return None,
     };
     Some(GraphRep {
         iri,
@@ -420,63 +491,84 @@ fn check_fanout_bijection(
     Ok(())
 }
 
+/// The completeness HARD-FAIL for the OPAQUE half of the fanout map: assert the emitted
+/// `gmeow:extractsGraphFamily "opaque"` rows are a BIJECTION against the generated-opaque
+/// archive members (`REP_GENERATED`). Every opaque archive member path resolves to exactly
+/// one opaque row (no undeclared member, no ambiguity), and every opaque row is claimed by
+/// exactly one member (no stale row). This is the guard that closes the former hole where
+/// the opaque blob members were declared NOWHERE and never bijection-checked — the exact
+/// symmetric property [`check_fanout_bijection`] gives the RDF-fanout / EDOAL named graphs.
+/// Opaque rows are always `exact` matches, so `rule.matches(path)` is `path == rule.path`.
+fn check_opaque_bijection(
+    opaque_rules: &[FanoutRule],
+    member_paths: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    // Forward: every opaque archive member is claimed by exactly one opaque row.
+    for path in member_paths {
+        let n = opaque_rules.iter().filter(|r| r.matches(path)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "generated-opaque archive member {path} matches {n} opaque \
+                     gmeow:fanoutExtracts rows (want exactly 1)"
+                ),
+            }));
+        }
+    }
+    // Reverse: every opaque row is claimed by exactly one archive member (no stale/duplicate).
+    for rule in opaque_rules {
+        let n = member_paths.iter().filter(|p| rule.matches(p)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "opaque gmeow:fanoutExtracts row for {:?} claims {n} generated-opaque \
+                     archive members (want exactly 1)",
+                    rule.path
+                ),
+            }));
+        }
+    }
+    Ok(())
+}
+
 /// The embedded graph label of the committed diagnostics `.nq` files (mirrors
 /// `carrier::GRAPH_DIAGNOSTICS`).
 pub(crate) const GRAPH_DIAGNOSTICS_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
-/// Whether a committed RDF `generated/` path is carried as an RDF-fanout named graph
-/// (vs. an older dedicated rep). Both the gate (claiming the rep) and the carrier
-/// (attaching the graph) consult this single predicate, so the wired set is one
-/// authority. Classes are added here as their producing stage starts emitting the
-/// committed file as the canonical fold of its attached graph.
-pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
-    path.starts_with("generated/profiles/")
-        || path.starts_with("generated/research-objects/")
-        || path == "generated/evals/scores.ttl"
-        || path == "generated/foundation/gufo.ttl"
-        // The projection-report loss ledger (no RDF-star). The reasoning closure /
-        // explanations / crosscheck are RDF-1.2 with reifiers — their graph-less
-        // side-tables do not separate cleanly under a per-file fold, so they ride a
-        // dedicated reifier-preserving path (below), not the generic fanout.
-        || path == "generated/logic/projection-report.ttl"
-        // The shape-grounding certificate ledger: the per-record preservation judgments
-        // re-derived each regenerate over the projected constraint surfaces (the
-        // per-record sibling of the projection-report loss ledger; no RDF-star).
-        || path == "generated/logic/shape-grounding-ledger.ttl"
-        || path == "generated/logic/gmeow.relational-core.nt"
-        || path == "generated/logic/gmeow.correspondence.nt"
-        // The correspondence-laws projection: the on-disk fold of the bundle's
-        // `graph/correspondence-laws` named graph (every authored `logic:Correspondence`
-        // re-projected with its EXECUTED lens-law discharge verdicts). RDF travels as RDF,
-        // so the discharged `logic:SectionLaw` claims land in `generated/` too, not only in
-        // the bundle graph.
-        || path == "generated/logic/gmeow.correspondence-laws.nt"
-        // The quality-assessment projection: the on-disk fold of the bundle's
-        // `graph/quality-assessment` named graph (every slice scored against the rubric as
-        // `gmeow:QualityAssessment` observations). RDF travels as RDF, so the assessment
-        // triples land in `generated/` too, not only in the bundle graph.
-        || path == "generated/quality/gmeow.quality-assessment.nt"
-        // The authoring-packet projection: the on-disk fold of the bundle's
-        // `graph/authoring-briefs` named graph (a gmeow:AuthoringPacket per in-repo slice
-        // batch). RDF travels as RDF, so the packet triples land in `generated/` too, not
-        // only in the bundle graph.
-        || path == "generated/briefs/authoring-packets.nt"
-        || path == "generated/diagnostics/shacl.nq"
-        || path == "generated/diagnostics/logic-compile.nq"
-        // The generated constraint catalog: its committed `.nq` carries the fanout
-        // graph IRI itself as its 4th column (unlike the diagnostics `.nq`, which
-        // restamp to the shared `graph/diagnostics` label), so its reconstruction
-        // restamps to its OWN fanout IRI (see `graph_rep_for_path`).
-        || path == "generated/catalog/constraint-catalog.nq"
-        // The generated term content manifest: like the constraint catalog, its
-        // committed `.nq` carries its OWN fanout graph IRI as the 4th column, so it
-        // reconstructs via `GraphForm::NQuadsSelf` (see `graph_rep_for_path`).
-        || path == "generated/catalog/term-content-manifest.nq"
-        // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
-        || path == "generated/projections/core-prefixes.ttl"
-        || path == "generated/projections/functions.fno.ttl"
-        || path == "generated/projections/list-functions.fno.ttl"
+/// The build-time authority for "which committed RDF `generated/` path is attached as an
+/// RDF-fanout named graph", DERIVED from the AUTHORED `gmeow:fanoutExtracts` rows (family
+/// `"rdf-fanout"`) of the loaded pipeline-slice source — the SAME rows the superset gate
+/// reads back from the shipped bundle. This replaces a former hand-maintained `||` chain
+/// that duplicated the authored inventory as a third copy; the set is now a single
+/// source-of-truth read from data, so the carrier's attach set and the gate's claim set
+/// cannot silently drift.
+///
+/// Built once per assemble (from the `stage-source-load` product, which already holds the
+/// pipeline `module.ttl` in memory — a source INPUT, not the bundle being produced, so
+/// there is no bootstrapping cycle) and consulted per committed path.
+pub(crate) struct RdfFanoutClasses {
+    rules: Vec<FanoutRule>,
+}
+
+impl RdfFanoutClasses {
+    /// Parse the authored `gmeow:fanoutExtracts` rows from a pipeline-slice `source`
+    /// dataset, keeping only the RDF-fanout family (EDOAL keeps its own
+    /// `graph/projections/` family; opaque rows are carrier-emitted, not a build-time
+    /// attach class). A malformed row HARD-fails through [`read_fanout_rules`].
+    pub(crate) fn from_source(source: &RdfDataset) -> Result<Self, gmeow_errors::Diag> {
+        let rules = read_fanout_rules(source)?
+            .into_iter()
+            .filter(|r| r.family == FanoutFamily::RdfFanout)
+            .collect();
+        Ok(Self { rules })
+    }
+
+    /// Whether a committed RDF `generated/` path is attached as an RDF-fanout named graph,
+    /// per the authored rows (exact or directory-prefix match).
+    pub(crate) fn contains(&self, path: &str) -> bool {
+        self.rules.iter().any(|r| r.matches(path))
+    }
 }
 
 /// The named graph IRI for any RDF committed file under `generated/` (other than the
@@ -636,6 +728,10 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
             let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
             canonical_ntriples(&rooted).ok()
         }
+        // Unreachable in practice: an opaque row never yields a `GraphRep`
+        // (`graph_rep_for_path` skips the opaque family), so a `Blob` form is never handed
+        // to a graph fold. Fail closed rather than panic if the invariant is ever violated.
+        GraphForm::Blob => None,
     }
 }
 
@@ -677,12 +773,23 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, gmeow_er
 /// [`crate::stages::carrier::committed_path_for_archive_member`] (the inverse of the
 /// rep's member-naming convention), so the caller resolves a member to its
 /// `generated/` path with no basename guessing.
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+/// The blob-member reconstruction map plus the opaque-archive member set: [`files`]
+/// is every archive member keyed by committed path (all `generated/`-carrying archives),
+/// and [`opaque_paths`] is the subset that rode the `REP_GENERATED` generated-opaque
+/// archive — the exact set the carrier declares as `gmeow:extractsGraphFamily "opaque"`
+/// rows, which [`check_opaque_bijection`] proves is a bijection against those rows.
+struct BlobMembers {
+    files: BTreeMap<String, Vec<u8>>,
+    opaque_paths: BTreeSet<String>,
+}
+
+fn read_blob_members(gts_bytes: &[u8]) -> Result<BlobMembers, gmeow_errors::Diag> {
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
     let lookaside = purrdf::gts::lookaside_from_graph(&graph);
 
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
     for record in &lookaside.blobs {
         // Only archive blobs unpack to member files; non-archive blobs (reports,
         // guides, docs) are not committed `generated/` reconstruction targets and
@@ -716,10 +823,19 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeo
                     "archive rep {rep} carries member {name} with no committed-path mapping"
                 )));
             };
+            // The generated-opaque archive is the byte lane the carrier declares as
+            // `opaque` fanout rows; record its members (all under `generated/`) as the
+            // set the opaque bijection proves against those rows.
+            if rep == crate::stages::carrier::REP_GENERATED && committed.starts_with("generated/") {
+                opaque_paths.insert(committed.clone());
+            }
             out.insert(committed, member_bytes);
         }
     }
-    Ok(out)
+    Ok(BlobMembers {
+        files: out,
+        opaque_paths,
+    })
 }
 
 /// Every committed file under `<root>/generated/`, repo-relative (`generated/...`),
@@ -935,7 +1051,13 @@ mod tests {
         // plain N-Triples (default graph, no label) — the form the fanout writer emits and
         // the superset gate reconstructs, so `file == fold` holds by construction.
         const PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
-        assert!(is_rdf_fanout_class(PATH));
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let source = purrdf::parse_dataset(&ttl, "text/turtle", None).unwrap();
+        assert!(
+            RdfFanoutClasses::from_source(&source)
+                .unwrap()
+                .contains(PATH)
+        );
         let rules = authored_fanout_rules();
         let rep =
             graph_rep_for_path(&rules, PATH).expect("quality-assessment path resolves a graph rep");
@@ -1118,6 +1240,77 @@ gmeow:r5 gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "pref
         stale.remove("generated/logic/gmeow.correspondence.nt");
         let err2 = check_fanout_bijection(&rules, &stale).unwrap_err();
         assert_eq!(err2.code(), crate::error::FanoutBijection::register());
+    }
+
+    #[test]
+    fn opaque_rows_parse_and_bijection_checks_the_archive_members() {
+        // The opaque family: exact/opaque/blob rows carrier-emitted per REP_GENERATED
+        // member. Prove they parse, resolve NO named-graph rep (they ride the blob lane),
+        // and that check_opaque_bijection HARD-fails on an undeclared member AND a stale row.
+        let ttl = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:o1 gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+gmeow:o2 gmeow:extractsPath "generated/logic/inferred-closure.rdf12.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+"#;
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let rules = read_fanout_rules(&ds).unwrap();
+        let (opaque, named): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+            .into_iter()
+            .partition(|r| r.family == FanoutFamily::Opaque);
+        assert_eq!(opaque.len(), 2);
+        assert_eq!(named.len(), 1);
+
+        // Opaque rows never resolve a named-graph rep — even the byte-decorated `.ttl` one.
+        assert!(graph_rep_for_path(&opaque, "generated/n3/gmeow.n3").is_none());
+        assert!(
+            graph_rep_for_path(&opaque, "generated/logic/inferred-closure.rdf12.ttl").is_none()
+        );
+
+        // Bijection holds when the member set equals the opaque-row path set exactly.
+        let members: BTreeSet<String> = [
+            "generated/n3/gmeow.n3",
+            "generated/logic/inferred-closure.rdf12.ttl",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        check_opaque_bijection(&opaque, &members).expect("opaque bijection holds");
+
+        // Undeclared member (a blob member with no opaque row) HARD-fails.
+        let mut undeclared = members.clone();
+        undeclared.insert("generated/cl/gmeow.clif".to_string());
+        let err = check_opaque_bijection(&opaque, &undeclared).unwrap_err();
+        assert_eq!(err.code(), crate::error::FanoutBijection::register());
+
+        // Stale opaque row (a row claiming no archive member) HARD-fails.
+        let mut stale = members.clone();
+        stale.remove("generated/n3/gmeow.n3");
+        let err2 = check_opaque_bijection(&opaque, &stale).unwrap_err();
+        assert_eq!(err2.code(), crate::error::FanoutBijection::register());
+    }
+
+    #[test]
+    fn opaque_family_and_blob_form_are_mutually_required() {
+        // A row that pairs opaque family with a non-blob form is malformed → HARD FAIL.
+        let bad_form = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "turtle" .
+"#;
+        let ds = purrdf::parse_dataset(bad_form.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds).is_err());
+
+        // A blob form paired with a non-opaque family is equally malformed.
+        let bad_family = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "blob" .
+"#;
+        let ds2 = purrdf::parse_dataset(bad_family.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds2).is_err());
+
+        // An opaque row using a prefix match is malformed (opaque members are exact).
+        let bad_prefix = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+"#;
+        let ds3 = purrdf::parse_dataset(bad_prefix.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_fanout_rules(&ds3).is_err());
     }
 
     #[test]
