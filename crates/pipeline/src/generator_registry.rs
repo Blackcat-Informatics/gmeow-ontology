@@ -206,17 +206,16 @@ pub const GENERATORS: &[GeneratorInfo] = &[
     },
 ];
 
-/// The canonical top-level committed artifact paths derived from the registry.
+/// The retained product paths derived from the registry — the outputs `make commit`
+/// still stages after `generated/` became an ignored local projection.
 ///
-/// This is the path list `make commit` stages. It contains every committed output
-/// root owned by sync: the carrier/fanout tree, the root OASIS catalog, and the
-/// generated Python model package. External documentation (`ontology-docs/` and
+/// The `generated/` carrier/fanout tree is NO LONGER a committed input: it is a
+/// git-ignored local/release product materialized by `make sync` and reconstructed
+/// from `generated/dist/gmeow.gts`, so it is absent here. What remains tracked are the
+/// two retained products that ride outside that projection: the root OASIS catalog and
+/// the generated Python model package. External documentation (`ontology-docs/` and
 /// `dist/gmeow-docs/`) is intentionally ephemeral and therefore absent.
-pub const COMMITTED_GENERATED_PATHS: &[&str] = &[
-    "catalog-v001.xml",
-    "generated/",
-    "packages/python/gmeow_models/",
-];
+pub const RETAINED_PRODUCT_PATHS: &[&str] = &["catalog-v001.xml", "packages/python/gmeow_models/"];
 
 /// Return every generator name, sorted.
 pub fn generator_names() -> Vec<&'static str> {
@@ -238,10 +237,10 @@ pub fn all_output_paths() -> Vec<&'static str> {
     paths
 }
 
-/// Return the union of [`COMMITTED_GENERATED_PATHS`] as a sorted, deduplicated
-/// list. This is the conservative path set used by `make commit`.
-pub fn committed_generated_paths() -> Vec<&'static str> {
-    COMMITTED_GENERATED_PATHS.to_vec()
+/// Return [`RETAINED_PRODUCT_PATHS`] as a list. This is the tracked-product path set
+/// `make commit` stages; `generated/` is not among them (it is an ignored projection).
+pub fn retained_product_paths() -> Vec<&'static str> {
+    RETAINED_PRODUCT_PATHS.to_vec()
 }
 
 /// Compute a stable SHA-256 source hash for a generator from its declared
@@ -430,14 +429,12 @@ mod tests {
     }
 
     #[test]
-    fn committed_paths_are_stable() {
+    fn retained_product_paths_exclude_the_ignored_generated_projection() {
+        // `generated/` is a git-ignored local projection materialized by `make sync`,
+        // never staged by `make commit`; only the two retained products remain tracked.
         assert_eq!(
-            committed_generated_paths(),
-            vec![
-                "catalog-v001.xml",
-                "generated/",
-                "packages/python/gmeow_models/"
-            ]
+            retained_product_paths(),
+            vec!["catalog-v001.xml", "packages/python/gmeow_models/"]
         );
     }
 
