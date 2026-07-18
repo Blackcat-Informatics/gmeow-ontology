@@ -33,7 +33,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use super::seminaive::StepGovernor;
-use crate::provenance::{ProvenanceRing, ProvenanceSemiring, ZWeightSemiring};
+use crate::provenance::{
+    MinProofHeightSemiring, ProofHeight, ProvenanceRing, ProvenanceSemiring, ZWeightSemiring,
+};
 use crate::rule_ir::{
     EvalRule, EvalTerm, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied, ground_head,
     match_atom,
@@ -100,19 +102,33 @@ pub(crate) struct IncrementalDelta {
 }
 
 /// A concrete proof witness emitted for a newly-present derived fact.
+///
+/// `proof_height` is the fact's minimal-proof-height annotation over the
+/// [`MinProofHeightSemiring`] — `1 + max(premise heights)` for the height-first
+/// canonical firing that produced it, exactly the annotation the full forward
+/// reasoner ([`crate::reason::reason_program`]) computes. It is reconstructed from a
+/// min-height fixpoint over the settled snapshot (see
+/// [`IncrementalSession::settled_heights`]), never delta-maintained through the Z-set
+/// circuit (the tropical `(min, max)` semiring has no additive inverse and cannot be
+/// pushed through a signed deletion).
 #[derive(Debug, Clone)]
 pub(crate) struct IncrementalDerivation {
     pub(crate) rule_iri: String,
     pub(crate) premises: Vec<Fact>,
+    pub(crate) proof_height: ProofHeight,
 }
 
-impl IncrementalDerivation {
-    fn key(&self) -> (String, Vec<FactKey>) {
-        (
-            self.rule_iri.clone(),
-            self.premises.iter().map(Fact::key).collect(),
-        )
-    }
+/// The deterministic total-order key that selects the canonical proof witness for one
+/// derived fact, mirroring `crate::rule_ir::RuleRoundCandidate::tiebreak_key` — smaller
+/// wins. `proof_height` is the leading component, so the winner is always a
+/// minimal-height derivation.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct WitnessTiebreak {
+    proof_height: ProofHeight,
+    source_height_sum: u64,
+    sorted_reifiers: Vec<String>,
+    rule_iri: String,
+    source_reifiers: Vec<String>,
 }
 
 /// A governed insert-only transaction result.
@@ -126,18 +142,15 @@ pub(crate) struct BudgetedIncrementalDelta {
 }
 
 /// A weighted grounded head before it is interned into the session's fact arena.
+///
+/// Only the signed `weight` (the compact support account) is carried here; the
+/// per-fact proof witness AND its minimal proof height are reconstructed
+/// authoritatively from the settled snapshot after the circuit settles (see
+/// [`IncrementalSession::reconstruct_derivations`]), so no transient candidate
+/// witness is threaded through the differential pass.
 struct WeightedHead {
     fact: Fact,
     weight: i64,
-    /// One canonical proof candidate. The signed `weight` is the compact support
-    /// account; retaining every proof here would make a many-to-one join consume
-    /// memory proportional to its proof multiplicity.
-    witness: Option<IncrementalDerivation>,
-}
-
-struct InternedWeights {
-    weights: Weights,
-    witnesses: BTreeMap<usize, IncrementalDerivation>,
 }
 
 type WeightedHeads = BTreeMap<FactKey, WeightedHead>;
@@ -354,7 +367,6 @@ impl IncrementalSession {
 
         let mut partial_closure = old_fixed.union(&next_edb).copied().collect::<Snapshot>();
         let mut charged = Snapshot::new();
-        let mut added_derivations = BTreeMap::new();
         let mut next_snapshots = vec![next_edb.clone()];
         let mut next_raw = Vec::new();
         let mut joined_rows = 0u64;
@@ -374,8 +386,7 @@ impl IncrementalSession {
                 &edb_delta,
                 &mut joined_rows,
             )?;
-            let interned = self.intern_weighted(weighted_delta)?;
-            let raw_delta = interned.weights;
+            let raw_delta = self.intern_weighted(weighted_delta)?;
             let mut adjusted_raw = old_raw;
             for (id, weight) in raw_delta {
                 add_id_weight(&mut adjusted_raw, id, weight)?;
@@ -388,17 +399,6 @@ impl IncrementalSession {
             }
 
             let next_snapshot = distinct(&adjusted_raw);
-            for (&id, witness) in &interned.witnesses {
-                if next_snapshot.contains(&id)
-                    && !old_fixed.contains(&id)
-                    && !next_edb.contains(&id)
-                    && self.witness_survives(witness, &next_snapshot)
-                {
-                    added_derivations
-                        .entry(id)
-                        .or_insert_with(|| witness.clone());
-                }
-            }
 
             if let Some(governor) = governor.as_mut() {
                 let mut candidates: Vec<usize> = next_snapshot
@@ -409,12 +409,8 @@ impl IncrementalSession {
                 candidates.sort_by_key(|id| self.arena.facts()[*id].key());
                 for id in candidates {
                     if governor.spent() {
-                        let derivations = self.complete_derivations(
-                            &old_fixed,
-                            &partial_closure,
-                            &next_edb,
-                            &added_derivations,
-                        )?;
+                        let derivations =
+                            self.complete_derivations(&old_fixed, &partial_closure, &next_edb)?;
                         let delta = self.delta_between(
                             &old_fixed,
                             &partial_closure,
@@ -451,8 +447,7 @@ impl IncrementalSession {
             .expect("a settled history always has a final snapshot")
             .clone();
         let inner_iterations = next_raw.len();
-        let derivations =
-            self.complete_derivations(&old_fixed, &new_fixed, &next_edb, &added_derivations)?;
+        let derivations = self.complete_derivations(&old_fixed, &new_fixed, &next_edb)?;
         let delta = self.delta_between(
             &old_fixed,
             &new_fixed,
@@ -519,44 +514,26 @@ impl IncrementalSession {
             .expect("a session always carries its fixed snapshot")
     }
 
-    fn witness_survives(&self, witness: &IncrementalDerivation, snapshot: &Snapshot) -> bool {
-        witness.premises.iter().all(|premise| {
-            self.arena
-                .row_index(&premise.key())
-                .is_some_and(|premise_id| snapshot.contains(&premise_id))
-        })
-    }
-
-    /// Finish the one-witness-per-new-fact contract without retaining every proof
-    /// produced by a many-to-one join. Canonical candidates gathered during the
-    /// differentiated pass are reused when their premises survive. Any missing or
-    /// cancelled candidate is reconstructed once from the settled snapshot.
+    /// One canonical proof witness — firing rule, premises, AND minimal proof height —
+    /// for every DERIVED fact newly present in `new` versus `old`. Every witness is
+    /// reconstructed from a min-height fixpoint over the settled `new` snapshot, so the
+    /// choice and the height are identical to a from-scratch recompute (the transient
+    /// differential pass carries no proof-height annotation and is not consulted).
     fn complete_derivations(
         &self,
         old: &Snapshot,
         new: &Snapshot,
         edb: &Snapshot,
-        candidates: &BTreeMap<usize, IncrementalDerivation>,
     ) -> gmeow_errors::Result<BTreeMap<usize, IncrementalDerivation>> {
         let targets: BTreeSet<usize> = new
             .difference(old)
             .filter(|id| !edb.contains(id))
             .copied()
             .collect();
-        let mut derivations = BTreeMap::new();
-        for &id in &targets {
-            if let Some(candidate) = candidates.get(&id)
-                && self.witness_survives(candidate, new)
-            {
-                derivations.insert(id, candidate.clone());
-            }
+        if targets.is_empty() {
+            return Ok(BTreeMap::new());
         }
-
-        let witnessed: BTreeSet<usize> = derivations.keys().copied().collect();
-        let missing: BTreeSet<usize> = targets.difference(&witnessed).copied().collect();
-        if !missing.is_empty() {
-            derivations.extend(self.reconstruct_derivations(new, &missing)?);
-        }
+        let derivations = self.reconstruct_derivations(new, edb, &targets)?;
         if derivations.len() != targets.len() {
             let witnessed: BTreeSet<usize> = derivations.keys().copied().collect();
             let missing_keys: Vec<FactKey> = targets
@@ -570,18 +547,120 @@ impl IncrementalSession {
         Ok(derivations)
     }
 
-    /// Re-descend the settled snapshot only for facts whose transient canonical
-    /// candidate was cancelled. The output remains bounded to one witness per target.
+    /// Minimal proof height of every fact in `snapshot` over the tropical
+    /// `(min, max)` [`MinProofHeightSemiring`].
+    ///
+    /// The min proof height is NOT delta-maintainable through the signed Z-set circuit
+    /// (deleting a fact can RAISE a dependent's height and the tropical semiring has no
+    /// additive inverse), so it is recomputed by a monotone relaxation fixpoint over the
+    /// already-SETTLED snapshot: every EDB fact is seeded at [`ProofHeight::ASSERTED`],
+    /// and each derived fact relaxes to the minimum `1 + max(premise heights)` over every
+    /// rule firing whose premises already have a finite height. Heights only ever
+    /// decrease and are bounded below, so the relaxation converges. This is the exact
+    /// recurrence the full forward reasoner carries in lockstep, over the identical least
+    /// model, so the two agree fact-for-fact under both insertion and deletion.
+    fn settled_heights(
+        &self,
+        snapshot: &Snapshot,
+        edb: &Snapshot,
+    ) -> gmeow_errors::Result<BTreeMap<usize, ProofHeight>> {
+        let mut heights: BTreeMap<usize, ProofHeight> = BTreeMap::new();
+        for &id in edb.intersection(snapshot) {
+            heights.insert(id, ProofHeight::ASSERTED);
+        }
+        loop {
+            let mut changed = false;
+            for rule in self.rules.iter() {
+                let mut partial = vec![WeightedSolution {
+                    solution: Solution {
+                        bindings: Vec::new(),
+                        source_facts: Vec::new(),
+                    },
+                    weight: 1,
+                }];
+                for atom in &rule.body {
+                    partial = self.extend_from_snapshot(atom, snapshot, &partial, None)?;
+                    if partial.is_empty() {
+                        break;
+                    }
+                }
+                for weighted in partial {
+                    if !distinct_pairs_satisfied(&rule.distinct_pairs, &weighted.solution)? {
+                        continue;
+                    }
+                    let head = ground_head(&rule.head, &weighted.solution)?;
+                    let Some(id) = self.arena.row_index(&head.key()) else {
+                        continue;
+                    };
+                    if !snapshot.contains(&id) {
+                        continue;
+                    }
+                    let Some(max_premise) =
+                        self.max_premise_height(&weighted.solution.source_facts, &heights)
+                    else {
+                        continue;
+                    };
+                    let candidate = MinProofHeightSemiring.derive([max_premise])?;
+                    match heights.entry(id) {
+                        std::collections::btree_map::Entry::Vacant(slot) => {
+                            slot.insert(candidate);
+                            changed = true;
+                        }
+                        std::collections::btree_map::Entry::Occupied(mut slot) => {
+                            if candidate < *slot.get() {
+                                slot.insert(candidate);
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            if !changed {
+                break;
+            }
+        }
+        Ok(heights)
+    }
+
+    /// `max` over the settled heights of `premises`, or `None` if any premise has not
+    /// yet acquired a finite height in the current relaxation round.
+    fn max_premise_height(
+        &self,
+        premises: &[Fact],
+        heights: &BTreeMap<usize, ProofHeight>,
+    ) -> Option<ProofHeight> {
+        let mut max_height = ProofHeight::ASSERTED;
+        for premise in premises {
+            let id = self.arena.row_index(&premise.key())?;
+            let height = heights.get(&id).copied()?;
+            max_height = max_height.max(height);
+        }
+        Some(max_height)
+    }
+
+    /// Re-descend the settled snapshot and select, for each target, the single canonical
+    /// proof witness AND its minimal proof height.
+    ///
+    /// Witness selection mirrors the full reasoner's total-order tiebreak
+    /// (`crate::rule_ir::RuleRoundCandidate::tiebreak_key`):
+    /// `(proof_height, sum_src_depth, sorted_source_reifiers, rule_iri, source_reifiers)`,
+    /// smaller wins. Because `proof_height` is the leading key, the selected witness is
+    /// always a minimal-height derivation, so its stamped height equals the fact's
+    /// [`Self::settled_heights`] value — identical, field-for-field, to the from-scratch
+    /// oracle's choice.
     fn reconstruct_derivations(
         &self,
         snapshot: &Snapshot,
+        edb: &Snapshot,
         targets: &BTreeSet<usize>,
     ) -> gmeow_errors::Result<BTreeMap<usize, IncrementalDerivation>> {
+        let heights = self.settled_heights(snapshot, edb)?;
         let target_ids: BTreeMap<FactKey, usize> = targets
             .iter()
             .map(|&id| (self.arena.facts()[id].key(), id))
             .collect();
-        let mut derivations = BTreeMap::new();
+        // Per target: the winning tiebreak key alongside its witness.
+        let mut best: BTreeMap<usize, (WitnessTiebreak, IncrementalDerivation)> = BTreeMap::new();
 
         for rule in self.rules.iter() {
             let mut partial = vec![WeightedSolution {
@@ -605,21 +684,81 @@ impl IncrementalSession {
                 let Some(&id) = target_ids.get(&head.key()) else {
                     continue;
                 };
+                let sources = &weighted.solution.source_facts;
+                let Some(max_premise) = self.max_premise_height(sources, &heights) else {
+                    continue;
+                };
+                let proof_height = MinProofHeightSemiring.derive([max_premise])?;
+                let mut source_reifiers = Vec::with_capacity(sources.len());
+                let mut source_height_sum = 0_u64;
+                for source in sources {
+                    source_reifiers.push(source.reifier()?);
+                    let id = self.arena.row_index(&source.key());
+                    let height = id
+                        .and_then(|id| heights.get(&id).copied())
+                        .unwrap_or(ProofHeight::ASSERTED);
+                    source_height_sum = source_height_sum.saturating_add(u64::from(height.get()));
+                }
+                let mut sorted_reifiers = source_reifiers.clone();
+                sorted_reifiers.sort();
+                let tiebreak = WitnessTiebreak {
+                    proof_height,
+                    source_height_sum,
+                    sorted_reifiers,
+                    rule_iri: rule.rule_iri.clone(),
+                    source_reifiers,
+                };
                 let candidate = IncrementalDerivation {
                     rule_iri: rule.rule_iri.clone(),
                     premises: weighted.solution.source_facts,
+                    proof_height,
                 };
-                match derivations.entry(id) {
+                match best.entry(id) {
                     std::collections::btree_map::Entry::Vacant(slot) => {
-                        slot.insert(candidate);
+                        slot.insert((tiebreak, candidate));
                     }
                     std::collections::btree_map::Entry::Occupied(mut slot) => {
-                        retain_canonical_witness(slot.get_mut(), candidate);
+                        if tiebreak < slot.get().0 {
+                            slot.insert((tiebreak, candidate));
+                        }
                     }
                 }
             }
         }
-        Ok(derivations)
+        Ok(best
+            .into_iter()
+            .map(|(id, (_, witness))| (id, witness))
+            .collect())
+    }
+
+    /// One canonical proof witness for every DERIVED (non-EDB) fact currently in the
+    /// closure — the "why is this fact here?" provenance over the FULL maintained
+    /// closure, not just the last transaction's newly-derived facts.
+    ///
+    /// This is a clean reuse of [`Self::reconstruct_derivations`] (the same re-descent
+    /// the incremental `apply` path uses to complete every transaction's witnesses): it
+    /// re-descends the settled fixed point once over the set of derived facts and returns
+    /// one canonical `(fact, witness)` per fact — carrying the minimal proof height — in
+    /// lexical [`FactKey`] order. The settle circuit itself is untouched.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a rule-evaluation failure from the re-descent.
+    pub(crate) fn closure_derivations(
+        &self,
+    ) -> gmeow_errors::Result<Vec<(Fact, IncrementalDerivation)>> {
+        let fixed = self.fixed_snapshot();
+        let derived: BTreeSet<usize> = fixed.difference(self.edb.as_ref()).copied().collect();
+        if derived.is_empty() {
+            return Ok(Vec::new());
+        }
+        let by_id = self.reconstruct_derivations(fixed, self.edb.as_ref(), &derived)?;
+        let mut out: Vec<(Fact, IncrementalDerivation)> = by_id
+            .into_iter()
+            .map(|(id, witness)| (self.arena.facts()[id].clone(), witness))
+            .collect();
+        out.sort_by_key(|(fact, _)| fact.key());
+        Ok(out)
     }
 
     fn settle_from_scratch(&mut self) -> gmeow_errors::Result<()> {
@@ -630,7 +769,7 @@ impl IncrementalSession {
                 .expect("the EDB is the first snapshot")
                 .clone();
             let weighted = self.evaluate_operator(&snapshot)?;
-            let raw = self.intern_weighted(weighted)?.weights;
+            let raw = self.intern_weighted(weighted)?;
             let next = distinct(&raw);
             let fixed = next == snapshot;
             Arc::make_mut(&mut self.raw).push(raw);
@@ -645,7 +784,7 @@ impl IncrementalSession {
     fn evaluate_operator(&self, snapshot: &Snapshot) -> gmeow_errors::Result<WeightedHeads> {
         let mut output = WeightedHeads::new();
         for &id in self.edb.iter() {
-            add_head(&mut output, self.arena.facts()[id].clone(), 1, None)?;
+            add_head(&mut output, self.arena.facts()[id].clone(), 1)?;
         }
         for rule in self.rules.iter() {
             let mut partial = vec![WeightedSolution {
@@ -677,7 +816,7 @@ impl IncrementalSession {
     ) -> gmeow_errors::Result<WeightedHeads> {
         let mut output = WeightedHeads::new();
         for (&id, &weight) in edb_delta {
-            add_head(&mut output, self.arena.facts()[id].clone(), weight, None)?;
+            add_head(&mut output, self.arena.facts()[id].clone(), weight)?;
         }
 
         for rule in self.rules.iter() {
@@ -758,12 +897,8 @@ impl IncrementalSession {
     }
 
     /// Intern lexically-ordered weighted heads and return dense-id weights.
-    fn intern_weighted(
-        &mut self,
-        weighted: WeightedHeads,
-    ) -> gmeow_errors::Result<InternedWeights> {
+    fn intern_weighted(&mut self, weighted: WeightedHeads) -> gmeow_errors::Result<Weights> {
         let mut weights = Weights::new();
-        let mut witnesses = BTreeMap::new();
         for (key, head) in weighted {
             if head.weight == 0 {
                 continue;
@@ -775,35 +910,120 @@ impl IncrementalSession {
                     .expect("a missing weighted head must intern exactly once"),
             };
             add_id_weight(&mut weights, id, head.weight)?;
-            if head.weight > 0
-                && let Some(witness) = head.witness
-            {
-                witnesses.insert(id, witness);
-            }
         }
-        Ok(InternedWeights { weights, witnesses })
+        Ok(weights)
     }
 }
 
-fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+/// The typed reason one rule falls outside finite positive binary Datalog — the
+/// fragment the incremental circuit maintains.
+///
+/// Each variant is the exact condition [`validate_fragment`] refuses today; keeping it
+/// typed (rather than only a [`gmeow_errors::Diag`] string) lets the operational
+/// `ReasoningSession` façade classify the FIXED program ONCE at `open` and route every
+/// later `apply` to a typed `UnsupportedFragment` outcome, without string-matching a
+/// diagnostic. `validate_fragment` is the single behavioural source of truth: it calls
+/// [`classify_incremental_fragment`] and maps each reason back to the same Diag string
+/// it has always emitted, so there is no second copy of the checks to drift.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum UnsupportedFragmentReason {
+    /// A rule with an empty body (an asserted fact masquerading as a rule).
+    Bodyless,
+    /// A negation-as-failure body atom.
+    Negation,
+    /// An arithmetic / comparison builtin.
+    Builtins,
+    /// A head variable not bound by any positive body atom.
+    UnsafeHeadVar,
+    /// An inequality (`distinct`) variable not bound by any positive body atom.
+    UnsafeInequalityVar,
+}
+
+/// A typed fragment refusal: the offending rule IRI plus the [`UnsupportedFragmentReason`].
+///
+/// The IRI is retained so [`validate_fragment`] can reproduce its historical
+/// per-rule Diag message byte-for-byte while the façade consumes only the typed
+/// [`Self::reason`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct FragmentRefusal {
+    pub(crate) rule_iri: String,
+    pub(crate) reason: UnsupportedFragmentReason,
+    /// The specific offending variable name for the unsafe-variable reasons; `None`
+    /// for the reasons that name no variable. Carried so [`Self::message`] reproduces
+    /// the historical per-variable Diag text without re-scanning the rule.
+    offending_var: Option<String>,
+}
+
+impl FragmentRefusal {
+    /// The exact diagnostic message [`validate_fragment`] emitted before the typed
+    /// classifier was factored out — the single-source-of-truth text, keyed by reason.
+    fn message(&self) -> String {
+        match &self.reason {
+            UnsupportedFragmentReason::Bodyless => format!(
+                "incremental circuit does not admit a bodyless rule <{}>; asserted facts belong in the EDB",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::Negation => format!(
+                "incremental circuit does not admit negation-as-failure in rule <{}>",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::Builtins => format!(
+                "incremental circuit does not admit arithmetic/comparison builtins in rule <{}>",
+                self.rule_iri
+            ),
+            UnsupportedFragmentReason::UnsafeHeadVar => format!(
+                "incremental circuit rule <{}> is unsafe: head variable {var} is not bound by a positive body atom",
+                self.rule_iri,
+                var = self.unsafe_head_var().unwrap_or_default(),
+            ),
+            UnsupportedFragmentReason::UnsafeInequalityVar => format!(
+                "incremental circuit rule <{}> is unsafe: inequality variable {var} is not bound by a positive body atom",
+                self.rule_iri,
+                var = self.unsafe_inequality_var().unwrap_or_default(),
+            ),
+        }
+    }
+
+    /// Re-locate the specific unbound head variable name for message parity. The
+    /// classifier records only the reason + rule IRI (the façade needs no variable
+    /// name), so the exact offending variable is recovered here from the same rule.
+    fn unsafe_head_var(&self) -> Option<String> {
+        self.offending_var.clone()
+    }
+
+    fn unsafe_inequality_var(&self) -> Option<String> {
+        self.offending_var.clone()
+    }
+}
+
+/// Classify a rule set against the incremental circuit's admissible fragment
+/// (finite positive binary Datalog), returning the FIRST typed refusal.
+///
+/// This performs exactly the checks [`validate_fragment`] performed inline, in the
+/// same order, so the two can never disagree: `validate_fragment` is now a thin
+/// diagnostic-projection over this function.
+pub(crate) fn classify_incremental_fragment(rules: &[EvalRule]) -> Result<(), FragmentRefusal> {
     for rule in rules {
         if rule.body.is_empty() {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit a bodyless rule <{}>; asserted facts belong in the EDB",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Bodyless,
+                offending_var: None,
+            });
         }
         if rule.body.iter().any(|atom| atom.negated) {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit negation-as-failure in rule <{}>",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Negation,
+                offending_var: None,
+            });
         }
         if !rule.builtins.is_empty() {
-            return Err(incremental_err(format!(
-                "incremental circuit does not admit arithmetic/comparison builtins in rule <{}>",
-                rule.rule_iri
-            )));
+            return Err(FragmentRefusal {
+                rule_iri: rule.rule_iri.clone(),
+                reason: UnsupportedFragmentReason::Builtins,
+                offending_var: None,
+            });
         }
 
         let mut positively_bound = BTreeSet::new();
@@ -818,19 +1038,21 @@ fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
             if let EvalTerm::Var(variable) = term
                 && !positively_bound.contains(variable.as_str())
             {
-                return Err(incremental_err(format!(
-                    "incremental circuit rule <{}> is unsafe: head variable {variable} is not bound by a positive body atom",
-                    rule.rule_iri
-                )));
+                return Err(FragmentRefusal {
+                    rule_iri: rule.rule_iri.clone(),
+                    reason: UnsupportedFragmentReason::UnsafeHeadVar,
+                    offending_var: Some(variable.clone()),
+                });
             }
         }
         for (left, right) in &rule.distinct_pairs {
             for variable in [left, right] {
                 if !positively_bound.contains(variable.as_str()) {
-                    return Err(incremental_err(format!(
-                        "incremental circuit rule <{}> is unsafe: inequality variable {variable} is not bound by a positive body atom",
-                        rule.rule_iri
-                    )));
+                    return Err(FragmentRefusal {
+                        rule_iri: rule.rule_iri.clone(),
+                        reason: UnsupportedFragmentReason::UnsafeInequalityVar,
+                        offending_var: Some(variable.clone()),
+                    });
                 }
             }
         }
@@ -838,12 +1060,19 @@ fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
+fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
+    match classify_incremental_fragment(rules) {
+        Ok(()) => Ok(()),
+        Err(refusal) => Err(incremental_err(refusal.message())),
+    }
+}
+
 fn consolidate_input(
     changes: impl IntoIterator<Item = SignedFact>,
 ) -> gmeow_errors::Result<WeightedHeads> {
     let mut out = WeightedHeads::new();
     for change in changes {
-        add_head(&mut out, change.fact, change.weight, None)?;
+        add_head(&mut out, change.fact, change.weight)?;
     }
     out.retain(|_, head| head.weight != 0);
     Ok(out)
@@ -859,40 +1088,21 @@ fn emit_heads(
             continue;
         }
         let head = ground_head(&rule.head, &weighted.solution)?;
-        let witness = (weighted.weight > 0).then(|| IncrementalDerivation {
-            rule_iri: rule.rule_iri.clone(),
-            premises: weighted.solution.source_facts.clone(),
-        });
-        add_head(output, head, weighted.weight, witness)?;
+        add_head(output, head, weighted.weight)?;
     }
     Ok(())
 }
 
-fn add_head(
-    output: &mut WeightedHeads,
-    fact: Fact,
-    weight: i64,
-    witness: Option<IncrementalDerivation>,
-) -> gmeow_errors::Result<()> {
+fn add_head(output: &mut WeightedHeads, fact: Fact, weight: i64) -> gmeow_errors::Result<()> {
     if weight == 0 {
         return Ok(());
     }
     let key = fact.key();
     match output.entry(key) {
         std::collections::btree_map::Entry::Vacant(slot) => {
-            slot.insert(WeightedHead {
-                fact,
-                weight,
-                witness,
-            });
+            slot.insert(WeightedHead { fact, weight });
         }
         std::collections::btree_map::Entry::Occupied(mut slot) => {
-            if let Some(witness) = witness {
-                match &mut slot.get_mut().witness {
-                    Some(current) => retain_canonical_witness(current, witness),
-                    missing @ None => *missing = Some(witness),
-                }
-            }
             let combined = ZWeightSemiring.add(slot.get().weight, weight)?;
             if combined == 0 {
                 slot.remove();
@@ -902,12 +1112,6 @@ fn add_head(
         }
     }
     Ok(())
-}
-
-fn retain_canonical_witness(current: &mut IncrementalDerivation, candidate: IncrementalDerivation) {
-    if candidate.key() < current.key() {
-        *current = candidate;
-    }
 }
 
 fn add_id_weight(output: &mut Weights, id: usize, weight: i64) -> gmeow_errors::Result<()> {
@@ -1240,31 +1444,77 @@ mod tests {
     }
 
     #[test]
-    fn weighted_head_retains_one_canonical_witness_for_many_supports() {
-        let answer = fact("answer", "a", "b");
-        let mut output = WeightedHeads::new();
-        for index in (0..128).rev() {
-            add_head(
-                &mut output,
-                answer.clone(),
-                1,
-                Some(IncrementalDerivation {
-                    rule_iri: format!("{NS}rule/{index:03}"),
-                    premises: vec![fact("support", "a", &format!("p{index:03}"))],
-                }),
-            )
-            .unwrap();
-        }
+    fn closure_reconstruct_selects_the_minimal_height_witness() {
+        let rules = transitive_rules();
+        // a→b, b→c, and a direct a→c edge: path(a,c) has a height-1 (direct `base`) and a
+        // height-2 (via b, `step`) derivation. The reconstructed canonical witness is the
+        // minimal-height one, and every derived fact appears exactly once.
+        let edb = vec![
+            fact("edge", "a", "b"),
+            fact("edge", "b", "c"),
+            fact("edge", "a", "c"),
+        ];
+        let session = IncrementalSession::new("contract", edb, &rules).unwrap();
+        let derivations = session.closure_derivations().unwrap();
 
-        let head = output
-            .get(&answer.key())
-            .expect("all supports consolidate under one derived fact");
-        assert_eq!(head.weight, 128, "signed support count remains exact");
-        let witness = head
-            .witness
-            .as_ref()
-            .expect("one canonical proof candidate is retained");
-        assert_eq!(witness.rule_iri, format!("{NS}rule/000"));
+        // path(a,b), path(b,c), path(a,c) — one canonical witness each.
+        assert_eq!(derivations.len(), 3);
+
+        let witness = |s: &str, o: &str| {
+            derivations
+                .iter()
+                .find(|(f, _)| f.key() == fact("path", s, o).key())
+                .map(|(_, w)| w.clone())
+                .unwrap_or_else(|| panic!("path {s} {o} is derived"))
+        };
+
+        let ac = witness("a", "c");
+        assert_eq!(ac.proof_height.get(), 1, "the minimal proof height wins");
+        assert_eq!(ac.rule_iri, format!("{NS}rule/base"));
+        assert_eq!(ac.premises.len(), 1);
+        assert_eq!(ac.premises[0].key(), fact("edge", "a", "c").key());
+
+        assert_eq!(witness("a", "b").proof_height.get(), 1);
+        assert_eq!(witness("b", "c").proof_height.get(), 1);
+    }
+
+    #[test]
+    fn reconstructed_height_rises_when_a_short_proof_is_retracted() {
+        let rules = transitive_rules();
+        // path(a,c) starts with a height-1 direct proof; retracting edge(a,c) leaves only
+        // the height-2 path via b, so the maintained proof height must RISE from 1 to 2.
+        let mut session = IncrementalSession::new(
+            "contract",
+            vec![
+                fact("edge", "a", "b"),
+                fact("edge", "b", "c"),
+                fact("edge", "a", "c"),
+            ],
+            &rules,
+        )
+        .unwrap();
+        let height_ac = |session: &IncrementalSession| {
+            session
+                .closure_derivations()
+                .unwrap()
+                .into_iter()
+                .find(|(f, _)| f.key() == fact("path", "a", "c").key())
+                .map(|(_, w)| w.proof_height.get())
+                .expect("path a c is derived")
+        };
+        assert_eq!(height_ac(&session), 1);
+
+        session
+            .apply([SignedFact {
+                fact: fact("edge", "a", "c"),
+                weight: -1,
+            }])
+            .unwrap();
+        assert_eq!(
+            height_ac(&session),
+            2,
+            "the surviving proof is one hop longer"
+        );
     }
 
     #[test]
@@ -1447,6 +1697,66 @@ mod tests {
             error.message().contains("inequality variable ?Z"),
             "{error}"
         );
+    }
+
+    #[test]
+    fn validate_fragment_subsumes_the_typed_classifier() {
+        // The typed classifier and the diagnostic projection must never disagree:
+        // whenever `classify_incremental_fragment` returns a typed refusal,
+        // `validate_fragment` errors with the SAME message that refusal renders, and
+        // whenever the classifier accepts, `validate_fragment` accepts.
+        let ok_rules = transitive_rules();
+        assert!(classify_incremental_fragment(&ok_rules).is_ok());
+        assert!(validate_fragment(&ok_rules).is_ok());
+
+        let mut negated = rule(
+            "negated",
+            atom("p", var("X"), var("Y")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        negated.body[0].negated = true;
+
+        let mut arithmetic = rule(
+            "arithmetic",
+            atom("p", var("X"), var("Y")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        arithmetic.builtins.push(QBuiltin::Is {
+            target: QTerm::Var("?N".to_owned()),
+            lhs: QTerm::Num(1),
+            op: ArithOp::Add,
+            rhs: QTerm::Num(1),
+        });
+
+        let head_unbound = rule(
+            "head-unbound",
+            atom("p", var("X"), var("Z")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+
+        let bodyless = EvalRule {
+            head: atom("p", var("X"), var("Y")),
+            body: Vec::new(),
+            rule_iri: format!("{NS}rule/bodyless"),
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        };
+
+        for rules in [
+            vec![negated],
+            vec![arithmetic],
+            vec![head_unbound],
+            vec![bodyless],
+        ] {
+            let refusal =
+                classify_incremental_fragment(&rules).expect_err("must be a typed refusal");
+            let diag = validate_fragment(&rules).expect_err("must project to the same Diag");
+            assert_eq!(
+                diag.message(),
+                refusal.message(),
+                "validate_fragment must reproduce the typed refusal's message verbatim"
+            );
+        }
     }
 
     #[test]
