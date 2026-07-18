@@ -415,6 +415,17 @@ gmeow:expectedViolationCode a owl:DatatypeProperty ;
     gmeow:howToUse "Read the finding code the validator emits — it is `shacl.` followed by the SHACL constraint component's FULL local name (e.g. shacl.MinCountConstraintComponent, shacl.ClassConstraintComponent, shacl.DatatypeConstraintComponent) — and pin that exact string on the violates fixture."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
+gmeow:expectedSourceShape a owl:ObjectProperty ;
+    rdfs:domain gmeow:ExampleConformance ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "expected source shape"@x-gmeow-english ;
+    skos:definition "The SHACL sh:sourceShape the expected finding must originate from, pinning WHICH specific derived shape a counter-example is expected to red. gmeow:expectedViolationCode alone names only the finding COMPONENT, and every logic:Constraint projects to the SAME generic component (shacl.SPARQLConstraintComponent), so a counter-example can satisfy the code by tripping a DIFFERENT rule than the one it is meant to test. Naming the source shape closes that gap: the harness checks it ONLY when present (an exact source-shape IRI match, or a local-name suffix match), so it is fully OPTIONAL and backward-compatible — a fixture that omits it is validated on the component code exactly as before. Applies only to gmeow:violates fixtures."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.SPARQLConstraintComponent\" ; gmeow:expectedSourceShape gmeow:SourceDigestMatchConstraintProceduralConstraintShape ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture whose gmeow:expectedViolationCode is a generic component shared by many rules (e.g. shacl.SPARQLConstraintComponent, shacl.MinCountConstraintComponent) to pin the exact derived shape that must fire, so the fixture proves the SPECIFIC named rule — not merely some rule of the same component — rejected the counter-example."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding), and where the finding's sh:sourceShape is not per-rule stable — e.g. a sh:minCount derived from a class-level node shape reports the shared class shape as its source, not a per-property shape, so pinning it would not narrow to the specific property; leave such a fixture on the component code."@x-gmeow-english ;
+    gmeow:howToUse "Read the derived shape the counter-example must red — for a logic:Constraint it is the projected sh:NodeShape carrying the sh:sparql (the shape logic:formalizes maps FROM, as the generated procedural-constraints surface names it) — and pin its IRI here alongside the gmeow:expectedViolationCode; the harness matches the finding's sh:sourceShape by exact IRI or by local-name suffix."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
 gmeow:conformanceRationale a owl:DatatypeProperty ;
     rdfs:range xsd:string ;
     rdfs:label "conformance rationale"@x-gmeow-english ;

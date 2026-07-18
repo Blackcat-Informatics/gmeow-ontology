@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT4 counter-example (Don't): a vector target that carries ONLY a gmeow:targetOrdinal
+# (a non-identifying seek hint) with NEITHER a gmeow:targetsResource binding NOR its
+# own gmeow:contentDigest — an anonymous vector slot. Triggers target-exact-identity.rq
+# (→ ce:orphanTarget).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:orphanTarget a gmeow:VectorTarget ;
+    gmeow:vectorTargetKind gmeow:vectorTargetChunk ;
+    gmeow:targetOrdinal    "7"^^xsd:nonNegativeInteger .

@@ -1,0 +1,17 @@
+# R1 — GTS head-id propagation (violation finder). A gmeow:EmbeddingProjection whose
+# gmeow:projectionSource carries a certified gmeow:gtsHeadId but which does NOT
+# propagate a MATCHING gmeow:projectionSourceGtsHeadId — a certified source's
+# committed history dropped or altered on the projection. Independent SPARQL twin of
+# gmeow:GtsHeadIdPropagationConstraint (C6), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:projectionSource ?src .
+  ?src gmeow:gtsHeadId ?h .
+  FILTER NOT EXISTS {
+    ?proj gmeow:projectionSourceGtsHeadId ?h2 .
+    FILTER(STR(?h2) = STR(?h))
+  }
+}
+ORDER BY ?proj

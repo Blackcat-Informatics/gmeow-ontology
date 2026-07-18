@@ -127,6 +127,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/extensions/archaeological-evidence/examples/inscription-reading.ttl", // gmeow:vantage → Entity not typed standalone (the epigraphers are gmeow:Person)
     "slices/extensions/dreaming/examples/ai-offline-replay.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
     "slices/extensions/dreaming/examples/lucid-dream.ttl", // gmeow:vantage → Entity not typed standalone (the dreamer is gmeow:Person)
+    "slices/extensions/embedding-projection/examples/purremb-bookshelf.ttl", // gmeow:hasSensitivity → shared kernel gmeow:SensitivityLevel individuals (gmeow:sensitivityConfidential/sensitivityInternal), gmeow:vectorTargetKind → gmeow:VectorTargetKind, and gmeow:profileSurfaceKind → gmeow:ProfileSurfaceKind (open value-vocab individuals typed in module.ttl) — all untyped standalone; illustrative, validated unioned with the module by make validate
     "slices/extensions/employment/examples/job.ttl", // gmeow:employmentType → shared EmploymentType individual untyped standalone; gmeow:membershipMember → Agent not typed standalone
     "slices/extensions/finance/examples/double-entry.ttl", // gmeow:ledgerAccountHolder → Agent not typed standalone
     "slices/extensions/graphrag/examples/lillith-dataset.ttl", // gmeow:licensedWork → InformationObject not typed standalone; gmeow:licensor → Agent not typed standalone

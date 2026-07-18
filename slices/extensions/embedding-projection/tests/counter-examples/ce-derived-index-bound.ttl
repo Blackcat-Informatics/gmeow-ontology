@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT8 counter-example (Don't): a gmeow:DerivedVectorIndex missing its
+# gmeow:indexOverSpace binding — it carries a projection and a recall but never states
+# the exact effective/prefix space it approximates. Triggers derived-index-bound.rq
+# (→ ce:unboundIndex).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:unboundIndex a gmeow:DerivedVectorIndex ;
+    gmeow:indexOfProjection   ce:someProjection ;
+    gmeow:approximationRecall ce:someRecall ;
+    gmeow:indexAlgorithm      gmeow:indexAlgorithmHnsw ;
+    gmeow:indexNondeterminism true .
