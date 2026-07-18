@@ -118,3 +118,10 @@ gmeow:ToolCall rdfs:subClassOf
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/ToolCall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/usedTool> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:ToolCallShape: gmeow:calledByInvocation is already owl:FunctionalProperty
+# with rdfs:range gmeow:ModelInvocation (sh:maxCount 1); the explicit allValuesFrom
+# restriction below is the class-restriction idiom (Pattern 2) alongside it.
+gmeow:ToolCall rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:allValuesFrom gmeow:ModelInvocation ] .

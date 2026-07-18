@@ -1010,3 +1010,16 @@ gmeow:coarsenTo logic:domain
     [ a logic:Restriction ; logic:onProperty gmeow:coarsenTo ; logic:allValuesFrom gmeow:GranularityLevel ] .
 gmeow:coarsenTo a owl:FunctionalProperty .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/coarsenTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:UseForConsumerTargetShape / gmeow:AvoidForConsumerTargetShape — every
+# gmeow:useForConsumer / gmeow:avoidForConsumer value is a declared
+# gmeow:ProjectionContext individual. Domain-free (sh:targetSubjectsOf, not
+# sh:targetClass), so this is the SAME logic:domain + closure-opt-in idiom as
+# gmeow:HasGranularityShape above, not a class-scoped restriction.
+gmeow:useForConsumer logic:domain
+    [ a logic:Restriction ; logic:onProperty gmeow:useForConsumer ; logic:allValuesFrom gmeow:ProjectionContext ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/useForConsumer" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:avoidForConsumer logic:domain
+    [ a logic:Restriction ; logic:onProperty gmeow:avoidForConsumer ; logic:allValuesFrom gmeow:ProjectionContext ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/avoidForConsumer" ; logic:closureValue logic:ClosedWorldClosure ] .

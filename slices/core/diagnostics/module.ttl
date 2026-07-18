@@ -30,7 +30,7 @@ gmeow:Finding
         [
             a owl:Restriction ;
             owl:onProperty gmeow:findingSeverity ;
-            owl:someValuesFrom gmeow:DiagnosticSeverity ;
+            owl:allValuesFrom gmeow:DiagnosticSeverity ;
         ] ,
         [
             a owl:Restriction ;
@@ -1227,19 +1227,28 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:Finding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:findingSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DiagnosticSeverity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
 
+# NOTE: gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf
+# links — neither an EL-safe allValuesFrom+ClosureEntry (min1 only) nor
+# owl:FunctionalProperty (max1 only) nor a qualified-cardinality-2-onClass
+# restriction (projects sh:qualifiedMinCount/MaxCount, never bare) can express a
+# bare exact-2. owl:cardinality 2 is out of EL and forbidden. The
+# gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint below is
+# the honest procedural backing (COUNT(glutWitnessOf) = 2); the equivalence
+# checker does not currently credit an AggregateConstraint against a plain
+# property NodeShape, so this is a genuine straggler, retained as-is.
 gmeow:CrossNodeGlutWitness rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass gmeow:Finding ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingSeverity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingCode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingMessage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Finding> ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:Finding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/findingSeverity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
 # Gate-fatal up-set constraint (#1194): the procedural gmeow:GateFatalUpsetShape #
@@ -1320,6 +1329,28 @@ logic:capabilityGapFragmentHasShape a logic:Formula ; logic:relation gmeow:gapSh
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gs" ] .
 logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeow:isReasonerFragmentGap ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gs" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
+
+# =========================================================================== #
+# Cross-node glut witness EXACT-count constraint: a procedural COUNT-aggregate #
+# closing the gmeow:CrossNodeGlutWitnessShape residue the paired qualified-    #
+# cardinality-2 restriction above (owl:min/maxQualifiedCardinality 2) does not #
+# by itself resolve to a projected SHACL peer for. Additive: the OWL           #
+# restriction stays; this is a second, procedural avenue onto the same shape.  #
+# =========================================================================== #
+
+gmeow:CrossNodeGlutWitnessCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "Cross-node glut witness count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world structural integrity constraint: a gmeow:CrossNodeGlutWitness carries EXACTLY two gmeow:glutWitnessOf links (one per conflicting Finding) — the reasoner-minted meta-finding's two-sided coherence-conflict record."@x-gmeow-english ;
+    logic:onClass gmeow:CrossNodeGlutWitness ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:glutWitnessOf ;
+    logic:aggComparator "=" ;
+    logic:aggCompareTo 2 ;
+    logic:formalizes gmeow:CrossNodeGlutWitnessShape ;
+    logic:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .

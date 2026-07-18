@@ -1447,6 +1447,15 @@ gmeow:Pipeline rdfs:subClassOf
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/PipelineStage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/stageImpl> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount) — the
+# known straggler class (no maxQualifiedCardinality sibling makes sense here, since
+# there is no max). rdfs:range gmeow:PipelineStage is already declared on
+# gmeow:hasStage; the someValuesFrom restriction below is the best-attempt
+# min1-without-max idiom (PATTERNS.md's straggler note).
+gmeow:Pipeline rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:someValuesFrom gmeow:PipelineStage ] .
+
 # =========================================================================== #
 # Slice-quality governance commitments (this slice authors its own floors/ceilings) #
 # =========================================================================== #

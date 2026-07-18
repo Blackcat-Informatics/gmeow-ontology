@@ -650,6 +650,31 @@ gmeow:MemoryItem rdfs:subClassOf
 # (Principle 17). The authored shapes stay (additive).                         #
 # =========================================================================== #
 
+gmeow:ClaimNeedsEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim needs evidence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: an LLM-extracted claim (gmeow:observationMethod gmeow:methodLlmExtraction) with no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10)."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:ClaimNeedsEvidenceShape ;
+    logic:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
+    logic:integrity logic:cneForall .
+logic:cneForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cneImpl .
+logic:cneImpl a logic:Formula ; logic:antecedent logic:cneGuard ; logic:consequent logic:cneExists .
+logic:cneGuard a logic:Formula ; logic:and logic:cneType , logic:cneMethod .
+logic:cneType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointClaim ] .
+logic:cneMethod a logic:Formula ; logic:relation gmeow:observationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:methodLlmExtraction ] .
+logic:cneExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "span" ] ;
+    logic:exists logic:cneBody .
+logic:cneBody a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] .
+
 gmeow:SpanEndAfterStartConstraint
     a logic:Constraint ;
     rdfs:label "Span end-after-start constraint"@x-gmeow-english ;

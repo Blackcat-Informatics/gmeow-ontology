@@ -19,12 +19,12 @@ gmeow:AtomicConstraint
         [
             a owl:Restriction ;
             owl:onProperty gmeow:leftOperand ;
-            owl:someValuesFrom gmeow:LeftOperand ;
+            owl:allValuesFrom gmeow:LeftOperand ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:constraintOperator ;
-            owl:someValuesFrom gmeow:ConstraintOperator ;
+            owl:allValuesFrom gmeow:ConstraintOperator ;
         ] ;
     skos:definition "A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). It is not a boolean group of comparisons; use gmeow:LogicalConstraint for that. E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'."@x-gmeow-english ;
     skos:example "ex:until2030 a gmeow:AtomicConstraint ; gmeow:leftOperand gmeow:leftOpDateTime ; gmeow:constraintOperator gmeow:operatorLteq ; gmeow:rightOperand \"2030-01-01\" ."@x-gmeow-english ;
@@ -2329,9 +2329,17 @@ gmeow:PrivacyNoticeAttributionConstraint
     logic:severity "Warning" ;
     logic:message "A privacy notice should declare who issued it (dcterms:creator or gmeow:wasAttributedTo)." .
 
+# RuleShape (shared across Rule/Permission/Prohibition/Duty targetClasses): a
+# permission's gmeow:hasDuty values must be gmeow:Duty nodes. gmeow:hasDuty's own
+# rdfs:domain (RightsStatement ∪ Permission) only covers Permission's own use;
+# authoring the class restriction on the shared abstract gmeow:Rule instead of
+# per concrete subclass makes Permission, Prohibition, and Duty inherit it
+# uniformly via ordinary subsumption (mirrors gmeow:ruleAction's someValuesFrom
+# restriction, which is likewise authored once on gmeow:Rule).
+gmeow:Rule rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/ConstraintOperator> ] .
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/LeftOperand> ] .
 <https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightOperand> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightNotice> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CopyrightStatus> ] .
@@ -2355,8 +2363,6 @@ gmeow:PrivacyNoticeAttributionConstraint
 <https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TrademarkStatus> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/copyrightWork> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/LogicalConstraint> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintLogic> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

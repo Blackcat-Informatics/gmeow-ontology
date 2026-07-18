@@ -920,3 +920,11 @@ gmeow:DigitalSubjectTenure rdfs:subClassOf
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# gmeow:InhabitationConfigurationShape: gmeow:configurationEmbodiment is already
+# owl:FunctionalProperty with rdfs:range gmeow:EmbodimentAssignment (sh:maxCount 1);
+# the explicit allValuesFrom restriction below is the class-restriction idiom
+# (Pattern 2) that derive_validation_shapes reads to emit sh:class alongside it.
+gmeow:InhabitationConfiguration rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:allValuesFrom gmeow:EmbodimentAssignment ] .

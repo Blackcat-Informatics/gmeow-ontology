@@ -868,9 +868,9 @@ gmeow:DoxasticStandpointClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
 
 gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:StandpointClaim ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:allValuesFrom gmeow:Proposition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:allValuesFrom gmeow:StandpointClaim ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:credence ; owl:allValuesFrom xsd:decimal ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
@@ -879,58 +879,118 @@ gmeow:DoxasticState rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
 
-gmeow:ClaimEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluates ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ClaimToken ] .
-
-gmeow:DoxasticTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DoxasticState ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
-
-gmeow:SupportAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:supportGround ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportUnderStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportStrength ; owl:allValuesFrom xsd:decimal ] .
-
-gmeow:AdequacyAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:adequacyUnderStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:meetsThreshold ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AdequacyVerdict ] .
-
-gmeow:KnowledgeClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:knowerAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownProposition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownInWorld ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicContext ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:underStandard ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EpistemicStandard ] .
-
-gmeow:KnowledgeAttribution rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Proposition ] .
-
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:StandpointClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
-# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/epistemicAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/doxasticContent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticState> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/doxasticClaim> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] .
-<https://blackcatinformatics.ca/gmeow/ClaimEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/evaluates> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ClaimToken> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/supportGround> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/supportUnderStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/adequacyUnderStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/meetsThreshold> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/AdequacyVerdict> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knowerAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knownProposition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/knownInWorld> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicContext> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/underStandard> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributingAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedKnower> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedProposition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
+# Bare min1+class backing for the properties whose legacy sh:minCount 1 the
+# qualified-onClass restorations above never satisfied (a min/maxQualifiedCardinality
+# with a SPECIFIC onClass projects only sh:qualifiedMinCount/MaxCount, never the legacy
+# BARE sh:minCount/maxCount — the #1194 restoration was a dead end for these paths).
+gmeow:DoxasticState rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:allValuesFrom gmeow:Proposition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:allValuesFrom gmeow:StandpointClaim ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epistemicAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticContent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticClaim" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ClaimEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluates ; owl:allValuesFrom gmeow:ClaimToken ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ClaimEvaluation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evaluates" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DoxasticTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:allValuesFrom gmeow:DoxasticState ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:allValuesFrom gmeow:TimeInterval ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/duringInterval" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:SupportAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:supportGround ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportUnderStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportGround" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:AdequacyAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:adequacyUnderStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:meetsThreshold ; owl:allValuesFrom gmeow:AdequacyVerdict ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/adequacyUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/meetsThreshold" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:KnowledgeClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:knowerAgent ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:knownProposition ; owl:allValuesFrom gmeow:Proposition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:knownInWorld ; owl:allValuesFrom gmeow:EpistemicContext ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:underStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knowerAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownInWorld" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/underStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:KnowledgeAttribution rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:allValuesFrom gmeow:Proposition ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributingAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedKnower" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
 <https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+
+# =========================================================================== #
+# Advisory justifier-type constraint — projection of
+# DoxasticStateJustifierWarningShape (Principle 13). The justification-ground
+# edges keep the JustificationGround range (Violation-severity, structural);
+# this constraint is the ADVISORY (Warning) sh:or peer that warns, per-value,
+# when a DoxasticState's hasAvailableEvidence / basesBeliefOn value is not one
+# of EvidenceSpan / Attestation / DoxasticState.
+# =========================================================================== #
+
+gmeow:DoxasticStateJustifierWarningConstraint
+    a logic:Constraint ;
+    rdfs:label "DoxasticState justifier-type warning constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world advisory constraint: a gmeow:DoxasticState's gmeow:hasAvailableEvidence or gmeow:basesBeliefOn value should be a gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState."@x-gmeow-english ;
+    logic:formalizes gmeow:DoxasticStateJustifierWarningShape ;
+    logic:severity "Warning" ;
+    logic:message "gmeow:hasAvailableEvidence and gmeow:basesBeliefOn should point to an EvidenceSpan, Attestation, or DoxasticState (advisory warning)." ;
+    logic:integrity logic:dsjForall .
+logic:dsjForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dsjImpl .
+logic:dsjImpl a logic:Formula ; logic:antecedent logic:dsjType ; logic:consequent logic:dsjBoth .
+logic:dsjType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
+logic:dsjBoth a logic:Formula ; logic:and logic:dsjEvidenceCheck , logic:dsjBasingCheck .
+
+logic:dsjEvidenceCheck a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ev" ] ;
+    logic:forall logic:dsjEvidenceImpl .
+logic:dsjEvidenceImpl a logic:Formula ; logic:antecedent logic:dsjEvidenceHas ; logic:consequent logic:dsjEvidenceOr .
+logic:dsjEvidenceHas a logic:Formula ; logic:relation gmeow:hasAvailableEvidence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ev" ] .
+logic:dsjEvidenceOr a logic:Formula ; logic:or logic:dsjEvSpan , logic:dsjEvAtt , logic:dsjEvDox .
+logic:dsjEvSpan a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EvidenceSpan ] .
+logic:dsjEvAtt a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attestation ] .
+logic:dsjEvDox a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ev" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
+
+logic:dsjBasingCheck a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bg" ] ;
+    logic:forall logic:dsjBasingImpl .
+logic:dsjBasingImpl a logic:Formula ; logic:antecedent logic:dsjBasingHas ; logic:consequent logic:dsjBasingOr .
+logic:dsjBasingHas a logic:Formula ; logic:relation gmeow:basesBeliefOn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bg" ] .
+logic:dsjBasingOr a logic:Formula ; logic:or logic:dsjBgSpan , logic:dsjBgAtt , logic:dsjBgDox .
+logic:dsjBgSpan a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EvidenceSpan ] .
+logic:dsjBgAtt a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attestation ] .
+logic:dsjBgDox a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
 
 # =========================================================================== #
 # Suppression constraint (#1194) — projection of WithdrawnDoxasticTenureSuppressionShape.
@@ -969,9 +1029,6 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/adequacyUnderStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
-<https://blackcatinformatics.ca/gmeow/AdequacyAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/meetsThreshold> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyVerdict> ] .
-<https://blackcatinformatics.ca/gmeow/ClaimEvaluation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/evaluates> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/ClaimToken> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/adequateUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyAssessment> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/basesBeliefOn> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/claimOfBelief> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
@@ -979,12 +1036,4 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasAvailableEvidence> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDefeatStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationStatus> ] .
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportsUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/SupportAssessment> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributedKnower> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributedProposition> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/attributingAgent> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knowerAgent> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knownInWorld> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicContext> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/knownProposition> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Proposition> ] .
-<https://blackcatinformatics.ca/gmeow/KnowledgeClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/underStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .
 <https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportStrength> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportUnderStandard> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/EpistemicStandard> ] .

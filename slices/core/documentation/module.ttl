@@ -1173,6 +1173,48 @@ gmeow:docSearchAlignment
     gmeow:howToUse "Let the docs projection emit one per precomputed `tag:object` alignment token; match a docs_search query against the union of a term's alignment tokens."@x-gmeow-english ;
     gmeow:useWhen "Use to carry a term's external crosswalk alignments as repeatable searchable tokens so an offline docs_search can match on external-vocabulary correspondences."@x-gmeow-english .
 
+# =========================================================================== #
+# Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl
+# and to procedural logic:Constraint checks, Principle 17).
+#
+# gmeow:docGroundedBy and gmeow:docOwnerSlice are DELIBERATELY owl:AnnotationProperty
+# (docGroundedBy mixes IRI and literal objects; docOwnerSlice's object is a slice
+# node that is simultaneously an owl:Ontology) — a plain owl:Restriction cannot
+# target an AnnotationProperty without leaving OWL 2 DL. The canonical logic:
+# restriction vocabulary (logic:subClassOf / logic:Restriction / logic:onProperty,
+# of which owl:Restriction is a generated dialect form, per logic:Restriction's own
+# skos:definition) is not so constrained, so their cardinality obligations are
+# authored there, with an explicit logic:ClosureEntry opt-in — the exact idiom
+# already proven in THIS slice's own gmeow:HasGranularityShape / gmeow:CoarsenToShape
+# migration and in slices/core/citations/module.ttl's CitationAct "Wave B1"
+# migration. gmeow:docEvidenceKind and gmeow:docCategory are ordinary
+# object/datatype properties and get the usual OWL restrictions.
+# =========================================================================== #
+
+gmeow:docEvidenceKind a owl:FunctionalProperty .
+
+gmeow:DocEvidence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:docEvidenceKind ; owl:allValuesFrom gmeow:DocEvidenceKind ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DocEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docEvidenceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DocumentedTerm rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:docCategory ; owl:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:DocEvidenceGroundingShape — every gmeow:DocEvidence node carries at least
+# one gmeow:docGroundedBy truthmaker (the fail-fast grounding invariant; an
+# ungrounded evidence node is the doc-layer analogue of a DARK finding).
+gmeow:DocEvidence logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:docGroundedBy ; logic:someValuesFrom owl:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DocEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docGroundedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:DocumentedTermShape — every gmeow:DocumentedTerm names exactly one
+# gmeow:docOwnerSlice (the slice whose module defines the term).
+gmeow:DocumentedTerm logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:someValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docOwnerSlice" ; logic:closureValue logic:ClosedWorldClosure ] .
+
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
