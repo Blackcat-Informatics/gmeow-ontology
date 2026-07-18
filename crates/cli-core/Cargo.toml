@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-cli-core"
 description = "Shared CLI foundation (console modes, reporters, tracing, exit codes) reused by the gmeow and gmeow-dev binaries."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

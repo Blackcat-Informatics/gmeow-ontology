@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-validate"
 description = "GMEOW validation in Rust: the wasm-clean repo-free Tier-1 conformance core (SHACL + OntoUML disciplines over a gmeow.gts bundle) plus the native slice-authoring dev gate (rlib)"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
