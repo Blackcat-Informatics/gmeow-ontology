@@ -6,7 +6,7 @@
 # gmeow:sensitivityPublic rank 0) authorized ONLY by a BARE, UNREVIEWABLE
 # gmeow:DeclassificationAct — one that asserts gmeow:declassifies but carries NEITHER a
 # reviewing invocation (gmeow:wasGeneratedBy) NOR an authorizing agent
-# (gmeow:wasAssociatedWith). area-5 requires an EXPLICIT, REVIEWABLE declassification act,
+# (gmeow:wasAssociatedWith). P15 requires an EXPLICIT, REVIEWABLE declassification act,
 # and absence of review never implies a legitimate drop. The unattributed act does NOT
 # satisfy gmeow:SecurityMonotonicityConstraint's reviewable-act existential (→
 # shacl.SPARQLConstraintComponent) and the act itself violates the DeclassificationAct

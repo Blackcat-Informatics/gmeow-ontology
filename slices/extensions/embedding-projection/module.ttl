@@ -185,10 +185,10 @@ gmeow:SimilarityObservation
     rdfs:label "Similarity Observation"@x-gmeow-english ;
     logic:subClassOf gmeow:Observation ;
     skos:definition "An operational, ranked-retrieval observation: a PAIRWISE similarity CLAIM between two vectors over one gmeow:VectorSpaceContract under one gmeow:DistanceMetric — explicitly NOT equivalence, NOT entailment, NOT a truth judgment. It is distinct from graphrag's gmeow:retrievalScore (a statement annotation carrying ONE retrieval EVENT's relevance for one retrieved chunk): a SimilarityObservation is a standalone, attributable claim ABOUT two resources' vector proximity, not a per-triple score riding a gmeow:RetrievalEvent — the two are disjoint (see gmeow:SimilarityObservation owl:disjointWith gmeow:RetrievalEvent). Its determinacy is logic:Vague: numeric proximity is a graded, approximation-sensitive claim (the metric, the space, and the index's recall all bear on it), so it is an observation to be weighed, never a crisp fact (logic:Crisp)."@x-gmeow-english ;
-    skos:example "ex:sim1 a gmeow:SimilarityObservation ; gmeow:overVectorSpace ex:vsc1 ; gmeow:withMetric gmeow:distanceMetricCosine ; gmeow:similarityScore ex:score091 ; gmeow:queryContext \"nearest neighbours of ex:docA\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as equivalence, entailment, or a retrieval-event score (it is a pairwise similarity CLAIM, disjoint from gmeow:RetrievalEvent) and avoid treating its score as crisp — its determinacy is logic:Vague."@x-gmeow-english ;
+    skos:example "ex:sim1 a gmeow:SimilarityObservation ; gmeow:overVectorSpace ex:vsc1 ; gmeow:withMetric gmeow:distanceMetricCosine ; gmeow:similarityScore ex:score091 ; gmeow:comparesLeftTarget ex:tgtChunk ; gmeow:comparesRightTarget ex:tgtDoc ; gmeow:queryContext \"nearest neighbours of ex:docA\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as equivalence, entailment, or a retrieval-event score (it is a pairwise similarity CLAIM, disjoint from gmeow:RetrievalEvent), avoid treating its score as crisp — its determinacy is logic:Vague — and avoid a bare score that names no operands: it MUST bind the exact two vector rows it scored via gmeow:comparesLeftTarget/gmeow:comparesRightTarget, else the proximity is unattributable at the operand grain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint a gmeow:SimilarityObservation, ground its magnitude with gmeow:similarityScore (a math:Quantity), fix the space with gmeow:overVectorSpace and the metric with gmeow:withMetric, and record its query context with gmeow:queryContext; keep it separate from any gmeow:RetrievalEvent, whose per-chunk relevance rides gmeow:retrievalScore instead."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:SimilarityObservation, ground its magnitude with gmeow:similarityScore (a math:Quantity), fix the space with gmeow:overVectorSpace and the metric with gmeow:withMetric, bind the EXACT two operand rows it scored with gmeow:comparesLeftTarget/gmeow:comparesRightTarget (each a gmeow:VectorTarget), and record its query context with gmeow:queryContext; keep it separate from any gmeow:RetrievalEvent, whose per-chunk relevance rides gmeow:retrievalScore instead."@x-gmeow-english ;
     gmeow:useWhen "Use to record a standalone pairwise vector-similarity claim over a fixed vector space and metric — ranked retrieval as an attributable, weighable observation rather than an entailment or a retrieval-event annotation."@x-gmeow-english .
 
 gmeow:TargetSet
@@ -996,6 +996,34 @@ gmeow:comparesRight
     gmeow:howToUse "Assert gmeow:comparesRight from a gmeow:SimilarityObservation to the right gmeow:EmbeddingProjection; pair it with gmeow:comparesLeft for the left operand."@x-gmeow-english ;
     gmeow:useWhen "Use to name the right projection of a pairwise similarity observation across two projections."@x-gmeow-english .
 
+gmeow:comparesLeftTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SimilarityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "compares left target"@x-gmeow-english ;
+    rdfs:range gmeow:VectorTarget ;
+    skos:definition "The exact LEFT operand ROW a pairwise gmeow:SimilarityObservation scored — the gmeow:VectorTarget (one matrix row) whose vector the observation's gmeow:similarityScore is a proximity of. It is the ROW-LEVEL operand, distinct from gmeow:comparesLeft which names only the projection-level provenance (WHICH gmeow:EmbeddingProjection the row came from): gmeow:comparesLeft answers 'which pack?', gmeow:comparesLeftTarget answers 'which row in it?'. Without it a score cannot identify the vector pair it measured — a gmeow:similarityScore bound only to whole projections is unattributable at the operand grain. Functional: one observation, one left operand row; pair it with gmeow:comparesRightTarget for the right operand."@x-gmeow-english ;
+    skos:example "ex:sim1 gmeow:comparesLeftTarget ex:tgtChunk ; gmeow:comparesRightTarget ex:tgtDoc ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a whole gmeow:EmbeddingProjection or a gmeow:TargetSet (it names ONE gmeow:VectorTarget row — use gmeow:comparesLeft for the projection-level operand) and avoid leaving its gmeow:comparesRightTarget partner unset (a score names BOTH operand rows or neither)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:comparesLeftTarget from a gmeow:SimilarityObservation to the left operand gmeow:VectorTarget row its gmeow:similarityScore measured; pair it with gmeow:comparesRightTarget, and keep gmeow:comparesLeft/gmeow:comparesRight for the coarser projection-level provenance."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a similarity score to the EXACT left vector row it scored, so the observation names its operand pair at row grain rather than only at projection grain."@x-gmeow-english .
+
+gmeow:comparesRightTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SimilarityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "compares right target"@x-gmeow-english ;
+    rdfs:range gmeow:VectorTarget ;
+    skos:definition "The exact RIGHT operand ROW a pairwise gmeow:SimilarityObservation scored — the gmeow:VectorTarget (one matrix row) whose vector the observation's gmeow:similarityScore is a proximity of. It is the ROW-LEVEL operand, distinct from gmeow:comparesRight which names only the projection-level provenance (WHICH gmeow:EmbeddingProjection the row came from): gmeow:comparesRight answers 'which pack?', gmeow:comparesRightTarget answers 'which row in it?'. Without it a score cannot identify the vector pair it measured — a gmeow:similarityScore bound only to whole projections is unattributable at the operand grain. Functional: one observation, one right operand row; pair it with gmeow:comparesLeftTarget for the left operand."@x-gmeow-english ;
+    skos:example "ex:sim1 gmeow:comparesLeftTarget ex:tgtChunk ; gmeow:comparesRightTarget ex:tgtDoc ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a whole gmeow:EmbeddingProjection or a gmeow:TargetSet (it names ONE gmeow:VectorTarget row — use gmeow:comparesRight for the projection-level operand) and avoid leaving its gmeow:comparesLeftTarget partner unset (a score names BOTH operand rows or neither)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:comparesRightTarget from a gmeow:SimilarityObservation to the right operand gmeow:VectorTarget row its gmeow:similarityScore measured; pair it with gmeow:comparesLeftTarget, and keep gmeow:comparesLeft/gmeow:comparesRight for the coarser projection-level provenance."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a similarity score to the EXACT right vector row it scored, so the observation names its operand pair at row grain rather than only at projection grain."@x-gmeow-english .
+
 gmeow:sensitivityRank
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:SensitivityLevel ;
@@ -1150,6 +1178,16 @@ gmeow:DerivedVectorIndex logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:approximationRecall ; logic:allValuesFrom math:Quantity ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:indexOverSpace ; logic:allValuesFrom gmeow:VectorSpaceContract ] .
 
+# A score-bearing gmeow:SimilarityObservation must name the exact two operand ROWS
+# it scored (gmeow:comparesLeftTarget / gmeow:comparesRightTarget, each one
+# gmeow:VectorTarget), so a gmeow:similarityScore is attributable to the vector pair
+# that produced it — not merely to the whole projections (gmeow:comparesLeft/Right).
+# Purely existence → EL-safe OWL: a logic:allValuesFrom carrier + the class-scoped
+# ClosureEntry below, lowered to sh:class + sh:minCount 1 by Principle 17.
+gmeow:SimilarityObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:comparesLeftTarget ; logic:allValuesFrom gmeow:VectorTarget ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:comparesRightTarget ; logic:allValuesFrom gmeow:VectorTarget ] .
+
 # =========================================================================== #
 # Closed-world requiredness opt-in (Principle 17). A logic:allValuesFrom        #
 # carrier is OPEN-WORLD by itself (vacuous when the path is absent); each       #
@@ -1180,6 +1218,8 @@ gmeow:DerivedVectorIndex logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasGeneratedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAssociatedWith" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorTarget ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vectorTargetKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimilarityObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/comparesLeftTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimilarityObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/comparesRightTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
 # Procedural constraints — logic:Constraint + logic:Formula ASTs              #
@@ -1270,7 +1310,7 @@ gmeow:SecurityMonotonicityConstraint
     rdfs:label "Security monotonicity constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's sensitivity rank is LOWER than its gmeow:projectionSource's (the source is more sensitive, gmeow:sensitivityRank source > projection), an explicit, REVIEWABLE gmeow:DeclassificationAct that gmeow:declassifies the projection must exist — reviewable meaning the act itself carries both a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith). A BARE act that merely asserts gmeow:declassifies with no review provenance does NOT satisfy the existential — an unattributed drop is exactly the silent degradation P15/area-5 forbid. Absent that reviewable act, a projection may never sit below its source's classification; absence never implies a legitimate drop."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: when a gmeow:EmbeddingProjection's sensitivity rank is LOWER than its gmeow:projectionSource's (the source is more sensitive, gmeow:sensitivityRank source > projection), an explicit, REVIEWABLE gmeow:DeclassificationAct that gmeow:declassifies the projection must exist — reviewable meaning the act itself carries both a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith). A BARE act that merely asserts gmeow:declassifies with no review provenance does NOT satisfy the existential — an unattributed drop is exactly the silent degradation P15 forbids. Absent that reviewable act, a projection may never sit below its source's classification; absence never implies a legitimate drop."@x-gmeow-english ;
     logic:formalizes gmeow:SecurityMonotonicityShape ;
     logic:message "A projection whose sensitivity is below its source's requires an explicit REVIEWABLE gmeow:DeclassificationAct declassifying it — one carrying a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith); a bare, unattributed act never warrants the drop (P15)." ;
     logic:integrity logic:smonForall .
@@ -1299,7 +1339,7 @@ logic:smonExists a logic:Formula ;
 # The witnessing act must be REVIEWABLE: it must gmeow:declassifies the projection AND
 # carry both a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent
 # (gmeow:wasAssociatedWith). A bare, unattributed act never satisfies the existential —
-# absence of a reviewable act never implies a legitimate drop (area-5, P15).
+# absence of a reviewable act never implies a legitimate drop (P15).
 logic:smonBody a logic:Formula ; logic:and logic:smonActType , logic:smonDeclassifies , logic:smonReviewInv , logic:smonReviewAgent .
 logic:smonActType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DeclassificationAct ] .

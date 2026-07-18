@@ -3,7 +3,7 @@
 # REVIEWABLE gmeow:DeclassificationAct exists — reviewable meaning an act that
 # gmeow:declassifies it AND carries both a reviewing invocation (gmeow:wasGeneratedBy) and
 # an authorizing agent (gmeow:wasAssociatedWith). A BARE act that only asserts
-# gmeow:declassifies is unattributed and warrants nothing: area-5 requires an EXPLICIT,
+# gmeow:declassifies is unattributed and warrants nothing: P15 requires an EXPLICIT,
 # REVIEWABLE act, and absence of review never implies a legitimate drop (P15). Independent
 # SPARQL twin of the strengthened gmeow:SecurityMonotonicityConstraint (C3) existential —
 # it catches the unreviewed case that the plain declassifies-edge check (security-monotonic.rq)

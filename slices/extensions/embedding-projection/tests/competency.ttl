@@ -260,7 +260,7 @@ ep:epCqSecurityMonotonicClean a gmeow:CompetencyQuestion ;
 # projection dropped below its source by a BARE, unattributed act (no reviewing  #
 # invocation, no authorizing agent); empty over the scene, whose ex:declassAct   #
 # carries both gmeow:wasGeneratedBy and gmeow:wasAssociatedWith. Closes the       #
-# area-5 hole: a bare declassifies edge never warrants the drop.                 #
+# disclosure-review hole: a bare declassifies edge never warrants the drop.      #
 # =========================================================================== #
 ep:epCqDeclassUnreviewed a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/declass-unreviewed.rq" ;
@@ -494,3 +494,27 @@ ep:epCqWithMetricAgreementViolation a gmeow:CompetencyQuestion ;
     gmeow:cqResultShape ep:shapeObsExact ;
     gmeow:cqRationale "An observation reporting cosine over a dot-product space is caught: ce:disagreeObs." ;
     gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:disagreeObs ] ] .
+
+# =========================================================================== #
+# Similarity operands grounded to actual rows. A gmeow:similarityScore           #
+# must name the EXACT two vector rows it scored (gmeow:comparesLeftTarget /       #
+# gmeow:comparesRightTarget). Violation over a score-bearing observation with no  #
+# operand rows; empty over the scene, whose ex:crossObs / ex:inObs each name both #
+# operand rows. Live SPARQL twin of the operand requiredness (sh:minCount 1).     #
+# =========================================================================== #
+ep:epCqSimilarityOperandsMissing a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/similarity-operands.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-similarity-operands-missing.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeObsExact ;
+    gmeow:cqRationale "A score-bearing gmeow:SimilarityObservation that names neither operand row (no gmeow:comparesLeftTarget, no gmeow:comparesRightTarget) is caught: ce:noOperandObs — its proximity is unattributable to a vector pair." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:noOperandObs ] ] .
+
+ep:epCqSimilarityOperandsMissingClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/similarity-operands.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeObsEmpty ;
+    gmeow:cqRationale "Every scene similarity observation names BOTH operand rows — ex:crossObs binds ex:tgtChunk / ex:tgtDocB and ex:inObs binds ex:tgtDoc / ex:tgtChunk — zero ungrounded scores." ;
+    gmeow:cqExpectRowCount 0 .
