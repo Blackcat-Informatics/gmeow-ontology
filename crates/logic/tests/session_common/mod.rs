@@ -263,6 +263,7 @@ pub struct CanonWitness {
     pub rule: String,
     pub premises: BTreeSet<Triple>,
     pub weight: i64,
+    pub proof_height: u32,
 }
 
 /// The ORACLE derived witnesses, keyed by the canonical `(s,p,o)` triple: `rule_name`
@@ -317,10 +318,65 @@ pub fn session_witnesses(session: &ReasoningSession) -> BTreeMap<Triple, CanonWi
                     rule: witness.rule_iri.clone(),
                     premises,
                     weight: witness.weight,
+                    proof_height: witness.proof_height,
                 },
             )
         })
         .collect()
+}
+
+/// The ORACLE minimal proof height of every derived IDB fact, computed independently of
+/// the session as a pure function of the from-scratch reasoner's canonical witness DAG.
+///
+/// The full reasoner ([`reason_program`]) selects the minimal-height witness per fact but
+/// does not surface the height on [`gmeow_logic::reason::InferredAxiom`]. The minimal
+/// proof height is, by definition, `1 + max(premise heights)` over that canonical witness
+/// (an asserted EDB premise has height `0`), so it is reconstructed here by a memoized
+/// descent over [`oracle_witnesses`]. This is the ground-truth `MinProofHeight` recurrence
+/// — the same recurrence the maintainer computes over its OWN settled closure — so an
+/// equal result is genuine cross-engine parity, not a tautology.
+#[must_use]
+pub fn oracle_proof_heights(
+    program: &LogicProgram,
+    edb: &RdfDataset,
+    idb: &[String],
+) -> BTreeMap<Triple, u32> {
+    let witnesses = oracle_witnesses(program, edb, idb);
+    let mut heights: BTreeMap<Triple, u32> = BTreeMap::new();
+    for key in witnesses.keys() {
+        let height = oracle_height_of(key, &witnesses, &mut heights, &mut BTreeSet::new());
+        heights.insert(key.clone(), height);
+    }
+    heights
+}
+
+/// Memoized `1 + max(premise heights)` over the oracle witness DAG; a premise absent from
+/// `witnesses` is an asserted EDB leaf (height `0`).
+fn oracle_height_of(
+    fact: &Triple,
+    witnesses: &BTreeMap<Triple, (Option<String>, BTreeSet<Triple>)>,
+    memo: &mut BTreeMap<Triple, u32>,
+    visiting: &mut BTreeSet<Triple>,
+) -> u32 {
+    if let Some(&height) = memo.get(fact) {
+        return height;
+    }
+    let Some((_, premises)) = witnesses.get(fact) else {
+        return 0; // an asserted EDB fact is a proof leaf
+    };
+    assert!(
+        visiting.insert(fact.clone()),
+        "the minimal-height witness DAG must be acyclic at {fact:?}"
+    );
+    let max_premise = premises
+        .iter()
+        .map(|premise| oracle_height_of(premise, witnesses, memo, visiting))
+        .max()
+        .unwrap_or(0);
+    visiting.remove(fact);
+    let height = max_premise + 1;
+    memo.insert(fact.clone(), height);
+    height
 }
 
 /// A default reasoning contract + exact annotation contract (the AC1/AC2 baseline).

@@ -1772,8 +1772,13 @@ fn render_facts_and_provenance(session: &ReasoningSession) {
     println!("provenance {}", derivations.len());
     for prov in &derivations {
         println!(
-            "derivation subject={} predicate={} object={} rule={} weight={}",
-            prov.subject, prov.predicate, prov.object, prov.rule_iri, prov.weight
+            "derivation subject={} predicate={} object={} rule={} weight={} proof-height={}",
+            prov.subject,
+            prov.predicate,
+            prov.object,
+            prov.rule_iri,
+            prov.weight,
+            prov.proof_height
         );
         let mut premises = prov.premises.clone();
         premises.sort();

@@ -8,7 +8,7 @@
 
 use std::sync::Arc;
 
-use gmeow_logic::annotation::AnnotationContract;
+use gmeow_logic::annotation::{AnnotationContract, AnnotationQueryClass, SemiringLaw};
 use gmeow_logic::runtime::{
     FragmentDisposition, OperationOutcome, ReasoningSession, RebuildReason, SessionDelta,
     Suppression,
@@ -328,6 +328,64 @@ fn program_carrying_formulas_is_never_certified_incremental() {
         OperationOutcome::Applied { .. } => {
             panic!("apply must never present a certified closure that drops formula semantics")
         }
+        OperationOutcome::RequiresFullRebuild {
+            reason: RebuildReason::AdditionsOutsideIncrementalFragment,
+        } => {}
+        other => panic!("expected RequiresFullRebuild, got {other:?}"),
+    }
+}
+
+#[test]
+fn approximating_annotation_contract_is_never_certified_incremental() {
+    // The incremental maintainer materializes the EXACT tropical minimal-proof-height
+    // semiring. A no-optionality guard (G2): a contract that declares an over-approximating
+    // annotation algebra selects a different, non-exact algebra the maintainer does not
+    // compute, so the SAME within-fragment rules must NOT be certified Incremental — they
+    // route to a full rebuild rather than silently substituting the exact annotation.
+    let contract = ReasoningContract::new();
+    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+
+    // Control: the exact contract certifies the pure transitive program Incremental.
+    let exact = ReasoningSession::open(
+        &edb,
+        &transitive_program(),
+        &contract,
+        &AnnotationContract::exact(),
+    )
+    .expect("open exact");
+    assert_eq!(
+        exact.fragment_disposition(),
+        &FragmentDisposition::Incremental,
+        "the exact minimal-proof-height annotation is incrementally maintainable"
+    );
+
+    // The SAME rules under a declared over-approximating algebra must NOT be Incremental.
+    let approximating = AnnotationContract::complete_over(
+        [SemiringLaw::Distributive],
+        [AnnotationQueryClass::PositiveRecursive],
+    );
+    let mut session =
+        ReasoningSession::open(&edb, &transitive_program(), &contract, &approximating)
+            .expect("open approximating");
+    assert_eq!(
+        session.fragment_disposition(),
+        &FragmentDisposition::RequiresFullRebuild(
+            RebuildReason::AdditionsOutsideIncrementalFragment
+        ),
+        "a declared over-approximating annotation algebra routes to a full rebuild"
+    );
+    assert!(!session.fragment_supported());
+
+    // apply must NEVER return Applied for the annotation-degraded program.
+    let delta = SessionDelta::new(
+        session.identity().data_generation.clone(),
+        session.head(),
+        edge_dataset(&[("c", "d")]),
+        vec![],
+        None,
+    )
+    .expect("valid delta");
+    match session.apply(&delta) {
         OperationOutcome::RequiresFullRebuild {
             reason: RebuildReason::AdditionsOutsideIncrementalFragment,
         } => {}

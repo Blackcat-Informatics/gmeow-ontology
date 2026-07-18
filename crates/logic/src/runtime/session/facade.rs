@@ -114,7 +114,7 @@ impl ReasoningSession {
         annotation: &AnnotationContract,
     ) -> gmeow_errors::Result<Self> {
         let data_generation = mint_edb_generation(edb)?;
-        let (disposition, inner) = classify_disposition(program, edb)?;
+        let (disposition, inner) = classify_disposition(program, edb, annotation)?;
         let closure = inner.as_ref().map_or_else(
             ForwardRows::default,
             IncrementalForwardSession::closure_rows,
@@ -219,7 +219,7 @@ impl ReasoningSession {
         };
 
         // Classify + prepare over the collected resident EDB.
-        let (disposition, inner) = match classify_disposition(program, &edb) {
+        let (disposition, inner) = match classify_disposition(program, &edb, annotation) {
             Ok(pair) => pair,
             Err(diagnostic) => return Err(OperationOutcome::EngineFailure { diagnostic }),
         };
@@ -586,19 +586,29 @@ fn classify_engine_error(diag: gmeow_errors::Diag) -> OperationOutcome {
 fn classify_disposition(
     program: &LogicProgram,
     edb: &RdfDataset,
+    annotation: &AnnotationContract,
 ) -> gmeow_errors::Result<(FragmentDisposition, Option<IncrementalForwardSession>)> {
     match crate::lower::lower_eval_rules(program) {
         Ok(rules) => match crate::physical::classify_incremental_fragment(&rules) {
             // Binary-Datalog rules AND the program's forward-derivable semantics is fully
-            // captured by `program.rules` (nothing the maintainer would drop): certify.
-            Ok(()) if derivable_semantics_fully_captured_by_rules(program) => {
-                let session = IncrementalForwardSession::prepare(edb, program)?;
+            // captured by `program.rules` (nothing the maintainer would drop) AND the bound
+            // annotation contract selects an algebra the maintainer materializes exactly:
+            // certify. A declared over-approximating annotation algebra is outside the
+            // incrementally-maintained fragment (the maintainer only computes the exact
+            // minimal-proof-height semiring), so it routes to a full rebuild rather than
+            // silently substituting the exact annotation.
+            Ok(())
+                if derivable_semantics_fully_captured_by_rules(program)
+                    && crate::cost::annotation_maintainable_incrementally(annotation) =>
+            {
+                let session = IncrementalForwardSession::prepare(edb, program, annotation)?;
                 Ok((FragmentDisposition::Incremental, Some(session)))
             }
             // Binary-Datalog rules, but the program ALSO carries forward-derivation
             // content (`program.formulas`) the incremental maintainer would silently
-            // drop. NEVER certify Incremental while dropping content: route/refuse via
-            // the full-native probe.
+            // drop, or the bound annotation algebra is outside the maintained fragment.
+            // NEVER certify Incremental while dropping content or degrading the annotation:
+            // route/refuse via the full-native probe.
             Ok(()) => Ok((classify_via_full_probe(program, edb, None), None)),
             Err(refusal) => Ok((
                 classify_nonincremental(program, edb, &rules, &refusal),
