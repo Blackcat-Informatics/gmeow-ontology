@@ -1976,7 +1976,7 @@ msgstr "将霍奇分解关联到其恰当分量——位于适用边缘算子或
 
 msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
 msgid "coexact component"
-msgstr "上恰当分量"
+msgstr "余恰当分量"
 
 msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
 msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
@@ -2104,7 +2104,7 @@ msgstr "将 Mapper 构造关联到其滤波函数陪域的 math:Cover——一�
 
 msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
 msgid "clustering rule"
-msgstr "聚类规则关系"
+msgstr "聚类规则"
 
 msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
 msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
@@ -2503,7 +2503,7 @@ msgid "Relates a quadratic space or Clifford algebra to the quadratic form gover
 msgstr "将二次空间或 Clifford 代数关联到支配其度量关系的二次形式。"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
-msgid "scalar field"
+msgid "field of scalars"
 msgstr "标量域"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
@@ -2864,7 +2864,7 @@ msgstr "将向量符号运算关联到 math:VectorSymbolicCapacity 描述符，�
 
 msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
 msgid "recovery-loss contract"
-msgstr "恢复损失契约关系"
+msgstr "恢复损失契约"
 
 msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
 msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."

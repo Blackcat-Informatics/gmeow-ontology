@@ -450,6 +450,11 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@16b05812d776ae1dfaabc8277e421fb6d2506419 # v2
+        with:
+          tool: cargo-nextest
+
       - name: Native reason + reasoned-graph verify (one closure)
         run: make reason-verify
 
