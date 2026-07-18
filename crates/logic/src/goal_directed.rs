@@ -10,7 +10,7 @@
 //! single thin, honest `pub` façade over them: it lowers the AUTHORED
 //! `logic:ReasoningProgram` corpus (structured — function-symbol — logic programs the flat
 //! query text-parser cannot express) into the resolver's `TermDag` via
-//! [`evaluate_reasoning_programs`], evaluates each through [`resolve_fol`](crate::physical::resolve_fol::resolve_fol), validates every
+//! [`evaluate_reasoning_programs`](crate::goal_directed::evaluate_reasoning_programs), evaluates each through [`resolve_fol`](crate::physical::resolve_fol::resolve_fol), validates every
 //! answer's proof with [`check`](crate::physical::proof::check), and projects the checked answers + their
 //! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.

@@ -1614,6 +1614,7 @@ dependencies = [
  "proptest",
  "purrdf",
  "rayon",
+ "serde",
  "serde_json",
  "sha1",
  "sha2",
@@ -1624,6 +1625,7 @@ dependencies = [
 name = "gmeow-logic-compile"
 version = "0.2.0"
 dependencies = [
+ "blake3",
  "gmeow-errors",
  "insta",
  "purrdf",

@@ -148,7 +148,7 @@ pub struct DerivedQuad {
 /// identifies the caller/provider contract under which that snapshot is exposed.
 /// Both are explicit: GMEOW never guesses a durable generation from an address or
 /// silently treats a changed provider as the same world.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct WorldSourceIdentity {
     /// Caller/provider identity for the immutable RDF snapshot.
     pub generation: String,

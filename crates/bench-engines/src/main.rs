@@ -682,8 +682,12 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
     // Bootstrap and base scratch evaluation are intentionally outside the measured
     // transaction. The optimized consumer is a loop over one stable base session.
-    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
-        .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+    let mut session = IncrementalForwardSession::prepare(
+        base.as_ref(),
+        &program,
+        &gmeow_logic::annotation::AnnotationContract::exact(),
+    )
+    .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
     let base_scratch = run_native_forward(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
     let base_fp = fingerprint_rows(&base_scratch.rows);
@@ -2041,8 +2045,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
             let updated_scratch = run_native_forward(&updated, &program)
                 .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
-            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
-                .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+            let mut session = IncrementalForwardSession::prepare(
+                base.as_ref(),
+                &program,
+                &gmeow_logic::annotation::AnnotationContract::exact(),
+            )
+            .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
             let inserted = session
                 .insert(delta.as_ref(), None)
                 .map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
