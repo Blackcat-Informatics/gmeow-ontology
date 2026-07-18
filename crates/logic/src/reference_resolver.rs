@@ -986,6 +986,34 @@ mod tests {
         assert_eq!(fail.bindings.len(), 0, "2 > 5 prunes the branch: {fail:?}");
     }
 
+    #[test]
+    fn exact_rational_builtin_resolves_in_body_order() {
+        // The reference oracle evaluates the exact-`/` generator in body order: the
+        // scalar-ℚ family flows through the ONE shared evaluator on the demand path,
+        // committing the normalized rational transport surface (6/4 → 3/2).
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}kind"),
+            &format!("{base}item"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one exact-rational answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
     // ── G14: a Struct argument to the reference oracle hard-fails ────────────
 
     /// Build a `QTerm::Struct` wrapping some arbitrary node in a fresh, disposable

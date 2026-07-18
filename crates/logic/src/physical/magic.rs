@@ -2483,6 +2483,41 @@ mod tests {
         );
     }
 
+    #[test]
+    fn magic_exact_rational_matches_reference() {
+        // A rational-arithmetic rule (`H is 6 / 4` → 3/2) is decided natively by the
+        // backward magic core, and the answer is BYTE-IDENTICAL to the top-down SLD
+        // reference oracle — the scalar-ℚ family cannot diverge across engines
+        // because both call the one shared moded evaluator.
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}kind"),
+            &format!("{BASE}item"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        let reference = reference_resolver::resolve(&foreign, &world_nn, &prog, &budget).unwrap();
+
+        assert_eq!(native.status, reference.status, "status parity");
+        assert_eq!(
+            native.bindings, reference.bindings,
+            "native magic must equal top-down SLD for exact ℚ: native {native:?} vs ref {reference:?}"
+        );
+        assert_eq!(native.bindings.len(), 1);
+        assert_eq!(
+            native.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
     // NOTE: a non-binary goal atom is NO LONGER a binary-path `Unsupported(NonBinaryAtom)`
     // gap — the arity-eligibility dispatch in `resolve_native` routes it to the arity-generic
     // n-ary evaluator instead (see `super::magic_generic`, where the `triple(s, p, o, w)`

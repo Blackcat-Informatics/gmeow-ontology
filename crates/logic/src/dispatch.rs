@@ -1542,6 +1542,32 @@ mod tests {
     }
 
     #[test]
+    fn exact_rational_answer_flows_through_dispatch() {
+        // The scalar-ℚ family is demonstrable end-to-end on the PRODUCTION query
+        // surface: a rule computing an exact rational (`H is 6 / 4` → 3/2) with the
+        // distinct `/` operator resolves through `dispatch_query` and returns the
+        // normalized rational transport binding.
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("kind"), &p("item"));
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            dispatch_query(&foreign, W, &prog, PROCEDURAL_PROFILE, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one exact-rational answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(
+            ans.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
+    #[test]
     fn nary_list_get_is_a_typed_arithmetic_refusal() {
         let (store, world) = list_world();
         let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
