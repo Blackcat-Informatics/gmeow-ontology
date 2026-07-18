@@ -32,4 +32,5 @@ ex:envelopeTwoDictVersions a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

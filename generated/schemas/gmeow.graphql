@@ -3471,6 +3471,7 @@ type GmnEnvelope {
   annotation: GmeowScalar
   gmeowAccordingTo: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowGmnCodebookDigest: GmeowScalar
   gmeowGmnDictionaryVersion: GmeowScalar
   gmeowGmnEnvelopeCorrespondence: GmeowScalar
   gmeowGmnGlyphTableVersion: GmeowScalar
@@ -3485,6 +3486,7 @@ input GmnEnvelopeInput {
   annotation: GmeowScalar
   gmeowAccordingTo: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowGmnCodebookDigest: GmeowScalar
   gmeowGmnDictionaryVersion: GmeowScalar
   gmeowGmnEnvelopeCorrespondence: GmeowScalar
   gmeowGmnGlyphTableVersion: GmeowScalar
