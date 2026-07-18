@@ -1201,6 +1201,24 @@ gmeow:DocumentedTerm rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:docCategory ; owl:allValuesFrom xsd:string ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
 
+# gmeow:DocumentedTermShape's gmeow:docOwnerSlice min1/max1 pair is already fully
+# grounded above (the owl:Thing-qualified logic:Restriction pair a few lines up
+# in this file); its remaining ungrounded facet is gmeow:docCategory's
+# sh:minCount 1 (the allValuesFrom restriction just above types the value but
+# never requires one). Authored procedurally (P3 disjunctive-requiredness
+# sugar degenerated to a single predicate, the same "at least one value" idiom
+# as gmeow:DocEvidenceGroundingConstraint below), formalizing the exact shape IRI.
+gmeow:DocumentedTermCategoryConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Documented-term category requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DocumentedTerm must carry at least one gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)."@x-gmeow-english ;
+    logic:onClass gmeow:DocumentedTerm ;
+    logic:anyOf gmeow:docCategory ;
+    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:message "A gmeow:DocumentedTerm must carry a gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)." .
+
 # gmeow:DocEvidenceGroundingShape — every gmeow:DocEvidence node carries at least
 # one gmeow:docGroundedBy truthmaker (the fail-fast grounding invariant; an
 # ungrounded evidence node is the doc-layer analogue of a DARK finding).

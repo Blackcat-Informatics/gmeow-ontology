@@ -5,6 +5,7 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
 # Consumer-advisory range shapes
@@ -24,6 +25,7 @@ gmeow:UseForConsumerTargetShape
     rdfs:label "useForConsumer range shape"@x-gmeow-english ;
     skos:definition "Every gmeow:useForConsumer value must be a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    logic:formalizes gmeow:UseForConsumerTargetConstraint ;
     sh:targetSubjectsOf gmeow:useForConsumer ;
     sh:property [
         sh:path gmeow:useForConsumer ;
@@ -38,6 +40,7 @@ gmeow:AvoidForConsumerTargetShape
     rdfs:label "avoidForConsumer range shape"@x-gmeow-english ;
     skos:definition "Every gmeow:avoidForConsumer value must be a declared gmeow:ProjectionContext individual."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    logic:formalizes gmeow:AvoidForConsumerTargetConstraint ;
     sh:targetSubjectsOf gmeow:avoidForConsumer ;
     sh:property [
         sh:path gmeow:avoidForConsumer ;

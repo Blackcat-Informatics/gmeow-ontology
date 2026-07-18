@@ -2321,10 +2321,10 @@ gmeow:LicenseLicensorConstraint
     rdfs:label "License licensor-present constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:License names a gmeow:licensor."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:License names a gmeow:licensor. The shape's other facets (gmeow:licensedWork min1/max1+class, gmeow:licenseFamily someValuesFrom+max1) are already OWL-restriction-backed above (gmeow:License rdfs:subClassOf); this is the shape's one remaining procedural facet."@x-gmeow-english ;
     logic:onClass gmeow:License ;
     logic:anyOf gmeow:licensor ;
-    logic:formalizes gmeow:License ;
+    logic:formalizes gmeow:License , gmeow:LicenseShape ;
     logic:message "A License must name at least one licensor (gmeow:licensor)." .
 
 gmeow:TrademarkMarkConstraint

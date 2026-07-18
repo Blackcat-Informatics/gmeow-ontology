@@ -2143,24 +2143,21 @@ mod tests {
     }
 
     #[test]
-    fn declarative_gate_flags_the_live_legacy_corpus() {
-        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
-        // activates at the terminal migration increment). This test proves its PRODUCTION
-        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
-        // shapes that carry no `logic:formalizes` back-reference.
+    fn declarative_gate_is_clean_on_the_migrated_tree() {
+        // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
+        // migration increment): the hand-authored shape corpus has been retired to the `logic:`
+        // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
+        // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
+        // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
+        // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
         let mut report = RepoStaticReport::default();
         check_declarative_shape_purity(live_repo_root(), &mut report);
         assert!(
-            !report.errors.is_empty(),
-            "the blanket declarative-shape gate must red on the live legacy corpus"
-        );
-        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
-        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
-        let legacy = "slices/core/inhabitation/shapes.ttl";
-        assert!(
-            report.errors.iter().any(|e| e.contains(legacy)),
-            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-            report.errors.len()
+            report.errors.is_empty(),
+            "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
+             authored shape remains (ground it in logic: and re-project, or add a \
+             logic:formalizes back-reference to the boundary-kept residue): {:?}",
+            report.errors
         );
     }
 

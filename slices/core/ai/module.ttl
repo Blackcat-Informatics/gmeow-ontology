@@ -752,6 +752,42 @@ logic:stsSrcMod a logic:Formula ; logic:relation gmeow:sourceModifiedAt ;
 logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "srcMod" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
 
+# gmeow:GroundingSpanShape targets $this via a raw sh:SPARQLTarget select
+# (every span reached through gmeow:groundedIn from a claim), not sh:targetClass
+# or sh:targetSubjectsOf — a shape target no ChoiceGroup/Disjunctive sugar's
+# logic:onClass can express. The check is authored as a raw logic:Formula
+# integrity tree in the SpanEndAfterStart/StaleSource idiom: the guard atom
+# gmeow:groundedIn(claim,this) and the four required-facet atoms share the
+# outer forall's free variables (implicit join/existential-import), exactly
+# mirroring how logic:stsForall above joins span → chunk → source without a
+# nested sh:exists. It does not encode the shape's per-facet sh:maxCount 1
+# ceiling (no procedural builtin tests upper cardinality here, matching every
+# other migrated existence obligation in this file).
+gmeow:GroundingSpanConstraint
+    a logic:Constraint ;
+    rdfs:label "Grounding span completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."@x-gmeow-english ;
+    logic:formalizes gmeow:GroundingSpanShape ;
+    logic:message "A grounding span (reached via gmeow:groundedIn) must carry gmeow:spanOfChunk, gmeow:spanStart, gmeow:spanEnd, and gmeow:supportPolarity." ;
+    logic:integrity logic:gscForall .
+logic:gscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] , [ logic:termIndex 2 ; logic:termVariable "chunk" ] , [ logic:termIndex 3 ; logic:termVariable "s" ] , [ logic:termIndex 4 ; logic:termVariable "e" ] , [ logic:termIndex 5 ; logic:termVariable "p" ] ;
+    logic:forall logic:gscImpl .
+logic:gscImpl a logic:Formula ; logic:antecedent logic:gscGuard ; logic:consequent logic:gscAnd .
+logic:gscGuard a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:gscAnd a logic:Formula ; logic:and logic:gscChunk , logic:gscStart , logic:gscEnd , logic:gscPolarity .
+logic:gscChunk a logic:Formula ; logic:relation gmeow:spanOfChunk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunk" ] .
+logic:gscStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:gscEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:gscPolarity a logic:Formula ; logic:relation gmeow:supportPolarity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

@@ -7668,13 +7668,94 @@ gmeow:SegmentTransformationDistinctConstraint
     rdfs:label "Segment transformation distinct constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A SegmentTransformation source and target must be distinct entities."@x-gmeow-english ;
+    skos:definition "A SegmentTransformation source and target must be distinct entities — the exact inequality gmeow:SegmentTransformationShape's sh:sparql FILTER(?source = ?target) rejects."@x-gmeow-english ;
     logic:onClass gmeow:SegmentTransformation ;
-    logic:formalizes gmeow:SegmentTransformation ;
+    logic:formalizes gmeow:SegmentTransformation , gmeow:SegmentTransformationShape ;
     logic:message "A SegmentTransformation source and target must be distinct entities." ;
     logic:roleA gmeow:transformationSource ;
     logic:roleB gmeow:transformationTarget ;
     logic:crossMode "differ" .
+
+# gmeow:ToneEventShape's sh:xone requires exactly one pitch-content mode:
+# toneEventPitchValue, toneEventPitchTrajectory, or toneEventIsUnpitched true.
+# All three max1-per-branch facets are already OWL-restriction-backed above
+# (gmeow:ToneEvent rdfs:subClassOf); the choice-group cardinality itself is the
+# remaining procedural facet, authored as the P1 choice-group sugar over the
+# three predicates. The sugar checks presence-per-predicate, not the pinned
+# sh:hasValue "true" on toneEventIsUnpitched — a toneEventIsUnpitched false
+# assertion satisfies this constraint's XOR even though the legacy SHACL shape
+# would reject it (a residual noted here, not silently dropped).
+gmeow:ToneEventPitchModeConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Tone event pitch-mode choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a ToneEvent carries exactly one pitch-content mode — gmeow:toneEventPitchValue, gmeow:toneEventPitchTrajectory, or gmeow:toneEventIsUnpitched."@x-gmeow-english ;
+    logic:onClass gmeow:ToneEvent ;
+    logic:choiceMode "exactly-one" ;
+    logic:choicePredicate gmeow:toneEventPitchValue , gmeow:toneEventPitchTrajectory , gmeow:toneEventIsUnpitched ;
+    logic:formalizes gmeow:ToneEventShape ;
+    logic:message "A ToneEvent must have exactly one pitch-content mode: toneEventPitchValue, toneEventPitchTrajectory, or toneEventIsUnpitched." .
+
+# gmeow:PerformanceParticipationShape's three sh:Violation-severity min1/max1
+# facets (participationEvent / participationParticipant / participationRole);
+# the max1 half of each is already OWL-restriction-backed above (gmeow:PerformanceParticipation
+# rdfs:subClassOf); each constraint below supplies the missing min1 half (P3
+# disjunctive-requiredness sugar degenerated to a single predicate, the same
+# idiom as gmeow:LicenseLicensorConstraint). The shape's remaining facet —
+# gmeow:participationInstrument sh:maxCount 1 at sh:Warning severity, "mint one
+# participation per instrument" — is a cardinality CEILING with no minimum
+# obligation, which no listed logic: sugar (choice-group, disjunctive-requiredness,
+# path-value-type, cross-node, forbidden-pattern, value-range) expresses; it
+# stays an honest, undischarged residue.
+gmeow:PerformanceParticipationEventConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Performance participation event-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a PerformanceParticipation names exactly one Event via gmeow:participationEvent."@x-gmeow-english ;
+    logic:onClass gmeow:PerformanceParticipation ;
+    logic:anyOf gmeow:participationEvent ;
+    logic:formalizes gmeow:PerformanceParticipationShape ;
+    logic:message "A PerformanceParticipation must reference exactly one Event (gmeow:participationEvent)." .
+
+gmeow:PerformanceParticipationParticipantConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Performance participation participant-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a PerformanceParticipation names exactly one participant via gmeow:participationParticipant."@x-gmeow-english ;
+    logic:onClass gmeow:PerformanceParticipation ;
+    logic:anyOf gmeow:participationParticipant ;
+    logic:formalizes gmeow:PerformanceParticipationShape ;
+    logic:message "A PerformanceParticipation must reference exactly one participant (gmeow:participationParticipant)." .
+
+gmeow:PerformanceParticipationRoleConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Performance participation role-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a PerformanceParticipation declares exactly one ParticipantRole via gmeow:participationRole."@x-gmeow-english ;
+    logic:onClass gmeow:PerformanceParticipation ;
+    logic:anyOf gmeow:participationRole ;
+    logic:formalizes gmeow:PerformanceParticipationShape ;
+    logic:message "A PerformanceParticipation must declare exactly one ParticipantRole (gmeow:participationRole)." .
+
+# gmeow:InstrumentConfigurationShape's sh:xone requires exactly one of
+# gmeow:configurationOf or gmeow:configurationInstrumentType; both branches are
+# plain presence checks (each already max1-restricted above), so the P1
+# choice-group sugar reproduces this xone exactly.
+gmeow:InstrumentConfigurationTargetChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Instrument configuration target choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an InstrumentConfiguration targets exactly one of a specific instrument item (gmeow:configurationOf) or an instrument type (gmeow:configurationInstrumentType), never both."@x-gmeow-english ;
+    logic:onClass gmeow:InstrumentConfiguration ;
+    logic:choiceMode "exactly-one" ;
+    logic:choicePredicate gmeow:configurationOf , gmeow:configurationInstrumentType ;
+    logic:formalizes gmeow:InstrumentConfigurationShape ;
+    logic:message "An InstrumentConfiguration must target exactly one of: a specific instrument item (configurationOf) OR an instrument type (configurationInstrumentType), but not both." .
 
 gmeow:OrnamentProfileApplicationConstraint
     a logic:DisjunctiveRequirednessConstraint ;
