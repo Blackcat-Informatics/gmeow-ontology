@@ -54,11 +54,12 @@ gmeow:DegreeOfFreedom
             a owl:Restriction ;
             owl:onProperty gmeow:dofStatus ;
             owl:someValuesFrom gmeow:DeterminationStatus ;
-        ] ,
+        ] ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:dofConstraintText ;
-            owl:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:dofConstraintText ;
+            logic:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
         ] ;
     skos:definition "A reified relator that positively declares how a musical work or expression determines one musical parameter. Indeterminacy is not an absence; it is a declaration of status (fixed, constrained, free, or delegated). Each cell is {work/expression × parameter × determination status × optional constraint}; Cage's 4′33″ is fully specified by a set of such cells (Principles 9, 11, 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -101,11 +102,12 @@ gmeow:GenerativeProcess
             a owl:Restriction ;
             owl:onProperty gmeow:processKind ;
             owl:someValuesFrom gmeow:GenerativeProcessKind ;
-        ] ,
+        ] ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:processRuleText ;
-            owl:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:processRuleText ;
+            logic:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
         ] ;
     skos:definition "A process that is itself musical content — phasing, stochastic distribution, verbal score, algorithmic rule set. The rule text is human-readable data; formal evaluation is delegated to a solver referenced by processFunction (Principles 4, 12). Realizations are linked by gmeow:wasGeneratedBy."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -269,11 +271,6 @@ gmeow:MusicAnalysisClaim
         ] ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:analysisProperty ;
-            owl:allValuesFrom gmeow:AnalysisProperty ;
-        ] ,
-        [
-            a owl:Restriction ;
             owl:onProperty gmeow:analysisResult ;
             owl:someValuesFrom owl:Thing ;
         ] ,
@@ -281,11 +278,17 @@ gmeow:MusicAnalysisClaim
             a owl:Restriction ;
             owl:onProperty gmeow:vantage ;
             owl:someValuesFrom gmeow:Entity ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:analysisProperty ;
+            logic:allValuesFrom gmeow:AnalysisProperty ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:analysisFrame ;
-            owl:allValuesFrom gmeow:ReferenceFrame ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:analysisFrame ;
+            logic:allValuesFrom gmeow:ReferenceFrame ;
         ] ;
     skos:definition "A reified musical-analytical observation: {analysisTarget × analysisProperty × analysisResult × analyst-vantage × theory-frame}. Inherits confidence, displayable, and determinacy from Observation (Principles 9, 11, 14)."@x-gmeow-english ;
     gmeow:frameCardinality "exactly-one" ;
@@ -362,11 +365,12 @@ gmeow:OrnamentProfile
             a owl:Restriction ;
             owl:onProperty gmeow:ornamentProfileKind ;
             owl:someValuesFrom gmeow:OrnamentProfileKind ;
-        ] ,
+        ] ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:ornamentDescription ;
-            owl:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:ornamentDescription ;
+            logic:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
         ] ;
     skos:definition "A named convention for ornamentation — a gamaka family, a baroque agrément, a jazz turn — bound to segments or voices. Completes the raga/maqam model by separating structural pitch membership from expressive execution (Principles 9, 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
@@ -684,11 +688,12 @@ gmeow:TempoMap
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Tempo Map"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeMapping ,
+    rdfs:subClassOf gmeow:TimeMapping ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:hasTempoMapSegment ;
-            owl:allValuesFrom owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:hasTempoMapSegment ;
+            logic:allValuesFrom owl:Thing ;
         ] ;
     skos:definition "A TimeMapping from a musical-time frame to a clock-time frame, expressed piecewise as constant, linear ramp, curve, or measured segments. Tempo is a frame mapping, not a single number, unless it happens to be one (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -775,11 +780,12 @@ gmeow:TraversalConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Traversal Constraint"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
-        gmeow:InformationObject ,
+        gmeow:InformationObject ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:constraintText ;
-            owl:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:constraintText ;
+            logic:allValuesFrom <http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> ;
         ] ;
     skos:definition "Mobile form as data: a set of fragments, allowed-successor links (mayFollow), selection rules, and termination rules interpreted by a solver. Graph reachability and termination are solver work; no DL chain axiom is ever asserted over mayFollow (Principles 4, 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -7255,17 +7261,34 @@ gmeow:MetricModulation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:modulationFromFrame ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:modulationToFrame ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:pivotSourceValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:pivotSourceValue ; owl:allValuesFrom [
-        a rdfs:Datatype ;
-        owl:onDatatype xsd:string ;
-        owl:withRestrictions ( [ xsd:pattern "^[0-9]+/[1-9][0-9]*$" ] ) ;
-    ] ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:allValuesFrom [
-        a rdfs:Datatype ;
-        owl:onDatatype xsd:string ;
-        owl:withRestrictions ( [ xsd:pattern "^[0-9]+/[1-9][0-9]*$" ] ) ;
-    ] ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
+
+# The pivot values' rational-string pattern is a validation-only closed-world facet (a faceted
+# owl:withRestrictions datarange is out of the native DL fragment — it must never enter the
+# reasoning core), authored as logic:StringPatternConstraint records that project to sh:pattern.
+gmeow:MetricModulationPivotSourcePatternConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "metric-modulation pivot-source rational pattern"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:pivotSourceValue is a rational string numerator/denominator with a non-zero denominator."@x-gmeow-english ;
+    logic:valuePath gmeow:pivotSourceValue ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^[0-9]+/[1-9][0-9]*$" ;
+    logic:formalizes gmeow:MetricModulationShape ;
+    logic:message "A gmeow:pivotSourceValue must match '^[0-9]+/[1-9][0-9]*$' — a rational string with a non-zero denominator." .
+
+gmeow:MetricModulationPivotTargetPatternConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "metric-modulation pivot-target rational pattern"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:pivotTargetValue is a rational string numerator/denominator with a non-zero denominator."@x-gmeow-english ;
+    logic:valuePath gmeow:pivotTargetValue ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^[0-9]+/[1-9][0-9]*$" ;
+    logic:formalizes gmeow:MetricModulationShape ;
+    logic:message "A gmeow:pivotTargetValue must match '^[0-9]+/[1-9][0-9]*$' — a rational string with a non-zero denominator." .
 
 gmeow:GrooveProfile rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:grooveKind ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -7351,10 +7374,11 @@ gmeow:InstrumentConfiguration rdfs:subClassOf
 
 gmeow:MusicAnalysisClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:analysisTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:analysisProperty ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:analysisResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:analysisFrame ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:MusicAnalysisClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisProperty ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # analysisProperty / analysisFrame bare min1+max1 (Principle 17): the qualified restrictions
 # above degrade to bare sh:maxCount 1 (owl:onClass owl:Thing); bare sh:minCount 1 comes from
@@ -7387,10 +7411,10 @@ gmeow:MusicAnalysisClaim rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/participationParticipant> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/participationRole> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/analysisTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/analysisProperty> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/analysisProperty> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/analysisResult> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/vantage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/analysisFrame> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/analysisFrame> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tuningKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameRealm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -8027,10 +8051,10 @@ gmeow:PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint
 # timeDurationNumerator / timeDurationDenominator / controlPointTimePositionDenominator range
 # constraints above (→ bare sh:datatype xsd:integer; cardinality already carried by the
 # existing qualified restrictions).
-gmeow:PitchValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty gmeow:ratioDenominator ; owl:allValuesFrom xsd:integer ] .
-gmeow:PitchInterval rdfs:subClassOf [ a owl:Restriction ; owl:onProperty gmeow:ratioDenominator ; owl:allValuesFrom xsd:integer ] .
-gmeow:MusicalTimeSpan rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:timeStartDenominator ; owl:allValuesFrom xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:timeDurationNumerator ; owl:allValuesFrom xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:timeDurationDenominator ; owl:allValuesFrom xsd:integer ] .
-gmeow:PitchTrajectoryControlPoint rdfs:subClassOf [ a owl:Restriction ; owl:onProperty gmeow:controlPointTimePositionDenominator ; owl:allValuesFrom xsd:integer ] .
+gmeow:PitchValue logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ratioDenominator ; logic:allValuesFrom xsd:integer ] .
+gmeow:PitchInterval logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ratioDenominator ; logic:allValuesFrom xsd:integer ] .
+gmeow:MusicalTimeSpan logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:timeStartDenominator ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:timeDurationNumerator ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:timeDurationDenominator ; logic:allValuesFrom xsd:integer ] .
+gmeow:PitchTrajectoryControlPoint logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:controlPointTimePositionDenominator ; logic:allValuesFrom xsd:integer ] .

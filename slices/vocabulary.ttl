@@ -43,15 +43,15 @@ gmeow:Slice a owl:Class ;
     rdfs:label "slice"@x-gmeow-english ;
     skos:definition "A self-contained unit of the GMEOW ontology: canonical terms, shapes, alignments, queries, tests, and documentation composed by the build into the fused package. Core and extension slices are structurally identical; tier is a manifest field (gmeow:sliceTier), never a directory property."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty gmeow:sliceTier ;
-        owl:allValuesFrom [ owl:oneOf ( gmeow:tierCore gmeow:tierExtension gmeow:tierProfile ) ] ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:sliceTier ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:tierCore gmeow:tierExtension gmeow:tierProfile ) ] ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty dcterms:creator ;
-        owl:allValuesFrom xsd:string ;
+        a logic:Restriction ;
+        logic:onProperty dcterms:creator ;
+        logic:allValuesFrom xsd:string ;
     ] .
 
 # --------------------------------------------------------------------------- #

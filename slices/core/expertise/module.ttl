@@ -12,16 +12,17 @@ gmeow:Credential
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Credential"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Entity ,
+    rdfs:subClassOf gmeow:Entity ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:credentialIssuer ;
-            owl:allValuesFrom gmeow:Organization ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:credentialIssuer ;
+            logic:allValuesFrom gmeow:Organization ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:credentialFor ;
-            owl:someValuesFrom [
+            a logic:Restriction ;
+            logic:onProperty gmeow:credentialFor ;
+            logic:someValuesFrom [
                 a owl:Class ;
                 owl:unionOf ( gmeow:Skill gmeow:Occupation ) ;
             ] ;
@@ -53,26 +54,27 @@ gmeow:SkillProficiency
     rdfs:label "Skill Proficiency"@x-gmeow-english ;
     logic:mediates gmeow:skillProficiencyAgent ,
         gmeow:skillProficiencyOf ;
-    rdfs:subClassOf logic:Relator ,
+    rdfs:subClassOf logic:Relator ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyAgent ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyAgent ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyOf ;
-            owl:someValuesFrom gmeow:Skill ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyOf ;
+            logic:someValuesFrom gmeow:Skill ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyLevel ;
-            owl:someValuesFrom gmeow:ProficiencyLevel ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyLevel ;
+            logic:someValuesFrom gmeow:ProficiencyLevel ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:skillProficiencyScale ;
-            owl:someValuesFrom gmeow:ProficiencyScale ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:skillProficiencyScale ;
+            logic:someValuesFrom gmeow:ProficiencyScale ;
         ] ;
     skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@x-gmeow-english ;
     skos:example "ex:aliceWeldingProf a gmeow:SkillProficiency ; gmeow:skillProficiencyAgent ex:alice ; gmeow:skillProficiencyOf ex:welding ; gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;

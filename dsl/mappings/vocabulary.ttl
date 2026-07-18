@@ -39,36 +39,36 @@
 gmeow:TermEquivalence a owl:Class ;
     rdfs:label "term equivalence"@x-gmeow-english ;
     skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It compiles both to a single SSSOM row and to a first-class logic:Correspondence in the shipped graph/correspondence-laws carrier, with logic:sourceEndpoint and logic:targetEndpoint retained; it has no executable projection branch. Ordinary cells may derive their law-spine defaults from the SSSOM predicate. A cell additionally typed logic:GroundingCorrespondence is a co-foundational commitment rather than an ordinary consumer alignment and must explicitly author logic:morphismClass, logic:morphismKind, and logic:preservationKind."@x-gmeow-english ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty logic:morphismClass ;
-        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty logic:morphismClass ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty logic:morphismClass ;
-        owl:allValuesFrom [ owl:oneOf ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+        a logic:Restriction ;
+        logic:onProperty logic:morphismClass ;
+        logic:allValuesFrom [ logic:oneOf ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
             logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ] ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty logic:morphismKind ;
-        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        a logic:Restriction ;
+        logic:onProperty logic:morphismKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty logic:morphismKind ;
-        owl:allValuesFrom [ owl:oneOf ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ] ;
+        a logic:Restriction ;
+        logic:onProperty logic:morphismKind ;
+        logic:allValuesFrom [ logic:oneOf ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ] ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty logic:preservationKind ;
-        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        a logic:Restriction ;
+        logic:onProperty logic:preservationKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty logic:preservationKind ;
-        owl:allValuesFrom [ owl:oneOf ( logic:ExactPreservation logic:SoundUnderApproximation
+        a logic:Restriction ;
+        logic:onProperty logic:preservationKind ;
+        logic:allValuesFrom [ logic:oneOf ( logic:ExactPreservation logic:SoundUnderApproximation
             logic:CompleteOverApproximation logic:InconsistencyPreserving
             logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ] ;
     ] .
@@ -158,10 +158,10 @@ gmeow:DeclinedCorrespondence a owl:Class ;
     rdfs:label "declined correspondence"@x-gmeow-english ;
     skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from gmeow:TermEquivalence (a live, resolvable link): a decline has no gmeow:alignObject, precisely because no resolvable object exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty logic:preservationKind ;
-        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty logic:preservationKind ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
     ] .
 
 gmeow:declinedTarget a owl:DatatypeProperty ,
@@ -1275,10 +1275,10 @@ logic:dcpHasValue a logic:Formula ; logic:relation logic:preservationKind ;
 
 # --- ProjectionMapping --------------------------------------------------------- #
 
-gmeow:ProjectionMapping rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty rdfs:label ;
-    owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+gmeow:ProjectionMapping logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty rdfs:label ;
+    logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
 ] .
 
 gmeow:ProjectionMappingPatternRequiredConstraint

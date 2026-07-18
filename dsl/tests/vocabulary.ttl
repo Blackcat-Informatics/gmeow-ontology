@@ -49,10 +49,10 @@ gmeow:CompetencyQuestion a owl:Class ;
     gmeow:avoidWhen "Avoid for structural MUST / MUST-NOT invariants over the module graph (use gmeow:StructuralAssertion) and for example-validation outcomes (use gmeow:ExampleConformance); a competency question is about query-answerability, not graph well-formedness."@x-gmeow-english ;
     gmeow:howToUse "Author one instance per question in the slice's tests/ directory: give it a query (inline gmeow:cqQuery or a repo-root-relative gmeow:cqQueryFile), the expected outcome (gmeow:cqExpectAsk for ASK; enumerated gmeow:cqExpectRow with gmeow:cqExactRows true for SELECT), and a gmeow:cqRationale."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty gmeow:cqReasoning ;
-        owl:allValuesFrom [ owl:oneOf ( gmeow:reasoningNone gmeow:reasoningRdfs ) ] ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:cqReasoning ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:reasoningNone gmeow:reasoningRdfs ) ] ;
     ] .
 
 gmeow:StructuralAssertion a owl:Class ;
@@ -63,15 +63,15 @@ gmeow:StructuralAssertion a owl:Class ;
     gmeow:avoidWhen "Avoid for query-answerability acceptance criteria (use gmeow:CompetencyQuestion) and for per-example expected validation findings (use gmeow:ExampleConformance)."@x-gmeow-english ;
     gmeow:howToUse "Set gmeow:saPolarity to gmeow:must or gmeow:mustNot, supply EXACTLY ONE of gmeow:saPattern (a SPARQL ASK) or gmeow:saShape (an sh:NodeShape IRI), optionally narrow gmeow:saScope, and add a gmeow:saRationale explaining the invariant."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty gmeow:saPolarity ;
-        owl:allValuesFrom [ owl:oneOf ( gmeow:must gmeow:mustNot ) ] ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:saPolarity ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:must gmeow:mustNot ) ] ;
     ] ,
     [
-        a owl:Restriction ;
-        owl:onProperty gmeow:saScope ;
-        owl:allValuesFrom [ owl:oneOf ( gmeow:scopeModule gmeow:scopeModuleAndExamples ) ] ;
+        a logic:Restriction ;
+        logic:onProperty gmeow:saScope ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:scopeModule gmeow:scopeModuleAndExamples ) ] ;
     ] .
 
 gmeow:ExampleConformance a owl:Class ;
@@ -82,10 +82,10 @@ gmeow:ExampleConformance a owl:Class ;
     gmeow:avoidWhen "Avoid for query-answerability (gmeow:CompetencyQuestion) and for graph-wide structural invariants not tied to a single example file (gmeow:StructuralAssertion)."@x-gmeow-english ;
     gmeow:howToUse "Name the slice-relative gmeow:exampleFile, set gmeow:expectedOutcome to gmeow:conforms (no code) or gmeow:violates with a gmeow:expectedViolationCode in the real `shacl.<FullConstraintComponentLocalName>` form, and optionally add a gmeow:conformanceRationale."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty gmeow:expectedOutcome ;
-        owl:allValuesFrom [ owl:oneOf ( gmeow:conforms gmeow:violates ) ] ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty gmeow:expectedOutcome ;
+        logic:allValuesFrom [ logic:oneOf ( gmeow:conforms gmeow:violates ) ] ;
     ] .
 
 # --------------------------------------------------------------------------- #

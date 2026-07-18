@@ -1461,10 +1461,10 @@ gmeow:validUntil
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
-gmeow:TemporalFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:allValuesFrom gmeow:TimeScale ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:allValuesFrom gmeow:FrameRealm ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:allValuesFrom gmeow:FrameKind ] .
+gmeow:TemporalFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:frameTimeScale ; logic:allValuesFrom gmeow:TimeScale ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:frameRealm ; logic:allValuesFrom gmeow:FrameRealm ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:frameKind ; logic:allValuesFrom gmeow:FrameKind ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameTimeScale" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameRealm" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:TemporalFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frameKind" ; logic:closureValue logic:ClosedWorldClosure ] .

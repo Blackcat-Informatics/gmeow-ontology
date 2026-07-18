@@ -46,10 +46,10 @@
 gmeow:StatementMetadata a owl:Class ;
     rdfs:label "statement metadata"@x-gmeow-english ;
     skos:definition "One reified RDF 1.2 statement: a quoted base triple (qSubject/qPredicate/qObject) plus the metadata annotations hung off its reifier (confidence, provenance, temporal scope). The structural isomorph of `?reifier rdf:reifies <<( ?s ?p ?o )>> . ?reifier <annProp> <annVal> .` — authored as plain Turtle, compiled to both RDF 1.2 and the OWL owl:Axiom downcast."@x-gmeow-english ;
-    rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty rdfs:label ;
-        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty rdfs:label ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
     ] .
 
 # --------------------------------------------------------------------------- #

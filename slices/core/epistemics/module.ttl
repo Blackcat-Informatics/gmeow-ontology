@@ -867,10 +867,12 @@ gmeow:DoxasticStandpointClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
 
+gmeow:DoxasticState logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticContent ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticClaim ; logic:allValuesFrom gmeow:StandpointClaim ] .
+
 gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:allValuesFrom gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:allValuesFrom gmeow:StandpointClaim ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:credence ; owl:allValuesFrom xsd:decimal ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
@@ -888,50 +890,50 @@ gmeow:StandpointClaim rdfs:subClassOf
 # qualified-onClass restorations above never satisfied (a min/maxQualifiedCardinality
 # with a SPECIFIC onClass projects only sh:qualifiedMinCount/MaxCount, never the legacy
 # BARE sh:minCount/maxCount — the #1194 restoration was a dead end for these paths).
-gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:allValuesFrom gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:allValuesFrom gmeow:StandpointClaim ] .
+gmeow:DoxasticState logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticContent ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:doxasticClaim ; logic:allValuesFrom gmeow:StandpointClaim ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epistemicAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticContent" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticState ; logic:closureKey "https://blackcatinformatics.ca/gmeow/doxasticClaim" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:ClaimEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluates ; owl:allValuesFrom gmeow:ClaimToken ] .
+gmeow:ClaimEvaluation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluates ; logic:allValuesFrom gmeow:ClaimToken ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ClaimEvaluation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evaluates" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:DoxasticTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:allValuesFrom gmeow:DoxasticState ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:allValuesFrom gmeow:TimeInterval ] .
+gmeow:DoxasticTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureOfDoxasticState ; logic:allValuesFrom gmeow:DoxasticState ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:allValuesFrom gmeow:TimeInterval ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DoxasticTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/duringInterval" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:SupportAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:supportGround ; owl:allValuesFrom gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportUnderStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] .
+gmeow:SupportAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:supportGround ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:supportUnderStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportGround" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:SupportAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/supportUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:AdequacyAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:adequacyUnderStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:meetsThreshold ; owl:allValuesFrom gmeow:AdequacyVerdict ] .
+gmeow:AdequacyAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:adequacyUnderStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:meetsThreshold ; logic:allValuesFrom gmeow:AdequacyVerdict ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/adequacyUnderStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:AdequacyAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/meetsThreshold" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:KnowledgeClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:knowerAgent ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownProposition ; owl:allValuesFrom gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knownInWorld ; owl:allValuesFrom gmeow:EpistemicContext ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:underStandard ; owl:allValuesFrom gmeow:EpistemicStandard ] .
+gmeow:KnowledgeClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:knowerAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:knownProposition ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:knownInWorld ; logic:allValuesFrom gmeow:EpistemicContext ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:underStandard ; logic:allValuesFrom gmeow:EpistemicStandard ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knowerAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/knownInWorld" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/underStandard" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:KnowledgeAttribution rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:allValuesFrom gmeow:Proposition ] .
+gmeow:KnowledgeAttribution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:attributingAgent ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attributedKnower ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attributedProposition ; logic:allValuesFrom gmeow:Proposition ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributingAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedKnower" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedProposition" ; logic:closureValue logic:ClosedWorldClosure ] .

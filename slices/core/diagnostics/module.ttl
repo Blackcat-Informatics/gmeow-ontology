@@ -29,11 +29,6 @@ gmeow:Finding
     rdfs:subClassOf gmeow:Observation ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:findingSeverity ;
-            owl:allValuesFrom gmeow:DiagnosticSeverity ;
-        ] ,
-        [
-            a owl:Restriction ;
             owl:onProperty gmeow:findingCode ;
             owl:someValuesFrom xsd:string ;
         ] ,
@@ -41,6 +36,12 @@ gmeow:Finding
             a owl:Restriction ;
             owl:onProperty gmeow:findingMessage ;
             owl:someValuesFrom xsd:string ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:findingSeverity ;
+            logic:allValuesFrom gmeow:DiagnosticSeverity ;
         ] ;
     skos:definition "A single diagnostic — a validation violation, lint warning, reasoning divergence, or external-tool failure — modelled as a specialization of gmeow:Observation, the universal claim construct. The producing tool is the gmeow:vantage (no diagnostic is privileged; a finding is one tool's perspectival claim, Principle 9), the offending statement or construct is the gmeow:observedFeature (reached via gmeow:findingLocation), and the verdict is a gmeow:DiagnosticSeverity reached via gmeow:findingSeverity. A Finding is the gmeow: RDF projection of one Rust gmeow_diagnostics::Finding; it is never the canonical source (that stays in Rust so it can report on an unparsable graph), only one projection beside SARIF, JSON, HTML, and CLI."@x-gmeow-english ;
     skos:example "ex:f1 a gmeow:Finding ; gmeow:findingSeverity gmeow:severityError ; gmeow:findingCode \"shacl.MinCount\" ; gmeow:vantage ex:shaclTool ."@x-gmeow-english ;
@@ -1241,8 +1242,8 @@ gmeow:Finding rdfs:subClassOf
 # (sh:class Finding) comes from the someValuesFrom restriction below. The
 # gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint further
 # down is additional procedural belt-and-suspenders backing for the same shape.
-gmeow:CrossNodeGlutWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+gmeow:CrossNodeGlutWitness logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:glutWitnessOf ; logic:maxQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.

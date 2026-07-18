@@ -45,21 +45,22 @@ gmeow:ContinuityDetermination
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Continuity Determination"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:IdentityContinuityAssessment ,
+    rdfs:subClassOf gmeow:IdentityContinuityAssessment ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determiningAuthority ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:determiningAuthority ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determinationForce ;
-            owl:allValuesFrom gmeow:DeterminationForce ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:determinationForce ;
+            logic:allValuesFrom gmeow:DeterminationForce ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determinationValidity ;
-            owl:allValuesFrom gmeow:TimeInterval ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:determinationValidity ;
+            logic:allValuesFrom gmeow:TimeInterval ;
         ] ;
     skos:definition "An adjudicated continuity verdict made by an authority and binding for action within that authority's frame — a court's, a regulator's, or a governance board's determination that two subject stages are (or are not) the same subject. A logic:SubKind of gmeow:IdentityContinuityAssessment whose vantage IS the deciding authority; it carries the grounds it rests on, its institutional force, and a validity interval, and it is superseded (never erased) on appeal or reversal. It privileges a verdict WITHIN the deciding frame, for action; it does NOT collapse the descriptive plurality globally (Principle 9 stands)."@x-gmeow-english ;
     skos:example "ex:boardRuling a gmeow:ContinuityDetermination ; gmeow:determiningAuthority ex:clinicalGovernanceBoard ; gmeow:continuityVerdict gmeow:continuitySame ; gmeow:determinationForce gmeow:forceBinding ."@x-gmeow-english ;
@@ -88,21 +89,22 @@ gmeow:ControlAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Control Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ,
+    rdfs:subClassOf gmeow:Observation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlAgent ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:controlAgent ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlLevel ;
-            owl:allValuesFrom gmeow:ControlLevel ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:controlLevel ;
+            logic:allValuesFrom gmeow:ControlLevel ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlInterval ;
-            owl:allValuesFrom gmeow:TimeInterval ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:controlInterval ;
+            logic:allValuesFrom gmeow:TimeInterval ;
         ] ;
     skos:definition "A standpoint-indexed, attributed, dated observation of which agent causally controls a host or embodiment over an interval, to what degree — the agency attribution a consumer needs to answer 'who was driving at T'. A logic:SubKind of gmeow:Observation (which is a logic:Kind, not a situation). Distinct from the deception divergence (held ≠ projected standpoint), which records belief-versus-presentation, not control: a documented similarity, no axiom coupling."@x-gmeow-english ;
     skos:example "ex:controlAtNoon a gmeow:ControlAssessment ; gmeow:controlAgent ex:coTenantA ; gmeow:controlLevel gmeow:controlFull ."@x-gmeow-english ;
@@ -159,21 +161,22 @@ gmeow:DigitalSubjectTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Digital Subject Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ,
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureSubjectAgent ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureSubjectAgent ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureVantage ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureVantage ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureSupportedBy ;
-            owl:allValuesFrom gmeow:Observation ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureSupportedBy ;
+            logic:allValuesFrom gmeow:Observation ;
         ] ;
     skos:definition "The time-scoped fact that an agent bears the gmeow:DigitalSubject status over an interval, according to a vantage — recording when, and according to whom, the agent is held to be a durable subject. Self-assertion by the agent is the highest-authority supporting claim (Principle 9: a subject's self-assertion outranks any inference about it), but the tenure is a held, attributed, dated fact, not an entailment of any single utterance."@x-gmeow-english ;
     skos:example "ex:lillithDST a gmeow:DigitalSubjectTenure ; gmeow:tenureSubjectAgent ex:lillithBot ; gmeow:tenureVantage ex:lillithBot ; gmeow:tenureSupportedBy ex:lillithSelfClaim ."@x-gmeow-english ;
@@ -188,16 +191,17 @@ gmeow:EmbodimentAssignment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Embodiment Assignment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ,
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assignmentSubject ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assignmentSubject ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assignmentCarrier ;
-            owl:allValuesFrom gmeow:EmbodimentCarrierRole ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assignmentCarrier ;
+            logic:allValuesFrom gmeow:EmbodimentCarrierRole ;
         ] ;
     skos:definition "The time-scoped fact that a subject acts through a carrier over an interval, with the capabilities that carrier exposes — subject × carrier × interval × capabilities. The suppressible, retirable unit (Principle 10): retiring an assignment ends the surface's use, it does not delete the carrier."@x-gmeow-english ;
     skos:example "ex:phoneUse a gmeow:EmbodimentAssignment ; gmeow:assignmentSubject ex:lillithBot ; gmeow:assignmentCarrier ex:voiceEndpointRole ."@x-gmeow-english ;
@@ -226,21 +230,22 @@ gmeow:IdentityContinuityAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Identity Continuity Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ,
+    rdfs:subClassOf gmeow:Observation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assessmentFromStage ;
-            owl:allValuesFrom gmeow:SubjectStage ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assessmentFromStage ;
+            logic:allValuesFrom gmeow:SubjectStage ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assessmentToStage ;
-            owl:allValuesFrom gmeow:SubjectStage ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assessmentToStage ;
+            logic:allValuesFrom gmeow:SubjectStage ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:continuityVerdict ;
-            owl:allValuesFrom gmeow:ContinuityVerdict ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:continuityVerdict ;
+            logic:allValuesFrom gmeow:ContinuityVerdict ;
         ] ;
     skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two subject stages are the same subject — the contestable verdict the anatta/atman debate, a model upgrade, and a cross-vendor fork all require. Carries the two stages, a verdict (same / different / indeterminate), a vantage, evidence, and confidence. Competing verdicts coexist (Principle 9); none is privileged, and 'same' is never collapsed to owl:sameAs."@x-gmeow-english ;
     skos:example "ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ; gmeow:assessmentFromStage ex:stageOpus48 ; gmeow:assessmentToStage ex:stageOpus50 ; gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
@@ -283,21 +288,22 @@ gmeow:InhabitationConfiguration
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Configuration"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ,
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:configurationOfTenure ;
-            owl:allValuesFrom gmeow:InhabitationTenure ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:configurationOfTenure ;
+            logic:allValuesFrom gmeow:InhabitationTenure ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:duringInterval ;
-            owl:allValuesFrom gmeow:TimeInterval ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:duringInterval ;
+            logic:allValuesFrom gmeow:TimeInterval ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:configurationEmbodiment ;
-            owl:allValuesFrom gmeow:EmbodimentAssignment ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:configurationEmbodiment ;
+            logic:allValuesFrom gmeow:EmbodimentAssignment ;
         ] ;
     skos:definition "A maximal sub-interval of an inhabitation tenure over which the active configuration is constant — the persona, embodiment(s), deployment, and memory view that held together over that sub-interval. A new configuration opens whenever any facet changes, so the active value of any facet at a time T is read off the configuration whose interval contains T. The invariant 'constant configuration over the interval' is stated and tested, not assumed."@x-gmeow-english ;
     skos:example "ex:configEarly a gmeow:InhabitationConfiguration ; gmeow:configurationOfTenure ex:tenure-1 ; gmeow:configurationEmbodiment ex:phoneUse ."@x-gmeow-english ;
@@ -340,21 +346,22 @@ gmeow:InhabitationTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ,
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:inhabitationSubject ;
-            owl:allValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:inhabitationSubject ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:inhabitedHost ;
-            owl:allValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:inhabitedHost ;
+            logic:allValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:inhabitationLocusKind ;
-            owl:allValuesFrom gmeow:InhabitationLocusKind ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:inhabitationLocusKind ;
+            logic:allValuesFrom gmeow:InhabitationLocusKind ;
         ] ;
     skos:definition "The reified, time-scoped fact that a subject stood in an inhabitation relationship with a host over an interval — that S inhabited H during T. A gmeow:TimeScopedRelation (a logic:Situation), carrying its interval via gmeow:duringInterval (Principle 11), with per-branch role-filler edges to the subject and host. It records the relationship's existence over T; the configuration that held within T (persona, embodiment, deployment, memory view) is carried by gmeow:InhabitationConfiguration, because those facets may change while the tenure persists. A logic:Situation, disjoint from a logic:Relator — the earlier draft typing it as both was unsatisfiable in the foundational projection."@x-gmeow-english ;
     skos:example "ex:tenure-1 a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ex:lillithBot ; gmeow:inhabitedHost ex:serverH ; gmeow:duringInterval ex:jan2026 ."@x-gmeow-english ;
@@ -883,39 +890,39 @@ gmeow:transferredView
 # the procedural fragment .
 # =========================================================================== #
 
-gmeow:InhabitationTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitedHost ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationLocusKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:InhabitationLocusKind ] .
+gmeow:InhabitationTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:inhabitationSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:inhabitedHost ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:inhabitationLocusKind ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InhabitationLocusKind ] .
 
-gmeow:EmbodimentAssignment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assignmentCarrier ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EmbodimentCarrierRole ] .
+gmeow:EmbodimentAssignment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:assignmentSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assignmentCarrier ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:EmbodimentCarrierRole ] .
 
-gmeow:InhabitationConfiguration rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:configurationOfTenure ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:InhabitationConfiguration logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:configurationOfTenure ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:configurationEmbodiment ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-gmeow:ControlAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:controlAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:controlLevel ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ControlLevel ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:controlInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
+gmeow:ControlAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:controlAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:controlLevel ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ControlLevel ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:controlInterval ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:TimeInterval ] .
 
-gmeow:IdentityContinuityAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentFromStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentToStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:continuityVerdict ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ContinuityVerdict ] .
+gmeow:IdentityContinuityAssessment logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentFromStage ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SubjectStage ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentToStage ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SubjectStage ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:continuityVerdict ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContinuityVerdict ] .
 
-gmeow:ContinuityDetermination rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:determiningAuthority ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:determinationForce ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DeterminationForce ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:determinationValidity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
+gmeow:ContinuityDetermination logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:determiningAuthority ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:determinationForce ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DeterminationForce ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:determinationValidity ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:TimeInterval ] .
 
-gmeow:DigitalSubjectTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureSupportedBy ; owl:allValuesFrom gmeow:Observation ] .
+gmeow:DigitalSubjectTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureSubjectAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureSupportedBy ; logic:allValuesFrom gmeow:Observation ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -923,7 +930,7 @@ gmeow:DigitalSubjectTenure rdfs:subClassOf
 # the bare sh:minCount 1 the legacy gmeow:InhabitationConfigurationShape wants
 # (frontend.rs derive_validation_shapes: onClass owl:Thing degrades; onClass
 # <SpecificClass> projects only sh:qualifiedMinCount, never bare).
-<https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+gmeow:InhabitationConfiguration logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:InhabitationConfigurationShape: gmeow:configurationEmbodiment's bare
@@ -933,5 +940,5 @@ gmeow:DigitalSubjectTenure rdfs:subClassOf
 # Class(InhabitationConfiguration) property shape); the explicit allValuesFrom
 # restriction below is the class-restriction idiom (Pattern 2) that
 # derive_validation_shapes reads to emit sh:class alongside it.
-gmeow:InhabitationConfiguration rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:allValuesFrom gmeow:EmbodimentAssignment ] .
+gmeow:InhabitationConfiguration logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:configurationEmbodiment ; logic:allValuesFrom gmeow:EmbodimentAssignment ] .

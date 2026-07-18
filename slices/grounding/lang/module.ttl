@@ -7098,8 +7098,10 @@ gmeow:gmnEnvelopeCorrespondenceClosure
     logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence" ;
     logic:closureValue logic:ClosedWorldClosure .
 
+gmeow:GmnCompaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:gmnCompacts ; logic:allValuesFrom owl:Thing ] .
+
 gmeow:GmnCompaction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:allValuesFrom owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 

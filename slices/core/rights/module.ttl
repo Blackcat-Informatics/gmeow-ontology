@@ -15,28 +15,29 @@ gmeow:AtomicConstraint
     logic:mediates gmeow:leftOperand ,
         gmeow:constraintOperator ,
         gmeow:rightOperandReference ;
-    rdfs:subClassOf gmeow:Constraint ,
+    rdfs:subClassOf gmeow:Constraint ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:leftOperand ;
-            owl:allValuesFrom gmeow:LeftOperand ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:leftOperand ;
+            logic:allValuesFrom gmeow:LeftOperand ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:leftOperand ;
-            owl:maxQualifiedCardinality 1 ;
-            owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:leftOperand ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:constraintOperator ;
-            owl:allValuesFrom gmeow:ConstraintOperator ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:constraintOperator ;
+            logic:allValuesFrom gmeow:ConstraintOperator ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:constraintOperator ;
-            owl:maxQualifiedCardinality 1 ;
-            owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:constraintOperator ;
+            logic:maxQualifiedCardinality 1 ;
+            logic:onClass owl:Thing ;
         ] ;
     skos:definition "A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). It is not a boolean group of comparisons; use gmeow:LogicalConstraint for that. E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'."@x-gmeow-english ;
     skos:example "ex:until2030 a gmeow:AtomicConstraint ; gmeow:leftOperand gmeow:leftOpDateTime ; gmeow:constraintOperator gmeow:operatorLteq ; gmeow:rightOperand \"2030-01-01\" ."@x-gmeow-english ;
@@ -341,11 +342,12 @@ gmeow:Rule
     logic:mediates gmeow:ruleAction ,
         gmeow:ruleAssignee ,
         gmeow:ruleTarget ;
-    rdfs:subClassOf logic:Relator ,
+    rdfs:subClassOf logic:Relator ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:ruleAction ;
-            owl:allValuesFrom gmeow:RightsAction ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:ruleAction ;
+            logic:allValuesFrom gmeow:RightsAction ;
         ] ;
     skos:definition "The abstract base of a deontic rule in a rights statement — it binds a regulated gmeow:RightsAction to an optional target asset and assignee. Specialised by gmeow:Permission, gmeow:Prohibition and gmeow:Duty (the ODRL rule trio)."@x-gmeow-english ;
     skos:example "ex:rule a gmeow:Permission ; gmeow:ruleAction gmeow:actionUse ."@x-gmeow-english ;
@@ -2061,37 +2063,37 @@ _:b1
 # Closed-world cardinality axioms backing the hand-authored SHACL well-formedness
 # shapes for the rights relators (the OWL antecedent the validation-shape
 # projection reads; procedural range/suppression checks stay in the shape layer).
-gmeow:RightsStatement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:statementAbout ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:RightsStatement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-gmeow:Permission rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
+gmeow:Permission logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
-gmeow:Prohibition rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
+gmeow:Prohibition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
-gmeow:Duty rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
+gmeow:Duty logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
-gmeow:License rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:licenseFamily ; owl:someValuesFrom gmeow:LicenseFamily ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:licenseFamily ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:License logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:licensor ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:someValuesFrom gmeow:LicenseFamily ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
-gmeow:Trademark rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:trademarkMark ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:trademarkHolder ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:Trademark logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/RightsStatement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/statementAbout> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Permission> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Prohibition> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Duty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Trademark> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/trademarkMark> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Permission logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Prohibition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Duty logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # gmeow:RuleShape retargets onto the ABSTRACT base gmeow:Rule too (sh:targetClass Rule,
 # Permission, Prohibition, Duty), which previously carried only a `someValuesFrom
@@ -2359,44 +2361,44 @@ gmeow:PrivacyNoticeAttributionConstraint
 # per concrete subclass makes Permission, Prohibition, and Duty inherit it
 # uniformly via ordinary subsumption (mirrors gmeow:ruleAction's someValuesFrom
 # restriction, which is likewise authored once on gmeow:Rule).
-gmeow:Rule rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
+gmeow:Rule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightOperand> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+gmeow:AtomicConstraint logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rightOperand ; logic:allValuesFrom rdfs:Literal ] .
 # gmeow:rightOperandReference is NOT globally functional (unlike leftOperand/
 # constraintOperator/rightOperand), so its class-local sh:maxCount 1 needs its own
 # owl:Thing-qualified restriction (bare max1; no sh:class is legacy-required here).
-gmeow:AtomicConstraint rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:rightOperandReference ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:AtomicConstraint logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:rightOperandReference ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 # gmeow:licensedWork is globally owl:FunctionalProperty with rdfs:range
 # gmeow:InformationObject, but (like ConceptCategorization's observedFeature) had only a
 # `someValuesFrom` restriction (sh:class only, no min) — replaced with allValuesFrom + a
 # class-scoped ClosureEntry for the bare min1+class half; max1 rides the global
 # FunctionalProperty fact (folded into the class comparison automatically).
-gmeow:License rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:licensedWork ; owl:allValuesFrom gmeow:InformationObject ] .
+gmeow:License logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:licensedWork ; logic:allValuesFrom gmeow:InformationObject ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:License ; logic:closureKey "https://blackcatinformatics.ca/gmeow/licensedWork" ; logic:closureValue logic:ClosedWorldClosure ] .
-<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightNotice> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CopyrightStatus> ] .
-<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightYear> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/licenseFamily> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/LicenseFamily> ] .
-<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/licensee> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spdxLicenseId> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spdxLicenseName> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/Mark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/markText> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/conflictStrategy> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ConflictStrategy> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDataController> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDataSubject> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDuty> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Duty> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasPermission> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Permission> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasProhibition> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Prohibition> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightsType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/RightsType> ] .
-<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/statementAbout> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/registrationNumber> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
-<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkHolder> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
-<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkMark> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Mark> ] .
-<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TrademarkStatus> ] .
+gmeow:Copyright logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:copyrightNotice ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:Copyright logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:copyrightStatus ; logic:allValuesFrom gmeow:CopyrightStatus ] .
+gmeow:Copyright logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:copyrightYear ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:License logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:allValuesFrom gmeow:LicenseFamily ] .
+gmeow:License logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:licensee ; logic:allValuesFrom gmeow:Agent ] .
+gmeow:License logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spdxLicenseId ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:License logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spdxLicenseName ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:Mark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:markText ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:conflictStrategy ; logic:allValuesFrom gmeow:ConflictStrategy ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasDataController ; logic:allValuesFrom gmeow:Agent ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasDataSubject ; logic:allValuesFrom gmeow:Agent ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasPermission ; logic:allValuesFrom gmeow:Permission ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasProhibition ; logic:allValuesFrom gmeow:Prohibition ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rightsType ; logic:allValuesFrom gmeow:RightsType ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:someValuesFrom owl:Thing ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:registrationNumber ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:someValuesFrom gmeow:Agent ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:someValuesFrom gmeow:Mark ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkStatus ; logic:allValuesFrom gmeow:TrademarkStatus ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Copyright> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

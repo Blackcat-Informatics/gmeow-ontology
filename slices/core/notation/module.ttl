@@ -530,8 +530,9 @@ gmeow:writingSystemAsNotation
 # =========================================================================== #
 
 gmeow:NotationProjectionProfile rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:allValuesFrom gmeow:NotationSystem ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:NotationProjectionProfile logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:notationSystemOf ; logic:allValuesFrom gmeow:NotationSystem ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:NotationProjectionProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notationSystemOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:NotationSystem rdfs:subClassOf

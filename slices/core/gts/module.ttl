@@ -480,9 +480,9 @@ REUSE (no parallel mechanisms — GTS transport design).
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
-gmeow:OpaqueFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:allValuesFrom gmeow:OpacityReason ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:allValuesFrom gmeow:GTSSegment ] .
+gmeow:OpaqueFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:opacityReason ; logic:allValuesFrom gmeow:OpacityReason ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:opaqueFrameIn ; logic:allValuesFrom gmeow:GTSSegment ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opacityReason" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opaqueFrameIn" ; logic:closureValue logic:ClosedWorldClosure ] .
 

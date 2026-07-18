@@ -1193,12 +1193,12 @@ gmeow:docSearchAlignment
 
 gmeow:docEvidenceKind a owl:FunctionalProperty .
 
-gmeow:DocEvidence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:docEvidenceKind ; owl:allValuesFrom gmeow:DocEvidenceKind ] .
+gmeow:DocEvidence logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:docEvidenceKind ; logic:allValuesFrom gmeow:DocEvidenceKind ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docEvidenceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-gmeow:DocumentedTerm rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:docCategory ; owl:allValuesFrom xsd:string ] .
+gmeow:DocumentedTerm logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:docCategory ; logic:allValuesFrom xsd:string ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:DocumentedTermShape's gmeow:docOwnerSlice min1/max1 pair is already fully

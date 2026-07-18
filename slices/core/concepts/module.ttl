@@ -169,8 +169,8 @@ gmeow:ConceptCategorization rdfs:subClassOf
 # sh:maxCount, unlike onClass <SpecificClass> which projects only
 # sh:qualifiedMaxCount (frontend.rs derive_validation_shapes). Proven pattern:
 # slices/core/citations/module.ttl (CitationAct, fully migrated).
-gmeow:ConceptCategorization rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:ConceptCategorization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:ConceptCategorizationShape: gmeow:observationResult is canonically defined
@@ -190,9 +190,9 @@ gmeow:ConceptCategorization rdfs:subClassOf
 # `sh:qualifiedMinCount`, which never matches the legacy BARE `sh:minCount 1`
 # (frontend.rs derive_validation_shapes). Replaced with the proven allValuesFrom +
 # class-scoped ClosureEntry recipe (bare min1 + sh:class), matching citations/graphrag.
-gmeow:ConceptCategorization rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:allValuesFrom gmeow:Concept ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:allValuesFrom gmeow:Entity ] .
+gmeow:ConceptCategorization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:Concept ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:Entity ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptCategorization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptCategorization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -213,10 +213,10 @@ gmeow:ConceptCategorization rdfs:subClassOf
 # SPECIFIC-class-qualified `owl:onClass gmeow:TimeInterval` restriction for BOTH the
 # min and max side (the #1194 pattern) — replaced with allValuesFrom + ClosureEntry
 # (no scoped max restriction needed: the property is already globally functional).
-gmeow:ConceptTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:allValuesFrom gmeow:Concept ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:allValuesFrom gmeow:TimeInterval ] .
+gmeow:ConceptTenure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:conceptHoldsFor ; logic:allValuesFrom gmeow:Concept ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:conceptHoldsFor ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:allValuesFrom gmeow:TimeInterval ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/conceptHoldsFor" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/duringInterval" ; logic:closureValue logic:ClosedWorldClosure ] .
