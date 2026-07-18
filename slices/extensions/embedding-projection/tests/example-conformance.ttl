@@ -85,10 +85,16 @@ ep:ecDeclassUnreviewed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ce-declass-unreviewed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "A BARE gmeow:DeclassificationAct — one asserting gmeow:declassifies but carrying no reviewing invocation (gmeow:wasGeneratedBy) and no authorizing agent (gmeow:wasAssociatedWith) — is itself invalid: it violates the sh:minCount 1 derived from the DeclassificationAct reviewability allValuesFrom carriers + their class-scoped ClosureEntries, so an unreviewable act never authorizes a sensitivity drop (area-5: absence of review never implies public). The strengthened gmeow:SecurityMonotonicityConstraint existential (which also rejects this projection on the derived SPARQL surface) is exercised live by the declass-unreviewed.rq competency finder." .
+    gmeow:conformanceRationale "A BARE gmeow:DeclassificationAct — one asserting gmeow:declassifies but carrying no reviewing invocation (gmeow:wasGeneratedBy) and no authorizing agent (gmeow:wasAssociatedWith) — is itself invalid: it violates the sh:minCount 1 derived from the DeclassificationAct reviewability allValuesFrom carriers + their class-scoped ClosureEntries, so an unreviewable act never authorizes a sensitivity drop (P15: absence of review never implies public). The strengthened gmeow:SecurityMonotonicityConstraint existential (which also rejects this projection on the derived SPARQL surface) is exercised live by the declass-unreviewed.rq competency finder." .
 
 ep:ecDerivedIndexUnbound a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ce-derived-index-bound.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "A gmeow:DerivedVectorIndex omitting its required gmeow:indexOverSpace binding violates the sh:minCount 1 on that path — shacl.MinCountConstraintComponent — so an accelerator that never states the exact effective/prefix space it approximates is rejected." .
+
+ep:ecSimilarityOperandsMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-similarity-operands-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A score-bearing gmeow:SimilarityObservation naming neither operand row omits the required gmeow:comparesLeftTarget / gmeow:comparesRightTarget, violating the sh:minCount 1 derived from their allValuesFrom carriers + class-scoped ClosureEntries — shacl.MinCountConstraintComponent — so a gmeow:similarityScore that cannot identify the vector pair it measured is rejected. The live SPARQL twin similarity-operands.rq exercises the same invariant in tests/competency.ttl." .

@@ -441,14 +441,27 @@ ex:score1 a math:Quantity ;
     math:hasDimension  math:dimensionless ;
     math:quantityValue "0.83"^^xsd:decimal .
 
+# Projection B's operand row for the cross-space comparison: the list-archive
+# document as embedded in projection B's independent 384-d space (gr:mail-archive,
+# the same source resource projection B aggregates via ex:embRowB). It carries an
+# exact identity (gmeow:targetsResource) so C4 passes, and it is the RIGHT operand
+# ex:crossObs's gmeow:similarityScore actually measured against ex:tgtChunk.
+ex:tgtDocB a gmeow:VectorTarget ;
+    rdfs:label "projection B row 0 → the list-archive document (384-d space)"@en ;
+    gmeow:vectorTargetKind gmeow:vectorTargetDocument ;
+    gmeow:targetsResource  gr:mail-archive ;
+    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger .
+
 ex:crossObs a gmeow:SimilarityObservation ;
     rdfs:label "cross-space proximity: projection A vs projection B"@en ;
-    gmeow:comparesLeft    ex:bookshelfProjA ;
-    gmeow:comparesRight   ex:bookshelfProjB ;
-    gmeow:overVectorSpace ex:vscA ;
-    gmeow:withMetric      gmeow:distanceMetricCosine ;
-    gmeow:similarityScore ex:score1 ;
-    gmeow:queryContext    "align the bookshelf under the two embedding spaces (internal filter)" .
+    gmeow:comparesLeft       ex:bookshelfProjA ;
+    gmeow:comparesRight      ex:bookshelfProjB ;
+    gmeow:comparesLeftTarget  ex:tgtChunk ;
+    gmeow:comparesRightTarget ex:tgtDocB ;
+    gmeow:overVectorSpace    ex:vscA ;
+    gmeow:withMetric         gmeow:distanceMetricCosine ;
+    gmeow:similarityScore    ex:score1 ;
+    gmeow:queryContext       "align the bookshelf under the two embedding spaces (internal filter)" .
 
 ex:crossCorr a logic:Correspondence ;
     rdfs:label "vector space A ↔ vector space B (affine, shared-component alignment)"@x-gmeow-english ;
@@ -468,12 +481,14 @@ ex:score2 a math:Quantity ;
 
 ex:inObs a gmeow:SimilarityObservation ;
     rdfs:label "within-space proximity: projection A vs its re-serialized copy"@en ;
-    gmeow:comparesLeft    ex:bookshelfProjA ;
-    gmeow:comparesRight   ex:bookshelfProjACopy ;
-    gmeow:overVectorSpace ex:vscA ;
-    gmeow:withMetric      gmeow:distanceMetricCosine ;
-    gmeow:similarityScore ex:score2 ;
-    gmeow:queryContext    "nearest neighbours within space A (no bridge required)" .
+    gmeow:comparesLeft       ex:bookshelfProjA ;
+    gmeow:comparesRight      ex:bookshelfProjACopy ;
+    gmeow:comparesLeftTarget  ex:tgtDoc ;
+    gmeow:comparesRightTarget ex:tgtChunk ;
+    gmeow:overVectorSpace    ex:vscA ;
+    gmeow:withMetric         gmeow:distanceMetricCosine ;
+    gmeow:similarityScore    ex:score2 ;
+    gmeow:queryContext       "nearest neighbours within space A (no bridge required)" .
 
 # ===========================================================================
 # 10. Declassification act (CT7 positive path / C3). ex:bookshelfProjPublic is a
