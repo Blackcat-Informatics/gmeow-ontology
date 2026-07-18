@@ -1,38 +1,52 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The FULL-build parity gate (P6 integration): `run_full(check)` must
-//! reproduce EVERY **committed** artifact in one single pass.
+//! The FULL-build parity gate (P6 integration): a single-pass `run_full(check)`
+//! must reproduce EVERY declared `generated/` artifact — semantically — against
+//! the freshly-materialized staged tree.
 //!
-//! This is the cutover gate. It runs the whole dogfooded DAG single-pass — the
-//! fold-reading export leaves consume THIS run's freshly-composed `gmeow.gts`
-//! (the `stage-snapshot` product), not the committed file — and asserts ZERO
-//! drift across every **git-tracked** artifact.
+//! `generated/` is NOT git-tracked: it is a git-ignored LOCAL PRODUCT that
+//! `make sync` materializes on disk (PIPELINE_SPINE §6 fanout). So the reference
+//! this gate compares against is that MATERIALIZED staged tree (the bytes `make
+//! sync` last wrote), never "historical Git bytes" and never the git index — the
+//! test only ever reads the on-disk product. Its distinct value is the SEMANTIC
+//! comparison a byte-only gate cannot do: it runs the whole dogfooded DAG
+//! single-pass — the fold-reading export leaves consume THIS run's freshly-composed
+//! `gmeow.gts` (the `stage-snapshot` product), not the on-disk file — and asserts a
+//! fresh independent run reproduces the materialized tree by FOLD / graph
+//! isomorphism, proving the staged materialization is itself a faithful projection
+//! of the bundle.
+//!
+//! The must-exist authority (which paths a conforming build owes) is the DECLARED
+//! inventory — the pipeline slice's `gmeow:expectsGeneratedOutput` rows, enforced
+//! `⊆` by `project_bundle`'s completeness oracle — not a walk of this tree; this
+//! gate's set is the paths a fresh run produces, each reconciled against the
+//! materialized bytes.
 //!
 //! # What is compared (and what is NOT)
 //!
-//!  * `gmeow.gts` (committed) — compared by the FOLD (per-named-graph quad set +
+//!  * `gmeow.gts` (materialized) — compared by the FOLD (per-named-graph quad set +
 //!    reifier/annotation counts, the same comparator as `fold_parity.rs`).
 //!    CBOR has encoding skew, so byte parity is not the contract; the fold
-//!    is. The fold now matches EXACTLY — including the self-describing pipeline
-//!    DAG triples — so NO triple filtering is applied (the committed bundle was
-//!    refolded to the current DAG). A fold mismatch here is a real regression.
-//!  * Every other **committed** artifact (`generated/**`) — compared by
-//!    `run_full`'s own reconciliation: byte-deterministic text/CSV/JSON/etc. by
-//!    BYTES, RDF/Turtle leaves by GRAPH ISOMORPHISM (their committed bytes were
-//!    minted by the retired rdflib serializer).
-//!  * Ephemeral `dist/**` outputs are GITIGNORED and carry NO committed authority,
-//!    so they NEVER gate parity. They are instead given DETERMINISM coverage: a
-//!    second `run_full` must reproduce them byte-for-byte (a pure function of the
-//!    inputs), proving the build is reproducible without pinning them to stale,
-//!    no-authority on-disk leftovers.
+//!    is. A fold mismatch here is a real regression (modulo the self-describing
+//!    pipeline-DAG triples the `fold_parity.rs` filter excludes for the
+//!    stale-vs-fresh window before `make sync` reruns the terminal).
+//!  * Every other declared artifact (`generated/**`) — reconciled against the
+//!    materialized bytes: byte-deterministic text/CSV/JSON/etc. by BYTES,
+//!    RDF/Turtle leaves by GRAPH ISOMORPHISM (RDF text carries serializer skew, so
+//!    the contract is the canonical quad set, not the bytes).
+//!  * Ephemeral `dist/**` outputs carry NO materialized reference (the export
+//!    leaves' on-disk-only outputs), so they NEVER gate parity. They are instead
+//!    given DETERMINISM coverage: a second `run_full` must reproduce them
+//!    byte-for-byte (a pure function of the inputs), proving the build is
+//!    reproducible without pinning them to any on-disk reference.
 //!
 //! # The `KNOWN_SKEW` allowlist
 //!
-//! A tiny, justified set of committed artifacts whose committed bytes were minted
-//! by an EXTERNAL toolchain absent / differently-configured in this environment
-//! (not by the snapshot rewiring). Each carries a one-line reason. A committed
-//! drift OUTSIDE this set is a real regression and FAILS the gate.
+//! A tiny, justified set of artifacts whose materialized bytes were minted by an
+//! EXTERNAL toolchain absent / differently-configured in this environment (not by
+//! the snapshot rewiring). Each carries a one-line reason. A drift OUTSIDE this set
+//! is a real regression and FAILS the gate.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -47,8 +61,8 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-/// The committed artifacts whose committed bytes were minted by an external
-/// toolchain that is absent / differently-configured in this environment, so the
+/// The artifacts whose materialized bytes were minted by an external toolchain
+/// that is absent / differently-configured in this environment, so the
 /// freshly-produced bytes legitimately diverge. Minimal and individually
 /// justified — NOT a place to hide real drift.
 ///
@@ -57,20 +71,19 @@ fn repo_root() -> PathBuf {
 ///  * The three `generated/logic/*` artifacts (inferred-closure /
 ///    reasoning-explanations / dl-el-crosscheck-report) are produced by the
 ///    `stage-export-logic` leaf, which reasons over THIS run's FULL snapshot fold
-///    through the SAME GTS-import → `reason_all` → `build_*_ttl` path that
-///    `native_reason_gen.py` (`reason_native_artifacts(gmeow.gts, merge=False)`)
-///    drives over the committed bundle. The native reasoner is Docker-free and
-///    deterministic, so all three reproduce the committed bytes EXACTLY (the ledger
-///    is report-only / native-computed — no external oracle, so no external
-///    dependency remains). They are NOT in this allowlist.
+///    through the SAME GTS-import → `reason_all` → `build_*_ttl` path that drives
+///    the native reasoner over the materialized bundle. The native reasoner is
+///    Docker-free and deterministic, so all three reproduce the materialized bytes
+///    EXACTLY (the ledger is report-only / native-computed — no external oracle, so
+///    no external dependency remains). They are NOT in this allowlist.
 ///  * `generated/projections/functions.fno.ttl` — the FnO emitter now applies the
 ///    `@x-gmeow-english` → `@en` projection-boundary retag (mirroring the native
 ///    EDOAL tag map), so it is
-///    graph-isomorphic to the committed `@en` projection. NOT in this allowlist.
+///    graph-isomorphic to the materialized `@en` projection. NOT in this allowlist.
 ///
-/// The allowlist is EMPTY: the committed `gmeow.gts` and every committed leaf are
-/// kept regenerated in lock-step with the dogfooded DAG, so the pipeline reproduces
-/// them all with zero drift. New entries must be individually justified.
+/// The allowlist is EMPTY: the materialized `gmeow.gts` and every materialized leaf
+/// are kept in lock-step with the dogfooded DAG, so the pipeline reproduces them all
+/// with zero drift. New entries must be individually justified.
 const KNOWN_SKEW: &[&str] = &[];
 
 /// The schema artifacts are emitted natively by `stage-export-schemas`; this
@@ -86,7 +99,7 @@ const SCHEMAS_PREFIX: &str = "generated/schemas/";
 // -- --ignored`. (The cheaper `fold_parity` fold gate still runs unconditionally.)
 #[ignore = "redundant with the ontology lane's `gmeow-dev sync --mode check --outputs generated`; run with --ignored"]
 #[test]
-fn full_run_reproduces_every_committed_artifact() {
+fn full_run_reproduces_every_materialized_artifact() {
     let root = repo_root();
 
     // ── 1. The `gmeow.gts` bundle: FOLD parity. ──
@@ -95,17 +108,18 @@ fn full_run_reproduces_every_committed_artifact() {
     // excluded by `is_pipeline_self_triple` (the SAME filter `fold_parity.rs`
     // applies); any OTHER fold mismatch is a real drift and HARD-fails here.
     let regen = regen_gts_fold(&root);
-    let committed_fold = fold_shape(
-        &std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gmeow.gts"),
+    let materialized_fold = fold_shape(
+        &std::fs::read(root.join("generated/dist/gmeow.gts")).expect("materialized gmeow.gts"),
     );
-    let fold_mismatches = compare_folds(&regen, &committed_fold);
+    let fold_mismatches = compare_folds(&regen, &materialized_fold);
 
-    // ── 2. Every non-schemas committed leaf: reconcile in the pre-sink DAG. ──
+    // ── 2. Every non-schemas leaf: reconcile in the pre-sink DAG. ──
     //
-    // Run the pre-schemas DAG and compare every committed artifact it produces
+    // Run the pre-schemas DAG and compare every artifact it produces
     // (excluding `generated/schemas/*`, the internal `pipeline/`
-    // dataflow, the gitignored `dist/*`, and `gmeow.gts` itself — compared by fold
-    // above) against the committed bytes, classifying any drift against KNOWN_SKEW.
+    // dataflow, the reference-less `dist/*`, and `gmeow.gts` itself — compared by
+    // fold above) against the materialized bytes, classifying any drift against
+    // KNOWN_SKEW.
     let leaf_drifts = non_schemas_leaf_drifts(&root);
     let mut unexpected: Vec<String> = Vec::new();
     let mut classified_skew: Vec<String> = Vec::new();
@@ -140,7 +154,7 @@ fn full_run_reproduces_every_committed_artifact() {
             && dist_nondeterministic.is_empty()
             && schema_drifts.is_empty(),
         "full-build parity FAILED:\n  \
-         unexpected committed-leaf drifts: {unexpected:?}\n  \
+         unexpected materialized-leaf drifts: {unexpected:?}\n  \
          known-skew (classified, non-failing): {classified_skew:?}\n  \
          schema drifts: {schema_drifts:?}\n  \
          fold drifts:\n  {}\n  \
@@ -151,9 +165,9 @@ fn full_run_reproduces_every_committed_artifact() {
 }
 
 /// Run the pre-schemas full DAG over a fresh ephemeral cache and reconcile every
-/// COMMITTED artifact it produces against the committed bytes, returning the
+/// artifact it produces against the MATERIALIZED staged bytes on disk, returning the
 /// drifted logical paths. Skips the gated `generated/schemas/*`, the internal
-/// `pipeline/` dataflow, the gitignored `dist/*`, and `gmeow.gts` (folded above).
+/// `pipeline/` dataflow, the reference-less `dist/*`, and `gmeow.gts` (folded above).
 /// Byte-deterministic text compares by bytes; RDF leaves by graph isomorphism.
 fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
     use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
@@ -181,19 +195,19 @@ fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
             {
                 continue;
             }
-            let committed = match std::fs::read(root.join(path)) {
+            let materialized = match std::fs::read(root.join(path)) {
                 Ok(c) => c,
                 Err(_) => {
                     drifted.push(path.clone());
                     continue;
                 }
             };
-            if committed == *bytes {
+            if materialized == *bytes {
                 continue;
             }
-            // RDF/Turtle/N-Triples/N-Quads leaves were minted by the retired rdflib
-            // serializer; compare them by graph isomorphism, not bytes.
-            if is_rdf_leaf(path) && rdf_isomorphic(&committed, bytes) {
+            // RDF/Turtle/N-Triples/N-Quads leaves carry serializer skew; compare them
+            // by graph isomorphism (canonical quad set), not bytes.
+            if is_rdf_leaf(path) && rdf_isomorphic(&materialized, bytes) {
                 continue;
             }
             drifted.push(path.clone());
@@ -210,8 +224,8 @@ fn is_rdf_leaf(path: &str) -> bool {
 }
 
 /// Whether two RDF documents are isomorphic (same RDFC-1.0 canonical quad set).
-fn rdf_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
-    canonical_quads(committed)
+fn rdf_isomorphic(materialized: &[u8], produced: &[u8]) -> bool {
+    canonical_quads(materialized)
         .zip(canonical_quads(produced))
         .map(|(c, p)| c == p)
         .unwrap_or(false)
@@ -240,8 +254,8 @@ fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
 }
 
 /// Run the fold-reading export DAG twice over fresh ephemeral caches and assert
-/// every gitignored `dist/**` artifact reproduces byte-for-byte across the two
-/// runs (determinism), since they have no committed reference to compare against.
+/// every `dist/**` artifact reproduces byte-for-byte across the two runs
+/// (determinism), since they have no materialized reference to compare against.
 fn dist_determinism_mismatches(root: &Path) -> Vec<String> {
     let a = run_dist_artifacts(root);
     let b = run_dist_artifacts(root);
@@ -260,7 +274,7 @@ fn dist_determinism_mismatches(root: &Path) -> Vec<String> {
 }
 
 /// Run the pre-schemas full DAG over a fresh ephemeral cache and collect every
-/// gitignored `dist/**` artifact (the export leaves' on-disk-only outputs).
+/// `dist/**` artifact (the export leaves' on-disk-only outputs).
 fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
     use gmeow_pipeline::{PipelineSpec, RunContext, bind, default_registry, full_spec, run};
     let spec = full_spec();
@@ -299,8 +313,9 @@ struct FoldShape {
 /// Whether a quad is a self-describing pipeline-DAG triple, mirroring
 /// `fold_parity.rs::is_pipeline_self_triple`. Re-authoring the dogfooded build DAG
 /// (e.g. re-adding `gmeow:stage-export-logic`) legitimately changes these triples
-/// in the freshly-composed fold while the committed bundle still carries the old
-/// DAG (regen pending), so they are excluded from the fold comparison.
+/// in the freshly-composed fold while the materialized bundle still carries the old
+/// DAG (until `make sync` reruns the terminal), so they are excluded from the fold
+/// comparison.
 fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
     let pipeline_iri = |t: &str| -> bool {
@@ -399,33 +414,33 @@ fn regen_gts_fold(root: &Path) -> FoldShape {
     fold_shape(bytes)
 }
 
-fn compare_folds(regen: &FoldShape, committed: &FoldShape) -> Vec<String> {
+fn compare_folds(regen: &FoldShape, materialized: &FoldShape) -> Vec<String> {
     let mut mismatches: Vec<String> = Vec::new();
     let mut all_graphs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     all_graphs.extend(regen.by_graph.keys().cloned());
-    all_graphs.extend(committed.by_graph.keys().cloned());
+    all_graphs.extend(materialized.by_graph.keys().cloned());
     for gname in &all_graphs {
         let r = regen.by_graph.get(gname).copied().unwrap_or(0);
-        let c = committed.by_graph.get(gname).copied().unwrap_or(0);
+        let c = materialized.by_graph.get(gname).copied().unwrap_or(0);
         if r != c {
             let label = gname.rsplit('/').next().unwrap_or(gname);
-            mismatches.push(format!("{label}: regen={r} committed={c}"));
+            mismatches.push(format!("{label}: regen={r} materialized={c}"));
         }
     }
-    if regen.reifiers != committed.reifiers {
+    if regen.reifiers != materialized.reifiers {
         mismatches.push(format!(
-            "reifiers: regen={} committed={}",
-            regen.reifiers, committed.reifiers
+            "reifiers: regen={} materialized={}",
+            regen.reifiers, materialized.reifiers
         ));
     }
-    if regen.annotations != committed.annotations {
+    if regen.annotations != materialized.annotations {
         mismatches.push(format!(
-            "annotations: regen={} committed={}",
-            regen.annotations, committed.annotations
+            "annotations: regen={} materialized={}",
+            regen.annotations, materialized.annotations
         ));
     }
-    let missing: Vec<&String> = committed.ground.difference(&regen.ground).collect();
-    let extra: Vec<&String> = regen.ground.difference(&committed.ground).collect();
+    let missing: Vec<&String> = materialized.ground.difference(&regen.ground).collect();
+    let extra: Vec<&String> = regen.ground.difference(&materialized.ground).collect();
     if !missing.is_empty() || !extra.is_empty() {
         mismatches.push(format!(
             "ground-quad drift: {} missing, {} extra (first missing: {:?}, first extra: {:?})",
