@@ -2685,8 +2685,10 @@ mod tests {
     fn model_summarizing_program_runs_natively_unbudgeted_on_route_chase() {
         // Production-surface proof: a program every structural class refuses is admitted
         // by the MSA rung and runs to a natural fixpoint UNBUDGETED on the real router.
+        // The diagonal `p(a,a)` fires the invent rule so a null is genuinely invented (an
+        // `p(a,b)` seed would terminate without ever exercising existential invention).
         let prog = model_summarizing_beyond_structural();
-        let edb = vec![fact("http://ex/a", P, "http://ex/b")];
+        let edb = vec![fact("http://ex/a", P, "http://ex/a")];
         let (admission, outcome) = route_chase(W, &edb, &prog, None).unwrap();
         assert!(
             matches!(admission, ChaseAdmission::ModelSummarizingAcyclic { .. }),
@@ -2730,14 +2732,22 @@ mod tests {
                 vec![fact("http://ex/a", TYPE, C), fact("http://ex/a", TYPE, D)],
             ),
             (
+                // The genuinely-SWA-classified witness: `certify` reports
+                // `super_weakly_acyclic_diagonal()` as JointlyAcyclic (JA accepts and runs
+                // first), so the SWA row must use the symmetric-head fixture the ladder
+                // actually reports as SuperWeaklyAcyclic, or this slot only re-tests JA.
                 "super-weakly-acyclic",
-                super_weakly_acyclic_diagonal(),
+                super_weakly_acyclic_symmetric_head(),
                 vec![fact("http://ex/a", TYPE, C)],
             ),
             (
+                // EDB seeds the diagonal `p(a,a)` so the invent rule `p(x,x) → ∃y. p(x,y)`
+                // actually FIRES — with `p(a,b)` invention never triggers and the
+                // fixpoint-soundness probe is vacuous (a false MSA certification could not
+                // exhaust the budget if no null is ever invented).
                 "model-summarizing-acyclic",
                 model_summarizing_beyond_structural(),
-                vec![fact("http://ex/a", P, "http://ex/b")],
+                vec![fact("http://ex/a", P, "http://ex/a")],
             ),
         ];
         for (label, prog, edb) in &certified {
