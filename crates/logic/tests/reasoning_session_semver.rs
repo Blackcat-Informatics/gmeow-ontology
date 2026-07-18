@@ -15,14 +15,17 @@ mod session_common;
 use session_common::*;
 
 /// Golden engine-descriptor hash. A drift here is a deliberate engine version bump.
+/// Re-blessed for the broader chase-termination-class ladder (joint / super-weak /
+/// model-summarizing acyclicity certifiers + the authored-existential-rule surface),
+/// which extends the forward reasoning/certificate contract folded into this descriptor.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "d3abe9de1719a60c466c2d7dc3b8e277404212e6e0e2afb1132647eb729c9044";
+    "8f817df5e148631b8bb0ed459d6f09fca9507107bfe2b304a3d0f84c57e2637d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e20b2a0d5f70c759bd91ecf876f9132fe370ab802df3bcbc82b3d6cd0e4388d3";
+    "61fa97ffe53fbd26f9704467846304141054ddf9d1b75cc662ab85248c017e2c";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
