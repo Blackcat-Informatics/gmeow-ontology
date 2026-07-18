@@ -438,14 +438,15 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ));
     }
-    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
-    // product (never the stale committed generated/queries/dcat.rq on disk), so it
-    // consumes that stage rather than running source-only (kept in sorted position to
-    // match the registry consumes() and the module.ttl dataflowConsumes).
+    // research-objects reads two generated projections off upstream products, never the
+    // stale/absent committed files on disk: `generated/evals/scores.ttl` off the
+    // stage-export-evals product and `generated/queries/dcat.rq` off the stage-mappings
+    // product. It therefore consumes both rather than running source-only (kept in sorted
+    // position to match the registry consumes() and the module.ttl dataflowConsumes).
     stages.push(st(
         "stage-export-research-objects",
         "research-objects",
-        &["stage-mappings"],
+        &["stage-export-evals", "stage-mappings"],
     ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
