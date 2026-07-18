@@ -293,10 +293,22 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
     ledger.extend(projection_corpus.ledger);
     loss.union(&projection_corpus.loss);
-    let lang_projection_corpus = projection_corpus.ntriples;
+    let mut lang_projection_corpus = projection_corpus.ntriples;
     for (path, bytes) in projection_corpus.artifacts {
         artifacts.insert(path, bytes);
     }
+
+    // Glossary interop lowerings (Principle 17): the OntoLex vartrans:translation + TBX
+    // (ISO-30042) lowerings of the reviewed glossary crossings. The rendered byte artifacts
+    // ride stage-export-glossary (REP_GENERATED); HERE we fold each target's honest
+    // `lang:ProjectionEmission` record into graph/lang-projection-corpus (alongside the
+    // sibling `lang:` emissions) and its lossy `SoundUnderApproximation` row into the loss
+    // ledger. Both are lossy — every dropped construct is enumerated, so honest-lossy passes
+    // the overclaim floor and silent-lossy reds the build.
+    let glossary_lowering = crate::stages::lang_glossary::build_lowering_corpus(root)?;
+    ledger.extend(glossary_lowering.ledger);
+    loss.union(&glossary_lowering.loss);
+    lang_projection_corpus.extend_from_slice(&glossary_lowering.emission_ntriples);
 
     // Compositional-lowering corpus (the "a sentence to a formula, compositionally" flagship):
     // lower the authored flagship quantified-SVO sentence to its first-order formula through the
