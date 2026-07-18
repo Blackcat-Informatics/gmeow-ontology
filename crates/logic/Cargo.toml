@@ -40,6 +40,11 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # arena the `logic:` and `math:` consumers intern into. No layering cycle: lang-form
 # depends on neither logic nor logic-compile.
 gmeow-lang-form = { path = "../lang-form" }
+# Derive Serialize/Deserialize for the durable session-checkpoint wire types
+# (Checkpoint / SessionIdentity / WorldSourceIdentity). Deserialize reconstructs a
+# possibly-tampered checkpoint from within the defining crate WITHOUT recomputing
+# `content_address`, so `Checkpoint::verify` can still detect tampering.
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 blake3 = "1"
 # Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
