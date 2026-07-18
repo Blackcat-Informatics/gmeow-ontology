@@ -88,11 +88,11 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
-    // wired here yet: it is activated at the terminal migration increment once the legacy shape
-    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
-    // Its production semantics are proven now over the live tree by
-    // `declarative_gate_flags_the_live_legacy_corpus`.
+    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
+    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
+    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
+    // single-source-of-truth invariant (Principle 17).
+    check_declarative_shape_purity(root, &mut report);
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
@@ -189,7 +189,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -308,7 +308,7 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
 /// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl"] {
+    for sub in ["shapes", "slices", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -411,12 +411,12 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
 /// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
 /// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-// Not yet reachable from a non-test build (activation is deferred to the terminal migration
-// increment); its live-tree production semantics are exercised by the gate test below.
-#[allow(dead_code)]
+// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
+// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
+// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
 fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -501,7 +501,7 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// it enforces the invariant going forward.
 fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_shex_files(&dir, report, &mut shex_files);

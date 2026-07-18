@@ -17,6 +17,14 @@ gmeow:Credential
             a owl:Restriction ;
             owl:onProperty gmeow:credentialIssuer ;
             owl:allValuesFrom gmeow:Organization ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:credentialFor ;
+            owl:someValuesFrom [
+                a owl:Class ;
+                owl:unionOf ( gmeow:Skill gmeow:Occupation ) ;
+            ] ;
         ] ;
     skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
     skos:example "ex:rnLicense a gmeow:Credential ; gmeow:credentialIssuer ex:nursingBoard ; gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
@@ -78,11 +86,11 @@ gmeow:credentialFor
     rdfs:domain gmeow:Credential ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "credential for"@x-gmeow-english ;
-    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@x-gmeow-english ;
+    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. The union range (Skill|Occupation) is an EL-safe existential restriction on gmeow:Credential (owl:someValuesFrom an anonymous owl:unionOf class), never a direct rdfs:range union, which would violate OWL 2 RL/EL; the pipeline derives the projected sh:or shape from it (Principle 17)."@x-gmeow-english ;
     skos:example "ex:rnLicense gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and do not rely on an OWL range to type the value — the Skill|Occupation union is a SHACL shape (shapes/expertise-shapes.ttl), so a bad target is caught there, not by the reasoner."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and avoid asserting a direct rdfs:range union — the Skill|Occupation union is carried by the existential restriction on gmeow:Credential instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the SHACL shape enforces the union range."@x-gmeow-english ;
+    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the derived SHACL shape enforces the union range."@x-gmeow-english ;
     gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english .
 
 gmeow:credentialIssuer
