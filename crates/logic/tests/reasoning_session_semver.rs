@@ -18,14 +18,19 @@ use session_common::*;
 /// Re-blessed for the broader chase-termination-class ladder (joint / super-weak /
 /// model-summarizing acyclicity certifiers + the authored-existential-rule surface),
 /// which extends the forward reasoning/certificate contract folded into this descriptor.
+/// Re-blessed again for the stage-2 certifier hardening: the partial-order `combine` meet
+/// (incomparable JA∥SWA meet to their glb), the budgeted MSA critical-instance fixpoint
+/// (Exhausted → conservative refuse), the fail-fast authored-rule reader, and the
+/// certifier perf rewrites — all move the `physical/chase.rs` / `reason/dl.rs` content
+/// digest folded into this descriptor.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "8f817df5e148631b8bb0ed459d6f09fca9507107bfe2b304a3d0f84c57e2637d";
+    "98917437fc3fec0f442c2f4b6c969a566c7126919573dfc6a59cd4d7642c9854";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "61fa97ffe53fbd26f9704467846304141054ddf9d1b75cc662ab85248c017e2c";
+    "ecd3bc351647af8830bcbf682bfbc44ad96ff1d4fc65a4d04b2fcc00ded933cb";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
