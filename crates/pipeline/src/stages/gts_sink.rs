@@ -53,7 +53,7 @@ impl GtsSinkStage {
                 "stage-statements".to_string(),
                 "stage-validate".to_string(),
                 // The opaque fanout members ride in from their producing export leaves
-                // (each rendered once, in the leaf); `build_fanout_opaque_blob` reads them
+                // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
                 "stage-export-agreement".to_string(),
                 "stage-export-apache".to_string(),
@@ -118,7 +118,7 @@ impl Stage for GtsSinkStage {
     fn impl_version(&self) -> &str {
         // v4: the opaque fanout members (references / bench / apache / matrix / eval +
         // research-object sidecars / metadata) ride in from their producing export leaves;
-        // `build_fanout_opaque_blob` reads them off those products instead of re-rendering
+        // `collect_fanout_opaque_members` reads them off those products instead of re-rendering
         // from disk, and statements / dsl-stats / context ride off the already-consumed
         // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
         // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
