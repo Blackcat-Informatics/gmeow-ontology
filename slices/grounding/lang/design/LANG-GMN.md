@@ -61,6 +61,37 @@ ladder has three levels, and only the crossings between levels carry judgments:
   get-leg-only: `logic:ValidationOnly`, `logic:BridgeView`, no round-trip obligation. The razor:
   a zstd-compressed claim is the same claim (a codec); a compaction is not (a dialect level).
 
+### Per-claim inversion is natural
+
+The GMN-1 preservation witness (`gmeow:gmnCorrNormalToGmn`) is discharged at **claim
+granularity**, not merely as one opaque whole-model round trip. A **claim** is a **canonical-
+subject group** of the RDFC-1.0 normal form — the quads sharing one canonical subject after
+RDFC-1.0 blank-node labelling. `decode ∘ encode = id_S` is **natural with respect to this
+decomposition**: the witness round-trips the whole model once, then compares — per canonical-
+subject group — the blake3 digest and the key-set of the group on the GMN-0 side against the
+group recovered through the codec, so **each claim inverts independently** and any divergence
+localizes to the offending canonical subject rather than smearing across the model. The witness
+**never re-canonicalizes a claim in isolation** — canonicalization is a whole-model operation, and
+re-normalizing a fragment would fabricate a subject the whole model does not carry — so the
+per-claim comparison reads the single normal form both codec legs share, exactly the granularity
+at which the mnemomorphic obligation is meaningful. The claim is discharged by the executed
+per-claim witness, precisely as the ladder's other crossings are discharged by their reconstruction
+gates.
+
+Two further legs sharpen the judgment:
+
+- **Byte-exact idempotence.** `encode ∘ decode = id` holds **byte-for-byte** on the GMN-1
+  surface: decoding a conforming document and re-encoding it reproduces the same bytes — the
+  determinism the envelope's digest discipline depends on. This is strictly stronger than
+  `put ∘ get = id_S` (which recovers the model, not the byte serialization) and is checked as its
+  own leg.
+- **MSG-standalone, honestly scoped.** For a claim that is **ground or blank-closed** — its
+  canonical-subject group mentions no blank node shared with another group — the codec additionally
+  satisfies the stronger *minimal-self-contained-graph* standalone property: the claim encodes and
+  inverts as a self-contained unit. The leg is scoped to exactly those claims and **never asserted
+  over blank-node-bridged groups**, where standalone inversion would be an overclaim — an honest
+  boundary, not a silent gap.
+
 ## The rate–fidelity contract
 
 GMN is a **source code over the LLM token channel**, and it is specified as coding theory
@@ -272,7 +303,9 @@ byte-comparable — the property the digest discipline of the envelope contract 
 forbidden. The grammar's fraction production is exactly two digits, so the rule is enforced by
 the parse table itself, not by convention.
 
-The four validator-tier failure classes, each with its labeled INVALID block:
+Four of the six validator-tier failure classes carry a labeled INVALID block below (the two
+residuals — `lang:GmnNonDecodableGrammar` and the default-graph refusal `lang:GmnGraphOutOfDomain`
+— carry none, being driven from synthetic inputs rather than a normative example):
 
 INVALID — `lang:GmnNonCanonicalOrder` (wrong key order: the confidence precedes the subject):
 
@@ -317,6 +350,45 @@ claims-about-claims — new records with their own standpoint, never in-place mu
 @patch{id: c42, q: 0.95}
 @retract{id: c17}
 ```
+
+**The GMN-0 model mapping is total, so an independent implementation inverts a repair record the
+same way it inverts any other.** Each repair record decodes to a subject typed by its role —
+`gmeow:GmnErr`, `gmeow:GmnPatch`, or `gmeow:GmnRetract` — carrying:
+
+- **`gmeow:gmnRepairId`** — the stable identifier of the target record the repair speaks about,
+  carried **verbatim** (the `id:` field of every repair record). It is the join key back to the
+  record under repair, never a fresh mint.
+- **`gmeow:gmnRepairClass`** — the failure class an `@err` names (the `class:` field), a
+  `lang:Gmn*` failure-class IRI, so the rejection is itself a typed, queryable object the emitting
+  model can dispatch on.
+- **restated payload fields** — a `@patch` additionally carries the restated fields of the
+  identified record (here `q: 0.95`), in the same canonical key order and by-reference discipline
+  as the record it corrects; a `@retract` carries only its `gmeow:gmnRepairId`.
+
+Every repair record is thus a **claim-about-a-claim** with its own identity and standpoint —
+`@err` observes a failure, `@patch` asserts a corrected restatement, `@retract` withdraws — and
+none mutates the targeted record in place. Because the mapping is a plain typed-subject encoding
+with no free text, the round-trip and per-claim inversion witnesses cover repair records exactly as
+they cover asserted claims.
+
+## RDF-1.2 triple terms and the default-graph domain
+
+GMN-1 round-trips **RDF-1.2 triple terms and their reifiers losslessly**. A triple term appears
+only in **object position**, reached through `rdf:reifies`, and its surface is the parenthesized
+form `( s p o )`; there is no subject- or predicate-position triple term and no free-standing
+quoted triple. Ingestion **materializes purrdf's reifier/annotation side-tables**, so a reifier
+authored in Turtle reaches the codec intact and inverts through the same per-claim witness as any
+other claim — the construct is an image of the crossing, never a dropped term. The former hard-fail
+on a quoted triple is retired: the construct is now covered, so refusing it would be a false
+negative rather than an honest boundary.
+
+**The in-scope GMN-0 normal form is default-graph only.** The GMN-0 narrow waist over the
+grounding sources carries **no named-graph quads** — a fact verified over the sources, not assumed
+— so GMN-1's declared domain is the default graph. A named-graph quad is therefore **not** a
+generic uncovered term: it is the honest typed domain boundary `lang:GmnGraphOutOfDomain`, raised
+by the writer's default-graph domain check and **never quietly discarded, mislabeled
+`lang:GmnUncoveredTerm`, or flattened into the default graph**. Widening the domain to named graphs
+would be a future crossing carrying its own witness, never a silent tolerance.
 
 ## The primer card
 
@@ -443,7 +515,7 @@ every accepted prior entering only through a judged migration crossing, never si
 ## The envelope contract
 
 A `gmeow:GmnEnvelope` is the attested carrier of a GMN payload across a serialization boundary,
-and its eight-field contract is total — a missing field is `lang:GmnMissingEnvelopeField`:
+and its nine-field contract is total — a missing field is `lang:GmnMissingEnvelopeField`:
 
 | Field | Vocabulary | Carries |
 |---|---|---|
@@ -453,12 +525,35 @@ and its eight-field contract is total — a missing field is `lang:GmnMissingEnv
 | security ring | `gmeow:gmnSecurityRing` | the deontic serialization boundary — a point in a factored `(level, compartment)` information-flow lattice; the transitive `gmeow:gmnRingWithin` order between rings is DERIVED from those coordinates, never hand-chained (see [Ring-lattice model](#the-ring-lattice-model) below). Minted fresh after checking the rights and agreements vocabulary: `gmeow:RightsStatement` deontics regulate content licensing, not serialization boundaries |
 | standpoint | `gmeow:accordingTo` | the asserting standpoint |
 | generating activity | `gmeow:wasGeneratedBy` | the emission run's provenance |
-| content digest | `gmeow:contentDigest` | byte-exact identity, blake3 |
+| content digest | `gmeow:contentDigest` | byte-exact payload identity, blake3 over the RDFC-1.0 canonical N-Quads |
 | losslessness judgment | `gmeow:gmnEnvelopeCorrespondence` | the single `logic:Correspondence` judging the crossing back to the normal form — never a boolean flag |
+| codebook digest | `gmeow:gmnCodebookDigest` | decoder identity — a blake3 Merkle root over the codebook's per-part leaves |
 
-**The digest domain is pinned.** `gmeow:contentDigest` is a blake3 digest computed over the
-canonical GMN-0 normal-form bytes — pre-envelope, post-NFC — so equal models share a digest across
-surface variants: two envelopes carrying different encodings of one model carry one digest.
+**The payload-digest domain is pinned.** `gmeow:contentDigest` is a blake3 digest computed over
+the **RDFC-1.0 canonical N-Quads** of the GMN-0 normal form — pre-envelope, post-NFC — so equal
+models share a digest across surface variants: two envelopes carrying different encodings of one
+model carry one digest.
+
+**The codebook-digest domain is pinned byte-exact.** `gmeow:gmnCodebookDigest` is a blake3
+**Merkle root** over the codebook's per-part leaves — the dialect, dictionary, and glyph-table
+versions; the script graphemes; the sigil-role glyphs; the dictionary's `term␟alias` bijection;
+the glyph-table rows; and the declared rate — so two codebooks share a digest **iff they decode
+identically**. The wire format is pinned to the byte, nothing left to the implementation: the
+digest is the ASCII string `blake3:` followed by **64 lowercase hex** characters. Each per-part
+leaf is built from entry lines of the form `key␟value` (the U+001F unit separator), **NFC-
+normalized**, **sorted by Unicode-scalar order**, and `\n`-joined; the root then hashes
+`label␟leaf-hex\n` lines in a **fixed part order**. Where `gmeow:contentDigest` fixes *payload*
+identity, `gmeow:gmnCodebookDigest` fixes *decoder* identity — together they pin both halves of
+"the same bytes decode the same way". An envelope whose declared codebook digest does not equal the
+codebook's recomputed Merkle root is `lang:GmnCodebookDigestMismatch`, raised by the native GMN
+gate that recomputes the digest — not a SHACL shape and not the per-record codec validator.
+
+**The conformance pack is the content-addressed decoder identity.** A `gmeow:GmnConformancePack`
+bundles the decoder's whole identity into one content-addressed object whose `gmeow:gmnPackRoot` is
+a blake3 **Merkle root over three leaves** — the codebook digest above, the authored grammar bytes,
+and the sigil table. The pack is **projected into `gmeow.gts`**, so a reader resolves a
+`gmeow:gmnPackRoot` to the exact codebook, grammar, and sigil table a document was written against;
+the pack root is the stable name of "which decoder", the codebook digest one of its leaves.
 
 ## The ring-lattice model
 
@@ -555,8 +650,45 @@ sibling's. This charter is the contract they all implement against.
 ## Conformance
 
 Every hard rule above is a row of the [`LANG-CONFORMANCE.md`](LANG-CONFORMANCE.md) gate matrix
-("GMN dialect rules") with a named `lang:Gmn*` failure class — fourteen rules total, nine
-enforced by the SHACL gates in `shapes.ttl` (each naming its class through
-`gmeow:enforcesFailureClass`), five by the GMN parser/writer's validator tier against the
-normative example blocks of this charter. A violation
-is a typed, queryable object, not a log line.
+("GMN dialect rules"), each — bar the class-less `@λ` column-order build assert — carrying a named
+failure class, and every row is **execution-verified on-gate**, not asserted by fixture existence.
+The matrix's `lang:Gmn*`-classed rows number **twenty**, across three failure-raising tiers:
+
+- **thirteen** enforced by the SHACL gates in `shapes.ttl` (each naming its class through
+  `gmeow:enforcesFailureClass`) — the twelve declarative rules of this charter
+  (`lang:GmnNonCanonicalCodepoint`, `lang:GmnConfusableGlyph`, `lang:GmnGlyphCollision`,
+  `lang:GmnMissingEnvelopeField`, `lang:GmnDictionaryAliasCollision`, `lang:GmnRingLatticeMalformed`,
+  `lang:GmnVersionOverclaim`, `lang:GmnCompactionWithoutProvenance`, `lang:GmnCompactionOverclaim`,
+  `lang:GmnUndispositionedTerm`, `lang:GmnUnattributedPlane`, `lang:GmnUncostedScriptGlyph`) plus
+  the cross-slice export-ring reading `lang:GmnUnringedExportCrossing` the conformance charter
+  derives from the ring model;
+- **six** by the GMN parser/writer's validator tier — the codec's `Gmn1Error` classes: the four
+  labeled INVALID example blocks above (`lang:GmnUncoveredTerm`, `lang:GmnNonCanonicalOrder`,
+  `lang:GmnMalformedNumber`, `lang:GmnUndeclaredDialectVersion`), the residual
+  `lang:GmnNonDecodableGrammar`, and the default-graph-domain refusal `lang:GmnGraphOutOfDomain`;
+- **one**, `lang:GmnCodebookDigestMismatch`, by the native GMN conformance gate that recomputes the
+  codebook Merkle-root digest and compares it to the envelope's declared `gmeow:gmnCodebookDigest`
+  — neither a SHACL shape nor the per-record codec validator.
+
+Two further matrix rows raise no `lang:Gmn*` class: the reused `lang:SilentDisambiguation` native
+lint (a compaction collapsing co-resident readings), and the class-less `@λ` CoNLL-U column-order
+build assert (drift is a build failure). Beside them a slice-quality glyph-optimality advisory
+ratchets executable glyph coverage rather than raising a failure class. A violation is a typed,
+queryable object, not a log line.
+
+### The frozen conformance-vector corpus
+
+An independent implementation is held to the same bytes this one emits. The frozen
+conformance-vector corpus at `slices/grounding/lang/tests/gmn1-vectors/` pairs each authored
+default-graph-only GMN-0 input (`<name>.in.ttl`) with codec-**derived** frozen surface bytes
+(`<name>.gmn`) — never transcribed by hand: the frozen output is exactly what the production writer
+emits over the input, and a stale artifact is a hard fail. Each positive vector discharges three
+witnesses over its reconstruction — **byte-exact** equality against the frozen bytes, **per-claim
+inversion** (the canonical-subject-group naturality above), and **byte-exact idempotence** — while
+tier-separated negatives (malformed read inputs; wrong- or missing-codebook-digest envelopes) each
+raise exactly their recorded class. The corpus pins the **codebook digest** and the **pack root**,
+so a conforming decoder is content-addressed, not merely behaviourally similar.
+
+`gmeow gmn verify` is the independent-implementation conformance surface: it drives the corpus
+through the production codec and reports each vector's byte-exact, per-claim, and idempotence
+result, so a second implementation certifies itself against the same frozen evidence the gate uses.

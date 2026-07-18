@@ -65,7 +65,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
 use unicode_normalization::is_nfc;
 use unicode_security::skeleton;
 
@@ -80,6 +80,10 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The RDF 1.2 `rdf:reifies` predicate. A reifier binding `x rdf:reifies <<( s p o )>>`
+/// materializes into exactly this predicate over an [`RdfTerm::Triple`] object — the same
+/// shape [`classify_reference`]'s triple-term arm already round-trips.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const CLASS_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
 const CLASS_SCRIPT: &str = "https://blackcatinformatics.ca/lang/Script";
 const CLASS_GMN_CODEBOOK: &str = "https://blackcatinformatics.ca/gmeow/GmnCodebook";
@@ -159,9 +163,43 @@ impl Gmn0Model {
     /// into the codec's canonical iteration order (a superset of, and independent from,
     /// RDFC-1.0's own blank-label canonicalization — that happens at comparison time via
     /// [`canonical_nquads`](Self::canonical_nquads)).
+    ///
+    /// RDF 1.2 native (purrdf) stores `rdf:reifies` reifier bindings and their folded
+    /// annotations in SEPARATE side-tables ([`RdfDataset::owned_reifiers`] /
+    /// [`RdfDataset::owned_annotations`]), NOT in the base quad table. A reifier authored
+    /// in Turtle (`x rdf:reifies <<( s p o )>>` plus its annotations) is therefore absent
+    /// from [`RdfDataset::owned_quads`]. This constructor MATERIALIZES those side-tables
+    /// into the explicit quad shape the codec's triple-term/annotation round-trip already
+    /// expects — so RDF-star losslessness is reachable through the real ingestion path, not
+    /// only through hand-built quads:
+    ///
+    /// * each reifier → `reifier rdf:reifies <<( statement )>>` (an [`RdfTerm::Triple`]
+    ///   object), in the reifier's own graph;
+    /// * each annotation → `reifier predicate object`, in the annotation's own graph.
+    ///
+    /// `graph` is preserved faithfully: a default-graph reifier (`graph: None`) becomes a
+    /// default-graph quad (round-trips); a named-graph reifier becomes a named-graph quad
+    /// (the codec then honestly hits the `lang:GmnGraphOutOfDomain` default-graph boundary,
+    /// exactly as a named-graph base quad does — not special-cased away). The materialized
+    /// quads join the same deterministic sort/dedup as the base quads.
     #[must_use]
     pub fn from_dataset(ds: &RdfDataset) -> Self {
         let mut quads: Vec<RdfQuad> = ds.owned_quads().collect();
+        for reifier in ds.owned_reifiers() {
+            let object = RdfTerm::Triple(Box::new(reifier.statement.clone()));
+            let mut quad = RdfQuad::new(reifier.reifier.clone(), RDF_REIFIES, object);
+            quad.graph_name = reifier.graph.clone();
+            quads.push(quad);
+        }
+        for annotation in ds.owned_annotations() {
+            let mut quad = RdfQuad::new(
+                annotation.reifier.clone(),
+                annotation.predicate.clone(),
+                annotation.object.clone(),
+            );
+            quad.graph_name = annotation.graph.clone();
+            quads.push(quad);
+        }
         quads.sort_by_key(quad_sort_key);
         quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
         Self { quads }
@@ -253,13 +291,31 @@ struct GmnGlyphSignature {
 /// The current codebook selection resolved from the graph. The loader follows
 /// `gmeow:gmnCodebookCurrent` through `gmeow:references`; it never treats unrelated
 /// historical dictionaries or codebooks in the same carrier as current inventory.
+///
+/// Public because it is one of the two clean carriers of codebook identity the
+/// codebook-digest layer ([`crate::gmn1_digest::codebook_digest`]) hashes over — the
+/// reference inventory, script graphemes, and pinned versions this struct holds are
+/// Merkle leaves of the codebook's content address.
 #[derive(Debug, Clone)]
-struct CurrentCodebook {
-    references: BTreeSet<String>,
-    dictionary_version: String,
-    glyph_version: String,
-    graphemes: BTreeSet<String>,
-    dictionary_entries: BTreeSet<String>,
+pub struct CurrentCodebook {
+    /// The codebook's `gmeow:references` inventory (dictionary, script, sigil roles).
+    pub references: BTreeSet<String>,
+    /// The pinned `gmeow:gmnDictionaryVersion`.
+    pub dictionary_version: String,
+    /// The pinned `gmeow:gmnGlyphTableVersion`.
+    pub glyph_version: String,
+    /// The current script's `lang:hasGrapheme` inventory.
+    pub graphemes: BTreeSet<String>,
+    /// The current dictionary's `gmeow:gmnDictionaryEntry` members.
+    pub dictionary_entries: BTreeSet<String>,
+}
+
+/// The codec's pinned GMN-1 dialect (schema) version — the `v:` coordinate the
+/// `@gmn{…}` header pins and the first Merkle leaf of the codebook digest. Exposed so
+/// the digest layer folds over the SAME constant the writer emits, never a second copy.
+#[must_use]
+pub(crate) fn dialect_version() -> &'static str {
+    DIALECT_VERSION
 }
 
 /// The executable GMN glyph table, derived from canonical, typed
@@ -699,6 +755,37 @@ impl GmnGlyphRegistry {
         &self.version
     }
 
+    /// The executable glyph bindings `(sigil, glyph, fixity, arity, term)` in stable
+    /// `BTreeMap` key order, each coordinate flattened to an owned string (fixity/arity
+    /// rendered `""` when absent). The codebook-digest layer folds these as one Merkle
+    /// leaf; the private [`GmnGlyphSignature`] never crosses the module boundary.
+    pub(crate) fn glyph_binding_rows(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.glyph_to_term)
+    }
+
+    /// The ASCII-fallback read bindings, in the same flattened shape as
+    /// [`Self::glyph_binding_rows`] — a distinct Merkle leaf of the codebook digest.
+    pub(crate) fn fallback_binding_rows(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.fallback_to_term)
+    }
+
+    fn binding_rows(
+        table: &BTreeMap<(String, String, GmnGlyphSignature), String>,
+    ) -> Vec<(String, String, String, String, String)> {
+        table
+            .iter()
+            .map(|((sigil, surface, signature), term)| {
+                (
+                    sigil.clone(),
+                    surface.clone(),
+                    signature.fixity.clone().unwrap_or_default(),
+                    signature.arity.map(|a| a.to_string()).unwrap_or_default(),
+                    term.clone(),
+                )
+            })
+            .collect()
+    }
+
     /// The distinct executable glyph tokens, ordered for deterministic longest-match
     /// lexing (more Unicode scalar values first, then bytewise lexical order).
     #[must_use]
@@ -874,7 +961,15 @@ fn reject_ambiguous_groups<'a>(
     Ok(())
 }
 
-fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, GlyphRegistryError> {
+/// Resolve the current codebook selection from a carrier — the one loader that follows
+/// `gmeow:gmnCodebookCurrent` through `gmeow:references`. Public so a caller (the CLI /
+/// pipeline codebook-digest surface) can obtain a [`CurrentCodebook`] to hash, using the
+/// SAME resolution the codec's dictionary/glyph loaders already trust.
+///
+/// # Errors
+/// A [`GlyphRegistryError`] if the current codebook is absent, mistyped, references not
+/// exactly one dictionary/script, or pins a version disagreeing with the codec's.
+pub fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, GlyphRegistryError> {
     let mut types = BTreeMap::<String, BTreeSet<String>>::new();
     let mut references = BTreeMap::<String, BTreeSet<String>>::new();
     let mut dictionary_versions = BTreeMap::<String, BTreeSet<String>>::new();
@@ -1333,6 +1428,13 @@ impl GmnDictionary {
         &self.version
     }
 
+    /// The alias bijection as `term → alias` pairs in stable `BTreeMap` (term) key order —
+    /// the codebook digest's dictionary-alias Merkle leaf. Read-only; the map itself is
+    /// the loaded, injectivity-checked bijection, never a rebuilt copy.
+    pub(crate) fn alias_entries(&self) -> &BTreeMap<String, String> {
+        &self.term_to_alias
+    }
+
     /// The graph-derived scoped glyph registry carried beside the alias table.
     #[must_use]
     pub fn glyph_registry(&self) -> &GmnGlyphRegistry {
@@ -1369,7 +1471,7 @@ pub struct UncoveredTerm(pub String);
 ///    token must be a canonical integer or exactly-two-digit decimal. Number well-formedness is
 ///    a LEXICAL property, decidable without the dialect header, so it precedes header-presence.
 /// 3. **key-order** ([`NonCanonicalOrder`](Self::NonCanonicalOrder)) — a record's keys must be
-///    in the canonical `s p o v q st ev m ek bd it` order.
+///    in the canonical `s p o v id q st ev m ek bd it class` order.
 /// 4. **header-presence** ([`UndeclaredDialectVersion`](Self::UndeclaredDialectVersion)) — the
 ///    `@gmn{…}` header must pin the dialect/dictionary version before any record.
 /// 5. **dictionary-coverage** ([`Uncovered`](Self::Uncovered)) — every term must resolve
@@ -1381,11 +1483,21 @@ pub struct UncoveredTerm(pub String);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Gmn1Error {
     /// `lang:GmnUncoveredTerm` — a grammar-valid term the pinned dictionary / prefix registry
-    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v3` does
-    /// not mint, a quoted RDF 1.2 triple term, a named-graph quad). Named so it is diagnosable.
+    /// does not cover (an IRI under no registered namespace, or a dictionary alias `dict-v3`
+    /// does not mint). Named so it is diagnosable. RDF 1.2 triple terms are NOT uncovered —
+    /// the codec encodes them losslessly (see [`encode_triple_term`]); a named-graph quad is
+    /// its own honest domain-boundary class ([`Self::NamedGraphOutOfDomain`]), never this
+    /// "uncovered" residual (which would imply a bigger dictionary could cover it).
     Uncovered(UncoveredTerm),
+    /// `lang:GmnGraphOutOfDomain` — a quad carries a named graph, which is OUTSIDE the
+    /// default-graph GMN-0 normal-form domain (the grounding slices are authored as
+    /// `text/turtle`, i.e. default-graph triples only). This is an HONEST domain boundary,
+    /// NOT an [`Self::Uncovered`] residual: no larger dictionary or richer term grammar could
+    /// ever bring a named-graph quad in-domain, because the GMN-1 record shape has no graph
+    /// slot by charter. `graph` is the offending graph name's canonical rendering.
+    NamedGraphOutOfDomain { graph: String },
     /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
-    /// (`s p o v q st ev m ek bd it`), forfeiting the byte-comparability the digest discipline
+    /// (`s p o v id q st ev m ek bd it class`), forfeiting the byte-comparability the digest discipline
     /// depends on.
     NonCanonicalOrder { detail: String },
     /// `lang:GmnMalformedNumber` — a number-shaped value token outside the grammar's number
@@ -1401,6 +1513,23 @@ pub enum Gmn1Error {
     /// field pair, a `@claims` schema its rows do not match, or the codec's own internal
     /// round-trip-mismatch invariant.
     NonDecodableGrammar { detail: String },
+    /// `lang:GmnNonCanonicalCodepoint` — a literal's lexical form is not NFC-normalized.
+    /// The GMN glyph discipline (`is_nfc` on every glyph surface) extended to literal
+    /// content: a non-NFC lexical form is a non-canonical Unicode spelling, so two byte-
+    /// distinct encodings of the "same" text would take different content digests and
+    /// forfeit the byte-comparability the digest layer rests on. A HARD FAIL at encode
+    /// time (no optionality), never a silent normalization. `lexical` is the offending
+    /// form.
+    NonNfcLiteral { lexical: String },
+    /// `lang:GmnNonDecodableGrammar` — a PER-CLAIM localization of the whole-model
+    /// round-trip failure [`round_trip_check`] already discharges: `decode(encode(GMN-0))`
+    /// did not reproduce the canonical GMN-0 for the claim (canonical-subject group)
+    /// `subject`. This is NOT a new failure class — it is the SAME mnemomorphic
+    /// round-trip guarantee, localized to the offending canonical subject so a conformance
+    /// witness can name WHICH claim diverged (the per-claim inversion witness).
+    /// `subject` is the canonical-subject rendering (`<iri>`, `_:c14nN`, or the standalone
+    /// leg's model-subject key) whose partition digest disagreed.
+    PerClaimMismatch { subject: String },
 }
 
 impl Gmn1Error {
@@ -1410,6 +1539,10 @@ impl Gmn1Error {
     /// shipped-projection lint all consume (never a second, drift-prone classifier).
     pub const CLASS_UNCOVERED_TERM: &'static str =
         "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
+    /// See [`Self::CLASS_UNCOVERED_TERM`]. The named-graph domain-boundary class — a quad
+    /// with a named graph is outside the default-graph GMN-0 normal-form domain.
+    pub const CLASS_GRAPH_OUT_OF_DOMAIN: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnGraphOutOfDomain";
     /// See [`Self::CLASS_UNCOVERED_TERM`].
     pub const CLASS_NON_CANONICAL_ORDER: &'static str =
         "https://blackcatinformatics.ca/lang/GmnNonCanonicalOrder";
@@ -1422,6 +1555,13 @@ impl Gmn1Error {
     /// See [`Self::CLASS_UNCOVERED_TERM`].
     pub const CLASS_NON_DECODABLE_GRAMMAR: &'static str =
         "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar";
+    /// The non-NFC literal failure REUSES the existing `lang:GmnNonCanonicalCodepoint`
+    /// class — the vocabulary's one Unicode-canonicity failure (a non-canonical codepoint
+    /// spelling). A non-NFC literal lexical form is exactly that: a non-canonical Unicode
+    /// spelling. No second, parallel normalization class is minted (GREENFIELD, one
+    /// classifier).
+    pub const CLASS_NON_CANONICAL_CODEPOINT: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnNonCanonicalCodepoint";
 
     /// The full `lang:` failure-class IRI this failure resolves to. This match is EXHAUSTIVE
     /// with no wildcard arm — the compile-time totality witness (mirroring
@@ -1432,10 +1572,16 @@ impl Gmn1Error {
     pub fn failure_class(&self) -> &'static str {
         match self {
             Self::Uncovered(_) => Self::CLASS_UNCOVERED_TERM,
+            Self::NamedGraphOutOfDomain { .. } => Self::CLASS_GRAPH_OUT_OF_DOMAIN,
             Self::NonCanonicalOrder { .. } => Self::CLASS_NON_CANONICAL_ORDER,
             Self::MalformedNumber { .. } => Self::CLASS_MALFORMED_NUMBER,
             Self::UndeclaredDialectVersion { .. } => Self::CLASS_UNDECLARED_DIALECT_VERSION,
             Self::NonDecodableGrammar { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
+            Self::NonNfcLiteral { .. } => Self::CLASS_NON_CANONICAL_CODEPOINT,
+            // A per-claim mismatch REUSES the whole-model round-trip class — it is the
+            // SAME mnemomorphic guarantee localized to one canonical subject, never a
+            // second vocabulary class (GREENFIELD, one classifier).
+            Self::PerClaimMismatch { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
         }
     }
 }
@@ -1444,6 +1590,12 @@ impl std::fmt::Display for Gmn1Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Uncovered(u) => write!(f, "lang:GmnUncoveredTerm: {}", u.0),
+            Self::NamedGraphOutOfDomain { graph } => write!(
+                f,
+                "lang:GmnGraphOutOfDomain: quad in named graph {graph} is outside the \
+                 default-graph GMN-0 normal-form domain (the GMN-1 record shape has no \
+                 graph slot)"
+            ),
             Self::NonCanonicalOrder { detail } => write!(f, "lang:GmnNonCanonicalOrder: {detail}"),
             Self::MalformedNumber { token } => write!(
                 f,
@@ -1456,6 +1608,16 @@ impl std::fmt::Display for Gmn1Error {
             Self::NonDecodableGrammar { detail } => {
                 write!(f, "lang:GmnNonDecodableGrammar: {detail}")
             }
+            Self::NonNfcLiteral { lexical } => write!(
+                f,
+                "lang:GmnNonCanonicalCodepoint: literal lexical form {lexical:?} is not \
+                 NFC-normalized"
+            ),
+            Self::PerClaimMismatch { subject } => write!(
+                f,
+                "lang:GmnNonDecodableGrammar: per-claim round-trip mismatch at canonical \
+                 subject {subject} (decode(encode(GMN-0)) did not reproduce this claim)"
+            ),
         }
     }
 }
@@ -1509,14 +1671,26 @@ pub enum Gmn1ConstructCategory {
     /// non-canonical-shaped number, arbitrary prose, or any other datatype), riding by
     /// reference through the document's reference table.
     LiteralByReference,
+    /// An RDF 1.2 triple term (`( s p o )` over three nested terms) in the object slot —
+    /// the codec's lossless RDF-star surface. Deliberately OUTSIDE [`Self::ALL`] (see its
+    /// doc): triple terms are supported for RDF-1.2 completeness but are not part of the
+    /// default-graph grounding-slice fragment the corpus-completeness audit is scoped to,
+    /// exactly as a named-graph quad is out-of-domain and has no category at all.
+    TripleTerm,
 }
 
 impl Gmn1ConstructCategory {
-    /// Every category this codec's write-side dispatch can produce — the audit's
-    /// enumeration of "what totality over a construct means." A category MISSING from
-    /// this list would make [`ConstructCoverageTally::unexercised_categories`] blind to
-    /// it, so [`Self::all_covered_by_match`] is a compile-time witness that `ALL` cannot
-    /// silently fall out of sync with the enum's own variant list.
+    /// The **default-graph grounding-slice** construct categories the corpus-completeness
+    /// audit ([`ConstructCoverageTally::unexercised_categories`]) requires the real slices
+    /// to exercise at least once. A category MISSING from this list is blind to that audit,
+    /// so [`Self::all_covered_by_match`] is a compile-time witness that every in-domain
+    /// variant has a match arm and this list stays complete over them.
+    ///
+    /// [`Self::TripleTerm`] is DELIBERATELY excluded: RDF 1.2 triple terms are encoded
+    /// losslessly by the codec but do not occur in the default-graph grounding fragment the
+    /// audit is scoped to (the slices author no reifiers), exactly as a named-graph quad is
+    /// out-of-domain and carries no category at all. Their round-trip is proven by the
+    /// codec's own fixtures, not by demanding the grounding corpus emit one.
     pub const ALL: &'static [Self] = &[
         Self::IriGlyph,
         Self::IriDictAlias,
@@ -1530,9 +1704,10 @@ impl Gmn1ConstructCategory {
         Self::LiteralByReference,
     ];
 
-    // Never called; exists so an exhaustive match over `Self` fails to compile the
-    // moment a new variant is added without a matching arm HERE (and, by the doc
-    // comment's discipline, without also being added to `ALL`).
+    // Never called; exists so an exhaustive match over `Self` fails to compile the moment a
+    // new variant is added without a matching arm HERE. Every in-domain arm is also a member
+    // of `ALL`; the out-of-domain `TripleTerm` arm is matched here (so this stays exhaustive)
+    // but intentionally omitted from `ALL` (see its doc).
     #[allow(dead_code)]
     fn all_covered_by_match(self) {
         match self {
@@ -1545,7 +1720,8 @@ impl Gmn1ConstructCategory {
             | Self::LiteralIdentifier
             | Self::LiteralInteger
             | Self::LiteralDecimal
-            | Self::LiteralByReference => {}
+            | Self::LiteralByReference
+            | Self::TripleTerm => {}
         }
     }
 }
@@ -1608,6 +1784,7 @@ fn classify_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
@@ -1627,8 +1804,12 @@ fn classify_reference(
         RdfTerm::Literal(lit) => Err(UncoveredTerm(format!(
             "a reference-position slot (s/p/o/st/ev/m/ek/bd/it) cannot carry a literal: {lit:?}"
         ))),
-        RdfTerm::Triple(_) => Err(UncoveredTerm(
-            "RDF 1.2 quoted triple terms are outside this codec's covered fragment".to_owned(),
+        // RDF 1.2 triple term (`s rdf:reifies <<( a b c )>>`): a FIRST-CLASS object the
+        // codec encodes losslessly as the compact `( s p o )` surface over three nested
+        // terms, recursively through this same reference/value dispatch — never a hard fail.
+        RdfTerm::Triple(triple) => Ok((
+            encode_triple_term(triple, dict, ns_to_prefix, refs, sigil)?,
+            Gmn1ConstructCategory::TripleTerm,
         )),
     }
 }
@@ -1640,9 +1821,77 @@ fn encode_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<String, UncoveredTerm> {
-    classify_reference(term, dict, ns_to_prefix, sigil).map(|(token, _)| token)
+    classify_reference(term, dict, ns_to_prefix, refs, sigil).map(|(token, _)| token)
+}
+
+/// Encode an RDF 1.2 triple term (`<<( s p o )>>`) as the compact GMN-1 object-slot
+/// surface `( s p o )` — a single whitespace/comma/colon-free-ish token whose three
+/// nested terms invert through the SAME term grammar the codec uses everywhere else. The
+/// parens delimit and space-separate the three components; every nested leaf token
+/// (identifier, `prefix__local`, `_b<label>`, glyph, `r_<hash>`, integer/decimal) is
+/// itself space-free, so [`decode_triple_term`]'s paren-depth-aware split recovers them
+/// exactly. Triple terms nest (`( a b ( c d e ) )`) via the recursion.
+fn encode_triple_term(
+    triple: &RdfTriple,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<String, UncoveredTerm> {
+    let subject = encode_embedded_term(&triple.subject, dict, ns_to_prefix, refs, sigil)?;
+    let predicate = encode_embedded_term(
+        &RdfTerm::Iri(triple.predicate.clone()),
+        dict,
+        ns_to_prefix,
+        refs,
+        sigil,
+    )?;
+    let object = encode_embedded_term(&triple.object, dict, ns_to_prefix, refs, sigil)?;
+    Ok(format!("( {subject} {predicate} {object} )"))
+}
+
+/// Encode one term embedded INSIDE a triple term. Unlike the top-level object slot (which
+/// disambiguates a literal via the `v` vs `o` key), a triple term's three positions are
+/// slot-free, so a literal MUST NOT inline as a bare identifier — a bare token there is
+/// indistinguishable from a dictionary alias / prefix reference. Integers and decimals are
+/// still inlined (disjoint from every reference token by shape), while every other literal
+/// rides by reference as `r_<hash>` (disjoint by the reserved `r_` prefix). IRIs, blanks,
+/// and nested triple terms encode through the reference dispatch.
+fn encode_embedded_term(
+    term: &RdfTerm,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<String, UncoveredTerm> {
+    match term {
+        RdfTerm::Literal(lit) => Ok(encode_embedded_literal(lit, refs)),
+        other => encode_reference(other, dict, ns_to_prefix, refs, sigil),
+    }
+}
+
+/// A literal in an embedded (slot-free) triple-term position: canonical integer/decimal
+/// inline (unambiguous by shape), otherwise by reference (never a bare identifier, which
+/// would collide with a reference token). Shares the by-reference minting with
+/// [`classify_literal`] via [`intern_literal_ref`].
+fn encode_embedded_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
+    let numeric = lit.language.is_none() && lit.direction.is_none();
+    if numeric
+        && lit.datatype.as_deref() == Some(XSD_INTEGER)
+        && is_integer_token(&lit.lexical_form)
+    {
+        return lit.lexical_form.clone();
+    }
+    if numeric
+        && lit.datatype.as_deref() == Some(XSD_DECIMAL)
+        && is_decimal_token(&lit.lexical_form)
+    {
+        return lit.lexical_form.clone();
+    }
+    intern_literal_ref(lit, refs)
 }
 
 /// Encode a VALUE-position term (`v q`: the object's own literal payload, or an asserted
@@ -1856,6 +2105,17 @@ fn classify_literal(
     }
     // By reference: content-addressed on the full payload, so two occurrences of the
     // same literal share one reference-table entry.
+    (
+        intern_literal_ref(lit, refs),
+        Gmn1ConstructCategory::LiteralByReference,
+    )
+}
+
+/// Mint (or reuse) the content-addressed `r_<hash>` by-reference key for a literal and
+/// register its full payload in `refs`. The one place a by-reference literal key is
+/// formed — shared by [`classify_literal`] (top-level value slot) and
+/// [`encode_embedded_literal`] (embedded triple-term position) so the two never drift.
+fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
     let key = format!(
         "{REF_PREFIX}{}",
         digest16(
@@ -1873,7 +2133,7 @@ fn classify_literal(
         datatype: lit.datatype.clone(),
         language: lit.language.clone(),
     });
-    (key, Gmn1ConstructCategory::LiteralByReference)
+    key
 }
 
 /// Decode a REFERENCE-position token (`s p o st ev m ek bd it`) back to an [`RdfTerm`] —
@@ -1885,8 +2145,19 @@ fn decode_reference(
     token: &str,
     dict: &GmnDictionary,
     prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
     sigil: &str,
 ) -> Result<RdfTerm, Gmn1Error> {
+    // RDF 1.2 triple term (`( s p o )`): the two-sided inverse of [`encode_triple_term`].
+    if token.starts_with('(') {
+        return Ok(RdfTerm::Triple(Box::new(decode_triple_term(
+            token,
+            dict,
+            prefix_to_ns,
+            refs,
+            sigil,
+        )?)));
+    }
     if let Some(label) = token.strip_prefix(BLANK_PREFIX) {
         if !is_safe_token_body(label) {
             return Err(non_decodable(format!(
@@ -1968,11 +2239,121 @@ fn payload_to_term(payload: &RefPayload) -> RdfTerm {
     })
 }
 
+/// Decode a `( s p o )` triple-term token back to an [`RdfTriple`] — the two-sided inverse
+/// of [`encode_triple_term`]. Subject and predicate ride the reference dispatch (the
+/// predicate must resolve to an IRI, per the RDF data model); the object rides the
+/// embedded-term dispatch (it may be a literal, an IRI/blank, or a nested triple term).
+fn decode_triple_term(
+    token: &str,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<RdfTriple, Gmn1Error> {
+    let inner = token
+        .strip_prefix('(')
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| {
+            non_decodable(format!("malformed triple-term token (no `( … )`): {token}"))
+        })?;
+    let [subject_tok, predicate_tok, object_tok] = split_triple_components(inner)?;
+    let subject = decode_reference(&subject_tok, dict, prefix_to_ns, refs, sigil)?;
+    let predicate = match decode_reference(&predicate_tok, dict, prefix_to_ns, refs, sigil)? {
+        RdfTerm::Iri(iri) => iri,
+        other => {
+            return Err(non_decodable(format!(
+                "triple-term predicate must decode to an IRI, got {other:?} from token \
+                 {predicate_tok}"
+            )));
+        }
+    };
+    let object = decode_embedded_term(&object_tok, dict, prefix_to_ns, refs, sigil)?;
+    Ok(RdfTriple::new(subject, predicate, object))
+}
+
+/// Decode one term embedded inside a triple term — the inverse of [`encode_embedded_term`].
+/// A leading `(` is a nested triple; a number-shaped or `r_<hash>` token is a value literal
+/// (disjoint by shape / reserved prefix from every reference token); everything else is a
+/// reference (IRI/blank/dictionary alias).
+fn decode_embedded_term(
+    token: &str,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    sigil: &str,
+) -> Result<RdfTerm, Gmn1Error> {
+    if token.starts_with('(') {
+        return decode_reference(token, dict, prefix_to_ns, refs, sigil);
+    }
+    if is_integer_token(token) || is_decimal_token(token) || token.starts_with(REF_PREFIX) {
+        return decode_value(token, refs);
+    }
+    decode_reference(token, dict, prefix_to_ns, refs, sigil)
+}
+
+/// Split the inner text of a `( … )` triple term into its three top-level components,
+/// respecting nested parens (`( a b ( c d e ) )` splits into `a`, `b`, `( c d e )`). A
+/// component count other than three, or an unbalanced paren, is `lang:GmnNonDecodableGrammar`.
+fn split_triple_components(inner: &str) -> Result<[String; 3], Gmn1Error> {
+    let mut components: Vec<String> = Vec::new();
+    let mut current = String::new();
+    let mut depth: i32 = 0;
+    for ch in inner.chars() {
+        match ch {
+            '(' => {
+                depth += 1;
+                current.push(ch);
+            }
+            ')' => {
+                depth -= 1;
+                if depth < 0 {
+                    return Err(non_decodable(format!(
+                        "unbalanced `)` inside triple term: {inner}"
+                    )));
+                }
+                current.push(ch);
+            }
+            c if c.is_whitespace() && depth == 0 => {
+                if !current.is_empty() {
+                    components.push(std::mem::take(&mut current));
+                }
+            }
+            c => current.push(c),
+        }
+    }
+    if depth != 0 {
+        return Err(non_decodable(format!(
+            "unbalanced `(` inside triple term: {inner}"
+        )));
+    }
+    if !current.is_empty() {
+        components.push(current);
+    }
+    components.try_into().map_err(|found: Vec<String>| {
+        non_decodable(format!(
+            "triple term must have exactly three components, found {}: {inner}",
+            found.len()
+        ))
+    })
+}
+
 // ── Records: the s/p/o/v/q/st/ev/m/ek/bd/it field model ────────────────────────────
 
-/// The canonical GMN-1 field key order (`s p o v q st ev m ek`, plus the `@p`-only
-/// `bd it` pair), per `LANG-GMN.md` § "Record form, tabular form, and canonical order".
-const KEY_ORDER: [&str; 11] = ["s", "p", "o", "v", "q", "st", "ev", "m", "ek", "bd", "it"];
+/// The canonical GMN-1 field key order, per `LANG-GMN.md` § "Record form, tabular form,
+/// and canonical order". The primary-triple slots (`s p o v`) lead, then the in-band
+/// repair TARGET id (`id`), then the folded qualifier slots (`q st ev m ek`, plus the
+/// `@p`-only `bd it` pair), and finally the `@err` failure-class name (`class`).
+///
+/// The two repair keys sit in a fixed canonical position consistent with the charter's
+/// worked examples (`@err{id: …, class: …}`, `@patch{id: …, q: …}`, `@retract{id: …}`):
+/// `id` is FIRST among the repair fields (immediately after the primary-triple slots, so
+/// it precedes a restated `q` — `@patch{id, q}` — as the charter shows), and `class` is
+/// LAST (after every qualifier, so `@err{id, class}` renders id-before-class). The patched
+/// payload fields (`q`, …) reuse the existing qualifier slots — a repair record introduces
+/// no rival key for a value it already has a canonical slot for.
+const KEY_ORDER: [&str; 13] = [
+    "s", "p", "o", "v", "id", "q", "st", "ev", "m", "ek", "bd", "it", "class",
+];
 
 const SIGIL_CLAIM: &str = "@c";
 const SIGIL_EVIDENCE: &str = "@e";
@@ -1984,8 +2365,15 @@ const SIGIL_MODAL: &str = "@m";
 const SIGIL_MATH: &str = "@μ";
 const SIGIL_LANG_AST: &str = "@λ";
 const SIGIL_LOGIC: &str = "@ℒ";
+/// The three in-band repair sigils (`LANG-GMN.md` § "In-band repair"). Each is a
+/// claim-about-claims — a reified NEW record naming a stable TARGET record id, never an
+/// in-place mutation. `@err` reports a rejected record's failure class, `@patch` restates
+/// fields of an identified record, `@retract` withdraws one.
+const SIGIL_ERR: &str = "@err";
+const SIGIL_PATCH: &str = "@patch";
+const SIGIL_RETRACT: &str = "@retract";
 
-const KNOWN_SIGILS: [&str; 10] = [
+const KNOWN_SIGILS: [&str; 13] = [
     SIGIL_CLAIM,
     SIGIL_EVIDENCE,
     SIGIL_STANDPOINT,
@@ -1996,7 +2384,43 @@ const KNOWN_SIGILS: [&str; 10] = [
     SIGIL_MATH,
     SIGIL_LANG_AST,
     SIGIL_LOGIC,
+    SIGIL_ERR,
+    SIGIL_PATCH,
+    SIGIL_RETRACT,
 ];
+
+/// The `gmeow:` class IRIs the three repair sigils map to (Task 1's vocabulary): a
+/// repair record is a GMN-0 subject typed with exactly one of these three
+/// `gmeow:StandpointClaim` subclasses.
+const CLASS_GMN_ERR: &str = "https://blackcatinformatics.ca/gmeow/GmnErr";
+const CLASS_GMN_PATCH: &str = "https://blackcatinformatics.ca/gmeow/GmnPatch";
+const CLASS_GMN_RETRACT: &str = "https://blackcatinformatics.ca/gmeow/GmnRetract";
+/// The stable TARGET record id a repair record names (a datatype property → literal).
+const PRED_GMN_REPAIR_ID: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairId";
+/// The `lang:LangConformanceFailure` subclass an `@err` names (an object property → IRI).
+const PRED_GMN_REPAIR_CLASS: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairClass";
+
+/// The repair sigil a repair-class IRI maps to, or `None` for a non-repair class. The
+/// single write-side classifier shared by [`try_repair_record`].
+fn repair_sigil_for_class(class: &str) -> Option<&'static str> {
+    match class {
+        CLASS_GMN_ERR => Some(SIGIL_ERR),
+        CLASS_GMN_PATCH => Some(SIGIL_PATCH),
+        CLASS_GMN_RETRACT => Some(SIGIL_RETRACT),
+        _ => None,
+    }
+}
+
+/// The repair-class IRI a repair sigil reconstructs, or `None` for a non-repair sigil.
+/// The two-sided inverse of [`repair_sigil_for_class`] — the single read-side classifier.
+fn repair_class_for_sigil(sigil: &str) -> Option<&'static str> {
+    match sigil {
+        SIGIL_ERR => Some(CLASS_GMN_ERR),
+        SIGIL_PATCH => Some(CLASS_GMN_PATCH),
+        SIGIL_RETRACT => Some(CLASS_GMN_RETRACT),
+        _ => None,
+    }
+}
 
 /// Choose a semantic record role from the quad itself. Exact `rdf:type` roles win,
 /// followed by the process annotation pair, then the three grounding namespaces.
@@ -2116,21 +2540,35 @@ fn quads_to_records(
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
     refs: &mut BTreeMap<String, RefPayload>,
-) -> Result<Vec<Record>, UncoveredTerm> {
+) -> Result<Vec<Record>, Gmn1Error> {
     let mut records = Vec::new();
-    for (graph, _subject, bucket) in group_quads(quads) {
-        if graph.is_some() {
-            return Err(UncoveredTerm(
-                "named-graph-scoped quads are outside this codec's covered record model \
-                 (no graph slot in the GMN-1 record shape)"
-                    .to_owned(),
-            ));
+    for (graph, subject, bucket) in group_quads(quads) {
+        // A named-graph quad is OUT OF DOMAIN, not "uncovered": the GMN-0 normal form is
+        // default-graph by charter (the grounding slices are authored as `text/turtle`),
+        // and the GMN-1 record shape has no graph slot. An honest typed domain boundary,
+        // never a term-coverage residual a bigger dictionary could resolve.
+        if let Some(graph) = graph {
+            return Err(Gmn1Error::NamedGraphOutOfDomain {
+                graph: term_sort_string(&graph),
+            });
+        }
+        // In-band repair records (`@err`/`@patch`/`@retract`) are claims-about-claims —
+        // a subject typed with one of the three `gmeow:` repair classes, carrying a
+        // stable TARGET record id (`gmnRepairId`) plus the `@err` failure class or the
+        // `@patch` restated payload. They fold to their own sigil ONLY when the whole
+        // group matches the repair shape exactly; a repair-typed group that carries any
+        // foreign predicate falls through to the flat/folded logic below (always
+        // lossless), never a lossy repair fold.
+        if let Some(record) = try_repair_record(&subject, &bucket, dict, ns_to_prefix, refs)? {
+            records.push(record);
+            continue;
         }
         if let Some((host, sigil)) = folded_record_context(&bucket) {
             let mut fields = BTreeMap::new();
             fields.insert(
                 "s",
-                encode_reference(&host.subject, dict, ns_to_prefix, sigil)?,
+                encode_reference(&host.subject, dict, ns_to_prefix, refs, sigil)
+                    .map_err(Gmn1Error::Uncovered)?,
             );
             fields.insert(
                 "p",
@@ -2138,10 +2576,13 @@ fn quads_to_records(
                     &RdfTerm::Iri(host.predicate.clone()),
                     dict,
                     ns_to_prefix,
+                    refs,
                     sigil,
-                )?,
+                )
+                .map_err(Gmn1Error::Uncovered)?,
             );
-            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)?;
+            let (obj_key, obj_tok) = encode_object(&host.object, dict, ns_to_prefix, refs, sigil)
+                .map_err(Gmn1Error::Uncovered)?;
             fields.insert(obj_key, obj_tok);
 
             for q in bucket
@@ -2151,9 +2592,10 @@ fn quads_to_records(
             {
                 let slot = annotation_slot(&q.predicate).expect("partitioned as annotation");
                 let tok = if slot == "q" {
-                    encode_value(&q.object, refs)?
+                    encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?
                 } else {
-                    encode_reference(&q.object, dict, ns_to_prefix, sigil)?
+                    encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?
                 };
                 fields.insert(slot, tok);
             }
@@ -2164,7 +2606,8 @@ fn quads_to_records(
                 let mut fields = BTreeMap::new();
                 fields.insert(
                     "s",
-                    encode_reference(&q.subject, dict, ns_to_prefix, sigil)?,
+                    encode_reference(&q.subject, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?,
                 );
                 fields.insert(
                     "p",
@@ -2172,10 +2615,13 @@ fn quads_to_records(
                         &RdfTerm::Iri(q.predicate.clone()),
                         dict,
                         ns_to_prefix,
+                        refs,
                         sigil,
-                    )?,
+                    )
+                    .map_err(Gmn1Error::Uncovered)?,
                 );
-                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs, sigil)?;
+                let (obj_key, obj_tok) = encode_object(&q.object, dict, ns_to_prefix, refs, sigil)
+                    .map_err(Gmn1Error::Uncovered)?;
                 fields.insert(obj_key, obj_tok);
                 records.push(Record { sigil, fields });
             }
@@ -2184,8 +2630,111 @@ fn quads_to_records(
     Ok(records)
 }
 
+/// Fold a `(subject, bucket)` group into an in-band repair record (`@err`/`@patch`/
+/// `@retract`) when — and only when — the whole group matches the repair shape EXACTLY:
+///
+/// * exactly one `rdf:type` quad, whose object is one of the three `gmeow:` repair
+///   classes (this selects the sigil);
+/// * exactly one `gmnRepairId` quad carrying a literal (the stable TARGET record id,
+///   carried verbatim into the `id` slot — never resolved to another record);
+/// * for `@err`, at most one `gmnRepairClass` quad → the `class` slot (the failure
+///   class's compact name, via the ordinary IRI/alias rendering);
+/// * for `@patch`, any folded qualifier predicate (`confidence` → `q`, …) → its slot,
+///   the restated payload;
+/// * NO other predicate.
+///
+/// Returns `Ok(None)` (not an error) when the group is not a clean repair record, so the
+/// caller falls through to the always-lossless flat/folded `@c`-family logic. The
+/// subject rides the `s` slot ONLY when it is an IRI whose identity must be preserved; a
+/// blank-node repair subject (the reified claim's own fresh identity, as the charter's
+/// worked examples show) is omitted and minted fresh on read, canonically equal under
+/// RDFC-1.0's blank-label canonicalization.
+fn try_repair_record(
+    subject: &RdfTerm,
+    bucket: &[&RdfQuad],
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
+) -> Result<Option<Record>, Gmn1Error> {
+    // Exactly one rdf:type quad, naming exactly one repair class, selects the sigil.
+    let type_quads: Vec<&&RdfQuad> = bucket.iter().filter(|q| q.predicate == RDF_TYPE).collect();
+    let [type_quad] = type_quads.as_slice() else {
+        return Ok(None);
+    };
+    let RdfTerm::Iri(class) = &type_quad.object else {
+        return Ok(None);
+    };
+    let Some(sigil) = repair_sigil_for_class(class) else {
+        return Ok(None);
+    };
+
+    let mut fields = BTreeMap::new();
+    let mut repair_id_seen = false;
+    for q in bucket {
+        match q.predicate.as_str() {
+            RDF_TYPE => {} // the single repair-class type, already consumed for the sigil.
+            PRED_GMN_REPAIR_ID => {
+                if repair_id_seen || !matches!(q.object, RdfTerm::Literal(_)) {
+                    return Ok(None);
+                }
+                fields.insert(
+                    "id",
+                    encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?,
+                );
+                repair_id_seen = true;
+            }
+            PRED_GMN_REPAIR_CLASS if sigil == SIGIL_ERR => {
+                if fields.contains_key("class") || !matches!(q.object, RdfTerm::Iri(_)) {
+                    return Ok(None);
+                }
+                fields.insert(
+                    "class",
+                    encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                        .map_err(Gmn1Error::Uncovered)?,
+                );
+            }
+            other => {
+                // A `@patch` restates folded qualifier fields (confidence → q, …); any
+                // other predicate (or a qualifier on a non-`@patch` repair) means this is
+                // not a clean repair record — fall through to the flat/folded logic.
+                match annotation_slot(other) {
+                    Some(slot) if sigil == SIGIL_PATCH => {
+                        if fields.contains_key(slot) {
+                            return Ok(None);
+                        }
+                        let tok = if slot == "q" {
+                            encode_value(&q.object, refs).map_err(Gmn1Error::Uncovered)?
+                        } else {
+                            encode_reference(&q.object, dict, ns_to_prefix, refs, sigil)
+                                .map_err(Gmn1Error::Uncovered)?
+                        };
+                        fields.insert(slot, tok);
+                    }
+                    _ => return Ok(None),
+                }
+            }
+        }
+    }
+
+    // A repair record MUST name its target — a repair-typed group without a `gmnRepairId`
+    // is not a well-formed repair record; fall through so it round-trips as flat records.
+    if !repair_id_seen {
+        return Ok(None);
+    }
+
+    if let RdfTerm::Iri(_) = subject {
+        fields.insert(
+            "s",
+            encode_reference(subject, dict, ns_to_prefix, refs, sigil)
+                .map_err(Gmn1Error::Uncovered)?,
+        );
+    }
+    Ok(Some(Record { sigil, fields }))
+}
+
 /// Encode an object term into its `(key, token)` pair: `v` (value) for a literal, `o`
-/// (reference) otherwise — the o-vs-v slot split.
+/// (reference) otherwise — the o-vs-v slot split. An RDF 1.2 triple term is a non-literal
+/// object, so it rides the `o` slot as the `( s p o )` surface (see [`encode_triple_term`]).
 fn encode_object(
     object: &RdfTerm,
     dict: &GmnDictionary,
@@ -2196,7 +2745,10 @@ fn encode_object(
     if matches!(object, RdfTerm::Literal(_)) {
         Ok(("v", encode_value(object, refs)?))
     } else {
-        Ok(("o", encode_reference(object, dict, ns_to_prefix, sigil)?))
+        Ok((
+            "o",
+            encode_reference(object, dict, ns_to_prefix, refs, sigil)?,
+        ))
     }
 }
 
@@ -2235,7 +2787,23 @@ fn record_to_quads(
     dict: &GmnDictionary,
     prefix_to_ns: &BTreeMap<String, String>,
     refs: &BTreeMap<String, RefPayload>,
+    fresh_index: usize,
 ) -> Result<Vec<RdfQuad>, Gmn1Error> {
+    // In-band repair records reconstruct their own GMN-0 quad shape (type + repair id +
+    // failure class / restated payload), never the primary `s p o/v` triple.
+    if repair_class_for_sigil(record.sigil).is_some() {
+        return repair_record_to_quads(record, dict, prefix_to_ns, refs, fresh_index);
+    }
+    // The repair-only keys are legal ONLY inside a repair record; a non-repair record
+    // carrying one would silently drop it below (a lost quad, no signal) — a HARD FAIL.
+    for repair_key in ["id", "class"] {
+        if record.fields.contains_key(repair_key) {
+            return Err(non_decodable(format!(
+                "non-repair record ({}) carries the repair-only key '{repair_key}'",
+                record.sigil
+            )));
+        }
+    }
     let s_tok = record
         .fields
         .get("s")
@@ -2244,14 +2812,15 @@ fn record_to_quads(
         .fields
         .get("p")
         .ok_or_else(|| non_decodable("record is missing required key 'p'".to_owned()))?;
-    let subject = decode_reference(s_tok, dict, prefix_to_ns, record.sigil)?;
-    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns, record.sigil)? else {
+    let subject = decode_reference(s_tok, dict, prefix_to_ns, refs, record.sigil)?;
+    let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns, refs, record.sigil)?
+    else {
         return Err(non_decodable(format!(
             "'p' slot must decode to an IRI, got token {p_tok}"
         )));
     };
     let object = match (record.fields.get("o"), record.fields.get("v")) {
-        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns, record.sigil)?,
+        (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns, refs, record.sigil)?,
         (None, Some(v_tok)) => decode_value(v_tok, refs)?,
         (None, None) => {
             return Err(non_decodable(
@@ -2279,7 +2848,7 @@ fn record_to_quads(
             let object = if slot == "q" {
                 decode_value(tok, refs)?
             } else {
-                decode_reference(tok, dict, prefix_to_ns, record.sigil)?
+                decode_reference(tok, dict, prefix_to_ns, refs, record.sigil)?
             };
             quads.push(RdfQuad {
                 subject: subject.clone(),
@@ -2290,6 +2859,108 @@ fn record_to_quads(
             });
         }
     }
+    Ok(quads)
+}
+
+/// Reconstruct a repair record's GMN-0 quads — the reader's inverse of
+/// [`try_repair_record`]: the `rdf:type` → repair-class quad, the `gmnRepairId` → target
+/// id quad, and the `@err` `gmnRepairClass` / `@patch` restated payload. HARD-FAILS
+/// (typed [`Gmn1Error::NonDecodableGrammar`]) on a repair record missing its mandatory
+/// `id`, or carrying a key outside the sigil's allowed set (a primary-triple `p`/`o`/`v`
+/// on any repair record, a `class` on a non-`@err`, or a restated qualifier on a
+/// non-`@patch`).
+///
+/// The subject rides the `s` slot when present (an IRI whose identity was preserved);
+/// otherwise a fresh blank node is minted — `fresh_index` makes distinct repair records
+/// take distinct labels, and RDFC-1.0's blank-label canonicalization makes the mint
+/// canonically equal to whatever blank node the original carried.
+fn repair_record_to_quads(
+    record: &Record,
+    dict: &GmnDictionary,
+    prefix_to_ns: &BTreeMap<String, String>,
+    refs: &BTreeMap<String, RefPayload>,
+    fresh_index: usize,
+) -> Result<Vec<RdfQuad>, Gmn1Error> {
+    let class_iri =
+        repair_class_for_sigil(record.sigil).expect("dispatched here only for a repair sigil");
+
+    // Reject any key outside this sigil's allowed set — a silent drop would lose a quad.
+    let class_allowed = record.sigil == SIGIL_ERR;
+    let payload_allowed = record.sigil == SIGIL_PATCH;
+    for key in record.fields.keys() {
+        let allowed = match *key {
+            "s" | "id" => true,
+            "class" => class_allowed,
+            "q" | "st" | "ev" | "m" | "ek" | "bd" | "it" => payload_allowed,
+            _ => false,
+        };
+        if !allowed {
+            return Err(non_decodable(format!(
+                "repair record ({}) carries the key '{key}', which is outside its allowed field set",
+                record.sigil
+            )));
+        }
+    }
+
+    let id_tok = record.fields.get("id").ok_or_else(|| {
+        non_decodable(format!(
+            "repair record ({}) is missing its required target-id key 'id'",
+            record.sigil
+        ))
+    })?;
+    let id_object = decode_value(id_tok, refs)?;
+
+    let subject = match record.fields.get("s") {
+        Some(s_tok) => decode_reference(s_tok, dict, prefix_to_ns, refs, record.sigil)?,
+        None => RdfTerm::BlankNode(format!("gmnRepair{fresh_index}")),
+    };
+
+    let mut quads = vec![
+        RdfQuad {
+            subject: subject.clone(),
+            predicate: RDF_TYPE.to_owned(),
+            object: RdfTerm::Iri(class_iri.to_owned()),
+            graph_name: None,
+            location: None,
+        },
+        RdfQuad {
+            subject: subject.clone(),
+            predicate: PRED_GMN_REPAIR_ID.to_owned(),
+            object: id_object,
+            graph_name: None,
+            location: None,
+        },
+    ];
+
+    if let Some(class_tok) = record.fields.get("class") {
+        quads.push(RdfQuad {
+            subject: subject.clone(),
+            predicate: PRED_GMN_REPAIR_CLASS.to_owned(),
+            object: decode_reference(class_tok, dict, prefix_to_ns, refs, record.sigil)?,
+            graph_name: None,
+            location: None,
+        });
+    }
+
+    for slot in ["q", "st", "ev", "m", "ek", "bd", "it"] {
+        if let Some(tok) = record.fields.get(slot) {
+            let pred =
+                annotation_predicate_for_slot(slot).expect("every qualifier slot has a predicate");
+            let object = if slot == "q" {
+                decode_value(tok, refs)?
+            } else {
+                decode_reference(tok, dict, prefix_to_ns, refs, record.sigil)?
+            };
+            quads.push(RdfQuad {
+                subject: subject.clone(),
+                predicate: pred.to_owned(),
+                object,
+                graph_name: None,
+                location: None,
+            });
+        }
+    }
+
     Ok(quads)
 }
 
@@ -2343,16 +3014,58 @@ fn prefix_to_ns_table() -> BTreeMap<String, String> {
 
 // ── The writer ───────────────────────────────────────────────────────────────────────
 
+/// The literal-lexical-form NFC gate — the point where every literal ENTERS encoding.
+///
+/// The GMN glyph discipline already refuses a non-NFC glyph surface ([`validate_glyph_surface`]'s
+/// `is_nfc` check); this extends the SAME discipline to literal content: a literal (an object
+/// `v` slot, an annotation `q` confidence, or a literal nested inside an RDF-1.2 triple term)
+/// whose lexical form is not NFC-normalized HARD-FAILS as [`Gmn1Error::NonNfcLiteral`] before any
+/// record is built. No optionality: the codec never silently normalizes, because normalizing the
+/// lexical form would change the underlying RDF term (a different `xsd:string` value), and a
+/// non-NFC form is a non-canonical Unicode spelling that would make one text take two content
+/// digests. A literal can occupy the subject position (an RDF-1.2 triple-term subject) or the
+/// object position, and either can itself be a triple term nesting further literals, so the walk
+/// descends recursively through both slots ([`assert_term_nfc`]); a predicate is always an IRI.
+fn assert_model_literals_nfc(model: &Gmn0Model) -> Result<(), Gmn1Error> {
+    for quad in &model.quads {
+        assert_term_nfc(&quad.subject)?;
+        assert_term_nfc(&quad.object)?;
+    }
+    Ok(())
+}
+
+/// Recursively assert every literal reachable from `term` is NFC-normalized. RDF-1.2 triple
+/// terms nest terms (subject/object) that can themselves be literals or further triple terms,
+/// so the walk descends through [`RdfTerm::Triple`]; a triple-term predicate is always an IRI
+/// and carries no literal. The FIRST non-NFC literal hard-fails as [`Gmn1Error::NonNfcLiteral`].
+fn assert_term_nfc(term: &RdfTerm) -> Result<(), Gmn1Error> {
+    match term {
+        RdfTerm::Literal(lit) => {
+            if !is_nfc(&lit.lexical_form) {
+                return Err(Gmn1Error::NonNfcLiteral {
+                    lexical: lit.lexical_form.clone(),
+                });
+            }
+        }
+        RdfTerm::Triple(triple) => {
+            assert_term_nfc(&triple.subject)?;
+            assert_term_nfc(&triple.object)?;
+        }
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {}
+    }
+    Ok(())
+}
+
 /// GMN-0 → GMN-1: the forward/put leg. Total over any [`Gmn0Model`] whose quads are
-/// default-graph, plain IRI/blank/literal-object triples under a registered namespace
-/// (the grounding slices' fragment) — hard-fails as [`Gmn1Error::Uncovered`] on a
-/// named-graph quad, a quoted-triple term, or an IRI under no registered namespace,
-/// never a silent drop.
+/// default-graph triples under a registered namespace (the grounding slices' fragment)
+/// PLUS RDF 1.2 triple-term objects, which round-trip losslessly. Hard-fails, never a
+/// silent drop, on: a named-graph quad ([`Gmn1Error::NamedGraphOutOfDomain`] — an honest
+/// domain boundary) or an IRI under no registered namespace ([`Gmn1Error::Uncovered`]).
 pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Document, Gmn1Error> {
+    assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
-    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
-        .map_err(Gmn1Error::Uncovered)?;
+    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
         "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
@@ -2378,10 +3091,10 @@ pub fn gmn1_write_tabular(
     model: &Gmn0Model,
     dict: &GmnDictionary,
 ) -> Result<Gmn1Document, Gmn1Error> {
+    assert_model_literals_nfc(model)?;
     let ns_to_prefix = ns_to_prefix_table();
     let mut refs = BTreeMap::new();
-    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)
-        .map_err(Gmn1Error::Uncovered)?;
+    let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
         "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
@@ -2391,6 +3104,15 @@ pub fn gmn1_write_tabular(
 
     let uniform_schema: Option<Vec<&'static str>> = records.first().and_then(|first| {
         if first.sigil != SIGIL_CLAIM {
+            return None;
+        }
+        // A triple-term token (`( s p o )`) carries interior spaces; a tabular row is
+        // whitespace-delimited, so such a value would corrupt the row lexer's column
+        // count. Fall back to record form (always correct) when any field is space-bearing.
+        if records
+            .iter()
+            .any(|r| r.fields.values().any(|v| v.contains(' ')))
+        {
             return None;
         }
         let schema: Vec<&'static str> =
@@ -2525,7 +3247,7 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
                 return Err(Gmn1Error::NonCanonicalOrder {
                     detail: format!(
                         "record key '{key}' precedes an earlier key — records must follow the \
-                         canonical key order (s p o v q st ev m ek bd it)"
+                         canonical key order (s p o v id q st ev m ek bd it class)"
                     ),
                 });
             }
@@ -2547,12 +3269,21 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
 
     // ── Pass 5 — dictionary-coverage (`GmnUncoveredTerm`) + quad reconstruction ─────────
     let mut quads = Vec::new();
-    for record in &lexed {
+    for (fresh_index, record) in lexed.iter().enumerate() {
         let assembled = Record {
             sigil: record.sigil,
             fields: record.pairs.iter().cloned().collect(),
         };
-        quads.extend(record_to_quads(&assembled, dict, &prefix_to_ns, &doc.refs)?);
+        // `fresh_index` disambiguates the blank node minted for a repair record whose
+        // subject rode no `s` slot — distinct records take distinct labels, and RDFC-1.0
+        // canonicalization erases the label at comparison time.
+        quads.extend(record_to_quads(
+            &assembled,
+            dict,
+            &prefix_to_ns,
+            &doc.refs,
+            fresh_index,
+        )?);
     }
     quads.sort_by_key(quad_sort_key);
     quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
@@ -2772,10 +3503,12 @@ pub enum QuadCoverage {
         predicate: Gmn1ConstructCategory,
         object: Gmn1ConstructCategory,
     },
-    /// This quad hits an uncovered construct — the SAME [`UncoveredTerm`] [`gmn1_write`]
-    /// would hard-fail on for this quad (a named-graph quad, an IRI under no registered
-    /// namespace, an unsafe blank-node label, a quoted-triple term, or a
-    /// non-literal/non-reference term in a slot that requires the other shape).
+    /// This quad hits a construct outside the covered category set: a named-graph quad
+    /// (out-of-domain; [`gmn1_write`] raises [`Gmn1Error::NamedGraphOutOfDomain`] for it),
+    /// an IRI under no registered namespace, an unsafe blank-node label, or a
+    /// non-literal/non-reference term in a slot that requires the other shape. An RDF 1.2
+    /// triple-term object is NOT here — it classifies as [`Gmn1ConstructCategory::TripleTerm`]
+    /// under [`QuadCoverage::Covered`], mirroring [`gmn1_write`]'s lossless encoding.
     Uncovered(UncoveredTerm),
 }
 
@@ -2794,7 +3527,7 @@ fn classify_quad_in_record(
                 .to_owned(),
         ));
     }
-    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, sigil) {
+    let subject = match classify_reference(&quad.subject, dict, ns_to_prefix, refs, sigil) {
         Ok((_, category)) => category,
         Err(e) => return QuadCoverage::Uncovered(e),
     };
@@ -2802,6 +3535,7 @@ fn classify_quad_in_record(
         &RdfTerm::Iri(quad.predicate.clone()),
         dict,
         ns_to_prefix,
+        refs,
         sigil,
     ) {
         Ok((_, category)) => category,
@@ -2810,7 +3544,7 @@ fn classify_quad_in_record(
     let object_result = if matches!(quad.object, RdfTerm::Literal(_)) {
         classify_value(&quad.object, refs)
     } else {
-        classify_reference(&quad.object, dict, ns_to_prefix, sigil)
+        classify_reference(&quad.object, dict, ns_to_prefix, refs, sigil)
     };
     let object = match object_result {
         Ok((_, category)) => category,
@@ -3412,7 +4146,7 @@ ex:fixtureDenotation a lang:Denotation ;
     }
 
     #[test]
-    fn writer_and_reader_cover_all_ten_declared_sigils() {
+    fn writer_and_reader_cover_all_thirteen_declared_sigils() {
         let mut builder = RdfDatasetBuilder::new();
         let rdf_type = builder.intern_iri(RDF_TYPE);
         for (local, class) in [
@@ -3427,6 +4161,25 @@ ex:fixtureDenotation a lang:Denotation ;
             let object = builder.intern_iri(&class);
             builder.push_quad(subject, rdf_type, object, None);
         }
+        // The three in-band repair sigils: each probe is a repair-class-typed subject
+        // that also names its target id (and, for @err, its failure class), so the
+        // writer folds it to its repair sigil rather than to flat `@c` records.
+        for (local, class) in [
+            ("err", CLASS_GMN_ERR),
+            ("patch", CLASS_GMN_PATCH),
+            ("retract", CLASS_GMN_RETRACT),
+        ] {
+            let subject = builder.intern_iri(&format!("{GMEOW_NS}{local}SigilProbe"));
+            let object = builder.intern_iri(class);
+            builder.push_quad(subject, rdf_type, object, None);
+            let repair_id = builder.intern_iri(PRED_GMN_REPAIR_ID);
+            let target = builder.intern_literal(RdfLiteral::typed("t1", XSD_STRING));
+            builder.push_quad(subject, repair_id, target, None);
+        }
+        let err_probe = builder.intern_iri(&format!("{GMEOW_NS}errSigilProbe"));
+        let repair_class = builder.intern_iri(PRED_GMN_REPAIR_CLASS);
+        let failure_class = builder.intern_iri(&format!("{LANG_NS}GmnMalformedNumber"));
+        builder.push_quad(err_probe, repair_class, failure_class, None);
         for (local, predicate, object) in [
             (
                 "claim",
@@ -3467,7 +4220,7 @@ ex:fixtureDenotation a lang:Denotation ;
                 document.text
             );
         }
-        round_trip_check(&model, &dictionary).expect("all ten sigils read back exactly");
+        round_trip_check(&model, &dictionary).expect("all thirteen sigils read back exactly");
     }
 
     #[test]
@@ -3762,6 +4515,14 @@ ex:fixtureDenotation a lang:Denotation ;
         assert_eq!(
             Gmn1Error::NonDecodableGrammar {
                 detail: "x".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"
+        );
+        // A per-claim mismatch REUSES the whole-model round-trip class, never a new one.
+        assert_eq!(
+            Gmn1Error::PerClaimMismatch {
+                subject: "<https://blackcatinformatics.ca/gmeow/gate2>".to_owned()
             }
             .failure_class(),
             "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"

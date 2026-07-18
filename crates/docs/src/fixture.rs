@@ -10,16 +10,18 @@
 //! `discover()` per test is paid dozens of times, and when many start at once the
 //! concurrent builds contend and each takes far longer than a single build would.
 //!
-//! This module builds the model and the rendered site for EVERY available
-//! language ONCE and stores each in a content-addressed disk cache; later callers
-//! load them cheaply. The English carrier and each translation (`fr`, `zh`, …) are
-//! cached symmetrically, so a per-language render is paid once in [`prime`] rather
+//! This module builds the model, the rendered site for EVERY available language,
+//! and the default mdBook render ONCE and stores each in a content-addressed disk
+//! cache; later callers load them cheaply. The English carrier and each translation
+//! (`fr`, `zh`, …) are cached symmetrically, and the mdBook source tree
+//! ([`render_book`] with default executable data) is cached alongside them, so a
+//! per-language render and the book render are each paid once in [`prime`] rather
 //! than live in each test process. [`prime`] is run once before the test processes
 //! spawn — by the `prime-docs-fixture` example, which the Makefile test lanes and
 //! the CI test job invoke immediately before `cargo nextest` — so no test pays the
-//! build or any render. [`load`] / [`load_site`] / [`load_site_lang`] are the
-//! per-process loaders, which also build-and-cache on a genuine miss so a plain
-//! `cargo test` (no prime step) still works.
+//! build or any render. [`load`] / [`load_site`] / [`load_site_lang`] / [`load_book`]
+//! are the per-process loaders, which also build-and-cache on a genuine miss so a
+//! plain `cargo test` (no prime step) still works.
 //!
 //! The cache key is salted with the crate version and the model schema version,
 //! then folds both every input `discover()` reads and the implementation sources
@@ -37,7 +39,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 
+use crate::exec::ExecutableDocsData;
 use crate::i18n::{ENGLISH, Translations, UiCatalog};
+use crate::mdbook::render_book;
 use crate::model::DocsModel;
 use crate::render::{Site, render_site_lang};
 
@@ -94,12 +98,46 @@ pub fn load_site(root: &Path) -> Site {
 /// Corrupt-but-present is an integrity violation and panics; only a genuine
 /// absence falls through to a fresh render (so a plain `cargo test` still works).
 pub fn load_site_lang(root: &Path, lang: &str) -> Site {
-    let cache_path = site_cache_path(root, lang);
-    match fs::read(&cache_path) {
+    // Reuse the warm model cache (built first by `prime`, or built-and-cached on a
+    // plain `cargo test` miss) rather than re-walking the slices.
+    load_cached_site(&site_cache_path(root, lang), "site", || {
+        render_site_lang(&load(root), lang)
+    })
+}
+
+/// Load the default mdBook render (the mdBook `src/` source tree —
+/// `book.toml`, `SUMMARY.md`, and one `src/<page>/index.md` per page) rooted at
+/// `root`, from the once-per-run cache when present, otherwise rendered via
+/// [`render_book`] with default executable data and cached for the rest of the run.
+/// Byte-identical to a fresh `render_book(&load(root), &ExecutableDocsData::default())`.
+///
+/// This is a distinct artifact from [`load_site`] — the static HTML site and the
+/// mdBook source tree share the `Site` type but not their contents — so it lives at
+/// its own cache path. The default book render is language-agnostic, so unlike the
+/// per-language site there is no `lang` component. Every gated `mdbook_render` test
+/// that needs the default book loads it from here instead of paying a fresh render.
+///
+/// Corrupt-but-present is an integrity violation and panics; only a genuine absence
+/// falls through to a fresh render (so a plain `cargo test` still works).
+pub fn load_book(root: &Path) -> Site {
+    load_cached_site(&book_cache_path(root), "book", || {
+        render_book(&load(root), &ExecutableDocsData::default())
+    })
+}
+
+/// Shared loader for a [`CachedSite`]-envelope artifact: load from `cache_path`
+/// when present, else `build` it and cache for the rest of the run. `label` names
+/// the artifact in diagnostics (`"site"` / `"book"`). A cache file that is PRESENT
+/// but undeserializable is an integrity violation and panics loudly rather than
+/// silently rebuilding and masking it; only a genuine absence (`NotFound`) is a
+/// legitimate miss that falls through to `build`. This is the single authority for
+/// the site/book integrity contract — do not reintroduce a per-artifact copy.
+fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site) -> Site {
+    match fs::read(cache_path) {
         Ok(bytes) => {
             let cached: CachedSite = serde_json::from_slice(&bytes).unwrap_or_else(|e| {
                 panic!(
-                    "corrupt docs-fixture site cache at {}: {e}\n\
+                    "corrupt docs-fixture {label} cache at {}: {e}\n\
                      delete the file (or run `rm -rf .cache/docs-fixture`) to rebuild",
                     cache_path.display()
                 )
@@ -107,30 +145,35 @@ pub fn load_site_lang(root: &Path, lang: &str) -> Site {
             cached.into_site()
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            build_site_and_cache(root, lang, &cache_path)
+            let site = build();
+            write_cache(cache_path, &CachedSite::from_site(&site));
+            site
         }
         Err(e) => panic!(
-            "cannot read docs-fixture site cache at {}: {e}",
+            "cannot read docs-fixture {label} cache at {}: {e}",
             cache_path.display()
         ),
     }
 }
 
-/// Build the model and the rendered site for every available language and write
-/// each cache if it is not already present. Run once before a batch of tests so
-/// none of them pays the (contended) model build or any site render.
+/// Build the model, the rendered site for every available language, and the
+/// default mdBook render, writing each cache if it is not already present. Run
+/// once before a batch of tests so none of them pays the (contended) model build
+/// or any render.
 ///
-/// The fully-warm path is a pure stat-check (two `exists()` calls, no model
+/// The fully-warm path is a pure stat-check (a few `exists()` calls, no model
 /// deserialize and no render): the English site is written LAST, so its presence
-/// is the sentinel that the whole per-language set for this cache key is on disk.
-/// Only a cold or interrupted-partial cache loads the model — once — to enumerate
-/// `available_languages` and render the missing languages.
+/// is the sentinel that the whole per-language set AND the book for this cache key
+/// are on disk. Only a cold or interrupted-partial cache loads the model — once —
+/// to enumerate `available_languages` and render the missing artifacts.
 pub fn prime(root: &Path) {
     let cache_path = cache_path(root);
     let model = if cache_path.exists() {
         // English is rendered last below, so an existing English site means every
-        // translation for this key is already warm — return without loading the model.
-        if site_cache_path(root, ENGLISH).exists() {
+        // translation AND the book for this key are already warm — return without
+        // loading the model. The book check makes a pre-book-cache warm directory
+        // (English present, book absent) correctly re-prime the book.
+        if site_cache_path(root, ENGLISH).exists() && book_cache_path(root).exists() {
             return;
         }
         load(root)
@@ -138,8 +181,8 @@ pub fn prime(root: &Path) {
         build_and_cache(root, &cache_path)
     };
 
-    // Render every translation first, then the English carrier last so the
-    // sentinel above only becomes true once the complete set is on disk.
+    // Render every translation first, then the book, then the English carrier last
+    // so the sentinel above only becomes true once the complete set is on disk.
     for lang in &model.available_languages {
         if lang == ENGLISH {
             continue;
@@ -150,6 +193,13 @@ pub fn prime(root: &Path) {
             write_cache(&path, &CachedSite::from_site(&site));
         }
     }
+    // The book cache is written BEFORE the English-site sentinel below, so
+    // English-site-present ⇒ book-present. Do not reorder these two writes.
+    let book_path = book_cache_path(root);
+    if !book_path.exists() {
+        let book = render_book(&model, &ExecutableDocsData::default());
+        write_cache(&book_path, &CachedSite::from_site(&book));
+    }
     let english_path = site_cache_path(root, ENGLISH);
     let english = render_site_lang(&model, ENGLISH);
     write_cache(&english_path, &CachedSite::from_site(&english));
@@ -159,15 +209,6 @@ fn build_and_cache(root: &Path, cache_path: &Path) -> DocsModel {
     let model = DocsModel::discover(root).expect("build docs model from live slices");
     write_cache(cache_path, &CachedModel::from_model(&model));
     model
-}
-
-fn build_site_and_cache(root: &Path, lang: &str, site_path: &Path) -> Site {
-    // Reuse the warm model cache (built first by `prime`, or built-and-cached
-    // here on a plain `cargo test` miss) rather than re-walking the slices.
-    let model = load(root);
-    let site = render_site_lang(&model, lang);
-    write_cache(site_path, &CachedSite::from_site(&site));
-    site
 }
 
 /// The on-disk cache path for the model built from the inputs under `root`.
@@ -191,6 +232,19 @@ fn site_cache_path(root: &Path, lang: &str) -> PathBuf {
         format!("{key}.site.{lang}.json")
     };
     root.join(".cache").join("docs-fixture").join(name)
+}
+
+/// The on-disk cache path for the default mdBook render. Shares the model cache
+/// key (the book is a pure function of the model, and a render-logic change is
+/// covered by the crate-version salt and the hashed `crates/docs/src` tree). The
+/// `.book.json` suffix keeps it distinct from the model (`.json`) and the site
+/// (`.site.json` / `.site.<lang>.json`) caches. The default book render is
+/// language-agnostic, so there is no per-language component.
+fn book_cache_path(root: &Path) -> PathBuf {
+    let key = cache_key(root);
+    root.join(".cache")
+        .join("docs-fixture")
+        .join(format!("{key}.book.json"))
 }
 
 /// The serialized cache envelope. The model serializes with its i18n fields
@@ -482,6 +536,21 @@ mod tests {
                 .to_string_lossy(),
             format!("{key}.site.json")
         );
+        // The book cache shares the key with its own `.book.json` suffix.
+        assert_eq!(
+            book_cache_path(&root)
+                .file_name()
+                .unwrap()
+                .to_string_lossy(),
+            format!("{key}.book.json")
+        );
+        // A hypothetical language literally named "book" renders `.site.book.json`,
+        // which must NOT alias the book cache's `.book.json`.
+        assert_ne!(
+            book_cache_path(&root),
+            site_cache_path(&root, "book"),
+            "the book cache must not collide with a site named \"book\""
+        );
     }
 
     #[test]
@@ -528,5 +597,15 @@ mod tests {
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
         let _ = load_site(&root);
+    }
+
+    #[test]
+    #[should_panic(expected = "corrupt docs-fixture book cache")]
+    fn present_but_corrupt_book_cache_panics() {
+        let root = temp_root("corrupt-book");
+        let bp = book_cache_path(&root);
+        fs::create_dir_all(bp.parent().unwrap()).unwrap();
+        fs::write(&bp, b"{ not valid json").unwrap();
+        let _ = load_book(&root);
     }
 }
