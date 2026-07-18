@@ -13,6 +13,33 @@
 //! The universal property (the "never silently approximated" guarantee): for EVERY
 //! non-`Incremental` program, `apply` never returns `Applied` — only `RequiresFullRebuild`
 //! or `UnsupportedFragment`.
+//!
+//! ## Exact-label coverage vs. forward reachability
+//!
+//! Two `UnsupportedFragment` kinds are reachable from an authored forward `open` and are
+//! therefore asserted at their EXACT typed label — both at the `open`-time
+//! `FragmentDisposition` AND at the `apply`-time `OperationOutcome::UnsupportedFragment { kind }`:
+//!
+//! * `NonStratifiable` — a negative dependency cycle (static, exact certifier verdict).
+//! * `ClauseBodyTooWide` — a clause body wider than the backward solver's 64-literal mask.
+//!
+//! The remaining kinds are **not constructible from a forward `open`**, so fabricating an
+//! exact-label assertion for them would be a lie about what a forward session can produce.
+//! They are covered here ONLY by the universal never-`Applied` property:
+//!
+//! * `NonTerminatingExistential` — an authored `Formula` existential (even an n-ary/ternary
+//!   head) lowers into single-head eval rules; the chase-admission gate inspects only
+//!   `nary_head_rules`, which stays empty for a formula-authored program, so the forward
+//!   classifier routes it to `RequiresFullRebuild` rather than this label (verified
+//!   empirically: `non_terminating_existential_program` disposes to `RequiresFullRebuild`).
+//! * `Floundering`, `NonTerminatingArithmetic`, `Cut` — **backward-reasoner-only** kinds.
+//!   They are produced by the backward SLD/magic-set and FOL-resolution engines
+//!   (`crates/logic/src/physical/magic.rs`, `.../resolve_fol.rs`) for a query-directed
+//!   goal, never by the forward incremental/full-native classifier a `ReasoningSession`
+//!   consults. `Cut` is not even constructible in a forward `LogicProgram` (no `!` control
+//!   construct on the authored Horn surface). They remain legitimate, live enum variants
+//!   used by the backward reasoner — this suite simply cannot reach them through a forward
+//!   session, so it asserts only the universal property for them.
 
 use gmeow_logic::runtime::{
     FragmentDisposition, OperationOutcome, ReasoningSession, RebuildReason, SessionDelta,
@@ -253,6 +280,42 @@ fn ac4_terminating_chase_routes_to_full_rebuild() {
             RebuildReason::AdditionsOutsideIncrementalFragment
         )
     );
+}
+
+/// Open over `program`, apply one authorized addition delta, and assert the operation
+/// surfaces the EXACT `OperationOutcome::UnsupportedFragment { kind }` — the `apply`-time
+/// counterpart to the `open`-time `FragmentDisposition` assertions above. This proves the
+/// typed kind is carried all the way through `apply`, not merely observable at `open`.
+fn assert_apply_surfaces_unsupported(program: &LogicProgram, expected: UnsupportedFragment) {
+    let mut session = open_over(program);
+    let delta = SessionDelta::new(
+        session.identity().data_generation.clone(),
+        session.head(),
+        edge_dataset(&[("c", "d")]),
+        vec![],
+        None,
+    )
+    .expect("valid delta");
+    match session.apply(&delta) {
+        OperationOutcome::UnsupportedFragment { kind } => assert_eq!(
+            kind, expected,
+            "apply must surface the exact unsupported-fragment kind"
+        ),
+        other => panic!("expected UnsupportedFragment {{ kind: {expected:?} }}, got {other:?}"),
+    }
+}
+
+#[test]
+fn ac4_non_stratifiable_apply_surfaces_exact_kind() {
+    assert_apply_surfaces_unsupported(
+        &non_stratifiable_program(),
+        UnsupportedFragment::NonStratifiable,
+    );
+}
+
+#[test]
+fn ac4_wide_clause_body_apply_surfaces_exact_kind() {
+    assert_apply_surfaces_unsupported(&wide_body_program(), UnsupportedFragment::ClauseBodyTooWide);
 }
 
 #[test]
