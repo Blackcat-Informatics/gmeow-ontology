@@ -1215,11 +1215,163 @@ impl ChaseAdmission {
     }
 
     /// **Model-summarizing acyclicity** (Cuenca Grau et al., JAIR 47, 2013): strictly
-    /// broader than super-weak. Self-hosted — the engine's Datalog fixpoint over the
-    /// critical instance decides it. `Some` when no cyclic-null dependency is derived,
-    /// else `None`.
-    fn certify_model_summarizing(_rules: &[ExistentialRule]) -> Option<Self> {
-        None
+    /// broader than joint and super-weak acyclicity, and **self-hosted** — the check *is*
+    /// Datalog entailment over the critical instance, so the engine dogfoods its own
+    /// fixpoint as its own termination analysis (doctrine: `LOGIC-PERFORMANCE.md`
+    /// §"Chase doctrine").
+    ///
+    /// Each existential is *summarized* by a single fresh constant `n_{r,∃}`.  The rules
+    /// become Datalog (existentials → their summarizing constants), a marker `isNull(n)`
+    /// tags each, and a dependency rule fires `dep(v, n)` whenever a summarizing null `v`
+    /// binds a **frontier** position of the rule minting `n`.  Running the engine's own
+    /// [`seminaive::evaluate`] fixpoint over the critical instance (every predicate fully
+    /// populated over the program's constants plus one special constant `*`) materializes
+    /// the whole `dep` relation; MSA holds iff **no null depends on itself** (no cycle in
+    /// `dep`) — a self-dependency is the summarized signature of an unbounded skolem term.
+    fn certify_model_summarizing(rules: &[ExistentialRule]) -> Option<Self> {
+        const STAR: &str = "https://blackcatinformatics.ca/gmeow/msa#star";
+        const IS_NULL: &str = "https://blackcatinformatics.ca/gmeow/msa#isNull";
+        const MSA_TRUE: &str = "https://blackcatinformatics.ca/gmeow/msa#true";
+        const DEP: &str = "https://blackcatinformatics.ca/gmeow/msa#dep";
+        let null_iri =
+            |i: usize, e: &str| format!("https://blackcatinformatics.ca/gmeow/msa#null/{i}/{e}");
+
+        // Negation is outside the summarizable positive-existential fragment.
+        if rules.iter().any(|r| r.body.iter().any(|a| a.negated)) {
+            return None;
+        }
+
+        // Summarizing null constants, one per (rule, existential).
+        let mut nulls: Vec<String> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            for e in r.existentials() {
+                nulls.push(null_iri(i, &e));
+            }
+        }
+        if nulls.is_empty() {
+            return None;
+        }
+
+        // Predicates and the constant domain (constants of Σ ∪ the special constant `*`).
+        let mut predicates: BTreeSet<String> = BTreeSet::new();
+        let mut domain_keys: BTreeSet<String> = BTreeSet::new();
+        let mut domain_terms: Vec<purrdf::TermValue> = Vec::new();
+        {
+            let star = purrdf::TermValue::iri(STAR);
+            domain_keys.insert(term_display(&star));
+            domain_terms.push(star);
+        }
+        for r in rules {
+            for atom in r.body.iter().chain(r.head.iter()) {
+                predicates.insert(atom.predicate.clone());
+                for term in [&atom.subject, &atom.object] {
+                    let tv = match term {
+                        EvalTerm::ConstNamed(iri) => Some(purrdf::TermValue::iri(iri)),
+                        EvalTerm::ConstLit(v) => Some(v.clone()),
+                        EvalTerm::Var(_) => None,
+                    };
+                    if let Some(tv) = tv
+                        && domain_keys.insert(term_display(&tv))
+                    {
+                        domain_terms.push(tv);
+                    }
+                }
+            }
+        }
+
+        // Transform Σ into the MSA Datalog program.
+        let mut program: Vec<crate::rule_ir::EvalRule> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            let existentials: BTreeSet<String> = r.existentials().into_iter().collect();
+            // Production: one Datalog rule per head atom, existentials → summarizing nulls.
+            for (k, h) in r.head.iter().enumerate() {
+                let msa_term = |t: &EvalTerm| -> EvalTerm {
+                    match t {
+                        EvalTerm::Var(v) if existentials.contains(v) => {
+                            EvalTerm::ConstNamed(null_iri(i, v))
+                        }
+                        other => other.clone(),
+                    }
+                };
+                let head_atom =
+                    EvalAtom::positive(msa_term(&h.subject), &h.predicate, msa_term(&h.object));
+                program.push(crate::rule_ir::EvalRule::positive(
+                    &format!("{}::msa-prod::{k}", r.rule_iri),
+                    head_atom,
+                    r.body.clone(),
+                ));
+            }
+            // Dependency: a summarizing null binding a frontier position of `r` depends
+            // into every null `r` mints.
+            for v in r.frontier_vars() {
+                for e in r.existentials() {
+                    let mut body = r.body.clone();
+                    body.push(EvalAtom::positive(
+                        EvalTerm::Var(v.clone()),
+                        IS_NULL,
+                        EvalTerm::ConstNamed(MSA_TRUE.to_owned()),
+                    ));
+                    let head_atom = EvalAtom::positive(
+                        EvalTerm::Var(v.clone()),
+                        DEP,
+                        EvalTerm::ConstNamed(null_iri(i, &e)),
+                    );
+                    program.push(crate::rule_ir::EvalRule::positive(
+                        &format!("{}::msa-dep::{v}::{e}", r.rule_iri),
+                        head_atom,
+                        body,
+                    ));
+                }
+            }
+        }
+
+        // The critical instance: every predicate over the whole constant domain, plus the
+        // null markers.
+        let mut store = crate::physical::store::RelationStore::new();
+        for p in &predicates {
+            for s in &domain_terms {
+                for o in &domain_terms {
+                    store.insert(p, s, o);
+                }
+            }
+        }
+        let msa_true = purrdf::TermValue::iri(MSA_TRUE);
+        for n in &nulls {
+            store.insert(IS_NULL, &purrdf::TermValue::iri(n), &msa_true);
+        }
+        let critical_facts = store.row_count();
+
+        // Run the engine's own fixpoint. A non-stratifiable program or a budget/refusal
+        // is a conservative `None` (the ladder falls through to `Uncertified` → budget) —
+        // never a silent admit.
+        let executable =
+            crate::physical::plan::compile_cached("gmeow-msa-critical-v1", program).executable?;
+        let facts = match crate::physical::seminaive::evaluate(store, executable.as_ref(), None) {
+            Ok(crate::physical::NativeOutcome::Decided(budgeted)) => budgeted.rows,
+            _ => return None,
+        };
+
+        // The materialized dependency relation; MSA holds iff no null reaches itself.
+        let mut dep: std::collections::BTreeMap<String, BTreeSet<String>> =
+            std::collections::BTreeMap::new();
+        let mut edge_count = 0usize;
+        for f in &facts {
+            if f.predicate == DEP
+                && dep
+                    .entry(term_display(&f.subject))
+                    .or_default()
+                    .insert(term_display(&f.object))
+            {
+                edge_count += 1;
+            }
+        }
+        let cyclic = dep.keys().any(|n| msa_null_reaches_self(&dep, n));
+        (!cyclic).then(|| Self::ModelSummarizingAcyclic {
+            evidence: format!(
+                "model-summarizing acyclic: {critical_facts} critical-instance fact(s), {} summarizing null(s), {edge_count} dependency edge(s), no null re-mints itself",
+                nulls.len()
+            ),
+        })
     }
 
     /// Whether the native chase may run this program unbudgeted (it terminates). Every
@@ -1539,6 +1691,28 @@ fn node_reaches_self(
         }
         if let Some(succ) = edges.get(&n) {
             stack.extend(succ.iter().copied());
+        }
+    }
+    false
+}
+
+/// Whether `node` reaches itself in the model-summarizing `dep` relation (a null
+/// depending on itself — the summarized signature of an unbounded skolem term).
+fn msa_null_reaches_self(
+    dep: &std::collections::BTreeMap<String, BTreeSet<String>>,
+    node: &str,
+) -> bool {
+    let mut stack: Vec<&String> = dep.get(node).into_iter().flatten().collect();
+    let mut seen: BTreeSet<&String> = BTreeSet::new();
+    while let Some(n) = stack.pop() {
+        if n == node {
+            return true;
+        }
+        if !seen.insert(n) {
+            continue;
+        }
+        if let Some(succ) = dep.get(n) {
+            stack.extend(succ.iter());
         }
     }
     false
@@ -2386,6 +2560,105 @@ mod tests {
             "super-weak acyclicity must refuse the two-rule invention cycle"
         );
         assert!(!ChaseAdmission::certify(&two_rule).admits_native());
+    }
+
+    // ── Model-summarizing acyclicity (self-hosted, the engine's own fixpoint) ─────
+
+    /// `p(x,x) → ∃y. p(x,y)` and `p(x,y) → p(y,x)`.
+    ///
+    /// Terminating, but **every structural class refuses it**: weak acyclicity sees a
+    /// self special edge, joint acyclicity sees a self existential-dependency (the null's
+    /// positions cover the diagonal frontier), and super-weak acyclicity's cross-rule
+    /// unification is defeated by the swap rule (`p(y,x)` unifies with the diagonal
+    /// `p(x,x)` at the variable level).  Model-summarizing acyclicity certifies it: run on
+    /// the critical instance, the summarizing null `p(*, n)` never forms the diagonal
+    /// `p(n, n)`, so no `dep(n, n)` is derived — the engine's own fixpoint proves its own
+    /// termination.
+    fn model_summarizing_beyond_structural() -> Vec<ExistentialRule> {
+        let invent = ExistentialRule {
+            rule_iri: "http://ex/rule/msa-invent".to_owned(),
+            body: vec![atom(var("?x"), P, var("?x"))],
+            head: vec![atom(var("?x"), P, var("?y"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        let swap = ExistentialRule {
+            rule_iri: "http://ex/rule/msa-swap".to_owned(),
+            body: vec![atom(var("?x"), P, var("?y"))],
+            head: vec![atom(var("?y"), P, var("?x"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        vec![invent, swap]
+    }
+
+    #[test]
+    fn certify_model_summarizing_non_vacuous_beyond_structural() {
+        // Real increment: WA, JA, and SWA all refuse, MSA certifies — and the ladder
+        // reports it as ModelSummarizingAcyclic (all cheaper rungs fell through).
+        let prog = model_summarizing_beyond_structural();
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "weak acyclicity must refuse the swap-diagonal program"
+        );
+        assert!(
+            ChaseAdmission::certify_joint_acyclic(&prog).is_none(),
+            "joint acyclicity must refuse the swap-diagonal program"
+        );
+        assert!(
+            ChaseAdmission::certify_super_weak_acyclic(&prog).is_none(),
+            "super-weak acyclicity must refuse the swap-diagonal program"
+        );
+        match ChaseAdmission::certify_model_summarizing(&prog) {
+            Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
+            other => panic!("MSA must certify the swap-diagonal program, got {other:?}"),
+        }
+        match ChaseAdmission::certify(&prog) {
+            ChaseAdmission::ModelSummarizingAcyclic { .. } => {}
+            other => panic!("the ladder must report ModelSummarizingAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn certify_msa_runs_the_engine_fixpoint() {
+        // The self-hosting actually executed the engine's own fixpoint over a non-empty
+        // critical instance (not a syntactic shortcut).
+        match ChaseAdmission::certify_model_summarizing(&model_summarizing_beyond_structural()) {
+            Some(ChaseAdmission::ModelSummarizingAcyclic { evidence }) => assert!(
+                !evidence.contains("0 critical-instance fact"),
+                "MSA must run the engine fixpoint over a non-empty critical instance: {evidence}"
+            ),
+            other => panic!("expected ModelSummarizingAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn model_summarizing_program_runs_natively_unbudgeted_on_route_chase() {
+        // Production-surface proof: a program every structural class refuses is admitted
+        // by the MSA rung and runs to a natural fixpoint UNBUDGETED on the real router.
+        let prog = model_summarizing_beyond_structural();
+        let edb = vec![fact("http://ex/a", P, "http://ex/b")];
+        let (admission, outcome) = route_chase(W, &edb, &prog, None).unwrap();
+        assert!(
+            matches!(admission, ChaseAdmission::ModelSummarizingAcyclic { .. }),
+            "route_chase must admit the program as model-summarizing-acyclic, got {admission:?}"
+        );
+        let _ = decided(outcome);
+    }
+
+    #[test]
+    fn certify_cyclic_defeats_msa() {
+        // A genuine self-cycle `D ⊑ ∃p.D`: on the critical instance the summarizing null
+        // is re-typed D and re-triggers its own rule, so `dep(n, n)` is derived → MSA
+        // refuses, and the ladder falls through to Uncertified.
+        let cyclic = vec![restriction_rule("http://ex/rule/cyclic", D, P, D)];
+        assert!(
+            ChaseAdmission::certify_model_summarizing(&cyclic).is_none(),
+            "MSA must refuse the self-cycle D ⊑ ∃p.D"
+        );
+        assert!(!ChaseAdmission::certify(&cyclic).admits_native());
     }
 
     #[test]
