@@ -5,14 +5,16 @@
 //!
 //! The Python generator framework was retired when the DAG-driven pipeline
 //! executor landed, but the Makefile still needs a machine-readable list
-//! of committed generated artifact paths. This module provides a static,
+//! of retained-product paths. This module provides a static,
 //! human-maintained registry that maps each logical generator to its canonical
-//! source directories/files and committed output paths.
+//! source directories/files and output paths.
 //!
 //! The registry is intentionally simple: it does not drive the pipeline (the
-//! dogfooded `gmeow:Pipeline` DAG in `slices/core/pipeline/module.ttl` does),
-//! it only *describes* the committed artifacts so tooling like `make commit`
-//! can stage the right paths without importing deleted Python modules.
+//! dogfooded `gmeow:Pipeline` DAG in `slices/core/pipeline/module.ttl` does).
+//! The git-ignored `generated/` projection is materialized by `make sync`;
+//! `make commit` stages only the retained products
+//! ([`RETAINED_PRODUCT_PATHS`]: `catalog-v001.xml`,
+//! `packages/python/gmeow_models/`) without importing deleted Python modules.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -28,13 +30,15 @@ pub struct GeneratorInfo {
     pub name: &'static str,
     /// Canonical source paths (repo-relative directories or files).
     pub sources: &'static [&'static str],
-    /// Committed output paths (repo-relative directories or files).
+    /// Output paths (repo-relative directories or files) — mostly the
+    /// git-ignored `generated/` projection; see [`RETAINED_PRODUCT_PATHS`]
+    /// for the paths that remain tracked.
     pub outputs: &'static [&'static str],
     /// Names of other generators whose outputs are inputs to this one.
     pub dependencies: &'static [&'static str],
 }
 
-/// The committed generated artifact registry.
+/// The generated artifact registry.
 ///
 /// Sources and outputs are repo-relative. The ordering is alphabetical by name
 /// for deterministic output.
