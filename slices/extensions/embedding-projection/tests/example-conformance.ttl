@@ -49,6 +49,12 @@ ep:ecTargetExactIdentity a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "A gmeow:VectorTarget carrying only a non-identifying gmeow:targetOrdinal (no gmeow:targetsResource or gmeow:contentDigest) violates gmeow:TargetExactIdentityConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
 
+ep:ecTargetSetUnordered a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-targetset-unordered.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:TargetSet whose gmeow:targetSetMember carries no gmeow:targetOrdinal leaves the ordered membership (matrix row order) unreconstructable and violates gmeow:TargetSetOrderedMembershipConstraint (sh:SPARQLConstraint) — shacl.SPARQLConstraintComponent." .
+
 ep:ecManifestContainerDisagree a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ce-manifest-container-disagree.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
