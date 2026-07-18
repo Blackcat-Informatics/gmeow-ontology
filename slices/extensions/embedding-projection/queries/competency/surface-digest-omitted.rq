@@ -1,0 +1,21 @@
+# CT10-robustness — profile surface records all three shared-referent digests (violation
+# finder). A gmeow:ProfileSurface that OMITS any of the three digests every surface must
+# record individually — gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, or
+# gmeow:recordsTargetTableDigest. A surface missing one silently dodges the container/
+# manifest agreement constraint for that digest (which only fires when BOTH surfaces
+# carry the compared value), so its omission is itself a hard fail. Independent SPARQL
+# twin of that requiredness (allValuesFrom carrier + class-scoped ClosureEntry, lowered
+# to sh:minCount 1) — the live, reasoning-independent check of the same invariant the
+# derived SHACL surface enforces. Empty over a scene whose every surface records all
+# three; non-empty over a surface omitting one.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?surface WHERE {
+  ?surface a gmeow:ProfileSurface .
+  FILTER NOT EXISTS {
+    ?surface gmeow:recordsSourceDigest        ?src ;
+             gmeow:recordsModelContractDigest ?mod ;
+             gmeow:recordsTargetTableDigest   ?tgt .
+  }
+}
+ORDER BY ?surface

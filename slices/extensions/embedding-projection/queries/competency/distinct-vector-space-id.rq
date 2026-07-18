@@ -1,0 +1,27 @@
+# CT2 — distinct vector-space identity (violation finder; must be EMPTY over valid
+# data). Two gmeow:VectorSpaceContract nodes that DIFFER in a comparability
+# component (effectiveOfFamily, embeddingDimensions, distanceMetric,
+# normalizationKind, or matryoshkaPolicy) yet SHARE one gmeow:contentDigest — a
+# digest collision that would make two incomparable spaces look comparable. The
+# Matryoshka case (a full space and its leading-prefix over one family differ in
+# dimensions) is included: they MUST carry different digests, so the clean scene
+# returns nothing. Independent SPARQL twin of the content-digest identity discipline.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?a ?b WHERE {
+  ?a a gmeow:VectorSpaceContract ; gmeow:contentDigest ?d .
+  ?b a gmeow:VectorSpaceContract ; gmeow:contentDigest ?d .
+  FILTER(STR(?a) < STR(?b))
+  {
+    ?a gmeow:effectiveOfFamily ?fa . ?b gmeow:effectiveOfFamily ?fb . FILTER(?fa != ?fb)
+  } UNION {
+    ?a gmeow:embeddingDimensions ?da . ?b gmeow:embeddingDimensions ?db . FILTER(STR(?da) != STR(?db))
+  } UNION {
+    ?a gmeow:distanceMetric ?ma . ?b gmeow:distanceMetric ?mb . FILTER(?ma != ?mb)
+  } UNION {
+    ?a gmeow:normalizationKind ?na . ?b gmeow:normalizationKind ?nb . FILTER(?na != ?nb)
+  } UNION {
+    ?a gmeow:matryoshkaPolicy ?pa . ?b gmeow:matryoshkaPolicy ?pb . FILTER(?pa != ?pb)
+  }
+}
+ORDER BY ?a ?b

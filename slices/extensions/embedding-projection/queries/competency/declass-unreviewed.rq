@@ -1,0 +1,28 @@
+# CT7 — reviewable declassification (violation finder). A gmeow:EmbeddingProjection whose
+# disclosure sensitivity RANK is strictly BELOW its gmeow:projectionSource's for which NO
+# REVIEWABLE gmeow:DeclassificationAct exists — reviewable meaning an act that
+# gmeow:declassifies it AND carries both a reviewing invocation (gmeow:wasGeneratedBy) and
+# an authorizing agent (gmeow:wasAssociatedWith). A BARE act that only asserts
+# gmeow:declassifies is unattributed and warrants nothing: P15 requires an EXPLICIT,
+# REVIEWABLE act, and absence of review never implies a legitimate drop (P15). Independent
+# SPARQL twin of the strengthened gmeow:SecurityMonotonicityConstraint (C3) existential —
+# it catches the unreviewed case that the plain declassifies-edge check (security-monotonic.rq)
+# lets slip through.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:hasSensitivity ?ps ;
+        gmeow:projectionSource ?src .
+  ?ps gmeow:sensitivityRank ?pr .
+  ?src gmeow:hasSensitivity ?ss .
+  ?ss gmeow:sensitivityRank ?sr .
+  FILTER(?pr < ?sr)
+  FILTER NOT EXISTS {
+    ?act a gmeow:DeclassificationAct ;
+         gmeow:declassifies ?proj ;
+         gmeow:wasGeneratedBy ?inv ;
+         gmeow:wasAssociatedWith ?agent .
+  }
+}
+ORDER BY ?proj

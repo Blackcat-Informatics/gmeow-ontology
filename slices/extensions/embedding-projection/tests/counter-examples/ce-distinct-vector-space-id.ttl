@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT2 counter-example (Don't): a digest COLLISION between a full effective space and
+# a Matryoshka PREFIX space over the SAME family — they differ in embeddingDimensions
+# (1024 vs 256) and matryoshkaPolicy (fixed vs prefix) yet carry the SAME
+# gmeow:contentDigest. Two incomparable spaces must never share one identity.
+# Triggers distinct-vector-space-id.rq (→ ce:collideFull, ce:collidePrefix).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:collideFamily a gmeow:EmbeddingFamily ;
+    gmeow:contentDigest "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
+
+ce:collideNorm a gmeow:NormalizationKind .
+
+ce:collideFull a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:collideFamily ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      gmeow:distanceMetricCosine ;
+    gmeow:normalizationKind   ce:collideNorm ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
+    gmeow:contentDigest       "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .
+
+ce:collidePrefix a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:collideFamily ;
+    gmeow:embeddingDimensions "256"^^xsd:positiveInteger ;
+    gmeow:distanceMetric      gmeow:distanceMetricCosine ;
+    gmeow:normalizationKind   ce:collideNorm ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaPrefix ;
+    gmeow:contentDigest       "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .
