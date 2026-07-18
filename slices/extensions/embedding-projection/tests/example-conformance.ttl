@@ -25,6 +25,12 @@ ep:ecSourceDigestMismatch a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "A projection whose recorded gmeow:projectionSourceDigest disagrees with its resolved source's gmeow:contentDigest violates gmeow:SourceDigestMatchConstraint, projected to a sh:SPARQLConstraint — validation MUST emit shacl.SPARQLConstraintComponent." .
 
+ep:ecSourceDigestAbsent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-source-digest-absent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A projection whose resolved gmeow:projectionSource carries no gmeow:contentDigest violates gmeow:ProjectionSourceDigestPresentConstraint, projected to a sh:SPARQLConstraint — validation MUST emit shacl.SPARQLConstraintComponent. Closes the CT1 hole gmeow:SourceDigestMatchConstraint cannot reach: a digest-less source leaves its equality guard vacuous. The live SPARQL twin source-digest-absent.rq exercises the same invariant in tests/competency.ttl." .
+
 ep:ecCrossSpaceRejected a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ce-cross-space-rejected.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;

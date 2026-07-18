@@ -1589,6 +1589,38 @@ logic:wmaSpaceMetric a logic:Formula ; logic:relation gmeow:distanceMetric ;
 logic:wmaEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "sm" ] .
 
+# C8 (CT1): a projection's resolved gmeow:projectionSource MUST itself carry a
+# gmeow:contentDigest — the source's byte identity must EXIST. Without it, C1
+# (gmeow:SourceDigestMatchConstraint) has nothing to compare its recorded
+# gmeow:projectionSourceDigest against: C1's guard binds the source's live
+# gmeow:contentDigest, so a digest-less source leaves that guard unsatisfiable and
+# C1 passes VACUOUSLY — the content-addressed exact-source binding becomes
+# escapable. This existential closes that hole (existence consequent): a digest-less
+# source is a HARD FAIL, so C1's equality guard is always satisfiable.
+gmeow:ProjectionSourceDigestPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "Projection source-digest present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:EmbeddingProjection's resolved gmeow:projectionSource MUST carry its own gmeow:contentDigest — the source's byte identity must exist. A source with no gmeow:contentDigest is a HARD FAIL: a projection is content-addressed to its exact source bytes, so pointing it at a digest-less source severs that binding. This guarantees gmeow:SourceDigestMatchConstraint's guard is always satisfiable — without it, a projection over a digest-less source escapes the recorded-vs-live digest check vacuously; the source's byte identity is never left implicit."@x-gmeow-english ;
+    logic:formalizes gmeow:ProjectionSourceDigestPresentShape ;
+    logic:message "A projection's resolved gmeow:projectionSource must carry a gmeow:contentDigest — a digest-less source severs the content-addressed exact-source binding and lets gmeow:SourceDigestMatchConstraint pass vacuously." ;
+    logic:integrity logic:psdpForall .
+logic:psdpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] ;
+    logic:forall logic:psdpImpl .
+logic:psdpImpl a logic:Formula ; logic:antecedent logic:psdpGuard ; logic:consequent logic:psdpExists .
+logic:psdpGuard a logic:Formula ; logic:and logic:psdpType , logic:psdpSource .
+logic:psdpType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmbeddingProjection ] .
+logic:psdpSource a logic:Formula ; logic:relation gmeow:projectionSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] .
+logic:psdpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists logic:psdpDigAtom .
+logic:psdpDigAtom a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
 # =========================================================================== #
 # Ontology declaration                                                        #
 # =========================================================================== #

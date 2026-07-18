@@ -124,6 +124,29 @@ ep:epCqSourceDigestMismatchClean a gmeow:CompetencyQuestion ;
     gmeow:cqExpectRowCount 0 .
 
 # =========================================================================== #
+# CT1 — source-digest present (C8). Violation over a projection whose source     #
+# carries NO gmeow:contentDigest; empty over the scene (ex:bookshelfPack has a    #
+# content digest). Closes C1's vacuous-pass hole: a digest-less source leaves     #
+# gmeow:SourceDigestMatchConstraint's guard unsatisfiable.                        #
+# =========================================================================== #
+ep:epCqSourceDigestAbsent a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/source-digest-absent.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-source-digest-absent.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeProjExact ;
+    gmeow:cqRationale "A projection whose resolved gmeow:projectionSource carries no gmeow:contentDigest is caught: exactly ce:absentProj — the byte identity C1 compares against is absent, so C1 would pass vacuously." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "proj" ; gmeow:cellValueIri ce:absentProj ] ] .
+
+ep:epCqSourceDigestAbsentClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/source-digest-absent.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeProjEmpty ;
+    gmeow:cqRationale "Over the worked scene every projection's source (ex:bookshelfPack) carries a gmeow:contentDigest — zero digest-less sources." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
 # CT2 — distinct vector-space identity. EMPTY over the scene (the full space and #
 # its Matryoshka prefix over one family carry DIFFERENT digests); a companion    #
 # collision fixture makes it non-empty.                                          #
