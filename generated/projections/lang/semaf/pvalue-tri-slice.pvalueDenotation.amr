@@ -1,6 +1,0 @@
-# ::snt (unlabelled form)
-# ::semaf-dialogue-act Inform
-# ::denotation https://blackcatinformatics.ca/gmeow/examples/math/statistics/pvalueDenotation
-(a / assert-01
-      :ARG1 (f / logic-formula
-                  :value "https://blackcatinformatics.ca/gmeow/examples/math/statistics/pvalueFormula"))
