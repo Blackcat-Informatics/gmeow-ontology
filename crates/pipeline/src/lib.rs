@@ -69,8 +69,8 @@ pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
 pub use fanout::{FanoutReport, fanout};
 pub use generator_registry::{
-    GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, committed_generated_paths,
-    generator_by_name, generator_metadata, generator_names, generator_order,
+    GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, generator_by_name,
+    generator_metadata, generator_names, generator_order, retained_product_paths,
 };
 pub use graph::StageGraph;
 pub use loader::{PipelineSpec, StageSpec, bind};
