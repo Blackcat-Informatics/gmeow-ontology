@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Degenerate vector: a derived 4-fractional-digit confidence — outside the exactly-two-digit
+# inline rule — riding by reference as a q: r_<hash> literal in the reference table.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:gate1 gmeow:hasState gmeow:doorGate1 ;
+    gmeow:confidence "0.9025"^^xsd:decimal .

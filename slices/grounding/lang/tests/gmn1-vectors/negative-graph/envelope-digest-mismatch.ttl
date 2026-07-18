@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Graph-tier negative (native GMN gate, lang:GmnCodebookDigestMismatch): a gmeow:GmnEnvelope
+# whose declared gmeow:gmnCodebookDigest does NOT equal the codebook's recomputed Merkle
+# root. This is a graph/native negative — NOT a malformed .gmn codec-byte negative — and is
+# discharged by the live native codebook-digest gate, never by the byte codec.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:archiveTeam a gmeow:Agent .
+ex:gmnWriterRun a gmeow:Activity .
+
+ex:corrEnvelope a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+# The declared codebook digest is a content address the actual codebook does not have.
+ex:envelopeWrongDigest a gmeow:GmnEnvelope ;
+    gmeow:gmnSchemaVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
+    gmeow:gmnCodebookDigest "blake3:0000000000000000000000000000000000000000000000000000000000000000" ;
+    gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
+    gmeow:accordingTo ex:archiveTeam ;
+    gmeow:wasGeneratedBy ex:gmnWriterRun ;
+    gmeow:contentDigest "blake3:5f2acdc6e1a1e9f4f6b0e0a7c9d3b8a1c4e7f0a3b6d9c2e5f8a1b4d7c0e3f6a9" ;
+    gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .
