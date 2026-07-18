@@ -724,6 +724,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/rewardPole> ?v0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CrossSpaceComparisonConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/CrossSpaceComparisonShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SimilarityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A similarity observation across two DIFFERENT vector spaces (distinct contract digests) requires a justifying logic:Correspondence between the two gmeow:VectorSpaceContracts." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/comparesLeft> ?pL . $this <https://blackcatinformatics.ca/gmeow/comparesRight> ?pR . ?pL <https://blackcatinformatics.ca/gmeow/hasVectorSpaceContract> ?cL . ?pR <https://blackcatinformatics.ca/gmeow/hasVectorSpaceContract> ?cR . ?cL <https://blackcatinformatics.ca/gmeow/contentDigest> ?dL . ?cR <https://blackcatinformatics.ca/gmeow/contentDigest> ?dR . FILTER ( ?dL != ?dR ) FILTER NOT EXISTS { ?corr a <https://blackcatinformatics.ca/logic/Correspondence> . ?corr <https://blackcatinformatics.ca/logic/sourceEndpoint> ?cL . ?corr <https://blackcatinformatics.ca/logic/targetEndpoint> ?cR . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/DeceptionCueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DeceptionCueShape> ;
@@ -1185,6 +1196,17 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission; a permission carrying an obligation or prohibition modality is ill-formed." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?v . FILTER ( ?v NOT IN (<https://blackcatinformatics.ca/gmeow/deonticPermission>) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/GtsHeadIdPropagationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/GtsHeadIdPropagationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A certified source's gmeow:gtsHeadId must be propagated into the projection as an equal gmeow:projectionSourceGtsHeadId." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . ?src <https://blackcatinformatics.ca/gmeow/gtsHeadId> ?h . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/projectionSourceGtsHeadId> ?h2 . FILTER ( ?h = ?h2 ) } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/HazardBearerConstraintProceduralConstraintShape>
@@ -1895,6 +1917,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <http://purl.org/dc/terms/creator> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/wasAttributedTo> ?v1 . } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ProfileModelContractAgreementConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProfileModelContractAgreementShape> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's container and manifest profile surfaces must record the same model-contract digest (gmeow:recordsModelContractDigest) — disagreement is a hard fail." ;
+        sh:select """SELECT $this WHERE { ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceContainer> . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceManifest> . ?sc <https://blackcatinformatics.ca/gmeow/recordsModelContractDigest> ?x . ?sm <https://blackcatinformatics.ca/gmeow/recordsModelContractDigest> ?y . FILTER ( ?x != ?y ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape> ;
@@ -1904,6 +1937,28 @@
         sh:severity sh:Violation ;
         sh:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
         sh:select """SELECT $this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . $this a ?openClass . FILTER NOT EXISTS { ?profile <https://blackcatinformatics.ca/gmeow/profileDescriptor> ?descriptor . ?subj ?descriptor $this . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProfileSourceDigestAgreementConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProfileSourceDigestAgreementShape> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's container and manifest profile surfaces must record the same source-pack digest (gmeow:recordsSourceDigest) — disagreement is a hard fail." ;
+        sh:select """SELECT $this WHERE { ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceContainer> . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceManifest> . ?sc <https://blackcatinformatics.ca/gmeow/recordsSourceDigest> ?x . ?sm <https://blackcatinformatics.ca/gmeow/recordsSourceDigest> ?y . FILTER ( ?x != ?y ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProfileTargetTableAgreementConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProfileTargetTableAgreementShape> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's container and manifest profile surfaces must record the same target-table digest (gmeow:recordsTargetTableDigest) — disagreement is a hard fail." ;
+        sh:select """SELECT $this WHERE { ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sc <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceContainer> . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceOf> $this . ?sm <https://blackcatinformatics.ca/gmeow/profileSurfaceKind> <https://blackcatinformatics.ca/gmeow/surfaceManifest> . ?sc <https://blackcatinformatics.ca/gmeow/recordsTargetTableDigest> ?x . ?sm <https://blackcatinformatics.ca/gmeow/recordsTargetTableDigest> ?y . FILTER ( ?x != ?y ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ProhibitionModalityConstraintProceduralConstraintShape>
@@ -1938,6 +1993,17 @@
         sh:severity sh:Violation ;
         sh:message "ProjectionLoss must not be subclassed (Principle 9)." ;
         sh:select """SELECT $this WHERE { ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> $this . FILTER ( ?sub != $this ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ProjectionSourceDigestPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProjectionSourceDigestPresentShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's resolved gmeow:projectionSource must carry a gmeow:contentDigest — a digest-less source severs the content-addressed exact-source binding and lets gmeow:SourceDigestMatchConstraint pass vacuously." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . FILTER NOT EXISTS { ?src <https://blackcatinformatics.ca/gmeow/contentDigest> ?d . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ProximityObservedFeaturePresentConstraintProceduralConstraintShape>
@@ -2168,6 +2234,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/scaleMin> ?l . $this <https://blackcatinformatics.ca/gmeow/scaleMax> ?r . FILTER ( ?l >= ?r ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/SecurityMonotonicityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SecurityMonotonicityShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection whose sensitivity is below its source's requires an explicit REVIEWABLE gmeow:DeclassificationAct declassifying it — one carrying a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith); a bare, unattributed act never warrants the drop (P15)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ps . ?ps <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?pr . $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . ?src <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ss . ?ss <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?sr . FILTER ( ?sr > ?pr ) FILTER NOT EXISTS { ?act a <https://blackcatinformatics.ca/gmeow/DeclassificationAct> . ?act <https://blackcatinformatics.ca/gmeow/declassifies> $this . ?act <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?inv . ?act <https://blackcatinformatics.ca/gmeow/wasAssociatedWith> ?agent . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/SegmentTransformationDistinctConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/SegmentTransformation> ;
@@ -2232,6 +2309,17 @@
         sh:severity sh:Warning ;
         sh:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/skillProficiencyLevel> ?level . ?level <https://blackcatinformatics.ca/gmeow/levelScale> ?expected . $this <https://blackcatinformatics.ca/gmeow/skillProficiencyScale> ?scale . FILTER ( ?scale != ?expected ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/SourceDigestMatchConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SourceDigestMatchShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's recorded source digest (gmeow:projectionSourceDigest) must equal the resolved source's gmeow:contentDigest — the projection was built over different bytes than its source now carries." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/projectionSourceDigest> ?d1 . $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . ?src <https://blackcatinformatics.ca/gmeow/contentDigest> ?d2 . FILTER ( ?d1 != ?d2 ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/SpanEndAfterStartConstraintProceduralConstraintShape>
@@ -2402,6 +2490,28 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/supportSource> ?a . $this <https://blackcatinformatics.ca/gmeow/supportTarget> ?b . FILTER ( ?a = ?b ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/TargetExactIdentityConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/TargetExactIdentityShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/VectorTarget> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A vector target must carry an exact identity — a gmeow:targetsResource or a gmeow:contentDigest — not just a non-identifying gmeow:targetOrdinal." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/targetsResource> ?r . } UNION { $this <https://blackcatinformatics.ca/gmeow/contentDigest> ?d . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/TargetSetOrderedMembershipConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/TargetSetOrderedMembershipShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TargetSet> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Every gmeow:targetSetMember of a gmeow:TargetSet must carry a gmeow:targetOrdinal — the ordered membership (the matrix row order) is the members sorted ascending by ordinal, so a member without one is unorderable." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/targetSetMember> ?vt . FILTER NOT EXISTS { ?vt <https://blackcatinformatics.ca/gmeow/targetOrdinal> ?o . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Teaching> ;
@@ -2478,6 +2588,17 @@
         sh:severity sh:Violation ;
         sh:message "A holder binds at most one gmeow:usesScale, a ScoreScale — two scales make anchor containment and score interpretation ambiguous (closed-world functional)." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/usesScale> ?a . $this <https://blackcatinformatics.ca/gmeow/usesScale> ?b . FILTER ( ?a != ?b ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/WithMetricAgreementConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/WithMetricAgreementShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/overVectorSpace> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A similarity observation's gmeow:withMetric must equal its gmeow:overVectorSpace's gmeow:distanceMetric — a disagreeing metric is a hard fail." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/overVectorSpace> ?vsc . $this <https://blackcatinformatics.ca/gmeow/withMetric> ?m . ?vsc <https://blackcatinformatics.ca/gmeow/distanceMetric> ?sm . FILTER ( ?m != ?sm ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/WithdrawnDoxasticTenureSuppressionConstraintProceduralConstraintShape>

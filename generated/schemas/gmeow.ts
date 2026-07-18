@@ -1083,6 +1083,8 @@ export type BuildDataFlow = {
   readonly [key: string]: JsonValue;
 };
 
+export type ByteOrderEnum = (string & "gmeow:byteOrderLittleEndian");
+
 export type CadastralReference = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -1966,6 +1968,43 @@ export type DatingMethodEnum = (string & ("gmeow:datingMethodAminoAcidRacemizati
 
 export type DayOfWeekEnum = (string & ("gmeow:dayFriday" | "gmeow:dayMonday" | "gmeow:daySaturday" | "gmeow:daySunday" | "gmeow:dayThursday" | "gmeow:dayTuesday" | "gmeow:dayWednesday"));
 
+export type DeclassificationAct = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:declassifies": ((EmbeddingProjection | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:wasAssociatedWith": ((Agent | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(Agent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(Agent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:wasGeneratedBy": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly [key: string]: JsonValue;
+};
+
 export type DegreeOfFreedom = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -2012,6 +2051,43 @@ export type DerivedAffectIntensityObservation = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type DerivedVectorIndex = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:approximationRecall": ((MathQuantity | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(MathQuantity | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(MathQuantity | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:indexOfProjection": ((EmbeddingProjection | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:indexOverSpace": ((VectorSpaceContract | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2340,6 +2416,78 @@ export type Embedding = {
   readonly [key: string]: JsonValue;
 };
 
+export type EmbeddingFamily = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:contentDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:embeddingModel": ((SoftwareAgent | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(SoftwareAgent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(SoftwareAgent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly [key: string]: JsonValue;
+};
+
+export type EmbeddingProjection = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:hasSensitivity": (SensitivityLevelEnum | readonly (SensitivityLevelEnum)[]);
+  readonly "gmeow:hasVectorSpaceContract": ((VectorSpaceContract | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(VectorSpaceContract | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:projectionSource": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly "gmeow:projectionSourceDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:reproducibilityLevel": (ReproducibilityLevelEnum | readonly (ReproducibilityLevelEnum)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type EmbodimentAssignment = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -2551,6 +2699,26 @@ export type Expression = {
 
 export type ExpressionLanguageEnum = (string & ("gmeow:exprLangCedar" | "gmeow:exprLangCel" | "gmeow:exprLangProse" | "gmeow:exprLangRego" | "gmeow:exprLangShacl" | "gmeow:exprLangSparqlAsk" | "gmeow:exprLangXacml"));
 
+export type ExternalBinding = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:contentDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly [key: string]: JsonValue;
+};
+
 export type ExtractedRelationship = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -2712,7 +2880,7 @@ export type GTSDocument = {
   readonly [key: string]: JsonValue;
 };
 
-export type GTSProfileEnum = (string & ("gmeow:gtsProfileAiPackage" | "gmeow:gtsProfileBundle" | "gmeow:gtsProfileDist" | "gmeow:gtsProfileEvidence" | "gmeow:gtsProfileGeneric" | "gmeow:gtsProfileImage" | "gmeow:gtsProfileOpaque"));
+export type GTSProfileEnum = (string & ("gmeow:gtsProfileAiPackage" | "gmeow:gtsProfileBundle" | "gmeow:gtsProfileDist" | "gmeow:gtsProfileEvidence" | "gmeow:gtsProfileGeneric" | "gmeow:gtsProfileImage" | "gmeow:gtsProfileOpaque" | "gmeow:gtsProfilePurrEmb"));
 
 export type GTSSegment = {
   readonly "@annotation"?: Annotation;
@@ -3751,6 +3919,8 @@ export type Mark = {
             } | string))[]);
   readonly [key: string]: JsonValue;
 };
+
+export type MatryoshkaPolicyEnum = (string & ("gmeow:matryoshkaFixed" | "gmeow:matryoshkaPrefix"));
 
 export type MaximViolationTypeEnum = (string & ("gmeow:maximViolationManner" | "gmeow:maximViolationQuality" | "gmeow:maximViolationQuantity" | "gmeow:maximViolationRelation"));
 
@@ -5152,6 +5322,65 @@ export type Profile = {
   readonly [key: string]: JsonValue;
 };
 
+export type ProfileSurface = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:profileSurfaceKind": (ProfileSurfaceKindEnum | readonly (ProfileSurfaceKindEnum)[]);
+  readonly "gmeow:profileSurfaceOf": ((EmbeddingProjection | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(EmbeddingProjection | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:recordsModelContractDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:recordsSourceDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:recordsTargetTableDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly [key: string]: JsonValue;
+};
+
+export type ProfileSurfaceKindEnum = (string & ("gmeow:surfaceContainer" | "gmeow:surfaceManifest"));
+
 export type Prohibition = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -5337,6 +5566,8 @@ export type Repository = {
 };
 
 export type RepositoryTypeEnum = (string & ("gmeow:repoTypeFossil" | "gmeow:repoTypeGit" | "gmeow:repoTypeHg" | "gmeow:repoTypeJJ" | "gmeow:repoTypePijul" | "gmeow:repoTypeSVN"));
+
+export type ReproducibilityLevelEnum = (string & ("gmeow:regenerableOnly" | "gmeow:reproducibleExact" | "gmeow:reproducibleWithinTolerance"));
 
 export type RetrievalEvent = {
   readonly "@annotation"?: Annotation;
@@ -5689,6 +5920,13 @@ export type SexualOrientationValueEnum = (string & ("gmeow:orientAsexual" | "gme
 
 export type SignatureSchemeEnum = (string & ("gmeow:signatureSchemeBls12381" | "gmeow:signatureSchemeECDSAP256" | "gmeow:signatureSchemeECDSASecp256k1" | "gmeow:signatureSchemeEd25519" | "gmeow:signatureSchemeRSASHA256"));
 
+export type SimilarityObservation = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type SiteTypeEnum = (string & ("gmeow:siteTypeBranch" | "gmeow:siteTypeHeadquarters" | "gmeow:siteTypeRegistered"));
 
 export type SkillProficiency = {
@@ -5928,6 +6166,26 @@ export type Tagging = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type TargetSet = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:contentDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -6360,6 +6618,69 @@ export type UsageAttestation = {
           })[]);
   readonly [key: string]: JsonValue;
 };
+
+export type VectorSpaceContract = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "gmeow:contentDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:distanceMetric": (DistanceMetricEnum | readonly (DistanceMetricEnum)[]);
+  readonly "gmeow:effectiveOfFamily": ((EmbeddingFamily | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(EmbeddingFamily | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(EmbeddingFamily | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:embeddingDimensions": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:normalizationKind": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
+  readonly [key: string]: JsonValue;
+};
+
+export type VectorTarget = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type VectorTargetKindEnum = (string & ("gmeow:vectorTargetAnnotation" | "gmeow:vectorTargetChunk" | "gmeow:vectorTargetCorpus" | "gmeow:vectorTargetDataset" | "gmeow:vectorTargetDocument" | "gmeow:vectorTargetGraph" | "gmeow:vectorTargetReifier" | "gmeow:vectorTargetStatement" | "gmeow:vectorTargetSummary" | "gmeow:vectorTargetTerm"));
 
 export type VerdictLatticeRelationEnum = (string & ("gmeow:VerdictEquivalent" | "gmeow:VerdictIncomparable" | "gmeow:VerdictWeaker"));
 

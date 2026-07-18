@@ -8553,6 +8553,155 @@
         ],
         "type": "object"
       },
+      "DeclassificationAct": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:declassifies": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmbeddingProjection"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EmbeddingProjection"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:wasAssociatedWith": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:wasGeneratedBy": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:Activity has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Activity has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:declassifies",
+          "gmeow:wasAssociatedWith",
+          "gmeow:wasGeneratedBy"
+        ],
+        "type": "object"
+      },
       "DegreeOfFreedom": {
         "properties": {
           "@annotation": {
@@ -8738,6 +8887,167 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "DerivedVectorIndex": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:approximationRecall": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:Quantity"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:Quantity"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:indexOfProjection": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmbeddingProjection"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EmbeddingProjection"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:indexOverSpace": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/VectorSpaceContract"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/VectorSpaceContract"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:approximationRecall",
+          "gmeow:indexOfProjection",
+          "gmeow:indexOverSpace"
+        ],
         "type": "object"
       },
       "Desire": {
@@ -10289,6 +10599,363 @@
         ],
         "type": "object"
       },
+      "EmbeddingFamily": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:contentDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:embeddingModel": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SoftwareAgent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:contentDigest",
+          "gmeow:embeddingModel"
+        ],
+        "type": "object"
+      },
+      "EmbeddingProjection": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasSensitivity": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:SensitivityLevel has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:SensitivityLevel has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:hasVectorSpaceContract": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/VectorSpaceContract"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/VectorSpaceContract"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:projectionSource": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:projectionSourceDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:reproducibilityLevel": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:ReproducibilityLevel has no NodeShape; node reference only",
+                "enum": [
+                  {
+                    "@id": "gmeow:regenerableOnly"
+                  },
+                  {
+                    "@id": "gmeow:reproducibleExact"
+                  },
+                  {
+                    "@id": "gmeow:reproducibleWithinTolerance"
+                  }
+                ],
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ReproducibilityLevel has no NodeShape; node reference only",
+                  "enum": [
+                    {
+                      "@id": "gmeow:regenerableOnly"
+                    },
+                    {
+                      "@id": "gmeow:reproducibleExact"
+                    },
+                    {
+                      "@id": "gmeow:reproducibleWithinTolerance"
+                    }
+                  ],
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:hasSensitivity",
+          "gmeow:hasVectorSpaceContract",
+          "gmeow:projectionSource",
+          "gmeow:projectionSourceDigest",
+          "gmeow:reproducibilityLevel"
+        ],
+        "type": "object"
+      },
       "EmbodimentAssignment": {
         "properties": {
           "@annotation": {
@@ -11202,6 +11869,79 @@
         },
         "required": [
           "gmeow:realizes"
+        ],
+        "type": "object"
+      },
+      "ExternalBinding": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:contentDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:contentDigest"
         ],
         "type": "object"
       },
@@ -22688,6 +23428,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:DeclassificationAct"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:DeclassificationAct"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/DeclassificationAct"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:DegreeOfFreedom"
                     },
                     {
@@ -22755,6 +23520,31 @@
             },
             "then": {
               "$ref": "#/$defs/DerivedAffectIntensityObservation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:DerivedVectorIndex"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:DerivedVectorIndex"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/DerivedVectorIndex"
             }
           },
           {
@@ -23063,6 +23853,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:EmbeddingFamily"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:EmbeddingFamily"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/EmbeddingFamily"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:EmbeddingProjection"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:EmbeddingProjection"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/EmbeddingProjection"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:EmbodimentAssignment"
                     },
                     {
@@ -23355,6 +24195,31 @@
             },
             "then": {
               "$ref": "#/$defs/Expression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:ExternalBinding"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ExternalBinding"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ExternalBinding"
             }
           },
           {
@@ -26688,6 +27553,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:ProfileSurface"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:ProfileSurface"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/ProfileSurface"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:Prohibition"
                     },
                     {
@@ -27488,6 +28378,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:SimilarityObservation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:SimilarityObservation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/SimilarityObservation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:SkillProficiency"
                     },
                     {
@@ -27880,6 +28795,31 @@
             },
             "then": {
               "$ref": "#/$defs/Tagging"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:TargetSet"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:TargetSet"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/TargetSet"
             }
           },
           {
@@ -28430,6 +29370,56 @@
             },
             "then": {
               "$ref": "#/$defs/UsageAttestation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:VectorSpaceContract"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:VectorSpaceContract"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/VectorSpaceContract"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:VectorTarget"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:VectorTarget"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/VectorTarget"
             }
           },
           {
@@ -39081,6 +40071,251 @@
         ],
         "type": "object"
       },
+      "ProfileSurface": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:profileSurfaceKind": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:ProfileSurfaceKind has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ProfileSurfaceKind has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:profileSurfaceOf": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmbeddingProjection"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EmbeddingProjection"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:recordsModelContractDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:recordsSourceDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:recordsTargetTableDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:profileSurfaceKind",
+          "gmeow:profileSurfaceOf",
+          "gmeow:recordsModelContractDigest",
+          "gmeow:recordsSourceDigest",
+          "gmeow:recordsTargetTableDigest"
+        ],
+        "type": "object"
+      },
       "Prohibition": {
         "allOf": [
           {
@@ -42273,6 +43508,31 @@
         },
         "type": "object"
       },
+      "SimilarityObservation": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "SkillProficiency": {
         "properties": {
           "@annotation": {
@@ -43713,6 +44973,79 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "TargetSet": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:contentDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:contentDigest"
+        ],
         "type": "object"
       },
       "Task": {
@@ -45482,6 +46815,262 @@
                     "@id"
                   ],
                   "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "VectorSpaceContract": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:contentDigest": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:distanceMetric": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:DistanceMetric has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:DistanceMetric has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:effectiveOfFamily": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmbeddingFamily"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EmbeddingFamily"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:embeddingDimensions": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:normalizationKind": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:NormalizationKind has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:NormalizationKind has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:contentDigest",
+          "gmeow:distanceMetric",
+          "gmeow:effectiveOfFamily",
+          "gmeow:embeddingDimensions",
+          "gmeow:normalizationKind"
+        ],
+        "type": "object"
+      },
+      "VectorTarget": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
                 },
                 "type": "array"
               }

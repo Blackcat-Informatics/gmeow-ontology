@@ -1,0 +1,19 @@
+# R3 — rebuild as append-only supersession (POSITIVE capability). A RETIRED
+# gmeow:DerivedVectorIndex superseded by a successor through the full transaction
+# quartet (logic:supersededBy / logic:validUntilState / logic:retiredByTransaction /
+# logic:activeInState), with a prior gmeow:RetrievalEvent STILL bound to the retired
+# index via gmeow:againstIndex — suppression, not erasure; the audit trail stays intact.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?retired ?successor ?event WHERE {
+  ?retired a gmeow:DerivedVectorIndex ;
+           logic:supersededBy ?successor ;
+           logic:validUntilState ?vu ;
+           logic:retiredByTransaction ?tx ;
+           logic:activeInState ?ai .
+  ?successor a gmeow:DerivedVectorIndex .
+  ?event a gmeow:RetrievalEvent ;
+         gmeow:againstIndex ?retired .
+}
+ORDER BY ?retired ?successor ?event
