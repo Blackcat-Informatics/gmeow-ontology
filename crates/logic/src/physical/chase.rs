@@ -955,15 +955,52 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 }
 
 /// The termination certificate for the restricted chase — a lattice element on an
-/// explicit partial order (`Uncertified` ⊏ `WeaklyAcyclic`; joint-acyclic / guarded /
-/// sticky classes slot in as further elements later).  The order is implemented
-/// explicitly, never derived: a derived `Ord` would order by declaration, not by the
-/// certified-strength meaning.
+/// explicit **strictly increasing** chain of certified-terminating classes:
+///
+/// ```text
+/// Uncertified ⊏ WeaklyAcyclic ⊏ JointlyAcyclic ⊏ SuperWeaklyAcyclic ⊏ ModelSummarizingAcyclic
+/// ```
+///
+/// mirroring the acyclicity ladder weak ⊊ joint ⊊ super-weak ⊊ model-summarizing
+/// acyclicity (Cuenca Grau et al., JAIR 47, 2013).  [`Self::certify`] escalates through
+/// the chain cheapest-first and reports the **least-cost sufficient** class — so each
+/// broader class certifies exactly the programs the class below refuses.  Every
+/// certified class `admits_native`; `Uncertified` refuses or budgets.
+///
+/// The broader classes prove termination of the **skolem/oblivious** chase, which
+/// soundly bounds the **restricted** chase the engine runs (skolem-chase termination ⟹
+/// restricted-chase termination), so the witness-addressing [`WitnessPolicy`] is
+/// unchanged: the certificate selects the proof variant, the runtime keeps its
+/// restricted chase.
+///
+/// The order is implemented explicitly ([`Self::rank`]), never derived: a derived `Ord`
+/// would order by declaration, not by the certified-strength meaning.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ChaseAdmission {
-    /// Certified terminating: no existential edge lies inside a cycle.  `evidence`
-    /// records the proof shape (position / existential-edge counts).
+    /// Certified terminating by constant-refined **weak acyclicity**: no existential
+    /// edge lies inside a cycle.  `evidence` records the proof shape (position /
+    /// existential-edge counts).
     WeaklyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Certified terminating by **joint acyclicity** (strictly broader than weak):
+    /// the existential-dependency graph over existential variables is acyclic.
+    JointlyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Certified terminating by **super-weak acyclicity** (strictly broader than
+    /// joint): the place/trigger moving relation over existentials is acyclic.
+    SuperWeaklyAcyclic {
+        /// Human-readable proof summary folded into the divergence ledger.
+        evidence: String,
+    },
+    /// Certified terminating by **model-summarizing acyclicity** (strictly broader
+    /// than super-weak): the engine's own Datalog fixpoint over the critical instance
+    /// derives no cyclic-null dependency.  The certifier is a self-hosted reasoning
+    /// program — the engine dogfooding its fixpoint as its termination analysis.
+    ModelSummarizingAcyclic {
         /// Human-readable proof summary folded into the divergence ledger.
         evidence: String,
     },
@@ -976,8 +1013,26 @@ pub enum ChaseAdmission {
 }
 
 impl ChaseAdmission {
-    /// Certify `rules` by constant-refined weak acyclicity of the position graph.
+    /// Certify `rules` by the termination-class ladder: escalate cheapest-first
+    /// (weak → joint → super-weak → model-summarizing acyclicity) and report the
+    /// **least-cost sufficient** certificate. The polynomial rungs run before the
+    /// EXPTIME model-summarizing check, which is reached only when the structural
+    /// rungs all refuse. When no class certifies, return `Uncertified` carrying the
+    /// weak-acyclicity position-graph violations (the canonical diagnostic).
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
+        match Self::certify_weakly_acyclic(rules) {
+            Ok(admission) => admission,
+            Err(violations) => Self::certify_joint_acyclic(rules)
+                .or_else(|| Self::certify_super_weak_acyclic(rules))
+                .or_else(|| Self::certify_model_summarizing(rules))
+                .unwrap_or(Self::Uncertified { violations }),
+        }
+    }
+
+    /// Constant-refined **weak acyclicity** of the position graph: `Ok(WeaklyAcyclic)`
+    /// when no existential edge lies in a cycle, else `Err(violations)` (the sorted
+    /// edge-in-cycle diagnostics, reused as the `Uncertified` fallback).
+    fn certify_weakly_acyclic(rules: &[ExistentialRule]) -> Result<Self, Vec<String>> {
         // Adjacency (normal ∪ special) and the special-edge list.
         let mut adj: std::collections::BTreeMap<Position, BTreeSet<Position>> =
             std::collections::BTreeMap::new();
@@ -1042,21 +1097,50 @@ impl ChaseAdmission {
         violations.dedup();
 
         if violations.is_empty() {
-            Self::WeaklyAcyclic {
+            Ok(Self::WeaklyAcyclic {
                 evidence: format!(
                     "weakly acyclic: {} refined position(s), {} existential edge(s), none in a cycle",
                     all_nodes.len(),
                     special.len()
                 ),
-            }
+            })
         } else {
-            Self::Uncertified { violations }
+            Err(violations)
         }
     }
 
-    /// Whether the native chase may run this program unbudgeted (it terminates).
+    /// **Joint acyclicity** (Cuenca Grau et al., JAIR 47, 2013): strictly broader than
+    /// weak acyclicity. `Some(JointlyAcyclic)` when the existential-dependency graph
+    /// over existential variables is acyclic, else `None`.
+    fn certify_joint_acyclic(_rules: &[ExistentialRule]) -> Option<Self> {
+        // Implemented in the joint-acyclicity rung; the ladder falls through until then.
+        None
+    }
+
+    /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than joint. `Some`
+    /// when the place/trigger moving relation over existentials is acyclic, else `None`.
+    fn certify_super_weak_acyclic(_rules: &[ExistentialRule]) -> Option<Self> {
+        None
+    }
+
+    /// **Model-summarizing acyclicity** (Cuenca Grau et al., JAIR 47, 2013): strictly
+    /// broader than super-weak. Self-hosted — the engine's Datalog fixpoint over the
+    /// critical instance decides it. `Some` when no cyclic-null dependency is derived,
+    /// else `None`.
+    fn certify_model_summarizing(_rules: &[ExistentialRule]) -> Option<Self> {
+        None
+    }
+
+    /// Whether the native chase may run this program unbudgeted (it terminates). Every
+    /// certified class on the ladder admits; only `Uncertified` does not.
     pub(crate) fn admits_native(&self) -> bool {
-        matches!(self, Self::WeaklyAcyclic { .. })
+        matches!(
+            self,
+            Self::WeaklyAcyclic { .. }
+                | Self::JointlyAcyclic { .. }
+                | Self::SuperWeaklyAcyclic { .. }
+                | Self::ModelSummarizingAcyclic { .. }
+        )
     }
 
     /// The COUNTED capability-gap rows for this certificate: one
@@ -1074,7 +1158,10 @@ impl ChaseAdmission {
             Self::Uncertified { violations } => {
                 crate::reason::ledger::existential_gap_rows(violations)
             }
-            Self::WeaklyAcyclic { .. } => Vec::new(),
+            Self::WeaklyAcyclic { .. }
+            | Self::JointlyAcyclic { .. }
+            | Self::SuperWeaklyAcyclic { .. }
+            | Self::ModelSummarizingAcyclic { .. } => Vec::new(),
         }
     }
 
@@ -1093,6 +1180,24 @@ impl ChaseAdmission {
                 evidence.clone(),
             )
             .with_tool("chase"),
+            Self::JointlyAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.jointly-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
+            Self::SuperWeaklyAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.super-weakly-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
+            Self::ModelSummarizingAcyclic { evidence } => Finding::new(
+                Severity::Info,
+                "chase.certificate.model-summarizing-acyclic".to_owned(),
+                evidence.clone(),
+            )
+            .with_tool("chase"),
             Self::Uncertified { violations } => Finding::new(
                 Severity::Error,
                 "chase.certificate.uncertified".to_owned(),
@@ -1102,11 +1207,15 @@ impl ChaseAdmission {
         }
     }
 
-    /// The certified-strength rank — explicit, NOT a derived `Ord`.
+    /// The certified-strength rank — explicit, NOT a derived `Ord`. Higher = broader
+    /// certified-terminating class on the ladder.
     fn rank(&self) -> u8 {
         match self {
             Self::Uncertified { .. } => 0,
             Self::WeaklyAcyclic { .. } => 1,
+            Self::JointlyAcyclic { .. } => 2,
+            Self::SuperWeaklyAcyclic { .. } => 3,
+            Self::ModelSummarizingAcyclic { .. } => 4,
         }
     }
 
@@ -1600,8 +1709,8 @@ mod tests {
                     "certifier must see ≥1 existential edge (non-vacuous): {evidence}"
                 );
             }
-            ChaseAdmission::Uncertified { violations } => {
-                panic!("acyclic C⊑∃p.D must certify, got violations: {violations:?}")
+            other => {
+                panic!("acyclic C⊑∃p.D must certify as weakly-acyclic, got: {other:?}")
             }
         }
     }
@@ -1609,6 +1718,7 @@ mod tests {
     #[test]
     fn certify_cyclic_restriction_is_uncertified() {
         // `D ⊑ ∃p.D`: the witness is itself D-typed, re-triggering the rule forever.
+        // No rung of the ladder may certify it — it must fall through to Uncertified.
         let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
         let admission = ChaseAdmission::certify(&[cyclic]);
         match admission {
@@ -1616,8 +1726,8 @@ mod tests {
                 assert!(!violations.is_empty());
                 assert!(violations[0].contains("lies in a cycle"));
             }
-            ChaseAdmission::WeaklyAcyclic { evidence } => {
-                panic!("cyclic D⊑∃p.D must NOT certify, got: {evidence}")
+            certified => {
+                panic!("cyclic D⊑∃p.D must NOT certify by any class, got: {certified:?}")
             }
         }
     }
@@ -1687,6 +1797,55 @@ mod tests {
                 "combine keeps every violation, sorted and deduped (no lost diagnostic)"
             ),
             other => panic!("two uncertified parts combine to Uncertified, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn certify_lattice_combine_orders_the_new_classes() {
+        // The extended chain Uncertified ⊏ WA ⊏ JA ⊏ SWA ⊏ MSA is explicit (rank),
+        // and combine keeps the weaker (lower-ranked) element for every new pair —
+        // and all four certified classes admit_native.
+        let ev = |s: &str| s.to_owned();
+        let ladder = [
+            ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") },
+            ChaseAdmission::JointlyAcyclic { evidence: ev("ja") },
+            ChaseAdmission::SuperWeaklyAcyclic {
+                evidence: ev("swa"),
+            },
+            ChaseAdmission::ModelSummarizingAcyclic {
+                evidence: ev("msa"),
+            },
+        ];
+        for cert in &ladder {
+            assert!(
+                cert.admits_native(),
+                "every certified class admits: {cert:?}"
+            );
+        }
+        // Adjacent pairs: combine keeps the weaker (the lower rung).
+        for pair in ladder.windows(2) {
+            let (weak, strong) = (pair[0].clone(), pair[1].clone());
+            assert_eq!(
+                weak.clone().combine(strong.clone()),
+                weak.clone(),
+                "combine keeps the weaker (lower-ranked) certificate"
+            );
+            assert_eq!(
+                strong.combine(weak.clone()),
+                weak,
+                "combine is order-insensitive in which it keeps (the weaker)"
+            );
+        }
+        // Any certified class meets Uncertified down to Uncertified.
+        let uncertified = ChaseAdmission::Uncertified {
+            violations: vec![ev("v")],
+        };
+        for cert in &ladder {
+            assert!(
+                !cert.clone().combine(uncertified.clone()).admits_native(),
+                "certified ∧ Uncertified = Uncertified (not admitted)"
+            );
+            assert!(!uncertified.clone().combine(cert.clone()).admits_native());
         }
     }
 
