@@ -467,6 +467,55 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
                 parents.entry(q.o).or_default().insert(q.s);
             }
         }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut node = Some(head);
+            let mut guard = 0usize;
+            while let Some(n) = node {
+                if Some(n) == rdf_nil || guard > 100_000 {
+                    break;
+                }
+                guard += 1;
+                if let Some(q) = ds
+                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
+                    .next()
+                {
+                    out.push(q.o);
+                }
+                node = ds
+                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
+                    .next()
+                    .map(|q| q.o);
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        construct_subjects.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
         if construct_subjects.is_empty() {
             continue;
         }

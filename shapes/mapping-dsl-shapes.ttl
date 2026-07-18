@@ -22,6 +22,9 @@
 gmeow:TermEquivalenceShape
     a sh:NodeShape ;
     rdfs:label "TermEquivalence shape"@en ;
+    logic:formalizes gmeow:TermEquivalenceSubjectRequiredConstraint, gmeow:TermEquivalencePredicateRequiredConstraint,
+        gmeow:TermEquivalenceObjectRequiredConstraint, gmeow:TermEquivalenceSssomFileRequiredConstraint,
+        gmeow:TermEquivalenceConfidenceRangeConstraint ;
     sh:targetClass gmeow:TermEquivalence ;
     sh:property [
         sh:path gmeow:alignSubject ;
@@ -100,6 +103,18 @@ gmeow:TermEquivalenceShape
 logic:GroundingCorrespondenceShape
     a sh:NodeShape ;
     rdfs:label "GroundingCorrespondence authoring shape"@en ;
+    # The six per-property ∃-requirements below are migrated to logic:
+    # (slices/grounding/logic/module.ttl, gmeow:GroundingCorrespondence*RequiredConstraint).
+    # The compound sh:xone frontend-selection, the BridgeView/CommitmentShiftingBridge
+    # pairing sh:or, and the two sh:sparql endpoint-agreement / anti-equivalence checks
+    # remain an honest un-migrated expressiveness-boundary residue (see that module.ttl
+    # comment) — NOT backed by a logic:formalizes record.
+    logic:formalizes gmeow:GroundingCorrespondenceJustificationRequiredConstraint,
+        gmeow:GroundingCorrespondenceSourceEndpointRequiredConstraint,
+        gmeow:GroundingCorrespondenceTargetEndpointRequiredConstraint,
+        gmeow:GroundingCorrespondenceMorphismClassRequiredConstraint,
+        gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint,
+        gmeow:GroundingCorrespondencePreservationKindRequiredConstraint ;
     sh:targetClass logic:GroundingCorrespondence ;
     sh:xone (
         [ sh:class gmeow:TermEquivalence ]
@@ -228,6 +243,15 @@ logic:GroundingCorrespondenceShape
 gmeow:DeclinedCorrespondenceShape
     a sh:NodeShape ;
     rdfs:label "DeclinedCorrespondence shape"@en ;
+    logic:formalizes gmeow:DeclinedCorrespondenceTargetRequiredConstraint,
+        gmeow:DeclinedCorrespondenceTargetPatternConstraint,
+        gmeow:DeclinedCorrespondenceIntendedRelationRequiredConstraint,
+        gmeow:DeclinedCorrespondenceRationaleRequiredConstraint,
+        gmeow:DeclinedCorrespondenceNamespaceRequiredConstraint,
+        gmeow:DeclinedCorrespondenceVerdictRequiredConstraint,
+        gmeow:DeclinedCorrespondenceRevisitRequiredConstraint,
+        gmeow:DeclinedCorrespondenceContentCarriedByRequiredConstraint,
+        gmeow:DeclinedCorrespondencePreservationUnsupportedConstraint ;
     sh:targetClass gmeow:DeclinedCorrespondence ;
     sh:property [
         sh:path gmeow:declinedTarget ;
@@ -299,6 +323,7 @@ gmeow:DeclinedCorrespondenceShape
 gmeow:ProjectionMappingShape
     a sh:NodeShape ;
     rdfs:label "ProjectionMapping shape"@en ;
+    logic:formalizes gmeow:ProjectionMappingPatternRequiredConstraint, gmeow:ProjectionMappingBindingRequiredConstraint ;
     sh:targetClass gmeow:ProjectionMapping ;
     sh:property [
         sh:path gmeow:hasMappingPattern ;
@@ -326,6 +351,7 @@ gmeow:ProjectionMappingShape
 gmeow:MappingPatternShape
     a sh:NodeShape ;
     rdfs:label "MappingPattern shape"@en ;
+    logic:formalizes gmeow:MappingPatternAnchorRequiredConstraint ;
     sh:targetObjectsOf gmeow:hasMappingPattern ;
     sh:property [
         sh:path gmeow:anchor ;
@@ -370,6 +396,7 @@ gmeow:MappingPatternShape
 gmeow:PatternAtomShape
     a sh:NodeShape ;
     rdfs:label "PatternAtom shape"@en ;
+    logic:formalizes gmeow:PatternAtomPredicateChoiceConstraint ;
     sh:targetSubjectsOf gmeow:subjectVar ;
     sh:property [
         sh:path gmeow:subjectVar ;
@@ -447,6 +474,7 @@ gmeow:PatternAtomShape
 gmeow:TemplateAtomShape
     a sh:NodeShape ;
     rdfs:label "TemplateAtom shape"@en ;
+    logic:formalizes gmeow:TemplateAtomPredRequiredConstraint, gmeow:TemplateAtomObjectChoiceConstraint ;
     sh:targetSubjectsOf gmeow:tSubj ;
     sh:property [
         sh:path gmeow:tSubj ;
@@ -496,6 +524,7 @@ gmeow:TemplateAtomShape
 gmeow:OptionalGroupShape
     a sh:NodeShape ;
     rdfs:label "OptionalGroup shape"@en ;
+    logic:formalizes gmeow:OptionalGroupItemsRequiredConstraint ;
     sh:targetClass gmeow:OptionalGroup ;
     sh:property [
         sh:path gmeow:optionalGroup ;
@@ -511,6 +540,8 @@ gmeow:OptionalGroupShape
 gmeow:ProfileBindingShape
     a sh:NodeShape ;
     rdfs:label "ProfileBinding shape"@en ;
+    logic:formalizes gmeow:ProfileBindingProfileRequiredConstraint, gmeow:ProfileBindingOutputRequiredConstraint,
+        gmeow:ProfileBindingSssomEmitConstraint ;
     sh:targetObjectsOf gmeow:hasBinding ;
     sh:property [
         sh:path gmeow:profile ;
@@ -631,6 +662,7 @@ gmeow:ProfileBindingShape
 gmeow:BindShape
     a sh:NodeShape ;
     rdfs:label "Bind/Mint shape"@en ;
+    logic:formalizes gmeow:BindVarRequiredConstraint ;
     sh:targetObjectsOf gmeow:bind ;
     sh:targetObjectsOf gmeow:mint ;
     sh:property [
@@ -654,6 +686,7 @@ gmeow:BindShape
 gmeow:ExpressionShape
     a sh:NodeShape ;
     rdfs:label "Expression shape"@en ;
+    logic:formalizes gmeow:ExpressionShapeChoiceConstraint ;
     sh:targetSubjectsOf gmeow:exprOp ;
     sh:targetSubjectsOf gmeow:exprVar ;
     sh:property [
@@ -698,6 +731,7 @@ gmeow:ExpressionShape
 gmeow:AltPathShape
     a sh:NodeShape ;
     rdfs:label "AltPath shape"@en ;
+    logic:formalizes gmeow:AltPathAltsRequiredConstraint ;
     sh:targetClass gmeow:AltPath ;
     sh:property [
         sh:path gmeow:pathAlts ;
@@ -709,6 +743,7 @@ gmeow:AltPathShape
 gmeow:SeqPathShape
     a sh:NodeShape ;
     rdfs:label "SeqPath shape"@en ;
+    logic:formalizes gmeow:SeqPathStepsRequiredConstraint ;
     sh:targetClass gmeow:SeqPath ;
     sh:property [
         sh:path gmeow:pathSteps ;
@@ -720,6 +755,7 @@ gmeow:SeqPathShape
 gmeow:ZeroOrMorePathShape
     a sh:NodeShape ;
     rdfs:label "ZeroOrMorePath shape"@en ;
+    logic:formalizes gmeow:ZeroOrMorePathStepRequiredConstraint ;
     sh:targetClass gmeow:ZeroOrMorePath ;
     sh:property [
         sh:path gmeow:pathStep ;
@@ -731,6 +767,7 @@ gmeow:ZeroOrMorePathShape
 gmeow:OneOrMorePathShape
     a sh:NodeShape ;
     rdfs:label "OneOrMorePath shape"@en ;
+    logic:formalizes gmeow:OneOrMorePathStepRequiredConstraint ;
     sh:targetClass gmeow:OneOrMorePath ;
     sh:property [
         sh:path gmeow:pathStep ;
@@ -742,6 +779,7 @@ gmeow:OneOrMorePathShape
 gmeow:ZeroOrOnePathShape
     a sh:NodeShape ;
     rdfs:label "ZeroOrOnePath shape"@en ;
+    logic:formalizes gmeow:ZeroOrOnePathStepRequiredConstraint ;
     sh:targetClass gmeow:ZeroOrOnePath ;
     sh:property [
         sh:path gmeow:pathStep ;
@@ -753,6 +791,7 @@ gmeow:ZeroOrOnePathShape
 gmeow:InversePathShape
     a sh:NodeShape ;
     rdfs:label "InversePath shape"@en ;
+    logic:formalizes gmeow:InversePathStepRequiredConstraint ;
     sh:targetClass gmeow:InversePath ;
     sh:property [
         sh:path gmeow:pathStep ;
@@ -764,6 +803,7 @@ gmeow:InversePathShape
 gmeow:NegatedPropertySetShape
     a sh:NodeShape ;
     rdfs:label "NegatedPropertySet shape"@en ;
+    logic:formalizes gmeow:NegatedPropertySetPathSetRequiredConstraint ;
     sh:targetClass gmeow:NegatedPropertySet ;
     sh:property [
         sh:path gmeow:pathSet ;
@@ -779,6 +819,7 @@ gmeow:NegatedPropertySetShape
 gmeow:MappingSetShape
     a sh:NodeShape ;
     rdfs:label "MappingSet shape"@en ;
+    logic:formalizes gmeow:MappingSetSssomFileRequiredConstraint ;
     sh:targetClass gmeow:MappingSet ;
     sh:property [
         sh:path gmeow:sssomFile ;
@@ -823,6 +864,8 @@ gmeow:MappingSetShape
 gmeow:ProjectionFunctionShape
     a sh:NodeShape ;
     rdfs:label "ProjectionFunction shape"@en ;
+    logic:formalizes gmeow:ProjectionFunctionLabelRequiredConstraint, gmeow:ProjectionFunctionOutputRequiredConstraint,
+        gmeow:ProjectionFunctionOutputTypeRequiredConstraint ;
     sh:targetClass gmeow:ProjectionFunction ;
     sh:property [
         sh:path rdfs:label ;
@@ -864,6 +907,7 @@ gmeow:ProjectionFunctionShape
 gmeow:ValueClassMapEntryShape
     a sh:NodeShape ;
     rdfs:label "ValueClass map entry shape"@en ;
+    logic:formalizes gmeow:ValueClassMapEntryToClassRequiredConstraint ;
     sh:targetSubjectsOf gmeow:whenValue ;
     sh:property [
         sh:path gmeow:whenValue ;
@@ -889,6 +933,7 @@ gmeow:ValueClassMapEntryShape
 gmeow:MappingDslVocabularyTermShape
     a sh:NodeShape ;
     rdfs:label "Mapping DSL vocabulary annotation completeness shape"@x-gmeow-english ;
+    logic:formalizes gmeow:MappingDslVocabularyTermCompletenessConstraint ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
