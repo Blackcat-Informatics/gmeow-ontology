@@ -744,18 +744,67 @@ fn run_conformance_cell(
                     detail: "outcome 'violates' but no gmeow:expectedViolationCode".to_owned(),
                 })
             })?;
-            if codes.contains(expected) {
-                Ok(())
-            } else {
-                Err(Diag::of_kind(ConformanceCell {
+            if !codes.contains(expected) {
+                return Err(Diag::of_kind(ConformanceCell {
                     detail: format!(
                         "expected violation {expected}, got finding(s): {}",
                         join_codes(&codes)
                     ),
-                }))
+                }));
             }
+            // GAP 4: every `logic:Constraint` projects to the SAME generic finding
+            // component (`shacl.SPARQLConstraintComponent`), so a component-code match
+            // alone cannot prove the SPECIFIC named rule fired — the counter-example
+            // could be tripping a DIFFERENT constraint that happens to share the code.
+            // When the cell pins `gmeow:expectedSourceShape`, additionally require that
+            // at least one finding carrying the expected code ALSO originates from that
+            // source shape. A cell that omits it keeps the pre-GAP-4 behaviour (the
+            // component-code match above is conclusive) — so no other slice's cells,
+            // which never set it, are affected.
+            if let Some(expected_shape) = ec.expected_source_shape.as_deref() {
+                let from_shapes: Vec<String> = report
+                    .results
+                    .iter()
+                    .filter(|r| finding_from_shacl(r).code == expected)
+                    .map(|r| strip_angle(&r.source_shape.to_string()).to_owned())
+                    .collect();
+                if !from_shapes
+                    .iter()
+                    .any(|shape| source_shape_matches(shape, expected_shape))
+                {
+                    return Err(Diag::of_kind(ConformanceCell {
+                        detail: format!(
+                            "cell {} expected a {expected} finding from shape {expected_shape}, \
+                             but the {expected} finding(s) came from shape(s): [{}]",
+                            ec.iri,
+                            from_shapes.join(", ")
+                        ),
+                    }));
+                }
+            }
+            Ok(())
         }
     }
+}
+
+/// Whether a finding's reported `sh:sourceShape` IRI satisfies a cell's
+/// `gmeow:expectedSourceShape` binding: an exact IRI match, or (fallback) the
+/// actual IRI ending in the expected IRI's local name, so a cell may pin the shape
+/// by local name even when the validator reports the fully-qualified derived
+/// NodeShape IRI.
+fn source_shape_matches(actual: &str, expected: &str) -> bool {
+    if actual == expected {
+        return true;
+    }
+    let local = expected.rsplit(['/', '#']).next().unwrap_or(expected);
+    !local.is_empty() && actual.ends_with(local)
+}
+
+/// Strip the surrounding `<>` from a rendered IRI term (`<https://…>` → `https://…`).
+fn strip_angle(term: &str) -> &str {
+    term.strip_prefix('<')
+        .and_then(|t| t.strip_suffix('>'))
+        .unwrap_or(term)
 }
 
 /// Restrict the repository-wide generated shape union to the authority owned by
