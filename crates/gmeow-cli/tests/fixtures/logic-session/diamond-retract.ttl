@@ -1,0 +1,12 @@
+# A content-addressed delta's retirement/suppression rows for the diamond EDB: retire
+# the DIRECT shortcut edge a -> c. Plain Turtle triples (default graph); the
+# `gmeow logic session` loader re-homes them into the single session world exactly as
+# the additions are, so the committed delta carries a NON-EMPTY suppression.
+#
+# After this retraction the height-1 direct proof of `reach(a, c)` is gone, but
+# `reach(a, c)` SURVIVES via the transitive path a -> b -> c, so its maintained
+# min-proof-height RISES 1 -> 2. This is the CLI-observable witness for AC2's
+# "a retract RAISES a surviving fact's proof height".
+@prefix ex: <https://example.org/session/> .
+
+ex:a ex:edge ex:c .

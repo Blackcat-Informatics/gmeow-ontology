@@ -2056,6 +2056,7 @@ pub fn logic_session_facts(
     edb: &Path,
     program: &Path,
     apply: Option<&Path>,
+    retract: Option<&Path>,
     paged: bool,
     page_size: Option<usize>,
 ) -> i32 {
@@ -2083,24 +2084,46 @@ pub fn logic_session_facts(
         }
     };
 
-    if let Some(apply) = apply {
-        let additions = match session_load_world_dataset(reporter, apply, world) {
-            Ok(ds) => ds,
-            Err(code) => return code,
+    // Apply a committed delta before reading the closure back whenever either
+    // additions (`--apply`) or suppressions (`--retract`) are supplied. The retirement
+    // rows are re-homed into the session world and wrapped in `Suppression::new`
+    // exactly as `logic_session_checkpoint` / `logic_session_apply` do (the identical
+    // suppression-building path — NOT a second one), so a NON-EMPTY suppression is
+    // folded into the applied delta and the read-back closure + per-fact proof heights
+    // reflect the retraction (a surviving fact's min-proof-height RISES when its
+    // shortest proof is retired).
+    if apply.is_some() || retract.is_some() {
+        let additions = match apply {
+            Some(apply) => match session_load_world_dataset(reporter, apply, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+            None => match session_empty_world_dataset(reporter) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
         };
+        let mut retirements = Vec::new();
+        if let Some(retract) = retract {
+            let row = match session_load_world_dataset(reporter, retract, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            };
+            retirements.push(Suppression::new(row));
+        }
         let base_commit = session.identity().data_generation.clone();
         let expected_head = session.head().to_owned();
-        let delta = match SessionDelta::new(base_commit, expected_head, additions, Vec::new(), None)
-        {
-            Ok(delta) => delta,
-            Err(e) => {
-                return fail(
-                    reporter,
-                    "gmeow-cli.logic-session.delta",
-                    format!("cannot build session delta: {e}"),
-                );
-            }
-        };
+        let delta =
+            match SessionDelta::new(base_commit, expected_head, additions, retirements, None) {
+                Ok(delta) => delta,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.logic-session.delta",
+                        format!("cannot build session delta: {e}"),
+                    );
+                }
+            };
         let outcome = session.apply(&delta);
         // Surface the apply classification, then STOP before reading a
         // non-advanced closure back if the engine genuinely failed.
