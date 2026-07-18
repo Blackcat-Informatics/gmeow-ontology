@@ -172,11 +172,6 @@ gmeow:License
     rdfs:subClassOf gmeow:Agreement ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:licensedWork ;
-            owl:someValuesFrom gmeow:InformationObject ;
-        ] ,
-        [
-            a owl:Restriction ;
             owl:onProperty gmeow:licensor ;
             owl:someValuesFrom gmeow:Agent ;
         ] ;
@@ -350,7 +345,7 @@ gmeow:Rule
         [
             a owl:Restriction ;
             owl:onProperty gmeow:ruleAction ;
-            owl:someValuesFrom gmeow:RightsAction ;
+            owl:allValuesFrom gmeow:RightsAction ;
         ] ;
     skos:definition "The abstract base of a deontic rule in a rights statement — it binds a regulated gmeow:RightsAction to an optional target asset and assignee. Specialised by gmeow:Permission, gmeow:Prohibition and gmeow:Duty (the ODRL rule trio)."@x-gmeow-english ;
     skos:example "ex:rule a gmeow:Permission ; gmeow:ruleAction gmeow:actionUse ."@x-gmeow-english ;
@@ -2098,6 +2093,17 @@ gmeow:Trademark rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/Duty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Trademark> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/trademarkMark> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
+# gmeow:RuleShape retargets onto the ABSTRACT base gmeow:Rule too (sh:targetClass Rule,
+# Permission, Prohibition, Duty), which previously carried only a `someValuesFrom
+# RightsAction` restriction (sh:class only, no min) — Permission/Prohibition/Duty each
+# already carry their OWN owl:Thing-qualified min1 restriction above, but the base Rule
+# class itself never did, so the Rule-targeted retarget compared min=1 (legacy) against
+# min=None (projected) and failed. allValuesFrom + a class-scoped ClosureEntry supplies
+# the bare min1 half on Rule directly (Pattern 3); max1 rides gmeow:ruleAction's own
+# global owl:FunctionalProperty declaration (folded into the class comparison whenever
+# the legacy shape's own max matches it — no Rule-scoped max restriction needed).
+[ a logic:ClosureEntry ; logic:onClass gmeow:Rule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/ruleAction" ; logic:closureValue logic:ClosedWorldClosure ] .
+
 # =========================================================================== #
 # Procedural constraint authored as a raw logic:Formula integrity tree —        #
 # projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same #
@@ -2358,6 +2364,19 @@ gmeow:Rule rdfs:subClassOf
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightOperand> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+# gmeow:rightOperandReference is NOT globally functional (unlike leftOperand/
+# constraintOperator/rightOperand), so its class-local sh:maxCount 1 needs its own
+# owl:Thing-qualified restriction (bare max1; no sh:class is legacy-required here).
+gmeow:AtomicConstraint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:rightOperandReference ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+# gmeow:licensedWork is globally owl:FunctionalProperty with rdfs:range
+# gmeow:InformationObject, but (like ConceptCategorization's observedFeature) had only a
+# `someValuesFrom` restriction (sh:class only, no min) — replaced with allValuesFrom + a
+# class-scoped ClosureEntry for the bare min1+class half; max1 rides the global
+# FunctionalProperty fact (folded into the class comparison automatically).
+gmeow:License rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:licensedWork ; owl:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:License ; logic:closureKey "https://blackcatinformatics.ca/gmeow/licensedWork" ; logic:closureValue logic:ClosedWorldClosure ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightNotice> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CopyrightStatus> ] .
 <https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightYear> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .

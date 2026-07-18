@@ -8626,6 +8626,20 @@ logic:maxInclusiveBound
     skos:definition "The inclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be less than or equal to this literal (projected to sh:maxInclusive on the target class shape). At least one of the two inclusive bounds must be present."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:minExclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "min exclusive bound"@x-gmeow-english ;
+    skos:definition "The exclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly greater than this literal (projected to sh:minExclusive on the target class shape). The open-bound peer of logic:minInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:maxExclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "max exclusive bound"@x-gmeow-english ;
+    skos:definition "The exclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly less than this literal (projected to sh:maxExclusive on the target class shape). The open-bound peer of logic:maxInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:aggFunction
     a owl:DatatypeProperty ;
     rdfs:range xsd:string ;

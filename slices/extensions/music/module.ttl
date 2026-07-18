@@ -7167,9 +7167,6 @@ GTS music-package bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-
 # Carried in the procedural constraint fragment (no ordinary-OWL antecedent):
 #   * `sh:nodeKind sh:IRI` value-node-kind facets (owl:Thing lowers to
 #     sh:BlankNodeOrIRI, not sh:IRI);
-#   * numeric-range facets (sh:minExclusive / sh:minInclusive / sh:maxInclusive)
-#     on the rational-encoding integers/decimals;
-#   * the rational-string `sh:pattern` facets (pivotSourceValue / pivotTargetValue);
 #   * `sh:uniqueLang` + rdf:langString multilingual-text facets;
 #   * the `sh:xone` exactly-one-encoding disjunctions and every `sh:sparql`
 #     cross-node / no-subclass constraint;
@@ -7258,7 +7255,17 @@ gmeow:MetricModulation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:modulationFromFrame ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:modulationToFrame ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:pivotSourceValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotSourceValue ; owl:allValuesFrom [
+        a rdfs:Datatype ;
+        owl:onDatatype xsd:string ;
+        owl:withRestrictions ( [ xsd:pattern "^[0-9]+/[1-9][0-9]*$" ] ) ;
+    ] ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:allValuesFrom [
+        a rdfs:Datatype ;
+        owl:onDatatype xsd:string ;
+        owl:withRestrictions ( [ xsd:pattern "^[0-9]+/[1-9][0-9]*$" ] ) ;
+    ] ] .
 
 gmeow:GrooveProfile rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:grooveKind ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -7791,37 +7798,16 @@ gmeow:TraversalConstraintTextUniqueLangConstraint
     logic:formalizes gmeow:TraversalConstraintShape ;
     logic:message "A TraversalConstraint must provide at least one rule text, with at most one per language." .
 
-# Numeric-range facets (Principle 17): logic:ValueRangeConstraint is inclusive-bound sugar
-# (logic:minInclusiveBound/maxInclusiveBound). A legacy sh:minExclusive 0 on an xsd:integer
-# path is the exact semantic equivalent of sh:minInclusive 1 (no integer lies strictly between
-# 0 and 1), so the positive-integer denominator/count facets below use minInclusiveBound 1.
-# anchorFrequency (PitchAnchor) is xsd:decimal with sh:minExclusive 0 — decimals have no
-# "next value after 0", so no inclusive-bound sugar can state it faithfully. Authored below
-# as a raw logic:Constraint doing the strict `>` comparison directly (logic:termGreater),
-# guarded by BOTH the PitchAnchor type atom and the anchorFrequency atom so the derived
-# target is the class-scoped gmeow:PitchAnchor shape (matching the legacy sh:targetClass),
-# not a subjectsOf-derived shape.
-
-gmeow:PitchAnchorFrequencyPositiveConstraint
-    a logic:Constraint ;
-    rdfs:label "PitchAnchor frequency positivity constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a PitchAnchor's gmeow:anchorFrequency (xsd:decimal) is strictly greater than 0.0. Authored as a raw > comparison because xsd:decimal has no discrete successor of 0, so the minExclusive 0 legacy facet has no faithful logic:ValueRangeConstraint inclusive-bound rendering."@x-gmeow-english ;
-    logic:formalizes gmeow:PitchAnchorShape ;
-    logic:message "A PitchAnchor's anchorFrequency must be a positive (> 0) decimal frequency in Hz." ;
-    logic:integrity logic:pafForall .
-logic:pafForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
-    logic:forall logic:pafImpl .
-logic:pafImpl a logic:Formula ; logic:antecedent logic:pafGuard ; logic:consequent logic:pafGt .
-logic:pafGuard a logic:Formula ; logic:and logic:pafType , logic:pafFreq .
-logic:pafType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PitchAnchor ] .
-logic:pafFreq a logic:Formula ; logic:relation gmeow:anchorFrequency ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
-logic:pafGt a logic:Formula ; logic:relation logic:termGreater ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] .
+# Numeric-range facets (Principle 17): logic:ValueRangeConstraint is bounded-literal sugar
+# (logic:minInclusiveBound/maxInclusiveBound + the EXCLUSIVE peers logic:minExclusiveBound/
+# maxExclusiveBound). Every positive-integer denominator/count facet below carries a legacy
+# `sh:minExclusive 0` — authored with `logic:minExclusiveBound 0` (the EXACT open-bound match,
+# not the merely-semantically-equivalent `minInclusiveBound 1`) so the projected
+# `sh:minExclusive`/`sh:minInclusive` polarity matches the legacy shape byte-for-byte under the
+# equivalence oracle. anchorFrequency (PitchAnchor) is xsd:decimal with the same `sh:minExclusive
+# 0` legacy facet — now expressible faithfully with the same exclusive-bound sugar (previously
+# authored as a raw logic:Constraint doing the strict `>` comparison by hand; the sugar
+# supersedes it).
 
 gmeow:MusicalTimeFrameDimensionCountRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7835,6 +7821,17 @@ gmeow:MusicalTimeFrameDimensionCountRangeConstraint
     logic:minInclusiveBound 1 ;
     logic:maxInclusiveBound 1 .
 
+gmeow:PitchAnchorFrequencyRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "PitchAnchor frequency range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A validation-only integrity constraint: a PitchAnchor's gmeow:anchorFrequency (xsd:decimal) is strictly greater than 0.0 (a positive frequency in Hz)."@x-gmeow-english ;
+    logic:formalizes gmeow:PitchAnchorShape ;
+    logic:onClass gmeow:PitchAnchor ;
+    logic:valuePath gmeow:anchorFrequency ;
+    logic:minExclusiveBound 0.0 .
+
 gmeow:MetricGroupLengthDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
     rdfs:label "MetricGroup length-denominator range constraint"@x-gmeow-english ;
@@ -7844,7 +7841,7 @@ gmeow:MetricGroupLengthDenominatorRangeConstraint
     logic:formalizes gmeow:MetricGroupShape ;
     logic:onClass gmeow:MetricGroup ;
     logic:valuePath gmeow:groupLengthDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:TempoMapSegmentRatioDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7855,7 +7852,7 @@ gmeow:TempoMapSegmentRatioDenominatorRangeConstraint
     logic:formalizes gmeow:TempoMapSegmentShape ;
     logic:onClass gmeow:TempoMapSegment ;
     logic:valuePath gmeow:segmentMapRatioDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:TimeMappingRatioDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7866,7 +7863,7 @@ gmeow:TimeMappingRatioDenominatorRangeConstraint
     logic:formalizes gmeow:TimeMappingShape ;
     logic:onClass gmeow:TimeMapping ;
     logic:valuePath gmeow:mapRatioDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:TuningSystemDividedIntervalDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7877,7 +7874,7 @@ gmeow:TuningSystemDividedIntervalDenominatorRangeConstraint
     logic:formalizes gmeow:TuningSystemShape ;
     logic:onClass gmeow:TuningSystem ;
     logic:valuePath gmeow:dividedIntervalDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:PitchValueRatioDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7888,7 +7885,7 @@ gmeow:PitchValueRatioDenominatorRangeConstraint
     logic:formalizes gmeow:PitchValueShape ;
     logic:onClass gmeow:PitchValue ;
     logic:valuePath gmeow:ratioDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:PitchIntervalRatioDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7899,7 +7896,7 @@ gmeow:PitchIntervalRatioDenominatorRangeConstraint
     logic:formalizes gmeow:PitchIntervalShape ;
     logic:onClass gmeow:PitchInterval ;
     logic:valuePath gmeow:ratioDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:MusicalTimeSpanStartDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7910,7 +7907,7 @@ gmeow:MusicalTimeSpanStartDenominatorRangeConstraint
     logic:formalizes gmeow:MusicalTimeSpanShape ;
     logic:onClass gmeow:MusicalTimeSpan ;
     logic:valuePath gmeow:timeStartDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:MusicalTimeSpanDurationNumeratorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7932,7 +7929,7 @@ gmeow:MusicalTimeSpanDurationDenominatorRangeConstraint
     logic:formalizes gmeow:MusicalTimeSpanShape ;
     logic:onClass gmeow:MusicalTimeSpan ;
     logic:valuePath gmeow:timeDurationDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 gmeow:PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint
     a logic:ValueRangeConstraint ;
@@ -7943,7 +7940,7 @@ gmeow:PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint
     logic:formalizes gmeow:PitchTrajectoryControlPointShape ;
     logic:onClass gmeow:PitchTrajectoryControlPoint ;
     logic:valuePath gmeow:controlPointTimePositionDenominator ;
-    logic:minInclusiveBound 1 .
+    logic:minExclusiveBound 0 .
 
 # allValuesFrom(xsd:integer) restrictions backing the ratioDenominator / timeStartDenominator /
 # timeDurationNumerator / timeDurationDenominator / controlPointTimePositionDenominator range

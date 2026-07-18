@@ -283,8 +283,9 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "roleA" | "roleB" | "crossMode"
             // P7 forbidden-pattern.
             | "forbiddenPredicate" | "forbiddenValue"
-            // P8 value-range (inclusive numeric bounds over a path).
+            // P8 value-range (inclusive OR exclusive numeric bounds over a path).
             | "minInclusiveBound" | "maxInclusiveBound"
+            | "minExclusiveBound" | "maxExclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
             // Join-aggregate satellite (multi-hop join + product aggregate + threshold).
@@ -2625,6 +2626,12 @@ pub fn derive_validation_shapes(
     let p_valuepath = nn(&logic_iri("valuePath"));
     let p_min_bound = nn(&logic_iri("minInclusiveBound"));
     let p_max_bound = nn(&logic_iri("maxInclusiveBound"));
+    // Exclusive peers (`logic:minExclusiveBound` / `logic:maxExclusiveBound`) lower to
+    // `sh:minExclusive` / `sh:maxExclusive` — the faithful record for a legacy shape whose bound
+    // was authored open (e.g. `sh:minExclusive 0` for a strictly-positive denominator). An
+    // inclusive bound wins over an exclusive one on the same endpoint (the tighter closed reading).
+    let p_min_excl = nn(&logic_iri("minExclusiveBound"));
+    let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
     for record in subjects_with(store, &nn(RDF_TYPE), &range_ty) {
         let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
             continue;
@@ -2641,7 +2648,15 @@ pub fn derive_validation_shapes(
                 _ => None,
             }
         };
-        let (lo, hi) = (bound_of(&p_min_bound), bound_of(&p_max_bound));
+        // Inclusive bound wins over the exclusive peer on the same endpoint.
+        let (lo, lo_incl) = match bound_of(&p_min_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_min_excl), false),
+        };
+        let (hi, hi_incl) = match bound_of(&p_max_bound) {
+            Some(v) => (Some(v), true),
+            None => (bound_of(&p_max_excl), false),
+        };
         if lo.is_none() && hi.is_none() {
             continue;
         }
@@ -2653,8 +2668,8 @@ pub fn derive_validation_shapes(
             vec![ConstraintComponent::NumericRange {
                 min: lo,
                 max: hi,
-                min_inclusive: true,
-                max_inclusive: true,
+                min_inclusive: lo_incl,
+                max_inclusive: hi_incl,
             }],
         )?;
         entry_for(&mut acc, ShapeTarget::Class(class_iri))
@@ -5151,15 +5166,19 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
     let mut cmps: Vec<Formula> = Vec::with_capacity(2);
     if let Some(min) = bound("minInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termGreaterEqual"), t_var("v"), min)?);
+    } else if let Some(min) = bound("minExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termGreater"), t_var("v"), min)?);
     }
     if let Some(max) = bound("maxInclusiveBound")? {
         cmps.push(f_atom2(&logic_iri("termLessEqual"), t_var("v"), max)?);
+    } else if let Some(max) = bound("maxExclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termLess"), t_var("v"), max)?);
     }
     let consequent = match cmps.len() {
         0 => {
             return Err(sugar_err(
-                "logic:ValueRangeConstraint requires logic:minInclusiveBound and/or \
-                 logic:maxInclusiveBound",
+                "logic:ValueRangeConstraint requires logic:minInclusiveBound / \
+                 logic:minExclusiveBound and/or logic:maxInclusiveBound / logic:maxExclusiveBound",
             ));
         }
         1 => cmps.pop().expect("one bound"),

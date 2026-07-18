@@ -935,6 +935,24 @@ gmeow:KnowledgeAttribution rdfs:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributingAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedKnower" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:KnowledgeAttribution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/attributedProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:DoxasticStateShape: gmeow:credence, when present, is an xsd:decimal in the
+# closed interval [0,1] (sh:minInclusive 0 / sh:maxInclusive 1) — the declarative
+# range half had no logic:ValueRangeConstraint yet (only the allValuesFrom xsd:decimal
+# datatype restriction above). gmeow:credence's own rdfs:domain is exactly
+# gmeow:DoxasticState (not reused elsewhere), so a class-scoped record is exact.
+gmeow:DoxasticStateCredenceRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "DoxasticState credence range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A validation-only integrity constraint: when present, a DoxasticState's gmeow:credence is an xsd:decimal in [0.0, 1.0]."@x-gmeow-english ;
+    logic:formalizes gmeow:DoxasticStateShape ;
+    logic:onClass gmeow:DoxasticState ;
+    logic:valuePath gmeow:credence ;
+    logic:minInclusiveBound 0.0 ;
+    logic:maxInclusiveBound 1.0 .
+
 <https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 
 # =========================================================================== #
