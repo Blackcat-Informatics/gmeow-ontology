@@ -42,6 +42,13 @@ ep:shapeObsEmpty a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "obs" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
 
+ep:shapeVscExact a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "vsc" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ep:shapeVscEmpty a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "vsc" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ; logic:shapeRowCount 0 .
+
 ep:shapeVtExact a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "vt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
@@ -517,4 +524,30 @@ ep:epCqSimilarityOperandsMissingClean a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqResultShape ep:shapeObsEmpty ;
     gmeow:cqRationale "Every scene similarity observation names BOTH operand rows — ex:crossObs binds ex:tgtChunk / ex:tgtDocB and ex:inObs binds ex:tgtDoc / ex:tgtChunk — zero ungrounded scores." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
+# Vector-space contract comparability core complete. An effective                #
+# gmeow:VectorSpaceContract must NAME its full comparability core individually —   #
+# gmeow:effectiveOfFamily, gmeow:embeddingDimensions, gmeow:distanceMetric, and    #
+# gmeow:normalizationKind — not merely fold them into its digest. Violation over a  #
+# contract omitting its metric; empty over the scene, whose ex:vscA / ex:vscAprefix #
+# / ex:vscB each name all four. Live SPARQL twin of the core requiredness           #
+# (sh:minCount 1 on each axis).                                                    #
+# =========================================================================== #
+ep:epCqVscIncomplete a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/vsc-incomplete.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-vsc-incomplete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeVscExact ;
+    gmeow:cqRationale "A gmeow:VectorSpaceContract that omits a required comparability-core axis (here gmeow:distanceMetric) is caught: ce:incompleteVsc — its space cannot decide whether two vectors are near or far." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "vsc" ; gmeow:cellValueIri ce:incompleteVsc ] ] .
+
+ep:epCqVscIncompleteClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/vsc-incomplete.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeVscEmpty ;
+    gmeow:cqRationale "Every scene effective space names all four comparability-core axes — ex:vscA, ex:vscAprefix, and ex:vscB each bind gmeow:effectiveOfFamily, gmeow:embeddingDimensions, gmeow:distanceMetric, and gmeow:normalizationKind — zero incomplete contracts." ;
     gmeow:cqExpectRowCount 0 .

@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Incomplete-contract counter-example (Don't): a gmeow:VectorSpaceContract that names
+# its family, its effective dimension, its normalization, its prefix policy, and its
+# gmeow:contentDigest identity — but OMITS the required comparability metric
+# (gmeow:distanceMetric). Without the metric, two vectors of this space cannot be said
+# to be near or far: the metric is one of the three space-level comparability axes the
+# .purremb v1 profile requires INDIVIDUALLY, not merely folded into the digest. It
+# violates the sh:minCount 1 derived from the gmeow:distanceMetric allValuesFrom carrier
+# + its class-scoped ClosureEntry (→ shacl.MinCountConstraintComponent), and triggers
+# vsc-incomplete.rq (→ ce:incompleteVsc). The contract deliberately carries only the
+# metric deficiency: its family is complete (typed model + digest) and every other
+# required core axis is present, so no other requiredness fires.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+# A COMPLETE family — its irreducible model artifact and digest identity are present,
+# so the family itself satisfies the family core; only the space below is deficient.
+ce:someModel a gmeow:SoftwareAgent ;
+    rdfs:label "some embedding model (DON'T scene)"@en .
+
+ce:someFamily a gmeow:EmbeddingFamily ;
+    gmeow:embeddingModel ce:someModel ;
+    gmeow:contentDigest  "blake3:aa11b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e00" .
+
+ce:normNone a gmeow:NormalizationKind ;
+    rdfs:label "none (DON'T scene)"@en .
+
+# The effective space names its family, dimension, normalization, policy, and digest —
+# but NO gmeow:distanceMetric. The comparability metric is absent, so proximity over
+# this space is uninterpretable.
+ce:incompleteVsc a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily   ce:someFamily ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:normalizationKind   ce:normNone ;
+    gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
+    gmeow:contentDigest       "blake3:bb22c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e0011" .

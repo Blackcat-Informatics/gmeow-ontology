@@ -98,3 +98,9 @@ ep:ecSimilarityOperandsMissing a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "A score-bearing gmeow:SimilarityObservation naming neither operand row omits the required gmeow:comparesLeftTarget / gmeow:comparesRightTarget, violating the sh:minCount 1 derived from their allValuesFrom carriers + class-scoped ClosureEntries — shacl.MinCountConstraintComponent — so a gmeow:similarityScore that cannot identify the vector pair it measured is rejected. The live SPARQL twin similarity-operands.rq exercises the same invariant in tests/competency.ttl." .
+
+ep:ecVscIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-vsc-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:VectorSpaceContract omitting its required comparability metric gmeow:distanceMetric violates the sh:minCount 1 derived from the gmeow:distanceMetric allValuesFrom carrier + its class-scoped ClosureEntry — shacl.MinCountConstraintComponent — so an effective space that cannot decide near-from-far is rejected. gmeow:distanceMetric, gmeow:embeddingDimensions, and gmeow:normalizationKind (space) plus gmeow:embeddingModel (family) are the individually-required core; the remaining contract components are declared, not individually required. The live SPARQL twin vsc-incomplete.rq exercises the same invariant in tests/competency.ttl." .

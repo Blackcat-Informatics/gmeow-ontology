@@ -73,6 +73,17 @@ matrix — the full family space (`gmeow:matryoshkaFixed`) and every declared
 leading-prefix space over it (`gmeow:matryoshkaPrefix`) — so a family is the
 bundle of base objects resolving to a single once-stored matrix.
 
+What the slice **enforces** here is the comparability identity, not every contract
+component individually. A space's `gmeow:contentDigest` is the enforced comparability
+identity, and its mandatory core is individually required: the family anchor
+(`gmeow:effectiveOfFamily`) plus the three space-level comparability axes
+(`gmeow:embeddingDimensions`, `gmeow:distanceMetric`, `gmeow:normalizationKind`). A
+family individually requires only its `gmeow:contentDigest` and the irreducible model
+artifact (`gmeow:embeddingModel`). The remaining generation-contract components
+(tokenizer, preprocessing, chunking, pooling, truncation, dtype, quantization, and
+the rest) are **declared, not individually required** — they fold into the digest and
+bear on comparability, but the digest is the comparability decision.
+
 A `gmeow:similarityScore` is meaningful **only within a fiber**: it is a graded
 proximity between two vectors of one effective space, which is exactly why
 `gmeow:overVectorSpace` is functional and `gmeow:CrossSpaceComparisonConstraint`
