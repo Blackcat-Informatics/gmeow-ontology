@@ -1,0 +1,7 @@
+# The authorized EDB: an `edge` chain a -> b -> c. Plain Turtle triples (default
+# graph); the `gmeow logic session` loader re-homes them into the single session
+# world the maintainer folds. Derived closure: reach = {a->b, b->c, a->c}.
+@prefix ex: <https://example.org/session/> .
+
+ex:a ex:edge ex:b .
+ex:b ex:edge ex:c .

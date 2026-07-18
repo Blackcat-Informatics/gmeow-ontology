@@ -1,0 +1,16 @@
+# A DIAMOND EDB for the retract-raises-proof-height demonstration: the chain
+# a -> b -> c PLUS a direct shortcut a -> c. Plain Turtle triples (default graph);
+# the `gmeow logic session` loader re-homes them into the single session world.
+#
+# Over the `reach` transitive-closure program, `reach(a, c)` therefore has TWO
+# independent proofs:
+#   * direct:     reach(a,c) :- edge(a,c)                     → proof height 1
+#   * transitive: reach(a,c) :- edge(a,b), reach(b,c)         → proof height 2
+# so its maintained min-proof-height is 1. Retiring the direct a -> c edge (see
+# `diamond-retract.ttl`) drops the height-1 proof; `reach(a,c)` survives only via the
+# transitive path, so its min-proof-height RISES 1 -> 2.
+@prefix ex: <https://example.org/session/> .
+
+ex:a ex:edge ex:b .
+ex:b ex:edge ex:c .
+ex:a ex:edge ex:c .

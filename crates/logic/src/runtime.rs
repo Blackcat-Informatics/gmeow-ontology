@@ -143,6 +143,21 @@ use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 
 use crate::result::EngineId;
 
+pub mod session;
+
+/// The stable operational session surface: a content-addressed [`ReasoningSession`]
+/// over the incremental maintenance engine, its 7-axis [`SessionIdentity`], the
+/// authorized-commit-referencing [`SessionDelta`]/[`Suppression`] inputs, the total
+/// 6-way [`OperationOutcome`], the hash-linked [`TransitionEntry`] journal, and the
+/// content-addressed [`Checkpoint`]. Re-exported here so an external runtime consumer
+/// needs only `use gmeow_logic::runtime::*` (the one supported import path).
+pub use session::{
+    Checkpoint, CommittedDelta, FragmentDisposition, IncompleteCause, IntegrityFault,
+    OperationOutcome, OutcomeTag, PagedCompositionMetrics, ReasoningSession, RebuildReason,
+    SessionDelta, SessionIdentity, Suppression, TransitionEntry, UnsupportedFragment,
+    edb_data_generation,
+};
+
 // ── The curated stable surface ───────────────────────────────────────────────────
 //
 // One import path (`use gmeow_logic::runtime::*`) for the whole runtime call chain. Each
