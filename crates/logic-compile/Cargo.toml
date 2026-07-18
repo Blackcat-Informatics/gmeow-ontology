@@ -41,6 +41,10 @@ gmeow-errors = { path = "../errors" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
 sha2 = "0.10"
+# blake3: the framed, domain-tagged content-digest discipline shared with
+# crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
+# the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
+blake3 = "1"
 # serde: the projection-result ledger rows + report header counts are passed as an
 # in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
 # which assembles the FINAL projection report over the union of the logic rows and the

@@ -1,0 +1,5 @@
+# A content-addressed delta's additions: one new edge c -> d, extending the
+# maintained closure with reach = {c->d, b->d, a->d} on top of the base closure.
+@prefix ex: <https://example.org/session/> .
+
+ex:c ex:edge ex:d .

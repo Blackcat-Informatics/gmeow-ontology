@@ -105,8 +105,9 @@ pub(crate) use generic::{GenericAtom, GenericRule, materialize_generic};
 
 #[allow(unused_imports)]
 pub(crate) use incremental::{
-    BudgetedIncrementalDelta, IncrementalDelta, IncrementalDerivation, IncrementalIdentity,
-    IncrementalSession, SignedFact,
+    BudgetedIncrementalDelta, FragmentRefusal, IncrementalDelta, IncrementalDerivation,
+    IncrementalIdentity, IncrementalSession, SignedFact, UnsupportedFragmentReason,
+    classify_incremental_fragment,
 };
 #[allow(unused_imports)]
 pub(crate) use incremental_grounding::{
