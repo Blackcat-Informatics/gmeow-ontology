@@ -118,8 +118,10 @@ pub fn build_merged_ontology() -> Arc<RdfDataset> {
 }
 
 /// Compile the live production shape union (`gmeow validate`'s corpus, including
-/// `generated/shapes/validation-shapes.ttl`) — the setup cost `S_shapes`. Mirrors
-/// `conformance_support::production_shapes`.
+/// `generated/shapes/validation-shapes.ttl`) — the setup cost `S_shapes`. Calls
+/// `purrdf::shapes::shape_union::load_shapes` directly (the FULL production union);
+/// the conformance test harness instead uses `conformance_support::conformance_shapes`,
+/// which drops `result-shapes.ttl` for speed.
 #[must_use]
 pub fn load_production_shapes() -> Shapes {
     let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(&repo_root())

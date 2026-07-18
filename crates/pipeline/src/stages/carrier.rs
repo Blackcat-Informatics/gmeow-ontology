@@ -149,6 +149,15 @@ pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
 /// self-description corpus, not object-level axioms).
 pub(crate) const GRAPH_LANG_TRANSLATION_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus";
+/// The per-slice terminology-glossary corpus: every reviewed `.po` catalog pair folded into
+/// a `gmeow:Glossary` of `gmeow:GlossaryEntry` records (term, predicate, English source,
+/// rendering, `gmeow:glossaryConcept` sense anchor, and the `gmeow:glossaryUnit` join to the
+/// crossing's `lang:TranslationUnit`). Folded as its own queryable named graph so a repo-free
+/// consumer reads a slice's agreed fr/zh terminology directly. Excluded from the reasoned
+/// object-level EDB exactly like `graph/lang-translation-corpus` (a self-description view of
+/// the catalogs, not object-level axioms).
+pub(crate) const GRAPH_LANG_GLOSSARY_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus";
 /// The total prose-lift corpus: every distinct `@x-gmeow-english` source literal interned
 /// as a raw `lang:SurfaceForm` carrying its `logic:candidateSourceHash` and an exact
 /// surface-round-trip `logic:Correspondence` (Gate 1: total prose lift). Folded as its own
@@ -807,6 +816,8 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_LOWERING_CORPUS)?;
     let lang_docs_rendering_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
+    let lang_glossary_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_GLOSSARY_CORPUS)?;
     let correspondence_laws =
         producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
     // The on-disk projection of the correspondence-laws corpus: the SAME triples re-rooted into
@@ -874,6 +885,7 @@ fn assemble_carrier(
         lang_projection_corpus,
         lang_lowering_corpus,
         lang_docs_rendering_corpus,
+        lang_glossary_corpus,
         correspondence_laws,
         correspondence_laws_fanout,
         quality_assessment,
@@ -1097,6 +1109,16 @@ fn rdf_fanout_members(
     // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob). Read
     // off the stage-export-evals product; keep only the RDF members.
     for (path, bytes) in producer_artifacts("stage-export-evals", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
+    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
+    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
+    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
+    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
+    // named graph (mirrors evals scores.ttl).
+    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
         if is_rdf_member(&path) {
             out.insert(path, bytes);
         }
@@ -2175,6 +2197,13 @@ fn build_fanout_opaque_blob(
     take_opaque(
         &mut members,
         producer_artifacts("stage-export-matrix", upstream)?,
+    );
+    // The human-readable per-slice terminology glossary table: projected once in
+    // stage-export-glossary from the reviewed `.po` fold (the SAME entry list the
+    // graph/lang-glossary-corpus graph carries); read off its product, never re-rendered.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-glossary", upstream)?,
     );
     // The two slice-quality floor TSVs (P17 projection of the ontology-resident
     // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): projected once in
@@ -3526,9 +3555,11 @@ impl SnapshotStage {
                 "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores.ttl / research-
-                // object graphs. `rdf_fanout_members` reads them off these products.
+                // render ran once, in the leaf): profiles / evals scores.ttl / glossary
+                // vartrans.ttl / research-object graphs. `rdf_fanout_members` reads them off
+                // these products.
                 "stage-export-evals".to_string(),
+                "stage-export-glossary".to_string(),
                 "stage-export-profiles".to_string(),
                 "stage-export-research-objects".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger

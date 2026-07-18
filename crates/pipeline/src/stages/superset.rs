@@ -477,6 +477,10 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
         || path == "generated/projections/list-functions.fno.ttl"
+        // The OntoLex vartrans:translation lowering of the glossary crossings — an `.ttl`
+        // RDF projection, so it folds as a named graph (its `.md`/`.tbx` siblings are
+        // non-RDF and stay opaque REP_GENERATED blobs).
+        || path == "generated/projections/glossary.vartrans.ttl"
 }
 
 /// The named graph IRI for any RDF committed file under `generated/` (other than the
