@@ -1,13 +1,12 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 277
 expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
 Version **16**.
 
-This site documents **5463** vocabulary terms across **83** slices.
+This site documents **5476** vocabulary terms across **83** slices.
 
 ## I want to…
 
@@ -28,9 +27,9 @@ This site documents **5463** vocabulary terms across **83** slices.
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 1731 |
-| [Properties](properties/index.md) | 2925 |
-| [Individuals](individuals/index.md) | 806 |
+| [Classes](classes/index.md) | 1737 |
+| [Properties](properties/index.md) | 2931 |
+| [Individuals](individuals/index.md) | 807 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse

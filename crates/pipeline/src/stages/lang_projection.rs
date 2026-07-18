@@ -51,7 +51,8 @@ use gmeow_lang_bridge::registry::{
     assert_registry_covers, registry,
 };
 use gmeow_lang_bridge::{
-    GmnDictionary, exact_round_trip_holds, is_exact_correspondence, ntriples_sorted,
+    CurrentCodebook, GmnDictionary, exact_round_trip_holds, is_exact_correspondence,
+    ntriples_sorted, resolve_current_codebook,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -339,6 +340,7 @@ fn collect_input(
     let mut lang_models: Vec<NamedSource> = Vec::new();
     let mut varieties: Vec<NamedSource> = Vec::new();
     let mut gmn_dictionary: Option<GmnDictionary> = None;
+    let mut gmn_codebook: Option<CurrentCodebook> = None;
     if let Some(catalog) = catalog {
         for record in catalog.records() {
             for artifact in &record.artifacts {
@@ -388,11 +390,28 @@ fn collect_input(
                             Some(GmnDictionary::from_dataset(&dataset).map_err(|error| {
                                 stage_err(format!("load grounding/lang GMN codebook: {}", error.0))
                             })?);
+                        // The resolved codebook is the second carrier of codebook identity the
+                        // conformance pack's digest folds over (alongside the dictionary) — read
+                        // from the SAME dataset so the emitted digest equals the gate/CLI recompute.
+                        gmn_codebook =
+                            Some(resolve_current_codebook(&dataset).map_err(|error| {
+                                stage_err(format!(
+                                    "resolve grounding/lang current GMN codebook: {}",
+                                    error.0
+                                ))
+                            })?);
                     }
                 }
             }
         }
     }
+    // Capture the AUTHORED GMN grammar (`grammars/gmn.ebnf`, pre-render) — the conformance
+    // pack pins the authored template as its grammar leaf, NOT the graph-rendered derivative
+    // the render loop below substitutes into `grammars`.
+    let gmn_grammar_source = grammars
+        .iter()
+        .find(|grammar| grammar.name == "gmn")
+        .map(|grammar| grammar.bytes.clone());
     if let Some(dictionary) = &gmn_dictionary {
         for grammar in &mut grammars {
             if grammar.name == "gmn" {
@@ -418,6 +437,8 @@ fn collect_input(
         lang_models,
         varieties,
         gmn_dictionary,
+        gmn_codebook,
+        gmn_grammar_source,
     })
 }
 

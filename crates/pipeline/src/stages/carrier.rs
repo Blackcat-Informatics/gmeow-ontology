@@ -1113,6 +1113,16 @@ fn rdf_fanout_members(
             out.insert(path, bytes);
         }
     }
+    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
+    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
+    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
+    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
+    // named graph (mirrors evals scores.ttl).
+    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
     // product (already emitted canonically).
     let gufo = upstream
@@ -3545,9 +3555,11 @@ impl SnapshotStage {
                 "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores.ttl / research-
-                // object graphs. `rdf_fanout_members` reads them off these products.
+                // render ran once, in the leaf): profiles / evals scores.ttl / glossary
+                // vartrans.ttl / research-object graphs. `rdf_fanout_members` reads them off
+                // these products.
                 "stage-export-evals".to_string(),
+                "stage-export-glossary".to_string(),
                 "stage-export-profiles".to_string(),
                 "stage-export-research-objects".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger

@@ -1,0 +1,2 @@
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
+@c{s: gmeow__reifier1, p: rdf__reifies, o: ( gmeow__doorGate1 gmeow__hasState open ), st: gmeow__sensorStandpoint, ev: gmeow__span42}

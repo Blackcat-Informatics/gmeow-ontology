@@ -1,0 +1,2 @@
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
+@p{s: gmeow__gate1, p: gmeow__cycling, o: gmeow__doorGate1, q: 0.95, st: gmeow__sensorCrew, ev: gmeow__e12, m: poss, ek: inst, bd: open, it: gmeow__cycleSeries1}

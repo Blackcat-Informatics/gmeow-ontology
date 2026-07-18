@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# @err repair record: a blank-node reified claim naming a target record id and a failure class.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+[] a gmeow:GmnErr ;
+    gmeow:gmnRepairId "c42" ;
+    gmeow:gmnRepairClass lang:GmnMalformedNumber .

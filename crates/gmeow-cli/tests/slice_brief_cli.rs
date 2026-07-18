@@ -15,10 +15,48 @@ fn gmeow() -> Command {
     Command::cargo_bin("gmeow").expect("gmeow binary builds")
 }
 
+/// Which `lang` batch currently carries a present French grounding cell. The
+/// deterministic term-batch numbering shifts whenever lang terms are added or
+/// removed, so the batch is discovered dynamically (a bare `--from-bundle lang`
+/// request with no `--batch` serves EVERY packet) rather than hardcoded — this
+/// keeps the test valid across future renumbering.
+fn lang_batch_with_present_fr_grounding() -> u64 {
+    let output = gmeow()
+        .args([
+            "slice",
+            "brief",
+            "--from-bundle",
+            "lang",
+            "--format",
+            "json",
+        ])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let out: serde_json::Value = serde_json::from_slice(&output).expect("valid JSON envelope");
+    out["packets"]
+        .as_array()
+        .expect("packets array")
+        .iter()
+        .find(|p| {
+            p["grounding"].as_array().is_some_and(|g| {
+                g.iter()
+                    .any(|c| c["attribute"] == "groundingFr" && c["value"].is_string())
+            })
+        })
+        .unwrap_or_else(|| panic!("no `lang` batch carries a present French grounding cell: {out}"))
+        ["batch"]
+        .as_u64()
+        .expect("batch is a number")
+}
+
 #[test]
 fn slice_brief_from_bundle_json_serves_a_packet() {
-    // The `lang` slice batch 14 ships with a present French grounding cell, so the
-    // JSON envelope is non-vacuous and proves fr grounding survives the bundle.
+    // The JSON envelope is non-vacuous and proves fr grounding survives the bundle
+    // round-trip, on whichever batch currently carries a present fr cell.
+    let batch = lang_batch_with_present_fr_grounding().to_string();
     gmeow()
         .args([
             "slice",
@@ -26,7 +64,7 @@ fn slice_brief_from_bundle_json_serves_a_packet() {
             "--from-bundle",
             "lang",
             "--batch",
-            "14",
+            &batch,
             "--format",
             "json",
         ])
@@ -41,6 +79,8 @@ fn slice_brief_from_bundle_json_serves_a_packet() {
 
 #[test]
 fn slice_brief_from_bundle_turtle_emits_the_packet_body() {
+    // This assertion is content-agnostic (every packet, regardless of batch
+    // renumbering, carries these two predicates), so batch 14 stays a fixed probe.
     gmeow()
         .args([
             "slice",

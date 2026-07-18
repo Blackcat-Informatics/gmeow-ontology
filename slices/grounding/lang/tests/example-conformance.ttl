@@ -410,7 +410,7 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # =========================================================================== #
 # GMN dialect fixtures — the gmeow:gmn* graft's eight SHACL gates: canonical
 # codepoints, the confusables blocklist, sigil-scoped glyph collisions, the
-# eight-field envelope contract, the ring lattice, version overclaims,
+# nine-field envelope contract, the ring lattice, version overclaims,
 # compaction provenance, and compaction overclaims. The five parser-tier failure classes
 # (lang:GmnUncoveredTerm, lang:GmnNonCanonicalOrder, lang:GmnMalformedNumber,
 # lang:GmnUndeclaredDialectVersion, lang:GmnNonDecodableGrammar) are the GMN
@@ -430,7 +430,7 @@ ex:ecGmnScriptGlyphCanonical a gmeow:ExampleConformance ;
 ex:ecGmnEnvelopeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-envelope-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all eight contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
+    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all nine contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, gmeow:gmnCodebookDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
 
 ex:ecGmnCompactionHonest a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-compaction-honest.ttl" ;
@@ -464,13 +464,13 @@ ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its eight contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven fields are present." .
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its nine contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight fields are present." .
 
 ex:ecGmnEnvelopeDictionaryVersionPlural a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-dictionary-version-plural.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven contract fields are present and well-formed (R5, version-pinning is non-interchangeable)." .
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight contract fields are present and well-formed (R5, version-pinning is non-interchangeable)." .
 
 ex:ecGmnRingLatticeMalformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-ring-lattice-malformed.ttl" ;

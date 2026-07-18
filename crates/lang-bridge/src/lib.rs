@@ -30,6 +30,8 @@ pub mod emit;
 pub mod engine;
 pub mod error;
 pub mod gmn1_codec;
+pub mod gmn1_digest;
+pub mod gmn1_witness;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -56,10 +58,17 @@ pub use engine::{
 };
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn1_codec::{
-    ConstructCoverageTally, CoverageReport, Gmn0Model, Gmn1ConstructCategory, Gmn1Document,
-    Gmn1Error, GmnDictionary, GmnGlyphRegistry, QuadCoverage, classify_model,
+    ConstructCoverageTally, CoverageReport, CurrentCodebook, Gmn0Model, Gmn1ConstructCategory,
+    Gmn1Document, Gmn1Error, GmnDictionary, GmnGlyphRegistry, QuadCoverage, classify_model,
     gmn0_canonically_equal, gmn1_read, gmn1_write, gmn1_write_tabular, measure_coverage,
-    round_trip_check,
+    resolve_current_codebook, round_trip_check,
+};
+pub use gmn1_digest::{
+    codebook_digest, content_digest, grammar_leaf, pack_root, pack_root_from_grammar_leaf,
+};
+pub use gmn1_witness::{
+    StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,
+    per_claim_round_trip_check, per_claim_standalone_check,
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,

@@ -1,19 +1,18 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 83,
-  "term_count": 5463,
-  "dependency_edge_count": 1208,
+  "term_count": 5476,
+  "dependency_edge_count": 1211,
   "term_count_by_category": {
-    "Class": 1731,
+    "Class": 1737,
     "Datatype": 1,
-    "Individual": 806,
-    "Property": 2925
+    "Individual": 807,
+    "Property": 2931
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -426,7 +425,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 222,
+  "competency_count": 223,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
