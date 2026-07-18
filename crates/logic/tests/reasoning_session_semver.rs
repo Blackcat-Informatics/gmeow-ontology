@@ -16,13 +16,13 @@ use session_common::*;
 
 /// Golden engine-descriptor hash. A drift here is a deliberate engine version bump.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "d3abe9de1719a60c466c2d7dc3b8e277404212e6e0e2afb1132647eb729c9044";
+    "7d247abd53b94638d4c3c358439c2177e06898ba530b84a5343e29d64bbd7b9d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e20b2a0d5f70c759bd91ecf876f9132fe370ab802df3bcbc82b3d6cd0e4388d3";
+    "0719dc482dcee9d6f28579c1a63b0c8939f53d17cb0b864e47d7f4f4e37031ee";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

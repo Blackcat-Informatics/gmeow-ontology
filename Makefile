@@ -69,7 +69,7 @@ RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
 .PHONY: help \
-	install fmt lint check-lint lint-issue-refs i18n-lint \
+	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
 	validate validate-gts gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
 	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
@@ -93,9 +93,11 @@ help: ## Show the task plan.
 		/^[A-Za-z0-9_.-]+:.*## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' \
 		$(MAKEFILE_LIST)
 
-install: ## Build the Rust CLIs and configure repo-local Git merge drivers.
+install: ## Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
+	$(MAKE) producer-build
+	$(MAKE) sync
 	$(MAKE) cli-build
-	bash scripts/bootstrap-git-merge-drivers.sh
+	$(MAKE) lsp-release
 
 fmt: ## Rewrite Rust formatting with cargo fmt.
 	cargo fmt
@@ -116,7 +118,7 @@ check-lint:
 validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
 
-validate-gts: ## Validate the committed generated/dist/gmeow.gts bundle.
+validate-gts: ## Validate the materialized/staged generated/dist/gmeow.gts bundle.
 	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
@@ -149,7 +151,13 @@ lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
-cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/.
+producer-build: ## Build ONLY the gmeow-dev producer release binary and stage it into dist/bin/ (the clean-clone bootstrap entry: no generated/ bundle exists yet, so the consumer CLIs cannot compile — build ONLY the producer here, deliberately bypassing $(RUST_READY_STAMP), which would pull the whole workspace including the consumers into the build).
+	cargo build -p gmeow-dev-cli --release
+	mkdir -p dist/bin
+	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
+	@echo "gmeow-dev producer release binary staged at dist/bin/gmeow-dev"
+
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make sync' first on a clean clone).
 	cargo build -p gmeow-cli -p gmeow-dev-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
@@ -170,6 +178,16 @@ check: ## Synchronize generated outputs, then run the receipt-backed impact gate
 check-full: ## Synchronize generated outputs, then physically run every local gate task.
 	CHECK_SYNC_MODE=update cargo xtask check --profile full $(CHECK_ARGS)
 
+# The `check` DAG's root task (crates/xtask/src/main.rs CHECK_DAG). generated/
+# is now a gitignored local product, not a committed tree, so this is an
+# INVERTED gate: it does not diff a fresh render against committed bytes, it
+# PROJECTS the bundle fresh from source (an absent generated/ is a cache MISS,
+# not a not-found error — see dev_sync.rs's manifest-hit check) and, in Check
+# mode, proves that projection reproduces byte-identically on a second pass.
+# `check`/`check-full` force CHECK_SYNC_MODE=update so this materializes the
+# bundle+fanout from a clean clone before any downstream consumer-build task
+# in the DAG runs; only a standalone `make check-sync` (mode=check by
+# default) treats a missing bundle as a hard-fail drift finding.
 check-sync:
 	$(GMEOW_DEV) sync --mode $(CHECK_SYNC_MODE) --outputs generated
 

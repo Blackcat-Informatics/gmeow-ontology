@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-affect-ingest"
 description = "GMEOW classifier-ingestion producer: a captured HuggingFace text-classification output → attributed gmeow:ModelInferenceRun / AffectClassifierOutput / AffectiveClaim evidence (never inner-affect fact). GoEmotions is the reference instance of a label-set-parameterized put leg with a blind get-leg round-trip proof of losslessness."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

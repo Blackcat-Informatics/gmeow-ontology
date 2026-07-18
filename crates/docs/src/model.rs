@@ -2053,42 +2053,66 @@ impl DocsModel {
     /// and build the model. Also reads the curated `<root>/docs/four-boxes.md`
     /// prose at build time, if present.
     ///
-    /// The per-term content manifest is sourced from the committed
-    /// `<root>/generated/catalog/term-content-manifest.nq` ([`read_term_manifest`]) —
-    /// the disk-sourced path for the standalone `make docs` fanout, which runs
-    /// post-pipeline against the fanout-refreshed committed file. The in-pipeline
-    /// `stage-docs-render` run uses [`discover_with_manifest`](Self::discover_with_manifest)
-    /// instead, so the documentation graph reflects THIS run's freshly-computed
-    /// manifest rather than lagging one regenerate behind (the stale-disk-fold class).
+    /// The per-term content manifest AND the constraint catalog are sourced from the
+    /// committed `<root>/generated/catalog/*.nq` files
+    /// ([`read_term_manifest`] / [`read_constraint_catalog`]) — the disk-sourced path
+    /// for the standalone `make docs` fanout, which runs post-pipeline against the
+    /// fanout-refreshed committed files. The in-pipeline `stage-docs-render` run uses
+    /// [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog)
+    /// instead, so the model reflects THIS run's freshly-computed products rather than
+    /// lagging one regenerate behind (the stale-disk-fold class).
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let manifest = read_term_manifest(root)?;
-        Self::discover_with_manifest_map(root, manifest)
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Disk)
     }
 
-    /// Same as [`discover`](Self::discover) but sources the per-term content
-    /// manifest from `manifest_bytes` — THIS run's fresh `stage-term-manifest`
-    /// product ([`crate::model`]'s in-pipeline caller passes the
-    /// `stage-term-manifest` artifact bytes) — instead of the committed
-    /// (previous-run) `generated/catalog/term-content-manifest.nq` on disk. When a
-    /// term's definition digest changes this build, the fresh manifest carries the
-    /// newly-minted "Definition changed" changelog entry; a committed-file read
-    /// here would omit it, leaving the documentation named graph one regenerate
-    /// behind the manifest (the stale-disk-fold class this fixes). Shares the whole
-    /// discovery body with [`discover`](Self::discover) via
+    /// Same as [`discover`](Self::discover) but sources BOTH the per-term content
+    /// manifest AND the constraint catalog from THIS run's fresh pipeline stage
+    /// products (`manifest_bytes` from `stage-term-manifest`, `catalog_bytes` from
+    /// `stage-constraint-catalog`), instead of the committed (previous-run)
+    /// `generated/catalog/*.nq` files on disk. This is the in-pipeline `stage-docs-render`
+    /// entry point: when a term's definition digest changes this build the fresh
+    /// manifest carries the newly-minted "Definition changed" changelog entry, and on
+    /// a cold tree (no materialized `generated/`) the catalog read no longer
+    /// hard-fails — both are the stale-disk-fold / cold-absence class this retires.
+    /// Shares the whole discovery body with [`discover`](Self::discover) via
     /// [`discover_with_manifest_map`](Self::discover_with_manifest_map); only the
-    /// manifest source differs.
-    pub fn discover_with_manifest(root: &Path, manifest_bytes: &[u8]) -> Result<Self, DocsError> {
+    /// manifest and catalog sources differ.
+    pub fn discover_with_manifest_and_catalog(
+        root: &Path,
+        manifest_bytes: &[u8],
+        catalog_bytes: &[u8],
+    ) -> Result<Self, DocsError> {
         let manifest = parse_term_manifest(manifest_bytes, "stage-term-manifest product")?;
-        Self::discover_with_manifest_map(root, manifest)
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Live(catalog_bytes))
+    }
+
+    /// Same as [`discover`](Self::discover) but sources the constraint catalog from
+    /// THIS run's freshly-rendered `stage-constraint-catalog` bytes instead of the
+    /// committed `generated/catalog/constraint-catalog.nq` on disk. The in-pipeline
+    /// DocMaturity axis (slice-quality) uses this so a cold tree does not hard-fail
+    /// on the not-yet-materialized catalog, and every run scores against the SAME
+    /// freshly-produced catalog (cold == warm — the catalog content does not feed the
+    /// coverage fraction, so the guarantee is that the model always BUILDS, never
+    /// collapsing every slice to the vacuous model-unavailable 1.0 a failed disk read
+    /// would force). The per-term content manifest stays disk-sourced and tolerant
+    /// ([`read_term_manifest`] returns an empty map when absent), because it is
+    /// provenance-only and likewise does not feed the coverage fraction.
+    pub fn discover_with_catalog(root: &Path, catalog_bytes: &[u8]) -> Result<Self, DocsError> {
+        let manifest = read_term_manifest(root)?;
+        Self::discover_with_manifest_map(root, manifest, CatalogSource::Live(catalog_bytes))
     }
 
     /// The shared discovery body: build the model from the slice catalog and layer
     /// on every repo-only enrichment, applying the already-obtained per-term content
     /// `manifest` (from disk in [`discover`](Self::discover), from the fresh stage
-    /// product in [`discover_with_manifest`](Self::discover_with_manifest)).
+    /// product in [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog))
+    /// and sourcing the constraint catalog per `catalog` (disk in [`discover`](Self::discover),
+    /// live stage bytes in the in-pipeline entry points).
     fn discover_with_manifest_map(
         root: &Path,
         manifest: BTreeMap<String, TermProvenance>,
+        catalog_source: CatalogSource<'_>,
     ) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(
             &root.join("slices"),
@@ -2107,11 +2131,18 @@ impl DocsModel {
         merge_root_shapes(&mut model, &root.join("shapes"));
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
-        // The constraint catalog (`gmeow:ValidationRule` individuals), read from the
-        // committed N-Quads fanout artifact. A missing/unparsable/malformed
-        // artifact is a broken invariant on a regenerated tree, not an optional
-        // input — hard-fail rather than render an empty-state page.
-        model.constraint_rules = read_constraint_catalog(root)?;
+        // The constraint catalog (`gmeow:ValidationRule` individuals). Sourced per
+        // `catalog`: the committed N-Quads fanout artifact on disk (post-pipeline /
+        // CLI consumers), or THIS run's freshly-rendered `stage-constraint-catalog`
+        // bytes (the in-pipeline consumers, which must not read a not-yet-materialized
+        // `generated/` file). An unparsable/malformed catalog is a broken invariant
+        // either way — hard-fail rather than render an empty-state page.
+        model.constraint_rules = match catalog_source {
+            CatalogSource::Disk => read_constraint_catalog(root)?,
+            CatalogSource::Live(bytes) => {
+                parse_constraint_catalog(bytes, "stage-constraint-catalog product")?
+            }
+        };
         // Resolve each fixture's catalog_slug now that constraint_rules is
         // populated (from_catalog runs before the catalog is read, so every
         // fixture starts with catalog_slug: None).
@@ -2123,7 +2154,7 @@ impl DocsModel {
         apply_competency_query_text(&mut model, root)?;
         // The per-term content-address manifest (already obtained by the caller:
         // from the committed N-Quads fanout artifact in `discover`, or from THIS
-        // run's fresh stage-term-manifest product in `discover_with_manifest`). It
+        // run's fresh stage-term-manifest product in `discover_with_manifest_and_catalog`). It
         // sets each documented term's content digest and first-seen version and
         // unions the computed changelog into the authored one. A term absent from
         // the manifest is a term added since the last commit — its content-address
@@ -2213,7 +2244,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
 /// Parse term-content-manifest N-Quads (`source` names them for diagnostics) into
 /// the per-term provenance map. Shared by the committed-file reader
 /// ([`read_term_manifest`]) and the fresh-stage-product path
-/// ([`DocsModel::discover_with_manifest`]).
+/// ([`DocsModel::discover_with_manifest_and_catalog`]).
 fn parse_term_manifest(
     bytes: &[u8],
     source: &str,
@@ -2276,8 +2307,8 @@ fn parse_term_manifest(
 /// The `manifest` map is obtained by the caller — from the committed on-disk file
 /// ([`read_term_manifest`], used by [`DocsModel::discover`]) or from THIS run's
 /// fresh `stage-term-manifest` product bytes ([`parse_term_manifest`], used by
-/// [`DocsModel::discover_with_manifest`]) — so the pure application logic below is
-/// identical regardless of the manifest source.
+/// [`DocsModel::discover_with_manifest_and_catalog`]) — so the pure application logic
+/// below is identical regardless of the manifest source.
 fn apply_term_manifest(model: &mut DocsModel, manifest: BTreeMap<String, TermProvenance>) {
     for term in &mut model.terms {
         let Some(provenance) = manifest.get(&term.iri) else {
@@ -2363,6 +2394,19 @@ fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(),
     Ok(())
 }
 
+/// Where [`DocsModel::discover_with_manifest_map`] sources the constraint-catalog
+/// N-Quads: the committed `generated/catalog/constraint-catalog.nq` on disk
+/// (post-pipeline / CLI consumers scanning a materialized tree), or THIS run's
+/// freshly-rendered `stage-constraint-catalog` bytes carried in from the pipeline
+/// (the in-pipeline consumers, which must never read a not-yet-materialized
+/// `generated/` file — the cold-absence class this retires).
+enum CatalogSource<'a> {
+    /// Read the committed `generated/catalog/constraint-catalog.nq` off disk.
+    Disk,
+    /// Use THIS run's freshly-rendered catalog bytes (never a disk read).
+    Live(&'a [u8]),
+}
+
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
 /// — every `gmeow:ValidationRule` individual, sorted by rule code. The file is a
 /// committed fixed-point projection of `gmeow.gts` (N-Quads: every triple in the
@@ -2378,9 +2422,20 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
     let bytes = std::fs::read(&path).map_err(|e| {
         DocsError::ConstraintCatalog(format!("cannot read {}: {e}", path.display()))
     })?;
-    let store = Store::parse_nquads(&bytes).map_err(|e| {
-        DocsError::ConstraintCatalog(format!("cannot parse {}: {e}", path.display()))
-    })?;
+    parse_constraint_catalog(&bytes, &path.display().to_string())
+}
+
+/// Parse constraint-catalog N-Quads (`source` names them for diagnostics) into the
+/// sorted [`ConstraintRule`] list. Shared by the committed-file reader
+/// ([`read_constraint_catalog`]) and the in-pipeline fresh-stage-product path
+/// ([`DocsModel::discover_with_catalog`] /
+/// [`DocsModel::discover_with_manifest_and_catalog`]), so the disk and live sources
+/// can never diverge in how a rule is decoded. An unparsable document or a
+/// `gmeow:ValidationRule` subject with no `gmeow:ruleCode` is a broken invariant,
+/// never an optional input.
+fn parse_constraint_catalog(bytes: &[u8], source: &str) -> Result<Vec<ConstraintRule>, DocsError> {
+    let store = Store::parse_nquads(bytes)
+        .map_err(|e| DocsError::ConstraintCatalog(format!("cannot parse {source}: {e}")))?;
     let mut rules: Vec<ConstraintRule> = Vec::new();
     for iri in store.subjects_of_type_any(GMEOW_VALIDATION_RULE) {
         // The rule code is the identity; a subject with none is malformed
@@ -2389,8 +2444,7 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
             .first_literal_any(&iri, GMEOW_RULE_CODE)
             .ok_or_else(|| {
                 DocsError::ConstraintCatalog(format!(
-                    "gmeow:ValidationRule {iri} in {} carries no gmeow:ruleCode",
-                    path.display()
+                    "gmeow:ValidationRule {iri} in {source} carries no gmeow:ruleCode"
                 ))
             })?;
         let slug = gmeow_validate::rule_catalog::slugify(&code);
@@ -4444,5 +4498,111 @@ ex:uniformProbability a math:ProbabilityMeasure ;
             !uniform.turtle.contains("baseDimensionExponent"),
             "no fabricated exponent breakdown for the dimensionless case"
         );
+    }
+
+    /// Cold-tree bootstrap + determinism: [`DocsModel::discover_with_catalog`] builds
+    /// the whole model from LIVE constraint-catalog bytes with NO
+    /// `generated/catalog/constraint-catalog.nq` on disk — the state a fresh clone /
+    /// cold `make sync` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
+    /// Once the SAME bytes are written to disk, the disk path yields byte-identical
+    /// constraint rules AND identical per-slice DocMaturity coverage facts. This pins
+    /// the guarantee the in-pipeline DocMaturity axis relies on: cold (live bytes) ==
+    /// warm (disk bytes), so the `graph/quality-assessment` in `gmeow.gts` cannot
+    /// differ between a cold and a warm sync run.
+    #[test]
+    fn discover_with_catalog_bootstraps_cold_tree_and_matches_disk_path() {
+        // A temp repo root carrying exactly one real slice (copied from the committed
+        // single-slice fixture) and — deliberately — NO generated/ tree.
+        let root = std::env::temp_dir().join(format!(
+            "gmeow-catalog-bootstrap-{}-{}",
+            std::process::id(),
+            line!()
+        ));
+        std::fs::remove_dir_all(&root).ok();
+        let slice_dir = root.join("slices").join("fixture").join("single");
+        std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("single-slice");
+        for file in ["manifest.ttl", "module.ttl"] {
+            std::fs::copy(fixture.join(file), slice_dir.join(file))
+                .unwrap_or_else(|e| panic!("copy fixture {file}: {e}"));
+        }
+
+        // Minimal but valid constraint-catalog N-Quads: one gmeow:ValidationRule with a
+        // gmeow:ruleCode (the identity the reader keys on).
+        let graph =
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq";
+        let rule = "https://blackcatinformatics.ca/gmeow/rule/box-roles-invalid";
+        let catalog_bytes = format!(
+            "<{rule}> <{RDF_TYPE}> <{GMEOW_VALIDATION_RULE}> <{graph}> .\n\
+             <{rule}> <{GMEOW_RULE_CODE}> \"box-roles.invalid\" <{graph}> .\n"
+        )
+        .into_bytes();
+
+        // Cold tree: the pure-disk discover HARD-FAILS on the absent catalog...
+        let cold = DocsModel::discover(&root);
+        assert!(
+            matches!(cold, Err(DocsError::ConstraintCatalog(_))),
+            "discover() must hard-fail on a cold tree with no generated catalog, got {cold:?}"
+        );
+
+        // ...but the live-bytes path BUILDS the whole model with NO disk file present.
+        let live = DocsModel::discover_with_catalog(&root, &catalog_bytes)
+            .expect("discover_with_catalog must build with no generated/ on disk");
+        assert_eq!(
+            live.constraint_rules.len(),
+            1,
+            "the one live rule is decoded"
+        );
+        assert_eq!(live.constraint_rules[0].code, "box-roles.invalid");
+
+        // Warm tree: writing the SAME bytes to disk lets the disk path build; it must
+        // agree with the live path byte-for-byte on the constraint rules AND on the
+        // per-slice DocMaturity coverage facts (documents / covers / coverage_fraction),
+        // which are exactly what the DocMaturity axis consumes.
+        std::fs::create_dir_all(root.join("generated").join("catalog")).expect("mkdir generated");
+        std::fs::write(
+            root.join("generated")
+                .join("catalog")
+                .join("constraint-catalog.nq"),
+            &catalog_bytes,
+        )
+        .expect("write catalog");
+        let warm =
+            DocsModel::discover(&root).expect("discover() must build once the catalog is on disk");
+        assert_eq!(
+            live.constraint_rules, warm.constraint_rules,
+            "live-bytes and disk-bytes constraint rules must be identical"
+        );
+
+        // DocSliceFacts is not PartialEq, so compare the load-bearing projection the
+        // DocMaturity axis reads: (documents, covers, coverage_fraction bit pattern).
+        let project = |m: &DocsModel| -> Vec<(String, std::collections::BTreeSet<String>, u64)> {
+            crate::rdf::documentation_graph(m)
+                .slices
+                .into_iter()
+                .map(|s| (s.documents, s.covers, s.coverage_fraction.to_bits()))
+                .collect()
+        };
+        let live_facts = project(&live);
+        let warm_facts = project(&warm);
+        assert_eq!(
+            live_facts, warm_facts,
+            "DocMaturity per-slice coverage facts must be identical cold(live) vs warm(disk)"
+        );
+        assert_eq!(
+            live_facts.len(),
+            1,
+            "the one fixture slice yields exactly one coverage fact"
+        );
+        let fraction = f64::from_bits(live_facts[0].2);
+        assert!(
+            (0.0..=1.0).contains(&fraction),
+            "the fixture slice earns a bounded, non-vacuous coverage fraction, got {fraction}"
+        );
+
+        std::fs::remove_dir_all(&root).ok();
     }
 }

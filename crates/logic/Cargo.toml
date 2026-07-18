@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-logic"
 description = "GMEOW reasoning engine core: world-indexed RDF 1.2 named-graph store for entailment queries, gated against the language-neutral conformance corpus"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

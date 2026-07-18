@@ -1,6 +1,0 @@
-# ::snt cats chase mice
-# ::semaf-dialogue-act Inform
-# ::denotation https://blackcatinformatics.ca/gmeow/examples/lang/denCatsChaseMice
-(a / assert-01
-      :ARG1 (f / logic-formula
-                  :value "https://blackcatinformatics.ca/gmeow/examples/lang/formulaCatsChaseMice"))

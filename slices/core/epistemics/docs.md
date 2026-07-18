@@ -57,7 +57,7 @@ the SSSOM set records cross-vocabulary links only.
 
 The epistemics mapping set is authored in
 [`slices/core/epistemics/mappings/equivalences.ttl`](./mappings/equivalences.ttl) and compiled to
-[`generated/mappings/gmeow-epistemics.sssom.tsv`](../../../generated/mappings/gmeow-epistemics.sssom.tsv).
+`generated/mappings/gmeow-epistemics.sssom.tsv` (materialized by `make sync`).
 All alignments are by reference (Principle 5); GMEOW never imports an external axiom.
 
 | GMEOW term | External target(s) | Predicate | Note |

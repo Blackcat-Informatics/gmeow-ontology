@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-cli"
 description = "The consumer/wheel-only `gmeow` command-line surface (verify, validate, describe, project, export, convert, music)."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

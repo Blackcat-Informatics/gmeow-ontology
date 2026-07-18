@@ -446,9 +446,14 @@ fn serialize_carrier_snapshot_without_docs(
         &lang_form_catalog,
     ))?);
     blobs.push(build_reasoning_blob(upstream)?);
-    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
-    // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
-    blobs.push(build_fanout_opaque_blob(carrier, upstream)?);
+    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed from
+    // THIS run's carrier (superset law — RDF rides as named graphs, not here). Collect the
+    // member set ONCE and derive BOTH the archive blob AND the declared `opaque` fanout
+    // rows from that exact set, so the blob bytes and the manifest rows can never disagree
+    // about which paths the opaque lane carries.
+    let opaque_members = collect_fanout_opaque_members(carrier, upstream)?;
+    let opaque_manifest = build_fanout_opaque_manifest(opaque_members.keys())?;
+    blobs.push(opaque_blob_from_members(opaque_members)?);
     // The typed Shacl/Shex validation-shape sidecars: the SAME validation surfaces the
     // REP_GENERATED archive carries (one source — `validation_shape_surfaces`), ALSO folded
     // as content-addressed blobs whose media type classifies each on decode into its typed
@@ -478,7 +483,10 @@ fn serialize_carrier_snapshot_without_docs(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    serialize_snapshot(carrier, &[], blobs, report_blobs)
+    // The opaque-fanout manifest rides as a meta-level named graph alongside the assembled
+    // carrier, so the shipped bundle DECLARES its opaque byte lane as data (read back by the
+    // superset gate) without entering object-level reasoning closure.
+    serialize_snapshot(carrier, &[opaque_manifest], blobs, report_blobs)
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -584,7 +592,7 @@ pub(crate) fn self_description_source_files(
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
-    files.extend(gmeow_slice_quality::scored_source_files(root)?);
+    files.extend(gmeow_slice_quality::scored_source_files(root));
     files.sort();
     files.dedup();
     Ok(files)
@@ -936,10 +944,17 @@ fn assemble_carrier(
     let mappings = upstream
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+    // The RDF-fanout attach class, DERIVED from the authored gmeow:fanoutExtracts rows in
+    // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
+    // memory — a source input, not the bundle being produced), so the carrier's attach set
+    // and the superset gate's claim set read ONE inventory (no hand-list to drift).
+    let rdf_fanout_classes = crate::stages::superset::RdfFanoutClasses::from_source(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    )?;
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
             datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
-        } else if crate::stages::superset::is_rdf_fanout_class(&path) {
+        } else if rdf_fanout_classes.contains(&path) {
             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
             // list-functions), now emitted canonically by the mappings stage.
             if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
@@ -1702,7 +1717,7 @@ pub(crate) fn snapshot_dataset(
 /// carrier (carrier-reading leaves) or source (source-reading leaves) inside the
 /// snapshot and keyed repo-relative. RDF outputs (`.ttl`/`.nt`/`.nq`) are NEVER
 /// here: they ride as named graphs so the superset law reconstructs them as folds.
-const REP_GENERATED: &str = "generated-opaque-archive";
+pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 
 const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
@@ -2137,18 +2152,33 @@ fn build_validation_shape_typed_blobs(
     ])
 }
 
-/// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
-/// fanout members that ride as opaque byte projections (as opposed to named-graph
-/// folds). Each rides in from a sink-consumed stage product — either projected from
-/// THIS run's carrier dataset (lpg) or read off its producing export leaf's
-/// product (the render ran once, in the leaf; the presenter never re-renders from
+/// Archive the collected opaque `members` map into the deterministic [`REP_GENERATED`]
+/// blob (sorted, byte-stable). Split from [`collect_fanout_opaque_members`] so the SAME
+/// member set drives both the blob AND the emitted `opaque` fanout rows
+/// ([`build_fanout_opaque_manifest`]) from one build-time computation — the rows and the
+/// bytes can never disagree about which paths the opaque archive carries.
+fn opaque_blob_from_members(
+    members: BTreeMap<String, Vec<u8>>,
+) -> Result<BlobRow, gmeow_errors::Diag> {
+    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_GENERATED, &members)
+}
+
+/// Collect the byte-exact `generated/` opaque fanout members of the generated-fanout
+/// archive [`REP_GENERATED`] (committed path → bytes) that ride as opaque byte projections
+/// (as opposed to named-graph folds). Each rides in from a sink-consumed stage product —
+/// either projected from THIS run's carrier dataset (lpg) or read off its producing export
+/// leaf's product (the render ran once, in the leaf; the presenter never re-renders from
 /// disk). Byte-decorated RDF reports whose committed form carries generated comments /
 /// section markers ride here rather than as canonical graph folds. The bytes are
-/// byte-identical to the committed files, which the superset gate proves.
-fn build_fanout_opaque_blob(
+/// byte-identical to the committed files, which the superset gate proves; the member key
+/// set is ALSO the source the `opaque` fanout rows are derived from
+/// ([`build_fanout_opaque_manifest`]).
+fn collect_fanout_opaque_members(
     carrier: &purrdf::RdfDataset,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // carrier-reading leaves (project from THIS run's carrier dataset — §8 permits a
@@ -2448,9 +2478,104 @@ fn build_fanout_opaque_blob(
         }
     }
 
-    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
-    members.sort_by(|a, b| a.0.cmp(&b.0));
-    archive_blob(REP_GENERATED, &members)
+    Ok(members)
+}
+
+/// The meta-level named graph carrying the emitted `opaque` fanout rows (one
+/// `gmeow:FanoutExtraction` per [`REP_GENERATED`] archive member). Deliberately NOT an
+/// object-level EDB graph (`gmeow_logic::reasoning_graphs::is_object_level_named_graph`
+/// returns false for it) so the ~hundred build-time rows never enter reasoning closure and
+/// so a fresh reason-verify over the shipped snapshot stays byte-aligned with stage-reason;
+/// the superset gate finds the rows regardless of graph label because `read_fanout_rules`
+/// scans every quad. Distinct from the `graph/fanout/` reconstruction namespace (no
+/// trailing `/fanout/` segment), so the superset reverse sweep never mistakes it for a
+/// reconstruction graph.
+pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/fanout-opaque-manifest";
+
+/// The subject-IRI namespace of an emitted opaque fanout row: `…/fanout-opaque/<path>`.
+/// The committed path is already unique, so the identity mapping is collision-free by
+/// construction. Slashes/dots in the tail are legal IRI characters and (as the constraint
+/// catalog's `…/rule/<slug>` subjects prove) pass the whole-bundle lint/SHACL flatten.
+const FANOUT_OPAQUE_SUBJECT_NS: &str = "https://blackcatinformatics.ca/gmeow/fanout-opaque/";
+
+/// Emit one `gmeow:FanoutExtraction` row per opaque archive member into the meta-level
+/// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] graph, so the opaque byte lane is DECLARED as data (the
+/// superset gate reads these back through `read_fanout_rules` and bijection-checks them
+/// against the archive members). Derived from the EXACT member key set of
+/// [`collect_fanout_opaque_members`] — one build-time computation feeds both the blob and
+/// these rows — and emitted in sorted (deterministic) order.
+///
+/// Each row mirrors the proven generated-aBox skeleton (constraint-catalog / diagnostics
+/// findings): `rdf:type` + `rdfs:label` + `rdfs:isDefinedBy <graph>` + `gmeow:graphBoxRole
+/// gmeow:boxABox`, which the whole-bundle structural lint accepts as an assertional
+/// (graph-provenanced) individual without a `skos:definition`, plus the four fanout facets
+/// (`extractsPath`/`extractsMatch "exact"`/`extractsGraphFamily "opaque"`/`extractsForm
+/// "blob"`).
+fn build_fanout_opaque_manifest<'a>(
+    member_paths: impl Iterator<Item = &'a String>,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    use std::fmt::Write;
+
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+    const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+
+    // BTreeSet → deterministic (sorted) emission order regardless of the caller's order.
+    // Emitted as N-Triples; parse_into_graph re-roots every triple into the manifest graph.
+    // Scoped to `generated/` EXACTLY as the superset gate scopes the opaque archive members
+    // it bijection-checks against these rows (a non-`generated/` archive member is dropped
+    // by the reconstruction sweep, so a row for it would claim no member) — symmetric by
+    // construction.
+    let paths: std::collections::BTreeSet<&String> = member_paths
+        .filter(|p| p.starts_with("generated/"))
+        .collect();
+    let mut out = String::new();
+    for path in paths {
+        let subject = format!("{FANOUT_OPAQUE_SUBJECT_NS}{path}");
+        let triple_iri = |out: &mut String, p: &str, o: &str| {
+            writeln!(out, "<{subject}> <{p}> <{o}> .").expect("write to String");
+        };
+        let triple_str = |out: &mut String, p: &str, lit: &str| {
+            writeln!(out, "<{subject}> <{p}> \"{}\" .", nquads_escape(lit))
+                .expect("write to String");
+        };
+        triple_iri(&mut out, RDF_TYPE, &format!("{GMEOW}FanoutExtraction"));
+        triple_iri(&mut out, RDFS_IS_DEFINED_BY, GRAPH_FANOUT_OPAQUE_MANIFEST);
+        triple_iri(
+            &mut out,
+            &format!("{GMEOW}graphBoxRole"),
+            &format!("{GMEOW}boxABox"),
+        );
+        triple_str(&mut out, RDFS_LABEL, &format!("fanout opaque {path}"));
+        triple_str(&mut out, &format!("{GMEOW}extractsPath"), path);
+        triple_str(&mut out, &format!("{GMEOW}extractsMatch"), "exact");
+        triple_str(&mut out, &format!("{GMEOW}extractsGraphFamily"), "opaque");
+        triple_str(&mut out, &format!("{GMEOW}extractsForm"), "blob");
+    }
+    parse_into_graph(
+        out.as_bytes(),
+        "application/n-triples",
+        GRAPH_FANOUT_OPAQUE_MANIFEST,
+    )
+}
+
+/// Minimal N-Quads/N-Triples literal escaping for the opaque-manifest emitter (the paths
+/// contain no control characters, but escape defensively for byte-stable output).
+fn nquads_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
@@ -7931,8 +8056,12 @@ mod quality_assessment_tests {
         // attaches `graph/fanout/quality/gmeow.quality-assessment.nt` and the gate claims
         // the same committed path as an N-Triples fanout fold. A committed path with no
         // attaching stage (or vice-versa) is a wiring contradiction — this pins both legs.
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let source = parse_dataset(&ttl, "text/turtle", None).unwrap();
+        let rdf_fanout_classes =
+            crate::stages::superset::RdfFanoutClasses::from_source(&source).unwrap();
         assert!(
-            crate::stages::superset::is_rdf_fanout_class(QUALITY_ASSESSMENT_PATH),
+            rdf_fanout_classes.contains(QUALITY_ASSESSMENT_PATH),
             "the quality-assessment committed path must be a registered RDF-fanout class"
         );
         let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
@@ -8022,5 +8151,132 @@ mod coherence_certificate_tests {
         let nq1 = purrdf::canonical_flat_nquads(folded.as_ref()).unwrap();
         let nq2 = purrdf::canonical_flat_nquads(folded2.as_ref()).unwrap();
         assert_eq!(nq1, nq2, "the folded certificate is deterministic");
+    }
+}
+
+#[cfg(test)]
+mod fanout_opaque_manifest_tests {
+    use super::*;
+
+    const EXTRACTS_PATH: &str = "https://blackcatinformatics.ca/gmeow/extractsPath";
+    const EXTRACTS_FAMILY: &str = "https://blackcatinformatics.ca/gmeow/extractsGraphFamily";
+    const GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+    const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+    fn members() -> BTreeMap<String, Vec<u8>> {
+        // A byte-decorated RDF (`.ttl`) member AND non-RDF members — all ride the opaque lane.
+        [
+            ("generated/n3/gmeow.n3", b"@prefix : <> .".as_slice()),
+            ("generated/logic/inferred-closure.rdf12.ttl", b"# closure"),
+            ("generated/cl/gmeow.clif", b";; clif"),
+        ]
+        .into_iter()
+        .map(|(p, b)| (p.to_string(), b.to_vec()))
+        .collect()
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_roundtrips_through_read_fanout_rules() {
+        let members = members();
+        let manifest = build_fanout_opaque_manifest(members.keys()).expect("manifest");
+
+        // The manifest rides in its own meta-level graph (excluded from object-level EDB).
+        assert!(!gmeow_logic::reasoning_graphs::is_object_level_named_graph(
+            GRAPH_FANOUT_OPAQUE_MANIFEST
+        ));
+        for q in manifest.owned_quads() {
+            assert_eq!(
+                q.graph_name.as_ref(),
+                Some(&RdfTerm::Iri(GRAPH_FANOUT_OPAQUE_MANIFEST.to_string())),
+                "every manifest quad rides the fanout-opaque-manifest graph"
+            );
+        }
+
+        // The superset gate's own reader must recover one opaque row per member path.
+        let rules =
+            crate::stages::superset::read_fanout_rules(manifest.as_ref()).expect("read rules");
+        let opaque_paths: std::collections::BTreeSet<String> = rules
+            .iter()
+            .filter(|r| r.is_opaque())
+            .map(|r| r.path().to_string())
+            .collect();
+        let want: std::collections::BTreeSet<String> = members.keys().cloned().collect();
+        assert_eq!(
+            opaque_paths, want,
+            "one opaque row per opaque member, exactly"
+        );
+        assert_eq!(rules.len(), members.len(), "no non-opaque rows emitted");
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_carries_the_assertional_abox_skeleton() {
+        // Each row must carry the type + label + graph-provenance + boxABox skeleton the
+        // whole-bundle structural lint accepts for a generated assertional individual, plus
+        // the opaque family facet — mirroring the constraint-catalog Finding projection.
+        let members = members();
+        let manifest = build_fanout_opaque_manifest(members.keys()).expect("manifest");
+        let has = |s: &str, p: &str, o_iri: Option<&str>, lit_pred: bool| {
+            manifest.owned_quads().any(|q| {
+                let subj = matches!(&q.subject, RdfTerm::Iri(i) if i == s);
+                let pred = q.predicate == p;
+                let obj = match (&q.object, o_iri, lit_pred) {
+                    (RdfTerm::Iri(i), Some(o), _) => i == o,
+                    (RdfTerm::Literal(_), None, true) => true,
+                    _ => false,
+                };
+                subj && pred && obj
+            })
+        };
+        for path in members.keys() {
+            let subject = format!("{FANOUT_OPAQUE_SUBJECT_NS}{path}");
+            assert!(
+                has(&subject, RDFS_LABEL, None, true),
+                "row {path} must carry rdfs:label"
+            );
+            assert!(
+                has(
+                    &subject,
+                    RDFS_IS_DEFINED_BY,
+                    Some(GRAPH_FANOUT_OPAQUE_MANIFEST),
+                    false
+                ),
+                "row {path} must be provenanced to the manifest graph (assertional)"
+            );
+            assert!(
+                has(
+                    &subject,
+                    GRAPH_BOX_ROLE,
+                    Some("https://blackcatinformatics.ca/gmeow/boxABox"),
+                    false
+                ),
+                "row {path} must declare gmeow:graphBoxRole gmeow:boxABox"
+            );
+            assert!(
+                has(&subject, EXTRACTS_PATH, None, true),
+                "row {path} must carry gmeow:extractsPath"
+            );
+            assert!(
+                manifest.owned_quads().any(|q| {
+                    q.predicate == EXTRACTS_FAMILY
+                        && matches!(&q.object, RdfTerm::Literal(l) if l.lexical_form == "opaque")
+                }),
+                "an opaque family facet must be present"
+            );
+        }
+    }
+
+    #[test]
+    fn opaque_fanout_manifest_is_deterministic_regardless_of_key_order() {
+        let members = members();
+        let a = build_fanout_opaque_manifest(members.keys()).expect("a");
+        // Feed the keys in reverse to prove the sorted emission is order-independent.
+        let reversed: Vec<&String> = members.keys().rev().collect();
+        let b = build_fanout_opaque_manifest(reversed.into_iter()).expect("b");
+        assert_eq!(
+            purrdf::canonical_flat_nquads(a.as_ref()).unwrap(),
+            purrdf::canonical_flat_nquads(b.as_ref()).unwrap(),
+            "the opaque manifest is a deterministic function of the member set"
+        );
     }
 }

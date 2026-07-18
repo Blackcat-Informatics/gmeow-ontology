@@ -1,4 +1,0 @@
-<https://blackcatinformatics.ca/gmeow/examples/lang/quebecFrench> <https://blackcatinformatics.ca/gmeow/bcp47Tag> "fr-CA" .
-<https://blackcatinformatics.ca/lang/gmeowEnglish> <https://blackcatinformatics.ca/gmeow/bcp47Tag> "en" .
-<https://blackcatinformatics.ca/lang/gmeowFrench> <https://blackcatinformatics.ca/gmeow/bcp47Tag> "fr" .
-<https://blackcatinformatics.ca/lang/gmeowMandarin> <https://blackcatinformatics.ca/gmeow/bcp47Tag> "zh" .

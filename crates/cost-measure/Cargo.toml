@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-cost-measure"
 description = "Harness-scoped deterministic allocation-measurement allocator + measure() helper — bench/maint-harness ONLY, NEVER linked into the shipped gmeow CLI"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

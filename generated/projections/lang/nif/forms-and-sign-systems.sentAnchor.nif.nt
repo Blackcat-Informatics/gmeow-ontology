@@ -1,9 +1,0 @@
-<http://example.org/lang/nif/9209a4cd244918f8> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#anchorOf> "cats chase mice" .
-<http://example.org/lang/nif/9209a4cd244918f8> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#beginIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<http://example.org/lang/nif/9209a4cd244918f8> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#endIndex> "15"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<http://example.org/lang/nif/9209a4cd244918f8> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#referenceContext> <https://blackcatinformatics.ca/gmeow/examples/lang/english> .
-<http://example.org/lang/nif/9209a4cd244918f8> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#OffsetBasedString> .
-<http://example.org/lang/nif/9209a4cd244918f8> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#String> .
-<http://example.org/lang/nif/9209a4cd244918f8> <https://blackcatinformatics.ca/lang/offsetSpace> <https://blackcatinformatics.ca/lang/codepointOffset> .
-<http://example.org/lang/nif/9209a4cd244918f8> <https://blackcatinformatics.ca/lang/realizes> <https://blackcatinformatics.ca/gmeow/examples/lang/sentSurface> .
-<http://example.org/lang/nif/9209a4cd244918f8> <https://blackcatinformatics.ca/lang/unicodeNormalization> "NFC" .
