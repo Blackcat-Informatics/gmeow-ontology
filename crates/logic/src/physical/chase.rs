@@ -1139,9 +1139,26 @@ impl ChaseAdmission {
             // No existential to certify — weak acyclicity already handled this shape.
             return None;
         }
+        // Precompute each rule's frontier flows — (refined body positions, refined head
+        // positions) per frontier var — ONCE, instead of re-deriving them on every
+        // iteration of every existential's `move_set` fixpoint.
+        let precomputed_flows: Vec<Vec<(BTreeSet<Position>, Vec<Position>)>> = rules
+            .iter()
+            .map(|r| {
+                r.frontier_vars()
+                    .into_iter()
+                    .map(|v| {
+                        (
+                            refined_positions(&r.body, &v).into_iter().collect(),
+                            refined_positions(&r.head, &v),
+                        )
+                    })
+                    .collect()
+            })
+            .collect();
         let moves: Vec<BTreeSet<Position>> = existentials
             .iter()
-            .map(|(i, e)| move_set(rules, &rules[*i], e, &universe))
+            .map(|(i, e)| move_set(&precomputed_flows, &rules[*i], e, &universe))
             .collect();
 
         // Existential-dependency graph.
@@ -1253,12 +1270,15 @@ impl ChaseAdmission {
         }
 
         // Predicates and the constant domain (constants of Σ ∪ the special constant `*`).
+        // Dedup the constant domain directly on `TermValue` (no `term_display` String
+        // allocation per term), keeping `domain_terms` in deterministic first-seen order.
         let mut predicates: BTreeSet<String> = BTreeSet::new();
-        let mut domain_keys: BTreeSet<String> = BTreeSet::new();
+        let mut seen: std::collections::HashSet<purrdf::TermValue> =
+            std::collections::HashSet::new();
         let mut domain_terms: Vec<purrdf::TermValue> = Vec::new();
         {
             let star = purrdf::TermValue::iri(STAR);
-            domain_keys.insert(term_display(&star));
+            seen.insert(star.clone());
             domain_terms.push(star);
         }
         for r in rules {
@@ -1271,7 +1291,7 @@ impl ChaseAdmission {
                         EvalTerm::Var(_) => None,
                     };
                     if let Some(tv) = tv
-                        && domain_keys.insert(term_display(&tv))
+                        && seen.insert(tv.clone())
                     {
                         domain_terms.push(tv);
                     }
@@ -1341,15 +1361,27 @@ impl ChaseAdmission {
         }
         let critical_facts = store.row_count();
 
-        // Run the engine's own fixpoint. A non-stratifiable program or a budget/refusal
-        // is a conservative `None` (the ladder falls through to `Uncertified` → budget) —
-        // never a silent admit.
+        // Run the engine's own fixpoint under an explicit step budget. The MSA Datalog
+        // program is pure positive Datalog over a finite domain (the summarizing nulls are
+        // constants, never invented), so its least model is finite; the budget bounds the
+        // cost of a large authored program during `stage-reason`. A non-stratifiable
+        // program, an engine error, OR a budget cut is a conservative `None` (the ladder
+        // falls through to `Uncertified` → budget) — never a silent admit. Crucially, a
+        // budget-`Exhausted` run leaves a PARTIAL least model: a `dep(n,n)` edge it never
+        // reached would read as absent and MIS-certify, so `Exhausted` must REFUSE, never
+        // certify on an incomplete fixpoint.
+        let budget = (critical_facts as u64).saturating_mul(16).max(1 << 20);
         let executable =
             crate::physical::plan::compile_cached("gmeow-msa-critical-v1", program).executable?;
-        let facts = match crate::physical::seminaive::evaluate(store, executable.as_ref(), None) {
-            Ok(crate::physical::NativeOutcome::Decided(budgeted)) => budgeted.rows,
-            _ => return None,
-        };
+        let facts =
+            match crate::physical::seminaive::evaluate(store, executable.as_ref(), Some(budget)) {
+                Ok(crate::physical::NativeOutcome::Decided(budgeted))
+                    if matches!(budgeted.status, crate::seam::BudgetStatus::Ok) =>
+                {
+                    budgeted.rows
+                }
+                _ => return None,
+            };
 
         // The materialized dependency relation; MSA holds iff no null reaches itself.
         let mut dep: std::collections::BTreeMap<String, BTreeSet<String>> =
@@ -1450,8 +1482,13 @@ impl ChaseAdmission {
         }
     }
 
-    /// The certified-strength rank — explicit, NOT a derived `Ord`. Higher = broader
-    /// certified-terminating class on the ladder.
+    /// The **escalation-cost** rank — explicit, NOT a derived `Ord`, and NOT a
+    /// certificate-*strength* total order: it is the cheapest-first probing order
+    /// [`Self::certify`] escalates through (Uncertified < WA < JA < SWA < MSA by *cost*).
+    /// Certificate strength is only a PARTIAL order — JA and SWA are incomparable siblings
+    /// (neither certifies a superset of the other), so `rank` must not be used to decide
+    /// which of two certificates is stronger; the certificate-strength meet lives in
+    /// [`Self::meet_certified`] / [`Self::combine`].
     fn rank(&self) -> u8 {
         match self {
             Self::Uncertified { .. } => 0,
@@ -1462,10 +1499,49 @@ impl ChaseAdmission {
         }
     }
 
-    /// The lattice meet toward `Uncertified`: a program is admitted only when every
-    /// part is, so combining two admissions keeps the weaker (lower-ranked) one — and
-    /// when both parts are `Uncertified`, keeps EVERY violation so no termination-failure
-    /// diagnostic is lost to the meet.
+    /// The human-readable proof evidence a certified certificate carries (`None` for
+    /// `Uncertified`, which carries violations instead).
+    fn evidence(&self) -> Option<&str> {
+        match self {
+            Self::WeaklyAcyclic { evidence }
+            | Self::JointlyAcyclic { evidence }
+            | Self::SuperWeaklyAcyclic { evidence }
+            | Self::ModelSummarizingAcyclic { evidence } => Some(evidence),
+            Self::Uncertified { .. } => None,
+        }
+    }
+
+    /// The greatest lower bound of two **certified** classes in the certificate-strength
+    /// poset `WA ⊏ {JA ∥ SWA} ⊏ MSA`. The incomparable siblings JA and SWA meet to their
+    /// glb, `WeaklyAcyclic` — never a linearization to whichever the escalation probed
+    /// first; every other pair is comparable and meets to the lower (more conservative)
+    /// class by escalation rank.
+    fn meet_certified(lhs: Self, rhs: Self) -> Self {
+        match (&lhs, &rhs) {
+            (Self::JointlyAcyclic { .. }, Self::SuperWeaklyAcyclic { .. })
+            | (Self::SuperWeaklyAcyclic { .. }, Self::JointlyAcyclic { .. }) => {
+                Self::WeaklyAcyclic {
+                    evidence: format!(
+                        "meet of incomparable certificates [{}] and [{}] → greatest lower bound \
+                     weakly-acyclic",
+                        lhs.evidence().unwrap_or_default(),
+                        rhs.evidence().unwrap_or_default()
+                    ),
+                }
+            }
+            _ if lhs.rank() <= rhs.rank() => lhs,
+            _ => rhs,
+        }
+    }
+
+    /// The certificate-strength lattice **meet** — NOT a recertification of the rule-set
+    /// union (chase termination is not compositional under union; a caller needing a union
+    /// certificate must recertify the combined rules). A program is admitted only when
+    /// every part is, so an `Uncertified` part forces the whole to `Uncertified` (keeping
+    /// EVERY violation, merged/sorted/deduped, so no termination-failure diagnostic is lost
+    /// to the meet); two certified parts meet to their greatest lower bound
+    /// ([`Self::meet_certified`]) — in particular the incomparable JA∥SWA pair meets to
+    /// `WeaklyAcyclic`, never to whichever sibling was probed first.
     pub(crate) fn combine(self, other: Self) -> Self {
         match (self, other) {
             (
@@ -1479,13 +1555,10 @@ impl ChaseAdmission {
                 merged.dedup();
                 Self::Uncertified { violations: merged }
             }
-            (lhs, rhs) => {
-                if lhs.rank() <= rhs.rank() {
-                    lhs
-                } else {
-                    rhs
-                }
-            }
+            // Any Uncertified part forces the whole to Uncertified, keeping its violations.
+            (u @ Self::Uncertified { .. }, _) | (_, u @ Self::Uncertified { .. }) => u,
+            // Two certified classes: the greatest lower bound in the strength poset.
+            (lhs, rhs) => Self::meet_certified(lhs, rhs),
         }
     }
 }
@@ -1651,7 +1724,7 @@ fn move_contains(mv: &BTreeSet<Position>, p: &Position, universe: &BTreeSet<Posi
 /// null to `v`'s head positions).  Grows monotonically within the finite position
 /// universe, so the fixpoint terminates.
 fn move_set(
-    rules: &[ExistentialRule],
+    precomputed_flows: &[Vec<(BTreeSet<Position>, Vec<Position>)>],
     rule_i: &ExistentialRule,
     e: &str,
     universe: &BTreeSet<Position>,
@@ -1659,11 +1732,10 @@ fn move_set(
     let mut mv: BTreeSet<Position> = refined_positions(&rule_i.head, e).into_iter().collect();
     loop {
         let before = mv.len();
-        for r in rules {
-            for v in r.frontier_vars() {
-                let bpos = refined_positions(&r.body, &v);
+        for rule_flow in precomputed_flows {
+            for (bpos, hpos) in rule_flow {
                 if !bpos.is_empty() && bpos.iter().all(|p| move_contains(&mv, p, universe)) {
-                    mv.extend(refined_positions(&r.head, &v));
+                    mv.extend(hpos.iter().cloned());
                 }
             }
         }
@@ -1828,8 +1900,10 @@ fn swa_atoms_unify(
         return false;
     }
     let mut subst = std::collections::BTreeMap::new();
-    swa_unify_term(&subj_p.scoped("P!"), &subj_c.scoped("C!"), &mut subst)
-        && swa_unify_term(&obj_p.scoped("P!"), &obj_c.scoped("C!"), &mut subst)
+    // Terms arrive PRE-SCOPED by role (`build_swa_place_graph` scopes producer heads `P!`
+    // and consumer bodies `C!`), so the producer/consumer variable scopes are already
+    // disjoint here — no per-attempt re-scoping.
+    swa_unify_term(subj_p, subj_c, &mut subst) && swa_unify_term(obj_p, obj_c, &mut subst)
 }
 
 /// One (predicate, subject, object) atom in the Skolem-analysis view, tagged with the
@@ -1896,10 +1970,15 @@ fn build_swa_place_graph(
                         _ => {}
                     }
                 }
+                // Pre-scope the stored terms by role ONCE (producer heads `P!`, consumer
+                // bodies `C!`) so cross-rule unification never re-scopes per attempt. The
+                // within-rule frontier flow above keys on the UNSCOPED `subj`/`obj`, so it
+                // is unaffected.
+                let tag = if is_head { "P!" } else { "C!" };
                 out.push(SwaAtom {
                     predicate: atom.predicate.clone(),
-                    subject: subj,
-                    object: obj,
+                    subject: subj.scoped(tag),
+                    object: obj.scoped(tag),
                     subject_place: sp,
                     object_place: op,
                 });
@@ -1947,28 +2026,42 @@ fn build_swa_place_graph(
     }
 
     // Cross-rule flow: a producer head atom feeds a consumer body atom only when the
-    // Skolemized atoms unify (MGU with occurs-check).
+    // Skolemized atoms unify (MGU with occurs-check).  Group consumer body atoms by
+    // predicate so each producer only probes same-predicate candidates — swa_atoms_unify
+    // rejects a predicate mismatch immediately anyway, so this is O(H·B) → O(H·B_p) with
+    // identical edges (edges is a set, so candidate order is irrelevant to the result).
+    let mut body_by_pred: std::collections::BTreeMap<&str, Vec<&SwaAtom>> =
+        std::collections::BTreeMap::new();
+    for consumer in &body_atoms {
+        for b in consumer {
+            body_by_pred
+                .entry(b.predicate.as_str())
+                .or_default()
+                .push(b);
+        }
+    }
     for producer in &head_atoms {
         for a in producer {
-            for consumer in &body_atoms {
-                for b in consumer {
-                    if swa_atoms_unify(
-                        &a.predicate,
-                        &a.subject,
-                        &a.object,
-                        &b.predicate,
-                        &b.subject,
-                        &b.object,
-                    ) {
-                        edges
-                            .entry(a.subject_place)
-                            .or_default()
-                            .insert(b.subject_place);
-                        edges
-                            .entry(a.object_place)
-                            .or_default()
-                            .insert(b.object_place);
-                    }
+            let Some(candidates) = body_by_pred.get(a.predicate.as_str()) else {
+                continue;
+            };
+            for b in candidates {
+                if swa_atoms_unify(
+                    &a.predicate,
+                    &a.subject,
+                    &a.object,
+                    &b.predicate,
+                    &b.subject,
+                    &b.object,
+                ) {
+                    edges
+                        .entry(a.subject_place)
+                        .or_default()
+                        .insert(b.subject_place);
+                    edges
+                        .entry(a.object_place)
+                        .or_default()
+                        .insert(b.object_place);
                 }
             }
         }
@@ -2882,51 +2975,66 @@ mod tests {
     }
 
     #[test]
-    fn certify_lattice_combine_orders_the_new_classes() {
-        // The extended chain Uncertified ⊏ WA ⊏ JA ⊏ SWA ⊏ MSA is explicit (rank),
-        // and combine keeps the weaker (lower-ranked) element for every new pair —
-        // and all four certified classes admit_native.
+    fn certify_lattice_combine_is_the_strength_poset_meet() {
+        // combine is the certificate-STRENGTH lattice meet (glb) over the poset
+        // WA ⊏ {JA ∥ SWA} ⊏ MSA — NOT a linearization by escalation rank. The incomparable
+        // siblings JA and SWA meet to their glb, WeaklyAcyclic.
         let ev = |s: &str| s.to_owned();
-        let ladder = [
-            ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") },
-            ChaseAdmission::JointlyAcyclic { evidence: ev("ja") },
-            ChaseAdmission::SuperWeaklyAcyclic {
-                evidence: ev("swa"),
-            },
-            ChaseAdmission::ModelSummarizingAcyclic {
-                evidence: ev("msa"),
-            },
-        ];
-        for cert in &ladder {
+        let wa = || ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") };
+        let ja = || ChaseAdmission::JointlyAcyclic { evidence: ev("ja") };
+        let swa = || ChaseAdmission::SuperWeaklyAcyclic {
+            evidence: ev("swa"),
+        };
+        let msa = || ChaseAdmission::ModelSummarizingAcyclic {
+            evidence: ev("msa"),
+        };
+
+        for cert in [wa(), ja(), swa(), msa()] {
             assert!(
                 cert.admits_native(),
                 "every certified class admits: {cert:?}"
             );
         }
-        // Adjacent pairs: combine keeps the weaker (the lower rung).
-        for pair in ladder.windows(2) {
-            let (weak, strong) = (pair[0].clone(), pair[1].clone());
-            assert_eq!(
-                weak.clone().combine(strong.clone()),
-                weak.clone(),
-                "combine keeps the weaker (lower-ranked) certificate"
-            );
-            assert_eq!(
-                strong.combine(weak.clone()),
-                weak,
-                "combine is order-insensitive in which it keeps (the weaker)"
-            );
+
+        // Comparable pairs meet to the lower (more conservative) class, commutatively.
+        let comparable = [
+            (wa(), ja(), wa()),
+            (wa(), swa(), wa()),
+            (wa(), msa(), wa()),
+            (ja(), msa(), ja()),
+            (swa(), msa(), swa()),
+        ];
+        for (a, b, glb) in comparable {
+            assert_eq!(a.clone().combine(b.clone()), glb, "meet({a:?}, {b:?})");
+            assert_eq!(b.combine(a), glb, "meet is commutative");
         }
+
+        // The INCOMPARABLE siblings JA ∥ SWA meet to their glb, WeaklyAcyclic — never to
+        // JA (the escalation-cheaper sibling), which a rank linearization would give.
+        match ja().combine(swa()) {
+            ChaseAdmission::WeaklyAcyclic { evidence } => assert!(
+                evidence.contains("incomparable") && evidence.contains("greatest lower bound"),
+                "JA ∧ SWA glb evidence must record the incomparable meet: {evidence}"
+            ),
+            other => panic!("JA ∧ SWA must meet to WeaklyAcyclic (glb), got {other:?}"),
+        }
+        assert!(
+            matches!(swa().combine(ja()), ChaseAdmission::WeaklyAcyclic { .. }),
+            "the incomparable meet is commutative"
+        );
+        assert_ne!(
+            ja().combine(swa()),
+            ja(),
+            "combine must NOT linearize JA ∥ SWA to JointlyAcyclic"
+        );
+
         // Any certified class meets Uncertified down to Uncertified.
         let uncertified = ChaseAdmission::Uncertified {
             violations: vec![ev("v")],
         };
-        for cert in &ladder {
-            assert!(
-                !cert.clone().combine(uncertified.clone()).admits_native(),
-                "certified ∧ Uncertified = Uncertified (not admitted)"
-            );
-            assert!(!uncertified.clone().combine(cert.clone()).admits_native());
+        for cert in [wa(), ja(), swa(), msa()] {
+            assert!(!cert.clone().combine(uncertified.clone()).admits_native());
+            assert!(!uncertified.clone().combine(cert).admits_native());
         }
     }
 
