@@ -104,3 +104,9 @@ ep:ecVscIncomplete a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "A gmeow:VectorSpaceContract omitting its required comparability metric gmeow:distanceMetric violates the sh:minCount 1 derived from the gmeow:distanceMetric allValuesFrom carrier + its class-scoped ClosureEntry — shacl.MinCountConstraintComponent — so an effective space that cannot decide near-from-far is rejected. gmeow:distanceMetric, gmeow:embeddingDimensions, and gmeow:normalizationKind (space) plus gmeow:embeddingModel (family) are the individually-required core; the remaining contract components are declared, not individually required. The live SPARQL twin vsc-incomplete.rq exercises the same invariant in tests/competency.ttl." .
+
+ep:ecSurfaceDigestOmitted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-surface-digest-omitted.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProfileSurface omitting a required shared-referent digest (here the manifest surface lacks gmeow:recordsTargetTableDigest) violates the sh:minCount 1 derived from that records*Digest allValuesFrom carrier + its class-scoped ClosureEntry — shacl.MinCountConstraintComponent. Every surface must record all three digests individually, so a container/manifest pair can no longer dodge gmeow:ProfileTargetTableAgreementConstraint (or its source/model siblings) by one surface omitting the compared value. The live SPARQL twin surface-digest-omitted.rq exercises the same invariant in tests/competency.ttl." .

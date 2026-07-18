@@ -1082,12 +1082,27 @@ gmeow:ProfileSurface
             a logic:Restriction ;
             logic:onProperty gmeow:profileSurfaceKind ;
             logic:allValuesFrom gmeow:ProfileSurfaceKind ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:recordsSourceDigest ;
+            logic:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:recordsModelContractDigest ;
+            logic:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:recordsTargetTableDigest ;
+            logic:allValuesFrom rdfs:Literal ;
         ] ;
-    skos:definition "A view of an embedding projection that records the digests of the referents it shares with its siblings — either the container view (gmeow:surfaceContainer, the digests as the packaged .purremb container carries them) or the sidecar-manifest view (gmeow:surfaceManifest, the digests as the accompanying manifest declares them). The two views of one projection MUST agree on the source-pack, model-contract, and target-table digests (gmeow:ProfileSourceDigestAgreementConstraint and its siblings); disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
+    skos:definition "A view of an embedding projection that records the digests of the referents it shares with its siblings — either the container view (gmeow:surfaceContainer, the digests as the packaged .purremb container carries them) or the sidecar-manifest view (gmeow:surfaceManifest, the digests as the accompanying manifest declares them). Every surface MUST record all three shared-referent digests INDIVIDUALLY (gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, gmeow:recordsTargetTableDigest are each required), so a surface that exists cannot dodge the agreement check by omitting a digest. The two views of one projection MUST agree on the source-pack, model-contract, and target-table digests (gmeow:ProfileSourceDigestAgreementConstraint and its siblings); disagreement is a HARD FAIL, never a heuristic reconciliation."@x-gmeow-english ;
     skos:example "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"sha256:aa02…\" ; gmeow:recordsModelContractDigest \"sha256:9ab3…\" ; gmeow:recordsTargetTableDigest \"sha256:7d21…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as the projection itself (it is a digest-recording VIEW of a projection) and avoid letting a container and a manifest surface of one projection disagree on any recorded digest — that is a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type each digest-recording view gmeow:ProfileSurface, bind it to its projection with gmeow:profileSurfaceOf, classify it gmeow:surfaceContainer or gmeow:surfaceManifest with gmeow:profileSurfaceKind, and record the three shared-referent digests with gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, and gmeow:recordsTargetTableDigest."@x-gmeow-english ;
+    gmeow:howToUse "Type each digest-recording view gmeow:ProfileSurface, bind it to its projection with gmeow:profileSurfaceOf, classify it gmeow:surfaceContainer or gmeow:surfaceManifest with gmeow:profileSurfaceKind, and record ALL THREE shared-referent digests — each individually required — with gmeow:recordsSourceDigest, gmeow:recordsModelContractDigest, and gmeow:recordsTargetTableDigest; a surface omitting any of the three is itself invalid."@x-gmeow-english ;
     gmeow:useWhen "Use for the container or sidecar-manifest view of a projection that records the shared-referent digests whose container/manifest agreement the profile-surface constraints enforce."@x-gmeow-english .
 
 gmeow:ProfileSurfaceKind
@@ -1247,6 +1262,12 @@ gmeow:SimilarityObservation logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:TargetSet ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/profileSurfaceOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/profileSurfaceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+# Every existing surface must state all three shared-referent digests individually, so
+# a container/manifest pair can never dodge the agreement constraints by one surface
+# omitting a compared records*Digest — omission is itself invalid (sh:minCount 1).
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recordsSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recordsModelContractDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProfileSurface ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recordsTargetTableDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ExternalBinding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/declassifies" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DeclassificationAct ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasGeneratedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
