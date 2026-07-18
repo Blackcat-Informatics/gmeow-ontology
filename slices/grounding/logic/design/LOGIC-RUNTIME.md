@@ -205,6 +205,17 @@ query narrow; **incremental maintenance** keeps the fixed-contract positive-Data
 under signed edits without a full re-chase. Uncovered fragments are explicit perf-ledger rows,
 never an unnamed slow path.
 
+That incremental maintainer has a stable public promotion. Where the
+[`EngineContract`](#the-native-physical-engine--execution-and-optimization) is the *identity*
+surface a consumer pins to detect engine drift, the **`ReasoningSession`** is its **operational
+(stateful) sibling** — the surface a consumer pins to *maintain* a reasoned closure across a stream
+of authorized edits, checkpoint it, and restore it deterministically. It promotes this
+finite-positive-binary-Datalog maintainer into a `gmeow_logic::runtime` façade with a seven-axis
+content-addressed identity (strictly finer than the engine descriptor, which it folds in), a
+hash-linked transition journal, and a total six-way operation outcome. Its full specification —
+identity axes, the two delta anchors, suppression-not-erasure, checkpoints, and semver governance —
+is in [LOGIC-SESSION.md](LOGIC-SESSION.md).
+
 ### The seam data contract
 
 The blackboard is a *typed* data contract, not an ad-hoc dump. Every materialized quad carries its
