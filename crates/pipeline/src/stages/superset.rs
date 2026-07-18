@@ -1574,7 +1574,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            388,
+            392,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1712,7 +1712,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             .filter(|p| p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
             .map(String::as_str)
             .collect();
-        assert_eq!(profiles.len(), 7, "profiles family membership drifted");
+        assert_eq!(profiles.len(), 8, "profiles family membership drifted");
         assert_eq!(edoal.len(), 47, "edoal family membership drifted");
 
         // Equal authored/derived over the derivable families passes.
