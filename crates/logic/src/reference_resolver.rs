@@ -273,7 +273,7 @@ impl<'a> ResolveState<'a> {
                     QTerm::Var(root) => root,
                     QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => var,
                 };
-                new_subst.insert(root, crate::physical::emit_integer_surface(value));
+                new_subst.insert(root, crate::physical::emit_surface(&value));
                 self.resolve_conjunct(rest, &new_subst, seen)
             }
             crate::physical::BuiltinOutcome::Unbound

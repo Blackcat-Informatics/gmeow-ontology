@@ -62,7 +62,7 @@ use std::collections::{BTreeSet, HashMap};
 use hashbrown::HashTable;
 use rayon::prelude::*;
 
-use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
+use crate::physical::builtin_eval::{BuiltinOutcome, emit_surface, eval as eval_builtin};
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::{RowId, TermId};
 use crate::physical::plan::{
@@ -1448,7 +1448,7 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
                 BuiltinOutcome::Filter(true) => {}
                 BuiltinOutcome::Filter(false) => continue 'next_sol,
                 BuiltinOutcome::Generate { var, value } => {
-                    sol.bindings.push((var, emit_integer_surface(value)));
+                    sol.bindings.push((var, emit_surface(&value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
                     // A single unbound operand / domain error refuses the WHOLE program,

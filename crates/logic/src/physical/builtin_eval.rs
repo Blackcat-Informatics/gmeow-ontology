@@ -17,10 +17,16 @@
 //! `None` when unbound) and interprets the returned [`BuiltinOutcome`] in its own
 //! control flow.
 //!
-//! Evaluation is over checked `i64`. Integer division `//` truncates toward zero
-//! (ISO `//`, matching the captured SLD semantics), and `=:=` is numeric value
-//! equality, never structural unification. A value that cannot be computed is a
-//! first-class declared gap ([`BuiltinOutcome::Unbound`]) or domain/precision
+//! Values flow through an exact-numeric **value tower** ([`Value`]): dimensionless
+//! machine integers ([`Value::Int`]) and exact rationals ([`Value::Rat`]), the SI
+//! dimension vector ([`Value::Dim`]) and dimensioned rationals ([`Value::Quantity`]).
+//! Integer evaluation is over checked `i64`: integer division `//` truncates toward
+//! zero (ISO `//`, matching the captured SLD semantics), and `=:=` is numeric value
+//! equality, never structural unification. The exact-ℚ arithmetic kernel
+//! ([`q_add`], [`q_sub`], [`q_mul`], [`q_div`]) is carried here for the rational /
+//! quantity dispatch wired on the next rungs; the integer path is unchanged and
+//! commits every computed answer as [`Value::Int`]. A value that cannot be computed
+//! is a first-class declared gap ([`BuiltinOutcome::Unbound`]) or domain/precision
 //! error ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
@@ -32,6 +38,24 @@ use std::borrow::Cow;
 /// the captured SLD reference renders, so a generated value reads back like a
 /// materialized typed literal.
 pub(crate) const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+/// Engine-internal transport datatype tag for an exact rational [`Value::Rat`].
+///
+/// This is a *transport* tag for carrying a computed value between native
+/// engines through the string-surface substitution channel — **not** a persisted
+/// ontology datatype. Its lexical form is `num/den` with the sign in the
+/// numerator and `den > 0`.
+const XSD_RATIONAL_TRANSPORT: &str = "urn:gmeow:transport:rational";
+
+/// Engine-internal transport datatype tag for an SI dimension vector
+/// [`Value::Dim`]. Lexical form: the seven rational exponents in fixed SI order,
+/// comma-separated (`n0/d0,n1/d1,…,n6/d6`).
+const XSD_DIMENSION_TRANSPORT: &str = "urn:gmeow:transport:dimension";
+
+/// Engine-internal transport datatype tag for a dimensioned rational
+/// [`Value::Quantity`]. Lexical form: the scalar rational, a `;`, then the seven
+/// dimension exponents (`num/den;n0/d0,…,n6/d6`).
+const XSD_QUANTITY_TRANSPORT: &str = "urn:gmeow:transport:quantity";
 
 /// Render an `i64` as the canonical typed-integer literal surface
 /// `"N"^^<…#integer>` — the single shared helper every producer of a computed
@@ -60,24 +84,217 @@ fn parse_integer_surface(surface: &str) -> Option<i64> {
     surface.parse::<i64>().ok()
 }
 
+/// Greatest common divisor of two **non-negative** `i64`s by Euclid's algorithm.
+///
+/// Every caller passes magnitudes (a `checked_abs` result or an already-positive
+/// denominator), so `a % b` never underflows and the result is non-negative.
+const fn gcd_i64(mut a: i64, mut b: i64) -> i64 {
+    while b != 0 {
+        let t = a % b;
+        a = b;
+        b = t;
+    }
+    a
+}
+
+/// An exact rational number over checked `i64` numerator / denominator.
+///
+/// **Invariant (upheld by construction):** the value is always in lowest terms —
+/// `den > 0` and `gcd(|num|, den) == 1`. Every value is produced through
+/// [`q_normalize`] (via [`Rational::new`] and the arithmetic kernel), so no path
+/// can store an unnormalized form. Consequently the derived `PartialEq` / `Eq` /
+/// `Hash` are canonical: `Rational::new(1, 2)` and `Rational::new(2, 4)` are equal
+/// **and** hash-equal because both normalize to `(1, 2)`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct Rational {
+    /// Signed numerator (carries the sign of the whole value).
+    num: i64,
+    /// Strictly positive denominator, coprime with `|num|`.
+    den: i64,
+}
+
+impl Rational {
+    /// The rational `0` in canonical `0/1` form.
+    const ZERO: Rational = Rational { num: 0, den: 1 };
+
+    /// Construct a normalized rational from a raw `num/den`, or a declared error.
+    ///
+    /// `den == 0` is [`BuiltinError::ZeroDenominator`]; any `i64::MIN` sign-flip
+    /// or magnitude that cannot be represented is [`BuiltinError::Overflow`]
+    /// (never a panic).
+    pub(crate) fn new(num: i64, den: i64) -> Result<Rational, BuiltinError> {
+        q_normalize(num, den)
+    }
+}
+
+/// Normalize a raw `num/den` to lowest terms with `den > 0`.
+///
+/// The sign is carried into the numerator; the denominator is made strictly
+/// positive; both are divided by `gcd(|num|, den)`. `den == 0` is a
+/// [`BuiltinError::ZeroDenominator`]. Because normalization needs the numerator's
+/// magnitude and (for a negative denominator) its negation, an `i64::MIN` input
+/// on either side has no representable normal form and is reported as
+/// [`BuiltinError::Overflow`] rather than wrapping or panicking.
+fn q_normalize(num: i64, den: i64) -> Result<Rational, BuiltinError> {
+    if den == 0 {
+        return Err(BuiltinError::ZeroDenominator);
+    }
+    // Carry the sign in the numerator and force a positive denominator; negating
+    // `i64::MIN` is unrepresentable → overflow.
+    let (num, den) = if den < 0 {
+        (
+            num.checked_neg().ok_or(BuiltinError::Overflow)?,
+            den.checked_neg().ok_or(BuiltinError::Overflow)?,
+        )
+    } else {
+        (num, den)
+    };
+    // `den` is now > 0; the gcd needs the numerator's magnitude, so `i64::MIN`
+    // (whose magnitude overflows `i64`) is an overflow.
+    let g = gcd_i64(num.checked_abs().ok_or(BuiltinError::Overflow)?, den);
+    // `g >= 1` because `den > 0`, and it divides both operands exactly.
+    Ok(Rational {
+        num: num / g,
+        den: den / g,
+    })
+}
+
+/// Exact rational addition (or subtraction when `subtract`), cross-cancelling the
+/// denominators' gcd before multiplying to delay overflow.
+fn q_addsub(lhs: &Rational, rhs: &Rational, subtract: bool) -> Result<Rational, BuiltinError> {
+    // Both denominators are > 0. Reduce by their gcd so the common denominator is
+    // their lcm rather than the full product.
+    let g = gcd_i64(lhs.den, rhs.den);
+    let lhs_scale = rhs.den / g; // lcm / lhs.den
+    let rhs_scale = lhs.den / g; // lcm / rhs.den
+    let left = lhs
+        .num
+        .checked_mul(lhs_scale)
+        .ok_or(BuiltinError::Overflow)?;
+    let right = rhs
+        .num
+        .checked_mul(rhs_scale)
+        .ok_or(BuiltinError::Overflow)?;
+    let num = if subtract {
+        left.checked_sub(right)
+    } else {
+        left.checked_add(right)
+    }
+    .ok_or(BuiltinError::Overflow)?;
+    let den = lhs
+        .den
+        .checked_mul(lhs_scale)
+        .ok_or(BuiltinError::Overflow)?;
+    q_normalize(num, den)
+}
+
+/// Exact rational addition. Part of the shared checked-ℚ kernel consumed by the
+/// rational / quantity dispatch wired on the next rungs.
+#[allow(dead_code)] // producer: Task-2 rational/quantity arithmetic dispatch.
+fn q_add(lhs: &Rational, rhs: &Rational) -> Result<Rational, BuiltinError> {
+    q_addsub(lhs, rhs, false)
+}
+
+/// Exact rational subtraction. Part of the shared checked-ℚ kernel consumed by
+/// the rational / quantity dispatch wired on the next rungs.
+#[allow(dead_code)] // producer: Task-2 rational/quantity arithmetic dispatch.
+fn q_sub(lhs: &Rational, rhs: &Rational) -> Result<Rational, BuiltinError> {
+    q_addsub(lhs, rhs, true)
+}
+
+/// Exact rational multiplication with cross-cancellation of `gcd(a, d)` and
+/// `gcd(c, b)` for `a/b · c/d` before multiplying, to delay overflow. Part of the
+/// shared checked-ℚ kernel consumed by the dispatch wired on the next rungs.
+#[allow(dead_code)] // producer: Task-2 rational/quantity arithmetic dispatch.
+fn q_mul(lhs: &Rational, rhs: &Rational) -> Result<Rational, BuiltinError> {
+    // Cross-cancel: gcd(lhs.num, rhs.den) and gcd(rhs.num, lhs.den). Magnitudes
+    // are needed for the gcd, so an `i64::MIN` numerator is an overflow.
+    let g1 = gcd_i64(
+        lhs.num.checked_abs().ok_or(BuiltinError::Overflow)?,
+        rhs.den,
+    );
+    let g2 = gcd_i64(
+        rhs.num.checked_abs().ok_or(BuiltinError::Overflow)?,
+        lhs.den,
+    );
+    let num = (lhs.num / g1)
+        .checked_mul(rhs.num / g2)
+        .ok_or(BuiltinError::Overflow)?;
+    let den = (lhs.den / g2)
+        .checked_mul(rhs.den / g1)
+        .ok_or(BuiltinError::Overflow)?;
+    q_normalize(num, den)
+}
+
+/// Exact rational division. Division by the zero rational is
+/// [`BuiltinError::ZeroDivisor`]. Part of the shared checked-ℚ kernel consumed by
+/// the dispatch wired on the next rungs.
+#[allow(dead_code)] // producer: Task-2 rational/quantity arithmetic dispatch.
+fn q_div(lhs: &Rational, rhs: &Rational) -> Result<Rational, BuiltinError> {
+    if rhs.num == 0 {
+        return Err(BuiltinError::ZeroDivisor);
+    }
+    // Reciprocal of a normalized rational: `den / num`, re-normalized to restore
+    // the positive-denominator invariant (and to guard an `i64::MIN` sign-flip).
+    let reciprocal = q_normalize(rhs.den, rhs.num)?;
+    q_mul(lhs, &reciprocal)
+}
+
+/// The exact-numeric value tower carried between native engines.
+///
+/// [`Value::Int`] and [`Value::Rat`] are the dimensionless fast / exact variants
+/// (no `[Rational; 7]` allocation). [`Value::Dim`] is the ℚ⁷ SI exponent vector
+/// (in fixed SI base-quantity order) and [`Value::Quantity`] is a dimensioned
+/// rational (scalar magnitude paired with its dimension vector). Every stored
+/// [`Rational`] is normalized, so the derived `Eq` / `Hash` are canonical.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) enum Value {
+    /// A dimensionless machine integer (the integer fast path).
+    Int(i64),
+    /// A dimensionless exact rational.
+    Rat(Rational),
+    /// An SI dimension vector: seven rational exponents in fixed base order.
+    Dim([Rational; 7]),
+    /// A dimensioned rational: a scalar magnitude with its dimension vector.
+    Quantity(Rational, [Rational; 7]),
+}
+
 /// The resolved binding state of a single builtin operand.
 enum Operand {
-    /// The operand is bound to an integer value.
-    Num(i64),
+    /// The operand is bound to a value in the tower.
+    Bound(Value),
     /// The operand is a variable with no binding under the current substitution.
     Unbound,
-    /// The operand is bound to a surface that is not an integer.
+    /// The operand is bound to a surface that is not a number.
     NonNumeric,
 }
 
 /// A domain / precision error raised while computing a builtin — routed by the
-/// caller to a declared gap, never surfaced as a wrong answer.
+/// caller to a declared gap, never surfaced as a wrong answer. Each arm anchors a
+/// `math:` failure class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BuiltinError {
-    /// Integer division / remainder by zero (the oracle raises `zero_divisor`).
+    /// Integer division / remainder by zero, or division by the zero rational
+    /// (the oracle raises `zero_divisor`). Anchors `math:ZeroDivisor`.
     ZeroDivisor,
-    /// A computation overflowed the machine integer (the oracle uses a bignum).
+    /// A computation overflowed the machine integer (the oracle uses a bignum),
+    /// including an unrepresentable `i64::MIN` magnitude / sign-flip during
+    /// rational normalization. Anchors `math:Overflow`.
     Overflow,
+    /// A rational was constructed with a zero denominator. Anchors
+    /// `math:ZeroDenominator`.
+    ZeroDenominator,
+    /// Two quantities of incompatible SI dimension were combined additively.
+    /// Anchors `math:DimensionalInhomogeneity`.
+    #[allow(dead_code)] // producer: Task-2 dimensioned (quantity) arithmetic dispatch.
+    DimensionMismatch,
+    /// A dimension-vector transport was not well-formed (wrong arity or an
+    /// unparsable exponent). Anchors `math:MalformedDimension`.
+    MalformedDimension,
+    /// A bilinear form / Gram matrix presented for evaluation was not symmetric.
+    /// Anchors `math:AsymmetricGramMatrix`.
+    #[allow(dead_code)] // producer: Task-3 bilinear-form (Gram matrix) evaluation.
+    AsymmetricForm,
 }
 
 /// The outcome of moded builtin evaluation against a partial substitution.
@@ -89,8 +306,8 @@ pub(crate) enum BuiltinOutcome {
     Generate {
         /// The name of the (previously free) target variable.
         var: String,
-        /// The computed integer value.
-        value: i64,
+        /// The computed value, carried in the exact-numeric tower.
+        value: Value,
     },
     /// An operand needed for evaluation is still unbound — a declared mode gap
     /// (the caller declines rather than guessing).
@@ -99,21 +316,135 @@ pub(crate) enum BuiltinOutcome {
     Error(BuiltinError),
 }
 
+/// Split a `"lex"^^<datatype>` typed-literal surface into `(lexical, datatype)`.
+///
+/// Returns `None` for any surface that is not a typed literal. The transport
+/// lexical forms produced by [`emit_surface`] contain no `"` characters, so the
+/// closing-quote split is unambiguous.
+fn split_typed_literal(surface: &str) -> Option<(&str, &str)> {
+    let rest = surface.strip_prefix('"')?;
+    let (lex, tag) = rest.split_once('"')?;
+    let datatype = tag.strip_prefix("^^<")?.strip_suffix('>')?;
+    Some((lex, datatype))
+}
+
+/// Render a normalized rational as its transport lexical form `num/den`.
+fn emit_rational_lex(r: &Rational) -> String {
+    format!("{}/{}", r.num, r.den)
+}
+
+/// Render a seven-dimension SI exponent vector as its transport lexical form
+/// `n0/d0,n1/d1,…,n6/d6` (fixed SI base order).
+fn emit_dimension_lex(dim: &[Rational; 7]) -> String {
+    let mut out = String::new();
+    for (i, r) in dim.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        out.push_str(&emit_rational_lex(r));
+    }
+    out
+}
+
+/// Emit a [`Value`] to its bound surface for transport between native engines.
+///
+/// [`Value::Int`] uses the canonical `xsd:integer` surface (byte-identical to
+/// [`emit_integer_surface`]); the rational / dimension / quantity variants use
+/// their pinned engine-internal transport tags.
+pub(crate) fn emit_surface(value: &Value) -> String {
+    match value {
+        Value::Int(n) => emit_integer_surface(*n),
+        Value::Rat(r) => format!("\"{}\"^^<{XSD_RATIONAL_TRANSPORT}>", emit_rational_lex(r)),
+        Value::Dim(dim) => {
+            format!(
+                "\"{}\"^^<{XSD_DIMENSION_TRANSPORT}>",
+                emit_dimension_lex(dim)
+            )
+        }
+        Value::Quantity(scalar, dim) => format!(
+            "\"{};{}\"^^<{XSD_QUANTITY_TRANSPORT}>",
+            emit_rational_lex(scalar),
+            emit_dimension_lex(dim)
+        ),
+    }
+}
+
+/// Parse a rational transport lexical form `num/den` back to a [`Rational`].
+///
+/// Returns `None` for a surface that is not a well-formed rational transport (a
+/// domain value that is not one of ours); a well-formed but numerically invalid
+/// form (zero denominator / overflow) also declines rather than fabricating.
+fn parse_rational_lex(lex: &str) -> Option<Rational> {
+    let (num, den) = lex.split_once('/')?;
+    let num = num.parse::<i64>().ok()?;
+    let den = den.parse::<i64>().ok()?;
+    Rational::new(num, den).ok()
+}
+
+/// Parse a dimension transport lexical form (seven comma-separated exponents).
+///
+/// A wrong arity or an unparsable exponent is [`BuiltinError::MalformedDimension`]
+/// — the transport is engine-internal, so a form carrying our dimension tag that
+/// does not decode is corruption, not an ordinary domain value.
+fn parse_dimension_lex(lex: &str) -> Result<[Rational; 7], BuiltinError> {
+    let mut exponents = lex.split(',');
+    let mut dim = [Rational::ZERO; 7];
+    for slot in dim.iter_mut() {
+        let token = exponents.next().ok_or(BuiltinError::MalformedDimension)?;
+        *slot = parse_rational_lex(token).ok_or(BuiltinError::MalformedDimension)?;
+    }
+    if exponents.next().is_some() {
+        // More than seven exponents — a malformed dimension.
+        return Err(BuiltinError::MalformedDimension);
+    }
+    Ok(dim)
+}
+
+/// Parse a quantity transport lexical form `num/den;n0/d0,…,n6/d6`.
+fn parse_quantity_lex(lex: &str) -> Result<Value, BuiltinError> {
+    let (scalar_lex, dim_lex) = lex
+        .split_once(';')
+        .ok_or(BuiltinError::MalformedDimension)?;
+    let scalar = parse_rational_lex(scalar_lex).ok_or(BuiltinError::MalformedDimension)?;
+    let dim = parse_dimension_lex(dim_lex)?;
+    Ok(Value::Quantity(scalar, dim))
+}
+
+/// Parse a bound surface into a [`Value`], or `None` if it is not numeric.
+///
+/// An `xsd:integer` surface becomes [`Value::Int`] exactly as before; each
+/// engine-internal transport tag decodes to its tower variant. A malformed
+/// transport (carrying our tag but not decoding) declines to `None` — it is
+/// routed to a non-numeric filter-failure rather than a wrong answer.
+fn parse_value_surface(surface: &str) -> Option<Value> {
+    if let Some(n) = parse_integer_surface(surface) {
+        return Some(Value::Int(n));
+    }
+    let (lex, datatype) = split_typed_literal(surface)?;
+    match datatype {
+        XSD_RATIONAL_TRANSPORT => parse_rational_lex(lex).map(Value::Rat),
+        XSD_DIMENSION_TRANSPORT => parse_dimension_lex(lex).ok().map(Value::Dim),
+        XSD_QUANTITY_TRANSPORT => parse_quantity_lex(lex).ok(),
+        _ => None,
+    }
+}
+
 /// Resolve one operand `term` to its binding state under `lookup`.
 fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, str>>) -> Operand {
     match term {
-        QTerm::Num(n) => Operand::Num(*n),
+        QTerm::Num(n) => Operand::Bound(Value::Int(*n)),
         QTerm::Var(v) => match lookup(v) {
             None => Operand::Unbound,
-            Some(surface) => match parse_integer_surface(&surface) {
-                Some(n) => Operand::Num(n),
+            Some(surface) => match parse_value_surface(&surface) {
+                Some(value) => Operand::Bound(value),
                 None => Operand::NonNumeric,
             },
         },
         // A bare `Const` surface may still be a typed integer literal (e.g. a fact
-        // object materialized as `"3"^^<…#integer>`); otherwise it is non-numeric.
-        QTerm::Const(c) => match parse_integer_surface(c) {
-            Some(n) => Operand::Num(n),
+        // object materialized as `"3"^^<…#integer>`) or an engine transport;
+        // otherwise it is non-numeric.
+        QTerm::Const(c) => match parse_value_surface(c) {
+            Some(value) => Operand::Bound(value),
             None => Operand::NonNumeric,
         },
         // A structured (function-symbol) operand is never a number; it is routed to the
@@ -167,11 +498,11 @@ pub(crate) fn eval<'a>(
             op,
             rhs,
         } => {
-            // Both operands must be bound integers to compute; anything else is a
-            // declared mode gap (a non-numeric operand is a type
-            // error, which we decline rather than guess).
+            // Both operands must be bound integers to compute on the integer path;
+            // anything else (unbound, non-numeric, or a not-yet-dispatched
+            // rational/dimension/quantity) is a declared mode gap.
             let (l, r) = match (resolve_operand(lhs, lookup), resolve_operand(rhs, lookup)) {
-                (Operand::Num(l), Operand::Num(r)) => (l, r),
+                (Operand::Bound(Value::Int(l)), Operand::Bound(Value::Int(r))) => (l, r),
                 _ => return BuiltinOutcome::Unbound,
             };
             let value = match apply_arith(l, *op, r) {
@@ -185,7 +516,7 @@ pub(crate) fn eval<'a>(
                 QTerm::Var(v) => match lookup(v) {
                     None => BuiltinOutcome::Generate {
                         var: v.clone(),
-                        value,
+                        value: Value::Int(value),
                     },
                     Some(surface) => match parse_integer_surface(&surface) {
                         Some(t) => BuiltinOutcome::Filter(t == value),
@@ -203,10 +534,10 @@ pub(crate) fn eval<'a>(
         }
         QBuiltin::Compare { lhs, op, rhs } => {
             match (resolve_operand(lhs, lookup), resolve_operand(rhs, lookup)) {
-                (Operand::Num(l), Operand::Num(r)) => {
+                (Operand::Bound(Value::Int(l)), Operand::Bound(Value::Int(r))) => {
                     BuiltinOutcome::Filter(apply_compare(l, *op, r))
                 }
-                // Either operand unbound or non-numeric → cannot compare; gap.
+                // Either operand unbound, non-numeric, or not yet dispatched → gap.
                 _ => BuiltinOutcome::Unbound,
             }
         }
@@ -248,6 +579,15 @@ mod tests {
         QBuiltin::Compare { lhs, op, rhs }
     }
 
+    /// A generator outcome binding `var` to `Value::Int(value)` — the integer
+    /// commit form, unchanged across the carrier generalization.
+    fn gen_int(var: &str, value: i64) -> BuiltinOutcome {
+        BuiltinOutcome::Generate {
+            var: var.to_owned(),
+            value: Value::Int(value),
+        }
+    }
+
     // ── surface round-trip ──────────────────────────────────────────────────
 
     #[test]
@@ -283,13 +623,7 @@ mod tests {
         // N is M + 1, M = 2, N free → Generate N = 3.
         let lookup = env(&[("M", "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>")]);
         let b = is(var("N"), var("M"), ArithOp::Add, QTerm::Num(1));
-        assert_eq!(
-            eval(&b, &lookup),
-            BuiltinOutcome::Generate {
-                var: "N".to_owned(),
-                value: 3
-            }
-        );
+        assert_eq!(eval(&b, &lookup), gen_int("N", 3));
     }
 
     #[test]
@@ -297,13 +631,7 @@ mod tests {
         // X is 6 // 4 → 1 (truncation), X free.
         let lookup = env(&[]);
         let b = is(var("X"), QTerm::Num(6), ArithOp::Div, QTerm::Num(4));
-        assert_eq!(
-            eval(&b, &lookup),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: 1
-            }
-        );
+        assert_eq!(eval(&b, &lookup), gen_int("X", 1));
     }
 
     // ── filter mode (bound target) ──────────────────────────────────────────
@@ -373,20 +701,14 @@ mod tests {
                 &is(var("X"), QTerm::Num(-7), ArithOp::Div, QTerm::Num(2)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -3
-            }
+            gen_int("X", -3)
         );
         assert_eq!(
             eval(
                 &is(var("X"), QTerm::Num(7), ArithOp::Div, QTerm::Num(-2)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -3
-            }
+            gen_int("X", -3)
         );
     }
 
@@ -398,20 +720,14 @@ mod tests {
                 &is(var("X"), QTerm::Num(-7), ArithOp::Sub, QTerm::Num(-1)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -6
-            }
+            gen_int("X", -6)
         );
         assert_eq!(
             eval(
                 &is(var("X"), QTerm::Num(-3), ArithOp::Mul, QTerm::Num(4)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -12
-            }
+            gen_int("X", -12)
         );
     }
 
@@ -477,6 +793,152 @@ mod tests {
         assert_eq!(
             eval(&cmp(var("A"), CmpOp::Eq, var("B")), &lookup),
             BuiltinOutcome::Filter(true)
+        );
+    }
+
+    // ── Rational: normalization, sign, canonical Eq/Hash ────────────────────
+
+    fn rat(num: i64, den: i64) -> Rational {
+        Rational::new(num, den).expect("well-formed rational")
+    }
+
+    fn hash_of(r: &Rational) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        r.hash(&mut h);
+        h.finish()
+    }
+
+    #[test]
+    fn rational_normalizes_to_lowest_terms() {
+        // 2/4 reduces to 1/2, and both forms are equal AND hash-equal.
+        let half = rat(1, 2);
+        let two_quarters = rat(2, 4);
+        assert_eq!(half.num, 1);
+        assert_eq!(half.den, 2);
+        assert_eq!(two_quarters.num, 1, "no unnormalized numerator is stored");
+        assert_eq!(two_quarters.den, 2, "no unnormalized denominator is stored");
+        assert_eq!(half, two_quarters);
+        assert_eq!(hash_of(&half), hash_of(&two_quarters));
+    }
+
+    #[test]
+    fn rational_carries_sign_in_numerator_with_positive_denominator() {
+        // 1/-2 normalizes to (-1)/2 with a positive denominator.
+        let r = rat(1, -2);
+        assert_eq!(r.num, -1);
+        assert_eq!(r.den, 2);
+        // -3/-6 → 1/2 (sign cancels, reduced).
+        let s = rat(-3, -6);
+        assert_eq!(s.num, 1);
+        assert_eq!(s.den, 2);
+        // 0/5 → 0/1 canonical zero.
+        let z = rat(0, 5);
+        assert_eq!(z.num, 0);
+        assert_eq!(z.den, 1);
+        assert_eq!(z, Rational::ZERO);
+    }
+
+    #[test]
+    fn rational_zero_denominator_is_error() {
+        assert_eq!(Rational::new(1, 0), Err(BuiltinError::ZeroDenominator));
+        assert_eq!(Rational::new(0, 0), Err(BuiltinError::ZeroDenominator));
+    }
+
+    #[test]
+    fn rational_i64_min_sign_flip_is_overflow_not_panic() {
+        // A negative denominator forces a sign-flip of i64::MIN → unrepresentable.
+        assert_eq!(Rational::new(1, i64::MIN), Err(BuiltinError::Overflow));
+        // A numerator magnitude of i64::MIN is likewise unrepresentable.
+        assert_eq!(Rational::new(i64::MIN, 1), Err(BuiltinError::Overflow));
+        assert_eq!(Rational::new(i64::MIN, 4), Err(BuiltinError::Overflow));
+    }
+
+    // ── checked-ℚ kernel ────────────────────────────────────────────────────
+
+    #[test]
+    fn kernel_add_sub_mul_div_exact() {
+        // 1/2 + 1/3 = 5/6.
+        assert_eq!(q_add(&rat(1, 2), &rat(1, 3)), Ok(rat(5, 6)));
+        // 1/2 - 1/3 = 1/6.
+        assert_eq!(q_sub(&rat(1, 2), &rat(1, 3)), Ok(rat(1, 6)));
+        // 2/3 * 3/4 = 1/2 (cross-cancellation reduces the intermediates).
+        assert_eq!(q_mul(&rat(2, 3), &rat(3, 4)), Ok(rat(1, 2)));
+        // (2/3) / (4/9) = 3/2.
+        assert_eq!(q_div(&rat(2, 3), &rat(4, 9)), Ok(rat(3, 2)));
+        // Sum that cancels to an integer: 1/2 + 1/2 = 1/1.
+        assert_eq!(q_add(&rat(1, 2), &rat(1, 2)), Ok(rat(1, 1)));
+    }
+
+    #[test]
+    fn kernel_division_by_zero_rational_is_zero_divisor() {
+        assert_eq!(
+            q_div(&rat(1, 2), &Rational::ZERO),
+            Err(BuiltinError::ZeroDivisor)
+        );
+    }
+
+    #[test]
+    fn kernel_overflow_is_error_not_panic() {
+        // Multiplying two near-maximal rationals overflows the numerator.
+        let big = rat(i64::MAX, 1);
+        assert_eq!(q_mul(&big, &big), Err(BuiltinError::Overflow));
+        // Adding two large-denominator rationals overflows the common denominator.
+        let a = rat(1, i64::MAX);
+        let b = rat(1, i64::MAX - 1);
+        assert_eq!(q_add(&a, &b), Err(BuiltinError::Overflow));
+    }
+
+    // ── Value transport round-trip (every committable variant) ──────────────
+
+    #[test]
+    fn value_transport_round_trip_each_variant() {
+        let dim = [
+            rat(1, 1),
+            rat(0, 1),
+            rat(-2, 1),
+            rat(3, 2),
+            rat(0, 1),
+            rat(0, 1),
+            rat(0, 1),
+        ];
+        let cases = [
+            Value::Int(42),
+            Value::Int(-7),
+            Value::Int(i64::MIN),
+            Value::Rat(rat(3, 4)),
+            Value::Rat(rat(-1, 2)),
+            Value::Dim(dim),
+            Value::Quantity(rat(5, 3), dim),
+        ];
+        for value in cases {
+            let surface = emit_surface(&value);
+            let parsed = parse_value_surface(&surface).expect("transport parses back");
+            assert_eq!(parsed, value, "round-trip {surface}");
+            // Byte-stable: re-emitting the parsed value reproduces the surface.
+            assert_eq!(emit_surface(&parsed), surface);
+        }
+    }
+
+    #[test]
+    fn value_int_transport_is_the_integer_surface() {
+        // Value::Int emits exactly the canonical integer surface and parses back.
+        for n in [-7, 0, 1, 42, i64::MAX, i64::MIN] {
+            let surface = emit_surface(&Value::Int(n));
+            assert_eq!(surface, emit_integer_surface(n));
+            assert_eq!(parse_value_surface(&surface), Some(Value::Int(n)));
+        }
+    }
+
+    #[test]
+    fn malformed_dimension_transport_declines_to_non_numeric() {
+        // A dimension transport with the wrong arity does not decode to a value.
+        let bad = format!("\"1/1,0/1\"^^<{XSD_DIMENSION_TRANSPORT}>");
+        assert_eq!(parse_value_surface(&bad), None);
+        // The producing decode reports the malformed-dimension class directly.
+        assert_eq!(
+            parse_dimension_lex("1/1,0/1"),
+            Err(BuiltinError::MalformedDimension)
         );
     }
 }
