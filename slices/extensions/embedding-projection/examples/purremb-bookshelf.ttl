@@ -361,10 +361,11 @@ ex:retrievalEventOld a gmeow:RetrievalEvent ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 # ===========================================================================
-# 8. A SECOND vector space over the SAME source (CT9). Different model, dtype,
-#    dimensions, metric, pooling, normalization, and digest — a legitimately
-#    independent projection of the identical confidential pack, matching source
-#    digest and head id (C1 / C6 pass again).
+# 8. A SECOND vector space over the SAME source (CT9). Different model,
+#    dimensions, metric, pooling, normalization, and digest (both families
+#    stay PURREMB-v1-legal: dense lossless float32, quantization none) — a
+#    legitimately independent projection of the identical confidential pack,
+#    matching source digest and head id (C1 / C6 pass again).
 # ===========================================================================
 ex:miniLm a gmeow:SoftwareAgent ;
     rdfs:label "all-MiniLM-L6 embedding model"@en .
@@ -373,9 +374,11 @@ ex:poolingCls a gmeow:PoolingKind ;
 ex:normalizationNone a gmeow:NormalizationKind ;
     rdfs:label "none"@x-gmeow-english .
 
-# Family B — a SECOND generation contract (different model / dtype / digest),
-# producing an independent 384-d stored matrix. Its full effective space ex:vscB
-# is a legitimately independent projection of the identical confidential pack.
+# Family B — a SECOND generation contract (different model / pooling /
+# tokenizer-preprocessing-chunking contracts / digest; same v1-legal dense
+# lossless float32 dtype with quantization none as familyA), producing an
+# independent 384-d stored matrix. Its full effective space ex:vscB is a
+# legitimately independent projection of the identical confidential pack.
 ex:familyB a gmeow:EmbeddingFamily ;
     rdfs:label "MiniLM embedding family (generation contract, 384-d stored matrix)"@en ;
     gmeow:embeddingModel         ex:miniLm ;
@@ -385,9 +388,9 @@ ex:familyB a gmeow:EmbeddingFamily ;
     gmeow:chunkingContract       "blake3:7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001122" ;
     gmeow:poolingKind            ex:poolingCls ;
     gmeow:truncationContract     "max_seq=256;side=right" ;
-    gmeow:vectorDtype            "int8" ;
+    gmeow:vectorDtype            "float32" ;
     gmeow:vectorByteOrder        gmeow:byteOrderLittleEndian ;
-    gmeow:quantizationContract   "scalar-int8-symmetric" ;
+    gmeow:quantizationContract   "none" ;
     gmeow:contentDigest          "blake3:fb82c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001b" .
 
 ex:vscB a gmeow:VectorSpaceContract ;
