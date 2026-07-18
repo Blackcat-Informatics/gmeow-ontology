@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 83,
-  "term_count": 5459,
-  "dependency_edge_count": 1211,
+  "term_count": 5462,
+  "dependency_edge_count": 1190,
   "term_count_by_category": {
-    "Class": 1733,
+    "Class": 1734,
     "Datatype": 1,
     "Individual": 806,
-    "Property": 2919
+    "Property": 2921
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -424,16 +425,15 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 145,
+  "shape_count": 53,
   "competency_count": 221,
   "sample_shape": {
-    "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
-    "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/AltPathShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AltPath",
     "messages": [
-      "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold).",
-      "An AdequacyAssessment must name exactly one gmeow:EpistemicStandard (gmeow:adequacyUnderStandard)."
+      "AltPath must have exactly one gmeow:pathAlts (rdf:List)"
     ],
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/epistemics"
+    "owner_slice": "root"
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",

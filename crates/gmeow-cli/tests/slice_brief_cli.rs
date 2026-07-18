@@ -17,7 +17,7 @@ fn gmeow() -> Command {
 
 #[test]
 fn slice_brief_from_bundle_json_serves_a_packet() {
-    // The `lang` slice batch 14 ships with a present French grounding cell, so the
+    // The `lang` slice batch 15 ships with a present French grounding cell, so the
     // JSON envelope is non-vacuous and proves fr grounding survives the bundle.
     gmeow()
         .args([
@@ -26,7 +26,7 @@ fn slice_brief_from_bundle_json_serves_a_packet() {
             "--from-bundle",
             "lang",
             "--batch",
-            "14",
+            "15",
             "--format",
             "json",
         ])

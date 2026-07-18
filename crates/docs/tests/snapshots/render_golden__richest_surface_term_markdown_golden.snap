@@ -84,21 +84,6 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - [`gmeow:JustificationSubject`](../justificationsubject/index.md)
 - [`gmeow:MentalMoment`](../mentalmoment/index.md)
 
-## Constraints
-
-- A DoxasticState must be linked to exactly one StandpointClaim \(gmeow:doxasticClaim\) carrying its qualitative claimModality\.
-- A DoxasticState must have exactly one doxastic content \(gmeow:doxasticContent, range gmeow:Proposition\)\.
-- A DoxasticState must have exactly one epistemic agent \(gmeow:epistemicAgent, range gmeow:Agent\)\.
-- If present, gmeow:adequateUnder on a DoxasticState must be a gmeow:AdequacyAssessment\.
-- If present, gmeow:basesBeliefOn must point to a gmeow:JustificationGround \(EvidenceSpan, Attestation, or DoxasticState\)\.
-- If present, gmeow:credence must be an xsd:decimal in the closed interval \[0,1\]\.
-- If present, gmeow:defeatedBy on a DoxasticState must be a gmeow:Defeater \(Argument, StandpointClaim, or EvidenceSpan\)\.
-- If present, gmeow:hasAvailableEvidence must point to a gmeow:JustificationGround \(EvidenceSpan, Attestation, or DoxasticState\)\.
-- If present, gmeow:hasDefeatStatus on a DoxasticState must be an IRI typed as gmeow:JustificationStatus\.
-- If present, gmeow:supportsUnder on a DoxasticState must be a gmeow:SupportAssessment\.
-- gmeow:basesBeliefOn should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
-- gmeow:hasAvailableEvidence should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
-
 ## Conformance examples
 
 - **Don't:** `tests/counter-examples/doxastic-state-missing-agent.ttl`
@@ -172,11 +157,12 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 ## Changelog
 
 - **Added in:** 0\.1\.0
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:446f6df43c1b3f129596b73ab2fef873a4611c68bd346da8e69c85ada004bf9f`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:08f6ea0e1d56e4d7be9f40666f4f1ab219b52b201df46d16ec84834a875a57be`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---
