@@ -1610,13 +1610,3 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   (hoisted to LazyLock statics), the missing ValidationRun-level fold-wiring test (added), and
   the stale Python/PyO3-consumer docstrings (removed). Nothing else was scoped down, proxied,
   or moved off-gate.
-
-## 2026-07-17 — #1524 stable operational ReasoningSession (branch paudley/1524-reasoning-session)
-
-- BY-DESIGN BOUNDARY (not a descope): the ReasoningSession façade composes with the paged
-  world-source's resident and paged views (open / open_paged) but exposes no succinct-pack
-  constructor, and restore/restart re-materialize the authorized-EDB closure and adopt the
-  durable journal head rather than serializing/replaying the DBSP circuit (approach-a checkpoint,
-  chosen over serializing the load-bearing iteration history). Both match the shipped contract and
-  the issue's acceptance criteria; the pack path and a page-incremental maintainer are net-new
-  capabilities beyond this issue, not fixes to a regression.
