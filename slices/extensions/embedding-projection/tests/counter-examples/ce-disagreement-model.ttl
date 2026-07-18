@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# R5 counter-example (Don't): container/manifest disagreement on the MODEL-CONTRACT
+# digest (gmeow:recordsModelContractDigest) — a case the source-digest-only CT10
+# finder would MISS but the generalized R5 finder catches. Triggers
+# disagreement-all-surfaces.rq (→ ce:modelSplitProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:modelSplitProj a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:modelSplitVsc .
+
+ce:modelSplitContainer a gmeow:ProfileSurface ;
+    gmeow:profileSurfaceOf           ce:modelSplitProj ;
+    gmeow:profileSurfaceKind         gmeow:surfaceContainer ;
+    gmeow:recordsSourceDigest        "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsModelContractDigest "blake3:mod0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsTargetTableDigest   "blake3:tgt0000011112222333344445555666677778888999900001111222233334444" .
+
+ce:modelSplitManifest a gmeow:ProfileSurface ;
+    gmeow:profileSurfaceOf           ce:modelSplitProj ;
+    gmeow:profileSurfaceKind         gmeow:surfaceManifest ;
+    gmeow:recordsSourceDigest        "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsModelContractDigest "blake3:mod7777711112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsTargetTableDigest   "blake3:tgt0000011112222333344445555666677778888999900001111222233334444" .

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# R4 counter-example (Don't): a projection declaring gmeow:reproducibleWithinTolerance
+# get-leg determinism but carrying NO gmeow:reproducibilityTolerance — a within-tolerance
+# claim with no stated numeric bound. Triggers quantization-tolerance.rq
+# (→ ce:noTolProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:noTolProj a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:noTolVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityInternal ;
+    gmeow:reproducibilityLevel   gmeow:reproducibleWithinTolerance .

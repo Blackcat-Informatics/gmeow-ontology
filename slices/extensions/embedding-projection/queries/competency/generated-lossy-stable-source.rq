@@ -1,0 +1,17 @@
+# CT6 — generated, lossy projection over a stable source (POSITIVE capability). A
+# gmeow:EmbeddingProjection that is generated + lossy — it binds a
+# gmeow:projectionSource, commits a gmeow:hasVectorSpaceContract, and declares its
+# get-leg determinism (gmeow:reproducibilityLevel) — while its source keeps its OWN
+# byte identity (gmeow:contentDigest) and committed history (gmeow:gtsHeadId). The
+# projection is derived and lossy; the source stays the exact, content-addressed pack.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj ?pack WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:projectionSource ?pack ;
+        gmeow:hasVectorSpaceContract ?vsc ;
+        gmeow:reproducibilityLevel ?rl .
+  ?pack gmeow:contentDigest ?cd ;
+        gmeow:gtsHeadId ?hid .
+}
+ORDER BY ?proj ?pack

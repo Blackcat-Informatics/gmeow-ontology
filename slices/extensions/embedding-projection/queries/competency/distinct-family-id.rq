@@ -1,0 +1,46 @@
+# CT2 (family axis) — distinct family identity (violation finder; must be EMPTY over
+# valid data). Two gmeow:EmbeddingFamily nodes that DIFFER in a generation-contract
+# component — model, inference engine, execution (precision / deterministic-inference),
+# tokenizer, subject-projection / text-serialization, preprocessing, chunking, pooling,
+# generation-time normalization, truncation, dtype, byte order, or quantization — yet
+# SHARE one gmeow:contentDigest. The family IS the generation contract, so a shared
+# digest across materially different contracts is a collision that would make two
+# incomparable families look like one. Family-level twin of distinct-vector-space-id.rq
+# and the direct SPARQL check of competency test 2 ("materially different generation
+# contracts have different identities"), including the execution / subject-projection /
+# generation-normalization axes a gmeow:VectorSpaceContract does not carry.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?a ?b WHERE {
+  ?a a gmeow:EmbeddingFamily ; gmeow:contentDigest ?d .
+  ?b a gmeow:EmbeddingFamily ; gmeow:contentDigest ?d .
+  FILTER(STR(?a) < STR(?b))
+  {
+    ?a gmeow:embeddingModel ?xa . ?b gmeow:embeddingModel ?xb . FILTER(?xa != ?xb)
+  } UNION {
+    ?a gmeow:inferenceEngine ?xa . ?b gmeow:inferenceEngine ?xb . FILTER(?xa != ?xb)
+  } UNION {
+    ?a gmeow:executionContract ?xa . ?b gmeow:executionContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:tokenizerContract ?xa . ?b gmeow:tokenizerContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:subjectProjectionContract ?xa . ?b gmeow:subjectProjectionContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:preprocessingContract ?xa . ?b gmeow:preprocessingContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:chunkingContract ?xa . ?b gmeow:chunkingContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:poolingKind ?xa . ?b gmeow:poolingKind ?xb . FILTER(?xa != ?xb)
+  } UNION {
+    ?a gmeow:generationNormalizationContract ?xa . ?b gmeow:generationNormalizationContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:truncationContract ?xa . ?b gmeow:truncationContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:vectorDtype ?xa . ?b gmeow:vectorDtype ?xb . FILTER(STR(?xa) != STR(?xb))
+  } UNION {
+    ?a gmeow:vectorByteOrder ?xa . ?b gmeow:vectorByteOrder ?xb . FILTER(?xa != ?xb)
+  } UNION {
+    ?a gmeow:quantizationContract ?xa . ?b gmeow:quantizationContract ?xb . FILTER(STR(?xa) != STR(?xb))
+  }
+}
+ORDER BY ?a ?b
