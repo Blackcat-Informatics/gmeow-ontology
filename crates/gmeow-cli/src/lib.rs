@@ -715,6 +715,14 @@ pub enum LogicSessionCommands {
         /// Optionally apply this additions delta before reading the closure back.
         #[arg(long = "apply")]
         apply: Option<PathBuf>,
+        /// Active state to retire/suppress before reading the closure back (RDF,
+        /// re-homed into the session world exactly as `--apply` additions are, via the
+        /// identical suppression path `checkpoint --retract` / `apply --retract` use).
+        /// Folds a NON-EMPTY suppression into the applied delta, so the read-back
+        /// closure and its per-fact proof heights reflect the retraction — e.g. a
+        /// surviving fact's min-proof-height RISES when its shortest proof is retired.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
         /// Read the closure back over a demand-paged world-source
         /// (`ReasoningSession::open_paged`) instead of the resident open, and print the
         /// page-fault composition metrics. Implied by `--page-size`. The maintained
@@ -1055,6 +1063,7 @@ pub fn run() -> i32 {
                     edb,
                     program,
                     apply,
+                    retract,
                     paged,
                     page_size,
                 } => commands::logic_session_facts(
@@ -1062,6 +1071,7 @@ pub fn run() -> i32 {
                     &edb,
                     &program,
                     apply.as_deref(),
+                    retract.as_deref(),
                     paged,
                     page_size,
                 ),
