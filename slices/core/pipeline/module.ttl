@@ -608,11 +608,16 @@ gmeow:stage-slice-brief
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "slice-brief"@x-gmeow-english ;
-    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. A leaf compute stage: it consumes no upstream pipeline product — it reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) and the SHACL shape union directly, gating each same-slice exemplar on SHACL per-term conformance (a coat with any shape violation is never surfaced) and ordering the conforming candidates by annotation completeness."@x-gmeow-english ;
+    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. It reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) directly and gates each same-slice exemplar on SHACL per-term conformance (a coat with any shape violation is never surfaced), ordering the conforming candidates by annotation completeness. The enforced shape union is FRESH: its generated/shapes/*.ttl members are read off THIS run's producer products — gmeow:stage-compile-logic (validation-shapes.ttl + procedural-constraints.ttl) and the three shape export leaves (result/frame/constraint-shapes.ttl) — never the previous run's committed files (the stale-disk-fold class); consuming those producers also orders this stage after they materialize generated/shapes, so the union enumeration never fires before that directory exists."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "slice-brief" .
+    gmeow:stageImpl "slice-brief" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;

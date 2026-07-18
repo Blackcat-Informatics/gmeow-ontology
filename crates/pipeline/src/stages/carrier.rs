@@ -583,7 +583,7 @@ pub(crate) fn self_description_source_files(
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
-    files.extend(gmeow_slice_quality::scored_source_files(root)?);
+    files.extend(gmeow_slice_quality::scored_source_files(root));
     files.sort();
     files.dedup();
     Ok(files)

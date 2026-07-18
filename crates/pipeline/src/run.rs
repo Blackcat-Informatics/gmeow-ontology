@@ -208,10 +208,22 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
-        // Leaf compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and
-        // attach the union as graph/authoring-briefs (folded into gmeow.gts by
-        // stage-snapshot). It reads the authored slice sources directly — no upstream.
-        st("stage-slice-brief", "slice-brief", &[]),
+        // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
+        // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
+        // It reads the authored slice sources directly, but consumes the four
+        // generated-shape producers so its exemplar-tiering shape union folds THIS run's
+        // fresh generated/shapes/*.ttl bytes (never the committed files — the
+        // stale-disk-fold class) and is scheduled AFTER they materialize generated/shapes.
+        st(
+            "stage-slice-brief",
+            "slice-brief",
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+            ],
+        ),
         // mappings additionally consumes the constraint-shapes export leaf: the
         // shape-grounding certificate ledger re-derives every logic:formalizes record's
         // preservation judgment over THIS run's projected constraint surfaces (the
