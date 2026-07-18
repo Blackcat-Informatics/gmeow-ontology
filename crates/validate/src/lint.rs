@@ -121,18 +121,6 @@ mod codes {
         "validate.lint.lang.projection-silent-disambiguation";
     pub const LANG_EXACT_PRESERVATION_VIOLATED: &str =
         "validate.lint.lang.exact-preservation-violated";
-    pub const MATH_MALFORMED_DIMENSION_VECTOR: &str =
-        "validate.lint.math.malformed-dimension-vector";
-    pub const MATH_MALFORMED_DIMENSION_ZERO_DENOMINATOR: &str =
-        "validate.lint.math.malformed-dimension-zero-denominator";
-    pub const MATH_INHOMOGENEITY_UNDIMENSIONED: &str =
-        "validate.lint.math.dimensional-inhomogeneity-undimensioned";
-    pub const MATH_INHOMOGENEITY_DIFFERING: &str =
-        "validate.lint.math.dimensional-inhomogeneity-differing";
-    pub const MATH_INTEGRAL_UNDIMENSIONED_PART: &str =
-        "validate.lint.math.integral-undimensioned-part";
-    pub const MATH_INTEGRAL_COMPOSITION_MISMATCH: &str =
-        "validate.lint.math.integral-composition-mismatch";
     pub const MATH_UNLIFTABLE_INGEST: &str = "validate.lint.math.unliftable-ingest";
     pub const MATH_PROBABILITY_OUT_OF_BOUNDS: &str = "validate.lint.math.probability-out-of-bounds";
     pub const MATH_PROBABILITY_PARAMETER_CONSTRAINT: &str =
@@ -804,10 +792,6 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // emission emits one row per co-resident reading (never a silent winner), and a
     // declared-exact emission whose measured round-trip is refuted is caught.
     check_lang_projection_invariants(ds, cfg, &mut report);
-
-    // math: measure-and-dimension reasoned gate — dimensional homogeneity computed
-    // from the exact-rational (ℚ⁷) exponent vectors, not asserted data.
-    check_math_dimension_invariants(ds, &mut report);
 
     // math: ingestion-bridge gate — a bridge run (the mnemomorphic put leg of a
     // logic:Correspondence) lifts fully or hard-fails; a run retaining a source but
@@ -1516,18 +1500,18 @@ fn ds_object_iris_sorted(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str
 
 /// The exact-rational ℚ⁷ exponent vector of a dimension IRI, read out of the dataset
 /// and expressed as the shared [`gmeow_math::dimension::DimVector`] — the ONE source
-/// both this gate and the native `math:` reasoning builtins compute through (no
-/// duplicate ℚ⁷ algebra lives here; the type, `add`/`sub`/`commensurable`/`render`
-/// are `gmeow-math`'s). A base dimension is a unit basis vector; `math:dimensionless`
-/// (or any `math:Dimensionless`) is zero; a `math:DerivedDimension` sums
-/// `power * e_base` over its `math:baseDimensionExponent` cells. Returns `None` for a
-/// dimension whose structure is ill-formed (a non-base exponent target, a
-/// missing/non-integer/zero-denominator power, or arithmetic overflow) or whose kind
-/// cannot be computed, so an unrelated node never yields a false positive — the
-/// ill-formed structural cases are surfaced explicitly by the SHACL
-/// `DimensionExponentShape` and the native zero-denominator scan in
-/// [`check_math_dimension_invariants`], so a `None` here means "already reported
-/// elsewhere", never "silently dropped".
+/// this probability-layer gate computes dimensions through (no duplicate ℚ⁷ algebra
+/// lives here; the type, `add`/`sub`/`commensurable`/`render` are `gmeow-math`'s). A
+/// base dimension is a unit basis vector; `math:dimensionless` (or any
+/// `math:Dimensionless`) is zero; a `math:DerivedDimension` sums `power * e_base` over
+/// its `math:baseDimensionExponent` cells. Returns `None` for a dimension whose
+/// structure is ill-formed (a non-base exponent target, a missing/non-integer/
+/// zero-denominator power, or arithmetic overflow) or whose kind cannot be computed,
+/// so an unrelated node never yields a false positive — the ill-formed structural
+/// cases are surfaced explicitly by the SHACL `DimensionExponentShape` and the native
+/// `math:` measure-and-dimension reasoned gate (which runs at reason-verify speed,
+/// computing through this same `gmeow-math` source), so a `None` here means "already
+/// reported elsewhere", never "silently dropped".
 fn dimension_vector(ds: &RdfDataset, dim_iri: &str) -> Option<DimVector> {
     if let Some(v) = DimVector::base_unit(dim_iri) {
         return Some(v);
@@ -1562,180 +1546,6 @@ fn node_dimension_iri(ds: &RdfDataset, node_iri: &str) -> Option<String> {
     ds_object_iris_sorted(ds, node_iri, &math_iri("hasDimension"))
         .into_iter()
         .next()
-}
-
-/// The `math:` measure-and-dimension reasoned gate. Dimensional homogeneity is
-/// computed from the exact-rational exponent vectors of the ℚ-vector space of
-/// dimensions — a reasoned check, not asserted data. Runs over the merged dataset
-/// (`GraphMatch::Any`), so it holds bundle-wide.
-fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
-    // dimensionVector drift: an authored string must match the canonical render of the
-    // structured exponents (the string is a projection, never a divergent second
-    // source). Only SHACL cannot express this, so it lives here.
-    if let Some(dv_pid) = ds_iri_id(ds, &math_iri("dimensionVector")) {
-        let mut flagged: HashSet<String> = HashSet::new();
-        let mut rows: Vec<(String, String)> = Vec::new();
-        for q in ds.quads_for_pattern(None, Some(dv_pid), None, GraphMatch::Any) {
-            let (TermRef::Iri(subj), TermRef::Literal { lexical, .. }) =
-                (ds.resolve(q.s), ds.resolve(q.o))
-            else {
-                continue;
-            };
-            rows.push((subj.to_owned(), lexical.to_owned()));
-        }
-        rows.sort();
-        for (subj, lexical) in rows {
-            let Some(vec) = dimension_vector(ds, &subj) else {
-                continue;
-            };
-            let canonical = vec.render();
-            if canonical != lexical && flagged.insert(subj.clone()) {
-                report.push_error(
-                    codes::MATH_MALFORMED_DIMENSION_VECTOR,
-                    subj.clone(),
-                    format!(
-                        "math:MalformedDimension: dimension {subj} declares math:dimensionVector \
-                         \"{lexical}\" but its structured exponents render to \"{canonical}\" — the \
-                         string is a computed projection, not an independent source"
-                    ),
-                );
-            }
-        }
-    }
-
-    // Zero-denominator exponent: an exact-rational power needs a non-zero denominator.
-    // `dimension_vector` returns `None` on such a cell (Rational::new rejects a zero
-    // denominator), which would let the cell be silently skipped by the homogeneity /
-    // composition loops below; surface it here as math:MalformedDimension so a malformed
-    // power hard-fails rather than fails open. The SHACL DimensionExponentShape forbids
-    // it too (sh:not sh:hasValue 0) — this native scan is the whole-bundle twin, genuine
-    // defense in depth rather than a false claim of one.
-    {
-        let mut cells = ds_subjects_of_type(ds, &math_iri("DimensionExponent"));
-        cells.sort();
-        for cell in cells {
-            let has_zero_denominator =
-                ds_object_literals(ds, &cell, &math_iri("exponentDenominator"))
-                    .into_iter()
-                    .any(|l| l.trim().parse::<i128>() == Ok(0));
-            if has_zero_denominator {
-                report.push_error(
-                    codes::MATH_MALFORMED_DIMENSION_ZERO_DENOMINATOR,
-                    cell.clone(),
-                    format!(
-                        "math:MalformedDimension: dimension-exponent cell {cell} declares \
-                         math:exponentDenominator 0 — an exact-rational power needs a non-zero \
-                         denominator; the cell is ill-formed"
-                    ),
-                );
-            }
-        }
-    }
-
-    // Homogeneity: every operand of a math:DimensionalExpression shares one dimension.
-    for expr in ds_subjects_of_type(ds, &math_iri("DimensionalExpression")) {
-        let operands = ds_object_iris_sorted(ds, &expr, &math_iri("homogeneousOperand"));
-        let mut seen: Vec<(DimVector, String)> = Vec::new();
-        let mut undimensioned: Vec<String> = Vec::new();
-        for operand in operands {
-            let Some(dim_iri) = node_dimension_iri(ds, &operand) else {
-                // No math:hasDimension at all: an undimensioned operand cannot be shown
-                // homogeneous with a dimensioned one. Do not fail open — collect it.
-                // (A malformed dimension — hasDimension present but structurally broken —
-                // is reported by the zero-denominator scan / SHACL, so `dimension_vector`
-                // returning None below is a deliberate skip, not a fail-open.)
-                undimensioned.push(operand);
-                continue;
-            };
-            let Some(vec) = dimension_vector(ds, &dim_iri) else {
-                continue;
-            };
-            if !seen.iter().any(|(v, _)| *v == vec) {
-                seen.push((vec, dim_iri));
-            }
-        }
-        if !undimensioned.is_empty() {
-            report.push_error(
-                codes::MATH_INHOMOGENEITY_UNDIMENSIONED,
-                expr.clone(),
-                format!(
-                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines \
-                     undimensioned operand(s) [{}] — every math:homogeneousOperand must carry a \
-                     math:hasDimension to be shown homogeneous",
-                    undimensioned.join(", ")
-                ),
-            );
-        }
-        if seen.len() >= 2 {
-            let mut dims: Vec<String> = seen.into_iter().map(|(_, d)| d).collect();
-            dims.sort();
-            report.push_error(
-                codes::MATH_INHOMOGENEITY_DIFFERING,
-                expr.clone(),
-                format!(
-                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines operands \
-                     of differing dimensions [{}]",
-                    dims.join(", ")
-                ),
-            );
-        }
-    }
-
-    // Integral parameter composition: dim(result) == dim(integrand) + dim(measure).
-    for integral in ds_subjects_of_type(ds, &math_iri("Integral")) {
-        let Some(result_dim) = node_dimension_iri(ds, &integral) else {
-            continue;
-        };
-        let integrand = ds_object_iris_sorted(ds, &integral, &math_iri("integrand"))
-            .into_iter()
-            .next();
-        let measure = ds_object_iris_sorted(ds, &integral, &math_iri("withRespectTo"))
-            .into_iter()
-            .next();
-        let (Some(integrand), Some(measure)) = (integrand, measure) else {
-            // Missing integrand/measure is math:IncompleteIntegral (SHACL IntegralShape).
-            continue;
-        };
-        let (Some(idim), Some(mdim)) = (
-            node_dimension_iri(ds, &integrand),
-            node_dimension_iri(ds, &measure),
-        ) else {
-            // The integral declares a result dimension but its integrand or measure carries
-            // none, so the composition cannot be checked. Do not fail open — an integral
-            // engaged in dimensional bookkeeping must dimension the parts it composes.
-            report.push_error(
-                codes::MATH_INTEGRAL_UNDIMENSIONED_PART,
-                integral.clone(),
-                format!(
-                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                     {result_dim} but its integrand ({integrand}) or measure ({measure}) carries no \
-                     math:hasDimension, so the composition cannot be verified"
-                ),
-            );
-            continue;
-        };
-        let (Some(rv), Some(iv), Some(mv)) = (
-            dimension_vector(ds, &result_dim),
-            dimension_vector(ds, &idim),
-            dimension_vector(ds, &mdim),
-        ) else {
-            continue;
-        };
-        let Some(composed) = iv.add(&mv).ok() else {
-            continue;
-        };
-        if rv != composed {
-            report.push_error(
-                codes::MATH_INTEGRAL_COMPOSITION_MISMATCH,
-                integral.clone(),
-                format!(
-                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                     {result_dim} but its integrand ({idim}) and measure ({mdim}) compose to a \
-                     different dimension"
-                ),
-            );
-        }
-    }
 }
 
 /// The `math:` ingestion-bridge invariants the BRIDGES charter designates as native
@@ -4332,261 +4142,37 @@ mod tests {
          @prefix math: <https://blackcatinformatics.ca/math/> .\n\
          @prefix ex: <https://example.org/> .\n";
 
-    /// A quantity of pure time (dimension T), used across the homogeneity tests.
-    const TIME_QUANTITIES: &str = "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
-         ex:t2 a math:Quantity ; math:hasDimension math:timeDimension .\n\
-         ex:len a math:Quantity ; math:hasDimension math:lengthDimension .\n";
-
-    fn has_inhomogeneity(report: &LintReport) -> bool {
-        report
-            .errors()
-            .iter()
-            .any(|e| e.contains("math:DimensionalInhomogeneity"))
-    }
-
+    /// Removal check: the validate-time sweep no longer enforces dimensional
+    /// homogeneity — that enforcement was relocated to the reason-verify native gate
+    /// (`gmeow_logic::math_dimension::check_math_dimension_findings`), which is now the
+    /// SOLE homogeneity enforcement path. An inhomogeneous expression must therefore
+    /// pass `structural_lint_dataset` clean while the reason-verify gate flags it.
     #[test]
-    fn homogeneous_expression_is_clean() {
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{TIME_QUANTITIES}\
-             ex:sum a math:DimensionalExpression ;\n\
-               math:homogeneousOperand ex:t1 , ex:t2 .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors());
-    }
-
-    #[test]
-    fn inhomogeneous_expression_is_flagged() {
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{TIME_QUANTITIES}\
-             ex:bad a math:DimensionalExpression ;\n\
-               math:homogeneousOperand ex:t1 , ex:len .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors());
-    }
-
-    /// The integrand/measure parameter slots compose to the integral's result
-    /// dimension — proving the gate is wired across a *parameter*, not just an
-    /// addition. Energy = ∫ (energy-density) d(volume): M·L⁻¹·T⁻² times L³ = M·L²·T⁻².
-    const ENERGY_INTEGRAL: &str = "\
-         ex:energyDim a math:DerivedDimension ;\n\
-           math:baseDimensionExponent ex:mE1 , ex:lE2 , ex:tEm2 .\n\
-         ex:mE1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;\n\
-           math:exponentNumerator 1 ; math:exponentDenominator 1 .\n\
-         ex:lE2 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-           math:exponentNumerator 2 ; math:exponentDenominator 1 .\n\
-         ex:tEm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-           math:exponentNumerator -2 ; math:exponentDenominator 1 .\n\
-         ex:densityDim a math:DerivedDimension ;\n\
-           math:baseDimensionExponent ex:mD1 , ex:lDm1 , ex:tDm2 .\n\
-         ex:mD1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;\n\
-           math:exponentNumerator 1 ; math:exponentDenominator 1 .\n\
-         ex:lDm1 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-           math:exponentNumerator -1 ; math:exponentDenominator 1 .\n\
-         ex:tDm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-           math:exponentNumerator -2 ; math:exponentDenominator 1 .\n\
-         ex:volumeDim a math:DerivedDimension ; math:baseDimensionExponent ex:lV3 .\n\
-         ex:lV3 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-           math:exponentNumerator 3 ; math:exponentDenominator 1 .\n\
-         ex:density a math:MeasurableFunction ; math:hasDimension ex:densityDim .\n\
-         ex:vol a math:Measure ; math:hasDimension ex:volumeDim .\n";
-
-    #[test]
-    fn integral_with_composed_parameter_dimensions_is_clean() {
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{ENERGY_INTEGRAL}\
-             ex:energy a math:Integral ;\n\
-               math:integrand ex:density ;\n\
-               math:withRespectTo ex:vol ;\n\
-               math:hasDimension ex:energyDim .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(!has_inhomogeneity(&report), "errors: {:?}", report.errors());
-    }
-
-    #[test]
-    fn integral_with_mismatched_result_dimension_is_flagged() {
-        // Declare the result as time (T) instead of energy — the parameter slots do
-        // not compose to it.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{ENERGY_INTEGRAL}\
-             ex:energy a math:Integral ;\n\
-               math:integrand ex:density ;\n\
-               math:withRespectTo ex:vol ;\n\
-               math:hasDimension math:timeDimension .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(has_inhomogeneity(&report), "errors: {:?}", report.errors());
-    }
-
-    #[test]
-    fn dimension_vector_string_drift_is_flagged() {
-        // Structured exponents render to "T-1"; the authored string says "L" — drift.
-        let ds = dataset_from(&format!(
+    fn dimensional_homogeneity_is_no_longer_a_validate_lint() {
+        let turtle = format!(
             "{MATH_PREFIXES}\
-             ex:freqDim a math:DerivedDimension ;\n\
-               math:dimensionVector \"L\" ;\n\
-               math:baseDimensionExponent ex:tm1 .\n\
-             ex:tm1 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 1 .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(
-            report
-                .errors()
-                .iter()
-                .any(|e| e.contains("math:MalformedDimension") && e.contains("dimensionVector")),
-            "errors: {:?}",
-            report.errors()
+             ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
+             ex:len a math:Quantity ; math:hasDimension math:lengthDimension .\n\
+             ex:bad a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n"
         );
-    }
-
-    #[test]
-    fn dimension_vector_string_matching_render_is_clean() {
-        // Structured exponents render to "T-1"; the authored string matches.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:freqDim a math:DerivedDimension ;\n\
-               math:dimensionVector \"T-1\" ;\n\
-               math:baseDimensionExponent ex:tm1 .\n\
-             ex:tm1 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 1 .\n"
-        ));
+        let ds = dataset_from(&turtle);
+        // The validate sweep is silent on the relocated invariant.
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(
             !report
                 .errors()
                 .iter()
-                .any(|e| e.contains("math:MalformedDimension")),
-            "errors: {:?}",
+                .any(|e| e.contains("math:DimensionalInhomogeneity")),
+            "the dimensional-homogeneity sweep must be retired from validate: {:?}",
             report.errors()
         );
-    }
-
-    #[test]
-    fn fractional_dimensions_are_exact_and_distinct() {
-        // √Hz is T^(-1/2); it is homogeneous with itself and distinct from T^(-1).
-        let clean = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:asdDim a math:DerivedDimension ; math:baseDimensionExponent ex:th .\n\
-             ex:th a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 2 .\n\
-             ex:asdDim2 a math:DerivedDimension ; math:baseDimensionExponent ex:th2 .\n\
-             ex:th2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 2 .\n\
-             ex:q1 a math:Quantity ; math:hasDimension ex:asdDim .\n\
-             ex:q2 a math:Quantity ; math:hasDimension ex:asdDim2 .\n\
-             ex:ok a math:DimensionalExpression ; math:homogeneousOperand ex:q1 , ex:q2 .\n"
-        ));
+        // The reason-verify native gate is where it now lives.
+        let findings = gmeow_logic::math_dimension::check_math_dimension_findings(&ds);
         assert!(
-            !has_inhomogeneity(&structural_lint_dataset(&clean, &cfg())),
-            "T^(-1/2) must be homogeneous with itself"
-        );
-        // Now mix T^(-1/2) with T^(-1): distinct, so inhomogeneous.
-        let mixed = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:asdDim a math:DerivedDimension ; math:baseDimensionExponent ex:th .\n\
-             ex:th a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 2 .\n\
-             ex:freqDim a math:DerivedDimension ; math:baseDimensionExponent ex:tm1 .\n\
-             ex:tm1 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 1 .\n\
-             ex:q1 a math:Quantity ; math:hasDimension ex:asdDim .\n\
-             ex:q3 a math:Quantity ; math:hasDimension ex:freqDim .\n\
-             ex:bad a math:DimensionalExpression ; math:homogeneousOperand ex:q1 , ex:q3 .\n"
-        ));
-        assert!(
-            has_inhomogeneity(&structural_lint_dataset(&mixed, &cfg())),
-            "T^(-1/2) and T^(-1) must be inhomogeneous"
-        );
-    }
-
-    #[test]
-    fn zero_denominator_exponent_is_flagged() {
-        // An exact-rational power with denominator 0 is ill-formed: dimension_vector
-        // returns None on it, so the homogeneity/composition loops would skip it
-        // silently. The native scan must surface it as math:MalformedDimension rather
-        // than fail open.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:badDim a math:DerivedDimension ; math:baseDimensionExponent ex:zc .\n\
-             ex:zc a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 0 .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(
-            report
-                .errors()
+            findings
                 .iter()
-                .any(|e| e.contains("math:MalformedDimension")
-                    && e.contains("exponentDenominator 0")),
-            "a zero-denominator exponent cell must raise math:MalformedDimension; errors: {:?}",
-            report.errors()
-        );
-    }
-
-    #[test]
-    fn nonzero_denominator_exponent_is_clean() {
-        // The well-formed twin: a legitimate 1/2 power must NOT trip the zero-denominator
-        // scan (guards against an over-broad match on the denominator literal).
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}\
-             ex:okDim a math:DerivedDimension ; math:baseDimensionExponent ex:hc .\n\
-             ex:hc a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-               math:exponentNumerator -1 ; math:exponentDenominator 2 .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(
-            !report
-                .errors()
-                .iter()
-                .any(|e| e.contains("math:MalformedDimension")),
-            "a non-zero denominator must not raise math:MalformedDimension; errors: {:?}",
-            report.errors()
-        );
-    }
-
-    #[test]
-    fn undimensioned_operand_is_flagged() {
-        // An operand carrying no math:hasDimension must not let the expression fail open:
-        // mixing a dimensioned operand with an undimensioned one is not homogeneous.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{TIME_QUANTITIES}\
-             ex:mystery a math:Quantity .\n\
-             ex:bad a math:DimensionalExpression ;\n\
-               math:homogeneousOperand ex:t1 , ex:mystery .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(
-            has_inhomogeneity(&report)
-                && report
-                    .errors()
-                    .iter()
-                    .any(|e| e.contains("undimensioned operand")),
-            "an undimensioned operand must raise math:DimensionalInhomogeneity; errors: {:?}",
-            report.errors()
-        );
-    }
-
-    #[test]
-    fn integral_with_undimensioned_part_is_flagged() {
-        // The integral declares a result dimension but its measure carries none — the
-        // composition cannot be verified, so it must not fail open.
-        let ds = dataset_from(&format!(
-            "{MATH_PREFIXES}{ENERGY_INTEGRAL}\
-             ex:vol2 a math:Measure .\n\
-             ex:energy a math:Integral ;\n\
-               math:integrand ex:density ;\n\
-               math:withRespectTo ex:vol2 ;\n\
-               math:hasDimension ex:energyDim .\n"
-        ));
-        let report = structural_lint_dataset(&ds, &cfg());
-        assert!(
-            has_inhomogeneity(&report) && report.errors().iter().any(|e| e.contains("carries no")),
-            "an integral with an undimensioned measure must raise math:DimensionalInhomogeneity; \
-             errors: {:?}",
-            report.errors()
+                .any(|f| f.message.contains("math:DimensionalInhomogeneity")),
+            "the reason-verify gate must be the sole homogeneity enforcement path: {findings:?}"
         );
     }
 

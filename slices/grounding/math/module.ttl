@@ -2248,18 +2248,23 @@ math:homogeneousOperand
 # (MEASURE-AND-DIMENSION — the charter's distinguished reasoned gate)
 #
 # math:DimensionalInhomogeneity is not a bare Rust side-channel: the invariant
-# the native validator (crates/validate check_math_dimension_invariants)
-# computes from the exact-rational ℚ⁷ exponent vectors is authored HERE as real
-# logic:Formula first-order ASTs — math: expresses the law, logic: owns
-# reasoning over it, exactly as the ALGEBRA preservation laws do. The validator
-# is then declared as the LOWERING of these laws, carrying
-# logic:preservationKind logic:ExactPreservation in the same loss ledger every
-# other GMEOW lowering rides (Principle 17; no new preservation vocabulary is
-# minted). The relation atoms are reified as logic:Type individuals per the
-# HiLog reflection (logic:relation ranges over logic:Type), exactly as the det
-# law reifies matMul/det; where a first-class math: property already names the
+# the native reasoned-graph gate computes from the exact-rational ℚ⁷ exponent
+# vectors is authored HERE as real logic:Formula first-order ASTs — math:
+# expresses the law, logic: owns reasoning over it, exactly as the ALGEBRA
+# preservation laws do. The gate runs at reasoning speed over the reasoned graph
+# (the native reason + reasoned-graph verify closure), alongside the typed-
+# formalization-governance obligation checks, and is declared as the LOWERING of
+# these laws, carrying logic:preservationKind logic:ExactPreservation in the same
+# loss ledger every other GMEOW lowering rides (Principle 17; no new preservation
+# vocabulary is minted). The relation atoms are reified as logic:Type individuals
+# per the HiLog reflection (logic:relation ranges over logic:Type), exactly as the
+# det law reifies matMul/det; where a first-class math: property already names the
 # relation, the reflection carries an rdfs:seeAlso back to it, so no near-synonym
-# property is minted.
+# property is minted. The two laws below each carry a logic:Constraint that binds
+# them to that reasoned gate; because the derived dimEqual / dimProduct
+# conclusions require exact ℚ⁷ arithmetic they exceed the flat-triple SHACL
+# fragment and are carried-and-flagged as loss-ledger residue, the reasoned gate
+# being their sole executable enforcement.
 # =========================================================================== #
 
 # --- Reified relation atoms (HiLog reflection of the dimension predicates) --- #
@@ -2388,11 +2393,11 @@ math:intCompCons a logic:Formula ; logic:relation math:dimensionProductRel ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "dF" ] , [ logic:termIndex 1 ; logic:termVariable "dM" ] , [ logic:termIndex 2 ; logic:termVariable "dR" ] .
 
 # --- The native validator declared as the laws' exact executable lowering --- #
-# The loss-ledger record: the native ℚ⁷ dimensional validator is the executable
-# lowering of the two logic: laws above. Because it computes each dimension's
-# exact-rational exponent vector and decides dimEqual / dimProduct by exact
-# rational arithmetic — never rounding, never a divergent asserted label — it
-# neither misses a genuine inhomogeneity nor invents a spurious one: it yields
+# The loss-ledger record: the native reasoned-graph dimensional gate is the
+# executable lowering of the two logic: laws above. Because it computes each
+# dimension's exact-rational exponent vector and decides dimEqual / dimProduct by
+# exact rational arithmetic — never rounding, never a divergent asserted label —
+# it neither misses a genuine inhomogeneity nor invents a spurious one: it yields
 # exactly the answers the canonical laws entail, hence logic:ExactPreservation
 # (the same polarity vocabulary every other GMEOW lowering carries). A violation
 # raises the typed failure math:DimensionalInhomogeneity.
@@ -2400,12 +2405,44 @@ math:intCompCons a logic:Formula ; logic:relation math:dimensionProductRel ;
 math:dimensionalHomogeneityLowering
     a gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "native ℚ⁷ validator: exact lowering of the dimensional-homogeneity laws"@x-gmeow-english ;
-    skos:definition "The declaration that the native dimensional-homogeneity validator (the check computing dimensions' exact-rational ℚ⁷ exponent vectors) is the executable lowering of math:dimensionalHomogeneityLaw and math:integralDimensionCompositionLaw. It decides the laws' dimEqual and dimProduct conclusions by exact rational arithmetic over the exponent vectors, so it neither misses a genuine inhomogeneity nor reports a spurious one — it yields exactly the answers the canonical laws entail. Hence logic:preservationKind logic:ExactPreservation, reusing the existing loss-ledger polarity vocabulary (Principle 17, no near-synonym minted). A violation raises the typed failure class math:DimensionalInhomogeneity. The laws are the source, the native gate the enforcement, and this record their preservation judgment in the loss ledger."@x-gmeow-english ;
+    rdfs:label "native reasoned-graph gate: exact lowering of the dimensional-homogeneity laws"@x-gmeow-english ;
+    skos:definition "The declaration that the native measure-and-dimension gate — the reasoned-graph check that computes each dimension's exact-rational ℚ⁷ exponent vector — is the executable lowering of math:dimensionalHomogeneityLaw and math:integralDimensionCompositionLaw. It runs at reasoning speed over the frozen reasoned graph, in the same native reason + reasoned-graph verify closure as the typed-formalization-governance obligation checks, and decides the laws' dimEqual and dimProduct conclusions by exact rational arithmetic over the exponent vectors — never rounding, never reading a divergent asserted label — so it neither misses a genuine inhomogeneity nor reports a spurious one: it yields exactly the answers the canonical laws entail. Hence logic:preservationKind logic:ExactPreservation, reusing the existing loss-ledger polarity vocabulary (Principle 17, no near-synonym minted). It also decides math:dimensionVector string drift and the positive-definiteness of every math:GramMatrix used as a metric form through the same exact-rational engine; a homogeneity/composition violation raises math:DimensionalInhomogeneity, a drifted or ill-formed dimension raises math:MalformedDimension, and a non-positive-definite metric form raises math:NonPositiveDefiniteNorm. The laws are the source, the reasoned gate the enforcement, and this record their preservation judgment in the loss ledger."@x-gmeow-english ;
     logic:preservationKind logic:ExactPreservation ;
     rdfs:seeAlso math:dimensionalHomogeneityLaw ,
         math:integralDimensionCompositionLaw ,
-        math:DimensionalInhomogeneity .
+        math:DimensionalInhomogeneity ,
+        math:MalformedDimension ,
+        math:NonPositiveDefiniteNorm .
+
+# --- The two laws bound to the reasoned gate as logic:Constraints ----------- #
+# Each law is bound to the native reasoned-graph gate through a logic:Constraint
+# carrying its universally-quantified logic:integrity formula and naming the
+# typed failure it raises. The derived dimEqual / dimProduct conclusions require
+# exact ℚ⁷ arithmetic, so these constraints exceed the flat-triple SHACL fragment
+# and are carried-and-flagged as loss-ledger residue; the reasoned gate is their
+# sole executable enforcement (never a vacuous shape).
+
+math:DimensionalHomogeneityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional-homogeneity constraint"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint binding math:dimensionalHomogeneityLaw to the native measure-and-dimension reasoned-graph gate: any two math:homogeneousOperand operands of one math:DimensionalExpression must carry dimensions with equal ℚ⁷ exponent vectors (dimEqual). The exact-rational decision exceeds the flat-triple SHACL fragment, so the reasoned gate is the sole enforcement; a violation raises math:DimensionalInhomogeneity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:DimensionalInhomogeneity ;
+    logic:severity "Violation" ;
+    logic:message "A math:DimensionalExpression's math:homogeneousOperand operands must share one dimension (equal ℚ⁷ exponent vectors); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on any undimensioned or differing operand." ;
+    logic:integrity math:dimensionalHomogeneityLaw .
+
+math:IntegralDimensionCompositionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Integral dimensional-composition constraint"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint binding math:integralDimensionCompositionLaw to the native measure-and-dimension reasoned-graph gate: a math:Integral's declared result dimension must equal its integrand's dimension composed (⊕, exponent-vector addition) with its measure's (dimProduct). The exact-rational decision exceeds the flat-triple SHACL fragment, so the reasoned gate is the sole enforcement; a violation raises math:DimensionalInhomogeneity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:DimensionalInhomogeneity ;
+    logic:severity "Violation" ;
+    logic:message "A math:Integral's declared result dimension must equal dim(integrand) ⊕ dim(measure) (exponent-vector addition); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on any undimensioned part or mismatch." ;
+    logic:integrity math:integralDimensionCompositionLaw .
 
 # =========================================================================== #
 # Mathematical-core expression AST (EXPRESSIONS charter)
@@ -12160,6 +12197,40 @@ math:NormPositiveDefiniteConstraint
     logic:formalizes math:NormPositiveDefiniteShape ;
     gmeow:enforcesFailureClass math:NonPositiveDefiniteNorm ;
     logic:message "A math:Norm's math:inducedByForm must be positive-definite (math:definiteness math:positiveDefinite); a norm resting on a non-positive-definite form is ill-formed (math:NonPositiveDefiniteNorm)." .
+
+# math:GramMatrix positive-definiteness — a Gram matrix that math:representsForm a
+# form declared math:positiveDefinite must itself carry math:definiteness
+# math:positiveDefinite (the declarative twin). The DEEP enforcement is the native
+# measure-and-dimension reasoned-graph gate, which — because SHACL/Datalog cannot
+# compute an LDLᵀ factorization — is the SOLE positive-definiteness enforcement
+# point: it fills the declared symmetric Gram from its exact math:RationalValue
+# cells and certifies positive-definiteness by the exact-rational LDLᵀ pivots (all
+# > 0 by Sylvester's criterion). A Gram authored positive-definite whose pivots
+# refute it raises math:NonPositiveDefiniteNorm; the runtime affect-distance
+# builtin trusts this certificate.
+math:GramPositiveDefiniteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Gram positive-definiteness constraint"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint that a math:GramMatrix representing a math:positiveDefinite form (math:representsForm a form whose math:definiteness is math:positiveDefinite) must itself declare math:definiteness math:positiveDefinite — the SHACL-projectable declarative twin. The exact positive-definiteness verdict is decided by the native measure-and-dimension reasoned-graph gate through the exact-rational LDLᵀ factorization (SHACL/Datalog cannot factor a matrix), which is the sole positive-definiteness enforcement point the runtime affect-distance builtin trusts; a Gram authored positive-definite whose LDLᵀ pivots refute it raises math:NonPositiveDefiniteNorm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:NonPositiveDefiniteNorm ;
+    logic:severity "Violation" ;
+    logic:message "A math:GramMatrix representing a positive-definite form must be positive-definite; the native measure-and-dimension reasoned gate certifies this by the exact-rational LDLᵀ factorization and raises math:NonPositiveDefiniteNorm when the pivots refute the authored positive-definiteness." ;
+    logic:integrity math:gpdForall .
+math:gpdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] ;
+    logic:forall math:gpdImpl .
+math:gpdImpl a logic:Formula ; logic:antecedent math:gpdGuard ; logic:consequent math:gpdConsequent .
+math:gpdGuard a logic:Formula ; logic:and math:gpdType , math:gpdRepresents , math:gpdFormPd .
+math:gpdType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri math:GramMatrix ] .
+math:gpdRepresents a logic:Formula ; logic:relation math:representsForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+math:gpdFormPd a logic:Formula ; logic:relation math:definiteness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:positiveDefinite ] .
+math:gpdConsequent a logic:Formula ; logic:relation math:definiteness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri math:positiveDefinite ] .
 
 # math:LogicLoweringShape — any expression lowered to a logic:Formula through
 # math:compilesToLogicFormula must declare its math:denotationKind and its

@@ -54,6 +54,11 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
+// The math: measure-and-dimension reasoned-graph gate — dimensional homogeneity,
+// integral composition, math:dimensionVector drift, and Gram positive-definiteness,
+// all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
+// speed. Runs alongside the obligation checks in `verify`.
+pub mod math_dimension;
 // Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
 // forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,

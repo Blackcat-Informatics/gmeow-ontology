@@ -679,6 +679,43 @@ pub fn index_graph(graph: &Graph) -> TripleIndex {
     index
 }
 
+/// Build a [`TripleIndex`] over a purrdf [`RdfDataset`](purrdf::RdfDataset), the
+/// read substrate the exact-rational loaders walk when the source is an in-memory
+/// dataset (e.g. the native reasoned graph) rather than a `.gts` bundle. Every
+/// graph is read (`GraphMatch::Any`), so an invariant computed off the index holds
+/// bundle-wide exactly as the whole-dataset validate sweep did. Literal objects are
+/// indexed by their lexical form; IRI and blank-node terms by their value
+/// (blank-node labels scope-qualified), and quoted-triple terms are skipped — the
+/// same node projection [`index_graph`] applies.
+pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let mut index = TripleIndex::default();
+    for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let subject = match dataset.resolve(quad.s) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            TermRef::Blank { label, scope } => scope.qualify_label(label).into_owned(),
+            TermRef::Literal { .. } | TermRef::Triple { .. } => continue,
+        };
+        let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+            continue;
+        };
+        let object = match dataset.resolve(quad.o) {
+            TermRef::Iri(iri) => Node::Iri(iri.to_owned()),
+            TermRef::Blank { label, scope } => Node::Bnode(scope.qualify_label(label).into_owned()),
+            TermRef::Literal { lexical, .. } => Node::Literal(lexical.to_owned()),
+            TermRef::Triple { .. } => continue,
+        };
+        index
+            .by_subject
+            .entry(subject)
+            .or_default()
+            .entry(predicate.to_owned())
+            .or_default()
+            .push(object);
+    }
+    index
+}
+
 /// Parse a Turtle document into a [`TripleIndex`] over its default graph.
 ///
 /// The Turtle is normalized through the GTS snapshot codec (parse → snapshot →
