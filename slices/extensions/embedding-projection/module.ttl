@@ -80,12 +80,17 @@ gmeow:EmbeddingFamily
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
             logic:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:embeddingModel ;
+            logic:allValuesFrom gmeow:SoftwareAgent ;
         ] ;
     skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED graphrag gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), execution configuration (gmeow:executionContract — precision mode / deterministic-inference settings), tokenizer (gmeow:tokenizerContract), subject-projection / text-serialization (gmeow:subjectProjectionContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), generation-time normalization (gmeow:generationNormalizationContract), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
     skos:example "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:contentDigest \"blake3:5c1e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the effective/prefix dimension, distance metric, or per-prefix normalization into the family (those name the comparable space on a gmeow:VectorSpaceContract) and avoid minting a separate familyId — the REUSED gmeow:contentDigest over the generation contract IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from graphrag; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily."@x-gmeow-english ;
+    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from graphrag; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily. The enforced core is the gmeow:contentDigest identity plus the irreducible model artifact gmeow:embeddingModel: BOTH are individually required (allValuesFrom carrier + ClosedWorldClosure). The remaining generation-contract components are DECLARED (they fold into the digest and bear on comparability) but are NOT each individually mandated — the digest, not per-component requiredness, is the comparability identity."@x-gmeow-english ;
     gmeow:useWhen "Use to declare the model and full generation contract that produces a family's highest-dimensional vectors — the once-stored matrix that one or more effective (prefix) vector spaces are declared over."@x-gmeow-english .
 
 gmeow:EmbeddingProjection
@@ -224,12 +229,27 @@ gmeow:VectorSpaceContract
             a logic:Restriction ;
             logic:onProperty gmeow:effectiveOfFamily ;
             logic:allValuesFrom gmeow:EmbeddingFamily ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:embeddingDimensions ;
+            logic:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:distanceMetric ;
+            logic:allValuesFrom gmeow:DistanceMetric ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:normalizationKind ;
+            logic:allValuesFrom gmeow:NormalizationKind ;
         ] ;
     skos:definition "An EFFECTIVE vector space — the comparable space two vectors legitimately live in — which is either the full space of a gmeow:EmbeddingFamily or a declared leading-PREFIX of it (Matryoshka). It fixes the family (gmeow:effectiveOfFamily), the EFFECTIVE/prefix dimension (REUSED gmeow:embeddingDimensions), the metric (REUSED gmeow:distanceMetric), the normalization a prefix may declare of its own (gmeow:normalizationKind), and the prefix policy (gmeow:matryoshkaPolicy). Its IDENTITY is the REUSED gmeow:contentDigest over (the family's digest + the effective dimension + the metric + the normalization): same effective space ⇔ same digest. A prefix space shares the family's stored matrix WITHOUT duplication, and every effective prefix has None or deterministic-L2 postprocessing. There is no separate vectorSpaceId — the digest IS the identity, so comparability is decidable by hash equality rather than by prose agreement."@x-gmeow-english ;
     skos:example "ex:vsc1 a gmeow:VectorSpaceContract ; gmeow:effectiveOfFamily ex:fam1 ; gmeow:embeddingDimensions 256 ; gmeow:distanceMetric gmeow:distanceMetricCosine ; gmeow:normalizationKind ex:normalizationL2 ; gmeow:matryoshkaPolicy gmeow:matryoshkaPrefix ; gmeow:contentDigest \"blake3:9ab3…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the family's generation contract (model/tokenizer/pooling/dtype/…) into the effective space (those live on gmeow:EmbeddingFamily), avoid minting a separate vectorSpaceId (the REUSED gmeow:contentDigest IS the identity), and avoid comparing vectors across two contracts whose digests differ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the effective space gmeow:VectorSpaceContract, bind its family with gmeow:effectiveOfFamily, fix its effective/prefix dimension (reused gmeow:embeddingDimensions) and metric (reused gmeow:distanceMetric), declare any per-prefix gmeow:normalizationKind and its gmeow:matryoshkaPolicy, and content-address the whole with the existing gmeow:contentDigest — that digest is the space's identity and the join key for comparability."@x-gmeow-english ;
+    gmeow:howToUse "Type the effective space gmeow:VectorSpaceContract, bind its family with gmeow:effectiveOfFamily, fix its effective/prefix dimension (reused gmeow:embeddingDimensions) and metric (reused gmeow:distanceMetric), declare any per-prefix gmeow:normalizationKind and its gmeow:matryoshkaPolicy, and content-address the whole with the existing gmeow:contentDigest — that digest is the space's identity and the join key for comparability. The enforced comparability core is individually required (allValuesFrom carrier + ClosedWorldClosure): the gmeow:contentDigest identity, the family anchor gmeow:effectiveOfFamily, and the three space-level comparability axes gmeow:embeddingDimensions, gmeow:distanceMetric, and gmeow:normalizationKind — two vectors are comparable only when these agree. The prefix policy gmeow:matryoshkaPolicy stays DECLARED, not individually mandated."@x-gmeow-english ;
     gmeow:useWhen "Use to declare a comparable effective vector space — the full family space or a leading prefix over it — identified by one content digest, so 'are these two projections in the same vector space?' reduces to a digest equality check."@x-gmeow-english .
 
 gmeow:VectorTarget
@@ -1206,7 +1226,21 @@ gmeow:SimilarityObservation logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingProjection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reproducibilityLevel" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/effectiveOfFamily" ; logic:closureValue logic:ClosedWorldClosure ] .
+# The v1-mandatory comparability core of an effective space: its effective/prefix
+# dimension, its metric, and its per-prefix normalization are the axes two vectors
+# must share to be comparable, so each is individually required (not merely folded
+# into the digest). The remaining space datum (gmeow:matryoshkaPolicy) stays declared.
+[ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/embeddingDimensions" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/distanceMetric" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:VectorSpaceContract ; logic:closureKey "https://blackcatinformatics.ca/gmeow/normalizationKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingFamily ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+# The model artifact is the irreducible identity of a generation contract — a family
+# with no gmeow:embeddingModel names no vector-producing recipe at all — so it is
+# individually required. The remaining generation-contract components (inference
+# engine, execution/tokenizer/subject-projection/preprocessing/chunking/pooling/
+# generation-normalization/truncation/dtype/byte-order/quantization) stay declared,
+# folded into gmeow:contentDigest but not each individually mandated.
+[ a logic:ClosureEntry ; logic:onClass gmeow:EmbeddingFamily ; logic:closureKey "https://blackcatinformatics.ca/gmeow/embeddingModel" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DerivedVectorIndex ; logic:closureKey "https://blackcatinformatics.ca/gmeow/indexOfProjection" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DerivedVectorIndex ; logic:closureKey "https://blackcatinformatics.ca/gmeow/approximationRecall" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DerivedVectorIndex ; logic:closureKey "https://blackcatinformatics.ca/gmeow/indexOverSpace" ; logic:closureValue logic:ClosedWorldClosure ] .

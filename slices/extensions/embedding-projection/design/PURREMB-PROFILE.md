@@ -170,7 +170,7 @@ A conforming `gmeow:EmbeddingProjection` carries, as **optional** content:
 `gmeow:bindsExternal` (each `gmeow:ExternalBinding` it references), and the
 standard `gmeow:wasGeneratedBy` / `gmeow:wasDerivedFrom` provenance.
 
-Each `gmeow:EmbeddingFamily` carries its full generation contract:
+Each `gmeow:EmbeddingFamily` **represents** its full generation contract:
 `gmeow:embeddingModel` (reused graphrag), `gmeow:inferenceEngine`,
 `gmeow:executionContract` (precision mode / deterministic-inference settings),
 `gmeow:tokenizerContract`, `gmeow:subjectProjectionContract` (the always-applied
@@ -179,13 +179,29 @@ text-serialization step), `gmeow:preprocessingContract`, `gmeow:chunkingContract
 generation-time normalization, distinct from an effective space's per-prefix
 `gmeow:normalizationKind`), `gmeow:truncationContract`, `gmeow:vectorDtype`,
 `gmeow:vectorByteOrder`, `gmeow:quantizationContract`, and `gmeow:contentDigest`.
-Two families that differ in any of these — including the execution,
-subject-projection, and generation-time-normalization components — are materially
-different generation contracts and MUST carry different `gmeow:contentDigest`
-identities (competency test 2, enforced by `distinct-family-id.rq`).
-Each `gmeow:VectorSpaceContract` carries `gmeow:effectiveOfFamily`,
+The **enforced comparability identity** is the `gmeow:contentDigest`: two families
+that differ in any component — including the execution, subject-projection, and
+generation-time-normalization components — are materially different generation
+contracts and MUST carry different `gmeow:contentDigest` identities (competency
+test 2, enforced by `distinct-family-id.rq`). Of the components themselves, the
+mandatory core is **individually required** (`owl:someValuesFrom` requiredness via a
+`logic:allValuesFrom` carrier + `logic:ClosedWorldClosure`): `gmeow:contentDigest`
+and the irreducible model artifact `gmeow:embeddingModel` — a family with no model
+names no vector-producing recipe. The remaining generation-contract components
+(inference engine, execution, tokenizer, subject-projection, preprocessing,
+chunking, pooling, generation-time normalization, truncation, dtype, byte order,
+quantization) are **declared, not individually required**: they fold into the
+digest and bear on comparability, but the digest — not per-component requiredness —
+is the comparability decision (`vsc-incomplete.rq` is the live twin catching a
+family that omits its model).
+Each `gmeow:VectorSpaceContract` **represents** `gmeow:effectiveOfFamily`,
 `gmeow:embeddingDimensions` (reused), `gmeow:distanceMetric` (reused),
-`gmeow:normalizationKind`, `gmeow:matryoshkaPolicy`, and `gmeow:contentDigest`.
+`gmeow:normalizationKind`, `gmeow:matryoshkaPolicy`, and `gmeow:contentDigest`. Its
+**enforced comparability core is individually required**: `gmeow:contentDigest`,
+the family anchor `gmeow:effectiveOfFamily`, and the three space-level comparability
+axes `gmeow:embeddingDimensions`, `gmeow:distanceMetric`, and `gmeow:normalizationKind`
+(two vectors are comparable only when these agree). The prefix policy
+`gmeow:matryoshkaPolicy` is **declared, not individually required**.
 Each `gmeow:VectorTarget` carries `gmeow:vectorTargetKind`, its exact identity,
 optional `gmeow:targetParent`, optional `gmeow:targetByteStart` /
 `gmeow:targetByteEnd`, and an optional non-identifying `gmeow:targetOrdinal`.
