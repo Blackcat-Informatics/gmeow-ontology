@@ -14,12 +14,20 @@
 //!
 //! * **slice vs program** — `slice_hash` frames `source_iri`, but `source_iri` also feeds
 //!   `LogicProgram::canonical_key` (hence `program_hash`); a `source_iri` change therefore
-//!   moves BOTH. The slice axis is asserted with `source_iri` varied (program+slice jointly)
-//!   and this coupling is noted, rather than faking independence.
+//!   moves BOTH. The slice axis is asserted here with `source_iri` varied (program+slice
+//!   jointly) and this coupling is noted, rather than faking independence.
 //! * **engine descriptor** — bound from `EngineContract::current()`, which is fixed per
 //!   build; it cannot be varied at runtime from the public API. The **incremental-fragment**
 //!   axis IS exercised directly (a checkpoint minted via [`SessionIdentity::bind`] with a
 //!   different fragment string), proving `descriptor_hash` folds a non-input axis.
+//!
+//! The genuine INDEPENDENCE of the slice-hash and engine-descriptor axes — that each folds
+//! into `descriptor_hash` on its own, not merely jointly with the program axis — is proven
+//! in-crate, where the crate-private fold is reachable, by
+//! `crate::runtime::session::identity::axis_independence_tests` (re-folds the eight axes with
+//! exactly one of the two perturbed while every other axis, including `program_hash`, is held
+//! fixed). That coverage cannot live in this integration crate because the fold is
+//! `pub(crate)`; this suite asserts the reachable-from-public-surface rejections.
 
 use gmeow_logic::runtime::{
     Checkpoint, IntegrityFault, OperationOutcome, ReasoningSession, SessionIdentity,

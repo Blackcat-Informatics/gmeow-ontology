@@ -265,6 +265,29 @@ disqualifying principle is uniform: **an unsupported fragment is refused or expl
 full rebuild, never silently approximated.** There is no fallback engine that turns a gap into a
 plausible-but-wrong closure.
 
+### Forward-reachable vs. backward-only `UnsupportedFragment` kinds
+
+The `UnsupportedFragment` enum is the **shared public vocabulary** of both the forward classifier a
+`ReasoningSession` consults and the backward SLD/magic-set + FOL-resolution engines. Only a subset of
+its kinds can be produced by a forward `open`/`apply`; the acceptance suite
+(`reasoning_session_refusal.rs`) asserts EXACT labels only for those:
+
+- **Forward-reachable, exact-labelled** — `NonStratifiable` (a negative dependency cycle) and
+  `ClauseBodyTooWide` (a clause body wider than the backward solver's 64-literal selection mask). Both
+  are asserted at their exact typed label at `open` (`FragmentDisposition::Unsupported(kind)`) and at
+  `apply` (`OperationOutcome::UnsupportedFragment { kind }`).
+- **Not forward-reachable — covered only by the universal never-`Applied` property**:
+  - `NonTerminatingExistential` — an authored `Formula` existential (even an n-ary head) lowers into
+    single-head eval rules; the chase-admission gate inspects only `nary_head_rules`, which stays
+    empty for a formula-authored forward program, so the forward classifier routes such a program to
+    `RequiresFullRebuild`, never this label.
+  - `Floundering`, `NonTerminatingArithmetic`, `Cut` — **backward-reasoner-only** kinds, produced by
+    the query-directed backward engines (`physical/magic.rs`, `physical/resolve_fol.rs`) for a goal,
+    never by the forward incremental/full-native classifier. `Cut` is not even constructible on the
+    authored forward Horn surface (no `!` control construct). These remain live enum variants used by
+    the backward reasoner; the forward session simply cannot reach them, so the suite asserts only the
+    universal "never silently `Applied`" guarantee for them.
+
 ## Paged world-source composition
 
 A session need not open over a resident EDB. `open_paged` composes the session over the paged RDF 1.2
