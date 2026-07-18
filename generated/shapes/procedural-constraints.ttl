@@ -1995,6 +1995,17 @@
         sh:select """SELECT $this WHERE { ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf> $this . FILTER ( ?sub != $this ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ProjectionSourceDigestPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ProjectionSourceDigestPresentShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbeddingProjection> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A projection's resolved gmeow:projectionSource must carry a gmeow:contentDigest — a digest-less source severs the content-addressed exact-source binding and lets gmeow:SourceDigestMatchConstraint pass vacuously." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . FILTER NOT EXISTS { ?src <https://blackcatinformatics.ca/gmeow/contentDigest> ?d . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/ProximityObservedFeaturePresentConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ProximityMeasurementShape> ;
@@ -2230,8 +2241,8 @@
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A projection whose sensitivity is below its source's requires an explicit gmeow:DeclassificationAct declassifying it — sensitivity never drops silently (P15)." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ps . ?ps <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?pr . $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . ?src <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ss . ?ss <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?sr . FILTER ( ?sr > ?pr ) FILTER NOT EXISTS { ?act a <https://blackcatinformatics.ca/gmeow/DeclassificationAct> . ?act <https://blackcatinformatics.ca/gmeow/declassifies> $this . } }""" ;
+        sh:message "A projection whose sensitivity is below its source's requires an explicit REVIEWABLE gmeow:DeclassificationAct declassifying it — one carrying a reviewing invocation (gmeow:wasGeneratedBy) and an authorizing agent (gmeow:wasAssociatedWith); a bare, unattributed act never warrants the drop (P15)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ps . ?ps <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?pr . $this <https://blackcatinformatics.ca/gmeow/projectionSource> ?src . ?src <https://blackcatinformatics.ca/gmeow/hasSensitivity> ?ss . ?ss <https://blackcatinformatics.ca/gmeow/sensitivityRank> ?sr . FILTER ( ?sr > ?pr ) FILTER NOT EXISTS { ?act a <https://blackcatinformatics.ca/gmeow/DeclassificationAct> . ?act <https://blackcatinformatics.ca/gmeow/declassifies> $this . ?act <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?inv . ?act <https://blackcatinformatics.ca/gmeow/wasAssociatedWith> ?agent . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/SegmentTransformationDistinctConstraintProceduralConstraintShape>
@@ -2488,6 +2499,17 @@
         sh:severity sh:Violation ;
         sh:message "A vector target must carry an exact identity — a gmeow:targetsResource or a gmeow:contentDigest — not just a non-identifying gmeow:targetOrdinal." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/targetsResource> ?r . } UNION { $this <https://blackcatinformatics.ca/gmeow/contentDigest> ?d . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/TargetSetOrderedMembershipConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/TargetSetOrderedMembershipShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TargetSet> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Every gmeow:targetSetMember of a gmeow:TargetSet must carry a gmeow:targetOrdinal — the ordered membership (the matrix row order) is the members sorted ascending by ordinal, so a member without one is unorderable." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/targetSetMember> ?vt . FILTER NOT EXISTS { ?vt <https://blackcatinformatics.ca/gmeow/targetOrdinal> ?o . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraintProceduralConstraintShape>

@@ -883,6 +883,78 @@ gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeSpacePairExact
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'b' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
+gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeSurfaceEmpty
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeSurfaceEmpty> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeSurfaceEmpty> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?surface must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'surface' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?surface must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'surface' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
+gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeSurfaceExact
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeSurfaceExact> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeSurfaceExact> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?surface must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'surface' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?surface must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'surface' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
+gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeVscEmpty
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeVscEmpty> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeVscEmpty> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?vsc must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'vsc' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?vsc must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'vsc' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
+gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeVscExact
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeVscExact> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeVscExact> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?vsc must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'vsc' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?vsc must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'vsc' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
 gmeow:GenResultRowShape_examples_embedding_projection_tests_shapeVtEmpty
     a sh:NodeShape ;
     rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/tests/shapeVtEmpty> (generated)"@en ;

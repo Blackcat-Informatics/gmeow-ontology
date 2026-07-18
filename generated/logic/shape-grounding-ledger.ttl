@@ -1017,6 +1017,11 @@ gmeow:ProjectionLossNoSubclassConstraintProceduralConstraintShape
     logic:formalizes gmeow:ProjectionLoss ;
     logic:preservationKind logic:ValidationOnly .
 
+gmeow:ProjectionSourceDigestPresentConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes gmeow:ProjectionSourceDigestPresentShape ;
+    logic:preservationKind logic:ValidationOnly .
+
 gmeow:ProximityObservedFeaturePresentConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:ProximityMeasurementShape ;
@@ -1256,6 +1261,11 @@ gmeow:SupportSelfSupportExclusionConstraintShape
 gmeow:TargetExactIdentityConstraintProceduralConstraintShape
     rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
     logic:formalizes gmeow:TargetExactIdentityShape ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:TargetSetOrderedMembershipConstraintProceduralConstraintShape
+    rdfs:comment "re-derived this regenerate: the record parses as an executable SHACL validator and its OWL/RDFS-expressible core passed the lift/certify round-trip, but its enforcement is carried by closed-world constructs with no entailment form (http://www.w3.org/ns/shacl#sparql), so the projection validates without entailing" ;
+    logic:formalizes gmeow:TargetSetOrderedMembershipShape ;
     logic:preservationKind logic:ValidationOnly .
 
 gmeow:TeachingSelfTeachConstraintProceduralConstraintShape

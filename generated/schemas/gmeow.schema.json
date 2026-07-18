@@ -8953,10 +8953,88 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:wasAssociatedWith": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Agent"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:wasGeneratedBy": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:Activity has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:Activity has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
       "required": [
-        "gmeow:declassifies"
+        "gmeow:declassifies",
+        "gmeow:wasAssociatedWith",
+        "gmeow:wasGeneratedBy"
       ],
       "type": "object"
     },
@@ -11078,10 +11156,55 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:embeddingModel": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SoftwareAgent"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
       "required": [
-        "gmeow:contentDigest"
+        "gmeow:contentDigest",
+        "gmeow:embeddingModel"
       ],
       "type": "object"
     },
@@ -41355,11 +41478,152 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:recordsModelContractDigest": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:recordsSourceDigest": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:recordsTargetTableDigest": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
       "required": [
         "gmeow:profileSurfaceKind",
-        "gmeow:profileSurfaceOf"
+        "gmeow:profileSurfaceOf",
+        "gmeow:recordsModelContractDigest",
+        "gmeow:recordsSourceDigest",
+        "gmeow:recordsTargetTableDigest"
       ],
       "type": "object"
     },
@@ -48444,6 +48708,19 @@
             }
           ]
         },
+        "gmeow:distanceMetric": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DistanceMetricEnum"
+            },
+            {
+              "items": {
+                "$ref": "#/$defs/DistanceMetricEnum"
+              },
+              "type": "array"
+            }
+          ]
+        },
         "gmeow:effectiveOfFamily": {
           "anyOf": [
             {
@@ -48487,11 +48764,92 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:embeddingDimensions": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:normalizationKind": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:NormalizationKind has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:NormalizationKind has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
       "required": [
         "gmeow:contentDigest",
-        "gmeow:effectiveOfFamily"
+        "gmeow:distanceMetric",
+        "gmeow:effectiveOfFamily",
+        "gmeow:embeddingDimensions",
+        "gmeow:normalizationKind"
       ],
       "type": "object"
     },

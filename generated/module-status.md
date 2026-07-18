@@ -31,7 +31,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
-| embedding-projection | extension | extensions | 9 | 17 | 50 | 0 | 1 | - | full |
+| embedding-projection | extension | extensions | 9 | 17 | 52 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
 | epistemics | core | core | 9 | 17 | 39 | 0 | 6 | 35/56 | full |

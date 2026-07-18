@@ -1982,6 +1982,26 @@ export type DeclassificationAct = {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             })>]);
+  readonly "gmeow:wasAssociatedWith": ((Agent | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(Agent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(Agent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
+  readonly "gmeow:wasGeneratedBy": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -2413,6 +2433,16 @@ export type EmbeddingFamily = {
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
             } | string)>]);
+  readonly "gmeow:embeddingModel": ((SoftwareAgent | {
+          readonly "@id": string;
+          readonly [key: string]: JsonValue;
+        }) | readonly [(SoftwareAgent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            }), ...Array<(SoftwareAgent | {
+              readonly "@id": string;
+              readonly [key: string]: JsonValue;
+            })>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -5300,6 +5330,45 @@ export type ProfileSurface = {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             })>]);
+  readonly "gmeow:recordsModelContractDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:recordsSourceDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:recordsTargetTableDigest": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
   readonly [key: string]: JsonValue;
 };
 
@@ -6560,6 +6629,7 @@ export type VectorSpaceContract = {
               readonly "@value": JsonValue;
               readonly [key: string]: JsonValue;
             } | string)>]);
+  readonly "gmeow:distanceMetric": (DistanceMetricEnum | readonly (DistanceMetricEnum)[]);
   readonly "gmeow:effectiveOfFamily": ((EmbeddingFamily | {
           readonly "@id": string;
           readonly [key: string]: JsonValue;
@@ -6570,6 +6640,29 @@ export type VectorSpaceContract = {
               readonly "@id": string;
               readonly [key: string]: JsonValue;
             })>]);
+  readonly "gmeow:embeddingDimensions": (({
+          readonly "@type"?: string;
+          readonly "@value": JsonValue;
+          readonly [key: string]: JsonValue;
+        } | string) | readonly [({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string), ...Array<({
+              readonly "@type"?: string;
+              readonly "@value": JsonValue;
+              readonly [key: string]: JsonValue;
+            } | string)>]);
+  readonly "gmeow:normalizationKind": ({
+        readonly "@id": string;
+        readonly [key: string]: JsonValue;
+      } | readonly [{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }, ...Array<{
+            readonly "@id": string;
+            readonly [key: string]: JsonValue;
+          }>]);
   readonly [key: string]: JsonValue;
 };
 

@@ -2325,6 +2325,8 @@ enum DayOfWeekEnum {
 type DeclassificationAct {
   annotation: GmeowScalar
   gmeowDeclassifies: GmeowScalar
+  gmeowWasAssociatedWith: GmeowScalar
+  gmeowWasGeneratedBy: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -2332,6 +2334,8 @@ type DeclassificationAct {
 input DeclassificationActInput {
   annotation: GmeowScalar
   gmeowDeclassifies: GmeowScalar
+  gmeowWasAssociatedWith: GmeowScalar
+  gmeowWasGeneratedBy: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -2777,6 +2781,7 @@ type Embedding {
 type EmbeddingFamily {
   annotation: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowEmbeddingModel: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -2784,6 +2789,7 @@ type EmbeddingFamily {
 input EmbeddingFamilyInput {
   annotation: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowEmbeddingModel: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -9012,6 +9018,9 @@ type ProfileSurface {
   annotation: GmeowScalar
   gmeowProfileSurfaceKind: GmeowScalar
   gmeowProfileSurfaceOf: GmeowScalar
+  gmeowRecordsModelContractDigest: GmeowScalar
+  gmeowRecordsSourceDigest: GmeowScalar
+  gmeowRecordsTargetTableDigest: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -9020,6 +9029,9 @@ input ProfileSurfaceInput {
   annotation: GmeowScalar
   gmeowProfileSurfaceKind: GmeowScalar
   gmeowProfileSurfaceOf: GmeowScalar
+  gmeowRecordsModelContractDigest: GmeowScalar
+  gmeowRecordsSourceDigest: GmeowScalar
+  gmeowRecordsTargetTableDigest: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -12201,7 +12213,10 @@ input UsageAttestationInput {
 type VectorSpaceContract {
   annotation: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowDistanceMetric: GmeowScalar
   gmeowEffectiveOfFamily: GmeowScalar
+  gmeowEmbeddingDimensions: GmeowScalar
+  gmeowNormalizationKind: GmeowScalar
   id: String
   type: GmeowScalar
 }
@@ -12209,7 +12224,10 @@ type VectorSpaceContract {
 input VectorSpaceContractInput {
   annotation: GmeowScalar
   gmeowContentDigest: GmeowScalar
+  gmeowDistanceMetric: GmeowScalar
   gmeowEffectiveOfFamily: GmeowScalar
+  gmeowEmbeddingDimensions: GmeowScalar
+  gmeowNormalizationKind: GmeowScalar
   id: String
   type: GmeowScalar
 }

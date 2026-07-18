@@ -4363,7 +4363,9 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type",
-      "gmeow:declassifies": "gmeowDeclassifies"
+      "gmeow:declassifies": "gmeowDeclassifies",
+      "gmeow:wasAssociatedWith": "gmeowWasAssociatedWith",
+      "gmeow:wasGeneratedBy": "gmeowWasGeneratedBy"
     },
     "#/$defs/DegreeOfFreedom": {
       "@annotation": "annotation",
@@ -4492,7 +4494,8 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type",
-      "gmeow:contentDigest": "gmeowContentDigest"
+      "gmeow:contentDigest": "gmeowContentDigest",
+      "gmeow:embeddingModel": "gmeowEmbeddingModel"
     },
     "#/$defs/EmbeddingProjection": {
       "@annotation": "annotation",
@@ -5492,7 +5495,10 @@
       "@id": "id",
       "@type": "type",
       "gmeow:profileSurfaceKind": "gmeowProfileSurfaceKind",
-      "gmeow:profileSurfaceOf": "gmeowProfileSurfaceOf"
+      "gmeow:profileSurfaceOf": "gmeowProfileSurfaceOf",
+      "gmeow:recordsModelContractDigest": "gmeowRecordsModelContractDigest",
+      "gmeow:recordsSourceDigest": "gmeowRecordsSourceDigest",
+      "gmeow:recordsTargetTableDigest": "gmeowRecordsTargetTableDigest"
     },
     "#/$defs/ProximityMeasurement": {
       "@annotation": "annotation",
@@ -5955,7 +5961,10 @@
       "@id": "id",
       "@type": "type",
       "gmeow:contentDigest": "gmeowContentDigest",
-      "gmeow:effectiveOfFamily": "gmeowEffectiveOfFamily"
+      "gmeow:distanceMetric": "gmeowDistanceMetric",
+      "gmeow:effectiveOfFamily": "gmeowEffectiveOfFamily",
+      "gmeow:embeddingDimensions": "gmeowEmbeddingDimensions",
+      "gmeow:normalizationKind": "gmeowNormalizationKind"
     },
     "#/$defs/VectorTarget": {
       "@annotation": "annotation",

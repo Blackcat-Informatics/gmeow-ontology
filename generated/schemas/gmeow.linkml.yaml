@@ -4859,6 +4859,37 @@ classes:
           multivalued: true
         required: true
         slot_uri: gmeow:declassifies
+      gmeow:wasAssociatedWith:
+        alias: gmeow:wasAssociatedWith
+        any_of:
+        - any_of:
+          - inlined: true
+            range: Agent
+          - inlined: true
+            range: InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: Agent
+          - inlined: true
+            range: InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:wasAssociatedWith
+      gmeow:wasGeneratedBy:
+        alias: gmeow:wasGeneratedBy
+        any_of:
+        - inlined: true
+          range: InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf1ItemsObject
+        required: true
+        slot_uri: gmeow:wasGeneratedBy
     class_uri: gmeow:DeclassificationAct
     extra_slots:
       allowed: true
@@ -5853,6 +5884,24 @@ classes:
           multivalued: true
         required: true
         slot_uri: gmeow:contentDigest
+      gmeow:embeddingModel:
+        alias: gmeow:embeddingModel
+        any_of:
+        - any_of:
+          - inlined: true
+            range: SoftwareAgent
+          - inlined: true
+            range: InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf0AnyOf1Object
+        - any_of:
+          - inlined: true
+            range: SoftwareAgent
+          - inlined: true
+            range: InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf1ItemsAnyOf1Object
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:embeddingModel
     class_uri: gmeow:EmbeddingFamily
     extra_slots:
       allowed: true
@@ -10495,6 +10544,42 @@ classes:
     class_uri: gmeow:InlineDefsDeclassificationActPropertiesGmeowDeclassifiesAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
+  InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsDeclassificationActPropertiesGmeowWasAssociatedWithAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsDeclassificationActPropertiesGmeowWasGeneratedByAnyOf1ItemsObject
+    extra_slots:
+      allowed: true
   InlineDefsDegreeOfFreedomPropertiesGmeowDofParameterAnyOf0Object:
     attributes:
       '@id':
@@ -11149,6 +11234,24 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsEmbeddingFamilyPropertiesGmeowContentDigestAnyOf1ItemsAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf0AnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf0AnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf1ItemsAnyOf1Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsEmbeddingFamilyPropertiesGmeowEmbeddingModelAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
   InlineDefsEmbeddingProjectionPropertiesGmeowHasVectorSpaceContractAnyOf0AnyOf1Object:
@@ -20671,6 +20774,84 @@ classes:
     class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowProfileSurfaceOfAnyOf1ItemsAnyOf1Object
     extra_slots:
       allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf0AnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf0AnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf1ItemsAnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf1ItemsAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf0AnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf0AnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf1ItemsAnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf1ItemsAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf0AnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf0AnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf1ItemsAnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf1ItemsAnyOf0Object
+    extra_slots:
+      allowed: true
   InlineDefsProhibitionAllOf0NotObject:
     attributes:
       '@type':
@@ -23113,6 +23294,50 @@ classes:
         range: string
         required: true
     class_uri: gmeow:InlineDefsVectorSpaceContractPropertiesGmeowEffectiveOfFamilyAnyOf1ItemsAnyOf1Object
+    extra_slots:
+      allowed: true
+  InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf0AnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf0AnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf1ItemsAnyOf0Object:
+    attributes:
+      '@type':
+        alias: '@type'
+        range: string
+        required: false
+      '@value':
+        alias: '@value'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf1ItemsAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf0Object:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf0Object
+    extra_slots:
+      allowed: true
+  InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf1ItemsObject:
+    attributes:
+      '@id':
+        alias: '@id'
+        range: string
+        required: true
+    class_uri: gmeow:InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf1ItemsObject
     extra_slots:
       allowed: true
   InlineDefsVersionMembershipPropertiesGmeowMembershipAuthorityAnyOf0AnyOf1Object:
@@ -35580,6 +35805,54 @@ classes:
           multivalued: true
         required: true
         slot_uri: gmeow:profileSurfaceOf
+      gmeow:recordsModelContractDigest:
+        alias: gmeow:recordsModelContractDigest
+        any_of:
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf0AnyOf0Object
+          - range: string
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsModelContractDigestAnyOf1ItemsAnyOf0Object
+          - range: string
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:recordsModelContractDigest
+      gmeow:recordsSourceDigest:
+        alias: gmeow:recordsSourceDigest
+        any_of:
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf0AnyOf0Object
+          - range: string
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsSourceDigestAnyOf1ItemsAnyOf0Object
+          - range: string
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:recordsSourceDigest
+      gmeow:recordsTargetTableDigest:
+        alias: gmeow:recordsTargetTableDigest
+        any_of:
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf0AnyOf0Object
+          - range: string
+        - any_of:
+          - inlined: true
+            range: InlineDefsProfileSurfacePropertiesGmeowRecordsTargetTableDigestAnyOf1ItemsAnyOf0Object
+          - range: string
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:recordsTargetTableDigest
     class_uri: gmeow:ProfileSurface
     extra_slots:
       allowed: true
@@ -41787,6 +42060,15 @@ classes:
           multivalued: true
         required: true
         slot_uri: gmeow:contentDigest
+      gmeow:distanceMetric:
+        alias: gmeow:distanceMetric
+        any_of:
+        - range: DistanceMetricEnum
+        - list_elements_ordered: true
+          multivalued: true
+          range: DistanceMetricEnum
+        required: true
+        slot_uri: gmeow:distanceMetric
       gmeow:effectiveOfFamily:
         alias: gmeow:effectiveOfFamily
         any_of:
@@ -41805,6 +42087,35 @@ classes:
           multivalued: true
         required: true
         slot_uri: gmeow:effectiveOfFamily
+      gmeow:embeddingDimensions:
+        alias: gmeow:embeddingDimensions
+        any_of:
+        - any_of:
+          - inlined: true
+            range: InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf0AnyOf0Object
+          - range: string
+        - any_of:
+          - inlined: true
+            range: InlineDefsVectorSpaceContractPropertiesGmeowEmbeddingDimensionsAnyOf1ItemsAnyOf0Object
+          - range: string
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+        required: true
+        slot_uri: gmeow:embeddingDimensions
+      gmeow:normalizationKind:
+        alias: gmeow:normalizationKind
+        any_of:
+        - inlined: true
+          range: InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf0Object
+        - inlined: true
+          inlined_as_list: true
+          list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: InlineDefsVectorSpaceContractPropertiesGmeowNormalizationKindAnyOf1ItemsObject
+        required: true
+        slot_uri: gmeow:normalizationKind
     class_uri: gmeow:VectorSpaceContract
     extra_slots:
       allowed: true
