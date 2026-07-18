@@ -5,7 +5,9 @@
 # gmeow:GlossaryEntry members therefore carry DISTINCT gmeow:glossaryConcept values, so
 # their divergent renderings ("lire" vs "lu") are legitimate and do NOT violate
 # lang:GlossaryTermConsistencyConstraint (the invariant groups on the concept, and these
-# entries share no concept). This exercises the sense-aware homograph escape.
+# entries share no concept). This exercises the sense-aware homograph escape. Each entry
+# carries the OntoLex Frege triangle: a distinct lang:Sense (gmeow:glossarySense) that
+# lang:evokes its DISTINCT lang:LexicalConcept — distinct senses evoking distinct concepts.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
@@ -25,6 +27,7 @@ ex:entryReadPresent a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "read" ;
     gmeow:glossaryTranslation "lire" ;
+    gmeow:glossarySense ex:senseReadPresent ;
     gmeow:glossaryConcept ex:conceptReadPresent .
 
 # Same source "read", a DISTINCT concept (the past-participle sense) — legitimately "lu".
@@ -33,7 +36,15 @@ ex:entryReadPast a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "read" ;
     gmeow:glossaryTranslation "lu" ;
+    gmeow:glossarySense ex:senseReadPast ;
     gmeow:glossaryConcept ex:conceptReadPast .
+
+# Distinct senses evoke DISTINCT concepts — the homograph's genuinely-distinct meanings.
+ex:senseReadPresent a lang:Sense ;
+    lang:evokes ex:conceptReadPresent .
+
+ex:senseReadPast a lang:Sense ;
+    lang:evokes ex:conceptReadPast .
 
 ex:conceptReadPresent a lang:LexicalConcept .
 ex:conceptReadPast a lang:LexicalConcept .

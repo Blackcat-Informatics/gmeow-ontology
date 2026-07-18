@@ -3,7 +3,9 @@
 # Conforming fixture: a gmeow:Glossary whose two gmeow:GlossaryEntry members share one
 # gmeow:glossaryConcept and carry the SAME gmeow:glossaryTranslation — the terminology is
 # consistent, satisfying lang:GlossaryTermConsistencyConstraint (a class + its property twin
-# sharing one English term render it identically).
+# sharing one English term render it identically). Each entry carries the OntoLex Frege
+# triangle: a distinct lang:Sense (gmeow:glossarySense) that lang:evokes the one shared
+# lang:LexicalConcept — two senses, one concept, so synonymy is DERIVED, not asserted flat.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
@@ -19,6 +21,7 @@ ex:entryComposedFormClass a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "composed form" ;
     gmeow:glossaryTranslation "forme composée" ;
+    gmeow:glossarySense ex:senseComposedFormClass ;
     gmeow:glossaryConcept ex:conceptComposedForm .
 
 ex:entryComposedFormProp a gmeow:GlossaryEntry ;
@@ -26,6 +29,15 @@ ex:entryComposedFormProp a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "composed form" ;
     gmeow:glossaryTranslation "forme composée" ;
+    gmeow:glossarySense ex:senseComposedFormProp ;
     gmeow:glossaryConcept ex:conceptComposedForm .
+
+# Two distinct senses (the class term and its property twin) both evoke the one concept —
+# the OntoLex synonymy model, synonymy derived rather than asserted flat.
+ex:senseComposedFormClass a lang:Sense ;
+    lang:evokes ex:conceptComposedForm .
+
+ex:senseComposedFormProp a lang:Sense ;
+    lang:evokes ex:conceptComposedForm .
 
 ex:conceptComposedForm a lang:LexicalConcept .

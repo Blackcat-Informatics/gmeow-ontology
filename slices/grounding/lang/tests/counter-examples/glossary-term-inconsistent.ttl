@@ -21,6 +21,7 @@ ex:entryReadA a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "read" ;
     gmeow:glossaryTranslation "lire" ;
+    gmeow:glossarySense ex:senseReadA ;
     gmeow:glossaryConcept ex:conceptRead .
 
 # Same gmeow:glossaryConcept as ex:entryReadA, a DIFFERENT gmeow:glossaryTranslation.
@@ -29,6 +30,15 @@ ex:entryReadB a gmeow:GlossaryEntry ;
     gmeow:glossaryPredicate "rdfs:label" ;
     gmeow:glossarySource "read" ;
     gmeow:glossaryTranslation "lu" ;
+    gmeow:glossarySense ex:senseReadB ;
     gmeow:glossaryConcept ex:conceptRead .
+
+# Two distinct senses both evoke the ONE concept — the entries are synonymous by the
+# model, so their divergent renderings ARE the gated inconsistency (grouped on the concept).
+ex:senseReadA a lang:Sense ;
+    lang:evokes ex:conceptRead .
+
+ex:senseReadB a lang:Sense ;
+    lang:evokes ex:conceptRead .
 
 ex:conceptRead a lang:LexicalConcept .
