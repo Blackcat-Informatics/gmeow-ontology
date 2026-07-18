@@ -739,6 +739,11 @@ pub enum LogicSessionCommands {
         /// Optionally apply this additions delta before checkpointing.
         #[arg(long = "apply")]
         apply: Option<PathBuf>,
+        /// Active state to retire/suppress in the applied delta (RDF, re-homed into
+        /// the session world exactly as the additions are). Folds a NON-EMPTY
+        /// suppression into the committed delta the checkpoint persists and replays.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
         /// The path to write the checkpoint JSON to.
         #[arg(long = "out", short = 'o')]
         out: PathBuf,
@@ -1064,12 +1069,14 @@ pub fn run() -> i32 {
                     edb,
                     program,
                     apply,
+                    retract,
                     out,
                 } => commands::logic_session_checkpoint(
                     reporter,
                     &edb,
                     &program,
                     apply.as_deref(),
+                    retract.as_deref(),
                     &out,
                 ),
                 LogicSessionCommands::Restore {

@@ -1590,6 +1590,26 @@ fn session_load_world_dataset(
     })
 }
 
+/// An owned, empty single-world dataset — the additions slot of a suppression-only
+/// committed delta (`checkpoint --retract` without `--apply`). Never a degraded
+/// success: a freeze/own failure is a hard CLI fail.
+fn session_empty_world_dataset(reporter: &dyn Reporter) -> Result<RdfDataset, i32> {
+    let dataset = RdfDatasetBuilder::new().freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.empty-additions",
+            format!("cannot build an empty additions dataset: {e}"),
+        )
+    })?;
+    Arc::try_unwrap(dataset).map_err(|_| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.empty-own",
+            "internal: a freshly-frozen empty session dataset was unexpectedly shared",
+        )
+    })
+}
+
 /// Open a session over `edb`/`program` under the default contract and the exact
 /// annotation semiring, mapping a façade open error to a hard CLI fail.
 fn session_open(
@@ -2105,6 +2125,7 @@ pub fn logic_session_checkpoint(
     edb: &Path,
     program: &Path,
     apply: Option<&Path>,
+    retract: Option<&Path>,
     out: &Path,
 ) -> i32 {
     let world = SESSION_WORLD_DEFAULT;
@@ -2121,24 +2142,43 @@ pub fn logic_session_checkpoint(
         Err(code) => return code,
     };
 
-    if let Some(apply) = apply {
-        let additions = match session_load_world_dataset(reporter, apply, world) {
-            Ok(ds) => ds,
-            Err(code) => return code,
+    // Apply a committed delta before checkpointing whenever either additions
+    // (`--apply`) or suppressions (`--retract`) are supplied. The retirement rows are
+    // re-homed into the session world exactly as the additions are (the identical path
+    // `logic_session_apply` uses), so the checkpoint persists — and `restore` replays —
+    // a delta carrying a NON-EMPTY suppression.
+    if apply.is_some() || retract.is_some() {
+        let additions = match apply {
+            Some(apply) => match session_load_world_dataset(reporter, apply, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+            None => match session_empty_world_dataset(reporter) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
         };
+        let mut retirements = Vec::new();
+        if let Some(retract) = retract {
+            let row = match session_load_world_dataset(reporter, retract, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            };
+            retirements.push(Suppression::new(row));
+        }
         let base_commit = session.identity().data_generation.clone();
         let expected_head = session.head().to_owned();
-        let delta = match SessionDelta::new(base_commit, expected_head, additions, Vec::new(), None)
-        {
-            Ok(delta) => delta,
-            Err(e) => {
-                return fail(
-                    reporter,
-                    "gmeow-cli.logic-session.delta",
-                    format!("cannot build session delta: {e}"),
-                );
-            }
-        };
+        let delta =
+            match SessionDelta::new(base_commit, expected_head, additions, retirements, None) {
+                Ok(delta) => delta,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.logic-session.delta",
+                        format!("cannot build session delta: {e}"),
+                    );
+                }
+            };
         let code = render_outcome(reporter, &session.apply(&delta));
         if code != 0 {
             return code;
