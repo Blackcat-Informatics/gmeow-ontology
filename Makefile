@@ -223,7 +223,13 @@ build: cli-build ## Build the Rust CLIs plus serializations and JSON-LD context 
 project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
 	$(GMEOW_DEV) project
 
-release: sync ## Synchronize, native-reason, build, report, docs, and emit CrossRef deposit.
+release: ## Materialize from source (update mode), native-reason, build, report, docs, and emit CrossRef deposit.
+	# A release BUILDS the product from canonical sources — it must materialize, never
+	# read-only check. generated/ is a git-ignored product (#1600), so a fresh release
+	# checkout has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check`
+	# forces CHECK_SYNC_MODE=update) instead of inheriting gmeow-dev's CI default of Check,
+	# which would hard-fail the superset gate ("no carrier representative") on the absent tree.
+	$(MAKE) sync SYNC_MODE=update
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
 	$(MAKE) lsp-release
