@@ -1,0 +1,18 @@
+# A finite positive binary Datalog program: the reflexive-free transitive closure
+# `reach` over an `edge` relation. This is squarely inside the incrementally-certified
+# fragment the ReasoningSession façade maintains, so every `apply` over it is a genuine
+# incremental `Applied` operation (never a routed full rebuild).
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/session/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# reach(?x, ?y) :- edge(?x, ?y) .
+ex:reachBase a logic:Rule ;
+    logic:head [ rdf:subject "?x" ; rdf:predicate ex:reach ; rdf:object "?y" ] ;
+    logic:body [ rdf:subject "?x" ; rdf:predicate ex:edge ; rdf:object "?y" ] .
+
+# reach(?x, ?z) :- edge(?x, ?y), reach(?y, ?z) .
+ex:reachStep a logic:Rule ;
+    logic:head [ rdf:subject "?x" ; rdf:predicate ex:reach ; rdf:object "?z" ] ;
+    logic:body [ rdf:subject "?x" ; rdf:predicate ex:edge ; rdf:object "?y" ] ,
+               [ rdf:subject "?y" ; rdf:predicate ex:reach ; rdf:object "?z" ] .
