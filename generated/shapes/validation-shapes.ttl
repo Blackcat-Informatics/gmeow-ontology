@@ -637,6 +637,7 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/GmnSecurityRing> ] ; sh:qualifiedMinCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnSchemaVersion> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion> ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/Correspondence> ] ; sh:qualifiedMinCount 1 ] .
@@ -2615,6 +2616,10 @@
 <https://blackcatinformatics.ca/gmeow/glossaryPredicate-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossaryPredicate> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossaryPredicate> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/glossarySense-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySense> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/glossarySense> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/glossarySlice-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/glossarySlice> ;

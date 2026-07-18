@@ -6950,6 +6950,16 @@ classes:
           range: string
         required: true
         slot_uri: gmeow:contentDigest
+      gmeow:gmnCodebookDigest:
+        alias: gmeow:gmnCodebookDigest
+        any_of:
+        - range: string
+        - list_elements_ordered: true
+          minimum_cardinality: 1
+          multivalued: true
+          range: string
+        required: true
+        slot_uri: gmeow:gmnCodebookDigest
       gmeow:gmnDictionaryVersion:
         alias: gmeow:gmnDictionaryVersion
         range: string

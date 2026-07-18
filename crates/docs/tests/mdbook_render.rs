@@ -57,8 +57,7 @@ fn term_with_crosslinks(model: &gmeow_docs::DocsModel) -> String {
 
 #[test]
 fn book_summary_golden() {
-    let model = common::cached_model();
-    let site = render_book(&model, &ExecutableDocsData::default());
+    let site = common::cached_book();
     let summary = String::from_utf8(
         site.files
             .get("src/SUMMARY.md")
@@ -80,7 +79,7 @@ fn book_summary_lists_each_chapter_at_most_once() {
     // such slug collisions, so this asserts `mdbook build` cannot choke on the
     // committed book without needing the mdbook binary in the gate.
     let model = common::cached_model();
-    let site = render_book(&model, &ExecutableDocsData::default());
+    let site = common::cached_book();
 
     // The set of chapter dirs with more than one page in the underlying page set —
     // i.e. the real slug collisions. Only these need the stronger label == shipped
@@ -199,8 +198,7 @@ fn book_summary_lists_each_chapter_at_most_once() {
 
 #[test]
 fn book_toml_golden() {
-    let model = common::cached_model();
-    let site = render_book(&model, &ExecutableDocsData::default());
+    let site = common::cached_book();
     let toml = String::from_utf8(
         site.files
             .get("book.toml")
@@ -350,4 +348,16 @@ fn book_zero_term_slice_renders_valid_chapter() {
         body.starts_with("# "),
         "the zero-term slice chapter must open with an H1"
     );
+}
+
+#[test]
+fn cached_book_matches_live_render() {
+    // The cached default book must be byte-identical to a fresh render (no blind
+    // re-bless). Under the primer (the gate/production config) `cached_book()` reads
+    // from disk, so this is a real disk-round-trip-vs-live comparison; on a cold
+    // plain `cargo test` it renders live and caches, proving the NotFound arm falls
+    // through without panicking.
+    let model = common::cached_model();
+    let live = render_book(&model, &ExecutableDocsData::default());
+    assert_eq!(common::cached_book(), live);
 }

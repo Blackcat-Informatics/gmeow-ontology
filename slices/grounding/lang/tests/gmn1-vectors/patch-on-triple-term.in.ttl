@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Degenerate vector: a @patch restating the q field alongside a claim whose object is an
+# RDF 1.2 triple term — the repair-record fold and the triple-term surface in one model.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:agentZ gmeow:asserts <<( gmeow:s1 gmeow:p1 gmeow:o1 )>> .
+
+[] a gmeow:GmnPatch ;
+    gmeow:gmnRepairId "cTT" ;
+    gmeow:confidence "0.80"^^xsd:decimal .

@@ -546,8 +546,8 @@ msgid "Glossary Entry"
 msgstr "术语表词条"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|skos:definition"
-msgid "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), sense-anchored on a lang:LexicalConcept through gmeow:glossaryConcept and carrying the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts and legitimately renders each differently."
-msgstr "术语表中一条术语粒度的绑定：它把一个术语的英文源字面量（gmeow:glossarySource）针对某一术语（gmeow:glossaryTerm）上的某一谓词（gmeow:glossaryPredicate），关联到其目标语言渲染（gmeow:glossaryTranslation），并通过 gmeow:glossaryConcept 锚定在一个 lang:LexicalConcept 义项上，通过 gmeow:glossaryUnit（一个其 logic:Correspondence 持有诚实 logic:preservationKind 的 lang:TranslationUnit）承载该转换的法则主干。一个 gmeow:Glossary 通过 gmeow:glossaryEntry 容纳零个或多个条目。一致性不变式陈述于 gmeow:glossaryConcept 之上，因此投影赋予同一概念的两个条目必须在其翻译上一致；而一个已声明的同形异义词（lang:DeclaredTerminologyHomograph）被投影到相异的概念上，可合理地对各自作出不同渲染。"
+msgid "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. Two distinct terms the projection assigns one concept carry two distinct senses that both evoke that concept, so synonymy is DERIVED (two senses evoking one concept) rather than asserted flat. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts (its senses evoke distinct concepts) and legitimately renders each differently."
+msgstr "术语表中一条术语粒度的绑定：它把一个术语的英文源字面量（gmeow:glossarySource）针对某一术语（gmeow:glossaryTerm）上的某一谓词（gmeow:glossaryPredicate），关联到其目标语言渲染（gmeow:glossaryTranslation），并承载 OntoLex 弗雷格三角——一个通过 lang:evokes 唤起条目 lang:LexicalConcept（gmeow:glossaryConcept）的 lang:Sense（gmeow:glossarySense）——以及通过 gmeow:glossaryUnit（一个其 logic:Correspondence 持有诚实 logic:preservationKind 的 lang:TranslationUnit）承载的转换法则主干。一个 gmeow:Glossary 通过 gmeow:glossaryEntry 容纳零个或多个条目。投影赋予同一概念的两个相异术语携带两个相异的义项，二者都唤起该概念，因此同义性是派生的（两个义项唤起一个概念），而非扁平地断言。一致性不变式陈述于 gmeow:glossaryConcept 之上，因此投影赋予同一概念的两个条目必须在其翻译上一致；而一个已声明的同形异义词（lang:DeclaredTerminologyHomograph）被投影到相异的概念上（其义项唤起相异的概念），可合理地对各自作出不同渲染。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|rdfs:label"
 msgid "glossary slice"
@@ -613,6 +613,14 @@ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|skos:definition"
 msgid "The lexical concept (sense) a glossary entry's source evokes — the sense-aware key the consistency invariant groups on. Functional: one concept per entry. Domain gmeow:GlossaryEntry, range lang:LexicalConcept. The projection mints one concept per source skeleton by default (so synonymous renderings of one term are caught), and DISTINCT concepts for a source declared a lang:DeclaredTerminologyHomograph (so a genuine homograph is not a false positive). Grouping on the concept rather than the raw string is what makes the check sense-aware, the OntoLex-Lemon ontolex:LexicalConcept peer."
 msgstr "一个术语表条目的源所唤起的词汇概念（义项）——一致性不变式据以分组的、具备义项意识的键。函数性：每个条目一个概念。定义域 gmeow:GlossaryEntry，值域 lang:LexicalConcept。投影默认按源骨架为每个源铸造一个概念（以便捕获同一术语的同义渲染），并为声明为 lang:DeclaredTerminologyHomograph 的源铸造相异的概念（以便真正的同形异义词不成为假阳性）。据概念而非原始字符串进行分组，正是使该检查具备义项意识之处，也即 OntoLex-Lemon 中 ontolex:LexicalConcept 的对应物。"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySense|rdfs:label"
+msgid "glossary sense"
+msgstr "术语表义项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySense|skos:definition"
+msgid "The lang:Sense a glossary entry carries — the middle corner of the OntoLex Frege triangle, the entry's lexeme's way of meaning. Functional: one sense per entry. Domain gmeow:GlossaryEntry, range lang:Sense. The sense lang:evokes the entry's gmeow:glossaryConcept, so synonymy is derived (two distinct senses evoking one concept), never a flat sense-to-sense edge. The projection mints the sense from the (gmeow:glossaryTerm, English-source-skeleton) pair and INDEPENDENTLY of target language: two distinct terms sharing one source skeleton (a class and its property twin) mint two distinct senses that both evoke the one concept, while the SAME term's renderings across languages (fr, zh) collapse onto one sense (one way of meaning, many language renderings). The consistency invariant still groups on gmeow:glossaryConcept, not on the sense."
+msgstr "一个术语表条目所承载的 lang:Sense——OntoLex 弗雷格三角的中间顶点，即该条目词位的表意方式。函数性：每个条目一个义项。定义域 gmeow:GlossaryEntry，值域 lang:Sense。该义项通过 lang:evokes 唤起条目的 gmeow:glossaryConcept，因此同义性是派生的（两个相异的义项唤起同一个概念），绝非义项到义项的扁平边。投影从（gmeow:glossaryTerm，英文源骨架）这一对、并独立于目标语言地铸造该义项：共享同一个源骨架的两个相异术语（一个类及其属性孪生）铸造两个相异的义项，二者都唤起那唯一的概念，而同一个术语跨语言（fr、zh）的各个渲染则汇合到一个义项上（一种表意方式，多种语言渲染）。一致性不变式仍在 gmeow:glossaryConcept 上分组，而非在义项上。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryUnit|rdfs:label"
 msgid "glossary unit"
 msgstr "术语表单元"
@@ -652,3 +660,19 @@ msgstr "术语表术语不一致"
 msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermInconsistency|skos:definition"
 msgid "The failure raised when a gmeow:Glossary translates one term two different ways across batches: two gmeow:GlossaryEntry members sharing one gmeow:glossaryConcept carry two DIFFERENT gmeow:glossaryTranslation values. The terminology is then not consistent — one sense reads back as two divergent renderings — which the functional-dependency invariant (lang:GlossaryTermConsistencyConstraint) forbids. The structural dual of lang:GmnDictionaryAliasCollision: an alias reading back as two terms there, a sense reading back as two translations here. A genuine homograph is NOT this failure — it is projected onto distinct concepts through a lang:DeclaredTerminologyHomograph and so never shares a concept."
 msgstr "当一个 gmeow:Glossary 跨批次把同一个术语翻译成两种不同方式时所引发的失败：共享同一个 gmeow:glossaryConcept 的两个 gmeow:GlossaryEntry 成员携带两个不同的 gmeow:glossaryTranslation 值。此时术语便不一致——同一个义项回读为两个相异的渲染——这正是函数依赖不变式（lang:GlossaryTermConsistencyConstraint）所禁止的。它是 lang:GmnDictionaryAliasCollision 的结构对偶：在那里一个别名回读为两个术语，在这里一个义项回读为两种翻译。真正的同形异义词并非此失败——它通过一个 lang:DeclaredTerminologyHomograph 被投影到相异的概念上，因而绝不共享概念。"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermConsistencyConstraint|rdfs:label"
+msgid "Glossary term-consistency constraint"
+msgstr "术语表术语一致性约束"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermConsistencyConstraint|skos:definition"
+msgid "A closed-world integrity constraint requiring two gmeow:GlossaryEntry members of one gmeow:Glossary that share a gmeow:glossaryConcept to carry the same gmeow:glossaryTranslation; one sense never reads back as two divergent translations across batches. The structural dual of lang:GmnDictionaryAliasInjectivityConstraint: alias->term injectivity there, concept->translation functional-dependency here."
+msgstr "一项闭世界完整性约束，要求同一个 gmeow:Glossary 中共享某个 gmeow:glossaryConcept 的两个 gmeow:GlossaryEntry 成员携带相同的 gmeow:glossaryTranslation；同一个义项跨批次绝不回读为两个相异的翻译。它是 lang:GmnDictionaryAliasInjectivityConstraint 的结构对偶：那里是别名->术语的单射，这里是概念->翻译的函数依赖。"
+
+msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|rdfs:label"
+msgid "GMN dictionary alias-injectivity constraint"
+msgstr "GMN 字典别名单射约束"
+
+msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|skos:definition"
+msgid "A closed-world integrity constraint requiring entries in one gmeow:GmnDictionary that share a gmeow:gmnDictionaryEntryAlias to name the same gmeow:gmnDictionaryEntryTerm; one alias never reads back as two terms."
+msgstr "一项闭世界完整性约束，要求同一个 gmeow:GmnDictionary 中共享某个 gmeow:gmnDictionaryEntryAlias 的条目命名同一个 gmeow:gmnDictionaryEntryTerm；同一个别名绝不回读为两个术语。"
