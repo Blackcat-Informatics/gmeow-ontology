@@ -3,8 +3,9 @@
 
 //! The superset gate: `gmeow.gts` is a superset of `generated/`.
 //!
-//! For every committed path under `generated/`, this gate resolves the path's
-//! carrier representative from the **shipped** bundle and reconstructs the bytes:
+//! The **authority is the projection** — the set of committed `generated/` paths the
+//! shipped bundle reconstructs ([`project_bundle`]). The gate proves that projection
+//! equals the materialized `generated/` tree on disk, in both directions:
 //!
 //! * an RDF output with a canonical graph fold is reconstructed from one named graph
 //!   (Turtle via the wasm-clean renderer; N-Quads via a graph-rooted serialization),
@@ -13,12 +14,14 @@
 //!   contain comments / section markers) is a member of one inline content-addressed
 //!   archive blob.
 //!
-//! A committed path with no representative, a representative whose reconstruction
-//! does not match the committed bytes, or a carried representative with no
-//! committed counterpart is a hard failure — no skips, no optional coverage, no
-//! degraded pass. The gate proves equality of the carried set, not merely a
-//! one-directional superset: it sweeps both `generated/ -> bundle` (missing /
-//! mismatch) and `bundle -> generated/` (orphan).
+//! The forward sweep drives off the projection: every projection key MUST exist on
+//! disk with byte-matching content (`missing` = a projection key with no file on
+//! disk; `mismatch` = present but drifted). The reverse sweep drives off the disk:
+//! every materialized `generated/` file MUST be a projection key (`orphan` = an
+//! undeclared / stale on-disk file). Because the projection is the must-exist set,
+//! an empty or absent `generated/` tree can never pass vacuously — every projection
+//! key becomes `missing`. Any non-empty sweep is a hard failure — no skips, no
+//! optional coverage, no degraded pass.
 //!
 //! Reconstruction reads the bundle back through [`purrdf::import_gts_events`]
 //! and the GTS blob reader, closing the serialize -> parse loop, so it proves
@@ -30,9 +33,10 @@ use std::path::Path;
 
 use purrdf::RdfDataset;
 
-/// The two terminal bundles cannot byte-contain themselves; they are the only
-/// committed paths the gate excludes (a bundle is not a projection of itself).
-pub const EXCLUDED: [&str; 2] = ["generated/dist/gmeow.gts", "generated/dist/gmeow-full.gts"];
+/// The one terminal bundle that cannot byte-contain itself: it is the only
+/// on-disk `generated/` path the reverse (orphan) sweep excludes, because a bundle
+/// is not a projection of itself and so is never a projection key.
+pub const EXCLUDED: [&str; 1] = ["generated/dist/gmeow.gts"];
 
 /// The committed-path -> carrier-representative outcome for one file.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -820,49 +824,55 @@ pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, g
     // reconstructed from the shipped bytes alone. The gate compares it to disk; the
     // fanout phase writes it. One code path, no second reconstruction.
     let projection = project_bundle(gts_bytes)?;
-    sweep_against_committed(&projection, root)
+    sweep_against_materialized(&projection, root)
 }
 
-/// Sweep a reconstructed [`BundleProjection`] against the committed `generated/` tree
-/// under `root`: forward (missing / mismatch) and reverse (orphan). A pure function of
-/// the projection and the on-disk tree — no bundle parsing — so the sweep verdicts are
-/// unit-testable with an injected projection.
-fn sweep_against_committed(
+/// Sweep a reconstructed [`BundleProjection`] against the materialized `generated/`
+/// tree under `root`. The **projection is the authority**: the forward sweep drives
+/// off the projection keys (the must-exist set), the reverse sweep off the on-disk
+/// tree (the orphan oracle). A pure function of the projection and the on-disk tree —
+/// no bundle parsing — so the sweep verdicts are unit-testable with an injected
+/// projection.
+fn sweep_against_materialized(
     projection: &BundleProjection,
     root: &Path,
 ) -> Result<SupersetReport, gmeow_errors::Diag> {
-    let committed = committed_generated_paths(root)?;
-    let committed_set: BTreeSet<&str> = committed.iter().map(String::as_str).collect();
-
     let mut missing = Vec::new();
     let mut mismatch = Vec::new();
 
-    // ── Forward sweep: every committed path must reconstruct from the bundle. ──
-    for path in &committed {
-        if EXCLUDED.contains(&path.as_str()) {
-            continue;
-        }
-        match projection.files.get(path) {
-            None => missing.push(path.clone()),
-            Some(reconstructed) => {
-                let committed_bytes = std::fs::read(root.join(path))
-                    .map_err(|e| stage_err(&format!("read committed {path}: {e}")))?;
-                if *reconstructed != committed_bytes {
+    // ── Forward sweep: every projection key MUST be materialized on disk with
+    // byte-matching content. A key with no file on disk is `missing`; a key present
+    // on disk whose bytes differ from the reconstruction is `mismatch`. Because the
+    // projection (not the disk walk) is the must-exist set, an empty or absent
+    // `generated/` tree flags EVERY key as missing — no vacuous pass on a fresh
+    // clone. A read error other than "not found" is a hard failure, never a skip. ──
+    for (path, reconstructed) in &projection.files {
+        match std::fs::read(root.join(path)) {
+            Ok(disk_bytes) => {
+                if *reconstructed != disk_bytes {
                     mismatch.push(path.clone());
                 }
             }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => missing.push(path.clone()),
+            Err(e) => return Err(stage_err(&format!("read materialized {path}: {e}"))),
         }
     }
 
-    // ── Reverse sweep: every reconstructed `generated/` path must back a committed
-    // file. The bundle is a *superset* of `generated/` (§5): it also carries source
-    // archives (`dsl/`, `slices/` shapes/cells/tests) and the rendered docs site for
-    // self-sufficiency — but `project_bundle` already filtered those out (it emits
-    // only `generated/`-targeting reps). An orphan is thus a STALE reconstruction rep:
-    // a carried `generated/` path with no committed file. ──
+    // ── Reverse sweep: every materialized `generated/` file MUST be a projection key.
+    // The bundle is a *superset* of `generated/` (§5): it also carries source archives
+    // (`dsl/`, `slices/` shapes/cells/tests) and the rendered docs site for
+    // self-sufficiency — but `project_bundle` already filtered those out (it emits only
+    // `generated/`-targeting reps). An orphan is thus an UNDECLARED / STALE on-disk
+    // file: a materialized `generated/` path that is not a projection key. The terminal
+    // bundle is a materialized `generated/` file that is not a projection of itself, so
+    // it is excluded here rather than reported as an orphan. ──
+    let materialized = materialized_generated_paths(root)?;
     let mut orphan = Vec::new();
-    for path in projection.files.keys() {
-        if !committed_set.contains(path.as_str()) {
+    for path in &materialized {
+        if EXCLUDED.contains(&path.as_str()) {
+            continue;
+        }
+        if !projection.files.contains_key(path) {
             orphan.push(path.clone());
         }
     }
@@ -1012,17 +1022,21 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BlobMembers, gmeow_errors::Diag
     })
 }
 
-/// Every committed file under `<root>/generated/`, repo-relative (`generated/...`),
-/// sorted. Walks the tree directly (the gate enumerates the on-disk committed set,
-/// not a stage product).
-fn committed_generated_paths(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
-    // GENERATED-READ-OK: the superset gate VERIFIES the shipped bundle is a superset of the
-    // committed generated/ tree, so it must enumerate that on-disk tree — a verification read,
-    // not a produce-stage fold of a stale projection. Nothing here folds into gmeow.gts; this
-    // read is the oracle the gate checks the freshly-projected bundle against.
+/// Every materialized file under `<root>/generated/`, repo-relative (`generated/...`),
+/// sorted. Walks the tree directly.
+fn materialized_generated_paths(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
+    // GENERATED-READ-OK: this read is ONLY the reverse (orphan) oracle. After the
+    // authority inversion the projection — not this disk walk — is the must-exist set,
+    // so the walk no longer decides completeness; it only enumerates the materialized
+    // tree so the reverse sweep can flag an on-disk file that is not a projection key.
+    // Nothing here folds into gmeow.gts. An absent `generated/` tree is not a clean
+    // pass: it yields zero orphans here while the forward sweep flags every projection
+    // key as missing.
     let base = root.join("generated");
     let mut out = Vec::new();
-    walk(&base, root, &mut out)?;
+    if base.exists() {
+        walk(&base, root, &mut out)?;
+    }
     out.sort();
     Ok(out)
 }
@@ -1105,10 +1119,9 @@ mod tests {
     }
 
     #[test]
-    fn excluded_holds_exactly_the_two_terminal_bundles() {
-        assert_eq!(EXCLUDED.len(), 2);
+    fn excluded_holds_exactly_the_one_terminal_bundle() {
+        assert_eq!(EXCLUDED.len(), 1);
         assert!(EXCLUDED.contains(&"generated/dist/gmeow.gts"));
-        assert!(EXCLUDED.contains(&"generated/dist/gmeow-full.gts"));
     }
 
     #[test]
@@ -1303,9 +1316,10 @@ mod tests {
     }
 
     #[test]
-    fn sweep_detects_missing_mismatch_and_orphan() {
+    fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
         use std::io::Write;
-        // A temp committed tree: two files under generated/.
+        // Authority is the PROJECTION. Materialize a disk tree of three files under
+        // generated/, then inject a projection whose keys diverge from it.
         let dir = std::env::temp_dir().join(format!("gmeow-superset-sweep-{}", std::process::id()));
         let gen_dir = dir.join("generated/x");
         std::fs::create_dir_all(&gen_dir).unwrap();
@@ -1313,27 +1327,68 @@ mod tests {
             let mut f = std::fs::File::create(gen_dir.join(name)).unwrap();
             f.write_all(bytes).unwrap();
         };
-        write("kept.ttl", b"KEEP");
+        write("match.ttl", b"SAME");
         write("drift.ttl", b"DISK-BYTES");
-        write("absent.ttl", b"NO-REP");
+        write("orphan.ttl", b"UNDECLARED");
 
-        // A projection that: matches kept, drifts on drift, has NO rep for absent
-        // (missing), and carries a stale extra path (orphan).
+        // Projection keys: match.ttl agrees with disk; drift.ttl reconstructs to
+        // different bytes than disk (mismatch); missing.ttl has NO disk file (missing).
+        // orphan.ttl is on disk but is NOT a projection key (orphan).
         let mut files = BTreeMap::new();
-        files.insert("generated/x/kept.ttl".to_string(), b"KEEP".to_vec());
+        files.insert("generated/x/match.ttl".to_string(), b"SAME".to_vec());
         files.insert(
             "generated/x/drift.ttl".to_string(),
             b"BUNDLE-BYTES".to_vec(),
         );
-        files.insert("generated/x/stale.ttl".to_string(), b"ORPHAN".to_vec());
+        files.insert("generated/x/missing.ttl".to_string(), b"GONE".to_vec());
         let projection = BundleProjection { files };
 
-        let report = sweep_against_committed(&projection, &dir).unwrap();
+        let report = sweep_against_materialized(&projection, &dir).unwrap();
         let _ = std::fs::remove_dir_all(&dir);
 
-        assert_eq!(report.missing, vec!["generated/x/absent.ttl".to_string()]);
+        assert_eq!(report.missing, vec!["generated/x/missing.ttl".to_string()]);
         assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
-        assert_eq!(report.orphan, vec!["generated/x/stale.ttl".to_string()]);
+        assert_eq!(report.orphan, vec!["generated/x/orphan.ttl".to_string()]);
+        assert!(!report.is_clean());
+    }
+
+    #[test]
+    fn superset_empty_materialized_tree_hard_fails() {
+        // The vacuous-pass guard: with the projection as the authority, an EMPTY
+        // (or absent) generated/ tree can never pass clean — every projection key is
+        // flagged missing. Prove it for both an empty generated/ dir and a wholly
+        // absent one.
+        let mut files = BTreeMap::new();
+        files.insert("generated/x/a.ttl".to_string(), b"A".to_vec());
+        files.insert("generated/y/b.ttl".to_string(), b"B".to_vec());
+        let projection = BundleProjection { files };
+
+        // (a) An empty-but-present generated/ directory.
+        let empty_dir =
+            std::env::temp_dir().join(format!("gmeow-superset-empty-{}", std::process::id()));
+        std::fs::create_dir_all(empty_dir.join("generated")).unwrap();
+        let report = sweep_against_materialized(&projection, &empty_dir).unwrap();
+        let _ = std::fs::remove_dir_all(&empty_dir);
+        assert_eq!(
+            report.missing,
+            vec![
+                "generated/x/a.ttl".to_string(),
+                "generated/y/b.ttl".to_string()
+            ]
+        );
+        assert!(report.orphan.is_empty());
+        assert!(
+            !report.is_clean(),
+            "an empty generated/ tree must HARD-fail, never pass vacuously"
+        );
+
+        // (b) A wholly absent generated/ tree (fresh clone) is equally not clean.
+        let absent_dir =
+            std::env::temp_dir().join(format!("gmeow-superset-absent-{}", std::process::id()));
+        std::fs::create_dir_all(&absent_dir).unwrap();
+        let report = sweep_against_materialized(&projection, &absent_dir).unwrap();
+        let _ = std::fs::remove_dir_all(&absent_dir);
+        assert_eq!(report.missing.len(), 2);
         assert!(!report.is_clean());
     }
 
