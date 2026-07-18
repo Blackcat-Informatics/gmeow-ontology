@@ -153,6 +153,23 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // inventory, not a silent hidden set the superset gate never sees.
     check_opaque_bijection(&opaque_rules, &blob_members.opaque_paths)?;
 
+    // ── Independent completeness anchor (PIPELINE_SPINE §6/§7). ──
+    // The expected-output inventory is AUTHORED TTL (the pipeline slice's
+    // `gmeow:expectsGeneratedOutput` rows), read back from the bundle here — a DIFFERENT
+    // source from the carrier's `files.keys()` (which the fanout rows are self-consistent
+    // with). A carrier code change that stops emitting a declared output shrinks `files`
+    // but NOT the authored inventory, so the ⊇ HARD FAIL below fires exactly where the
+    // two-generation determinism gate is blind (a deterministic drop is byte-identical
+    // across both runs). Running it inside `project_bundle` makes BOTH the fanout (Update)
+    // and superset-gate (Check) paths enforce it.
+    let expected = read_expected_outputs(dataset)?;
+    check_expected_completeness(&files, &expected)?;
+    // Prefix-family robustness: the two families whose members are cleanly DERIVABLE at the
+    // gate (from the carrier's reconstruction-graph IRIs, independent of the authored TTL)
+    // must have their authored members EXACTLY equal the derived members — so adding or
+    // dropping a producing individual without its expected path HARD-fails.
+    check_derivable_families(&expected, &reconstructed_paths)?;
+
     Ok(BundleProjection { files })
 }
 
@@ -529,6 +546,163 @@ fn check_opaque_bijection(
         }
     }
     Ok(())
+}
+
+/// The predicate carrying one authored expected-output path on the pipeline individual.
+const EXPECTED_OUTPUT_PRED: &str = "https://blackcatinformatics.ca/gmeow/expectsGeneratedOutput";
+
+/// Read the AUTHORED expected-output inventory from the bundle dataset: every
+/// `gmeow:expectsGeneratedOutput "generated/…"` literal, deduplicated and sorted. This is
+/// hand-written TTL in the pipeline slice (NOT carrier-emitted like the opaque fanout rows),
+/// so it is an INDEPENDENT completeness oracle — when a carrier change silently drops an
+/// output, `project_bundle`'s reconstructed set shrinks but this authored set does not, and
+/// [`check_expected_completeness`] HARD-fails. A non-literal object, a path not under
+/// `generated/`, a duplicate value, or an empty inventory (the rows never reached the bundle)
+/// is a HARD FAIL (no-optionality), never a silent pass.
+pub(crate) fn read_expected_outputs(
+    dataset: &RdfDataset,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        if quad.predicate != EXPECTED_OUTPUT_PRED {
+            continue;
+        }
+        let purrdf::RdfTerm::Literal(lit) = &quad.object else {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput on {:?} has a non-literal object (want a \"generated/…\" path literal)",
+                quad.subject
+            )));
+        };
+        let path = &lit.lexical_form;
+        if !path.starts_with("generated/") {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput value {path:?} is not under generated/"
+            )));
+        }
+        if EXCLUDED.contains(&path.as_str()) {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput must not list the terminal bundle {path:?} (a bundle is not a projection of itself)"
+            )));
+        }
+        if !out.insert(path.clone()) {
+            return Err(expected_err(&format!(
+                "gmeow:expectsGeneratedOutput lists {path:?} more than once (the inventory is a set)"
+            )));
+        }
+    }
+    if out.is_empty() {
+        return Err(expected_err(
+            "no gmeow:expectsGeneratedOutput rows in the bundle — the authored expected-output inventory did not reach gmeow.gts",
+        ));
+    }
+    Ok(out)
+}
+
+/// The independent-oracle completeness HARD-FAIL: every AUTHORED expected path must be
+/// PRODUCED by the reconstructed bundle (`expected ⊆ files.keys()`). The message names EVERY
+/// missing path. This is the anchor that survives the Task-3 disk-walk inversion: it is the
+/// "every declared output is produced" direction, proved against the bundle rather than the
+/// on-disk tree, so a clean clone that no longer emits a consumed output cannot pass silently.
+fn check_expected_completeness(
+    files: &BTreeMap<String, Vec<u8>>,
+    expected: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    let missing: Vec<&str> = expected
+        .iter()
+        .filter(|p| !files.contains_key(p.as_str()))
+        .map(String::as_str)
+        .collect();
+    if !missing.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::ExpectedOutputMissing {
+                message: format!(
+                    "{} authored generated/ output(s) not produced by the bundle: {}",
+                    missing.len(),
+                    missing.join(", ")
+                ),
+            },
+        ));
+    }
+    Ok(())
+}
+
+/// A derivable prefix family: an authored expected-output family whose members can be
+/// INDEPENDENTLY re-derived at the gate from the carrier's reconstruction-graph IRIs (an
+/// emitted-Rust source, distinct from the authored TTL). Only families all of whose members
+/// travel as named-graph folds qualify (the mixed RDF/opaque families — research-objects,
+/// lang projections — are authored-only, guarded by a count-consistency test instead).
+struct DerivableFamily {
+    /// The committed-path prefix (e.g. `generated/profiles/`).
+    prefix: &'static str,
+    /// An optional suffix filter isolating the family within a shared directory (the EDOAL
+    /// `.edoal.ttl` case, which shares `generated/projections/` with plain RDF projections).
+    suffix: Option<&'static str>,
+}
+
+impl DerivableFamily {
+    fn contains(&self, path: &str) -> bool {
+        path.starts_with(self.prefix) && self.suffix.is_none_or(|s| path.ends_with(s))
+    }
+}
+
+/// The prefix families whose membership is DERIVED (not merely authored): the RDF-fanout
+/// `generated/profiles/*` set and the EDOAL `generated/projections/*.edoal.ttl` set. Both
+/// travel entirely as reconstruction named graphs, so the carrier's reconstructed-path set
+/// yields their exact membership independently of the authored inventory.
+const DERIVABLE_FAMILIES: [DerivableFamily; 2] = [
+    DerivableFamily {
+        prefix: "generated/profiles/",
+        suffix: None,
+    },
+    DerivableFamily {
+        prefix: "generated/projections/",
+        suffix: Some(".edoal.ttl"),
+    },
+];
+
+/// The derivation cross-check: for each [`DERIVABLE_FAMILIES`] member, the AUTHORED family
+/// (from the expected-output inventory) must EXACTLY equal the family DERIVED from the
+/// carrier's reconstructed named-graph paths. A source individual added without its expected
+/// path (derived ⊋ authored) or a stale authored path (authored ⊋ derived) HARD-fails, so
+/// the dynamic families cannot silently drift out of the authored inventory.
+fn check_derivable_families(
+    expected: &BTreeSet<String>,
+    reconstructed: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    for family in &DERIVABLE_FAMILIES {
+        let authored: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| family.contains(p))
+            .map(String::as_str)
+            .collect();
+        let derived: BTreeSet<&str> = reconstructed
+            .iter()
+            .filter(|p| family.contains(p))
+            .map(String::as_str)
+            .collect();
+        if authored != derived {
+            let authored_only: Vec<&str> = authored.difference(&derived).copied().collect();
+            let derived_only: Vec<&str> = derived.difference(&authored).copied().collect();
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::ExpectedOutputMissing {
+                    message: format!(
+                        "derivable family {}{} authored≠derived: authored-only [{}], derived-only [{}]",
+                        family.prefix,
+                        family.suffix.unwrap_or(""),
+                        authored_only.join(", "),
+                        derived_only.join(", ")
+                    ),
+                },
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn expected_err(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::ExpectedOutputMissing {
+        message: message.to_string(),
+    })
 }
 
 /// The embedded graph label of the committed diagnostics `.nq` files (mirrors
@@ -1327,5 +1501,229 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
             orphan: vec![],
         };
         assert!(!dirty.is_clean());
+    }
+
+    /// The authored expected-output inventory, read from the pipeline slice module.ttl
+    /// (the same data the shipped bundle carries) — the real independent oracle.
+    fn authored_expected() -> BTreeSet<String> {
+        let ttl = std::fs::read(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
+        let ds = purrdf::parse_dataset(&ttl, "text/turtle", None).unwrap();
+        read_expected_outputs(&ds).unwrap()
+    }
+
+    #[test]
+    fn expected_output_inventory_round_trips_from_the_authored_module_ttl() {
+        // The authored gmeow:expectsGeneratedOutput rows round-trip through the gate's OWN
+        // reader: the complete non-terminal generated/ tree, deduplicated, every path under
+        // generated/, and neither terminal bundle present.
+        let expected = authored_expected();
+        assert_eq!(
+            expected.len(),
+            388,
+            "the authored inventory must hold every non-terminal generated/ path"
+        );
+        for p in &expected {
+            assert!(
+                p.starts_with("generated/"),
+                "non-generated inventory path: {p}"
+            );
+            assert!(
+                !EXCLUDED.contains(&p.as_str()),
+                "terminal bundle leaked in: {p}"
+            );
+        }
+        // The known runtime-consumed catalog files (crates/docs/src/model.rs) are present.
+        assert!(expected.contains("generated/catalog/constraint-catalog.nq"));
+        assert!(expected.contains("generated/catalog/term-content-manifest.nq"));
+    }
+
+    #[test]
+    fn read_expected_outputs_rejects_malformed_rows() {
+        // Non-literal object.
+        let bad_obj = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput gmeow:not-a-literal ."#;
+        let ds = purrdf::parse_dataset(bad_obj.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // A path not under generated/.
+        let outside = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "docs/x.md" ."#;
+        let ds = purrdf::parse_dataset(outside.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // A terminal bundle listed.
+        let terminal = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/dist/gmeow.gts" ."#;
+        let ds = purrdf::parse_dataset(terminal.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // The same path declared by two subjects (identical triples collapse under RDF set
+        // semantics, so a genuine duplicate needs distinct subjects).
+        let dup = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/a.ttl" .
+gmeow:other gmeow:expectsGeneratedOutput "generated/a.ttl" ."#;
+        let ds = purrdf::parse_dataset(dup.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+        // No rows at all — the inventory did not reach the bundle.
+        let empty = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:pipeline-build a gmeow:Pipeline ."#;
+        let ds = purrdf::parse_dataset(empty.as_bytes(), "text/turtle", None).unwrap();
+        assert!(read_expected_outputs(&ds).is_err());
+    }
+
+    #[test]
+    fn completeness_hard_fails_naming_every_dropped_output() {
+        // The completeness anchor: dropping ONE declared path from the produced set fires the
+        // ExpectedOutputMissing HARD FAIL, and the message names the missing path — exactly the
+        // deterministic-drop case the two-generation determinism gate is blind to.
+        let expected = authored_expected();
+        // A produced set that reconstructs every declared path passes.
+        let full: BTreeMap<String, Vec<u8>> =
+            expected.iter().map(|p| (p.clone(), Vec::new())).collect();
+        check_expected_completeness(&full, &expected).expect("full production is complete");
+        // Drop one declared output (simulate a carrier code change that stops emitting it).
+        let dropped = "generated/catalog/constraint-catalog.nq";
+        let mut partial = full.clone();
+        partial.remove(dropped);
+        let err = check_expected_completeness(&partial, &expected).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+        assert!(
+            err.to_string().contains(dropped),
+            "the HARD FAIL must name the dropped path, got: {err}"
+        );
+    }
+
+    #[test]
+    fn derivable_families_cross_check_catches_authored_derived_drift() {
+        // The two DERIVED families (profiles, edoal): authored must EXACTLY equal the set the
+        // carrier's reconstruction graphs yield. The real authored counts are pinned so a
+        // silent family-count change trips the count-consistency guard.
+        let expected = authored_expected();
+        let profiles: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/profiles/"))
+            .map(String::as_str)
+            .collect();
+        let edoal: BTreeSet<&str> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
+            .map(String::as_str)
+            .collect();
+        assert_eq!(profiles.len(), 7, "profiles family membership drifted");
+        assert_eq!(edoal.len(), 47, "edoal family membership drifted");
+
+        // Equal authored/derived over the derivable families passes.
+        let reconstructed: BTreeSet<String> = expected
+            .iter()
+            .filter(|p| {
+                p.starts_with("generated/profiles/")
+                    || (p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
+            })
+            .cloned()
+            .collect();
+        check_derivable_families(&expected, &reconstructed).expect("authored == derived");
+
+        // A source individual added without its expected path (derived ⊋ authored) HARD-fails.
+        let mut extra = reconstructed.clone();
+        extra.insert("generated/profiles/newprofile.ttl".to_string());
+        let err = check_derivable_families(&expected, &extra).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+
+        // A stale authored path (authored ⊋ derived) HARD-fails too.
+        let mut short = reconstructed.clone();
+        assert!(short.remove("generated/profiles/full.ttl"));
+        let err = check_derivable_families(&expected, &short).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+    }
+
+    #[test]
+    fn authored_only_families_hold_their_count_consistency() {
+        // The two prefix families whose producing individuals are NOT cleanly enumerable at
+        // the gate — research-objects (a single research object with a mixed RDF / JSON / XML /
+        // HTML sub-tree) and the heterogeneous lang projections (per-reading CoNLL-U, per-example
+        // GMN1, per-sentence NIF/TEI/SEMAF, EBNF grammars) — are AUTHORED-ONLY. They cannot be
+        // re-derived from reconstruction graphs (their non-RDF members ride opaque blobs), so a
+        // count-consistency guard stands in for a derivation cross-check: a silent add/drop trips
+        // the pinned membership. Both prefixes are also fully covered by the completeness ⊇ anchor.
+        let expected = authored_expected();
+        let research: Vec<&String> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/research-objects/"))
+            .collect();
+        let lang: Vec<&String> = expected
+            .iter()
+            .filter(|p| p.starts_with("generated/projections/lang/"))
+            .collect();
+        assert_eq!(
+            research.len(),
+            13,
+            "research-objects family membership drifted"
+        );
+        assert_eq!(lang.len(), 30, "lang-projections family membership drifted");
+        // These families are genuinely mixed (not all RDF), the reason they are authored-only.
+        assert!(
+            research.iter().any(|p| p.ends_with(".json"))
+                && research.iter().any(|p| p.ends_with(".ttl")),
+            "research-objects should carry both RDF and non-RDF members"
+        );
+        assert!(
+            lang.iter().any(|p| p.ends_with(".conllu")) && lang.iter().any(|p| p.ends_with(".ttl")),
+            "lang projections should carry both RDF and non-RDF members"
+        );
+    }
+
+    /// Recursively collect the committed `generated/<file>` paths that shipped code names via
+    /// the repo-root read idiom `root.join("generated/…")` under one directory, skipping
+    /// integration-test trees (`…/tests/…`).
+    fn collect_root_join_generated(dir: &Path, out: &mut BTreeSet<String>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().is_some_and(|n| n == "tests") {
+                    continue;
+                }
+                collect_root_join_generated(&path, out);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                let text = std::fs::read_to_string(&path).unwrap();
+                let needle = "root.join(\"generated/";
+                let mut rest = text.as_str();
+                while let Some(i) = rest.find(needle) {
+                    let after = &rest[i + "root.join(\"".len()..];
+                    if let Some(end) = after.find('"') {
+                        let p = &after[..end];
+                        // Only file references (a dotted final segment), never bare dirs.
+                        if p.rsplit('/').next().is_some_and(|seg| seg.contains('.')) {
+                            out.insert(p.to_string());
+                        }
+                        rest = &after[end..];
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn every_runtime_generated_read_is_in_the_authored_inventory() {
+        // Downstream-read guarantee: every committed generated/ file shipped code reads at
+        // runtime (via root.join) must be in the authored inventory, so a clean clone cannot
+        // silently lose a consumed output. The terminal bundle is legitimately excluded.
+        let inventory = authored_expected();
+        let mut refs = BTreeSet::new();
+        collect_root_join_generated(&repo_root().join("crates"), &mut refs);
+        // Sanity: the flagged docs consumer read is actually discovered by the scan.
+        assert!(
+            refs.contains("generated/catalog/constraint-catalog.nq"),
+            "scan failed to discover the crates/docs/src/model.rs catalog read"
+        );
+        for path in &refs {
+            if EXCLUDED.contains(&path.as_str()) {
+                continue;
+            }
+            assert!(
+                inventory.contains(path),
+                "runtime read {path} is absent from the authored expected-output inventory — a \
+                 clean clone would silently lose a consumed file"
+            );
+        }
     }
 }
