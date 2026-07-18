@@ -1122,7 +1122,7 @@ fn authored_rule_term(term: &RdfTerm) -> Option<crate::rule_ir::EvalTerm> {
 /// so no explicit `∃` marker is needed.  The produced rules are merged into the same
 /// per-world map the OWL-restriction lowering feeds, so they flow through the identical
 /// per-world `ChaseAdmission::certify` → shipped-certificate path.
-fn authored_existential_rules(
+pub(crate) fn authored_existential_rules(
     edb: &RdfDataset,
 ) -> BTreeMap<String, Vec<crate::physical::ExistentialRule>> {
     use crate::rule_ir::EvalAtom;
