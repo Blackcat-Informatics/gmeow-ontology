@@ -645,7 +645,11 @@ pub fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
     out
 }
 
-fn authored_turtle_files(root: &Path) -> Vec<PathBuf> {
+/// The authored Turtle files the homograph escape reads (`ontology/gmeow.ttl` plus every
+/// slice `module.ttl`/`manifest.ttl`), sorted. Exposed so a stage that derives from
+/// [`declared_homograph_sources`] can fold these exact bytes into its cache key — the
+/// SAME read surface, never a re-authored guess.
+pub fn authored_turtle_files(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     let ontology = root.join("ontology/gmeow.ttl");
     if ontology.is_file() {

@@ -169,6 +169,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage::new()));
     registry.register("pydantic", Arc::new(pydantic::PydanticStage::new()));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
+    registry.register("glossary", Arc::new(lang_glossary::GlossaryTableStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage::new()));

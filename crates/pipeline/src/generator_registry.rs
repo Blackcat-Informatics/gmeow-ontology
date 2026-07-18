@@ -87,6 +87,12 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &[],
     },
     GeneratorInfo {
+        name: "glossary",
+        sources: &["slices/"],
+        outputs: &["generated/catalog/glossary.md"],
+        dependencies: &[],
+    },
+    GeneratorInfo {
         name: "gts",
         sources: &[
             "slices/",

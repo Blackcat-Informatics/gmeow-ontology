@@ -527,6 +527,7 @@ gmeow:pipeline-build
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
@@ -941,6 +942,17 @@ gmeow:stage-export-matrix
     gmeow:stageImpl "matrix" ;
     gmeow:producesFormat "makefile-matrix" .
 
+gmeow:stage-export-glossary
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: glossary"@x-gmeow-english ;
+    skos:definition "Emit the committed human-readable per-slice terminology glossary table (generated/catalog/glossary.md): the Markdown projection of the graph/lang-glossary-corpus fold, grouped by slice then language with one row per reviewed source→target crossing. Derived from the SAME reviewed `.po` entry list the corpus folds (crate::stages::lang_glossary::build_entries) — a lossy sanctioned projection (Principle 17), never a second parse, so the table and the graph cannot drift. A source-reading leaf like gmeow:stage-export-matrix: it reads the authored `.po` catalogs and homograph declarations directly and folds one opaque REP_GENERATED fanout member."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "glossary" ;
+    gmeow:producesFormat "markdown" .
+
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -1067,6 +1079,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
