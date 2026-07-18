@@ -20,6 +20,7 @@ use gmeow_errors::{
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
 use gmeow_math::Rational;
+use gmeow_math::dimension::DimVector;
 
 use crate::model::{owl, rdf, rdfs, skos};
 
@@ -1489,49 +1490,6 @@ fn math_iri(term: &str) -> String {
     format!("{MATH_NS}{term}")
 }
 
-/// The seven SI base dimensions, in canonical ℚ⁷ index order. A dimension vector
-/// is a length-7 array of exact rationals over these generators.
-const BASE_DIMENSIONS: [&str; 7] = [
-    "lengthDimension",
-    "massDimension",
-    "timeDimension",
-    "electricCurrentDimension",
-    "temperatureDimension",
-    "amountOfSubstanceDimension",
-    "luminousIntensityDimension",
-];
-
-/// Position of a base-dimension IRI in the canonical ℚ⁷ order, if it is one of the
-/// seven SI generators.
-fn base_dimension_index(iri: &str) -> Option<usize> {
-    BASE_DIMENSIONS.iter().position(|b| iri == math_iri(b))
-}
-
-/// The exact-rational exponent scalar of the dimension vector space. This is the
-/// shared [`gmeow_math::Rational`] — an `i128`-backed, gcd-normalized rational with
-/// a positive denominator, so `PartialEq`/`Eq` is value equality: dimensions are
-/// equal exactly when their exponent vectors are equal (the derived
-/// `math:commensurableWith`), and exact rationals (not `xsd:decimal`) keep that
-/// equality precise for fractional dimensions such as T^(-1/2). There is no
-/// duplicate rational type here — the native math: gate computes THROUGH the same
-/// exact-rational carrier the affect-intensity and Gram-matrix loaders use.
-type DimVector = [Rational; 7];
-
-fn zero_vector() -> DimVector {
-    [Rational::zero(); 7]
-}
-
-/// Componentwise exact-rational vector sum — the group operation of the dimension
-/// vector space (a product of dimensions adds their exponent vectors). `None` on
-/// overflow.
-fn add_vectors(a: &DimVector, b: &DimVector) -> Option<DimVector> {
-    let mut out = zero_vector();
-    for i in 0..7 {
-        out[i] = a[i].checked_add(b[i]).ok()?;
-    }
-    Some(out)
-}
-
 /// Literal lexical values of `(subject, predicate, ?)` (literals only).
 fn ds_object_literals(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -1556,78 +1514,44 @@ fn ds_object_iris_sorted(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str
     v
 }
 
-/// Canonical base-dimension symbols, in the same order as [`BASE_DIMENSIONS`]. Used
-/// to render a dimension vector to its human-readable string for the drift check.
-const BASE_SYMBOLS: [&str; 7] = ["L", "M", "T", "I", "\u{0398}", "N", "J"];
-
-/// Render a dimension vector to its canonical `math:dimensionVector` string, e.g.
-/// `"L·T-1"` for velocity or `"1"` for a dimensionless quantity. Exponent 1 is
-/// elided; a non-unit denominator prints as `num/den`. This is the single source the
-/// authored string must match — the string is a computed projection, not an
-/// independent hand-authored fact.
-fn render_dimension_vector(v: &DimVector) -> String {
-    let mut parts: Vec<String> = Vec::new();
-    for i in 0..7 {
-        let r = v[i];
-        let (num, den) = (r.numerator(), r.denominator());
-        if num == 0 {
-            continue;
-        }
-        let mut s = BASE_SYMBOLS[i].to_string();
-        if !(num == 1 && den == 1) {
-            if den == 1 {
-                s.push_str(&num.to_string());
-            } else {
-                s.push_str(&format!("{num}/{den}"));
-            }
-        }
-        parts.push(s);
-    }
-    if parts.is_empty() {
-        "1".to_string()
-    } else {
-        parts.join("\u{00b7}")
-    }
-}
-
-/// The exact-rational ℚ⁷ exponent vector of a dimension IRI. A base dimension is a
-/// unit basis vector; `math:dimensionless` (or any `math:Dimensionless`) is zero; a
-/// `math:DerivedDimension` sums `power * e_base` over its `math:baseDimensionExponent`
-/// cells. Pure: returns `None` for a dimension whose structure is ill-formed (a
-/// non-base exponent target, a missing/non-integer/zero-denominator power, or
-/// arithmetic overflow) or whose kind cannot be computed, so an unrelated node never
-/// yields a false positive. The ill-formed structural cases are surfaced explicitly,
-/// not swallowed here — a non-base exponent target by the SHACL `DimensionExponentShape`
-/// (`sh:class`), and a zero denominator by both that shape (`sh:not sh:hasValue 0`) and
-/// the native zero-denominator scan in [`check_math_dimension_invariants`] — so a `None`
-/// from a genuinely malformed cell means "already reported elsewhere", never "silently
-/// dropped".
+/// The exact-rational ℚ⁷ exponent vector of a dimension IRI, read out of the dataset
+/// and expressed as the shared [`gmeow_math::dimension::DimVector`] — the ONE source
+/// both this gate and the native `math:` reasoning builtins compute through (no
+/// duplicate ℚ⁷ algebra lives here; the type, `add`/`sub`/`commensurable`/`render`
+/// are `gmeow-math`'s). A base dimension is a unit basis vector; `math:dimensionless`
+/// (or any `math:Dimensionless`) is zero; a `math:DerivedDimension` sums
+/// `power * e_base` over its `math:baseDimensionExponent` cells. Returns `None` for a
+/// dimension whose structure is ill-formed (a non-base exponent target, a
+/// missing/non-integer/zero-denominator power, or arithmetic overflow) or whose kind
+/// cannot be computed, so an unrelated node never yields a false positive — the
+/// ill-formed structural cases are surfaced explicitly by the SHACL
+/// `DimensionExponentShape` and the native zero-denominator scan in
+/// [`check_math_dimension_invariants`], so a `None` here means "already reported
+/// elsewhere", never "silently dropped".
 fn dimension_vector(ds: &RdfDataset, dim_iri: &str) -> Option<DimVector> {
-    if let Some(i) = base_dimension_index(dim_iri) {
-        let mut v = zero_vector();
-        v[i] = Rational::new(1, 1).ok()?;
+    if let Some(v) = DimVector::base_unit(dim_iri) {
         return Some(v);
     }
     if dim_iri == math_iri("dimensionless") || ds_has_type(ds, dim_iri, &math_iri("Dimensionless"))
     {
-        return Some(zero_vector());
+        return Some(DimVector::zero());
     }
     if !ds_has_type(ds, dim_iri, &math_iri("DerivedDimension")) {
         return None;
     }
-    let mut v = zero_vector();
+    let mut v = DimVector::zero();
     for cell in ds_object_iris_sorted(ds, dim_iri, &math_iri("baseDimensionExponent")) {
         let base = ds_object_iris_sorted(ds, &cell, &math_iri("exponentOfDimension"))
             .into_iter()
             .next()?;
-        let bi = base_dimension_index(&base)?;
+        let bi = gmeow_math::dimension::base_dimension_index(&base)?;
         let num = ds_object_literals(ds, &cell, &math_iri("exponentNumerator"))
             .into_iter()
             .find_map(|l| l.parse::<i128>().ok())?;
         let den = ds_object_literals(ds, &cell, &math_iri("exponentDenominator"))
             .into_iter()
             .find_map(|l| l.parse::<i128>().ok())?;
-        v[bi] = v[bi].checked_add(Rational::new(num, den).ok()?).ok()?;
+        v.add_exponent(bi, Rational::new(num, den).ok()?).ok()?;
     }
     Some(v)
 }
@@ -1664,7 +1588,7 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
             let Some(vec) = dimension_vector(ds, &subj) else {
                 continue;
             };
-            let canonical = render_dimension_vector(&vec);
+            let canonical = vec.render();
             if canonical != lexical && flagged.insert(subj.clone()) {
                 report.push_error(
                     codes::MATH_MALFORMED_DIMENSION_VECTOR,
@@ -1797,7 +1721,7 @@ fn check_math_dimension_invariants(ds: &RdfDataset, report: &mut LintReport) {
         ) else {
             continue;
         };
-        let Some(composed) = add_vectors(&iv, &mv) else {
+        let Some(composed) = iv.add(&mv).ok() else {
             continue;
         };
         if rv != composed {
@@ -2119,7 +2043,7 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
                 continue;
             };
             let required = if square {
-                add_vectors(&rvec, &rvec)
+                rvec.add(&rvec).ok()
             } else {
                 Some(rvec)
             };

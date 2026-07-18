@@ -26,6 +26,7 @@ use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, Term, TermKind};
 
 pub mod clifford;
+pub mod dimension;
 pub mod producers;
 
 mod error;
@@ -95,7 +96,15 @@ fn gcd_i128(a: i128, b: i128) -> i128 {
 /// An exact rational number backed by `i128`, always kept gcd-normalized with a
 /// strictly positive denominator. Every arithmetic operation is checked and
 /// **hard-fails** (returns `Err`) on overflow rather than wrapping.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// The normalized `(numerator, denominator)` pair is the canonical representative
+/// of the value, so the derived [`Hash`] is consistent with [`Eq`]: two rationals
+/// that compare equal (e.g. `1/2` and `2/4`, both normalized to `1/2`) hash equal.
+/// `Ord`/`PartialOrd` cross-multiply and **panic** on `i128` overflow (a loud,
+/// deterministic hard fail, since `cmp` cannot return `Result`); overflow-safe
+/// callers on hostile inputs must order via [`Rational::checked_sub`] and inspect
+/// the sign instead of `cmp`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Rational {
     numerator: i128,
     denominator: i128,
@@ -887,6 +896,35 @@ mod tests {
     /// The canonical correlated metric G = [[1, 1/4], [1/4, 1]].
     fn correlated_gram() -> InnerProductSpace {
         InnerProductSpace::new(vec![vec![r(1, 1), r(1, 4)], vec![r(1, 4), r(1, 1)]]).expect("space")
+    }
+
+    // Hash is consistent with Eq: equal-valued rationals (normalized to the same
+    // canonical pair) hash equal, so Rational is a sound HashMap/HashSet key.
+    #[test]
+    fn equal_rationals_hash_equal() {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+
+        fn hash_of(value: Rational) -> u64 {
+            let mut hasher = DefaultHasher::new();
+            value.hash(&mut hasher);
+            hasher.finish()
+        }
+
+        // 1/2 and 2/4 normalize to the same (1, 2); Eq and Hash must agree.
+        let half = r(1, 2);
+        let also_half = r(2, 4);
+        assert_eq!(half, also_half);
+        assert_eq!(hash_of(half), hash_of(also_half));
+
+        // A negative denominator normalizes to a positive one; still hashes equal.
+        let neg = r(1, -3);
+        let pos = r(-1, 3);
+        assert_eq!(neg, pos);
+        assert_eq!(hash_of(neg), hash_of(pos));
+
+        // Distinct values (overwhelmingly) hash apart — a weak inequality sanity check.
+        assert_ne!(hash_of(r(1, 2)), hash_of(r(1, 3)));
     }
 
     #[test]
