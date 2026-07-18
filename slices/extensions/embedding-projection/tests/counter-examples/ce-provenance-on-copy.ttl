@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# R2 counter-example (Don't): a derived copy (gmeow:wasDerivedFrom present) that has
+# ORPHANED its classification — it carries gmeow:hasSensitivity but has DROPPED its
+# gmeow:hasDisclosurePolicy. A copy must retain its source's full classification.
+# Triggers provenance-on-copy.rq (→ ce:orphanCopy).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:copySource a gmeow:InformationObject ;
+    gmeow:contentDigest       "blake3:cp00000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasSensitivity      gmeow:sensitivityConfidential ;
+    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
+
+ce:orphanCopy a gmeow:EmbeddingProjection ;
+    gmeow:hasVectorSpaceContract ce:orphanCopyVsc ;
+    gmeow:wasDerivedFrom         ce:copySource ;
+    gmeow:hasSensitivity         gmeow:sensitivityConfidential .

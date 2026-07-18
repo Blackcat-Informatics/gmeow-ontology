@@ -15,6 +15,7 @@ gmeow:full
         <https://blackcatinformatics.ca/gmeow/slices/connectivity> ,
         <https://blackcatinformatics.ca/gmeow/slices/dreaming> ,
         <https://blackcatinformatics.ca/gmeow/slices/email> ,
+        <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ,
         <https://blackcatinformatics.ca/gmeow/slices/employment> ,
         <https://blackcatinformatics.ca/gmeow/slices/finance> ,
         <https://blackcatinformatics.ca/gmeow/slices/genealogy> ,

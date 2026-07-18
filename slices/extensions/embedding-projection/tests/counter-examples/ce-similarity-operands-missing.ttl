@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Similarity-operands counter-example (Don't): a gmeow:SimilarityObservation that carries a
+# gmeow:similarityScore (a well-formed dimensionless math:Quantity) but names NEITHER of
+# the two vector ROWS it scored — no gmeow:comparesLeftTarget, no gmeow:comparesRightTarget.
+# A bare score cannot identify WHICH vector pair produced it, so the proximity is
+# unattributable at the operand grain — a similarity result must be grounded to its actual
+# operands, not merely to whole projections. It violates the sh:minCount 1
+# derived from the gmeow:comparesLeftTarget/gmeow:comparesRightTarget allValuesFrom carriers
+# + their class-scoped ClosureEntries (→ shacl.MinCountConstraintComponent), and triggers
+# similarity-operands.rq (→ ce:noOperandObs). The observation deliberately carries only the
+# operand deficiency: its score is a valid Quantity, so no other requiredness fires.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:noOperandScore a math:Quantity ;
+    math:hasDimension  math:dimensionless ;
+    math:quantityValue "0.90"^^xsd:decimal .
+
+# The score names a magnitude but NO operand rows — the row-level operands are absent.
+ce:noOperandObs a gmeow:SimilarityObservation ;
+    gmeow:similarityScore ce:noOperandScore ;
+    gmeow:queryContext    "nearest neighbours (operand rows unnamed — DON'T)" .

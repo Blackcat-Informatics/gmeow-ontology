@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT11 counter-example (Don't): banned legacy RDF-1.1 container vocabulary — an
+# rdf:Bag with rdf:_N membership. Authored ontology content must be RDF-1.2-only.
+# Triggers rdf12-only.rq (→ ce:legacyBag).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:legacyBag a rdf:Bag ;
+    rdf:_1 ce:memberOne ;
+    rdf:_2 ce:memberTwo .

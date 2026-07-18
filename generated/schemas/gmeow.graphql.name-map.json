@@ -402,6 +402,10 @@
       "output_type": "BuildDataFlow",
       "input_type": "BuildDataFlowInput"
     },
+    "ByteOrderEnum": {
+      "output_type": "ByteOrderEnum",
+      "input_type": "ByteOrderEnum"
+    },
     "CadastralReference": {
       "output_type": "CadastralReference",
       "input_type": "CadastralReferenceInput"
@@ -694,6 +698,10 @@
       "output_type": "DayOfWeekEnum",
       "input_type": "DayOfWeekEnum"
     },
+    "DeclassificationAct": {
+      "output_type": "DeclassificationAct",
+      "input_type": "DeclassificationActInput"
+    },
     "DegreeOfFreedom": {
       "output_type": "DegreeOfFreedom",
       "input_type": "DegreeOfFreedomInput"
@@ -721,6 +729,10 @@
     "DerivedAffectIntensityObservation": {
       "output_type": "DerivedAffectIntensityObservation",
       "input_type": "DerivedAffectIntensityObservationInput"
+    },
+    "DerivedVectorIndex": {
+      "output_type": "DerivedVectorIndex",
+      "input_type": "DerivedVectorIndexInput"
     },
     "Desire": {
       "output_type": "GmeowScalar",
@@ -826,6 +838,14 @@
       "output_type": "Embedding",
       "input_type": "EmbeddingInput"
     },
+    "EmbeddingFamily": {
+      "output_type": "EmbeddingFamily",
+      "input_type": "EmbeddingFamilyInput"
+    },
+    "EmbeddingProjection": {
+      "output_type": "EmbeddingProjection",
+      "input_type": "EmbeddingProjectionInput"
+    },
     "EmbodimentAssignment": {
       "output_type": "EmbodimentAssignment",
       "input_type": "EmbodimentAssignmentInput"
@@ -913,6 +933,10 @@
     "ExpressionLanguageEnum": {
       "output_type": "ExpressionLanguageEnum",
       "input_type": "ExpressionLanguageEnum"
+    },
+    "ExternalBinding": {
+      "output_type": "ExternalBinding",
+      "input_type": "ExternalBindingInput"
     },
     "ExtractedRelationship": {
       "output_type": "ExtractedRelationship",
@@ -1390,6 +1414,10 @@
       "output_type": "Mark",
       "input_type": "MarkInput"
     },
+    "MatryoshkaPolicyEnum": {
+      "output_type": "MatryoshkaPolicyEnum",
+      "input_type": "MatryoshkaPolicyEnum"
+    },
     "MaximViolationTypeEnum": {
       "output_type": "MaximViolationTypeEnum",
       "input_type": "MaximViolationTypeEnum"
@@ -1854,6 +1882,14 @@
       "output_type": "Profile",
       "input_type": "ProfileInput"
     },
+    "ProfileSurface": {
+      "output_type": "ProfileSurface",
+      "input_type": "ProfileSurfaceInput"
+    },
+    "ProfileSurfaceKindEnum": {
+      "output_type": "ProfileSurfaceKindEnum",
+      "input_type": "ProfileSurfaceKindEnum"
+    },
     "Prohibition": {
       "output_type": "GmeowScalar",
       "input_type": "GmeowScalar"
@@ -1953,6 +1989,10 @@
     "RepositoryTypeEnum": {
       "output_type": "RepositoryTypeEnum",
       "input_type": "RepositoryTypeEnum"
+    },
+    "ReproducibilityLevelEnum": {
+      "output_type": "ReproducibilityLevelEnum",
+      "input_type": "ReproducibilityLevelEnum"
     },
     "RetrievalEvent": {
       "output_type": "RetrievalEvent",
@@ -2118,6 +2158,10 @@
       "output_type": "SignatureSchemeEnum",
       "input_type": "SignatureSchemeEnum"
     },
+    "SimilarityObservation": {
+      "output_type": "SimilarityObservation",
+      "input_type": "SimilarityObservationInput"
+    },
     "SiteTypeEnum": {
       "output_type": "SiteTypeEnum",
       "input_type": "SiteTypeEnum"
@@ -2225,6 +2269,10 @@
     "Tagging": {
       "output_type": "Tagging",
       "input_type": "TaggingInput"
+    },
+    "TargetSet": {
+      "output_type": "TargetSet",
+      "input_type": "TargetSetInput"
     },
     "Task": {
       "output_type": "Task",
@@ -2369,6 +2417,18 @@
     "UsageAttestation": {
       "output_type": "UsageAttestation",
       "input_type": "UsageAttestationInput"
+    },
+    "VectorSpaceContract": {
+      "output_type": "VectorSpaceContract",
+      "input_type": "VectorSpaceContractInput"
+    },
+    "VectorTarget": {
+      "output_type": "VectorTarget",
+      "input_type": "VectorTargetInput"
+    },
+    "VectorTargetKindEnum": {
+      "output_type": "VectorTargetKindEnum",
+      "input_type": "VectorTargetKindEnum"
     },
     "VerdictLatticeRelationEnum": {
       "output_type": "VerdictLatticeRelationEnum",
@@ -4299,6 +4359,14 @@
       "gmeow:dataFlowSource": "gmeowDataFlowSource",
       "gmeow:dataFlowTarget": "gmeowDataFlowTarget"
     },
+    "#/$defs/DeclassificationAct": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:declassifies": "gmeowDeclassifies",
+      "gmeow:wasAssociatedWith": "gmeowWasAssociatedWith",
+      "gmeow:wasGeneratedBy": "gmeowWasGeneratedBy"
+    },
     "#/$defs/DegreeOfFreedom": {
       "@annotation": "annotation",
       "@id": "id",
@@ -4321,6 +4389,14 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"
+    },
+    "#/$defs/DerivedVectorIndex": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:approximationRecall": "gmeowApproximationRecall",
+      "gmeow:indexOfProjection": "gmeowIndexOfProjection",
+      "gmeow:indexOverSpace": "gmeowIndexOverSpace"
     },
     "#/$defs/Diastolic": {
       "@annotation": "annotation",
@@ -4414,6 +4490,23 @@
     "#/$defs/Embedding/properties/gmeow:embeddingOf": {
       "@id": "id"
     },
+    "#/$defs/EmbeddingFamily": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:contentDigest": "gmeowContentDigest",
+      "gmeow:embeddingModel": "gmeowEmbeddingModel"
+    },
+    "#/$defs/EmbeddingProjection": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:hasSensitivity": "gmeowHasSensitivity",
+      "gmeow:hasVectorSpaceContract": "gmeowHasVectorSpaceContract",
+      "gmeow:projectionSource": "gmeowProjectionSource",
+      "gmeow:projectionSourceDigest": "gmeowProjectionSourceDigest",
+      "gmeow:reproducibilityLevel": "gmeowReproducibilityLevel"
+    },
     "#/$defs/EmbodimentAssignment": {
       "@annotation": "annotation",
       "@id": "id",
@@ -4502,6 +4595,12 @@
       "@id": "id",
       "@type": "type",
       "gmeow:realizes": "gmeowRealizes"
+    },
+    "#/$defs/ExternalBinding": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:contentDigest": "gmeowContentDigest"
     },
     "#/$defs/ExtractedRelationship": {
       "@annotation": "annotation",
@@ -5391,6 +5490,16 @@
       "http://www.w3.org/2004/02/skos/core#definition": "httpWwwW3Org200402SkosCoreDefinition",
       "rdfs:label": "rdfsLabel"
     },
+    "#/$defs/ProfileSurface": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:profileSurfaceKind": "gmeowProfileSurfaceKind",
+      "gmeow:profileSurfaceOf": "gmeowProfileSurfaceOf",
+      "gmeow:recordsModelContractDigest": "gmeowRecordsModelContractDigest",
+      "gmeow:recordsSourceDigest": "gmeowRecordsSourceDigest",
+      "gmeow:recordsTargetTableDigest": "gmeowRecordsTargetTableDigest"
+    },
     "#/$defs/ProximityMeasurement": {
       "@annotation": "annotation",
       "@id": "id",
@@ -5557,6 +5666,11 @@
     "#/$defs/SequenceCoordinates/properties/gmeow:inReferenceAssembly": {
       "@id": "id"
     },
+    "#/$defs/SimilarityObservation": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
     "#/$defs/SkillProficiency": {
       "@annotation": "annotation",
       "@id": "id",
@@ -5656,6 +5770,12 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"
+    },
+    "#/$defs/TargetSet": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:contentDigest": "gmeowContentDigest"
     },
     "#/$defs/Task": {
       "@annotation": "annotation",
@@ -5835,6 +5955,21 @@
       "@type": "type",
       "gmeow:attestedForm": "gmeowAttestedForm",
       "gmeow:attestedInSource": "gmeowAttestedInSource"
+    },
+    "#/$defs/VectorSpaceContract": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "gmeow:contentDigest": "gmeowContentDigest",
+      "gmeow:distanceMetric": "gmeowDistanceMetric",
+      "gmeow:effectiveOfFamily": "gmeowEffectiveOfFamily",
+      "gmeow:embeddingDimensions": "gmeowEmbeddingDimensions",
+      "gmeow:normalizationKind": "gmeowNormalizationKind"
+    },
+    "#/$defs/VectorTarget": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
     },
     "#/$defs/VerificationResult": {
       "@annotation": "annotation",
@@ -8268,6 +8403,12 @@
         "graphql_name": "VALUE_3"
       }
     ],
+    "#/$defs/ByteOrderEnum": [
+      {
+        "source_value": "gmeow:byteOrderLittleEndian",
+        "graphql_name": "VALUE_0"
+      }
+    ],
     "#/$defs/CadastralReferenceTypeEnum": [
       {
         "source_value": "gmeow:referenceTypeFolio",
@@ -10592,6 +10733,10 @@
       {
         "source_value": "gmeow:gtsProfileOpaque",
         "graphql_name": "VALUE_6"
+      },
+      {
+        "source_value": "gmeow:gtsProfilePurrEmb",
+        "graphql_name": "VALUE_7"
       }
     ],
     "#/$defs/GapShapeEnum": [
@@ -12078,6 +12223,16 @@
       {
         "source_value": "gmeow:formatWebSerial",
         "graphql_name": "VALUE_17"
+      }
+    ],
+    "#/$defs/MatryoshkaPolicyEnum": [
+      {
+        "source_value": "gmeow:matryoshkaFixed",
+        "graphql_name": "VALUE_0"
+      },
+      {
+        "source_value": "gmeow:matryoshkaPrefix",
+        "graphql_name": "VALUE_1"
       }
     ],
     "#/$defs/MaximViolationTypeEnum": [
@@ -13678,6 +13833,16 @@
         "graphql_name": "VALUE_9"
       }
     ],
+    "#/$defs/ProfileSurfaceKindEnum": [
+      {
+        "source_value": "gmeow:surfaceContainer",
+        "graphql_name": "VALUE_0"
+      },
+      {
+        "source_value": "gmeow:surfaceManifest",
+        "graphql_name": "VALUE_1"
+      }
+    ],
     "#/$defs/ProjectionContextEnum": [
       {
         "source_value": "gmeow:consumerAdviceCatalog",
@@ -14130,6 +14295,20 @@
       {
         "source_value": "gmeow:repoTypeSVN",
         "graphql_name": "VALUE_5"
+      }
+    ],
+    "#/$defs/ReproducibilityLevelEnum": [
+      {
+        "source_value": "gmeow:regenerableOnly",
+        "graphql_name": "VALUE_0"
+      },
+      {
+        "source_value": "gmeow:reproducibleExact",
+        "graphql_name": "VALUE_1"
+      },
+      {
+        "source_value": "gmeow:reproducibleWithinTolerance",
+        "graphql_name": "VALUE_2"
       }
     ],
     "#/$defs/RightsActionEnum": [
@@ -15480,6 +15659,48 @@
       {
         "source_value": "gmeow:tuningSystemKindWellTemperament",
         "graphql_name": "VALUE_7"
+      }
+    ],
+    "#/$defs/VectorTargetKindEnum": [
+      {
+        "source_value": "gmeow:vectorTargetAnnotation",
+        "graphql_name": "VALUE_0"
+      },
+      {
+        "source_value": "gmeow:vectorTargetChunk",
+        "graphql_name": "VALUE_1"
+      },
+      {
+        "source_value": "gmeow:vectorTargetCorpus",
+        "graphql_name": "VALUE_2"
+      },
+      {
+        "source_value": "gmeow:vectorTargetDataset",
+        "graphql_name": "VALUE_3"
+      },
+      {
+        "source_value": "gmeow:vectorTargetDocument",
+        "graphql_name": "VALUE_4"
+      },
+      {
+        "source_value": "gmeow:vectorTargetGraph",
+        "graphql_name": "VALUE_5"
+      },
+      {
+        "source_value": "gmeow:vectorTargetReifier",
+        "graphql_name": "VALUE_6"
+      },
+      {
+        "source_value": "gmeow:vectorTargetStatement",
+        "graphql_name": "VALUE_7"
+      },
+      {
+        "source_value": "gmeow:vectorTargetSummary",
+        "graphql_name": "VALUE_8"
+      },
+      {
+        "source_value": "gmeow:vectorTargetTerm",
+        "graphql_name": "VALUE_9"
       }
     ],
     "#/$defs/VerdictLatticeRelationEnum": [

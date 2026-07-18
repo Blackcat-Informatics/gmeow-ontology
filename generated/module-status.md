@@ -31,6 +31,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
+| embedding-projection | extension | extensions | 9 | 17 | 52 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
 | epistemics | core | core | 9 | 17 | 39 | 0 | 6 | 35/56 | full |
@@ -90,4 +91,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**82 slices** · documentation: 82 full guides, 0 stubs remaining; advisory coverage: 1546/2480 core class/property terms.
+**83 slices** · documentation: 83 full guides, 0 stubs remaining; advisory coverage: 1546/2480 core class/property terms.

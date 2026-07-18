@@ -1,0 +1,18 @@
+# CT10 — container/manifest source-digest agreement (violation finder). A
+# gmeow:EmbeddingProjection whose gmeow:surfaceContainer and gmeow:surfaceManifest
+# profile surfaces record DIFFERING gmeow:recordsSourceDigest values — the packaged
+# container and its sidecar manifest describe different source packs. Independent
+# SPARQL twin of gmeow:ProfileSourceDigestAgreementConstraint (C5a), not the derived
+# SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?sc gmeow:profileSurfaceOf ?proj ;
+      gmeow:profileSurfaceKind gmeow:surfaceContainer ;
+      gmeow:recordsSourceDigest ?x .
+  ?sm gmeow:profileSurfaceOf ?proj ;
+      gmeow:profileSurfaceKind gmeow:surfaceManifest ;
+      gmeow:recordsSourceDigest ?y .
+  FILTER(STR(?x) != STR(?y))
+}
+ORDER BY ?proj

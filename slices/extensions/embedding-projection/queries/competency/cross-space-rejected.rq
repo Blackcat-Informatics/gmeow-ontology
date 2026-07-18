@@ -1,0 +1,24 @@
+# CT3 — cross-space comparison rejected (violation finder). A
+# gmeow:SimilarityObservation comparing two projections whose EFFECTIVE-space
+# gmeow:contentDigests DIFFER, with NO justifying logic:Correspondence linking the
+# two contracts (either endpoint orientation accepted). A cross-PREFIX comparison
+# (1024-d full space vs 256-d Matryoshka prefix) is one such instance. Independent
+# SPARQL twin of gmeow:CrossSpaceComparisonConstraint (C2), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?obs WHERE {
+  ?obs a gmeow:SimilarityObservation ;
+       gmeow:comparesLeft ?pL ;
+       gmeow:comparesRight ?pR .
+  ?pL gmeow:hasVectorSpaceContract ?cL . ?cL gmeow:contentDigest ?dL .
+  ?pR gmeow:hasVectorSpaceContract ?cR . ?cR gmeow:contentDigest ?dR .
+  FILTER(STR(?dL) != STR(?dR))
+  FILTER NOT EXISTS {
+    ?corr a logic:Correspondence ;
+          logic:sourceEndpoint ?s ;
+          logic:targetEndpoint ?t .
+    FILTER( (?s = ?cL && ?t = ?cR) || (?s = ?cR && ?t = ?cL) )
+  }
+}
+ORDER BY ?obs
