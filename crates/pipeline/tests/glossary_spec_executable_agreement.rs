@@ -136,6 +136,49 @@ fn source_keyed_violation(triples: &[(String, String, String)]) -> bool {
     !distinctiveness_violations(feed).is_empty()
 }
 
+/// Every entry's `gmeow:glossarySense` must be typed `lang:Sense` and `lang:evokes` the
+/// SAME `lang:LexicalConcept` the entry carries on `gmeow:glossaryConcept` — the OntoLex
+/// Frege triangle the projection now emits (two senses evoking one concept is synonymy,
+/// derived not asserted). The consistency invariant still groups on the concept, so the
+/// sense edges never change the verdict; this locks that the twins model that structure.
+fn sense_evokes_entry_concept(triples: &[(String, String, String)]) -> bool {
+    let sense_p = format!("{GMEOW}glossarySense");
+    let concept_p = format!("{GMEOW}glossaryConcept");
+    let evokes_p = format!("{LANG}evokes");
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string();
+    let sense_ty = format!("{LANG}Sense");
+    // Subjects are stored bare (no brackets); iri() keeps the leading `<`, so normalize an
+    // object IRI token to the bare form before matching it against a subject.
+    let clean = |o: &str| iri(o).map(|s| s.trim_start_matches('<').to_string());
+    let entry_concept: std::collections::BTreeMap<String, String> = triples
+        .iter()
+        .filter(|(_, p, _)| *p == concept_p)
+        .filter_map(|(s, _, o)| clean(o).map(|c| (s.clone(), c)))
+        .collect();
+    let entry_sense: std::collections::BTreeMap<String, String> = triples
+        .iter()
+        .filter(|(_, p, _)| *p == sense_p)
+        .filter_map(|(s, _, o)| clean(o).map(|snse| (s.clone(), snse)))
+        .collect();
+    let is_typed_sense = |node: &str| {
+        triples.iter().any(|(s, p, o)| {
+            s == node && *p == rdf_type && clean(o).as_deref() == Some(sense_ty.as_str())
+        })
+    };
+    let sense_evokes = |node: &str, concept: &str| {
+        triples
+            .iter()
+            .any(|(s, p, o)| s == node && *p == evokes_p && clean(o).as_deref() == Some(concept))
+    };
+    // Every entry that carries a concept must carry a sense of type lang:Sense that
+    // lang:evokes that exact concept.
+    entry_concept.iter().all(|(entry, concept)| {
+        entry_sense
+            .get(entry)
+            .is_some_and(|sense| is_typed_sense(sense) && sense_evokes(sense, concept))
+    })
+}
+
 #[test]
 fn detector_agrees_with_constraint_on_glossary_twins() {
     // (fixture, expected-violation) — the SAME outcomes example-conformance.ttl declares to
@@ -169,6 +212,11 @@ fn detector_agrees_with_constraint_on_glossary_twins() {
             source_keyed_violation(&t),
             expected,
             "source-keyed (.po-lint) detector must match the constraint verdict for {fixture}"
+        );
+        assert!(
+            sense_evokes_entry_concept(&t),
+            "every entry in {fixture} must carry a lang:Sense that lang:evokes its \
+             gmeow:glossaryConcept (the Frege triangle the projection emits)"
         );
     }
 }

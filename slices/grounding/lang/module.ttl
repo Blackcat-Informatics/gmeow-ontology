@@ -3040,9 +3040,13 @@ gmeow:gmnDictionaryEntryAlias
 # view over the per-slice .po catalogs (never a second hand-authored source),
 # projected into graph/lang-glossary-corpus and folded into gmeow.gts. Each
 # entry binds one English source literal to its target-language translation,
-# sense-anchored on a lang:LexicalConcept and carrying the lang:TranslationUnit
-# law-spine. Terminology consistency (one concept never reads back as two
-# divergent translations) is the functional-dependency dual of the GMN
+# carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that
+# lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the
+# lang:TranslationUnit law-spine. Two distinct terms sharing one source-skeleton
+# mint two distinct senses evoking one concept, so synonymy is DERIVED (two
+# senses, one concept) rather than asserted flat. Terminology consistency (one
+# concept never reads back as two divergent translations) still groups on
+# gmeow:glossaryConcept and is the functional-dependency dual of the GMN
 # alias-dictionary injectivity: lang:GlossaryTermConsistencyConstraint.
 # =========================================================================== #
 
@@ -3067,8 +3071,8 @@ gmeow:GlossaryEntry
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Glossary Entry"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), sense-anchored on a lang:LexicalConcept through gmeow:glossaryConcept and carrying the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts and legitimately renders each differently."@x-gmeow-english ;
-    skos:example "ex:gEntryComposedForm a gmeow:GlossaryEntry ; gmeow:glossaryTerm lang:ComposedForm ; gmeow:glossaryPredicate \"rdfs:label\" ; gmeow:glossarySource \"Composed Form\" ; gmeow:glossaryTranslation \"Forme composée\" ; gmeow:glossaryConcept ex:conceptComposedForm ."@x-gmeow-english ;
+    skos:definition "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. Two distinct terms the projection assigns one concept carry two distinct senses that both evoke that concept, so synonymy is DERIVED (two senses evoking one concept) rather than asserted flat. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts (its senses evoke distinct concepts) and legitimately renders each differently."@x-gmeow-english ;
+    skos:example "ex:gEntryComposedForm a gmeow:GlossaryEntry ; gmeow:glossaryTerm lang:ComposedForm ; gmeow:glossaryPredicate \"rdfs:label\" ; gmeow:glossarySource \"Composed Form\" ; gmeow:glossaryTranslation \"Forme composée\" ; gmeow:glossarySense ex:senseComposedForm ; gmeow:glossaryConcept ex:conceptComposedForm ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid authoring an entry by hand (it is projected from the catalog) and avoid an entry with no gmeow:glossarySource or no gmeow:glossaryTranslation — both are the functional payload of the binding."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -3192,6 +3196,21 @@ gmeow:glossaryConcept
     gmeow:howToUse "Read it to group entries by sense; the projection sets it from the source skeleton, splitting declared homographs onto distinct concepts."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the sense anchor a glossary entry's consistency is judged against."@x-gmeow-english .
+
+gmeow:glossarySense
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary sense"@x-gmeow-english ;
+    rdfs:range lang:Sense ;
+    skos:definition "The lang:Sense a glossary entry carries — the middle corner of the OntoLex Frege triangle, the entry's lexeme's way of meaning. Functional: one sense per entry. Domain gmeow:GlossaryEntry, range lang:Sense. The sense lang:evokes the entry's gmeow:glossaryConcept, so synonymy is derived (two distinct senses evoking one concept), never a flat sense-to-sense edge. The projection mints the sense from the (gmeow:glossaryTerm, English-source-skeleton) pair and INDEPENDENTLY of target language: two distinct terms sharing one source skeleton (a class and its property twin) mint two distinct senses that both evoke the one concept, while the SAME term's renderings across languages (fr, zh) collapse onto one sense (one way of meaning, many language renderings). The consistency invariant still groups on gmeow:glossaryConcept, not on the sense."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid keying consistency on the sense instead of the concept — the sense is per (term, source), so two synonymous terms carry distinct senses and grouping on the sense would miss the very disagreement the concept-keyed invariant catches. Avoid asserting a flat synonymy edge between two senses; synonymy is derived from two senses evoking one lang:LexicalConcept."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it to reach the entry's lang:Sense, then follow lang:evokes to the lang:LexicalConcept it shares with every synonymous entry; the projection sets it from the (term, source-skeleton) pair, language-independent."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to reach the OntoLex Frege-triangle sense of a glossary entry — the lexeme's way of meaning that evokes the shared lexical concept."@x-gmeow-english .
 
 gmeow:glossaryUnit
     a owl:FunctionalProperty ,

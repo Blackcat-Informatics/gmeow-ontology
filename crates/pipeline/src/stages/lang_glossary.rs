@@ -9,28 +9,38 @@
 //! `msgctxt = "<term-iri>|<predicate-curie>"`. This module folds every REVIEWED
 //! (non-fuzzy, present) pair into a first-class `gmeow:Glossary` — one per `(slice,
 //! language)` — of `gmeow:GlossaryEntry` records, each carrying its term, predicate,
-//! English source, target rendering, a sense anchor (`gmeow:glossaryConcept` →
-//! `lang:LexicalConcept`), and the `lang:TranslationUnit` that holds the crossing's
-//! `logic:Correspondence` law-spine (`gmeow:glossaryUnit`, the SAME content-addressed
-//! identity [`crate::stages::lang_translation`] mints, so the two graphs join in
-//! `gmeow.gts`).
+//! English source, target rendering, the Frege-triangle sense structure (a `lang:Sense`
+//! on `gmeow:glossarySense` that `lang:evokes` the entry's `lang:LexicalConcept` grouping
+//! key on `gmeow:glossaryConcept`), and the `lang:TranslationUnit` that holds the
+//! crossing's `logic:Correspondence` law-spine (`gmeow:glossaryUnit`, the SAME
+//! content-addressed identity [`crate::stages::lang_translation`] mints, so the two graphs
+//! join in `gmeow.gts`).
 //!
 //! The glossary is a pure DERIVATION of the catalogs — never a second hand-authored
 //! source (One Canonical Source). It is a term-grain VIEW distinct from the
 //! translation corpus: it emits the term IRI and English source as queryable triples
-//! and groups entries by a sense (`gmeow:glossaryConcept`) so the cross-batch
+//! and groups entries by a lexical concept (`gmeow:glossaryConcept`) so the cross-batch
 //! consistency invariant (`lang:GlossaryTermConsistencyConstraint`) can be stated over
 //! it.
 //!
-//! ## Sense anchoring and the homograph escape
+//! ## The Frege-triangle sense structure and the homograph escape
 //!
-//! Each entry's `gmeow:glossaryConcept` is minted from the English source skeleton, so
-//! two entries whose source normalizes identically share one concept (and the fast
-//! `make i18n-lint` gate requires their renderings to agree). A source explicitly
-//! declared a `lang:DeclaredTerminologyHomograph` (via [`gmeow_docs::i18n_compile::declared_homograph_sources`],
-//! the SAME loader the lint consults — no second source of truth) is instead minted a
-//! DISTINCT concept per term, so its genuinely-distinct senses ride distinct concepts
-//! and never trip the single-valued invariant.
+//! Each entry carries the real OntoLex Frege triangle, not a flat concept skeleton: a
+//! `lang:Sense` (`gmeow:glossarySense`) that `lang:evokes` the entry's
+//! `lang:LexicalConcept` (`gmeow:glossaryConcept`). The concept remains the grouping key
+//! the consistency invariant reads: it is minted from the English source skeleton, so two
+//! entries whose source normalizes identically share one concept (and the fast `make
+//! i18n-lint` gate requires their renderings to agree). The sense is minted per `(term,
+//! source-skeleton)` and is INDEPENDENT of target language, so two DISTINCT terms sharing
+//! one source skeleton (a class and its property twin) become two distinct senses that
+//! both evoke the one shared concept — the exact OntoLex synonymy model (synonymy derived
+//! from two senses evoking one concept, never asserted flat) — while the SAME term's fr
+//! and zh renderings collapse onto one sense (one way of meaning, many language
+//! renderings). A source explicitly declared a `lang:DeclaredTerminologyHomograph` (via
+//! [`gmeow_docs::i18n_compile::declared_homograph_sources`], the SAME loader the lint
+//! consults — no second source of truth) is instead minted a DISTINCT concept per term,
+//! so its genuinely-distinct senses evoke distinct concepts and never trip the
+//! single-valued invariant.
 //!
 //! All identities are content-addressed and the N-Triples are sorted + deduped, so the
 //! corpus is byte-reproducible (no clock, no randomness).
@@ -70,6 +80,7 @@ struct Entry {
     source: String,
     translation: String,
     concept_iri: String,
+    sense_iri: String,
     unit_iri: String,
 }
 
@@ -129,7 +140,7 @@ pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Dia
                 let concept_key = if homographs.contains(&src_skel) {
                     format!("{src_skel}\u{1f}{term}")
                 } else {
-                    src_skel
+                    src_skel.clone()
                 };
                 entries.push(Entry {
                     glossary_iri: example(
@@ -147,6 +158,14 @@ pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Dia
                     source: entry.msgid.clone(),
                     translation: entry.msgstr.clone(),
                     concept_iri: example("glossary-concept", &digest16("concept", &concept_key)),
+                    // The Frege-triangle sense: keyed by (term, source-skeleton) and
+                    // language-independent, so distinct terms sharing one source mint
+                    // distinct senses that both evoke the one concept (synonymy derived),
+                    // while one term's renderings across languages share one sense.
+                    sense_iri: example(
+                        "glossary-sense",
+                        &digest16("sense", &format!("{term}\u{1f}{src_skel}")),
+                    ),
                     unit_iri: crate::stages::lang_translation::unit_iri(&entry.msgctxt, &lang),
                 });
             }
@@ -218,12 +237,25 @@ fn emit_ntriples(entries: &[Entry]) -> Vec<u8> {
         ));
         lines.push(triple(
             &e.entry_iri,
+            &iri(GMEOW_NS, "glossarySense"),
+            &e.sense_iri,
+        ));
+        lines.push(triple(
+            &e.entry_iri,
             &iri(GMEOW_NS, "glossaryUnit"),
             &e.unit_iri,
         ));
 
-        // The sense anchor (the ontolex:LexicalConcept peer) — typed so the graph is
-        // self-describing.
+        // The Frege triangle: the entry's sense (the ontolex:LexicalSense peer) evokes the
+        // lexical concept (the ontolex:LexicalConcept peer). Both are typed so the graph is
+        // self-describing; two distinct senses evoking one concept ARE the synonymy the
+        // consistency invariant groups on gmeow:glossaryConcept.
+        lines.push(triple(&e.sense_iri, RDF_TYPE, &iri(LANG_NS, "Sense")));
+        lines.push(triple(
+            &e.sense_iri,
+            &iri(LANG_NS, "evokes"),
+            &e.concept_iri,
+        ));
         lines.push(triple(
             &e.concept_iri,
             RDF_TYPE,
@@ -312,6 +344,7 @@ mod tests {
             "glossarySource",
             "glossaryTranslation",
             "glossaryConcept",
+            "glossarySense",
             "glossaryUnit",
         ] {
             assert!(
@@ -322,6 +355,15 @@ mod tests {
         assert!(
             nt.contains(&iri(LANG_NS, "LexicalConcept")),
             "each glossary concept is typed lang:LexicalConcept"
+        );
+        // The Frege triangle: each entry's sense is typed lang:Sense and evokes its concept.
+        assert!(
+            nt.contains(&iri(LANG_NS, "Sense")),
+            "each glossary sense is typed lang:Sense"
+        );
+        assert!(
+            nt.contains(&iri(LANG_NS, "evokes")),
+            "each glossary sense lang:evokes its lexical concept"
         );
         // A known reviewed lang-slice term rendered in French appears as a source/translation.
         assert!(
