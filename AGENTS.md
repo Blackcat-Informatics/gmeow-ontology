@@ -550,6 +550,29 @@ make sync          # re-materialize generated/ (including the bundle) on the mer
 make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
 
+#### Integrating the `generated/` untracking transition
+
+`generated/` was a committed tree and is now a git-ignored local product. When you integrate the
+`main` revision that removed it from tracking, apply these rules — the transition is one-way, and
+**deletion always wins**:
+
+* **A branch that never touched `generated/`** merges cleanly: `main`'s deletion of those paths
+  applies against your unchanged copies with no conflict. Nothing to resolve — just re-materialize
+  afterward with `make sync`.
+* **A branch that modified `generated/`** hits delete/modify conflicts (your side edited a path
+  `main` deleted). Resolve **every one in favor of the deletion** (`git rm <path>` for each
+  conflicted `generated/` path) — never re-add the file, never hand-pick your edited bytes. Your
+  intent lives in the canonical *sources*; once the tree is deleted, run `make sync` to regenerate
+  it locally from those sources and confirm the change landed in the materialized product.
+* **Never `git add -f generated/`.** The path is git-ignored on purpose; force-adding it re-commits
+  the product and re-introduces exactly the coupling this change removed. If you think you need to
+  force-add a `generated/` file, you are working around the ignore rule instead of fixing the source.
+
+An older clone or long-lived branch stays perfectly usable across this change — it only needs one
+`make sync` after integrating `main`. (A separate, later change will rewrite retained history to
+drop `generated/` from past commits; only *after* that rewrite do stale clones/branches become
+unsafe and require a fresh clone. This branch does not perform that rewrite.)
+
 ### Pull review feedback
 
 Use the GitHub CLI to inspect all comments and reviews. **Important distinction:**
