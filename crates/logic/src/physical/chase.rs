@@ -2506,6 +2506,53 @@ mod tests {
         }
     }
 
+    /// `type(x,C) → ∃y. p(x,y) ∧ p(y,x)` and `p(x,x) → type(x,C)`.
+    ///
+    /// **Reported by the ladder as SuperWeaklyAcyclic** (WA and JA both refuse it, SWA
+    /// certifies it): the null is placed DIRECTLY at both `p` slots (`p(x,f)` and
+    /// `p(f,x)`) — no datalog laundering — so the occurs-check blocks both head atoms from
+    /// unifying with the diagonal body `p(x,x)`, breaking the cycle WA's position graph and
+    /// JA's existential-dependency graph both report.  Terminating: `p(a,f)`/`p(f,a)` are
+    /// never the diagonal, so the second rule never re-types a witness.
+    fn super_weakly_acyclic_symmetric_head() -> Vec<ExistentialRule> {
+        let invent = ExistentialRule {
+            rule_iri: "http://ex/rule/swa-sym".to_owned(),
+            body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            head: vec![atom(var("?x"), P, var("?y")), atom(var("?y"), P, var("?x"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        let diagonal = ExistentialRule {
+            rule_iri: "http://ex/rule/swa-sym-diagonal".to_owned(),
+            body: vec![atom(var("?x"), P, var("?x"))],
+            head: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        vec![invent, diagonal]
+    }
+
+    #[test]
+    fn certify_super_weakly_acyclic_is_reported_by_the_ladder() {
+        // WA and JA both refuse, SWA certifies — so the escalation ladder REPORTS
+        // SuperWeaklyAcyclic (the rung is reachable, not merely a sound standalone check).
+        let prog = super_weakly_acyclic_symmetric_head();
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "WA must refuse"
+        );
+        assert!(
+            ChaseAdmission::certify_joint_acyclic(&prog).is_none(),
+            "JA must refuse the symmetric-head program"
+        );
+        match ChaseAdmission::certify(&prog) {
+            ChaseAdmission::SuperWeaklyAcyclic { .. } => {}
+            other => panic!("ladder must report SuperWeaklyAcyclic, got {other:?}"),
+        }
+    }
+
     #[test]
     fn certify_super_weak_evidence_is_non_vacuous() {
         // The certifier actually saw ≥1 invented null (existential output place).
