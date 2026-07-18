@@ -96,13 +96,20 @@ across spaces" is a **structural fact**: without a base morphism there is no map
 between the fibers, and the constraint simply refuses a cross-space
 `gmeow:SimilarityObservation` that has no correspondence to travel along.
 
-This base-object structure is what several harder retrieval problems inherit for
-free. **Multi-model retrieval**, **model migration**, and **cross-corpus search**
-are all sequential transport along a chain of base morphisms — compose the
-correspondences and the fibers connect. What this framing does **not** hand you
-is model **fusion**: merging two spaces into one is a colimit / merge, and that
-axis of the correspondence calculus is deliberately OPEN. The slice does not
-overclaim it as solved; it gives you honest composition, not free coproducts.
+This base-object structure is what several harder retrieval problems frame
+cleanly. **Multi-model retrieval**, **model migration**, and **cross-corpus
+search** are all transport along base morphisms — a chain of correspondences
+A→B→C *describes* a path from A's fiber to C's. But the chain does not
+**automatically** satisfy validation: `gmeow:CrossSpaceComparisonConstraint`
+demands a DIRECT `logic:Correspondence` whose endpoints are exactly the two
+`gmeow:VectorSpaceContract` individuals a `gmeow:SimilarityObservation` crosses,
+and the slice does not compose A→B and B→C into an A→C bridge for you. To score
+across A and C a producer MUST supply (materialize) the composed A→C
+correspondence explicitly; only then does the guard pass. What this framing does
+**not** hand you at all is model **fusion**: merging two spaces into one is a
+colimit / merge, and that axis of the correspondence calculus is deliberately
+OPEN. The slice does not overclaim it as solved; it gives you honest, explicitly
+supplied composition, not free coproducts and not automatic chain closure.
 
 A forward pointer for the mathematically inclined: a Lawvere `[0, ∞]`-enriched
 metric-space reading of the fibers is deliberately NOT minted here. There is no

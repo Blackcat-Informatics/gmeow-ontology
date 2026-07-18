@@ -37,6 +37,8 @@ const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf
 const LOGIC_EQUIVALENT_CLASS: &str = "https://blackcatinformatics.ca/logic/equivalentClass";
 const LOGIC_DISJOINT_WITH: &str = "https://blackcatinformatics.ca/logic/disjointWith";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/embedding-projection";
 
 fn gm(local: &str) -> String {
@@ -121,11 +123,23 @@ fn f1_non_duplication_and_boundary_axioms() {
         "TargetSet",
         "ProfileSurface",
         "DeclassificationAct",
+        "ExternalBinding",
     ];
     for t in owned {
         assert!(
             module.has(Some(&gm(t)), Some(RDFS_IS_DEFINED_BY), Some(SLICE_IRI)),
             "F1: slice-owned term gmeow:{t} must carry rdfs:isDefinedBy the slice"
+        );
+        // A slice-owned term is not merely bound to the slice authority: it MUST also
+        // carry human-readable annotations — an rdfs:label and a skos:definition — so the
+        // vocabulary is documented, not just declared.
+        assert!(
+            module.has(Some(&gm(t)), Some(RDFS_LABEL), None),
+            "F1: slice-owned term gmeow:{t} must carry an rdfs:label"
+        );
+        assert!(
+            module.has(Some(&gm(t)), Some(SKOS_DEFINITION), None),
+            "F1: slice-owned term gmeow:{t} must carry a skos:definition"
         );
     }
 }

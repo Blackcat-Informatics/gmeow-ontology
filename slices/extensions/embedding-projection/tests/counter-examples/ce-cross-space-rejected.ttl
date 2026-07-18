@@ -12,7 +12,7 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:xFamily a gmeow:EmbeddingFamily ;
-    gmeow:contentDigest "blake3:fam0aa0011112222333344445555666677778888999900001111222233334444" .
+    gmeow:contentDigest "blake3:fad0aa0011112222333344445555666677778888999900001111222233334444" .
 
 ce:xFull a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily   ce:xFamily ;

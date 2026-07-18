@@ -8,8 +8,8 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?s WHERE {
   {
     { ?s a rdf:Bag } UNION { ?s a rdf:Seq } UNION { ?s a rdf:Alt }
-    UNION { ?s rdf:li ?o } UNION { ?z rdf:li ?s }
-    UNION { ?s ?pm ?o . FILTER(STRSTARTS(STR(?pm), "http://www.w3.org/1999/02/22-rdf-syntax-ns#_")) }
+    UNION { ?s rdf:li ?o }
+    UNION { ?s ?pm ?o . FILTER(REGEX(STR(?pm), "^http://www\\.w3\\.org/1999/02/22-rdf-syntax-ns#_[0-9]+$")) }
   }
 }
 ORDER BY ?s

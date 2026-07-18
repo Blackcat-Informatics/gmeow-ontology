@@ -2,20 +2,27 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # CT2 counter-example (Don't), family axis: two gmeow:EmbeddingFamily nodes that
-# differ in gmeow:executionContract (fp32/deterministic vs fp16/non-deterministic — a
-# material generation-contract component that changes the produced vector VALUES) yet
-# carry the SAME gmeow:contentDigest. Two materially different generation contracts
-# must never share one family identity. Triggers distinct-family-id.rq (→ the pair
-# ce:famCollideA, ce:famCollideB). Exercises the execution/subject-projection/
-# generation-normalization axes gmeow:VectorSpaceContract does not carry, so competency
-# test 2 covers the family generation contract, not only the effective space.
+# differ on ALL THREE of the generation-contract axes a gmeow:VectorSpaceContract does
+# NOT carry — gmeow:executionContract (fp32/deterministic vs fp16/non-deterministic),
+# gmeow:subjectProjectionContract (the always-applied text-serialization step), and
+# gmeow:generationNormalizationContract (generation-time normalization) — each of which
+# materially changes the produced vector VALUES, yet the two families carry the SAME
+# gmeow:contentDigest. Two materially different generation contracts must never share
+# one family identity. Triggers distinct-family-id.rq (→ the pair ce:famCollideA,
+# ce:famCollideB) on each of the three axes, so a regression collapsing ANY one of them
+# is caught — competency test 2 covers the family generation contract, not only the
+# effective space.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:famCollideA a gmeow:EmbeddingFamily ;
-    gmeow:executionContract "fp32;deterministic=true" ;
+    gmeow:executionContract               "fp32;deterministic=true" ;
+    gmeow:subjectProjectionContract       "text-serialization=turtle-v1" ;
+    gmeow:generationNormalizationContract  "l2-normalize" ;
     gmeow:contentDigest     "blake3:fada000011112222333344445555666677778888999900001111222233334444" .
 
 ce:famCollideB a gmeow:EmbeddingFamily ;
-    gmeow:executionContract "fp16;deterministic=false" ;
+    gmeow:executionContract               "fp16;deterministic=false" ;
+    gmeow:subjectProjectionContract       "text-serialization=ntriples-v2" ;
+    gmeow:generationNormalizationContract  "none" ;
     gmeow:contentDigest     "blake3:fada000011112222333344445555666677778888999900001111222233334444" .
