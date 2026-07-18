@@ -6530,12 +6530,31 @@ mod tests {
         }
         let bytes = snapshot();
         // CONSUMER mode (root: None) serves the packet purely from the embedded
-        // `graph/authoring-briefs` corpus — no checkout. The `lang` slice batch 14
-        // carries a present French grounding cell, so this also proves fr/zh grounding
-        // survives the bundle round-trip (AC4).
+        // `graph/authoring-briefs` corpus — no checkout. The deterministic term-batch
+        // numbering shifts whenever lang terms are added/removed, so the batch that
+        // carries a present French grounding cell is NOT a fixed constant — it is
+        // discovered dynamically below (a bare, batch-less request returns every `lang`
+        // packet) rather than hardcoded, so the test survives future renumbering.
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let all = text_payload(server.call_tool_result("slice_brief", &json!({"slice": "lang"})));
+        let fr_batch = all["packets"]
+            .as_array()
+            .expect("packets array")
+            .iter()
+            .find(|p| {
+                p["grounding"].as_array().is_some_and(|g| {
+                    g.iter()
+                        .any(|c| c["attribute"] == "groundingFr" && c["value"].is_string())
+                })
+            })
+            .unwrap_or_else(|| {
+                panic!("no `lang` batch carries a present French grounding cell: {all}")
+            })["batch"]
+            .as_u64()
+            .expect("batch is a number");
+
         let out = text_payload(
-            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": 14})),
+            server.call_tool_result("slice_brief", &json!({"slice": "lang", "batch": fr_batch})),
         );
 
         assert!(
@@ -6549,7 +6568,7 @@ mod tests {
         assert_eq!(out["packet_count"], 1, "exactly the requested batch: {out}");
         let packet = &out["packets"][0];
         assert_eq!(packet["axis"], "whole");
-        assert_eq!(packet["batch"], 14);
+        assert_eq!(packet["batch"], fr_batch);
         assert!(
             packet["digest"].is_string(),
             "packet digest present: {packet}"

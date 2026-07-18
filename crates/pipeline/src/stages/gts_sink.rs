@@ -60,6 +60,9 @@ impl GtsSinkStage {
                 "stage-export-bench".to_string(),
                 "stage-export-cost-ledger".to_string(),
                 "stage-export-evals".to_string(),
+                // The human-readable terminology glossary table (byte-decorated Markdown),
+                // folded into REP_GENERATED from this run's fresh export-leaf product.
+                "stage-export-glossary".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
                 // The Pydantic model package, folded into REP_MODELS_PYTHON by
@@ -356,6 +359,7 @@ mod tests {
             "stage-export-cost-ledger",
             "stage-export-apache",
             "stage-export-matrix",
+            "stage-export-glossary",
             "stage-export-evals",
             "stage-export-research-objects",
             "stage-export-metadata",

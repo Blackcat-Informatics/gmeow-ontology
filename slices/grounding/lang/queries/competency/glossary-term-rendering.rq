@@ -1,0 +1,13 @@
+# Competency question: "How is each term rendered in a slice's per-language glossary?"
+# This exercises the commitment that the derived gmeow:Glossary is a first-class,
+# queryable terminology resource — you can ask gmeow.gts for a term's agreed
+# target-language rendering. Over the consistent fixture the class lang:ComposedForm
+# and its property twin lang:composedForm both render as "forme composée".
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?term ?rendering WHERE {
+    ?entry a gmeow:GlossaryEntry ;
+        gmeow:glossaryTerm ?term ;
+        gmeow:glossaryTranslation ?rendering .
+}
+ORDER BY ?term ?rendering
