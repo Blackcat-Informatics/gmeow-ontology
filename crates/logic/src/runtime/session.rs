@@ -56,7 +56,7 @@ mod outcome;
 pub use checkpoint::Checkpoint;
 pub use delta::{SessionDelta, Suppression};
 pub use facade::{PagedCompositionMetrics, ReasoningSession};
-pub use identity::SessionIdentity;
+pub use identity::{SessionIdentity, edb_data_generation};
 pub use journal::TransitionEntry;
 pub use outcome::{
     FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome, OutcomeTag,

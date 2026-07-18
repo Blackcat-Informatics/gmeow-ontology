@@ -594,6 +594,15 @@ pub enum LogicSessionCommands {
         /// maintains exactly one world). Default: the session world IRI.
         #[arg(long = "world")]
         world: Option<String>,
+        /// Compose over a demand-paged world-source: page the authorized EDB back in
+        /// through a `PagedDataset` and drive `ReasoningSession::open_paged`, then print
+        /// the page-fault composition metrics. Implied by `--page-size`.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
     },
     /// Open a session, build a content-addressed `SessionDelta` (additions +
     /// optional retirements, anchored on the session's own data-generation and
@@ -630,6 +639,16 @@ pub enum LogicSessionCommands {
         /// Optionally apply this additions delta before reading the closure back.
         #[arg(long = "apply")]
         apply: Option<PathBuf>,
+        /// Read the closure back over a demand-paged world-source
+        /// (`ReasoningSession::open_paged`) instead of the resident open, and print the
+        /// page-fault composition metrics. Implied by `--page-size`. The maintained
+        /// closure read back is identical to the resident path.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
     },
     /// Open a session (optionally applying a delta first), mint a content-addressed
     /// checkpoint, and write it to disk as JSON (identity + EDB generation + journal
@@ -927,7 +946,16 @@ pub fn run() -> i32 {
                     edb,
                     program,
                     world,
-                } => commands::logic_session_open(reporter, &edb, &program, world.as_deref()),
+                    paged,
+                    page_size,
+                } => commands::logic_session_open(
+                    reporter,
+                    &edb,
+                    &program,
+                    world.as_deref(),
+                    paged,
+                    page_size,
+                ),
                 LogicSessionCommands::Apply {
                     edb,
                     program,
@@ -946,7 +974,16 @@ pub fn run() -> i32 {
                     edb,
                     program,
                     apply,
-                } => commands::logic_session_facts(reporter, &edb, &program, apply.as_deref()),
+                    paged,
+                    page_size,
+                } => commands::logic_session_facts(
+                    reporter,
+                    &edb,
+                    &program,
+                    apply.as_deref(),
+                    paged,
+                    page_size,
+                ),
                 LogicSessionCommands::Checkpoint {
                     edb,
                     program,

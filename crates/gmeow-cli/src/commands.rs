@@ -10,7 +10,11 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
+use purrdf::ir::InMemoryPageProvider;
+use purrdf::{
+    PageGeneration, PagedDataset, PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad,
+    RdfTerm, TermValue,
+};
 
 use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_errors::dag::DagNode;
@@ -35,9 +39,10 @@ use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::runtime::{
     Checkpoint, FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome,
-    ReasoningSession, RebuildReason, SessionDelta, Suppression, UnsupportedFragment,
+    PagedCompositionMetrics, ReasoningSession, RebuildReason, SessionDelta, Suppression,
+    UnsupportedFragment, edb_data_generation,
 };
-use gmeow_logic::seam::WorldFactSnapshot;
+use gmeow_logic::seam::{WorldFactSnapshot, WorldSourceIdentity};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::result_shape::ColumnKind;
 use gmeow_pipeline::diagnostics_reader::{
@@ -1603,6 +1608,130 @@ fn session_open(
     })
 }
 
+/// The source-contract identity the CLI's demand-paged world source is named under,
+/// distinct from the resident authorized-EDB generation contract. It records that the
+/// data-generation was paged in through the in-memory `PagedDataset` provider.
+const SESSION_PAGED_SOURCE_CONTRACT: &str =
+    "https://blackcatinformatics.ca/logic/session/paged-in-memory-provider-v1";
+
+/// Compose a session over a demand-paged world-source that pages the SAME authorized
+/// world facts back in through a `PagedDataset`, exercising the `open_paged` composition
+/// surface on the production CLI.
+///
+/// `page_size` chunks the EDB quads into pages of that many quads (each a single-world
+/// frozen `RdfDataset`) so the page-fault accounting is non-trivial; `None` or a size
+/// `>=` the quad count pages the whole world as one page. The paged
+/// [`WorldSourceIdentity`] is DETERMINISTIC — its generation reuses the canonical EDB
+/// content-address ([`edb_data_generation`]) under the paged source contract — so the
+/// printed identity is stable and reproducible. Any paged freeze/seal/open error is a
+/// hard CLI fail (never a silent resident fallback).
+fn session_open_paged(
+    reporter: &dyn Reporter,
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    world: &str,
+    page_size: Option<usize>,
+) -> Result<ReasoningSession, i32> {
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+
+    // Deterministic, content-addressed paged identity: the generation is the canonical
+    // EDB content-address (identical to the resident data-generation), named under the
+    // paged provider's own source contract.
+    let identity: WorldSourceIdentity = edb_data_generation(edb, SESSION_PAGED_SOURCE_CONTRACT)
+        .map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-generation",
+                format!("cannot content-address the paged EDB generation: {e}"),
+            )
+        })?;
+
+    // Page the authorized world quads (already re-homed into `world`) into one or more
+    // single-world frozen pages. Chunking makes the page-fault accounting non-trivial;
+    // the chunks are quad-disjoint, so the paged seal admits them.
+    let quads: Vec<RdfQuad> = edb.owned_quads().collect();
+    let total = quads.len();
+    let chunk = match page_size {
+        Some(size) if size > 0 && size < total => size,
+        // `None`, `0`, or a size that would not split the world → one whole-world page.
+        _ => total.max(1),
+    };
+    let mut pages: Vec<Arc<RdfDataset>> = Vec::new();
+    for window in quads.chunks(chunk) {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in window {
+            builder.push_owned_quad(quad);
+        }
+        let page = builder.freeze().map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-page-freeze",
+                format!("cannot freeze a paged world page: {e}"),
+            )
+        })?;
+        pages.push(page);
+    }
+    // An empty EDB pages one empty world page, so the provider always has ≥1 page.
+    if pages.is_empty() {
+        let page = RdfDatasetBuilder::new().freeze().map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-page-freeze",
+                format!("cannot freeze the empty paged world page: {e}"),
+            )
+        })?;
+        pages.push(page);
+    }
+
+    let provider = Arc::new(InMemoryPageProvider::with_generation(
+        pages,
+        PageGeneration(0),
+    ));
+    let paged = PagedDataset::from_provider(provider).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.paged-seal",
+            format!("cannot seal the paged world source: {e}"),
+        )
+    })?;
+
+    ReasoningSession::open_paged(
+        &paged,
+        identity,
+        world,
+        program,
+        &contract,
+        &annotation,
+        PagedQueryLimits::UNBOUNDED,
+    )
+    .map_err(|outcome| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.open-paged",
+            format!("cannot open paged reasoning session: {outcome:?}"),
+        )
+    })
+}
+
+/// Print the page-fault / source-access accounting of a paged-composed session, so the
+/// `open_paged` composition is observable/dogfooded on the CLI. Every line is a stable,
+/// greppable `paged-*` key.
+fn print_paged_metrics(metrics: &PagedCompositionMetrics) {
+    let source = &metrics.source;
+    let backend = &metrics.backend;
+    println!("paged-source-delivered-quads {}", source.delivered_quads());
+    println!("paged-source-primary-quads {}", source.primary_quads);
+    println!("paged-source-pattern-probes {}", source.pattern_probes);
+    println!("paged-backend-generation {}", backend.generation.0);
+    println!(
+        "paged-backend-requested-pages {}",
+        backend.requested_pages.len()
+    );
+    println!("paged-backend-consumed-pages {}", backend.consumed_pages);
+    println!("paged-backend-consumed-bytes {}", backend.consumed_bytes);
+}
+
 /// A stable, greppable label for a program's fragment disposition.
 fn render_fragment_disposition(disposition: &FragmentDisposition) -> String {
     match disposition {
@@ -1795,6 +1924,8 @@ pub fn logic_session_open(
     edb: &Path,
     program: &Path,
     world: Option<&str>,
+    paged: bool,
+    page_size: Option<usize>,
 ) -> i32 {
     let world = world.unwrap_or(SESSION_WORLD_DEFAULT);
     let program = match session_load_program(reporter, program) {
@@ -1805,9 +1936,18 @@ pub fn logic_session_open(
         Ok(ds) => ds,
         Err(code) => return code,
     };
-    let session = match session_open(reporter, &edb, &program) {
-        Ok(s) => s,
-        Err(code) => return code,
+    // `--page-size` implies the paged composition path.
+    let paged = paged || page_size.is_some();
+    let session = if paged {
+        match session_open_paged(reporter, &edb, &program, world, page_size) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    } else {
+        match session_open(reporter, &edb, &program) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
     };
     print!("{}", session.identity().to_nquads(SESSION_IDENTITY_GRAPH));
     println!("genesis-head {}", session.head());
@@ -1815,6 +1955,9 @@ pub fn logic_session_open(
         "fragment-disposition {}",
         render_fragment_disposition(session.fragment_disposition())
     );
+    if let Some(metrics) = session.paged_metrics() {
+        print_paged_metrics(metrics);
+    }
     0
 }
 
@@ -1887,6 +2030,8 @@ pub fn logic_session_facts(
     edb: &Path,
     program: &Path,
     apply: Option<&Path>,
+    paged: bool,
+    page_size: Option<usize>,
 ) -> i32 {
     let world = SESSION_WORLD_DEFAULT;
     let program = match session_load_program(reporter, program) {
@@ -1897,9 +2042,19 @@ pub fn logic_session_facts(
         Ok(ds) => ds,
         Err(code) => return code,
     };
-    let mut session = match session_open(reporter, &edb, &program) {
-        Ok(s) => s,
-        Err(code) => return code,
+    // `--page-size` implies the paged composition path; the maintained closure read
+    // back is identical to the resident open.
+    let paged = paged || page_size.is_some();
+    let mut session = if paged {
+        match session_open_paged(reporter, &edb, &program, world, page_size) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    } else {
+        match session_open(reporter, &edb, &program) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
     };
 
     if let Some(apply) = apply {
@@ -1931,6 +2086,9 @@ pub fn logic_session_facts(
 
     println!("head {}", session.head());
     render_facts_and_provenance(&session);
+    if let Some(metrics) = session.paged_metrics() {
+        print_paged_metrics(metrics);
+    }
     0
 }
 

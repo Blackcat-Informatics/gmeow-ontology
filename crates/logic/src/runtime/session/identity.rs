@@ -45,10 +45,31 @@ pub(crate) fn digest(domain: &[u8], fields: &[&str]) -> String {
 ///
 /// Returns `Err` if the EDB cannot be built or a term cannot be rendered to N3.
 pub(crate) fn mint_edb_generation(edb: &RdfDataset) -> gmeow_errors::Result<WorldSourceIdentity> {
+    edb_data_generation(edb, SESSION_SOURCE_CONTRACT)
+}
+
+/// Content-address an authorized EDB into its canonical `urn:blake3:` data-generation
+/// under an explicit `source_contract`.
+///
+/// The generation string is the IDENTICAL content-address the resident
+/// [`crate::runtime::ReasoningSession::open`] mints (via
+/// [`mint_edb_generation`]) — a deterministic function of the dataset's fact set — so a
+/// paged composition can reuse the stable EDB fingerprint while naming its own (paged)
+/// source contract. This is the public seam the `gmeow logic session --paged` CLI path
+/// uses to build a reproducible [`WorldSourceIdentity`] for
+/// [`crate::runtime::ReasoningSession::open_paged`].
+///
+/// # Errors
+///
+/// Returns `Err` if the EDB cannot be built or a term cannot be rendered to N3.
+pub fn edb_data_generation(
+    edb: &RdfDataset,
+    source_contract: impl Into<String>,
+) -> gmeow_errors::Result<WorldSourceIdentity> {
     let hex = dataset_content_digest(b"gmeow-logic-session-edb-generation-v1", edb)?;
     Ok(WorldSourceIdentity::new(
         format!("urn:blake3:{hex}"),
-        SESSION_SOURCE_CONTRACT,
+        source_contract,
     ))
 }
 
