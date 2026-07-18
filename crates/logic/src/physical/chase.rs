@@ -1112,9 +1112,70 @@ impl ChaseAdmission {
     /// **Joint acyclicity** (Cuenca Grau et al., JAIR 47, 2013): strictly broader than
     /// weak acyclicity. `Some(JointlyAcyclic)` when the existential-dependency graph
     /// over existential variables is acyclic, else `None`.
-    fn certify_joint_acyclic(_rules: &[ExistentialRule]) -> Option<Self> {
-        // Implemented in the joint-acyclicity rung; the ladder falls through until then.
-        None
+    ///
+    /// For each existential `e` of each rule, [`move_set`] computes the refined positions
+    /// a null created for `e` can occupy (closing null-flow through frontier variables).
+    /// The existential-dependency graph has an edge from `e1` to every existential of
+    /// rule `r_j` when some frontier variable of `r_j` has *all* its refined body
+    /// positions inside `Move(e1)` — i.e. `e1`'s null can bind that frontier and so
+    /// trigger `r_j`'s invention.  JA holds iff that graph is acyclic (no existential
+    /// transitively depends on itself).  Weak acyclicity conflates positions and so
+    /// reports a spurious cycle whenever a null merely *touches* a position on a
+    /// position-graph cycle; JA is exact about which frontier a null can actually bind.
+    fn certify_joint_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
+        let universe = all_program_positions(rules);
+        // Existential nodes: (rule index, existential var name).
+        let mut existentials: Vec<(usize, String)> = Vec::new();
+        for (i, r) in rules.iter().enumerate() {
+            for e in r.existentials() {
+                existentials.push((i, e));
+            }
+        }
+        if existentials.is_empty() {
+            // No existential to certify — weak acyclicity already handled this shape.
+            return None;
+        }
+        let moves: Vec<BTreeSet<Position>> = existentials
+            .iter()
+            .map(|(i, e)| move_set(rules, &rules[*i], e, &universe))
+            .collect();
+
+        // Existential-dependency graph.
+        let mut edges: std::collections::BTreeMap<usize, BTreeSet<usize>> =
+            std::collections::BTreeMap::new();
+        let mut edge_count = 0usize;
+        for (a, _) in existentials.iter().enumerate() {
+            let mv = &moves[a];
+            for (j, r_j) in rules.iter().enumerate() {
+                if !r_j.is_existential() {
+                    continue;
+                }
+                // Can a1's null bind a frontier of r_j (all that frontier's body
+                // positions lie within Move)? Then it can trigger r_j's invention.
+                let triggers = r_j.frontier_vars().into_iter().any(|v| {
+                    let bpos = refined_positions(&r_j.body, &v);
+                    !bpos.is_empty() && bpos.iter().all(|p| move_contains(mv, p, &universe))
+                });
+                if !triggers {
+                    continue;
+                }
+                for (b, (bi, _)) in existentials.iter().enumerate() {
+                    if *bi == j && edges.entry(a).or_default().insert(b) {
+                        edge_count += 1;
+                    }
+                }
+            }
+        }
+
+        // JA holds iff no existential node lies on a cycle (reaches itself).
+        let acyclic = (0..existentials.len()).all(|n| !node_reaches_self(&edges, n));
+        acyclic.then(|| Self::JointlyAcyclic {
+            evidence: format!(
+                "jointly acyclic: {} existential variable(s), {} dependency edge(s), no existential depends on itself",
+                existentials.len(),
+                edge_count
+            ),
+        })
     }
 
     /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than joint. `Some`
@@ -1362,6 +1423,92 @@ fn reaches(
         }
         if let Some(succs) = adj.get(node) {
             stack.extend(succs.iter());
+        }
+    }
+    false
+}
+
+// ── Joint-acyclicity support: null-flow `Move` sets over refined positions ──────────
+
+/// Every refined position occurring anywhere in `rules` (body or head).  The universe
+/// for conservative wildcard/const linkage in [`move_contains`].
+fn all_program_positions(rules: &[ExistentialRule]) -> BTreeSet<Position> {
+    let mut universe = BTreeSet::new();
+    for r in rules {
+        let vars: BTreeSet<String> = r.body_vars().into_iter().chain(r.head_vars()).collect();
+        for v in &vars {
+            universe.extend(refined_positions(&r.body, v));
+            universe.extend(refined_positions(&r.head, v));
+        }
+    }
+    universe
+}
+
+/// Conservative Move membership: `p ∈ mv`, OR — when the program has BOTH a wildcard and
+/// a constant refinement for `p`'s `(predicate, slot)` — any sibling of `p` at that
+/// `(predicate, slot)` is in `mv`.  This over-approximates a null's reach (wildcard nulls
+/// could be any class, constant consumers read any class), never under — so a real
+/// existential cycle is never hidden (soundness: JA never wrongly certifies).
+fn move_contains(mv: &BTreeSet<Position>, p: &Position, universe: &BTreeSet<Position>) -> bool {
+    if mv.contains(p) {
+        return true;
+    }
+    let same_slot = |q: &Position| q.predicate == p.predicate && q.slot == p.slot;
+    let has_wildcard = universe
+        .iter()
+        .any(|q| same_slot(q) && q.class == ClassKey::Wildcard);
+    let has_const = universe
+        .iter()
+        .any(|q| same_slot(q) && matches!(q.class, ClassKey::Const(_)));
+    has_wildcard && has_const && mv.iter().any(same_slot)
+}
+
+/// The `Move` set of existential `e` (of `rule_i`): the least set of refined positions a
+/// null minted for `e` can occupy, closing null-flow through every rule's frontier
+/// variables (a frontier `v` whose refined body positions all lie within Move carries the
+/// null to `v`'s head positions).  Grows monotonically within the finite position
+/// universe, so the fixpoint terminates.
+fn move_set(
+    rules: &[ExistentialRule],
+    rule_i: &ExistentialRule,
+    e: &str,
+    universe: &BTreeSet<Position>,
+) -> BTreeSet<Position> {
+    let mut mv: BTreeSet<Position> = refined_positions(&rule_i.head, e).into_iter().collect();
+    loop {
+        let before = mv.len();
+        for r in rules {
+            for v in r.frontier_vars() {
+                let bpos = refined_positions(&r.body, &v);
+                if !bpos.is_empty() && bpos.iter().all(|p| move_contains(&mv, p, universe)) {
+                    mv.extend(refined_positions(&r.head, &v));
+                }
+            }
+        }
+        if mv.len() == before {
+            break;
+        }
+    }
+    mv
+}
+
+/// Whether `node` lies on a cycle in the existential-dependency graph (reaches itself
+/// over ≥1 edges; a self-edge therefore counts).
+fn node_reaches_self(
+    edges: &std::collections::BTreeMap<usize, BTreeSet<usize>>,
+    node: usize,
+) -> bool {
+    let mut stack: Vec<usize> = edges.get(&node).into_iter().flatten().copied().collect();
+    let mut seen: BTreeSet<usize> = BTreeSet::new();
+    while let Some(n) = stack.pop() {
+        if n == node {
+            return true;
+        }
+        if !seen.insert(n) {
+            continue;
+        }
+        if let Some(succ) = edges.get(&n) {
+            stack.extend(succ.iter().copied());
         }
     }
     false
@@ -1746,6 +1893,106 @@ mod tests {
         let r1 = restriction_rule("http://ex/rule/c", C, P, D);
         let r2 = restriction_rule("http://ex/rule/d", D, Q, C);
         assert!(!ChaseAdmission::certify(&[r1, r2]).admits_native());
+    }
+
+    // ── Joint acyclicity (strictly broader than weak) ────────────────────────────
+
+    /// `type(x,C) ∧ type(x,D) → ∃y. p(x,y)` and `p(x,y) → type(y,C)`.
+    ///
+    /// **Jointly acyclic but NOT weakly acyclic.** Weak acyclicity sees the position
+    /// cycle `(type,S,C) → (p,O,*) → (type,S,C)` (the p-object null flows to `type,C`,
+    /// which is a body position of the first rule) and refuses.  Joint acyclicity tracks
+    /// that the null becomes `C` but never `D`, so it can never re-bind the `C∧D`-guarded
+    /// frontier `x` of the first rule — no existential depends on itself.  The chase
+    /// terminates: the C-only witness does not satisfy the `C∧D` guard, so no further
+    /// invention fires.
+    fn jointly_acyclic_not_weakly_acyclic() -> Vec<ExistentialRule> {
+        let guarded = ExistentialRule {
+            rule_iri: "http://ex/rule/ja-guard".to_owned(),
+            body: vec![
+                atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned())),
+                atom(var("?x"), TYPE, EvalTerm::ConstNamed(D.to_owned())),
+            ],
+            head: vec![atom(var("?x"), P, var("?y"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        let feedback = ExistentialRule {
+            rule_iri: "http://ex/rule/ja-feedback".to_owned(),
+            body: vec![atom(var("?x"), P, var("?y"))],
+            head: vec![atom(var("?y"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        vec![guarded, feedback]
+    }
+
+    #[test]
+    fn certify_jointly_acyclic_non_vacuous_beyond_weak() {
+        // The rung is a REAL increment: weak acyclicity refuses this program, joint
+        // acyclicity certifies it.
+        let prog = jointly_acyclic_not_weakly_acyclic();
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "weak acyclicity must REFUSE the guard-split program (position-cycle)"
+        );
+        match ChaseAdmission::certify(&prog) {
+            ChaseAdmission::JointlyAcyclic { .. } => {}
+            other => panic!("ladder must certify as JointlyAcyclic, got {other:?}"),
+        }
+        assert!(ChaseAdmission::certify(&prog).admits_native());
+    }
+
+    #[test]
+    fn certify_jointly_acyclic_evidence_is_non_vacuous() {
+        // The certifier actually SAW the existential (≥1 existential variable): a vacuous
+        // certificate would report zero and is a bug.
+        match ChaseAdmission::certify(&jointly_acyclic_not_weakly_acyclic()) {
+            ChaseAdmission::JointlyAcyclic { evidence } => assert!(
+                !evidence.contains("0 existential variable"),
+                "joint-acyclicity certificate must be non-vacuous (saw ≥1 ∃): {evidence}"
+            ),
+            other => panic!("expected JointlyAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn jointly_acyclic_program_runs_natively_unbudgeted_on_route_chase() {
+        // The production-surface proof: a program weak acyclicity REFUSES today is now
+        // admitted AND runs to a natural fixpoint UNBUDGETED on the real router.  A false
+        // certification of a non-terminating program would loop/exhaust here.
+        let prog = jointly_acyclic_not_weakly_acyclic();
+        let edb = vec![fact("http://ex/a", TYPE, C), fact("http://ex/a", TYPE, D)];
+        let (admission, outcome) = route_chase(W, &edb, &prog, None).unwrap();
+        assert!(
+            matches!(admission, ChaseAdmission::JointlyAcyclic { .. }),
+            "route_chase must admit the program as jointly-acyclic, got {admission:?}"
+        );
+        // Runs to a fixpoint with NO budget (Decided, not Unsupported/Exhausted).
+        let _ = decided(outcome);
+        // Previously-refused leg: the WA-only certifier refuses P, so pre-change
+        // route_chase(P, None) would have been Unsupported(NonTerminatingExistential).
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "the same program is refused by weak acyclicity alone (previously refused)"
+        );
+    }
+
+    #[test]
+    fn certify_cyclic_defeats_joint_acyclicity() {
+        // A genuine two-rule invention cycle (`C ⊑ ∃p.D`, `D ⊑ ∃q.C`) is non-terminating:
+        // joint acyclicity must NOT certify it, and the ladder falls through to refusal.
+        let cyclic = vec![
+            restriction_rule("http://ex/rule/c", C, P, D),
+            restriction_rule("http://ex/rule/d", D, Q, C),
+        ];
+        assert!(
+            ChaseAdmission::certify_joint_acyclic(&cyclic).is_none(),
+            "joint acyclicity must refuse a genuine invention cycle"
+        );
+        assert!(!ChaseAdmission::certify(&cyclic).admits_native());
     }
 
     #[test]
