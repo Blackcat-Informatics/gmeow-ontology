@@ -1646,6 +1646,57 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
     }
 
     #[test]
+    fn project_bundle_hard_fails_when_a_declared_output_is_never_produced() {
+        // NEVER-PRODUCED — the regression this task guards: a producing stage change stops
+        // emitting a declared output. The bundle then carries NO representative for it, so the
+        // bytes are IDENTICAL across two cold runs — the two-generation determinism gate is
+        // blind. Only the completeness oracle catches it, and it must bite through the REAL
+        // `project_bundle` path (not only the hand-built projection map
+        // `completeness_hard_fails_naming_every_dropped_output` exercises), proving the
+        // `check_expected_completeness` call at the top of `project_bundle` is wired.
+        //
+        // Build a minimal-but-valid gmeow.gts through the production terminal
+        // (`emit_gmeow_gts`): the ontology header the importer requires, plus two authored
+        // `gmeow:expectsGeneratedOutput` rows for paths the bundle does NOT produce — one
+        // OPAQUE-family member (`generated/n3/gmeow.n3`, normally an inline archive member) and
+        // one PREFIX-family member (`generated/profiles/full.ttl`, normally a named-graph fold).
+        // With no fanout rows, no reconstruction graphs, and no opaque archive, the
+        // reconstructed `files` set is empty, so BOTH declared paths are "never produced".
+        use purrdf::gts_compose::SnapshotBuilder;
+
+        const OPAQUE_MEMBER: &str = "generated/n3/gmeow.n3";
+        const PREFIX_MEMBER: &str = "generated/profiles/full.ttl";
+        let doc = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix dcterms: <http://purl.org/dc/terms/> .\n\
+             <https://blackcatinformatics.ca/gmeow> a owl:Ontology ;\n\
+                 dcterms:title \"GMEOW\" ;\n\
+                 owl:versionInfo \"test\" .\n\
+             gmeow:pipeline-build gmeow:expectsGeneratedOutput \"{OPAQUE_MEMBER}\" , \"{PREFIX_MEMBER}\" .\n"
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).unwrap();
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(ds.as_ref()).expect("add_dataset");
+        let gts =
+            crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+                .expect("emit minimal expected-output bundle");
+
+        // The REAL production path: parse the bundle -> reconstruct -> completeness check.
+        let err = project_bundle(&gts)
+            .expect_err("project_bundle must HARD-fail: two declared outputs were never produced");
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+        let msg = err.to_string();
+        assert!(
+            msg.contains(OPAQUE_MEMBER),
+            "the HARD FAIL must name the never-produced opaque-family path, got: {msg}"
+        );
+        assert!(
+            msg.contains(PREFIX_MEMBER),
+            "the HARD FAIL must name the never-produced prefix-family path, got: {msg}"
+        );
+    }
+    #[test]
     fn derivable_families_cross_check_catches_authored_derived_drift() {
         // The two DERIVED families (profiles, edoal): authored must EXACTLY equal the set the
         // carrier's reconstruction graphs yield. The real authored counts are pinned so a
