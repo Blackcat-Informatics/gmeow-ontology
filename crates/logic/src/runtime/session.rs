@@ -18,7 +18,8 @@
 //!
 //! 1. **Published data-generation** — a `urn:blake3:` content address of the authorized
 //!    EDB facts (minted with the shared framed-BLAKE3 discipline).
-//! 2. **Rule/program digest + slice digest** — from the canonical [`LogicProgram`].
+//! 2. **Rule/program digest + slice digest** — from the canonical
+//!    [`LogicProgram`](gmeow_logic_compile::ir::LogicProgram).
 //! 3. **`ReasoningContract`** (carries the resource policy) — pinned on
 //!    [`gmeow_logic_compile::ir::ReasoningContract::content_digest`].
 //! 4. **Engine implementation/version** — the whole
