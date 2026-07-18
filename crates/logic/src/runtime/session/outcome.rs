@@ -228,6 +228,18 @@ pub enum IntegrityFault {
         /// A human-readable description of the illegal transaction.
         detail: String,
     },
+    /// Replaying a checkpoint's stored committed deltas over the authorized base did not
+    /// reproduce the checkpoint's durable `journal_head` — the checkpoint is internally
+    /// inconsistent (its head is unreachable from its deltas), so restore refuses rather
+    /// than adopt an unverified head. Distinct from [`Self::CorruptCheckpoint`], which
+    /// catches a content-address mismatch (raw byte tampering); this catches a
+    /// consistently-hashed but semantically-divergent checkpoint.
+    CheckpointReplayDivergence {
+        /// The durable journal head the checkpoint pinned.
+        expected_head: String,
+        /// The journal head the stored deltas actually replayed to.
+        replayed_head: String,
+    },
 }
 
 /// The data-only discriminant of an [`OperationOutcome`], folded into the transition

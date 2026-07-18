@@ -152,9 +152,10 @@ pub mod session;
 /// content-addressed [`Checkpoint`]. Re-exported here so an external runtime consumer
 /// needs only `use gmeow_logic::runtime::*` (the one supported import path).
 pub use session::{
-    Checkpoint, FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome, OutcomeTag,
-    PagedCompositionMetrics, ReasoningSession, RebuildReason, SessionDelta, SessionIdentity,
-    Suppression, TransitionEntry, UnsupportedFragment, edb_data_generation,
+    Checkpoint, CommittedDelta, FragmentDisposition, IncompleteCause, IntegrityFault,
+    OperationOutcome, OutcomeTag, PagedCompositionMetrics, ReasoningSession, RebuildReason,
+    SessionDelta, SessionIdentity, Suppression, TransitionEntry, UnsupportedFragment,
+    edb_data_generation,
 };
 
 // ── The curated stable surface ───────────────────────────────────────────────────

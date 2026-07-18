@@ -21,9 +21,124 @@ use gmeow_logic::runtime::{
 use gmeow_logic::seam::BudgetStatus;
 use gmeow_logic_compile::ir::LogicProgram;
 use proptest::prelude::*;
+use std::collections::BTreeSet;
 
 mod session_common;
 use session_common::*;
+
+/// Assert the session's per-fact provenance is in exact bijection with — and field-for-field
+/// equal to — the full-recompute oracle's witnesses over `edb`. Mirrors the AC2 provenance
+/// parity check; used here to prove a RESTORE reproduces not just the closure but the exact
+/// per-fact witness (rule, premises, weight, minimal proof height).
+fn assert_provenance_parity(
+    program: &LogicProgram,
+    idb: &[String],
+    session: &ReasoningSession,
+    edb: &purrdf::RdfDataset,
+) {
+    let oracle = oracle_witnesses(program, edb, idb);
+    let oracle_heights = oracle_proof_heights(program, edb, idb);
+    let session_map = session_witnesses(session);
+    assert_eq!(
+        session_map.keys().cloned().collect::<BTreeSet<_>>(),
+        oracle.keys().cloned().collect::<BTreeSet<_>>(),
+        "restored provenance covers exactly the oracle's derived facts"
+    );
+    assert!(!session_map.is_empty(), "the derived closure is non-empty");
+    for (key, witness) in &session_map {
+        let (oracle_rule, oracle_premises) = oracle.get(key).expect("oracle witness for key");
+        assert_eq!(Some(witness.rule.clone()), *oracle_rule, "rule for {key:?}");
+        assert_eq!(witness.premises, *oracle_premises, "premises for {key:?}");
+        assert_eq!(witness.weight, 1, "present derived fact weight for {key:?}");
+        let oracle_height = oracle_heights.get(key).expect("oracle height for key");
+        assert_eq!(witness.proof_height, *oracle_height, "height for {key:?}");
+    }
+}
+
+/// AC1 (regression) — a checkpoint minted AFTER an insert, restored from the
+/// BASE EDB, must reproduce the POST-INSERT full-recompute closure AND per-fact provenance —
+/// not silently revert to the base. Before the fix the checkpoint stored only the advanced
+/// head over the base generation, so restore re-materialized the base (5-fact) closure while
+/// reporting the 9-fact head: the committed edge was unrecoverable. The fix persists and
+/// replays the committed delta, so the restore is a faithful round-trip.
+fn drive_post_insert_checkpoint_restore(
+    program: &LogicProgram,
+    idb: &[String],
+    base: &[(&str, &str)],
+    new_edge: (&str, &str),
+) {
+    let (contract, annotation) = baseline_contracts();
+    let edb0 = edge_dataset(base);
+    let mut grown: Vec<(&str, &str)> = base.to_vec();
+    grown.push(new_edge);
+    let edb1 = edge_dataset(&grown);
+
+    let mut session = ReasoningSession::open(&edb0, program, &contract, &annotation).expect("open");
+    apply_expecting_applied(&mut session, edge_dataset(&[new_edge]), vec![]);
+    let post_insert_closure = session_derived(&session, idb);
+    // Sanity: the live post-insert closure is the grown-EDB full recompute (not the base).
+    assert_eq!(
+        post_insert_closure,
+        oracle_derived(program, &edb1, idb),
+        "live post-insert closure matches full recompute over the grown EDB"
+    );
+    assert_ne!(
+        post_insert_closure,
+        oracle_derived(program, &edb0, idb),
+        "the inserted edge genuinely grew the closure beyond the base"
+    );
+
+    // Mint the checkpoint AFTER the insert, then restore from the BASE EDB.
+    let post_head = session.head().to_owned();
+    let checkpoint = session.checkpoint();
+    assert!(
+        !checkpoint.deltas.is_empty(),
+        "a post-insert checkpoint carries the committed delta"
+    );
+    let restored = ReasoningSession::restore(&checkpoint, &edb0, program, &contract, &annotation)
+        .expect("post-insert checkpoint restores by replay");
+
+    // The restore reproduces the post-insert head, closure, AND per-fact provenance — the
+    // committed edge survived, no revert-to-base, no head/closure divergence.
+    assert_eq!(
+        restored.head(),
+        post_head,
+        "restore reproduces the committed post-insert head (not the base head)"
+    );
+    assert_eq!(
+        session_derived(&restored, idb),
+        post_insert_closure,
+        "restore reproduces the exact post-insert closure (the delta survived)"
+    );
+    assert_eq!(
+        session_derived(&restored, idb),
+        oracle_derived(program, &edb1, idb),
+        "restored closure equals the post-insert full recompute (9-fact), not the base"
+    );
+    assert_provenance_parity(program, idb, &restored, &edb1);
+}
+
+#[test]
+fn ac1_post_insert_checkpoint_restore_reproduces_post_insert_closure() {
+    drive_post_insert_checkpoint_restore(
+        &transitive_program(),
+        &idb_reach(),
+        &[("a", "b"), ("b", "c")],
+        ("c", "d"),
+    );
+    drive_post_insert_checkpoint_restore(
+        &projection_program(),
+        &idb_reach(),
+        &[("a", "b"), ("b", "c")],
+        ("c", "d"),
+    );
+    drive_post_insert_checkpoint_restore(
+        &mutual_program(),
+        &idb_pq(),
+        &[("a", "b"), ("b", "c"), ("c", "d")],
+        ("d", "e"),
+    );
+}
 
 /// Build a delta from the session's current authorization + transition anchors and apply
 /// it, asserting the genuine-incremental `Applied` variant. Returns the committed

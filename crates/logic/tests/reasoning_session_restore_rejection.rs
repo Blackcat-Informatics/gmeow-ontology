@@ -30,12 +30,38 @@
 //! `pub(crate)`; this suite asserts the reachable-from-public-surface rejections.
 
 use gmeow_logic::runtime::{
-    Checkpoint, IntegrityFault, OperationOutcome, ReasoningSession, SessionIdentity,
+    Checkpoint, IntegrityFault, OperationOutcome, ReasoningSession, SessionDelta, SessionIdentity,
+    Suppression,
 };
 use gmeow_logic_compile::ir::{LogicProgram, ReasoningContract};
 
 mod session_common;
 use session_common::*;
+
+/// Open a transitive session over the base edge chain, apply the `c→d` edge, and return a
+/// checkpoint minted AFTER the apply (so it durably carries the committed delta). The
+/// returned base EDB is what a faithful restore re-materializes and replays over.
+fn post_apply_checkpoint() -> (Checkpoint, purrdf::RdfDataset, LogicProgram) {
+    let program = transitive_program();
+    let (contract, annotation) = baseline_contracts();
+    let edb = edge_dataset(&[("a", "b"), ("b", "c")]);
+    let mut session = ReasoningSession::open(&edb, &program, &contract, &annotation).expect("open");
+    let base = session.identity().data_generation.clone();
+    let head = session.head().to_owned();
+    let delta = SessionDelta::new(
+        base,
+        head,
+        edge_dataset(&[("c", "d")]),
+        Vec::<Suppression>::new(),
+        None,
+    )
+    .expect("valid delta");
+    match session.apply(&delta) {
+        OperationOutcome::Applied { .. } => {}
+        other => panic!("expected Applied, got {other:?}"),
+    }
+    (session.checkpoint(), edb, program)
+}
 
 const SLICE_X: &str = "urn:example:slice-x";
 const SLICE_Y: &str = "urn:example:slice-y";
@@ -182,6 +208,7 @@ fn ac3_incremental_fragment_axis_rejects() {
         mutated,
         real.data_generation.generation.clone(),
         session.head().to_owned(),
+        Vec::new(),
     );
 
     assert_identity_mismatch(
@@ -216,6 +243,81 @@ fn ac3_byte_tampered_checkpoint_is_corrupt() {
             fault: IntegrityFault::CorruptCheckpoint { .. },
         }) => {}
         other => panic!("expected Invalid{{CorruptCheckpoint}}, got {other:?}"),
+    }
+}
+
+#[test]
+fn ac3_tampered_delta_payload_is_corrupt() {
+    // The content address folds the serialized committed deltas, so tampering
+    // a stored delta's additions (here rewriting the c→d edge to c→e) breaks the recomputed
+    // address → CorruptCheckpoint, exactly as a tampered head/generation does.
+    let (cp, edb, program) = post_apply_checkpoint();
+    let (contract, annotation) = baseline_contracts();
+    assert!(
+        !cp.deltas.is_empty(),
+        "the checkpoint carries a delta to tamper"
+    );
+
+    let mut value: serde_json::Value = serde_json::to_value(&cp).expect("serialize checkpoint");
+    let additions = value["deltas"][0]["additions_nquads"]
+        .as_str()
+        .expect("delta additions string")
+        .replace("/d>", "/e>");
+    assert!(additions.contains("/e>"), "the delta payload was mutated");
+    value["deltas"][0]["additions_nquads"] = serde_json::Value::String(additions);
+    let tampered: Checkpoint =
+        serde_json::from_value(value).expect("deserialize tampered checkpoint");
+
+    match ReasoningSession::restore(&tampered, &edb, &program, &contract, &annotation) {
+        Err(OperationOutcome::Invalid {
+            fault: IntegrityFault::CorruptCheckpoint { .. },
+        }) => {}
+        other => panic!("expected Invalid{{CorruptCheckpoint}} on a tampered delta, got {other:?}"),
+    }
+}
+
+#[test]
+fn ac3_replay_head_divergence_is_rejected() {
+    // A CONSISTENTLY-HASHED but SEMANTICALLY-DIVERGENT checkpoint: re-mint via `Checkpoint::new`
+    // (which recomputes a valid content address) with the CORRECT deltas but a WRONG durable
+    // head. `verify` passes (the address is internally consistent), but replaying the deltas
+    // over the base reproduces the real head, which differs from the stored one →
+    // CheckpointReplayDivergence. The head is NEVER adopted unverified.
+    let (real, edb, program) = post_apply_checkpoint();
+    let (contract, annotation) = baseline_contracts();
+    let wrong_head = "0000000000000000000000000000000000000000000000000000000000000000";
+    assert_ne!(
+        real.journal_head, wrong_head,
+        "the wrong head really differs"
+    );
+
+    let divergent = Checkpoint::new(
+        real.identity.clone(),
+        real.edb_generation.clone(),
+        wrong_head.to_owned(),
+        real.deltas.clone(),
+    );
+    // The re-minted checkpoint is content-consistent: byte-integrity passes.
+    assert!(
+        divergent.verify().is_ok(),
+        "the re-minted checkpoint has a valid (recomputed) content address"
+    );
+
+    match ReasoningSession::restore(&divergent, &edb, &program, &contract, &annotation) {
+        Err(OperationOutcome::Invalid {
+            fault:
+                IntegrityFault::CheckpointReplayDivergence {
+                    expected_head,
+                    replayed_head,
+                },
+        }) => {
+            assert_eq!(expected_head, wrong_head, "the fault names the stored head");
+            assert_eq!(
+                replayed_head, real.journal_head,
+                "the fault names the head the deltas actually replay to"
+            );
+        }
+        other => panic!("expected Invalid{{CheckpointReplayDivergence}}, got {other:?}"),
     }
 }
 

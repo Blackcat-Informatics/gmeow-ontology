@@ -1810,6 +1810,12 @@ fn render_integrity_fault(fault: &IntegrityFault) -> String {
         IntegrityFault::IllegalSignedTransaction { detail } => {
             format!("IllegalSignedTransaction {detail}")
         }
+        IntegrityFault::CheckpointReplayDivergence {
+            expected_head,
+            replayed_head,
+        } => format!(
+            "CheckpointReplayDivergence expected-head={expected_head} replayed-head={replayed_head}"
+        ),
         _ => "unknown".to_owned(),
     }
 }
