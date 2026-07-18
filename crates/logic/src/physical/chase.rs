@@ -2661,6 +2661,117 @@ mod tests {
         assert!(!ChaseAdmission::certify(&cyclic).admits_native());
     }
 
+    // ── Nemo-free soundness self-oracle: every certified program terminates ────────
+
+    #[test]
+    fn certifier_soundness_differential_reaches_fixpoint() {
+        // The soundness differential replacing the retired Nemo oracle: for every program
+        // the ladder ADMITS (spanning all four classes), (b) the production router runs it
+        // natively unbudgeted, and (c) the budgeted native chase reaches a NATURAL
+        // fixpoint — a false certification of a non-terminating program would exhaust the
+        // budget instead. Self-hosted, deterministic, on-gate.
+        const BIG: u64 = 1_000;
+        let certified: Vec<(&str, Vec<ExistentialRule>, Vec<Fact>)> = vec![
+            (
+                "weakly-acyclic",
+                vec![some_values_from_rule()],
+                vec![fact("http://ex/a", TYPE, C)],
+            ),
+            (
+                "jointly-acyclic",
+                jointly_acyclic_not_weakly_acyclic(),
+                vec![fact("http://ex/a", TYPE, C), fact("http://ex/a", TYPE, D)],
+            ),
+            (
+                "super-weakly-acyclic",
+                super_weakly_acyclic_diagonal(),
+                vec![fact("http://ex/a", TYPE, C)],
+            ),
+            (
+                "model-summarizing-acyclic",
+                model_summarizing_beyond_structural(),
+                vec![fact("http://ex/a", P, "http://ex/b")],
+            ),
+        ];
+        for (label, prog, edb) in &certified {
+            let admission = ChaseAdmission::certify(prog);
+            assert!(
+                admission.admits_native(),
+                "{label}: a certified program must admit natively, got {admission:?}"
+            );
+            let (_, unbudgeted) = route_chase(W, edb, prog, None).unwrap();
+            let _ = decided(unbudgeted);
+            let budgeted = decided(chase_world(W, edb, prog, Some(BIG)).unwrap());
+            assert_eq!(
+                budgeted.status,
+                BudgetStatus::Ok,
+                "{label}: a certified program must reach a NATURAL fixpoint (a false \
+                 certification would exhaust the budget)"
+            );
+        }
+    }
+
+    #[test]
+    fn certifier_refuses_non_terminating_programs() {
+        // The sound fallback: genuinely non-terminating programs stay Uncertified, and the
+        // unbudgeted router refuses them (Unsupported) rather than looping.
+        let refused: Vec<(&str, Vec<ExistentialRule>, Vec<Fact>)> = vec![
+            (
+                "self-cycle",
+                vec![restriction_rule("http://ex/rule/cyclic", D, P, D)],
+                vec![fact("http://ex/a", TYPE, D)],
+            ),
+            (
+                "two-rule-cycle",
+                vec![
+                    restriction_rule("http://ex/rule/c", C, P, D),
+                    restriction_rule("http://ex/rule/d", D, Q, C),
+                ],
+                vec![fact("http://ex/a", TYPE, C)],
+            ),
+        ];
+        for (label, prog, edb) in &refused {
+            assert!(
+                !ChaseAdmission::certify(prog).admits_native(),
+                "{label}: a non-terminating program must stay Uncertified"
+            );
+            let (_, outcome) = route_chase(W, edb, prog, None).unwrap();
+            assert!(
+                matches!(
+                    outcome,
+                    NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+                ),
+                "{label}: the unbudgeted router must refuse rather than loop"
+            );
+        }
+    }
+
+    #[test]
+    fn certify_lattice_ranks_are_strictly_ordered() {
+        // The explicit escalation order (never a derived `Ord`): the ranks strictly
+        // increase Uncertified < WA < JA < SWA < MSA.
+        let ev = |s: &str| s.to_owned();
+        let ranks = [
+            ChaseAdmission::Uncertified { violations: vec![] }.rank(),
+            ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") }.rank(),
+            ChaseAdmission::JointlyAcyclic { evidence: ev("ja") }.rank(),
+            ChaseAdmission::SuperWeaklyAcyclic {
+                evidence: ev("swa"),
+            }
+            .rank(),
+            ChaseAdmission::ModelSummarizingAcyclic {
+                evidence: ev("msa"),
+            }
+            .rank(),
+        ];
+        for w in ranks.windows(2) {
+            assert!(
+                w[0] < w[1],
+                "certificate ranks must strictly increase: {ranks:?}"
+            );
+        }
+    }
+
     #[test]
     fn certify_non_existential_program_is_trivially_weakly_acyclic() {
         // A plain Datalog rule (no ∃ head var) has no special edges → certified.
