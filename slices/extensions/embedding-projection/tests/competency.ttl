@@ -234,6 +234,27 @@ ep:epCqTargetExactIdentityClean a gmeow:CompetencyQuestion ;
     gmeow:cqExpectRowCount 0 .
 
 # =========================================================================== #
+# CT4b — target-set ordered membership (C4b). Violation over a TargetSet member  #
+# with no gmeow:targetOrdinal; empty over the scene (every member is ordinaled). #
+# =========================================================================== #
+ep:epCqTargetSetOrdered a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/targetset-unordered.rq" ;
+    gmeow:cqDataFile "tests/counter-examples/ce-targetset-unordered.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ep:shapeVtExact ;
+    gmeow:cqRationale "A gmeow:targetSetMember with no gmeow:targetOrdinal leaves the set's row order unreconstructable and is caught: ce:unorderedMember." ;
+    gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "vt" ; gmeow:cellValueIri ce:unorderedMember ] ] .
+
+ep:epCqTargetSetOrderedClean a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/targetset-unordered.rq" ;
+    gmeow:cqDataFile "examples/purremb-bookshelf.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqResultShape ep:shapeVtEmpty ;
+    gmeow:cqRationale "Every member of the scene target set (ex:tgtDoc, ex:tgtChunk, ex:tgtStmt) carries a gmeow:targetOrdinal — zero unorderable members." ;
+    gmeow:cqExpectRowCount 0 .
+
+# =========================================================================== #
 # CT5 — similarity is not equivalence. Non-empty over the overclaim             #
 # counter-example (owl:sameAs / owl:equivalentClass); empty over the scene.     #
 # =========================================================================== #

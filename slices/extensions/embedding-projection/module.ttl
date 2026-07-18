@@ -207,11 +207,11 @@ gmeow:TargetSet
             logic:onProperty gmeow:contentDigest ;
             logic:allValuesFrom rdfs:Literal ;
         ] ;
-    skos:definition "The ordered target NAMESPACE a projection's matrix rows map to — the exact set of gmeow:VectorTarget members (gmeow:targetSetMember) whose ordering is the row order of the stored matrix. Its IDENTITY is the REUSED gmeow:contentDigest over the ordered membership: same target set ⇔ same digest. MULTIPLE target sets may exist over one source (different subject projections or subject families — TEXT chunks vs RDF 1.2 statements), so a projection binds the exact one its rows realize via gmeow:hasTargetSet. It is the row→target namespace, distinct from a single gmeow:VectorTarget (one row) and from the gmeow:VectorSpaceContract (the comparable space the vectors live in)."@x-gmeow-english ;
+    skos:definition "The ordered target NAMESPACE a projection's matrix rows map to — its gmeow:VectorTarget members (gmeow:targetSetMember) taken in ASCENDING gmeow:targetOrdinal order, which IS the row order of the stored matrix (the member with ordinal N is matrix row N). Because gmeow:targetSetMember is itself an UNORDERED edge, the row order is DEFINED as — and reconstructed by — sorting the members on their gmeow:targetOrdinal, so every member MUST carry one (gmeow:TargetSetOrderedMembershipConstraint); the ordinal is the row index, not identity. Its IDENTITY is the REUSED gmeow:contentDigest over that ordinal-sequenced membership: same ordered membership ⇔ same digest. MULTIPLE target sets may exist over one source (different subject projections or subject families — TEXT chunks vs RDF 1.2 statements), so a projection binds the exact one its rows realize via gmeow:hasTargetSet. It is the row→target namespace, distinct from a single gmeow:VectorTarget (one row) and from the gmeow:VectorSpaceContract (the comparable space the vectors live in)."@x-gmeow-english ;
     skos:example "ex:ts1 a gmeow:TargetSet ; gmeow:targetSetMember ex:vt1 , ex:vt2 ; gmeow:contentDigest \"blake3:7d21…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating the target set with the effective space (the set names the rows; the gmeow:VectorSpaceContract names the space) and avoid minting a separate targetSetId — the REUSED gmeow:contentDigest over the ordered membership IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the row namespace gmeow:TargetSet, enumerate its rows with gmeow:targetSetMember, content-address the ordered membership with the existing gmeow:contentDigest, and bind it to its projection with gmeow:hasTargetSet."@x-gmeow-english ;
+    gmeow:howToUse "Type the row namespace gmeow:TargetSet, enumerate its rows with gmeow:targetSetMember, give every member gmeow:VectorTarget a gmeow:targetOrdinal so the row order is exactly the members sorted ascending by ordinal, content-address that ordinal-sequenced membership with the existing gmeow:contentDigest, and bind it to its projection with gmeow:hasTargetSet."@x-gmeow-english ;
     gmeow:useWhen "Use for the ordered target namespace a projection's matrix rows map to — the identity of 'which targets, in which row order?' when several target sets may sit over one source."@x-gmeow-english .
 
 gmeow:VectorSpaceContract
@@ -737,11 +737,11 @@ gmeow:targetSetMember
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "target set member"@x-gmeow-english ;
     rdfs:range gmeow:VectorTarget ;
-    skos:definition "Relates a gmeow:TargetSet to one gmeow:VectorTarget it contains — a member of the ordered target namespace a projection's matrix rows map to. Non-functional: a target set gathers many members, and the ordered membership is what its gmeow:contentDigest identity folds over."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:TargetSet to one gmeow:VectorTarget it contains — a member of the target namespace a projection's matrix rows map to. The edge itself is UNORDERED (an RDF set): the row order is recovered by sorting the members on their gmeow:targetOrdinal, so every member of a gmeow:TargetSet MUST carry one (gmeow:TargetSetOrderedMembershipConstraint) or the ordered membership is unreconstructable. Non-functional: a target set gathers many members, and that ordinal-sequenced membership is what its gmeow:contentDigest identity folds over."@x-gmeow-english ;
     skos:example "ex:ts1 gmeow:targetSetMember ex:vt1 , ex:vt2 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating membership as unordered when the row order matters (the target set's digest folds over the ordered membership) and avoid making it functional; a set gathers many targets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting a member's gmeow:targetOrdinal (the row order is reconstructed by sorting members on their ordinal, so a member without one leaves the ordered membership unreconstructable — gmeow:TargetSetOrderedMembershipConstraint) and avoid making the property functional; a set gathers many targets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:targetSetMember from a gmeow:TargetSet to each gmeow:VectorTarget it contains; the ordered membership is the set's content-addressed identity."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:targetSetMember from a gmeow:TargetSet to each gmeow:VectorTarget it contains, and give each member a gmeow:targetOrdinal; the members sorted ascending by ordinal are the ordered membership the set's gmeow:contentDigest identity folds over."@x-gmeow-english ;
     gmeow:useWhen "Use to enumerate the vector targets a target set contains — the rows a projection's matrix maps to."@x-gmeow-english .
 
 gmeow:targetsResource
@@ -1436,6 +1436,35 @@ logic:teicDigExists a logic:Formula ;
     logic:exists logic:teicDigAtom .
 logic:teicDigAtom a logic:Formula ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vt" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+# C4b (CT4b): the ordered membership of a gmeow:TargetSet is DEFINED as its members
+# sorted ascending by gmeow:targetOrdinal (the row index). The gmeow:targetSetMember
+# edge is unordered, so the row order — and the "same digest ⇔ same ordered
+# membership" claim — is only reconstructable if EVERY member carries a
+# gmeow:targetOrdinal. A member of a TargetSet with no ordinal is a HARD FAIL.
+gmeow:TargetSetOrderedMembershipConstraint
+    a logic:Constraint ;
+    rdfs:label "Target-set ordered-membership constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:VectorTarget related to a gmeow:TargetSet by gmeow:targetSetMember MUST carry a gmeow:targetOrdinal. The set's ordered membership — the row order of the stored matrix — is DEFINED as its members sorted ascending by gmeow:targetOrdinal, and the gmeow:targetSetMember edge is unordered, so a member with no ordinal leaves the row order unreconstructable and the 'same gmeow:contentDigest ⇔ same ordered membership' identity claim unvalidatable. A member lacking an ordinal is a HARD FAIL — the ordering is never inferred from RDF term order or member IRI."@x-gmeow-english ;
+    logic:formalizes gmeow:TargetSetOrderedMembershipShape ;
+    logic:message "Every gmeow:targetSetMember of a gmeow:TargetSet must carry a gmeow:targetOrdinal — the ordered membership (the matrix row order) is the members sorted ascending by ordinal, so a member without one is unorderable." ;
+    logic:integrity logic:tsomForall .
+logic:tsomForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ts" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] ;
+    logic:forall logic:tsomImpl .
+logic:tsomImpl a logic:Formula ; logic:antecedent logic:tsomGuard ; logic:consequent logic:tsomOrdExists .
+logic:tsomGuard a logic:Formula ; logic:and logic:tsomType , logic:tsomMember .
+logic:tsomType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ts" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TargetSet ] .
+logic:tsomMember a logic:Formula ; logic:relation gmeow:targetSetMember ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ts" ] , [ logic:termIndex 1 ; logic:termVariable "vt" ] .
+logic:tsomOrdExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:tsomOrdAtom .
+logic:tsomOrdAtom a logic:Formula ; logic:relation gmeow:targetOrdinal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vt" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
 
 # C5a (CT10/R5): the container and manifest surfaces of one projection must
 # record the SAME source-pack digest.
