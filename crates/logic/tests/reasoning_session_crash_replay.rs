@@ -100,10 +100,15 @@ fn ac5_committed_delta_is_refused_after_restart() {
         OperationOutcome::Applied { .. } => {}
         other => panic!("expected Applied, got {other:?}"),
     }
+    let committed_closure = session_derived(&session, &idb);
     let committed_checkpoint = session.checkpoint();
     assert_ne!(
         committed_checkpoint.journal_head, genesis,
         "the checkpoint pins the advanced head"
+    );
+    assert!(
+        !committed_checkpoint.deltas.is_empty(),
+        "a post-apply checkpoint durably carries the committed delta"
     );
 
     // Restart from the durable checkpoint (its journal_head is the post-commit head).
@@ -116,6 +121,26 @@ fn ac5_committed_delta_is_refused_after_restart() {
     )
     .expect("restart from the committed checkpoint");
     let before = session_derived(&restarted, &idb);
+
+    // POSITIVE assertion: the delta survived the crash — restarting from a
+    // post-apply checkpoint reproduces the committed post-delta closure (the 9-fact state
+    // incl. c→d), NOT the base. Before the fix the restart reverted to the 5-fact base while
+    // reporting the 9-fact head; this asserts the faithful round-trip.
+    let edb_committed = edge_dataset(&[("a", "b"), ("b", "c"), ("c", "d")]);
+    assert_eq!(
+        before, committed_closure,
+        "restart reproduces the committed post-delta closure (the delta survived the crash)"
+    );
+    assert_eq!(
+        before,
+        oracle_derived(&program, &edb_committed, &idb),
+        "the restarted committed closure equals the full recompute over the committed EDB"
+    );
+    assert_eq!(
+        restarted.head(),
+        committed_checkpoint.journal_head,
+        "the restarted head is the durable committed head, reproduced by replay"
+    );
 
     // Re-submit the ALREADY-COMMITTED delta: its expected_head is the stale pre-commit
     // (genesis) hash, so the transition precondition fails against the restored head.

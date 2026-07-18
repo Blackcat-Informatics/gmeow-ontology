@@ -25,7 +25,7 @@ use crate::seam::{
 
 use super::CERTIFIED_FRAGMENT;
 use super::checkpoint::Checkpoint;
-use super::delta::SessionDelta;
+use super::delta::{CommittedDelta, SessionDelta};
 use super::identity::{SessionIdentity, dataset_rows, mint_edb_generation};
 use super::journal::TransitionEntry;
 use super::outcome::{
@@ -90,6 +90,11 @@ pub struct ReasoningSession {
     /// The paged-source composition metrics, when this session was opened via
     /// [`Self::open_paged`]; `None` for a resident `open`.
     paged_metrics: Option<PagedCompositionMetrics>,
+    /// The ordered, replayable projection of every committed delta applied since `open`
+    /// (oldest first). A checkpoint persists this so `restore` reproduces the post-apply
+    /// state deterministically; it grows only on a committed `Applied` transaction and is
+    /// never an authority write.
+    committed_deltas: Vec<CommittedDelta>,
 }
 
 impl ReasoningSession {
@@ -143,6 +148,7 @@ impl ReasoningSession {
             latest_run: None,
             closure_provenance,
             paged_metrics: None,
+            committed_deltas: Vec::new(),
         })
     }
 
@@ -250,6 +256,7 @@ impl ReasoningSession {
             latest_run: None,
             closure_provenance,
             paged_metrics: Some(metrics),
+            committed_deltas: Vec::new(),
         })
     }
 
@@ -431,6 +438,15 @@ impl ReasoningSession {
             Err(diagnostic) => return OperationOutcome::EngineFailure { diagnostic },
         };
 
+        // Capture the replayable projection of this delta BEFORE committing, so a
+        // serialization failure leaves the session state unchanged (like the provenance
+        // re-descent above). This is what a checkpoint persists so restore can reproduce
+        // the post-apply state; it is a session artifact, never an authority write.
+        let committed_delta = match CommittedDelta::capture(delta) {
+            Ok(captured) => captured,
+            Err(diagnostic) => return OperationOutcome::EngineFailure { diagnostic },
+        };
+
         // Commit the atomic transaction and advance the hash-linked journal.
         self.inner = Some(working);
         self.closure = run.rows.clone();
@@ -443,6 +459,7 @@ impl ReasoningSession {
         self.head = entry.new_state_hash.clone();
         let new_state_hash = self.head.clone();
         self.journal.push(entry);
+        self.committed_deltas.push(committed_delta);
         self.latest_run = Some(run.clone());
 
         OperationOutcome::Applied {
@@ -453,28 +470,38 @@ impl ReasoningSession {
 
     /// Mint a content-addressed checkpoint of the current state.
     ///
-    /// The checkpoint stores the identity, the authorized EDB generation, and the
-    /// journal head; it carries no circuit state (restore re-materializes).
+    /// The checkpoint stores the identity, the authorized EDB generation, the journal
+    /// head, and the ordered sequence of committed deltas applied since `open`; it carries
+    /// no circuit state (restore re-materializes the base then replays the deltas).
     #[must_use]
     pub fn checkpoint(&self) -> Checkpoint {
         Checkpoint::new(
             self.identity.clone(),
             self.identity.data_generation.generation.clone(),
             self.head.clone(),
+            self.committed_deltas.clone(),
         )
     }
 
-    /// Restore a session from a checkpoint by deterministic re-materialization.
+    /// Restore a session from a checkpoint by deterministic re-materialization and delta
+    /// replay — a FAITHFUL round-trip of the post-apply state.
     ///
     /// Returns `Ok(session)` on a fully-gated restore, or `Err(outcome)` carrying the
     /// typed refusal (never a panic, never a silently-coerced rebuild). The gates are,
-    /// in order: (1) checkpoint content-integrity (→ [`IntegrityFault::CorruptCheckpoint`]);
-    /// (2) re-materialization from the authorized EDB (→ [`OperationOutcome::EngineFailure`]
-    /// on an engine fault); (3) identity — the checkpoint's `descriptor_hash` must equal
-    /// the freshly-reconstructed one, so a mismatch on ANY of the seven axes is
+    /// in order: (1) checkpoint content-integrity, folding the serialized deltas (→
+    /// [`IntegrityFault::CorruptCheckpoint`]); (2) re-materialization of the BASE EDB (→
+    /// [`OperationOutcome::EngineFailure`] on an engine fault); (3) identity — the
+    /// checkpoint's `descriptor_hash` must equal the freshly-reconstructed one (the
+    /// data-generation is invariant, so it equals the checkpoint-time identity even after
+    /// applies), so a mismatch on ANY of the seven axes is
     /// [`IntegrityFault::IdentityMismatch`]; (4) the minted EDB generation must equal the
-    /// checkpoint's. On success the durable `journal_head` is adopted as the head, so a
-    /// re-submitted already-committed delta is refused after a restart.
+    /// checkpoint's; (5) REPLAY each stored committed delta in order through the same
+    /// deterministic apply path, then VERIFY the reproduced journal head equals the
+    /// checkpoint's durable `journal_head` — a divergence is
+    /// [`IntegrityFault::CheckpointReplayDivergence`], never an adopted unverified head.
+    /// On success the restored session holds the exact post-apply closure, provenance, and
+    /// head, so the committed deltas survive a crash AND a re-submitted already-committed
+    /// delta is still refused (its stale `expected_head` fails the reproduced head).
     ///
     /// This takes the full `open` inputs (incl. `contract`/`annotation`) so ALL seven
     /// identity axes are re-derivable and gate-checked; `contract_hash` and
@@ -521,19 +548,48 @@ impl ReasoningSession {
                 },
             });
         }
-        // (5) adopt the durable journal head.
+        // (5) replay the committed deltas in order, reproducing the post-apply closure and
+        // head. Apply is deterministic, so replaying the same deltas from the same base
+        // reproduces the exact journal head; a replay step that does not commit `Applied`
+        // (or a final head that diverges) is a corrupt/inconsistent checkpoint.
         let mut restored = session;
-        restored.head = cp.journal_head.clone();
-        restored.journal = Vec::new();
+        for committed in &cp.deltas {
+            let base_commit = restored.identity.data_generation.clone();
+            let expected_head = restored.head.clone();
+            let delta = match committed.replay(base_commit, expected_head) {
+                Ok(delta) => delta,
+                Err(diagnostic) => return Err(OperationOutcome::EngineFailure { diagnostic }),
+            };
+            if !matches!(restored.apply(&delta), OperationOutcome::Applied { .. }) {
+                return Err(OperationOutcome::Invalid {
+                    fault: IntegrityFault::CheckpointReplayDivergence {
+                        expected_head: cp.journal_head.clone(),
+                        replayed_head: restored.head.clone(),
+                    },
+                });
+            }
+        }
+        // (6) verify the reproduced head equals the durable checkpoint head — never adopt
+        // an unverified head. This also fixes any head/closure divergence baked into a
+        // checkpoint: a head unreachable from the deltas is refused here.
+        if restored.head != cp.journal_head {
+            return Err(OperationOutcome::Invalid {
+                fault: IntegrityFault::CheckpointReplayDivergence {
+                    expected_head: cp.journal_head.clone(),
+                    replayed_head: restored.head.clone(),
+                },
+            });
+        }
         Ok(restored)
     }
 
     /// Restore from a checkpoint and resume at its durable head.
     ///
-    /// In the re-materialization checkpoint model this is behaviourally identical to
-    /// [`Self::restore`] (both re-materialize, gate all seven identity axes and the
-    /// checkpoint integrity, and adopt the durable `journal_head`); the distinct name is
-    /// the crash-recovery/resume entry point. It is total and never panics.
+    /// In the re-materialize-then-replay checkpoint model this is behaviourally identical
+    /// to [`Self::restore`] (both re-materialize the base, gate all seven identity axes and
+    /// the checkpoint integrity, replay the committed deltas, and verify the reproduced
+    /// `journal_head`); the distinct name is the crash-recovery/resume entry point. It is
+    /// total and never panics.
     #[allow(clippy::result_large_err)]
     pub fn restart(
         cp: &Checkpoint,
