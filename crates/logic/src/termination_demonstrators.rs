@@ -29,7 +29,7 @@ use crate::reasoning_graphs::{
 const JOINTLY_ACYCLIC_TTL: &str = r#"
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix lx:  <https://blackcatinformatics.ca/gmeow/logic/existential#> .
-@prefix demo: <https://blackcatinformatics.ca/gmeow/demo/termination#> .
+@prefix demo: <http://example.org/gmeow-demo/termination#> .
 
 demo:ja-guard rdf:type lx:ExistentialRule ;
     lx:body demo:ja-guard-b0, demo:ja-guard-b1 ;
@@ -52,7 +52,7 @@ demo:ja-feedback-h0 lx:s "?y" ; lx:p demo:type ; lx:o demo:C .
 const SUPER_WEAKLY_ACYCLIC_TTL: &str = r#"
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix lx:  <https://blackcatinformatics.ca/gmeow/logic/existential#> .
-@prefix demo: <https://blackcatinformatics.ca/gmeow/demo/termination#> .
+@prefix demo: <http://example.org/gmeow-demo/termination#> .
 
 demo:swa-invent rdf:type lx:ExistentialRule ;
     lx:body demo:swa-invent-b0 ;
@@ -75,7 +75,7 @@ demo:swa-diagonal-h0 lx:s "?x" ; lx:p demo:type ; lx:o demo:C .
 const MODEL_SUMMARIZING_TTL: &str = r#"
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix lx:  <https://blackcatinformatics.ca/gmeow/logic/existential#> .
-@prefix demo: <https://blackcatinformatics.ca/gmeow/demo/termination#> .
+@prefix demo: <http://example.org/gmeow-demo/termination#> .
 
 demo:msa-invent rdf:type lx:ExistentialRule ;
     lx:body demo:msa-invent-b0 ;
