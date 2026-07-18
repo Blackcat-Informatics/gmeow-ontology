@@ -477,12 +477,19 @@ ex:inObs a gmeow:SimilarityObservation ;
 #     lower-sensitivity view of the SAME confidential pack: its
 #     gmeow:hasSensitivity is gmeow:sensitivityInternal (rank 1), BELOW the
 #     source's gmeow:sensitivityConfidential (rank 2). That drop is authorized by
-#     an explicit ex:declassAct — so gmeow:SecurityMonotonicityConstraint's guard
-#     fires but its declassification-act existential is satisfied. Sensitivity
-#     never drops silently (P15).
+#     an explicit, REVIEWABLE ex:declassAct — one carrying its reviewing invocation
+#     (gmeow:wasGeneratedBy ex:declassReview) AND its authorizing agent
+#     (gmeow:wasAssociatedWith ex:disclosureReviewer), both required by the
+#     DeclassificationAct carriers + ClosedWorldClosure. So
+#     gmeow:SecurityMonotonicityConstraint's guard fires but its reviewable-act
+#     existential is satisfied. Sensitivity never drops silently, and a bare
+#     unattributed act would never authorize the drop (P15).
 # ===========================================================================
 ex:declassReview a gmeow:Activity ;
     rdfs:label "disclosure review authorizing the internal view"@en .
+
+ex:disclosureReviewer a gmeow:Person ;
+    rdfs:label "disclosure-control reviewer who authorized the drop"@en .
 
 ex:declassBuildActivity a gmeow:Activity ;
     rdfs:label "purremb bookshelf projection build (declassified internal view)"@en .
@@ -503,9 +510,10 @@ ex:bookshelfProjPublic a gmeow:EmbeddingProjection ;
 
 ex:declassAct a gmeow:DeclassificationAct ;
     rdfs:label "declassification of the internal bookshelf view"@en ;
-    gmeow:declassifies   ex:bookshelfProjPublic ;
-    gmeow:wasGeneratedBy ex:declassReview ;
-    gmeow:wasDerivedFrom ex:bookshelfPack .
+    gmeow:declassifies     ex:bookshelfProjPublic ;
+    gmeow:wasGeneratedBy   ex:declassReview ;
+    gmeow:wasAssociatedWith ex:disclosureReviewer ;
+    gmeow:wasDerivedFrom   ex:bookshelfPack .
 
 # ===========================================================================
 # 11. Copy retains policy (R2). ex:bookshelfProjACopy is a re-serialized copy of

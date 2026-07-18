@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT7 counter-example (Don't): a projection whose disclosure sensitivity is BELOW its
+# source's (source gmeow:sensitivityConfidential rank 2; projection
+# gmeow:sensitivityPublic rank 0) authorized ONLY by a BARE, UNREVIEWABLE
+# gmeow:DeclassificationAct — one that asserts gmeow:declassifies but carries NEITHER a
+# reviewing invocation (gmeow:wasGeneratedBy) NOR an authorizing agent
+# (gmeow:wasAssociatedWith). area-5 requires an EXPLICIT, REVIEWABLE declassification act,
+# and absence of review never implies a legitimate drop. The unattributed act does NOT
+# satisfy gmeow:SecurityMonotonicityConstraint's reviewable-act existential (→
+# shacl.SPARQLConstraintComponent) and the act itself violates the DeclassificationAct
+# reviewability carriers' sh:minCount 1 on gmeow:wasGeneratedBy / gmeow:wasAssociatedWith
+# (→ shacl.MinCountConstraintComponent). Triggers declass-unreviewed.rq (→ ce:leakyProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:secretPack a gmeow:InformationObject ;
+    gmeow:contentDigest  "blake3:sec0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:hasSensitivity gmeow:sensitivityConfidential .
+
+ce:leakyProj a gmeow:EmbeddingProjection ;
+    gmeow:projectionSource       ce:secretPack ;
+    gmeow:hasVectorSpaceContract ce:leakyVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityPublic .
+
+# The BARE act: declassifies edge only, NO gmeow:wasGeneratedBy, NO gmeow:wasAssociatedWith.
+# An unattributed act is not reviewable, so it warrants nothing.
+ce:bareDeclassAct a gmeow:DeclassificationAct ;
+    gmeow:declassifies ce:leakyProj .

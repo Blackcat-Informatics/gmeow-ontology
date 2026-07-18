@@ -81,6 +81,12 @@ ep:ecSourceDigestMissing a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "A projection omitting the required gmeow:projectionSourceDigest violates the sh:minCount 1 derived from its allValuesFrom carrier + class-scoped ClosureEntry — shacl.MinCountConstraintComponent. Closes the CT1 hole the present-but-wrong mismatch fixture cannot reach." .
 
+ep:ecDeclassUnreviewed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ce-declass-unreviewed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "A BARE gmeow:DeclassificationAct — one asserting gmeow:declassifies but carrying no reviewing invocation (gmeow:wasGeneratedBy) and no authorizing agent (gmeow:wasAssociatedWith) — is itself invalid: it violates the sh:minCount 1 derived from the DeclassificationAct reviewability allValuesFrom carriers + their class-scoped ClosureEntries, so an unreviewable act never authorizes a sensitivity drop (area-5: absence of review never implies public). The strengthened gmeow:SecurityMonotonicityConstraint existential (which also rejects this projection on the derived SPARQL surface) is exercised live by the declass-unreviewed.rq competency finder." .
+
 ep:ecDerivedIndexUnbound a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ce-derived-index-bound.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
