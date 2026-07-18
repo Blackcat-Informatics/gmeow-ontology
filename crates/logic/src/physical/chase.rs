@@ -954,18 +954,22 @@ fn class_key(other: &EvalTerm) -> ClassKey {
     }
 }
 
-/// The termination certificate for the restricted chase — a lattice element on an
-/// explicit **strictly increasing** chain of certified-terminating classes:
+/// The termination certificate for the restricted chase — a certified-terminating class
+/// on an explicit **escalation order** ([`Self::rank`]):
 ///
 /// ```text
 /// Uncertified ⊏ WeaklyAcyclic ⊏ JointlyAcyclic ⊏ SuperWeaklyAcyclic ⊏ ModelSummarizingAcyclic
 /// ```
 ///
-/// mirroring the acyclicity ladder weak ⊊ joint ⊊ super-weak ⊊ model-summarizing
-/// acyclicity (Cuenca Grau et al., JAIR 47, 2013).  [`Self::certify`] escalates through
-/// the chain cheapest-first and reports the **least-cost sufficient** class — so each
-/// broader class certifies exactly the programs the class below refuses.  Every
-/// certified class `admits_native`; `Uncertified` refuses or budgets.
+/// This `⊏` is the escalation order [`Self::certify`] tries cheapest-first, NOT a subset
+/// chain: weak acyclicity is strictly contained in each broader class, and
+/// model-summarizing acyclicity strictly contains all, but **joint and super-weak
+/// acyclicity are incomparable siblings** (Cuenca Grau et al., JAIR 47, 2013) — neither
+/// certifies a superset of the other.  Joint acyclicity is a constant-refined
+/// existential-dependency graph; super-weak acyclicity a Skolem place graph with
+/// unification (its occurs-check catches nulls joint acyclicity's positions cannot, and
+/// vice versa).  `certify` reports the **first (least-cost sufficient)** class that
+/// holds; every certified class `admits_native`, and `Uncertified` refuses or budgets.
 ///
 /// The broader classes prove termination of the **skolem/oblivious** chase, which
 /// soundly bounds the **restricted** chase the engine runs (skolem-chase termination ⟹
@@ -1178,10 +1182,36 @@ impl ChaseAdmission {
         })
     }
 
-    /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than joint. `Some`
-    /// when the place/trigger moving relation over existentials is acyclic, else `None`.
-    fn certify_super_weak_acyclic(_rules: &[ExistentialRule]) -> Option<Self> {
-        None
+    /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than weak acyclicity,
+    /// an incomparable sibling of joint acyclicity below model-summarizing acyclicity.
+    ///
+    /// Builds the **place graph** of the Skolemized program: within a rule, values flow
+    /// body→head through frontier variables (and a frontier body place feeds each
+    /// existential head place); across rules, a producer head place feeds a consumer body
+    /// place ONLY when the Skolemized head atom **unifies** with the consumer body atom
+    /// (most-general unifier with occurs-check).  That unification gate is the precision
+    /// weak acyclicity lacks: a null minted at `R(x, f(x))` cannot flow into a diagonal
+    /// body atom `R(x, x)` (the occurs-check `f(x) = x` fails), so a position-graph cycle
+    /// that weak acyclicity reports is broken here.  SWA holds iff no existential head
+    /// place lies on a cycle (a null never feeds back to re-mint itself).
+    fn certify_super_weak_acyclic(rules: &[ExistentialRule]) -> Option<Self> {
+        let (places, edges, existential_out) = build_swa_place_graph(rules);
+        if existential_out.is_empty() {
+            // No invented null — weak acyclicity already handled this shape.
+            return None;
+        }
+        let acyclic = existential_out
+            .iter()
+            .all(|&p| !node_reaches_self(&edges, p));
+        let cross_edges: usize = edges.values().map(|s| s.len()).sum();
+        acyclic.then(|| Self::SuperWeaklyAcyclic {
+            evidence: format!(
+                "super-weakly acyclic: {} place(s), {} existential output place(s), {} flow edge(s), no null re-mints itself",
+                places,
+                existential_out.len(),
+                cross_edges
+            ),
+        })
     }
 
     /// **Model-summarizing acyclicity** (Cuenca Grau et al., JAIR 47, 2013): strictly
@@ -1512,6 +1542,265 @@ fn node_reaches_self(
         }
     }
     false
+}
+
+// ── Super-weak-acyclicity support: the Skolemized place graph with unification ──────
+
+/// A term in the super-weak-acyclicity analysis: a rule variable, a constant surface, or
+/// a Skolem functional term `f_{rule,∃}(frontier…)` standing for an invented null.  The
+/// functional structure is what lets the occurs-check refuse `f(x) = x`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum SwaTerm {
+    Var(String),
+    Const(String),
+    Skolem(String, Vec<SwaTerm>),
+}
+
+impl SwaTerm {
+    /// Prefix every variable name (recursing through Skolem arguments) so a producer
+    /// rule's variables and a consumer rule's variables live in disjoint scopes for one
+    /// atom-pair unification.  Skolem function names already carry their rule IRI, so two
+    /// distinct rules' nulls never share a function symbol.
+    fn scoped(&self, tag: &str) -> SwaTerm {
+        match self {
+            SwaTerm::Var(v) => SwaTerm::Var(format!("{tag}{v}")),
+            SwaTerm::Const(c) => SwaTerm::Const(c.clone()),
+            SwaTerm::Skolem(f, args) => {
+                SwaTerm::Skolem(f.clone(), args.iter().map(|a| a.scoped(tag)).collect())
+            }
+        }
+    }
+}
+
+/// The Skolem-analysis view of an [`EvalTerm`]: existential head vars become Skolem
+/// terms over the rule frontier; frontier vars stay variables; constants stay constants.
+fn swa_term(
+    t: &EvalTerm,
+    rule_iri: &str,
+    existentials: &BTreeSet<String>,
+    frontier: &[SwaTerm],
+) -> SwaTerm {
+    match t {
+        EvalTerm::Var(v) if existentials.contains(v) => {
+            SwaTerm::Skolem(format!("{rule_iri}#{v}"), frontier.to_vec())
+        }
+        EvalTerm::Var(v) => SwaTerm::Var(v.clone()),
+        EvalTerm::ConstNamed(iri) => SwaTerm::Const(format!("<{iri}>")),
+        EvalTerm::ConstLit(t) => SwaTerm::Const(term_display(t)),
+    }
+}
+
+/// Resolve `t` through the substitution to its current representative (walking variable
+/// bindings).
+fn swa_resolve(t: &SwaTerm, subst: &std::collections::BTreeMap<String, SwaTerm>) -> SwaTerm {
+    let mut cur = t.clone();
+    while let SwaTerm::Var(v) = &cur {
+        match subst.get(v) {
+            Some(next) => cur = next.clone(),
+            None => break,
+        }
+    }
+    cur
+}
+
+/// Occurs-check: does variable `v` occur inside `t` (after resolution)?  This is what
+/// refuses `f(x) = x` — the heart of the unification precision.
+fn swa_occurs(v: &str, t: &SwaTerm, subst: &std::collections::BTreeMap<String, SwaTerm>) -> bool {
+    match swa_resolve(t, subst) {
+        SwaTerm::Var(w) => w == v,
+        SwaTerm::Const(_) => false,
+        SwaTerm::Skolem(_, args) => args.iter().any(|a| swa_occurs(v, a, subst)),
+    }
+}
+
+/// Most-general-unifier step for two terms under `subst`; returns `false` on clash.
+fn swa_unify_term(
+    a: &SwaTerm,
+    b: &SwaTerm,
+    subst: &mut std::collections::BTreeMap<String, SwaTerm>,
+) -> bool {
+    let a = swa_resolve(a, subst);
+    let b = swa_resolve(b, subst);
+    match (&a, &b) {
+        (SwaTerm::Var(x), SwaTerm::Var(y)) if x == y => true,
+        (SwaTerm::Var(x), other) | (other, SwaTerm::Var(x)) => {
+            if swa_occurs(x, other, subst) {
+                return false;
+            }
+            subst.insert(x.clone(), other.clone());
+            true
+        }
+        (SwaTerm::Const(c1), SwaTerm::Const(c2)) => c1 == c2,
+        (SwaTerm::Skolem(f1, a1), SwaTerm::Skolem(f2, a2)) => {
+            f1 == f2
+                && a1.len() == a2.len()
+                && a1.iter().zip(a2).all(|(x, y)| swa_unify_term(x, y, subst))
+        }
+        _ => false,
+    }
+}
+
+/// Whether the producer head atom (Skolemized, scoped `P!`) unifies with the consumer
+/// body atom (scoped `C!`) — same predicate and a most-general unifier with occurs-check.
+fn swa_atoms_unify(
+    pred_p: &str,
+    subj_p: &SwaTerm,
+    obj_p: &SwaTerm,
+    pred_c: &str,
+    subj_c: &SwaTerm,
+    obj_c: &SwaTerm,
+) -> bool {
+    if pred_p != pred_c {
+        return false;
+    }
+    let mut subst = std::collections::BTreeMap::new();
+    swa_unify_term(&subj_p.scoped("P!"), &subj_c.scoped("C!"), &mut subst)
+        && swa_unify_term(&obj_p.scoped("P!"), &obj_c.scoped("C!"), &mut subst)
+}
+
+/// One (predicate, subject, object) atom in the Skolem-analysis view, tagged with the
+/// place ids of its two slots for wiring the flow graph.
+struct SwaAtom {
+    predicate: String,
+    subject: SwaTerm,
+    object: SwaTerm,
+    subject_place: usize,
+    object_place: usize,
+}
+
+/// Build the Skolemized place graph.  Returns `(place_count, flow_edges, existential_out)`
+/// where an edge `p → q` means a value at place `p` can flow to place `q`, and
+/// `existential_out` are the head places holding an invented null.  SWA holds iff no
+/// existential output place lies on a cycle.
+fn build_swa_place_graph(
+    rules: &[ExistentialRule],
+) -> (
+    usize,
+    std::collections::BTreeMap<usize, BTreeSet<usize>>,
+    Vec<usize>,
+) {
+    let mut next_place = 0usize;
+    let mut edges: std::collections::BTreeMap<usize, BTreeSet<usize>> =
+        std::collections::BTreeMap::new();
+    let mut existential_out: Vec<usize> = Vec::new();
+    // Per-rule Skolem-view atoms, split into body and head, for the cross-rule pass.
+    let mut body_atoms: Vec<Vec<SwaAtom>> = Vec::with_capacity(rules.len());
+    let mut head_atoms: Vec<Vec<SwaAtom>> = Vec::with_capacity(rules.len());
+
+    for rule in rules {
+        let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
+        let frontier: Vec<SwaTerm> = rule.frontier_vars().into_iter().map(SwaTerm::Var).collect();
+        let frontier_set: BTreeSet<String> = rule.frontier_vars().into_iter().collect();
+        // Variable → (body places, head places) for within-rule frontier flow.
+        let mut var_body: std::collections::BTreeMap<String, Vec<usize>> =
+            std::collections::BTreeMap::new();
+        let mut var_head: std::collections::BTreeMap<String, Vec<usize>> =
+            std::collections::BTreeMap::new();
+        let mut frontier_body_places: Vec<usize> = Vec::new();
+
+        let mut mk_atoms = |atoms: &[EvalAtom], is_head: bool| -> Vec<SwaAtom> {
+            let mut out = Vec::with_capacity(atoms.len());
+            for atom in atoms {
+                let subj = swa_term(&atom.subject, &rule.rule_iri, &existentials, &frontier);
+                let obj = swa_term(&atom.object, &rule.rule_iri, &existentials, &frontier);
+                let sp = next_place;
+                let op = next_place + 1;
+                next_place += 2;
+                for (term, place) in [(&subj, sp), (&obj, op)] {
+                    match term {
+                        SwaTerm::Var(v) => {
+                            if is_head {
+                                var_head.entry(v.clone()).or_default().push(place);
+                            } else {
+                                var_body.entry(v.clone()).or_default().push(place);
+                                if frontier_set.contains(v) {
+                                    frontier_body_places.push(place);
+                                }
+                            }
+                        }
+                        SwaTerm::Skolem(..) if is_head => existential_out.push(place),
+                        _ => {}
+                    }
+                }
+                out.push(SwaAtom {
+                    predicate: atom.predicate.clone(),
+                    subject: subj,
+                    object: obj,
+                    subject_place: sp,
+                    object_place: op,
+                });
+            }
+            out
+        };
+
+        let b = mk_atoms(&rule.body, false);
+        let h = mk_atoms(&rule.head, true);
+
+        // Within-rule frontier flow: a frontier variable carries its body value to its
+        // head occurrences.
+        for (v, body_places) in &var_body {
+            if let Some(head_places) = var_head.get(v) {
+                for &bp in body_places {
+                    for &hp in head_places {
+                        edges.entry(bp).or_default().insert(hp);
+                    }
+                }
+            }
+        }
+        // Special flow: every frontier body place feeds every existential head place this
+        // rule introduces (the fresh null depends on the frontier binding).
+        let rule_existential_head_places: Vec<usize> = h
+            .iter()
+            .flat_map(|a| {
+                let mut v = Vec::new();
+                if matches!(a.subject, SwaTerm::Skolem(..)) {
+                    v.push(a.subject_place);
+                }
+                if matches!(a.object, SwaTerm::Skolem(..)) {
+                    v.push(a.object_place);
+                }
+                v
+            })
+            .collect();
+        for &bp in &frontier_body_places {
+            for &ep in &rule_existential_head_places {
+                edges.entry(bp).or_default().insert(ep);
+            }
+        }
+
+        body_atoms.push(b);
+        head_atoms.push(h);
+    }
+
+    // Cross-rule flow: a producer head atom feeds a consumer body atom only when the
+    // Skolemized atoms unify (MGU with occurs-check).
+    for producer in &head_atoms {
+        for a in producer {
+            for consumer in &body_atoms {
+                for b in consumer {
+                    if swa_atoms_unify(
+                        &a.predicate,
+                        &a.subject,
+                        &a.object,
+                        &b.predicate,
+                        &b.subject,
+                        &b.object,
+                    ) {
+                        edges
+                            .entry(a.subject_place)
+                            .or_default()
+                            .insert(b.subject_place);
+                        edges
+                            .entry(a.object_place)
+                            .or_default()
+                            .insert(b.object_place);
+                    }
+                }
+            }
+        }
+    }
+
+    (next_place, edges, existential_out)
 }
 
 #[cfg(test)]
@@ -1993,6 +2282,110 @@ mod tests {
             "joint acyclicity must refuse a genuine invention cycle"
         );
         assert!(!ChaseAdmission::certify(&cyclic).admits_native());
+    }
+
+    // ── Super-weak acyclicity (Skolem place graph, incomparable sibling of JA) ────
+
+    /// `type(x,C) → ∃y. p(x,y)` and `p(x,x) → type(x,C)`.
+    ///
+    /// **Super-weakly acyclic but NOT weakly acyclic.** Weak acyclicity sees the position
+    /// cycle `(type,S,C) → (p,O,*) → (type,S,C)` (the p-object null flows to `type(·,C)`,
+    /// a body position of the invention rule) and refuses.  Super-weak acyclicity refuses
+    /// that flow: the null minted at `p(x, f(x))` cannot unify into the **diagonal** body
+    /// atom `p(x, x)` because the occurs-check `f(x) = x` fails, so no fact ever satisfies
+    /// the diagonal rule on the null.  The chase terminates: `p(a, f)` is never a diagonal,
+    /// so the second rule never re-types a witness.
+    fn super_weakly_acyclic_diagonal() -> Vec<ExistentialRule> {
+        let invent = ExistentialRule {
+            rule_iri: "http://ex/rule/swa-invent".to_owned(),
+            body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            head: vec![atom(var("?x"), P, var("?y"))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        let diagonal = ExistentialRule {
+            rule_iri: "http://ex/rule/swa-diagonal".to_owned(),
+            body: vec![atom(var("?x"), P, var("?x"))],
+            head: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+            distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
+        };
+        vec![invent, diagonal]
+    }
+
+    #[test]
+    fn certify_super_weakly_acyclic_non_vacuous_beyond_weak() {
+        // Real increment over weak acyclicity (the issue's non-vacuity bar): WA refuses
+        // the diagonal program, SWA certifies it via the occurs-check on `f(x) = x`.
+        let prog = super_weakly_acyclic_diagonal();
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "weak acyclicity must REFUSE the diagonal program (position-cycle)"
+        );
+        match ChaseAdmission::certify_super_weak_acyclic(&prog) {
+            Some(ChaseAdmission::SuperWeaklyAcyclic { .. }) => {}
+            other => {
+                panic!("super-weak acyclicity must certify the diagonal program, got {other:?}")
+            }
+        }
+    }
+
+    #[test]
+    fn certify_super_weak_evidence_is_non_vacuous() {
+        // The certifier actually saw ≥1 invented null (existential output place).
+        match ChaseAdmission::certify_super_weak_acyclic(&super_weakly_acyclic_diagonal()) {
+            Some(ChaseAdmission::SuperWeaklyAcyclic { evidence }) => assert!(
+                !evidence.contains("0 existential output place"),
+                "super-weak-acyclicity certificate must be non-vacuous: {evidence}"
+            ),
+            other => panic!("expected SuperWeaklyAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn super_weakly_acyclic_program_runs_natively_unbudgeted_on_route_chase() {
+        // Production-surface proof: a program weak acyclicity refuses runs to a natural
+        // fixpoint UNBUDGETED on the real router.  (The ladder reports this particular
+        // program as JointlyAcyclic — JA also accepts it and runs first — so we assert
+        // `admits_native`, and separately pin the SWA certifier's beyond-WA property.)
+        let prog = super_weakly_acyclic_diagonal();
+        let edb = vec![fact("http://ex/a", TYPE, C)];
+        let (admission, outcome) = route_chase(W, &edb, &prog, None).unwrap();
+        assert!(
+            admission.admits_native(),
+            "route_chase must admit the SWA-certified program natively, got {admission:?}"
+        );
+        let _ = decided(outcome);
+        assert!(
+            ChaseAdmission::certify_super_weak_acyclic(&prog).is_some(),
+            "the super-weak certifier certifies the program directly"
+        );
+        assert!(
+            ChaseAdmission::certify_weakly_acyclic(&prog).is_err(),
+            "the same program is refused by weak acyclicity alone (previously refused)"
+        );
+    }
+
+    #[test]
+    fn certify_cyclic_defeats_super_weak_acyclicity() {
+        // Genuine invention cycles: the null unifies back into its own rule's body (no
+        // occurs-check block), so super-weak acyclicity refuses both.
+        let self_cycle = vec![restriction_rule("http://ex/rule/cyclic", D, P, D)];
+        assert!(
+            ChaseAdmission::certify_super_weak_acyclic(&self_cycle).is_none(),
+            "super-weak acyclicity must refuse the self-cycle D ⊑ ∃p.D"
+        );
+        let two_rule = vec![
+            restriction_rule("http://ex/rule/c", C, P, D),
+            restriction_rule("http://ex/rule/d", D, Q, C),
+        ];
+        assert!(
+            ChaseAdmission::certify_super_weak_acyclic(&two_rule).is_none(),
+            "super-weak acyclicity must refuse the two-rule invention cycle"
+        );
+        assert!(!ChaseAdmission::certify(&two_rule).admits_native());
     }
 
     #[test]
