@@ -6185,7 +6185,121 @@ logic:GroundingCorrespondence
     gmeow:useWhen "Use for a reviewed cross-vocabulary bridge whose source is owned by lang:, math:, or logic:."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use for an ordinary domain projection or for a row whose external term is presented as the canonical source."@x-gmeow-english ;
     gmeow:howToUse "Name one grounding source and one external target, then declare the morphism class, morphism kind, and preservation kind explicitly."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:subClassOf [
+        a owl:Restriction ; owl:onProperty gmeow:justification ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:sourceEndpoint ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:targetEndpoint ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:morphismClass ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:morphismClass ;
+        owl:allValuesFrom [ owl:oneOf ( logic:Isomorphism logic:SectionRetraction logic:WellBehavedLens
+            logic:LossyLens logic:Prism logic:AffineCorrespondence logic:BridgeView ) ] ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:morphismKind ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:morphismKind ;
+        owl:allValuesFrom [ owl:oneOf ( logic:InstitutionMorphism logic:CommitmentShiftingBridge ) ] ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:preservationKind ;
+        owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+    ] ,
+    [
+        a owl:Restriction ; owl:onProperty logic:preservationKind ;
+        owl:allValuesFrom [ owl:oneOf ( logic:ExactPreservation logic:SoundUnderApproximation
+            logic:CompleteOverApproximation logic:InconsistencyPreserving
+            logic:InconsistencyReflecting logic:ValidationOnly logic:Unsupported ) ] ;
+    ] .
+
+# Migrated declarative requiredness (shapes/mapping-dsl-shapes.ttl
+# logic:GroundingCorrespondenceShape, Principle 17): the six per-property
+# ∃-requirements. The shape's compound sh:xone frontend-selection, the
+# BridgeView/CommitmentShiftingBridge pairing sh:or, and the two sh:sparql
+# endpoint-agreement / anti-equivalence checks are NOT re-authored here — they
+# are a genuine multi-level disjunctive class-membership + cross-property
+# equality expressiveness gap over an already-large, widely-shared module, left
+# as an honest boundary for a follow-up pass rather than a fragile
+# under-tested reproduction.
+gmeow:GroundingCorrespondenceJustificationRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence justification requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf gmeow:justification ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceSourceEndpointRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence source-endpoint requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:sourceEndpoint ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceTargetEndpointRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence target-endpoint requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:targetEndpoint ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceMorphismClassRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence morphismClass requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismClass."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:morphismClass ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismClass"@x-gmeow-english .
+
+gmeow:GroundingCorrespondenceMorphismKindRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence morphismKind requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismKind."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:morphismKind ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:morphismKind"@x-gmeow-english .
+
+gmeow:GroundingCorrespondencePreservationKindRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GroundingCorrespondence preservationKind requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:preservationKind."@x-gmeow-english ;
+    logic:onClass logic:GroundingCorrespondence ;
+    logic:anyOf logic:preservationKind ;
+    logic:formalizes logic:GroundingCorrespondence ;
+    logic:message "GroundingCorrespondence must explicitly declare one logic:preservationKind"@x-gmeow-english .
 
 logic:CorrespondenceRelation
     a owl:Class ;
@@ -8255,6 +8369,18 @@ logic:ValueRangeConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Name the target class, the value path, and at least one inclusive literal bound; the compiled condition flags any value outside the closed interval."@x-gmeow-english ;
     gmeow:useWhen "Use when every numeric value of one direct predicate on a class must lie in a closed interval under closed-world validation."@x-gmeow-english .
+
+logic:StringPatternConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "String Pattern Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a per-value string-pattern constraint: a logic:onClass target (optional — omitted, the guard is the value path's own presence), a logic:valuePath predicate, a logic:stringOp mode (regexRequired / regexForbidden / prefixRequired / prefixForbidden), and a literal logic:stringPattern every (or no) value on that path must satisfy. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity using logic:termRegex / logic:termStrStarts, lowered to a sh:SPARQLConstraint — regex is out of the EL/OWL restriction fragment, so this stays procedural rather than a native declarative sh:pattern facet. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a numeric bound (use logic:ValueRangeConstraint) or a fixed forbidden value (use logic:ForbiddenPatternConstraint); this is a regex/prefix test over every present value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class (or omit it for a domain-scoped guard), the value path, the string-op mode, and the literal pattern; the compiled condition flags any value failing the regex or prefix test."@x-gmeow-english ;
+    gmeow:useWhen "Use when every (or no) value of one direct predicate must match a regex or share a required/forbidden prefix under closed-world validation — the canonical-identifier and codepoint-pattern idiom."@x-gmeow-english .
 
 logic:UniqueLangConstraint
     a owl:Class ;

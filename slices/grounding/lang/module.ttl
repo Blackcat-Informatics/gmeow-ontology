@@ -7008,14 +7008,18 @@ lang:SurfaceAnchor logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:offsetSpace ; logic:minQualifiedCardinality 1 ; logic:onClass lang:OffsetSpace ] .
 
 lang:Grapheme logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] .
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:allValuesFrom lang:Script ] ,
+    [ a logic:Restriction ; logic:onProperty lang:inScript ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 # NOTE: lang:inScript is shared with lang:SurfaceForm, which legitimately allows more than one
 # script (mixed-script surfaces) — so lang:inScript cannot be declared owl:FunctionalProperty
-# globally without wrongly tightening SurfaceForm. A class-scoped qualified max cardinality
-# (owl:maxQualifiedCardinality 1 ; owl:onClass lang:Script) does NOT project to a bare
-# sh:maxCount (derive_validation_shapes only degrades a qualified cardinality to a bare SHACL
-# bound when its onClass is owl:Thing), so Grapheme's "exactly one script" bound has no
-# EL-safe declarative projection today; it remains enforced only by the retained SHACL shape.
+# globally without wrongly tightening SurfaceForm. Scoping the max bound to lang:Grapheme's OWN
+# restriction avoids that: a qualified max cardinality with onClass lang:Script would project to
+# a QUALIFIED sh:qualifiedMaxCount (never matching the legacy BARE sh:maxCount 1), but onClass
+# owl:Thing degrades a qualified cardinality to a bare, class-scoped sh:maxCount (the same proven
+# recipe used for gmeow:citingEntity/gmeow:citedEntity in slices/core/citations/module.ttl), so it
+# combines with the allValuesFrom restriction above into bare min=1/max=1/class=Script — exactly
+# lang:GraphemeGroundedShape's covered fragment — without touching lang:SurfaceForm's own,
+# separate inScript restrictions at all.
 
 lang:Denotation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:denotedForm ; logic:allValuesFrom lang:Form ] ,

@@ -180,13 +180,19 @@ gmeow:ConceptCategorization rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:typicality ; owl:allValuesFrom xsd:decimal ] .
 
-# NOTE: gmeow:observationResult has NO class-scoped bare owl:FunctionalProperty here — the
-# property is genuinely non-functional at its canonical home (slices/core/observations/module.ttl:
-# "a single observation may yield several results"), so a global FunctionalProperty axiom would
-# wrongly cap every gmeow:Observation to one result. sh:maxCount 1 on ConceptCategorizationShape is
-# therefore a class-local closed-world rule with no EL-safe class-scoped equivalent (a qualified
-# max-cardinality restriction projects sh:qualifiedMaxCount, never the legacy bare sh:maxCount) —
-# a genuine straggler; only the min1+class half below is achievable.
+# gmeow:observationResult is genuinely non-functional at its canonical home
+# (slices/core/observations/module.ttl: "a single observation may yield several
+# results"), so a global owl:FunctionalProperty axiom would wrongly cap every
+# gmeow:Observation to one result. The class-local sh:maxCount 1 on
+# ConceptCategorizationShape is instead achieved with a CLASS-SCOPED qualified
+# max-cardinality restriction whose onClass is owl:Thing (never the specific
+# class) — onClass owl:Thing degrades a qualified count to the bare
+# sh:maxCount, unlike onClass <SpecificClass> which projects only
+# sh:qualifiedMaxCount (frontend.rs derive_validation_shapes). Proven pattern:
+# slices/core/citations/module.ttl (CitationAct, fully migrated).
+gmeow:ConceptCategorization rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
 gmeow:ConceptTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
 
@@ -201,18 +207,23 @@ gmeow:ConceptTenure rdfs:subClassOf
 # logic:Individual (it is reused across many classes) — so the Concept class
 # restriction is genuinely absent here and must be authored class-locally
 # (Pattern 2). allValuesFrom + a class-scoped ClosureEntry supplies the bare
-# min1+class half (Pattern 3, the proven graphrag Embedding idiom); the max1 half
-# is the straggler noted above.
+# min1+class half (Pattern 3, the proven graphrag Embedding idiom); the max1
+# half is the class-scoped owl:Thing-qualified restriction above.
 gmeow:ConceptCategorization rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:allValuesFrom gmeow:Concept ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptCategorization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:ConceptTenureShape: gmeow:conceptHoldsFor is already owl:FunctionalProperty
-# with rdfs:range gmeow:Concept (sh:maxCount 1 + sh:class Concept already covered
-# via range); allValuesFrom + a class-scoped ClosureEntry below supplies the missing
-# min1 half (Pattern 3 — the proven graphrag Embedding idiom).
+# with rdfs:range gmeow:Concept, but the global FunctionalProperty fact rides its
+# own SubjectsOf(conceptHoldsFor) shape target and never merges into the
+# Class(ConceptTenure) property shape the bare min1 below lands in — so the
+# class-scoped max1 is authored explicitly (owl:Thing-qualified, same idiom as
+# ConceptCategorization above) to land in the SAME per-class shape as the min1.
+# allValuesFrom + a class-scoped ClosureEntry below supplies the min1 half
+# (Pattern 3 — the proven graphrag Embedding idiom).
 gmeow:ConceptTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:allValuesFrom gmeow:Concept ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:allValuesFrom gmeow:Concept ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConceptTenure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/conceptHoldsFor" ; logic:closureValue logic:ClosedWorldClosure ] .

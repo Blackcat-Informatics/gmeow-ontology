@@ -7,6 +7,7 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 
 # =============================================================================
 # GMEOW slice manifest vocabulary — the authoring source for slice metadata.
@@ -41,7 +42,17 @@
 gmeow:Slice a owl:Class ;
     rdfs:label "slice"@x-gmeow-english ;
     skos:definition "A self-contained unit of the GMEOW ontology: canonical terms, shapes, alignments, queries, tests, and documentation composed by the build into the fused package. Core and extension slices are structurally identical; tier is a manifest field (gmeow:sliceTier), never a directory property."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty gmeow:sliceTier ;
+        owl:allValuesFrom [ owl:oneOf ( gmeow:tierCore gmeow:tierExtension gmeow:tierProfile ) ] ;
+    ] ,
+    [
+        a owl:Restriction ;
+        owl:onProperty dcterms:creator ;
+        owl:allValuesFrom xsd:string ;
+    ] .
 
 # --------------------------------------------------------------------------- #
 # Tier — an open value vocabulary of individuals (house style; no enum strings)
@@ -52,7 +63,8 @@ gmeow:SliceTier a owl:Class ;
     skos:definition "The loading/composition tier of a slice. Core slices reason as one union and may interlink; extension slices depend only on core (the dependency DAG gate) and load opt-in."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
-gmeow:sliceTier a owl:ObjectProperty ;
+gmeow:sliceTier a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "slice tier"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range gmeow:SliceTier ;
@@ -118,12 +130,133 @@ gmeow:providesSubcommand a owl:DatatypeProperty ;
     skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (CLI roll-up design); this field is the declaration the loader will read."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
-gmeow:builtAgainstCore a owl:DatatypeProperty ;
+gmeow:builtAgainstCore a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:label "built against core version"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range xsd:string ;
     skos:definition "The GMEOW core version (owl:versionInfo) this slice was authored and tested against. Required for third-party slices; in-repo slices inherit the repository version and omit it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Migrated procedural + declarative constraints: the closed-world
+# gmeow:SliceManifestShape well-formedness shape from
+# shapes/slice-manifest-shapes.ttl, re-expressed as canonical logic: records
+# (Principle 17). The authored shape stays (additive); the sweep verifies.
+# --------------------------------------------------------------------------- #
+
+gmeow:SliceTierRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice tier requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must declare exactly one gmeow:sliceTier."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf gmeow:sliceTier ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice declares exactly one tier: gmeow:tierCore, gmeow:tierExtension, or gmeow:tierProfile (a pure-selection profile that mints nothing — Principle 16)."@x-gmeow-english .
+
+gmeow:SliceConsumerRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice consumer requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must name at least one gmeow:sliceConsumer (Principle 15)."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf gmeow:sliceConsumer ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)."@x-gmeow-english .
+
+gmeow:SliceDependsOnCreatorRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Slice creator requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Slice must name at least one dcterms:creator (projected to its CITATION.cff)."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:anyOf dcterms:creator ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english .
+
+gmeow:SliceProvidesSubcommandPatternConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice provided-subcommand pattern constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:providesSubcommand value is a lowercase token the gmeow roll-up can dispatch on."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A provided subcommand is a lowercase token the gmeow roll-up can dispatch on (docs/cli-extensions.md)."@x-gmeow-english ;
+    logic:integrity logic:spscForall .
+logic:spscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cmd" ] ;
+    logic:forall logic:spscImpl .
+logic:spscImpl a logic:Formula ; logic:antecedent logic:spscGuard ; logic:consequent logic:spscMatch .
+logic:spscGuard a logic:Formula ; logic:and logic:spscType , logic:spscHas .
+logic:spscType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:spscHas a logic:Formula ; logic:relation gmeow:providesSubcommand ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cmd" ] .
+logic:spscMatch a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cmd" ] , [ logic:termIndex 1 ; logic:termLiteral "^[a-z][a-z0-9-]*$" ] .
+
+gmeow:SliceConsumerLangMinLengthConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice consumer language/length constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:sliceConsumer literal carries the @x-gmeow-english language tag and is at least 8 characters long (lang-tag discipline, the manifest datatype contract)."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15); the literal carries @x-gmeow-english (lang-tag discipline)."@x-gmeow-english ;
+    logic:integrity logic:sclForall .
+logic:sclForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:sclImpl .
+logic:sclImpl a logic:Formula ; logic:antecedent logic:sclGuard ; logic:consequent logic:sclReq .
+logic:sclGuard a logic:Formula ; logic:and logic:sclType , logic:sclHas .
+logic:sclType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:sclHas a logic:Formula ; logic:relation gmeow:sliceConsumer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:sclReq a logic:Formula ; logic:and logic:sclLang , logic:sclLen .
+logic:sclLang a logic:Formula ; logic:relation logic:termLangMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-english$" ] .
+logic:sclLen a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^.{8,}" ] .
+
+gmeow:SliceTitleUniqueLangConstraint
+    a logic:UniqueLangConstraint ;
+    rdfs:label "Slice title unique-language constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Slice's dcterms:title literals carry distinct language tags — at most one translation per language."@x-gmeow-english ;
+    logic:onClass gmeow:Slice ;
+    logic:valuePath dcterms:title ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice carries at most one dcterms:title literal per language tag."@x-gmeow-english .
+
+gmeow:SliceTitleCanonicalConstraint
+    a logic:Constraint ;
+    rdfs:label "Slice canonical title constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Slice carries at least one dcterms:title literal tagged @x-gmeow-english — the canonical carrier the CITATION.cff projection requires; additional translations are freely permitted."@x-gmeow-english ;
+    logic:formalizes gmeow:Slice ;
+    logic:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag."@x-gmeow-english ;
+    logic:integrity logic:stcForall .
+logic:stcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:stcImpl .
+logic:stcImpl a logic:Formula ; logic:antecedent logic:stcGuard ; logic:consequent logic:stcExists .
+logic:stcGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Slice ] .
+logic:stcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:stcBody .
+logic:stcBody a logic:Formula ; logic:and logic:stcHas , logic:stcLang .
+logic:stcHas a logic:Formula ; logic:relation dcterms:title ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:stcLang a logic:Formula ; logic:relation logic:termLangMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-english$" ] .
 
 # --------------------------------------------------------------------------- #
 # Citation — projected to the slice's CITATION.cff by the registry (so

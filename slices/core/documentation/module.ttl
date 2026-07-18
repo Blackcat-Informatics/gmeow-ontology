@@ -1204,12 +1204,38 @@ gmeow:DocumentedTerm rdfs:subClassOf
 # gmeow:DocEvidenceGroundingShape — every gmeow:DocEvidence node carries at least
 # one gmeow:docGroundedBy truthmaker (the fail-fast grounding invariant; an
 # ungrounded evidence node is the doc-layer analogue of a DARK finding).
-gmeow:DocEvidence logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:docGroundedBy ; logic:someValuesFrom owl:Thing ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:DocEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docGroundedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+# gmeow:docGroundedBy is NOT restricted with someValuesFrom/allValuesFrom
+# owl:Thing here: its value is EITHER an IRI (competency/fixture/provenance
+# truthmaker) OR a literal (a finding code / loss-target id) by design (see its
+# skos:definition), but someValuesFrom/allValuesFrom owl:Thing classifies to
+# sh:nodeKind sh:BlankNodeOrIRI (frontend.rs classify()), which would wrongly
+# reject the literal-valued truthmakers the property legitimately carries. The
+# min-existence obligation is instead authored procedurally (P3 disjunctive-
+# requiredness sugar degenerated to a single predicate — a plain "at least one
+# value" check with no node-kind side effect), formalizing the exact shape IRI.
+gmeow:DocEvidenceGroundingConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Doc-evidence grounding requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy truthmaker (IRI or literal) — an ungrounded evidence node is the doc-layer analogue of a DARK finding."@x-gmeow-english ;
+    logic:onClass gmeow:DocEvidence ;
+    logic:anyOf gmeow:docGroundedBy ;
+    logic:formalizes gmeow:DocEvidenceGroundingShape ;
+    logic:message "A gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy truthmaker — an ungrounded evidence node is the doc-layer analogue of a DARK finding." .
 
 # gmeow:DocumentedTermShape — every gmeow:DocumentedTerm names exactly one
-# gmeow:docOwnerSlice (the slice whose module defines the term).
+# gmeow:docOwnerSlice (the slice whose module defines the term). The min1+max1
+# pair below is fully grounded (owl:Thing-qualified, the proven CitationAct
+# idiom); the legacy shape's sh:nodeKind sh:IRI facet is a GENUINE boundary for
+# an owl:AnnotationProperty — classify() can only ever emit NodeKindShacl
+# BlankNodeOrIri for an owl:Thing filler (never bare Iri), and the oracle's
+# automatic "object property ⇒ IRI" credit does not extend to annotation
+# properties (docOwnerSlice must stay an AnnotationProperty: its object is
+# simultaneously an owl:Ontology, so an owl:ObjectProperty would pun). No
+# declarative or procedural GMEOW builtin currently tests "is this term an
+# IRI", so the nodeKind:IRI sub-facet is retained as an honest, undischarged
+# residue rather than faked.
 gmeow:DocumentedTerm logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:someValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .

@@ -110,14 +110,18 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:ToolCall rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelInvocation ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/ToolCall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/usedTool> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
+# onClass owl:Thing (not the specific class) so the qualified count degrades to
+# the bare sh:minCount/maxCount gmeow:ToolCallShape wants, matching the class
+# component already supplied by the someValuesFrom/allValuesFrom restrictions
+# in this class's own definition above.
+<https://blackcatinformatics.ca/gmeow/ToolCall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/usedTool> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:ToolCallShape: gmeow:calledByInvocation is already owl:FunctionalProperty

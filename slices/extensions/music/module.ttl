@@ -7692,8 +7692,6 @@ gmeow:OrnamentProfileApplicationConstraint
 <https://blackcatinformatics.ca/gmeow/MetricGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupLengthDenominator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/MetricGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/groupLengthNumerator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/MetricGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/metricGroupOrder> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
-<https://blackcatinformatics.ca/gmeow/MetricModulation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/modulationFromFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/MetricModulation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/modulationToFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MetricModulation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/pivotSourceValue> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/MetricModulation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/pivotTargetValue> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/analysisFrame> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
@@ -7708,7 +7706,6 @@ gmeow:OrnamentProfileApplicationConstraint
 <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasAxis> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
-<https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/timeDurationDenominator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/timeDurationNumerator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/timeStartDenominator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
@@ -7717,48 +7714,29 @@ gmeow:OrnamentProfileApplicationConstraint
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/PerformanceParticipation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/participationEvent> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/PerformanceParticipation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/participationParticipant> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/PerformanceParticipation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/participationRole> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorDegree> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/anchorFrequency> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollection> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/collectionKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollection> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/collectionPartOrder> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/membershipCollection> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/membershipDegreeIndex> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/membershipPitch> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/membershipRole> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/PitchInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasTuningFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/ratioDenominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointOrder> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
-<https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointPitch> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointTimeFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointTimePositionDenominator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/controlPointTimePositionNumerator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/PitchValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasTuningFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/PitchValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/ratioDenominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/SegmentTransformation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/transformationSource> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/SegmentTransformation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/transformationTarget> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/SegmentTransformation> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/transformationType> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TempoMapSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentMapRatioDenominator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/TempoMapSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentMapRatioNumerator> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/TempoMapSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentSpan> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TempoMapSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/segmentTempoMapKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TempoMapSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tempoMapSegmentOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TimeMapping> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mapRatioDenominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/TimeMapping> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mapsFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TimeMapping> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/mapsToFrame> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TimeMapping> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/timeMappingKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/ToneEvent> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/toneEventIsUnpitched> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
 <https://blackcatinformatics.ca/gmeow/TraversalConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintAppliesTo> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/dividedIntervalDenominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:hasValue <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> ] .
-<https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
-<https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tuningKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
 # Shape-migration grounding, wave 2 — localizable-prose uniqueLang facets and
@@ -7818,8 +7796,32 @@ gmeow:TraversalConstraintTextUniqueLangConstraint
 # path is the exact semantic equivalent of sh:minInclusive 1 (no integer lies strictly between
 # 0 and 1), so the positive-integer denominator/count facets below use minInclusiveBound 1.
 # anchorFrequency (PitchAnchor) is xsd:decimal with sh:minExclusive 0 — decimals have no
-# "next value after 0", so no inclusive-bound sugar can state it faithfully; left as a
-# straggler (see report).
+# "next value after 0", so no inclusive-bound sugar can state it faithfully. Authored below
+# as a raw logic:Constraint doing the strict `>` comparison directly (logic:termGreater),
+# guarded by BOTH the PitchAnchor type atom and the anchorFrequency atom so the derived
+# target is the class-scoped gmeow:PitchAnchor shape (matching the legacy sh:targetClass),
+# not a subjectsOf-derived shape.
+
+gmeow:PitchAnchorFrequencyPositiveConstraint
+    a logic:Constraint ;
+    rdfs:label "PitchAnchor frequency positivity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a PitchAnchor's gmeow:anchorFrequency (xsd:decimal) is strictly greater than 0.0. Authored as a raw > comparison because xsd:decimal has no discrete successor of 0, so the minExclusive 0 legacy facet has no faithful logic:ValueRangeConstraint inclusive-bound rendering."@x-gmeow-english ;
+    logic:formalizes gmeow:PitchAnchorShape ;
+    logic:message "A PitchAnchor's anchorFrequency must be a positive (> 0) decimal frequency in Hz." ;
+    logic:integrity logic:pafForall .
+logic:pafForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:pafImpl .
+logic:pafImpl a logic:Formula ; logic:antecedent logic:pafGuard ; logic:consequent logic:pafGt .
+logic:pafGuard a logic:Formula ; logic:and logic:pafType , logic:pafFreq .
+logic:pafType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PitchAnchor ] .
+logic:pafFreq a logic:Formula ; logic:relation gmeow:anchorFrequency ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:pafGt a logic:Formula ; logic:relation logic:termGreater ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] .
 
 gmeow:MusicalTimeFrameDimensionCountRangeConstraint
     a logic:ValueRangeConstraint ;

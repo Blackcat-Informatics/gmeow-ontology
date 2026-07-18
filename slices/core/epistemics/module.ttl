@@ -1005,7 +1005,7 @@ gmeow:WithdrawnDoxasticTenureSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a withdrawn belief (a gmeow:DoxasticTenure whose gmeow:duringInterval carries a gmeow:endedAtTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:DoxasticTenure ;
+    logic:formalizes gmeow:WithdrawnDoxasticTenureSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A withdrawn belief (a DoxasticTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supDxForall .

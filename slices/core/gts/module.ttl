@@ -513,7 +513,7 @@ logic:SealedFrameRecipientConstraint
     logic:trigger gmeow:opacityReason ;
     logic:triggerValue gmeow:opacityMissingKey ;
     logic:requires gmeow:sealedRecipient ;
-    logic:formalizes gmeow:OpaqueFrame ;
+    logic:formalizes gmeow:SealedFrameRecipientShape ;
     logic:message "A missing-key opaque frame must name at least one gmeow:sealedRecipient — sealed content has a declared audience." .
 
 logic:EvidenceCompactionConstraint

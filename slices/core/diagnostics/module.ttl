@@ -1230,23 +1230,25 @@ gmeow:Finding rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
 
-# NOTE: gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf
-# links — neither an EL-safe allValuesFrom+ClosureEntry (min1 only) nor
-# owl:FunctionalProperty (max1 only) nor a qualified-cardinality-2-onClass
-# restriction (projects sh:qualifiedMinCount/MaxCount, never bare) can express a
-# bare exact-2. owl:cardinality 2 is out of EL and forbidden. The
-# gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint below is
-# the honest procedural backing (COUNT(glutWitnessOf) = 2); the equivalence
-# checker does not currently credit an AggregateConstraint against a plain
-# property NodeShape, so this is a genuine straggler, retained as-is.
+# gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf links.
+# A qualified-cardinality-2-onClass-<SpecificClass> restriction projects only
+# sh:qualifiedMinCount/MaxCount (never the legacy bare sh:minCount/maxCount) —
+# but onClass owl:Thing DEGRADES a qualified count of ANY N (not just 1) to the
+# bare sh:minCount/maxCount (frontend.rs derive_validation_shapes), exactly like
+# the CitationAct/Embedding min1/max1 idiom generalized to N=2. owl:cardinality 2
+# (unqualified) is out of EL and forbidden; this qualified-onClass-owl:Thing form
+# is EL-adjacent and already used throughout the corpus. The class component
+# (sh:class Finding) comes from the someValuesFrom restriction below. The
+# gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint further
+# down is additional procedural belt-and-suspenders backing for the same shape.
 gmeow:CrossNodeGlutWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass gmeow:Finding ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingCode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingMessage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Finding> ] .
+<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:Finding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/findingSeverity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -1332,10 +1334,11 @@ logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeo
 
 # =========================================================================== #
 # Cross-node glut witness EXACT-count constraint: a procedural COUNT-aggregate #
-# closing the gmeow:CrossNodeGlutWitnessShape residue the paired qualified-    #
-# cardinality-2 restriction above (owl:min/maxQualifiedCardinality 2) does not #
-# by itself resolve to a projected SHACL peer for. Additive: the OWL           #
-# restriction stays; this is a second, procedural avenue onto the same shape.  #
+# additional to the declarative owl:min/maxQualifiedCardinality 2 (onClass     #
+# owl:Thing) restrictions above, which already project the bare               #
+# sh:minCount 2 / sh:maxCount 2 pair onto gmeow:CrossNodeGlutWitnessShape.     #
+# Additive: the OWL restriction stays; this is a second, procedural avenue     #
+# onto the same shape.                                                        #
 # =========================================================================== #
 
 gmeow:CrossNodeGlutWitnessCountConstraint

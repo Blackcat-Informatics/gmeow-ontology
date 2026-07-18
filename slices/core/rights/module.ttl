@@ -23,8 +23,20 @@ gmeow:AtomicConstraint
         ] ,
         [
             a owl:Restriction ;
+            owl:onProperty gmeow:leftOperand ;
+            owl:maxQualifiedCardinality 1 ;
+            owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
             owl:onProperty gmeow:constraintOperator ;
             owl:allValuesFrom gmeow:ConstraintOperator ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:constraintOperator ;
+            owl:maxQualifiedCardinality 1 ;
+            owl:onClass owl:Thing ;
         ] ;
     skos:definition "A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). It is not a boolean group of comparisons; use gmeow:LogicalConstraint for that. E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'."@x-gmeow-english ;
     skos:example "ex:until2030 a gmeow:AtomicConstraint ; gmeow:leftOperand gmeow:leftOpDateTime ; gmeow:constraintOperator gmeow:operatorLteq ; gmeow:rightOperand \"2030-01-01\" ."@x-gmeow-english ;
@@ -2058,16 +2070,21 @@ gmeow:RightsStatement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:statementAbout ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Permission rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
 
 gmeow:Prohibition rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
 
 gmeow:Duty rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDuty ; owl:allValuesFrom gmeow:Duty ] .
 
 gmeow:License rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:licenseFamily ; owl:someValuesFrom gmeow:LicenseFamily ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:licenseFamily ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Trademark rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:trademarkMark ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,

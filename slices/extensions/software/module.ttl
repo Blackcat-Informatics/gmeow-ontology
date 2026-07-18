@@ -129,8 +129,18 @@ gmeow:Diff
         ] ,
         [
             a owl:Restriction ;
+            owl:onProperty gmeow:diffFrom ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
             owl:onProperty gmeow:diffTo ;
             owl:someValuesFrom gmeow:Commit ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:diffTo ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -200,6 +210,11 @@ gmeow:Merge
             a owl:Restriction ;
             owl:onProperty gmeow:mergeTarget ;
             owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:mergeTarget ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -273,6 +288,11 @@ gmeow:Release
             a owl:Restriction ;
             owl:onProperty gmeow:releaseOf ;
             owl:someValuesFrom gmeow:Project ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:releaseOf ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -398,13 +418,28 @@ gmeow:TreeEntry
         ] ,
         [
             a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryName ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
             owl:onProperty gmeow:treeEntryMode ;
             owl:someValuesFrom rdfs:Literal ;
         ] ,
         [
             a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryMode ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
             owl:onProperty gmeow:treeEntryObject ;
             owl:someValuesFrom gmeow:SourceNode ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryObject ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

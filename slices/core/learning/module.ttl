@@ -260,7 +260,7 @@ gmeow:TeachingSelfTeachConstraint
     logic:roleA gmeow:teacher ;
     logic:roleB gmeow:learner ;
     logic:crossMode "differ" ;
-    logic:formalizes gmeow:Teaching ;
+    logic:formalizes gmeow:TeachingShape ;
     logic:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." .
 
 # =========================================================================== #

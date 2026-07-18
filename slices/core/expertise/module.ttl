@@ -356,3 +356,42 @@ gmeow:SkillProficiencyLevelRequiredConstraint
     logic:anyOf gmeow:skillProficiencyLevel ;
     logic:formalizes gmeow:SkillProficiency ;
     logic:message "A SkillProficiency must carry a ProficiencyLevel (gmeow:skillProficiencyLevel)." .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# migrated from the hand-authored gmeow:SkillProficiencyScaleMismatchShape      #
+# projected to a sh:SPARQLConstraint keyed onto gmeow:SkillProficiency.          #
+# =========================================================================== #
+
+# A SkillProficiency's level should be read on the same scale the relator
+# itself names — a level from one scale bound alongside a different declared
+# scale is a mismatch. Warning.
+gmeow:SkillProficiencyScaleMismatchConstraint
+    a logic:Constraint ;
+    rdfs:label "SkillProficiency level/scale mismatch constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: a gmeow:SkillProficiency's gmeow:skillProficiencyLevel must be read on the gmeow:ProficiencyScale the relator itself names via gmeow:skillProficiencyScale — a level whose gmeow:levelScale differs from the relator's declared scale is a mismatch."@x-gmeow-english ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:severity "Warning" ;
+    logic:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
+    logic:integrity logic:spsmForall .
+logic:spsmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:spsmImpl .
+logic:spsmImpl a logic:Formula ; logic:antecedent logic:spsmGuard ; logic:consequent logic:spsmNot .
+logic:spsmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SkillProficiency ] .
+logic:spsmNot a logic:Formula ; logic:not logic:spsmExists .
+logic:spsmExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] , [ logic:termIndex 2 ; logic:termVariable "expected" ] ;
+    logic:exists logic:spsmBody .
+logic:spsmBody a logic:Formula ; logic:and logic:spsmLevel , logic:spsmScale , logic:spsmLevelScale , logic:spsmDistinct .
+logic:spsmLevel a logic:Formula ; logic:relation gmeow:skillProficiencyLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] .
+logic:spsmScale a logic:Formula ; logic:relation gmeow:skillProficiencyScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:spsmLevelScale a logic:Formula ; logic:relation gmeow:levelScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+logic:spsmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .

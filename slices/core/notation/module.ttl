@@ -593,6 +593,21 @@ logic:smufHas a logic:Formula ; logic:relation gmeow:smuflCodepoint ;
 logic:smufMatch a logic:Formula ; logic:relation logic:termRegex ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "cp" ] , [ logic:termIndex 1 ; logic:termLiteral "^U\\+[0-9A-F]{4,6}$" ] .
 
+# gmeow:NotationProjectionProfileShape — the sh:or residue (a profile must
+# declare at least one representableParameter OR one declaredLoss; the two are
+# not mutually exclusive, so this is disjunctive requiredness (P3), not a
+# choice-group cardinality).
+gmeow:NotationProjectionProfileLossOrParameterConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Notation projection profile loss-or-parameter constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:NotationProjectionProfile must declare at least one gmeow:representableParameter or one gmeow:declaredLoss."@x-gmeow-english ;
+    logic:onClass gmeow:NotationProjectionProfile ;
+    logic:anyOf gmeow:representableParameter , gmeow:declaredLoss ;
+    logic:formalizes gmeow:NotationProjectionProfileShape ;
+    logic:message "A NotationProjectionProfile must declare at least one representableParameter or one declaredLoss." .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/projectionFunction> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/NotationSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/smuflCodepoint> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .

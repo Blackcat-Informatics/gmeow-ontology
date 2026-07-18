@@ -696,6 +696,34 @@ logic:seaEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
 logic:seaGt a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
 
+# gmeow:SpanSanityShape is sh:targetSubjectsOf gmeow:spanStart (not sh:targetClass):
+# gmeow:SpanEndAfterStartConstraint above formalizes the shape's end>start
+# comparison but its guard is a conjunction (spanStart AND spanEnd), which never
+# resolves to a clean SubjectsOf(spanStart) shape target — leaving the legacy
+# shape with NO-PROJECTED-PEER. This sibling constraint's guard is the single
+# atom gmeow:spanStart(this,s) (matching the legacy shape's own target exactly)
+# and requires the paired gmeow:spanEnd to be present, closing the peer gap.
+gmeow:SpanRequiresEndConstraint
+    a logic:Constraint ;
+    rdfs:label "Span requires end constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every span carrying a gmeow:spanStart must also carry a gmeow:spanEnd — a span with only one boundary is not a well-formed span."@x-gmeow-english ;
+    logic:formalizes gmeow:SpanSanityShape ;
+    logic:message "A span with a gmeow:spanStart must also carry a gmeow:spanEnd." ;
+    logic:integrity logic:sreForall .
+logic:sreForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall logic:sreImpl .
+logic:sreImpl a logic:Formula ; logic:antecedent logic:sreStart ; logic:consequent logic:sreExists .
+logic:sreStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:sreExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:sreBody .
+logic:sreBody a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
 gmeow:StaleSourceConstraint
     a logic:Constraint ;
     rdfs:label "Stale-source claim constraint"@x-gmeow-english ;

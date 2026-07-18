@@ -1441,18 +1441,19 @@ gmeow:PipelineStage rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:dataflowConsumes ; owl:allValuesFrom gmeow:PipelineStage ] .
 
 gmeow:Pipeline rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:PipelineStage ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/PipelineStage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/stageImpl> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-# gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount) — the
-# known straggler class (no maxQualifiedCardinality sibling makes sense here, since
-# there is no max). rdfs:range gmeow:PipelineStage is already declared on
-# gmeow:hasStage; the someValuesFrom restriction below is the best-attempt
-# min1-without-max idiom (PATTERNS.md's straggler note).
+# gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount).
+# The min-qualified restriction above now uses onClass owl:Thing (not the
+# specific gmeow:PipelineStage), which degrades to the bare sh:minCount 1
+# (frontend.rs derive_validation_shapes) instead of a qualified sh:qualifiedMinCount
+# — the same fix as the CitationAct/Embedding min1/max1 idiom, here min-only.
+# The someValuesFrom restriction below supplies the sh:class PipelineStage half.
 gmeow:Pipeline rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:someValuesFrom gmeow:PipelineStage ] .
 
