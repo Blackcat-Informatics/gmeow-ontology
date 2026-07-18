@@ -154,7 +154,7 @@ pub mod session;
 pub use session::{
     Checkpoint, FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome, OutcomeTag,
     PagedCompositionMetrics, ReasoningSession, RebuildReason, SessionDelta, SessionIdentity,
-    Suppression, TransitionEntry, UnsupportedFragment,
+    Suppression, TransitionEntry, UnsupportedFragment, edb_data_generation,
 };
 
 // ── The curated stable surface ───────────────────────────────────────────────────
