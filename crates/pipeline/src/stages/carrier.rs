@@ -2188,6 +2188,13 @@ fn build_fanout_opaque_blob(
         &mut members,
         producer_artifacts("stage-export-matrix", upstream)?,
     );
+    // The human-readable per-slice terminology glossary table: projected once in
+    // stage-export-glossary from the reviewed `.po` fold (the SAME entry list the
+    // graph/lang-glossary-corpus graph carries); read off its product, never re-rendered.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-glossary", upstream)?,
+    );
     // The two slice-quality floor TSVs (P17 projection of the ontology-resident
     // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): projected once in
     // stage-export-governance-floors from the rubric slice; read off its product, never

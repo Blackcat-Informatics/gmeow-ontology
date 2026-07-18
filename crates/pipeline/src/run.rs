@@ -379,6 +379,11 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-projection-ceilings", "projection_ceilings"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-matrix", "matrix"),
+        // The human-readable per-slice terminology glossary table: a byte-decorated
+        // Markdown projection of the graph/lang-glossary-corpus fold, derived from the
+        // SAME reviewed `.po` entry list (crate::stages::lang_glossary::build_entries),
+        // never a second parse. Source-reading leaf like matrix (consumes nothing).
+        ("stage-export-glossary", "glossary"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
@@ -463,9 +468,13 @@ pub fn full_spec() -> PipelineSpec {
             // these edges a competency/frame-shape edit could never reach the bundle,
             // and the fanout would rewrite the stale committed bytes forever.
             "stage-export-frame-shapes",
+            // The human-readable terminology glossary table (byte-decorated Markdown)
+            // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
+            // product (sorted position: frame-shapes < glossary < governance-floors).
+            "stage-export-glossary",
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: frame-shapes < governance-floors < json-schema).
+            // leaf's product (sorted position: glossary < governance-floors < json-schema).
             "stage-export-governance-floors",
             "stage-export-json-schema",
             "stage-export-matrix",
