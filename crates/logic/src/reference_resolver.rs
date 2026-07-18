@@ -1014,6 +1014,52 @@ mod tests {
         );
     }
 
+    #[test]
+    fn dimension_composition_resolves_in_body_order() {
+        // A dimension-composition generator (`D is A * B` over two SI dimension
+        // vectors fed from EDB facts) evaluates in body order through the ONE shared
+        // evaluator: length (L) ⊗ time (T) = the L·T exponent vector, committed on the
+        // dimension transport surface.
+        let base = "https://example.org/";
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        // length = L¹ (index 0), time = T¹ (index 2), fixed SI order.
+        let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimTime")),
+                time,
+            )
+            .unwrap();
+        let world_nn = W.to_owned();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one composed dimension: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
+    }
+
     // ── G14: a Struct argument to the reference oracle hard-fails ────────────
 
     /// Build a `QTerm::Struct` wrapping some arbitrary node in a fresh, disposable

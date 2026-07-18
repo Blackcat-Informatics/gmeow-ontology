@@ -1568,6 +1568,50 @@ mod tests {
     }
 
     #[test]
+    fn dimension_composition_flows_through_dispatch() {
+        // The dimension algebra is demonstrable end-to-end on the PRODUCTION query
+        // surface: a rule composing two SI dimensions (`D is A * B`, length ⊗ time)
+        // fed from EDB dimension-transport facts resolves through `dispatch_query` and
+        // returns the composed dimension transport binding.
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        let length = purrdf::TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = purrdf::TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                purrdf::TermValue::iri(p("a")),
+                purrdf::TermValue::iri(p("dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                purrdf::TermValue::iri(p("a")),
+                purrdf::TermValue::iri(p("dimTime")),
+                time,
+            )
+            .unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            dispatch_query(&foreign, W, &prog, PROCEDURAL_PROFILE, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one composed dimension: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(
+            ans.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
+    }
+
+    #[test]
     fn nary_list_get_is_a_typed_arithmetic_refusal() {
         let (store, world) = list_world();
         let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();

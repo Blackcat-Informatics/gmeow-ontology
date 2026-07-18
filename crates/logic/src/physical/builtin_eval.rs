@@ -27,9 +27,18 @@
 //! to a [`Value::Rat`] route to the shared checked-ℚ kernel ([`q_add`], [`q_sub`],
 //! [`q_mul`], [`q_div`]) and commit a [`Value::Rat`]; two integers under `+ - * //`
 //! stay on the unchanged i64 fast path and commit a [`Value::Int`]. Dimensioned
-//! operands ([`Value::Dim`] / [`Value::Quantity`]) are a declared gap here (their
-//! arithmetic is a later rung). A value that cannot be computed is a first-class
-//! declared gap ([`BuiltinOutcome::Unbound`]) or domain/precision error
+//! operands ([`Value::Dim`] / [`Value::Quantity`]) evaluate the free-ℚ-module
+//! dimension algebra ([`compute_is_value`] / [`compute_compare`]): dimension
+//! composition (`Mul`) and quotient (`Div`/`ExactDiv`) add / subtract the ℚ⁷
+//! exponent vectors, dimensioned-quantity `Add`/`Sub` require an equal dimension
+//! (an unequal one is [`BuiltinError::DimensionMismatch`], the intrinsic-homogeneity
+//! gate), quantity `Mul`/`Div` compose the magnitudes and dimensions, and a
+//! dimensionless [`Value::Int`]/[`Value::Rat`] promotes to a `[0;7]`-dimensioned
+//! quantity when mixed with a [`Value::Quantity`]. Commensurability (`=:=` over two
+//! dimensions) is exact ℚ⁷ vector equality; ordering over bare dimensions, bare-
+//! dimension addition, and any cross-kind combination composition does not define
+//! are declared gaps. A value that cannot be computed is a first-class declared gap
+//! ([`BuiltinOutcome::Unbound`]) or domain/precision error
 //! ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
@@ -283,9 +292,8 @@ pub(crate) enum BuiltinError {
     /// A rational was constructed with a zero denominator. Anchors
     /// `math:ZeroDenominator`.
     ZeroDenominator,
-    /// Two quantities of incompatible SI dimension were combined additively.
-    /// Anchors `math:DimensionalInhomogeneity`.
-    #[allow(dead_code)] // producer: Task-2 dimensioned (quantity) arithmetic dispatch.
+    /// Two quantities of incompatible SI dimension were combined additively, or two
+    /// incommensurable quantities were compared. Anchors `math:DimensionalInhomogeneity`.
     DimensionMismatch,
     /// A dimension-vector transport was not well-formed (wrong arity or an
     /// unparsable exponent). Anchors `math:MalformedDimension`.
@@ -481,10 +489,12 @@ fn apply_arith_int(lhs: i64, op: ArithOp, rhs: i64) -> Option<Result<i64, Builti
 /// `n/1`.
 ///
 /// The outer `Option` distinguishes a *scalar* operand (`Some`) from a *dimensioned*
-/// one (`None` — [`Value::Dim`] / [`Value::Quantity`], a declared Task-3 gap the
-/// caller routes to [`BuiltinOutcome::Unbound`]). The inner `Result` carries the
-/// `i64::MIN`-magnitude overflow that an integer promotion can raise during rational
-/// normalization ([`BuiltinError::Overflow`]), never a panic.
+/// one (`None` — [`Value::Dim`] / [`Value::Quantity`]). A `None` on the scalar-ℚ
+/// path is a declared gap; on the dimension path it is the promotion boundary (a
+/// scalar mixed with a [`Value::Quantity`] promotes to a `[0;7]`-dimensioned
+/// quantity). The inner `Result` carries the `i64::MIN`-magnitude overflow that an
+/// integer promotion can raise during rational normalization
+/// ([`BuiltinError::Overflow`]), never a panic.
 fn scalar_rational(value: &Value) -> Option<Result<Rational, BuiltinError>> {
     match value {
         Value::Int(n) => Some(Rational::new(*n, 1)),
@@ -517,8 +527,9 @@ fn apply_arith_q(lhs: Rational, op: ArithOp, rhs: Rational) -> Result<Rational, 
 
 /// Compute `lhs op rhs` in exact ℚ, promoting integer operands.
 ///
-/// `None` means a dimensioned operand (a declared Task-3 gap → [`BuiltinOutcome::Unbound`]);
-/// `Some(Err)` is a domain / precision error; `Some(Ok)` is the exact result.
+/// `None` means a dimensioned operand (routed to the dimension algebra by the caller,
+/// never reached on the scalar path); `Some(Err)` is a domain / precision error;
+/// `Some(Ok)` is the exact result.
 fn compute_rational(
     lhs: &Value,
     rhs: &Value,
@@ -560,6 +571,345 @@ fn apply_compare(lhs: i64, op: CmpOp, rhs: i64) -> bool {
         CmpOp::Ge => lhs >= rhs,
         CmpOp::Le => lhs <= rhs,
         CmpOp::Eq => lhs == rhs,
+    }
+}
+
+// ── Dimension algebra (free ℚ-module ℚ⁷ over the seven SI base dimensions) ────────
+
+/// The dimensionless dimension: the zero exponent vector, identity of the ℚ-module
+/// under composition. A bare [`Value::Int`] / [`Value::Rat`] is a quantity of this
+/// dimension when it mixes with a [`Value::Quantity`].
+const ZERO_DIM: [Rational; 7] = [Rational::ZERO; 7];
+
+/// The classified outcome of computing an `is` target value in the tower.
+///
+/// Separated from [`BuiltinOutcome`] so the dispatch is over *values*, not roles: the
+/// caller maps [`Computed::Value`] into a generate/filter role, [`Computed::Error`]
+/// into [`BuiltinOutcome::Error`], and [`Computed::Gap`] (an operation the algebra does
+/// not define for the operand kinds) into [`BuiltinOutcome::Unbound`].
+enum Computed {
+    /// A computed tower value to bind or filter against.
+    Value(Value),
+    /// A domain / precision / dimensional error.
+    Error(BuiltinError),
+    /// The operation is undefined for these operand kinds — a declared gap.
+    Gap,
+}
+
+/// The classified outcome of a comparison over the tower.
+enum CompareResult {
+    /// A filter verdict.
+    Filter(bool),
+    /// A dimensional / precision error (incommensurable compare, overflow).
+    Error(BuiltinError),
+    /// The comparison is undefined for these operand kinds — a declared gap.
+    Gap,
+}
+
+/// Compose two SI exponent vectors componentwise: dimension *product* (`subtract ==
+/// false`, exponent addition) or *quotient* (`subtract == true`, exponent
+/// subtraction). Every componentwise `q_add`/`q_sub` is checked, so an exponent that
+/// overflows `i64` is [`BuiltinError::Overflow`], never a wraparound.
+fn dim_compose(
+    a: &[Rational; 7],
+    b: &[Rational; 7],
+    subtract: bool,
+) -> Result<[Rational; 7], BuiltinError> {
+    let mut out = ZERO_DIM;
+    for (slot, (l, r)) in out.iter_mut().zip(a.iter().zip(b.iter())) {
+        *slot = if subtract { q_sub(l, r) } else { q_add(l, r) }?;
+    }
+    Ok(out)
+}
+
+/// Dimension-on-dimension arithmetic: `Mul` composes (exponent addition, the
+/// `math:integralDimensionCompositionLaw` dimProduct), `Div`/`ExactDiv` quotients
+/// (exponent subtraction). `Add`/`Sub` are undefined on bare dimensions — dimensions
+/// form a module under composition, which is multiplicative; there is no additive
+/// operation on the exponent vectors themselves — so they are a declared gap.
+fn dim_dim(a: &[Rational; 7], b: &[Rational; 7], op: ArithOp) -> Computed {
+    match op {
+        ArithOp::Mul => dim_compose(a, b, false)
+            .map_or_else(Computed::Error, |d| Computed::Value(Value::Dim(d))),
+        ArithOp::ExactDiv | ArithOp::Div => {
+            dim_compose(a, b, true).map_or_else(Computed::Error, |d| Computed::Value(Value::Dim(d)))
+        }
+        ArithOp::Add | ArithOp::Sub => Computed::Gap,
+    }
+}
+
+/// Dimensioned-quantity arithmetic (quantity calculus).
+///
+/// `Add`/`Sub` are the homogeneity gate: they REQUIRE an equal dimension vector (an
+/// unequal one is [`BuiltinError::DimensionMismatch`], anchoring
+/// `math:DimensionalInhomogeneity`) and add / subtract the magnitudes over the shared
+/// dimension. `Mul` multiplies the magnitudes and composes the dimensions; `Div` /
+/// `ExactDiv` divide the magnitudes (exact ℚ — a dimensioned magnitude has no
+/// truncating meaning) and quotient the dimensions. Every magnitude step is the shared
+/// checked-ℚ kernel, so overflow / ÷0 is a declared error.
+fn quantity_arith(
+    m1: &Rational,
+    d1: &[Rational; 7],
+    m2: &Rational,
+    d2: &[Rational; 7],
+    op: ArithOp,
+) -> Computed {
+    match op {
+        ArithOp::Add | ArithOp::Sub => {
+            if d1 != d2 {
+                return Computed::Error(BuiltinError::DimensionMismatch);
+            }
+            let mag = if matches!(op, ArithOp::Add) {
+                q_add(m1, m2)
+            } else {
+                q_sub(m1, m2)
+            };
+            match mag {
+                Ok(m) => Computed::Value(Value::Quantity(m, *d1)),
+                Err(e) => Computed::Error(e),
+            }
+        }
+        ArithOp::Mul => {
+            let mag = match q_mul(m1, m2) {
+                Ok(m) => m,
+                Err(e) => return Computed::Error(e),
+            };
+            dim_compose(d1, d2, false).map_or_else(Computed::Error, |d| {
+                Computed::Value(Value::Quantity(mag, d))
+            })
+        }
+        ArithOp::ExactDiv | ArithOp::Div => {
+            let mag = match q_div(m1, m2) {
+                Ok(m) => m,
+                Err(e) => return Computed::Error(e),
+            };
+            dim_compose(d1, d2, true).map_or_else(Computed::Error, |d| {
+                Computed::Value(Value::Quantity(mag, d))
+            })
+        }
+    }
+}
+
+/// Compute the `is` target value for a fully-bound operand pair, type-directed over
+/// the whole tower. The `(Value, Value)` match is EXHAUSTIVE — every operand-kind
+/// combination is an explicit arm, so no `Value`/`ArithOp` pair is silently dropped;
+/// an operation the algebra does not define is an explicit [`Computed::Gap`].
+///
+/// Scalar pairs keep the unchanged fast/exact behaviour (two integers under `+ - * //`
+/// on the i64 fast path, exact `/` or any rational routing to the ℚ kernel). A scalar
+/// mixed with a [`Value::Quantity`] promotes to a dimensionless quantity. A
+/// [`Value::Dim`] combined with anything other than another [`Value::Dim`] is a gap
+/// (composition is between two dimensions or two quantities only).
+fn compute_is_value(lv: &Value, rv: &Value, op: ArithOp) -> Computed {
+    match (lv, rv) {
+        (Value::Int(l), Value::Int(r)) => match apply_arith_int(*l, op, *r) {
+            Some(Ok(v)) => Computed::Value(Value::Int(v)),
+            Some(Err(e)) => Computed::Error(e),
+            // `/` (exact) on two integers is ℚ-only: route to the exact kernel.
+            None => scalar_is(lv, rv, op),
+        },
+        (Value::Int(_) | Value::Rat(_), Value::Int(_) | Value::Rat(_)) => scalar_is(lv, rv, op),
+        (Value::Dim(a), Value::Dim(b)) => dim_dim(a, b, op),
+        (Value::Quantity(m1, d1), Value::Quantity(m2, d2)) => quantity_arith(m1, d1, m2, d2, op),
+        (Value::Quantity(m1, d1), Value::Int(_) | Value::Rat(_)) => match scalar_rational(rv) {
+            Some(Ok(m2)) => quantity_arith(m1, d1, &m2, &ZERO_DIM, op),
+            Some(Err(e)) => Computed::Error(e),
+            None => Computed::Gap,
+        },
+        (Value::Int(_) | Value::Rat(_), Value::Quantity(m2, d2)) => match scalar_rational(lv) {
+            Some(Ok(m1)) => quantity_arith(&m1, &ZERO_DIM, m2, d2, op),
+            Some(Err(e)) => Computed::Error(e),
+            None => Computed::Gap,
+        },
+        // A dimension combined with a scalar or a quantity is undefined.
+        (Value::Dim(_), Value::Int(_) | Value::Rat(_) | Value::Quantity(_, _)) => Computed::Gap,
+        (Value::Int(_) | Value::Rat(_) | Value::Quantity(_, _), Value::Dim(_)) => Computed::Gap,
+    }
+}
+
+/// The exact-ℚ scalar arm of [`compute_is_value`]: routes a scalar operand pair
+/// through [`compute_rational`] and commits a [`Value::Rat`].
+fn scalar_is(lv: &Value, rv: &Value, op: ArithOp) -> Computed {
+    match compute_rational(lv, rv, op) {
+        Some(Ok(r)) => Computed::Value(Value::Rat(r)),
+        Some(Err(e)) => Computed::Error(e),
+        // Unreachable for scalar operands (a dimensioned operand never routes here).
+        None => Computed::Gap,
+    }
+}
+
+/// Compare two dimensioned quantities: they must be commensurable (equal dimension
+/// vector) to compare magnitudes; an unequal dimension is
+/// [`BuiltinError::DimensionMismatch`] (incommensurable quantities are not ordered).
+fn quantity_compare(
+    m1: &Rational,
+    d1: &[Rational; 7],
+    m2: &Rational,
+    d2: &[Rational; 7],
+    op: CmpOp,
+) -> CompareResult {
+    if d1 != d2 {
+        return CompareResult::Error(BuiltinError::DimensionMismatch);
+    }
+    CompareResult::Filter(apply_compare_q(m1, op, m2))
+}
+
+/// The exact-ℚ scalar arm of [`compute_compare`].
+fn scalar_compare(lv: &Value, rv: &Value, op: CmpOp) -> CompareResult {
+    match (scalar_rational(lv), scalar_rational(rv)) {
+        (Some(l), Some(r)) => {
+            let l = match l {
+                Ok(l) => l,
+                Err(e) => return CompareResult::Error(e),
+            };
+            let r = match r {
+                Ok(r) => r,
+                Err(e) => return CompareResult::Error(e),
+            };
+            CompareResult::Filter(apply_compare_q(&l, op, &r))
+        }
+        // Unreachable for scalar operands.
+        _ => CompareResult::Gap,
+    }
+}
+
+/// Compare two tower values, type-directed and EXHAUSTIVE over operand kinds.
+///
+/// Two integers take the i64 fast path; a scalar pair promotes to a common ℚ.
+/// Commensurability (`=:=` over two dimensions) is exact ℚ⁷ vector equality; any
+/// ORDERING over bare dimensions is undefined (a gap). Two quantities (or a quantity
+/// and a promoted dimensionless scalar) must be commensurable to compare magnitudes.
+/// A dimension compared with a scalar or a quantity is a gap.
+fn compute_compare(lv: &Value, rv: &Value, op: CmpOp) -> CompareResult {
+    match (lv, rv) {
+        (Value::Int(l), Value::Int(r)) => CompareResult::Filter(apply_compare(*l, op, *r)),
+        (Value::Int(_) | Value::Rat(_), Value::Int(_) | Value::Rat(_)) => {
+            scalar_compare(lv, rv, op)
+        }
+        (Value::Dim(a), Value::Dim(b)) => match op {
+            CmpOp::Eq => CompareResult::Filter(a == b),
+            // Dimensions carry no ordering — only commensurability (`=:=`).
+            CmpOp::Gt | CmpOp::Lt | CmpOp::Ge | CmpOp::Le => CompareResult::Gap,
+        },
+        (Value::Quantity(m1, d1), Value::Quantity(m2, d2)) => quantity_compare(m1, d1, m2, d2, op),
+        (Value::Quantity(m1, d1), Value::Int(_) | Value::Rat(_)) => match scalar_rational(rv) {
+            Some(Ok(m2)) => quantity_compare(m1, d1, &m2, &ZERO_DIM, op),
+            Some(Err(e)) => CompareResult::Error(e),
+            None => CompareResult::Gap,
+        },
+        (Value::Int(_) | Value::Rat(_), Value::Quantity(m2, d2)) => match scalar_rational(lv) {
+            Some(Ok(m1)) => quantity_compare(&m1, &ZERO_DIM, m2, d2, op),
+            Some(Err(e)) => CompareResult::Error(e),
+            None => CompareResult::Gap,
+        },
+        // A dimension compared with a scalar or a quantity is undefined.
+        (Value::Dim(_), Value::Int(_) | Value::Rat(_) | Value::Quantity(_, _)) => {
+            CompareResult::Gap
+        }
+        (Value::Int(_) | Value::Rat(_) | Value::Quantity(_, _), Value::Dim(_)) => {
+            CompareResult::Gap
+        }
+    }
+}
+
+// ── math: dimension correspondence lowering (Principle-17) ───────────────────────
+
+/// The `math:` grounding namespace (`https://blackcatinformatics.ca/math/`).
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+
+/// The seven SI base-dimension individual IRIs, in the fixed vector order shared with
+/// the dimension transport (length, mass, time, electric current, temperature, amount
+/// of substance, luminous intensity). The index of an IRI in this array IS its slot in
+/// the `[Rational; 7]` exponent vector.
+const BASE_DIMENSION_LOCALS: [&str; 7] = [
+    "lengthDimension",
+    "massDimension",
+    "timeDimension",
+    "electricCurrentDimension",
+    "temperatureDimension",
+    "amountOfSubstanceDimension",
+    "luminousIntensityDimension",
+];
+
+/// Resolve a base-dimension IRI to its fixed exponent-vector index, or `None` when the
+/// IRI is not one of the seven `math:BaseDimension` individuals (a non-base target).
+fn base_dimension_index(iri: &str) -> Option<usize> {
+    let local = iri.strip_prefix(MATH_NS)?;
+    BASE_DIMENSION_LOCALS.iter().position(|l| *l == local)
+}
+
+/// One `math:DimensionExponent` cell in structured form: the `math:BaseDimension` IRI
+/// it raises (`math:exponentOfDimension`) and its exact-rational power as the
+/// `math:exponentNumerator` / `math:exponentDenominator` object surfaces.
+pub(crate) struct DimensionExponentCell<'a> {
+    /// The `math:exponentOfDimension` target — must be one of the seven base IRIs.
+    pub(crate) base_dimension: &'a str,
+    /// The `math:exponentNumerator` object surface (integer literal or bare token).
+    pub(crate) exponent_numerator: &'a str,
+    /// The `math:exponentDenominator` object surface (integer literal or bare token).
+    pub(crate) exponent_denominator: &'a str,
+}
+
+/// Assemble a canonical [`Value::Dim`] from a `math:DerivedDimension`'s
+/// `math:baseDimensionExponent` cells (Principle-17 lowering of the `math:` dimension
+/// surface into the engine value tower). Unmentioned base dimensions default to the
+/// zero exponent — a derived dimension names only the bases it involves.
+///
+/// This is the consumer of [`rational_from_components`]: each cell's exact rational
+/// exponent is lowered through it. A cell naming a non-base target, a duplicate base
+/// (an ambiguous exponent vector), a missing/non-integer numerator or denominator, or
+/// a zero denominator (not a rational power) is [`BuiltinError::MalformedDimension`] —
+/// the same class the transport decoder raises, so the structured-cells ↔ transport
+/// round trip agrees. An `i64::MIN`-magnitude exponent is an honest
+/// [`BuiltinError::Overflow`].
+pub(crate) fn dim_from_exponent_cells(
+    cells: &[DimensionExponentCell<'_>],
+) -> Result<Value, BuiltinError> {
+    let mut dim = ZERO_DIM;
+    let mut seen = [false; 7];
+    for cell in cells {
+        let idx =
+            base_dimension_index(cell.base_dimension).ok_or(BuiltinError::MalformedDimension)?;
+        if seen[idx] {
+            // A second cell for the same base dimension is an ambiguous exponent.
+            return Err(BuiltinError::MalformedDimension);
+        }
+        seen[idx] = true;
+        let exponent =
+            match rational_from_components(cell.exponent_numerator, cell.exponent_denominator) {
+                Some(Ok(Value::Rat(r))) => r,
+                // A zero denominator is not a rational power — a malformed dimension.
+                Some(Err(BuiltinError::ZeroDenominator)) => {
+                    return Err(BuiltinError::MalformedDimension);
+                }
+                // An honest numeric limit (i64::MIN magnitude) stays an overflow.
+                Some(Err(e)) => return Err(e),
+                // A non-integer / missing exponent surface is malformed.
+                Some(Ok(_)) | None => return Err(BuiltinError::MalformedDimension),
+            };
+        dim[idx] = exponent;
+    }
+    Ok(Value::Dim(dim))
+}
+
+/// Assemble a [`Value::Quantity`] from a `math:Quantity`'s magnitude
+/// (`math:quantityValue`, a `math:RationalValue` given as numerator / denominator
+/// surfaces) and an already-lowered dimension vector (Principle-17 lowering).
+///
+/// The outer `Option` is `None` when the magnitude surfaces are not integers (a
+/// malformed `RationalValue` node — routed to a gap, never fabricated); the inner
+/// `Result` carries a magnitude [`BuiltinError::ZeroDenominator`] / overflow. Consumes
+/// [`rational_from_components`] for the magnitude.
+pub(crate) fn quantity_from_components(
+    magnitude_numerator: &str,
+    magnitude_denominator: &str,
+    dimension: [Rational; 7],
+) -> Option<Result<Value, BuiltinError>> {
+    match rational_from_components(magnitude_numerator, magnitude_denominator)? {
+        Ok(Value::Rat(mag)) => Some(Ok(Value::Quantity(mag, dimension))),
+        // `rational_from_components` only ever yields a `Value::Rat`.
+        Ok(_) => None,
+        Err(e) => Some(Err(e)),
     }
 }
 
@@ -605,23 +955,16 @@ pub(crate) fn eval<'a>(
                 (Operand::Bound(l), Operand::Bound(r)) => (l, r),
                 _ => return BuiltinOutcome::Unbound,
             };
-            // Type-directed dispatch: two integers under a ℤ-shared operator
-            // (`+ - * //`) take the unchanged i64 fast path and commit `Value::Int`;
-            // exact `/` or any rational operand routes to the exact-ℚ kernel and
-            // commits `Value::Rat`; a dimensioned operand is a declared Task-3 gap.
-            let value: Value = if let (Value::Int(l), Value::Int(r)) = (&lv, &rv)
-                && let Some(int_result) = apply_arith_int(*l, *op, *r)
-            {
-                match int_result {
-                    Ok(v) => Value::Int(v),
-                    Err(e) => return BuiltinOutcome::Error(e),
-                }
-            } else {
-                match compute_rational(&lv, &rv, *op) {
-                    Some(Ok(v)) => Value::Rat(v),
-                    Some(Err(e)) => return BuiltinOutcome::Error(e),
-                    None => return BuiltinOutcome::Unbound,
-                }
+            // Type-directed dispatch over the whole tower: two integers under a
+            // ℤ-shared operator take the i64 fast path and commit `Value::Int`; exact
+            // `/` or any rational operand routes to the exact-ℚ kernel and commits
+            // `Value::Rat`; dimensioned operands evaluate the dimension algebra and
+            // commit `Value::Dim` / `Value::Quantity`. An operation the algebra does
+            // not define is a declared gap.
+            let value: Value = match compute_is_value(&lv, &rv, *op) {
+                Computed::Value(v) => v,
+                Computed::Error(e) => return BuiltinOutcome::Error(e),
+                Computed::Gap => return BuiltinOutcome::Unbound,
             };
             // Target role: unbound variable → generate; bound value → filter on
             // value equality; bound non-numeric → filter false (`foo is 1+2` fails,
@@ -653,24 +996,13 @@ pub(crate) fn eval<'a>(
                 _ => return BuiltinOutcome::Unbound,
             };
             // Two integers compare on the i64 fast path; a rational operand promotes
-            // both to a common ℚ and compares exactly; a dimensioned operand is a gap.
-            if let (Value::Int(l), Value::Int(r)) = (&lv, &rv) {
-                return BuiltinOutcome::Filter(apply_compare(*l, *op, *r));
-            }
-            match (scalar_rational(&lv), scalar_rational(&rv)) {
-                (Some(l), Some(r)) => {
-                    let l = match l {
-                        Ok(l) => l,
-                        Err(e) => return BuiltinOutcome::Error(e),
-                    };
-                    let r = match r {
-                        Ok(r) => r,
-                        Err(e) => return BuiltinOutcome::Error(e),
-                    };
-                    BuiltinOutcome::Filter(apply_compare_q(&l, *op, &r))
-                }
-                // A dimensioned operand (`Dim`/`Quantity`) → declared Task-3 gap.
-                _ => BuiltinOutcome::Unbound,
+            // both to a common ℚ; dimensioned operands compare via the dimension
+            // algebra (commensurability for `=:=` over dimensions, magnitude compare
+            // over commensurable quantities). An undefined comparison is a gap.
+            match compute_compare(&lv, &rv, *op) {
+                CompareResult::Filter(b) => BuiltinOutcome::Filter(b),
+                CompareResult::Error(e) => BuiltinOutcome::Error(e),
+                CompareResult::Gap => BuiltinOutcome::Unbound,
             }
         }
     }
@@ -1314,5 +1646,439 @@ mod tests {
             rational_from_components("\"1.5\"^^<http://www.w3.org/2001/XMLSchema#decimal>", "4"),
             None
         );
+    }
+
+    // ── Dimension algebra (ℚ⁷ module) & dimensioned-quantity calculus ────────
+
+    /// Build a `[Rational; 7]` from `(index, num, den)` exponents; unmentioned bases
+    /// are the zero exponent.
+    fn dim_of(pairs: &[(usize, i64, i64)]) -> [Rational; 7] {
+        let mut d = [Rational::ZERO; 7];
+        for (i, n, den) in pairs {
+            d[*i] = rat(*n, *den);
+        }
+        d
+    }
+
+    /// The base-dimension vector indices (fixed SI order).
+    const LEN: usize = 0;
+    const TIME: usize = 2;
+
+    fn dim_surface(d: &[Rational; 7]) -> String {
+        emit_surface(&Value::Dim(*d))
+    }
+
+    fn qty_surface(mag_num: i64, mag_den: i64, d: &[Rational; 7]) -> String {
+        emit_surface(&Value::Quantity(rat(mag_num, mag_den), *d))
+    }
+
+    fn gen_val(var: &str, value: Value) -> BuiltinOutcome {
+        BuiltinOutcome::Generate {
+            var: var.to_owned(),
+            value,
+        }
+    }
+
+    #[test]
+    fn dimension_composition_adds_exponents_quotient_subtracts() {
+        // L (length) and T (time) as base-dimension vectors.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let lookup = env(&[("L", &dim_surface(&length)), ("T", &dim_surface(&time))]);
+
+        // D is L * T → componentwise exponent ADDITION (dimension product).
+        let product = dim_of(&[(LEN, 1, 1), (TIME, 1, 1)]);
+        assert_eq!(
+            eval(&is(var("D"), var("L"), ArithOp::Mul, var("T")), &lookup),
+            gen_val("D", Value::Dim(product))
+        );
+
+        // D is L / T → componentwise exponent SUBTRACTION (dimension quotient), for
+        // both the exact `/` and the truncating `//` spellings (a dimension quotient
+        // has no integer-division meaning; both subtract exponents).
+        let quotient = dim_of(&[(LEN, 1, 1), (TIME, -1, 1)]);
+        for op in [ArithOp::ExactDiv, ArithOp::Div] {
+            assert_eq!(
+                eval(&is(var("D"), var("L"), op, var("T")), &lookup),
+                gen_val("D", Value::Dim(quotient)),
+                "L {} T subtracts exponents",
+                op.token()
+            );
+        }
+    }
+
+    #[test]
+    fn dimension_commensurability_equal_and_unequal() {
+        // Velocity L·T⁻¹ compared to itself (=:= true) and to acceleration L·T⁻² (false).
+        let velocity = dim_of(&[(LEN, 1, 1), (TIME, -1, 1)]);
+        let velocity2 = dim_of(&[(LEN, 1, 1), (TIME, -1, 1)]);
+        let accel = dim_of(&[(LEN, 1, 1), (TIME, -2, 1)]);
+        let equal = env(&[
+            ("A", &dim_surface(&velocity)),
+            ("B", &dim_surface(&velocity2)),
+        ]);
+        assert_eq!(
+            eval(&cmp(var("A"), CmpOp::Eq, var("B")), &equal),
+            BuiltinOutcome::Filter(true)
+        );
+        let unequal = env(&[("A", &dim_surface(&velocity)), ("B", &dim_surface(&accel))]);
+        assert_eq!(
+            eval(&cmp(var("A"), CmpOp::Eq, var("B")), &unequal),
+            BuiltinOutcome::Filter(false)
+        );
+    }
+
+    #[test]
+    fn dimension_addition_and_ordering_are_declared_gaps() {
+        // Dimensions do not add, and they carry no ordering — both are declared gaps
+        // (Unbound), never a fabricated dimension or a bogus verdict.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let lookup = env(&[("L", &dim_surface(&length)), ("T", &dim_surface(&time))]);
+        for op in [ArithOp::Add, ArithOp::Sub] {
+            assert_eq!(
+                eval(&is(var("D"), var("L"), op, var("T")), &lookup),
+                BuiltinOutcome::Unbound,
+                "bare dimensions do not support {}",
+                op.token()
+            );
+        }
+        for op in [CmpOp::Gt, CmpOp::Lt, CmpOp::Ge, CmpOp::Le] {
+            assert_eq!(
+                eval(&cmp(var("L"), op, var("T")), &lookup),
+                BuiltinOutcome::Unbound,
+                "dimensions carry no ordering ({})",
+                op.token()
+            );
+        }
+    }
+
+    #[test]
+    fn quantity_addition_requires_equal_dimension() {
+        // A + B with equal dimension (both lengths) → magnitude sum over the shared dim.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let equal = env(&[
+            ("A", &qty_surface(5, 1, &length)),
+            ("B", &qty_surface(3, 1, &length)),
+        ]);
+        assert_eq!(
+            eval(&is(var("Q"), var("A"), ArithOp::Add, var("B")), &equal),
+            gen_val("Q", Value::Quantity(rat(8, 1), length))
+        );
+        assert_eq!(
+            eval(&is(var("Q"), var("A"), ArithOp::Sub, var("B")), &equal),
+            gen_val("Q", Value::Quantity(rat(2, 1), length))
+        );
+
+        // A + B with UNEQUAL dimension (length + time) is the intrinsic-homogeneity
+        // failure: DimensionMismatch, NEVER a silently wrong quantity.
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let unequal = env(&[
+            ("A", &qty_surface(5, 1, &length)),
+            ("B", &qty_surface(3, 1, &time)),
+        ]);
+        assert_eq!(
+            eval(&is(var("Q"), var("A"), ArithOp::Add, var("B")), &unequal),
+            BuiltinOutcome::Error(BuiltinError::DimensionMismatch)
+        );
+    }
+
+    #[test]
+    fn quantity_multiplication_multiplies_magnitude_and_composes_dimension() {
+        // (2 L) * (3 T) = 6 (L·T); (6 L·T) / (3 T) = 2 L (magnitude ÷, dimension ⊖).
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let lt = dim_of(&[(LEN, 1, 1), (TIME, 1, 1)]);
+        let lookup = env(&[
+            ("A", &qty_surface(2, 1, &length)),
+            ("B", &qty_surface(3, 1, &time)),
+        ]);
+        assert_eq!(
+            eval(&is(var("Q"), var("A"), ArithOp::Mul, var("B")), &lookup),
+            gen_val("Q", Value::Quantity(rat(6, 1), lt))
+        );
+        let div = env(&[
+            ("N", &qty_surface(6, 1, &lt)),
+            ("B", &qty_surface(3, 1, &time)),
+        ]);
+        assert_eq!(
+            eval(&is(var("Q"), var("N"), ArithOp::ExactDiv, var("B")), &div),
+            gen_val("Q", Value::Quantity(rat(2, 1), length))
+        );
+    }
+
+    #[test]
+    fn dimensionless_scalar_mixes_with_a_quantity() {
+        // A dimensionless scalar promotes to a [0;7] quantity: (3 L) * 2 = 6 L.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let lookup = env(&[("A", &qty_surface(3, 1, &length))]);
+        assert_eq!(
+            eval(
+                &is(var("Q"), var("A"), ArithOp::Mul, QTerm::Num(2)),
+                &lookup
+            ),
+            gen_val("Q", Value::Quantity(rat(6, 1), length))
+        );
+        // Scalar on the LEFT promotes identically: 2 * (3 L) = 6 L.
+        assert_eq!(
+            eval(
+                &is(var("Q"), QTerm::Num(2), ArithOp::Mul, var("A")),
+                &lookup
+            ),
+            gen_val("Q", Value::Quantity(rat(6, 1), length))
+        );
+        // Adding a dimensionless scalar to a LENGTH is dimensionally inhomogeneous.
+        assert_eq!(
+            eval(
+                &is(var("Q"), var("A"), ArithOp::Add, QTerm::Num(2)),
+                &lookup
+            ),
+            BuiltinOutcome::Error(BuiltinError::DimensionMismatch)
+        );
+        // But a dimensionless QUANTITY adds to a scalar: (3 · 1) + 2 = 5 (dimensionless).
+        let dimensionless = env(&[("Z", &qty_surface(3, 1, &ZERO_DIM))]);
+        assert_eq!(
+            eval(
+                &is(var("Q"), var("Z"), ArithOp::Add, QTerm::Num(2)),
+                &dimensionless
+            ),
+            gen_val("Q", Value::Quantity(rat(5, 1), ZERO_DIM))
+        );
+    }
+
+    #[test]
+    fn commensurable_quantities_compare_and_incommensurable_error() {
+        // Two lengths compare by magnitude; a length vs a time is incommensurable.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let commensurable = env(&[
+            ("A", &qty_surface(5, 1, &length)),
+            ("B", &qty_surface(3, 1, &length)),
+        ]);
+        assert_eq!(
+            eval(&cmp(var("A"), CmpOp::Gt, var("B")), &commensurable),
+            BuiltinOutcome::Filter(true)
+        );
+        assert_eq!(
+            eval(&cmp(var("A"), CmpOp::Lt, var("B")), &commensurable),
+            BuiltinOutcome::Filter(false)
+        );
+        let incommensurable = env(&[
+            ("A", &qty_surface(5, 1, &length)),
+            ("B", &qty_surface(5, 1, &time)),
+        ]);
+        assert_eq!(
+            eval(&cmp(var("A"), CmpOp::Gt, var("B")), &incommensurable),
+            BuiltinOutcome::Error(BuiltinError::DimensionMismatch)
+        );
+    }
+
+    #[test]
+    fn dimensioned_generator_filters_on_a_bound_target() {
+        // A bound target that matches the composed dimension keeps the branch; a
+        // mismatch prunes it; a bound non-numeric target is a filter-false, not a gap.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let lt = dim_of(&[(LEN, 1, 1), (TIME, 1, 1)]);
+        let pass = env(&[
+            ("L", &dim_surface(&length)),
+            ("T", &dim_surface(&time)),
+            ("D", &dim_surface(&lt)),
+        ]);
+        assert_eq!(
+            eval(&is(var("D"), var("L"), ArithOp::Mul, var("T")), &pass),
+            BuiltinOutcome::Filter(true)
+        );
+        let fail = env(&[
+            ("L", &dim_surface(&length)),
+            ("T", &dim_surface(&time)),
+            ("D", &dim_surface(&length)),
+        ]);
+        assert_eq!(
+            eval(&is(var("D"), var("L"), ArithOp::Mul, var("T")), &fail),
+            BuiltinOutcome::Filter(false)
+        );
+        let non_numeric = env(&[
+            ("L", &dim_surface(&length)),
+            ("T", &dim_surface(&time)),
+            ("D", "<https://example.org/foo>"),
+        ]);
+        assert_eq!(
+            eval(
+                &is(var("D"), var("L"), ArithOp::Mul, var("T")),
+                &non_numeric
+            ),
+            BuiltinOutcome::Filter(false)
+        );
+    }
+
+    // ── math: dimension/quantity correspondence lowering ────────────────────
+
+    fn base_iri(local: &str) -> String {
+        format!("{MATH_NS}{local}")
+    }
+
+    #[test]
+    fn dim_from_exponent_cells_round_trips_and_rejects_malformed() {
+        // Velocity L·T⁻¹ from two structured cells, matching the direct vector.
+        let length = base_iri("lengthDimension");
+        let time = base_iri("timeDimension");
+        let cells = [
+            DimensionExponentCell {
+                base_dimension: &length,
+                exponent_numerator: "1",
+                exponent_denominator: "1",
+            },
+            DimensionExponentCell {
+                base_dimension: &time,
+                exponent_numerator: "-1",
+                exponent_denominator: "1",
+            },
+        ];
+        let dim = dim_from_exponent_cells(&cells).expect("well-formed cells");
+        assert_eq!(dim, Value::Dim(dim_of(&[(LEN, 1, 1), (TIME, -1, 1)])));
+        // Structured cells ↔ transport witness: the lowered dimension emits to the
+        // transport and parses back to the identical value.
+        let surface = emit_surface(&dim);
+        assert_eq!(parse_value_surface(&surface), Some(dim));
+
+        // A fractional exponent (T^(1/2)) is exact — consumes the rational component
+        // lowering with a non-unit denominator.
+        let half = [DimensionExponentCell {
+            base_dimension: &time,
+            exponent_numerator: "1",
+            exponent_denominator: "2",
+        }];
+        assert_eq!(
+            dim_from_exponent_cells(&half),
+            Ok(Value::Dim(dim_of(&[(TIME, 1, 2)])))
+        );
+
+        // A cell naming a non-base target is a malformed dimension.
+        let derived = base_iri("velocityDimension");
+        let bad_target = [DimensionExponentCell {
+            base_dimension: &derived,
+            exponent_numerator: "1",
+            exponent_denominator: "1",
+        }];
+        assert_eq!(
+            dim_from_exponent_cells(&bad_target),
+            Err(BuiltinError::MalformedDimension)
+        );
+
+        // A duplicate base dimension is an ambiguous exponent vector — malformed.
+        let dup = [
+            DimensionExponentCell {
+                base_dimension: &length,
+                exponent_numerator: "1",
+                exponent_denominator: "1",
+            },
+            DimensionExponentCell {
+                base_dimension: &length,
+                exponent_numerator: "2",
+                exponent_denominator: "1",
+            },
+        ];
+        assert_eq!(
+            dim_from_exponent_cells(&dup),
+            Err(BuiltinError::MalformedDimension)
+        );
+
+        // A zero-denominator exponent is not a rational power — malformed.
+        let zero_den = [DimensionExponentCell {
+            base_dimension: &time,
+            exponent_numerator: "1",
+            exponent_denominator: "0",
+        }];
+        assert_eq!(
+            dim_from_exponent_cells(&zero_den),
+            Err(BuiltinError::MalformedDimension)
+        );
+
+        // A non-integer exponent surface is malformed.
+        let bad_exp = [DimensionExponentCell {
+            base_dimension: &time,
+            exponent_numerator: "\"1.5\"^^<http://www.w3.org/2001/XMLSchema#decimal>",
+            exponent_denominator: "1",
+        }];
+        assert_eq!(
+            dim_from_exponent_cells(&bad_exp),
+            Err(BuiltinError::MalformedDimension)
+        );
+    }
+
+    #[test]
+    fn quantity_from_components_builds_and_round_trips() {
+        // A math:Quantity of magnitude 5/2 with dimension length lowers and round-trips.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let num = emit_integer_surface(5);
+        let den = emit_integer_surface(2);
+        let value = quantity_from_components(&num, &den, length)
+            .expect("integer magnitude decodes")
+            .expect("well-formed magnitude");
+        assert_eq!(value, Value::Quantity(rat(5, 2), length));
+        let surface = emit_surface(&value);
+        assert_eq!(parse_value_surface(&surface), Some(value));
+
+        // A zero-denominator magnitude is a declared domain error.
+        assert_eq!(
+            quantity_from_components("5", "0", length),
+            Some(Err(BuiltinError::ZeroDenominator))
+        );
+        // A non-integer magnitude component declines to None (malformed node).
+        assert_eq!(
+            quantity_from_components(
+                "\"1.5\"^^<http://www.w3.org/2001/XMLSchema#decimal>",
+                "1",
+                length
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn lowered_cells_compose_consistently_with_the_dimension_algebra() {
+        // The structured-cell lowering agrees with `Mul` on the base dimensions:
+        // lengthDimension ⊗ timeDimension⁻¹ (via cells) == L * (T // T // ...) — here
+        // demonstrated by composing L and T⁻¹ and comparing to the lowered velocity.
+        let length_iri = base_iri("lengthDimension");
+        let time_iri = base_iri("timeDimension");
+        let lowered = dim_from_exponent_cells(&[
+            DimensionExponentCell {
+                base_dimension: &length_iri,
+                exponent_numerator: "1",
+                exponent_denominator: "1",
+            },
+            DimensionExponentCell {
+                base_dimension: &time_iri,
+                exponent_numerator: "-1",
+                exponent_denominator: "1",
+            },
+        ])
+        .expect("well-formed cells");
+        // Compose L * (dimensionless / T) via the evaluator and compare.
+        let length = dim_of(&[(LEN, 1, 1)]);
+        let time = dim_of(&[(TIME, 1, 1)]);
+        let dimensionless = ZERO_DIM;
+        let lookup = env(&[
+            ("L", &dim_surface(&length)),
+            ("T", &dim_surface(&time)),
+            ("ONE", &dim_surface(&dimensionless)),
+        ]);
+        // Tinv is 1 / T (dimensionless ⊖ T = T⁻¹).
+        let BuiltinOutcome::Generate { value: tinv, .. } = eval(
+            &is(var("X"), var("ONE"), ArithOp::ExactDiv, var("T")),
+            &lookup,
+        ) else {
+            panic!("T⁻¹ generates");
+        };
+        let lookup2 = env(&[("L", &dim_surface(&length)), ("Tinv", &emit_surface(&tinv))]);
+        let BuiltinOutcome::Generate {
+            value: composed, ..
+        } = eval(&is(var("X"), var("L"), ArithOp::Mul, var("Tinv")), &lookup2)
+        else {
+            panic!("L * T⁻¹ generates");
+        };
+        assert_eq!(composed, lowered);
     }
 }

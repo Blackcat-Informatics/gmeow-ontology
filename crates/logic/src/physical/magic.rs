@@ -2066,6 +2066,177 @@ mod tests {
         }
     }
 
+    // ── Mode analysis over a dimension/quantity `is` generator ───────────────────
+    //
+    // The mode passes (`is_generator_reaches_head`, `negated_body_flounders`) match
+    // `QBuiltin::Is { target: QTerm::Var(_), .. }` STRUCTURALLY and UNIFORMLY — they
+    // never inspect the operator or the operand VALUE type. So a dimension-composition
+    // (`Mul` over two dimensions) or dimensioned-quantity `is` generator is recognized
+    // exactly as the i64 case is: its free target is range-restricting, and a partially
+    // bound one (a negated variable nothing binds) still flounders. These tests pin
+    // that value-type independence.
+
+    /// An `is` generator over the dimension algebra (`?D is ?A * ?B`), structurally
+    /// identical to the i64 form the mode passes already recognize.
+    fn dim_is_generator() -> QBuiltin {
+        QBuiltin::Is {
+            target: QTerm::Var("?D".to_owned()),
+            lhs: QTerm::Var("?A".to_owned()),
+            op: crate::query_ir::ArithOp::Mul,
+            rhs: QTerm::Var("?B".to_owned()),
+        }
+    }
+
+    /// The i64 sibling (`?D is ?A + ?B`) — a parity control proving the mode passes are
+    /// operator- and value-type-independent.
+    fn int_is_generator() -> QBuiltin {
+        QBuiltin::Is {
+            target: QTerm::Var("?D".to_owned()),
+            lhs: QTerm::Var("?A".to_owned()),
+            op: crate::query_ir::ArithOp::Add,
+            rhs: QTerm::Var("?B".to_owned()),
+        }
+    }
+
+    fn neg(subject: EvalTerm, predicate: &str, object: EvalTerm) -> EvalAtom {
+        EvalAtom {
+            subject,
+            predicate: predicate.to_owned(),
+            object,
+            negated: true,
+        }
+    }
+
+    #[test]
+    fn dimension_is_generator_is_range_restricting_and_head_reaching() {
+        // result(?X, ?D) :- dimA(?X, ?A), dimB(?X, ?B), ?D is ?A * ?B, \+ excluded(?X, ?D).
+        // The composed dimension ?D range-restricts the negated atom (it is an `is`
+        // target) and reaches the head — recognized identically to the i64 generator.
+        let head = EvalAtom::positive(
+            EvalTerm::var("?X"),
+            &format!("{BASE}result"),
+            EvalTerm::var("?D"),
+        );
+        let body = vec![
+            EvalAtom::positive(
+                EvalTerm::var("?X"),
+                &format!("{BASE}dimA"),
+                EvalTerm::var("?A"),
+            ),
+            EvalAtom::positive(
+                EvalTerm::var("?X"),
+                &format!("{BASE}dimB"),
+                EvalTerm::var("?B"),
+            ),
+            neg(
+                EvalTerm::var("?X"),
+                &format!("{BASE}excluded"),
+                EvalTerm::var("?D"),
+            ),
+        ];
+        for generator in [dim_is_generator(), int_is_generator()] {
+            let rule = EvalRule {
+                head: head.clone(),
+                body: body.clone(),
+                rule_iri: format!("{BASE}rule/compose"),
+                distinct_pairs: vec![],
+                builtins: vec![generator],
+            };
+            // The `is` target binds ?D, so the negated atom is range-restricted.
+            assert!(
+                !negated_body_flounders(&rule.body, &rule.builtins),
+                "an `is`-generated ?D range-restricts \\+ excluded(?X, ?D)"
+            );
+            // The generated ?D reaches the head (it is a head argument).
+            assert!(
+                is_generator_reaches_head(&rule),
+                "?D is a head argument, so the value-generating `is` reaches the head"
+            );
+        }
+    }
+
+    #[test]
+    fn partially_bound_dimension_generator_still_flounders() {
+        // result(?X, ?D) :- dimA(?X, ?A), ?D is ?A * ?B, \+ excluded(?D, ?W).
+        // ?W is bound by NEITHER a positive atom NOR an `is` target, so the negated
+        // atom flounders — the dimension generator's target ?D does not save it. The
+        // i64 sibling flounders identically.
+        let body = vec![
+            EvalAtom::positive(
+                EvalTerm::var("?X"),
+                &format!("{BASE}dimA"),
+                EvalTerm::var("?A"),
+            ),
+            neg(
+                EvalTerm::var("?D"),
+                &format!("{BASE}excluded"),
+                EvalTerm::var("?W"),
+            ),
+        ];
+        for generator in [dim_is_generator(), int_is_generator()] {
+            assert!(
+                negated_body_flounders(&body, &[generator]),
+                "?W is bound by nothing, so \\+ excluded(?D, ?W) flounders"
+            );
+        }
+    }
+
+    /// A world with two SI-dimension EDB facts on `ex:a`: length (L¹) and time (T¹).
+    fn dimension_world() -> (WorldStore, String) {
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{BASE}a")),
+                TermValue::iri(format!("{BASE}dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{BASE}a")),
+                TermValue::iri(format!("{BASE}dimTime")),
+                time,
+            )
+            .unwrap();
+        (store, W.to_owned())
+    }
+
+    #[test]
+    fn magic_dimension_composition_matches_reference_byte_identical() {
+        // The bottom-up magic core and the top-down SLD oracle must agree BYTE-FOR-BYTE
+        // on a dimension-composition rule: both route dimensioned operands through the
+        // ONE shared evaluator, so the committed dimension transport surface is identical.
+        let (store, world_nn) = dimension_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        let reference = reference_resolver::resolve(&foreign, &world_nn, &prog, &budget).unwrap();
+
+        assert_eq!(native.status, reference.status, "status parity");
+        assert_eq!(
+            native.bindings, reference.bindings,
+            "magic == oracle on dimension composition: native {native:?} vs ref {reference:?}"
+        );
+        assert_eq!(native.bindings.len(), 1);
+        assert_eq!(native.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(
+            native.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
+    }
+
     // ── Test 1: non-recursive single-rule parity ─────────────────────────────────
 
     #[test]
