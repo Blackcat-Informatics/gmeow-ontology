@@ -452,3 +452,165 @@ fn compare_folds(regen: &FoldShape, materialized: &FoldShape) -> Vec<String> {
     }
     mismatches
 }
+
+// ── Two independent cold generations are deterministic (the reproducibility gate) ────────
+
+/// Two independent cold generations from the SAME repo sources must be byte-identical on
+/// every materialized flat output and validated-equivalent on the GTS bundle — the
+/// clean-clone reproducibility gate. A DETERMINISTIC dropped output (a producing stage stops
+/// emitting a file) is byte-identical across both runs and is caught ELSEWHERE, by the
+/// completeness oracle (`superset::check_expected_completeness`, exercised by
+/// `superset::tests::project_bundle_hard_fails_when_a_declared_output_is_never_produced`); a
+/// NONDETERMINISTIC output (a timestamp / absolute path / hash-map iteration leak) is caught
+/// HERE. Heavy (two full cold generations); `#[ignore]`d like the full-parity gate — CI's
+/// producer lane invokes it with `--run-ignored`.
+#[ignore = "heavy: two full cold generations; run with --ignored (CI producer lane invokes it)"]
+#[test]
+fn two_cold_generations_are_deterministic() {
+    let root = repo_root();
+    const BUNDLE: &str = "generated/dist/gmeow.gts";
+
+    // Two independent in-process generations from the real sources into fresh ephemeral caches.
+    let a = run_all_products(&root);
+    let b = run_all_products(&root);
+
+    // (a) BYTE-IDENTICAL flat outputs: every materialized path (the CBOR bundle excepted —
+    //     compared by fold below) present in both runs with equal bytes.
+    let mut flat_diffs: Vec<String> = Vec::new();
+    let mut all: std::collections::BTreeSet<&String> = std::collections::BTreeSet::new();
+    all.extend(a.keys());
+    all.extend(b.keys());
+    for path in all {
+        if path == BUNDLE {
+            continue;
+        }
+        match (a.get(path), b.get(path)) {
+            (Some(x), Some(y)) if x == y => {}
+            (Some(_), Some(_)) => {
+                flat_diffs.push(format!("{path}: byte-differs across two cold runs"));
+            }
+            _ => flat_diffs.push(format!("{path}: produced in only one of two cold runs")),
+        }
+    }
+
+    // (b) GTS bundle equivalence: assert the STRONGEST true invariant. Byte-identity first
+    //     (the producer is deterministic, so the CBOR MAY be identical); on any CBOR encoding
+    //     skew, fall back to FOLD equivalence (the same per-named-graph quad/reifier/annotation
+    //     comparator the full-parity gate uses) plus the mandated frame-PROFILE check on BOTH
+    //     bundles — never a naive CBOR byte compare masquerading as the contract.
+    let gts_a = a.get(BUNDLE).expect("run A emits the gmeow.gts bundle");
+    let gts_b = b.get(BUNDLE).expect("run B emits the gmeow.gts bundle");
+    let mut bundle_diffs: Vec<String> = Vec::new();
+    if gts_a != gts_b {
+        let mismatches = compare_folds(&fold_shape(gts_a), &fold_shape(gts_b));
+        if !mismatches.is_empty() {
+            bundle_diffs.push(format!(
+                "bundle FOLD differs across the two cold runs: {}",
+                mismatches.join("; ")
+            ));
+        }
+        for (label, bytes) in [("A", gts_a), ("B", gts_b)] {
+            if !mandated_frame_profile_ok(bytes) {
+                bundle_diffs.push(format!(
+                    "bundle {label} does not satisfy the mandated GTS frame profile"
+                ));
+            }
+        }
+    }
+
+    assert!(
+        flat_diffs.is_empty() && bundle_diffs.is_empty(),
+        "two cold generations diverged:\n  flat outputs:\n    {}\n  bundle:\n    {}",
+        flat_diffs.join("\n    "),
+        bundle_diffs.join("\n    "),
+    );
+}
+
+/// Run the FULL producer DAG (the schemas tail included) over a fresh ephemeral cache and
+/// collect every product artifact keyed by its repo-relative path. Two calls are two
+/// independent cold generations from the same on-disk sources — the SAME `full_spec()` +
+/// ephemeral-`run` machinery the full-parity determinism helpers use, not a reimplementation.
+fn run_all_products(root: &Path) -> BTreeMap<String, Vec<u8>> {
+    use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+    let spec = full_spec();
+    let graph = spec.validate().expect("full DAG validates");
+    let bound = bind(&spec, &graph, &default_registry()).expect("binds");
+    let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    let result = run(&graph, &bound, &mut ctx).expect("pipeline runs");
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    for product in result.products.values() {
+        for (path, bytes) in &product.artifacts() {
+            out.insert(path.clone(), bytes.clone());
+        }
+    }
+    out
+}
+
+/// Whether `bytes` satisfies the mandated GMEOW GTS frame profile — every payload-bearing
+/// frame carries exactly the one `zstd-rsyncable` transform. This is the SAME invariant
+/// `gmeow_pipeline::gts_profile`'s `assert_mandated_frames` pins as the single frame
+/// authority (a crate-private unit-test helper, unreachable from an integration test),
+/// mirrored here through purrdf's public `gts::wire` API so the two-generation fallback proves
+/// each bundle is a VALID mandated-profile bundle, not merely fold-equivalent to the other.
+fn mandated_frame_profile_ok(bytes: &[u8]) -> bool {
+    use ciborium::value::Value;
+    use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
+
+    fn as_map(v: &Value) -> Option<&[(Value, Value)]> {
+        match v {
+            Value::Map(entries) => Some(entries),
+            _ => None,
+        }
+    }
+    fn as_int(v: &Value) -> Option<i128> {
+        match v {
+            Value::Integer(i) => Some(i128::from(*i)),
+            _ => None,
+        }
+    }
+
+    let (items, torn) = iter_items(bytes);
+    if torn.is_some() {
+        return false;
+    }
+    let Some((_, header_item)) = items.first() else {
+        return false;
+    };
+    let Ok(header) = unwrap_header(header_item) else {
+        return false;
+    };
+    // The codec id of the mandated transform, resolved from the header catalog.
+    let Some(catalog) = map_get(header, "cat").and_then(as_map) else {
+        return false;
+    };
+    let Some(required) = catalog.iter().find_map(|(id, descriptor)| {
+        let descriptor = as_map(descriptor)?;
+        match map_get(descriptor, "name") {
+            Some(Value::Text(name)) if name == "zstd-rsyncable" => as_int(id),
+            _ => None,
+        }
+    }) else {
+        return false;
+    };
+    let mut payload_frames = 0usize;
+    for (_, item) in items.iter().skip(1) {
+        let Some(frame) = as_map(item) else {
+            return false;
+        };
+        if map_get(frame, "d").is_none() {
+            // A metadata-only transport-key frame carries no payload and no transform chain.
+            if map_get(frame, "x").is_some() {
+                return false;
+            }
+            continue;
+        }
+        payload_frames += 1;
+        let Some(Value::Array(transforms)) = map_get(frame, "x") else {
+            return false;
+        };
+        if transforms.len() != 1 || as_int(&transforms[0]) != Some(required) {
+            return false;
+        }
+    }
+    payload_frames > 0
+}
