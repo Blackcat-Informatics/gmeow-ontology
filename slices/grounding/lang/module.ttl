@@ -3163,6 +3163,250 @@ gmeow:gmnDictionaryEntryAlias
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to declare the compact alias token a dictionary entry binds its term to."@x-gmeow-english .
 
+# =========================================================================== #
+# Per-slice terminology glossary
+#
+# The glossary is the term-grain slice of the translation corpus: a DERIVED
+# view over the per-slice .po catalogs (never a second hand-authored source),
+# projected into graph/lang-glossary-corpus and folded into gmeow.gts. Each
+# entry binds one English source literal to its target-language translation,
+# carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that
+# lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the
+# lang:TranslationUnit law-spine. Two distinct terms sharing one source-skeleton
+# mint two distinct senses evoking one concept, so synonymy is DERIVED (two
+# senses, one concept) rather than asserted flat. Terminology consistency (one
+# concept never reads back as two divergent translations) still groups on
+# gmeow:glossaryConcept and is the functional-dependency dual of the GMN
+# alias-dictionary injectivity: lang:GlossaryTermConsistencyConstraint.
+# =========================================================================== #
+
+gmeow:Glossary
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Glossary"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One slice's terminology glossary for one target language: the term-grain view of that slice's translation catalog, gathering a gmeow:GlossaryEntry per localizable literal the slice authors. A glossary is scoped by exactly one gmeow:glossarySlice and exactly one gmeow:glossaryLanguage, and holds zero or more entries through gmeow:glossaryEntry. It is a DERIVED object — projected from the slice's i18n/*.po catalog, never hand-authored — so it can never drift from the catalog that is its one canonical source. Within one glossary the term↔translation relation is a single-valued function per sense: no gmeow:glossaryConcept reads back as two divergent gmeow:glossaryTranslation values (lang:GlossaryTermConsistencyConstraint, the functional-dependency dual of the GMN alias bijection)."@x-gmeow-english ;
+    skos:example "ex:glossLangFr a gmeow:Glossary ; gmeow:glossarySlice <https://blackcatinformatics.ca/gmeow/slices/lang> ; gmeow:glossaryLanguage \"fr\" ; gmeow:glossaryEntry ex:gEntryComposedForm ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hand-authoring a gmeow:Glossary or its entries in a slice module.ttl — the glossary is a projection of the i18n/*.po catalogs, and a second hand-maintained copy is a forbidden source of truth. Avoid mixing two languages in one glossary; one glossary is one gmeow:glossaryLanguage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Do not mint one by hand: the glossary projection stage folds every slice's translation catalog into one gmeow:Glossary per (slice, language) in graph/lang-glossary-corpus. Query it in gmeow.gts to see a slice's agreed fr/zh terminology, or consume its generated projection under generated/."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make a slice's per-language terminology a first-class, queryable, consistency-gated object — the agreed rendering of each term — rather than a scatter of catalog rows with no term-level structure or cross-batch consistency guarantee."@x-gmeow-english .
+
+gmeow:GlossaryEntry
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Glossary Entry"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. Two distinct terms the projection assigns one concept carry two distinct senses that both evoke that concept, so synonymy is DERIVED (two senses evoking one concept) rather than asserted flat. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts (its senses evoke distinct concepts) and legitimately renders each differently."@x-gmeow-english ;
+    skos:example "ex:gEntryComposedForm a gmeow:GlossaryEntry ; gmeow:glossaryTerm lang:ComposedForm ; gmeow:glossaryPredicate \"rdfs:label\" ; gmeow:glossarySource \"Composed Form\" ; gmeow:glossaryTranslation \"Forme composée\" ; gmeow:glossarySense ex:senseComposedForm ; gmeow:glossaryConcept ex:conceptComposedForm ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid authoring an entry by hand (it is projected from the catalog) and avoid an entry with no gmeow:glossarySource or no gmeow:glossaryTranslation — both are the functional payload of the binding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Consume it: each entry is minted by the glossary projection from one non-fuzzy catalog entry. Read gmeow:glossaryConcept to group synonymous renderings and gmeow:glossaryUnit to reach the preservation judgment of the crossing."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the reified per-term rendering in a glossary, so cross-batch terminology consistency is a gated graph property rather than an unchecked catalog convention."@x-gmeow-english .
+
+gmeow:glossarySlice
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Glossary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary slice"@x-gmeow-english ;
+    skos:definition "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's owl:Ontology IRI."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a glossary with no gmeow:glossarySlice — an unscoped glossary belongs to no catalog."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:glossarySlice per glossary, naming the slice ontology whose i18n/*.po catalog the glossary projects."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to scope a glossary to the one slice it gathers terminology for."@x-gmeow-english .
+
+gmeow:glossaryLanguage
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:Glossary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary language"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding two target languages into one glossary — French and Mandarin consistency are separate functions, so each language is its own gmeow:Glossary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one BCP-47 tag per glossary, matching the Language header of the projected catalog."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the target language a glossary's renderings are in."@x-gmeow-english .
+
+gmeow:glossaryEntry
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Glossary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary entry"@x-gmeow-english ;
+    rdfs:range gmeow:GlossaryEntry ;
+    skos:definition "Relates a gmeow:Glossary to one of its term-grain renderings. Domain gmeow:Glossary, range gmeow:GlossaryEntry. Non-functional: a glossary holds zero or more entries."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at an entry projected for a different (slice, language) glossary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "One gmeow:glossaryEntry edge per catalog literal the glossary covers."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the entry members of a glossary."@x-gmeow-english .
+
+gmeow:glossaryTerm
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary term"@x-gmeow-english ;
+    skos:definition "The GMEOW term (class, property, or individual IRI) whose localizable literal a glossary entry renders. Functional: exactly one term per entry. Domain gmeow:GlossaryEntry, range any GMEOW term (deliberately unconstrained — a glossary renders across the whole slice vocabulary, not one rdf:type)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving it unset — an entry with no term renders a literal for nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:glossaryTerm per entry, the term the projected catalog msgctxt names."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the GMEOW term a glossary entry renders."@x-gmeow-english .
+
+gmeow:glossaryPredicate
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary predicate"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an entry with no gmeow:glossaryPredicate — the predicate is half of the catalog msgctxt key."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the CURIE of the predicate the projected catalog msgctxt names, paired with gmeow:glossaryTerm."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which annotation predicate a glossary entry's literal came from."@x-gmeow-english .
+
+gmeow:glossarySource
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary source"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an entry with no gmeow:glossarySource — the source is the term being rendered."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the English msgid literal the projected catalog entry carries."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the English term a glossary entry renders into its target language."@x-gmeow-english .
+
+gmeow:glossaryTranslation
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary translation"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an entry with no gmeow:glossaryTranslation — an entry with no rendering carries no terminology — and avoid two entries of one concept rendering it two different ways (the gated inconsistency case)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the reviewed (non-fuzzy) target-language msgstr the projected catalog entry carries."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the agreed target-language rendering of a term."@x-gmeow-english .
+
+gmeow:glossaryConcept
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary concept"@x-gmeow-english ;
+    rdfs:range lang:LexicalConcept ;
+    skos:definition "The lexical concept (sense) a glossary entry's source evokes — the sense-aware key the consistency invariant groups on. Functional: one concept per entry. Domain gmeow:GlossaryEntry, range lang:LexicalConcept. The projection mints one concept per source skeleton by default (so synonymous renderings of one term are caught), and DISTINCT concepts for a source declared a lang:DeclaredTerminologyHomograph (so a genuine homograph is not a false positive). Grouping on the concept rather than the raw string is what makes the check sense-aware, the OntoLex-Lemon ontolex:LexicalConcept peer."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid keying consistency on the raw source string instead of the concept — that mis-fires on homographs (distinct senses forced to one rendering) and misses synonyms (variants that should render alike)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it to group entries by sense; the projection sets it from the source skeleton, splitting declared homographs onto distinct concepts."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the sense anchor a glossary entry's consistency is judged against."@x-gmeow-english .
+
+gmeow:glossarySense
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary sense"@x-gmeow-english ;
+    rdfs:range lang:Sense ;
+    skos:definition "The lang:Sense a glossary entry carries — the middle corner of the OntoLex Frege triangle, the entry's lexeme's way of meaning. Functional: one sense per entry. Domain gmeow:GlossaryEntry, range lang:Sense. The sense lang:evokes the entry's gmeow:glossaryConcept, so synonymy is derived (two distinct senses evoking one concept), never a flat sense-to-sense edge. The projection mints the sense from the (gmeow:glossaryTerm, English-source-skeleton) pair and INDEPENDENTLY of target language: two distinct terms sharing one source skeleton (a class and its property twin) mint two distinct senses that both evoke the one concept, while the SAME term's renderings across languages (fr, zh) collapse onto one sense (one way of meaning, many language renderings). The consistency invariant still groups on gmeow:glossaryConcept, not on the sense."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid keying consistency on the sense instead of the concept — the sense is per (term, source), so two synonymous terms carry distinct senses and grouping on the sense would miss the very disagreement the concept-keyed invariant catches. Avoid asserting a flat synonymy edge between two senses; synonymy is derived from two senses evoking one lang:LexicalConcept."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it to reach the entry's lang:Sense, then follow lang:evokes to the lang:LexicalConcept it shares with every synonymous entry; the projection sets it from the (term, source-skeleton) pair, language-independent."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to reach the OntoLex Frege-triangle sense of a glossary entry — the lexeme's way of meaning that evokes the shared lexical concept."@x-gmeow-english .
+
+gmeow:glossaryUnit
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GlossaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossary unit"@x-gmeow-english ;
+    rdfs:range lang:TranslationUnit ;
+    skos:definition "The lang:TranslationUnit carrying the law-spine of a glossary entry's crossing — the attachment point of the entry's logic:Correspondence, its logic:preservationKind, and any lang:translationGap or logic:mnemomorphic residue. Functional: one unit per entry. Domain gmeow:GlossaryEntry, range lang:TranslationUnit. The glossary reuses the translation corpus's honest preservation judgment rather than minting a second grade."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting a preservation grade on the entry itself — the judgment lives on the unit's logic:Correspondence, never shadowed here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Follow it to the lang:TranslationUnit to reach the crossing's preservation judgment and any recorded gap."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to reach the law-spine (preservation judgment, residue) of a glossary entry's crossing."@x-gmeow-english .
+
+# The ontology-resident, non-calibrated escape for a genuine homograph: an
+# explicit declaration that one English surface legitimately evokes two or more
+# distinct lang:LexicalConcepts, so its divergent renderings are NOT a
+# consistency violation. This is a discrete semantic assertion (a modelled fact
+# about the language), never a tuned threshold: it costs real modelling (two
+# distinct concepts) and is itself conformance-checked.
+lang:DeclaredTerminologyHomograph
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Declared Terminology Homograph"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [ a owl:Restriction ; owl:onProperty lang:homographSource ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ;
+    skos:definition "An explicit declaration that one English surface form (lang:homographSource) is a homograph in the terminology — it legitimately evokes two or more DISTINCT lang:LexicalConcepts (lang:homographConcept), each of which may take its own target-language rendering. It is the ontology-resident escape the glossary-consistency gate consults: a source so declared is exempted from the raw-source consistency check (its entries are projected onto distinct concepts), so a genuine homograph is never a false positive. A discrete modelled fact, never a calibrated knob: it costs naming two real concepts, and the exemption is granted only when two or more distinct lang:homographConcept senses are present — a declaration naming fewer than two grants no exemption (it is not a homograph) and the source stays under the consistency check."@x-gmeow-english ;
+    skos:example "ex:homographRead a lang:DeclaredTerminologyHomograph ; lang:homographSource \"read\" ; lang:homographConcept ex:conceptReadPresent , ex:conceptReadPast ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid declaring a homograph to silence a real inconsistency — the escape costs two genuinely distinct lang:LexicalConcepts, and a declaration naming fewer than two grants no exemption. Avoid using it for a term that has one meaning and simply drifted in translation; that is the inconsistency the gate is meant to catch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Where one English surface genuinely means two things (an epistemic vs. a physical \"standpoint\"), mint one lang:DeclaredTerminologyHomograph, set its lang:homographSource, and name its two-or-more distinct lang:homographConcept senses; the glossary projection then splits that source onto those concepts and the gate exempts it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare, as a modelled semantic fact, that one English term has two senses that may legitimately render differently — the honest alternative to a tuned exception list."@x-gmeow-english .
+
+lang:homographSource
+    a owl:DatatypeProperty ;
+    rdfs:domain lang:DeclaredTerminologyHomograph ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "homograph source"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. At most one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a declaration with no lang:homographSource — it exempts nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the exact English surface form (the msgid text) that is a homograph."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the English surface a homograph declaration exempts from the raw-source consistency check."@x-gmeow-english .
+
+lang:homographConcept
+    a owl:ObjectProperty ;
+    rdfs:domain lang:DeclaredTerminologyHomograph ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "homograph concept"@x-gmeow-english ;
+    rdfs:range lang:LexicalConcept ;
+    skos:definition "One distinct sense a homograph surface evokes. Domain lang:DeclaredTerminologyHomograph, range lang:LexicalConcept. Non-functional and meaningful only in the plural: the exemption is granted only when two or more distinct lang:LexicalConcepts are named (fewer than two is not a homograph and grants no exemption). The glossary projection routes each occurrence of the declared source onto the matching concept, so divergent renderings across distinct senses are legitimate."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid naming only one lang:homographConcept — a single-sense surface is not a homograph, so it grants no exemption and its source stays under the consistency check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Name each distinct lang:LexicalConcept the homograph surface evokes; at least two."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to enumerate the two-or-more senses a declared homograph surface carries."@x-gmeow-english .
+
 gmeow:gmnGlyphTableVersion
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -4525,6 +4769,14 @@ lang:GmnDictionaryAliasCollision
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Dictionary Alias Collision"@x-gmeow-english ;
     skos:definition "The failure raised when a gmeow:GmnDictionary's alias table is not injective: two of its gmeow:GmnDictionaryEntry members bind two DIFFERENT gmeow:gmnDictionaryEntryTerm values to the SAME gmeow:gmnDictionaryEntryAlias string. gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on the dictionary being a genuine bijection over its covered term set; a shared alias makes read-back ambiguous — the reader cannot tell which of the two terms an occurrence of the alias names — silently corrupting the section/retraction witness. Distinct from lang:GmnUncoveredTerm (an alias the dictionary does not mint at all) and from lang:GmnUndeclaredDialectVersion (no pinned dictionary version to resolve against)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GlossaryTermInconsistency
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Glossary Term Inconsistency"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:Glossary translates one term two different ways across batches: two gmeow:GlossaryEntry members sharing one gmeow:glossaryConcept carry two DIFFERENT gmeow:glossaryTranslation values. The terminology is then not consistent — one sense reads back as two divergent renderings — which the functional-dependency invariant (lang:GlossaryTermConsistencyConstraint) forbids. The structural dual of lang:GmnDictionaryAliasCollision: an alias reading back as two terms there, a sense reading back as two translations here. A genuine homograph is NOT this failure — it is projected onto distinct concepts through a lang:DeclaredTerminologyHomograph and so never shares a concept."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:GmnRingLatticeMalformed
@@ -7144,6 +7396,52 @@ lang:gdaiTerm2 a logic:Formula ; logic:relation gmeow:gmnDictionaryEntryTerm ;
 lang:gdaiSameTerm a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "term1" ] , [ logic:termIndex 1 ; logic:termVariable "term2" ] .
 
+# A per-slice terminology glossary is a single-valued function per sense: if two
+# entries of one gmeow:Glossary share a gmeow:glossaryConcept, they carry the same
+# gmeow:glossaryTranslation. One sense never reads back as two divergent renderings
+# across batches. This is the functional-dependency DUAL of the GMN alias-injectivity
+# constraint above (alias->term injective there; concept->translation single-valued
+# here); the hand-written .po lint (make i18n-lint) is the fast executable mirror over
+# the catalog substrate, and this canonical formula is projected through the logic
+# compiler and conformance-checked against the glossary twins.
+lang:GlossaryTermConsistencyConstraint
+    a logic:Constraint ;
+    rdfs:label "Glossary term-consistency constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A closed-world integrity constraint requiring two gmeow:GlossaryEntry members of one gmeow:Glossary that share a gmeow:glossaryConcept to carry the same gmeow:glossaryTranslation; one sense never reads back as two divergent translations across batches. The structural dual of lang:GmnDictionaryAliasInjectivityConstraint: alias->term injectivity there, concept->translation functional-dependency here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass lang:GlossaryTermInconsistency ;
+    logic:message "Two glossary entries for one sense translate the same term two different ways; the terminology is not consistent across batches." ;
+    logic:integrity lang:gtcForall .
+lang:gtcForall a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "entry1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "entry2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "concept" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "xlat1" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "xlat2" ] ;
+    logic:forall lang:gtcImpl .
+lang:gtcImpl a logic:Formula ; logic:antecedent lang:gtcGuard ; logic:consequent lang:gtcSameXlat .
+lang:gtcGuard a logic:Formula ;
+    logic:and lang:gtcType , lang:gtcMember1 , lang:gtcMember2 , lang:gtcConcept1 , lang:gtcConcept2 , lang:gtcXlat1 , lang:gtcXlat2 .
+lang:gtcType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Glossary ] .
+lang:gtcMember1 a logic:Formula ; logic:relation gmeow:glossaryEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry1" ] .
+lang:gtcMember2 a logic:Formula ; logic:relation gmeow:glossaryEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry2" ] .
+lang:gtcConcept1 a logic:Formula ; logic:relation gmeow:glossaryConcept ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry1" ] , [ logic:termIndex 1 ; logic:termVariable "concept" ] .
+lang:gtcConcept2 a logic:Formula ; logic:relation gmeow:glossaryConcept ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry2" ] , [ logic:termIndex 1 ; logic:termVariable "concept" ] .
+lang:gtcXlat1 a logic:Formula ; logic:relation gmeow:glossaryTranslation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry1" ] , [ logic:termIndex 1 ; logic:termVariable "xlat1" ] .
+lang:gtcXlat2 a logic:Formula ; logic:relation gmeow:glossaryTranslation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry2" ] , [ logic:termIndex 1 ; logic:termVariable "xlat2" ] .
+lang:gtcSameXlat a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "xlat1" ] , [ logic:termIndex 1 ; logic:termVariable "xlat2" ] .
+
 # An envelope emitted by the mentation export process is admitted only when it
 # names the GMN security ring governing the serialization boundary.
 lang:GmnExportRingBindingConstraint
@@ -8259,6 +8557,7 @@ lang:DuplicateSlotIndex a logic:Situation .
 lang:ExactPreservationViolated a logic:Situation .
 lang:FabricatedEquivalence a logic:Situation .
 lang:FregeConflation a logic:Situation .
+lang:GlossaryTermInconsistency a logic:Situation .
 lang:GmnCodebookDigestMismatch a logic:Situation .
 lang:GmnCompactionOverclaim a logic:Situation .
 lang:GmnCompactionWithoutProvenance a logic:Situation .

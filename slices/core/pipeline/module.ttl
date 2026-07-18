@@ -527,6 +527,7 @@ gmeow:pipeline-build
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
@@ -730,6 +731,7 @@ gmeow:stage-snapshot
         gmeow:stage-constraint-catalog ,
         gmeow:stage-docs-render ,
         gmeow:stage-export-evals ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
@@ -941,6 +943,17 @@ gmeow:stage-export-matrix
     gmeow:stageImpl "matrix" ;
     gmeow:producesFormat "makefile-matrix" .
 
+gmeow:stage-export-glossary
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: glossary"@x-gmeow-english ;
+    skos:definition "Emit the committed per-slice terminology glossary projections: the human-readable Markdown table (generated/catalog/glossary.md, grouped by slice then language with one row per reviewed source→target crossing) plus the two external terminology-interchange lowerings (Principle 17) — the OntoLex vartrans:translation Turtle (generated/projections/glossary.vartrans.ttl: one vartrans:Translation per crossing over the reused ontolex:LexicalSense structure) and the TBX ISO-30042 termbase (generated/projections/glossary.tbx: one termEntry per concept, one langSet per language). All three are derived from the SAME reviewed `.po` entry list the corpus folds (crate::stages::lang_glossary::build_entries) — lossy sanctioned projections, never a second parse, so they cannot drift from the graph; each lowering's honest drop list rides its lang:ProjectionEmission record in graph/lang-projection-corpus. A source-reading leaf like gmeow:stage-export-matrix: it reads the authored `.po` catalogs and homograph declarations directly. The `.vartrans.ttl` is RDF, so it rides as the canonical fold of the RDF-fanout named graph graph/fanout/projections/glossary.vartrans.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate); the non-RDF `.md` table and `.tbx` termbase stay opaque REP_GENERATED fanout members."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "glossary" ;
+    gmeow:producesFormat "markdown" .
+
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -1067,6 +1080,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
@@ -1135,6 +1149,7 @@ gmeow:stage-mappings
         <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus> ,
@@ -1184,6 +1199,7 @@ gmeow:stage-snapshot
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/purremb.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/functions.fno.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/glossary.vartrans.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/list-functions.fno.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/lillith.dcat.ttl> ,
@@ -1264,6 +1280,7 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-logic-shape-grounding-ledger ,
     gmeow:fanout-projections-core-prefixes ,
     gmeow:fanout-projections-functions-fno ,
+    gmeow:fanout-projections-glossary-vartrans ,
     gmeow:fanout-projections-list-functions-fno ,
     gmeow:fanout-quality-assessment ,
     gmeow:fanout-profiles ,
@@ -1380,6 +1397,14 @@ gmeow:fanout-projections-functions-fno a gmeow:FanoutExtraction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-projections-glossary-vartrans a gmeow:FanoutExtraction ;
+    rdfs:label "fanout projections glossary vartrans"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/projections/glossary.vartrans.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/glossary.vartrans.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;

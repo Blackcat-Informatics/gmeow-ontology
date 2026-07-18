@@ -2986,6 +2986,13 @@ export type Geocode = {
 
 export type GeometryTypeEnum = (string & ("gmeow:geometryTypeLineString" | "gmeow:geometryTypeMultiLineString" | "gmeow:geometryTypeMultiPoint" | "gmeow:geometryTypeMultiPolygon" | "gmeow:geometryTypePoint" | "gmeow:geometryTypePolygon"));
 
+export type Glossary = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
 export type GmnCompaction = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
@@ -6739,6 +6746,18 @@ export type LangComposedForm = {
   readonly "@annotation"?: Annotation;
   readonly "@id"?: string;
   readonly "@type"?: (string | readonly (string)[]);
+  readonly [key: string]: JsonValue;
+};
+
+export type LangDeclaredTerminologyHomograph = {
+  readonly "@annotation"?: Annotation;
+  readonly "@id"?: string;
+  readonly "@type"?: (string | readonly (string)[]);
+  readonly "lang:homographSource"?: (string | {
+        readonly "@type"?: string;
+        readonly "@value": JsonValue;
+        readonly [key: string]: JsonValue;
+      });
   readonly [key: string]: JsonValue;
 };
 

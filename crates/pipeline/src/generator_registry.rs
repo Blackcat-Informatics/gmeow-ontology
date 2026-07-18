@@ -87,6 +87,18 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &[],
     },
     GeneratorInfo {
+        name: "glossary",
+        sources: &["slices/"],
+        outputs: &[
+            "generated/catalog/glossary.md",
+            // The two external terminology-interchange lowerings (OntoLex vartrans + TBX),
+            // rendered on stage-export-glossary from the SAME reviewed-crossing entry list.
+            "generated/projections/glossary.tbx",
+            "generated/projections/glossary.vartrans.ttl",
+        ],
+        dependencies: &[],
+    },
+    GeneratorInfo {
         name: "gts",
         sources: &[
             "slices/",

@@ -13442,6 +13442,31 @@
         },
         "type": "object"
       },
+      "Glossary": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "GmnCompaction": {
         "properties": {
           "@annotation": {
@@ -24528,6 +24553,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:Glossary"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Glossary"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Glossary"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:GmnCompaction"
                     },
                     {
@@ -29470,6 +29520,31 @@
             },
             "then": {
               "$ref": "#/$defs/lang:ComposedForm"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "lang:DeclaredTerminologyHomograph"
+                    },
+                    {
+                      "contains": {
+                        "const": "lang:DeclaredTerminologyHomograph"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/lang:DeclaredTerminologyHomograph"
             }
           },
           {
@@ -47246,6 +47321,49 @@
                   "type": "string"
                 },
                 "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "lang:DeclaredTerminologyHomograph": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "lang:homographSource": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
               }
             ]
           }

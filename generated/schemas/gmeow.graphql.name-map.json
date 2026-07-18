@@ -1042,6 +1042,10 @@
       "output_type": "GeometryTypeEnum",
       "input_type": "GeometryTypeEnum"
     },
+    "Glossary": {
+      "output_type": "Glossary",
+      "input_type": "GlossaryInput"
+    },
     "GmnCompaction": {
       "output_type": "GmnCompaction",
       "input_type": "GmnCompactionInput"
@@ -2473,6 +2477,10 @@
     "lang:ComposedForm": {
       "output_type": "LangComposedForm",
       "input_type": "LangComposedFormInput"
+    },
+    "lang:DeclaredTerminologyHomograph": {
+      "output_type": "LangDeclaredTerminologyHomograph",
+      "input_type": "LangDeclaredTerminologyHomographInput"
     },
     "lang:Denotation": {
       "output_type": "LangDenotation",
@@ -4668,6 +4676,11 @@
       "@id": "id",
       "@type": "type"
     },
+    "#/$defs/Glossary": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type"
+    },
     "#/$defs/GmnCompaction": {
       "@annotation": "annotation",
       "@id": "id",
@@ -5997,6 +6010,12 @@
       "@annotation": "annotation",
       "@id": "id",
       "@type": "type"
+    },
+    "#/$defs/lang:DeclaredTerminologyHomograph": {
+      "@annotation": "annotation",
+      "@id": "id",
+      "@type": "type",
+      "lang:homographSource": "langHomographSource"
     },
     "#/$defs/lang:Denotation": {
       "@annotation": "annotation",

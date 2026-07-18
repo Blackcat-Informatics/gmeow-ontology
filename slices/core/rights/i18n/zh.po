@@ -759,7 +759,7 @@ msgstr "商业秘密"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeTrademark|rdfs:label"
 msgid "trademark"
-msgstr "商标"
+msgstr "商标权"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ruleAction|rdfs:label"
 msgid "rule action"
