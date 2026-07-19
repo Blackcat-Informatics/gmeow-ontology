@@ -400,7 +400,7 @@ fn walk_rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
 }
 
 #[test]
-fn ac5_bundle_size_ceiling_stays_removed_honoring_1404() {
+fn ac5_bundle_size_ceiling_stays_removed() {
     let crates_dir = repo_root().join("crates");
     let mut files = Vec::new();
     walk_rust_files(&crates_dir, &mut files);
