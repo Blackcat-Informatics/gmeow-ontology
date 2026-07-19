@@ -3,7 +3,7 @@
 
 # Design: External documentation projection distribution
 
-Issue #1491, follow-up to PR #1490. Cite principles by number (`Principle 4`) in
+Issue 1491, follow-up to PR 1490. Cite principles by number (`Principle 4`) in
 issues and PRs.
 
 ## Decision Summary
@@ -16,7 +16,7 @@ issues and PRs.
 | Per-release digests | A separate release-time DCAT **instance** manifest under `dist/` — never in the carrier |
 | Source-backed export | Preserved: `make sync SYNC_OUTPUTS=docs` → `sync_docs` renders all eight distributions |
 | `zstd-rsyncable` level-12 | Preserved; positively asserted over the shipped bundle's real payload frames |
-| Size budget | **None reintroduced** — honors #1404 ("size is not a gate that matters"); the forbidden-embed invariant is the gate |
+| Size budget | **None reintroduced** — honors 1404 ("size is not a gate that matters"); the forbidden-embed invariant is the gate |
 
 The whole job of this issue is to reconcile two doctrines that pull in opposite
 directions on documentation, and to gate the reconciliation so it cannot regress:
@@ -67,14 +67,14 @@ So the decision rests on size and architectural fit, not regen cost.
 
 ### Why A wins
 
-- **Keeps the 93.2% bundle-size win** PR #1490 landed (149 MB → 10 MB). C throws it away;
+- **Keeps the 93.2% bundle-size win** PR 1490 landed (149 MB → 10 MB). C throws it away;
   B keeps a separate 98 MB artifact that duplicates what the external tree already holds.
 - **Doctrine-default (Principle 14):** the release path already publishes a
   content-addressed GitHub release with a checksum sidecar; A extends that pattern to the
   docs tarball + DCAT manifest, adding no new distribution machinery class.
 - **No policy conflict:** A never re-embeds, so AC5's "size budget" precondition is never
-  reached and no size gate is reintroduced (honoring #1404). C would require the
-  #1404-killed size budget.
+  reached and no size gate is reintroduced (honoring 1404). C would require the
+  1404-killed size budget.
 - **Content-addressed, dogfooded:** each distribution carries a `blake3:<hex>` in a DCAT
   `spdx:checksumValue`, and the consumer verb `gmeow docs verify` checks it.
 
@@ -129,7 +129,7 @@ have to be known before THIS bundle is serialized). The design splits accordingl
   docs tarball is a USTAR file, not a GTS frame; it carries a `blake3` sidecar. Any GTS
   frame authored routes through `gts_profile::emit_gmeow_gts`, and the contract positively
   validates every payload frame of the shipped bundle.
-- **#1404 (size gate removed):** honored — no size budget is reintroduced. Re-embedding is
+- **1404 (size gate removed):** honored — no size budget is reintroduced. Re-embedding is
   forbidden outright, so the AC5 "budget-or-contract" precondition never triggers; the
   test-gated **forbidden-embed** invariant (`documentation_projections_are_absent` +
   "no `TOTAL_CEILING`") is the gate.

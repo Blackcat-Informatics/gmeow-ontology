@@ -144,7 +144,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
         .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
 
-    // The three serialization-family distributions (issue #1491 Task 3, AC2 payload
+    // The three serialization-family distributions (issue 1491 Task 3, AC2 payload
     // segmentation): rendered off the SAME committed-bundle carrier dataset the site's
     // reasoned playground reads, through the single production serializer authorities
     // (`gmeow_pipeline::docs_distribution`) — never re-implemented here.
@@ -168,7 +168,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
 
     // Content-address every one of the eight external documentation/serialization
     // distributions and build the release-time DCAT manifest linking each to its
-    // Task-2 catalog subject (issue #1491 Task 3). Rendered in memory unconditionally
+    // Task-2 catalog subject (issue 1491 Task 3). Rendered in memory unconditionally
     // (even in check mode) — no-optionality forbids a silent skip of the manifest.
     type DistTree<'a> = (&'a str, &'a str, &'a BTreeMap<String, Vec<u8>>);
     let format_trees: [DistTree<'_>; 8] = [

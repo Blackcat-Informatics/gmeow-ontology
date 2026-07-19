@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! External documentation / serialization distribution rendering, content-addressing,
-//! and the release-time DCAT manifest (issue #1491 Task 3).
+//! and the release-time DCAT manifest (issue 1491 Task 3).
 //!
 //! This module is the SOLE producer [`crate::stages::okf`] / [`crate::stages::yaml_ld`]
 //! results route through on their way to the `dist/gmeow-docs/{okf,jsonld,yamlld}`
@@ -296,7 +296,7 @@ pub fn build_docs_distribution_manifest(
         .map_err(|e| err(format!("project the release distribution instance through dcat.rq: {e}")))
 }
 
-// ── consumer-side catalog matrix (issue #1491 Task 5, `gmeow docs matrix`) ─────────
+// ── consumer-side catalog matrix (issue 1491 Task 5, `gmeow docs matrix`) ─────────
 
 /// The IRI-namespace-local-name tail of `iri` (the segment after its final `/`).
 /// Uniformly recovers a slug from every kind of subject this module's catalog reads
@@ -307,7 +307,7 @@ fn local_name(iri: &str) -> String {
     iri.rsplit('/').next().unwrap_or(iri).to_string()
 }
 
-/// One resolved row of the per-format consumer-need matrix (issue #1491 AC2):
+/// One resolved row of the per-format consumer-need matrix (issue 1491 AC2):
 /// a single `gmeow:DocumentationDistribution` from the Task-2 catalog, as read back
 /// by [`read_distribution_matrix`] — the production dogfooding consumer of the
 /// catalog's ontology content (`gmeow docs matrix`), never a re-authored static
@@ -326,7 +326,7 @@ pub struct DistributionRow {
 }
 
 /// Resolve the per-format consumer-need matrix by QUERYING the meta-level
-/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (issue #1491
+/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (issue 1491
 /// AC2), dogfooding the Task-2 catalog content rather than re-deriving it.
 ///
 /// The named graph survives only through the STRUCTURAL reader
@@ -442,7 +442,7 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
     Ok(rows)
 }
 
-// ── manifest verification (issue #1491 Task 5, `gmeow docs verify`) ────────────────
+// ── manifest verification (issue 1491 Task 5, `gmeow docs verify`) ────────────────
 
 /// One format's blake3 verification outcome: the manifest's declared digest vs. the
 /// digest recomputed by re-packaging `<dir>/<slug>` through [`package_docs_dir`] — the

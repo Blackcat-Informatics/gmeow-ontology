@@ -294,7 +294,7 @@ pub enum Commands {
         #[command(subcommand)]
         command: SliceCommands,
     },
-    /// External documentation distribution tools (issue #1491 Task 5): the
+    /// External documentation distribution tools (issue 1491 Task 5): the
     /// checkout-free consumer twin of the release-time docs distribution — dogfoods
     /// the Task-2 catalog and verifies the Task-3/4 content-addressed distribution.
     Docs {
@@ -445,7 +445,7 @@ pub enum SliceCommands {
     },
 }
 
-/// The `gmeow docs` nested subcommands (issue #1491 Task 5).
+/// The `gmeow docs` nested subcommands (issue 1491 Task 5).
 #[derive(Debug, Subcommand)]
 pub enum DocsCmd {
     /// Resolve the per-format consumer-need matrix by querying the meta-level

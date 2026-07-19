@@ -322,7 +322,7 @@ define_diag_kind! {
 define_diag_kind! {
     /// A hard defect raised while rendering the external documentation /
     /// serialization distributions or building the release-time DCAT
-    /// distribution manifest (`docs_distribution`, issue #1491 Task 3): a
+    /// distribution manifest (`docs_distribution`, issue 1491 Task 3): a
     /// serializer failure, a malformed OKF member path, a missing bundled
     /// `dcat.rq` projection query, or a DCAT projection failure over the
     /// release-time distribution instance graph.

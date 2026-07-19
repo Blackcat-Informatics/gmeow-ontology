@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Test-gated distribution contract for issue #1491 (external documentation
+//! Test-gated distribution contract for issue 1491 (external documentation
 //! distribution). Every acceptance criterion becomes a self-policing gate here so a
 //! future edit that quietly regresses AC2 (segmentation/bijection), AC3
 //! (source-backed export), AC4 (zstd-rsyncable L12), AC5 (forbidden-embed / no size
@@ -95,18 +95,18 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
         source.contains("run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
-        "AC3 (issue #1491, source-backed export): .github/workflows/pages.yml must render the \
+        "AC3 (issue 1491, source-backed export): .github/workflows/pages.yml must render the \
          Pages site from canonical sources via the exact step `run: make sync SYNC_MODE=update \
          SYNC_OUTPUTS=docs` — it must never publish a stale or hand-copied tree"
     );
     assert!(
         source.contains("uses: actions/upload-pages-artifact"),
-        "AC3 (issue #1491): pages.yml must upload the freshly rendered tree via an \
+        "AC3 (issue 1491): pages.yml must upload the freshly rendered tree via an \
          `uses: actions/upload-pages-artifact` step"
     );
     assert!(
         source.contains("path: ontology-docs"),
-        "AC3 (issue #1491): the upload-pages-artifact step must upload `path: ontology-docs` (the \
+        "AC3 (issue 1491): the upload-pages-artifact step must upload `path: ontology-docs` (the \
          source-rendered site tree written by `sync_docs`), never a different or generated/ path"
     );
 }
@@ -117,7 +117,7 @@ fn ac3_makefile_sync_delegates_to_gmeow_dev_sync() {
     let recipe = target_recipe(&source, "sync");
     assert!(
         recipe.contains("$(GMEOW_DEV) sync"),
-        "AC3 (issue #1491): the standalone Makefile `sync:` recipe must delegate to the single \
+        "AC3 (issue 1491): the standalone Makefile `sync:` recipe must delegate to the single \
          `$(GMEOW_DEV) sync` producer binary invocation; recipe was: {recipe:?}"
     );
 }
@@ -128,19 +128,19 @@ fn ac3_makefile_release_publish_attaches_docs_tar_via_docs_package() {
     let recipe = target_recipe(&source, "release-publish");
     assert!(
         recipe.contains("$(GMEOW_DEV) docs-package"),
-        "AC3/Task 4 (issue #1491): `release-publish` must package the external docs distribution \
+        "AC3/Task 4 (issue 1491): `release-publish` must package the external docs distribution \
          via `$(GMEOW_DEV) docs-package`; recipe was: {recipe:?}"
     );
     assert!(
         recipe.contains("dist/gmeow-docs.tar"),
-        "AC3/Task 4 (issue #1491): `release-publish` must attach `dist/gmeow-docs.tar` as a \
+        "AC3/Task 4 (issue 1491): `release-publish` must attach `dist/gmeow-docs.tar` as a \
          content-addressed release asset; recipe was: {recipe:?}"
     );
 }
 
 // ── AC2 / AC6 — segmentation, single authority, bijection, boundary ────────────────
 
-/// The eight canonical distribution slugs issue #1491 ships: the four doc-render
+/// The eight canonical distribution slugs issue 1491 ships: the four doc-render
 /// formats (`gmeow_docs::formats::DocFormat::ALL`) plus the four serialization
 /// formats.
 const CANONICAL_SLUGS: [&str; 8] = [
@@ -180,13 +180,13 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
     let had_manifest = rendered_slugs.remove("manifest");
     assert!(
         had_manifest,
-        "AC2/AC6 (issue #1491): dev_project.rs `sync_docs` must reconcile a \
+        "AC2/AC6 (issue 1491): dev_project.rs `sync_docs` must reconcile a \
          `dist/gmeow-docs/manifest` destination for the DCAT release manifest, separate from the \
          8 canonical distributions — slug extraction found none"
     );
     assert_eq!(
         rendered_slugs, expected,
-        "AC2/AC6 (issue #1491, single segmentation authority): sync_docs's rendered \
+        "AC2/AC6 (issue 1491, single segmentation authority): sync_docs's rendered \
          `dist/gmeow-docs/<slug>` destinations must be EXACTLY the 8 canonical distribution slugs \
          {CANONICAL_SLUGS:?}; got {rendered_slugs:?}"
     );
@@ -200,7 +200,7 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
         .collect();
     assert_eq!(
         catalog_slugs, expected,
-        "AC2/AC6 (issue #1491): distribution_catalog.rs must declare all 8 canonical distribution \
+        "AC2/AC6 (issue 1491): distribution_catalog.rs must declare all 8 canonical distribution \
          slugs {CANONICAL_SLUGS:?} (as a distributionFormat literal or an enum slug); found \
          {catalog_slugs:?}"
     );
@@ -208,7 +208,7 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
     // Bijection both directions: rendered slugs == catalog-declared slugs == canonical set.
     assert_eq!(
         rendered_slugs, catalog_slugs,
-        "AC2/AC6 (issue #1491): the rendered docs destinations and the Task-2 catalog schema must \
+        "AC2/AC6 (issue 1491): the rendered docs destinations and the Task-2 catalog schema must \
          name the SAME slug set (bijection catalog <-> rendered); rendered={rendered_slugs:?} \
          catalog={catalog_slugs:?}"
     );
@@ -234,12 +234,12 @@ fn ac2_ac6_docs_destinations_stay_under_dist_or_ontology_docs_never_generated() 
     let block = destinations_block(&source);
     assert!(
         block.contains("\"ontology-docs\"") && block.contains("\"dist/gmeow-docs/"),
-        "AC2/AC6 (issue #1491): `destinations` array extraction looks broken (found neither an \
+        "AC2/AC6 (issue 1491): `destinations` array extraction looks broken (found neither an \
          ontology-docs nor a dist/gmeow-docs base): {block}"
     );
     assert!(
         !block.contains("generated/"),
-        "AC2/AC6 (issue #1491, boundary): every docs destination base in sync_docs's \
+        "AC2/AC6 (issue 1491, boundary): every docs destination base in sync_docs's \
          `destinations` array must live under `dist/` or `ontology-docs`, NEVER `generated/`; \
          found a `generated/` literal in the destinations block: {block}"
     );
@@ -250,7 +250,7 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     let dev_project = dev_project_source();
     assert!(
         dev_project.contains("render_serialization_distributions"),
-        "AC2/AC6 (issue #1491, single serializer authority): dev_project.rs must render the \
+        "AC2/AC6 (issue 1491, single serializer authority): dev_project.rs must render the \
          okf/jsonld/yamlld distributions through \
          `gmeow_pipeline::docs_distribution::render_serialization_distributions`, never a \
          re-implemented serializer"
@@ -258,7 +258,7 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     for banned in ["fn render_okf", "fn serialize_graph(", "fn serialize_graph_yaml("] {
         assert!(
             !dev_project.contains(banned),
-            "AC2/AC6 (issue #1491): dev_project.rs must not re-implement `{banned}` — okf/JSON-LD/\
+            "AC2/AC6 (issue 1491): dev_project.rs must not re-implement `{banned}` — okf/JSON-LD/\
              YAML-LD serialization has exactly one authority and dev_project.rs must only call it"
         );
     }
@@ -271,14 +271,14 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     ] {
         assert!(
             docs_distribution.contains(authority),
-            "AC2/AC6 (issue #1491): docs_distribution.rs's render_serialization_distributions must \
+            "AC2/AC6 (issue 1491): docs_distribution.rs's render_serialization_distributions must \
              call the single authority `{authority}`, never a re-derived serializer"
         );
     }
     for banned in ["fn render_okf", "fn serialize_graph(", "fn serialize_graph_yaml("] {
         assert!(
             !docs_distribution.contains(banned),
-            "AC2/AC6 (issue #1491): docs_distribution.rs must not locally re-implement `{banned}` — \
+            "AC2/AC6 (issue 1491): docs_distribution.rs must not locally re-implement `{banned}` — \
              it is a CALLER of the single serializer authority, never a second source of truth"
         );
     }
@@ -291,7 +291,7 @@ fn ac5_forbidden_embed_gate_stays_present() {
     let source = bundle_blobs_source();
     assert!(
         source.contains("fn documentation_projections_are_absent"),
-        "AC5 (issue #1491, forbidden-embed): crates/pipeline/src/bundle_blobs.rs must keep the \
+        "AC5 (issue 1491, forbidden-embed): crates/pipeline/src/bundle_blobs.rs must keep the \
          `documentation_projections_are_absent` gate — the shipped gmeow.gts bundle must never \
          embed a documentation projection"
     );
@@ -322,7 +322,7 @@ fn ac5_bundle_size_ceiling_stays_removed_honoring_1404() {
     walk_rust_files(&crates_dir, &mut files);
     assert!(
         files.len() > 100,
-        "AC5 (issue #1491): the crates/ Rust source walk looks broken: found only {} .rs files",
+        "AC5 (issue 1491): the crates/ Rust source walk looks broken: found only {} .rs files",
         files.len()
     );
 
@@ -349,7 +349,7 @@ fn ac5_bundle_size_ceiling_stays_removed_honoring_1404() {
     }
     assert!(
         offenders.is_empty(),
-        "AC5 (issue #1491, #1404): none of {banned:?} may reappear anywhere under crates/ — the \
+        "AC5 (issue 1491, 1404): none of {banned:?} may reappear anywhere under crates/ — the \
          bundle size-budget gate stays removed; found: {offenders:?}"
     );
 }
@@ -359,7 +359,7 @@ fn ac5_catalog_is_digest_free_and_outside_reasoning_closure() {
     let catalog = distribution_catalog_source();
     assert!(
         !catalog.contains("iri(GMEOW_NS, \"contentDigest\")"),
-        "AC5 (issue #1491): the Task-2 distribution catalog schema \
+        "AC5 (issue 1491): the Task-2 distribution catalog schema \
          (crates/pipeline/src/stages/distribution_catalog.rs) must stay digest-free — a \
          release-time `gmeow:contentDigest` belongs only to the release instance \
          (crate::docs_distribution's release_instance_ntriples), never the carrier-time schema \
@@ -377,7 +377,7 @@ fn ac5_catalog_is_digest_free_and_outside_reasoning_closure() {
     let array = &array_tail[..array_end];
     assert!(
         !array.contains("distribution-catalog"),
-        "AC5 (issue #1491): the Task-2 distribution-catalog named graph must stay OUT of \
+        "AC5 (issue 1491): the Task-2 distribution-catalog named graph must stay OUT of \
          OBJECT_LEVEL_NAMED_GRAPHS (the object-level reasoning EDB boundary) — it is meta-level \
          schema content, never reasoning input; found `distribution-catalog` inside: {array}"
     );
@@ -393,12 +393,12 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
         header,
         "gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS \
          payload frame.",
-        "AC4 (issue #1491): the `gts-frame-profile-gate` Make target header changed"
+        "AC4 (issue 1491): the `gts-frame-profile-gate` Make target header changed"
     );
     let recipe = target_recipe(&source, "gts-frame-profile-gate");
     assert!(
         recipe.contains("$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts"),
-        "AC4 (issue #1491): `gts-frame-profile-gate` must positively validate EVERY payload frame \
+        "AC4 (issue 1491): `gts-frame-profile-gate` must positively validate EVERY payload frame \
          of the shipped bundle via `$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts`; \
          recipe was: {recipe:?}"
     );
@@ -406,11 +406,11 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let gts_profile = gts_profile_source();
     assert!(
         gts_profile.contains("pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;"),
-        "AC4 (issue #1491): gts_profile.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
+        "AC4 (issue 1491): gts_profile.rs must keep pinning `GMEOW_GTS_ZSTD_LEVEL` to 12"
     );
     assert!(
         gts_profile.contains("pub fn validate_mandated_frames"),
-        "AC4 (issue #1491): gts_profile.rs must keep `validate_mandated_frames`, the function that \
+        "AC4 (issue 1491): gts_profile.rs must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
 }
@@ -488,15 +488,15 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
 
     let verdicts =
         gmeow_pipeline::docs_distribution::verify_docs_distribution(docs_dir, Some("site"))
-            .expect("F1 (issue #1491, `gmeow docs verify`): verify a freshly rendered distribution");
+            .expect("F1 (issue 1491, `gmeow docs verify`): verify a freshly rendered distribution");
     assert_eq!(
         verdicts.len(),
         1,
-        "F1 (issue #1491): expected exactly one verdict for --format site: {verdicts:?}"
+        "F1 (issue 1491): expected exactly one verdict for --format site: {verdicts:?}"
     );
     assert!(
         verdicts[0].ok,
-        "F1 (issue #1491): a freshly rendered, untampered docs distribution must verify clean: \
+        "F1 (issue 1491): a freshly rendered, untampered docs distribution must verify clean: \
          {:?}",
         verdicts[0]
     );
@@ -506,11 +506,11 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
     std::fs::write(site_dir.join("index.html"), b"<html>HELLO</html>").expect("tamper index.html");
     let verdicts =
         gmeow_pipeline::docs_distribution::verify_docs_distribution(docs_dir, Some("site"))
-            .expect("F1 (issue #1491): verify a tampered distribution (still parses/recomputes)");
+            .expect("F1 (issue 1491): verify a tampered distribution (still parses/recomputes)");
     assert_eq!(verdicts.len(), 1);
     assert!(
         !verdicts[0].ok,
-        "F1 (issue #1491, falsifiability): a tampered docs distribution must FAIL verification, \
+        "F1 (issue 1491, falsifiability): a tampered docs distribution must FAIL verification, \
          never silently pass: {:?}",
         verdicts[0]
     );
@@ -524,7 +524,7 @@ fn determinism_embedded_font_digest_is_stable_and_nonempty() {
     let d2 = docs_print::embedded_font_digest();
     assert!(
         !d1.is_empty(),
-        "PDF cross-environment determinism (issue #1491, AC4 sibling guarantee): \
+        "PDF cross-environment determinism (issue 1491, AC4 sibling guarantee): \
          docs_print::embedded_font_digest() must be non-empty — it pins the exact embedded font \
          set a compiled PDF draws from"
     );

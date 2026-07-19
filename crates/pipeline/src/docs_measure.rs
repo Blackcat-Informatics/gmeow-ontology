@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Measured, deterministic documentation-distribution sizing (issue #1491).
+//! Measured, deterministic documentation-distribution sizing (issue 1491).
 //!
 //! [`measure_docs_designs`] renders every shipped documentation / serialization
 //! format through the SAME production renderers `gmeow-dev sync` uses, frames
@@ -97,7 +97,7 @@ pub struct FormatMeasurement {
     pub l12_bytes: u64,
 }
 
-/// The measured byte totals for the three candidate #1491 distribution
+/// The measured byte totals for the three candidate 1491 distribution
 /// designs, plus the per-format breakdown each design total is computed from.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DocsMeasurements {
@@ -118,7 +118,7 @@ pub struct DocsMeasurements {
 
 /// Render every shipped documentation / serialization format through the real
 /// production renderers, frame each through the mandated GTS profile, and
-/// total the three #1491 distribution designs. See the module doc comment for
+/// total the three 1491 distribution designs. See the module doc comment for
 /// why this runs the full pipeline DAG once, in memory, with no disk writes.
 pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     let jobs = std::thread::available_parallelism()
@@ -230,7 +230,7 @@ impl RenderedFormat {
 }
 
 /// Run the full pipeline DAG once, entirely in memory, and render the seven
-/// #1491 formats (five `docs` family, two `serialization` family) off its
+/// 1491 formats (five `docs` family, two `serialization` family) off its
 /// real in-memory products — never off disk.
 fn render_every_format(
     root: &Path,

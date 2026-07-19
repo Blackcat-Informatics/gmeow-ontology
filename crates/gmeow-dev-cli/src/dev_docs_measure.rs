@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! `gmeow-dev docs-measure` — print the measured, deterministic per-format
-//! documentation byte sizes and the three #1491 external-distribution design
+//! documentation byte sizes and the three 1491 external-distribution design
 //! totals (`gmeow_pipeline::docs_measure::measure_docs_designs`).
 
 use crate::dev_common::{fail, project_root};
