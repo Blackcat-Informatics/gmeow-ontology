@@ -154,6 +154,19 @@ pub fn media_type_for_slug(slug: &str) -> Option<&'static str> {
         .map(|dist| dist.media_type())
 }
 
+/// Every distribution slug the catalog declares — the doc-render family
+/// ([`DocFormat::ALL`]) plus the serialization family ([`SerializationDist::ALL`]),
+/// the two authorities [`emit_ntriples`] folds. Exposed so a bijection gate can compare
+/// against the WHOLE declared set: an added or dropped distribution surfaces as a
+/// set-size mismatch rather than passing a subset-presence check.
+pub fn declared_distribution_slugs() -> std::collections::BTreeSet<&'static str> {
+    DocFormat::ALL
+        .into_iter()
+        .map(|fmt| fmt.slug())
+        .chain(SerializationDist::ALL.into_iter().map(|dist| dist.slug()))
+        .collect()
+}
+
 // ── identity helpers ────────────────────────────────────────────────────────────────
 
 /// The canonical Task-2 catalog subject IRI for a distribution slug

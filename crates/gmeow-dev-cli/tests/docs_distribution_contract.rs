@@ -153,21 +153,17 @@ const CANONICAL_SLUGS: [&str; 8] = [
 /// so this test tracks the real destinations array rather than a copy of it.
 fn dist_gmeow_docs_slugs(source: &str) -> BTreeSet<String> {
     let needle = "dist/gmeow-docs/";
-    let mut out = BTreeSet::new();
-    let mut idx = 0usize;
-    while let Some(pos) = source[idx..].find(needle) {
-        let start = idx + pos + needle.len();
-        let rest = &source[start..];
-        let end = rest
-            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
-            .unwrap_or(rest.len());
-        let slug = &rest[..end];
-        if !slug.is_empty() {
-            out.insert(slug.to_string());
-        }
-        idx = start;
-    }
-    out
+    source
+        .match_indices(needle)
+        .filter_map(|(pos, matched)| {
+            let tail = &source[pos + matched.len()..];
+            let slug: String = tail
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '-')
+                .collect();
+            (!slug.is_empty()).then_some(slug)
+        })
+        .collect()
 }
 
 #[test]
@@ -191,18 +187,18 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
          {CANONICAL_SLUGS:?}; got {rendered_slugs:?}"
     );
 
-    // Producer 2: the Task-2 catalog schema.
-    let catalog = distribution_catalog_source();
-    let catalog_slugs: BTreeSet<String> = CANONICAL_SLUGS
-        .iter()
-        .filter(|slug| catalog.contains(&format!("\"{slug}\"")))
-        .map(|s| s.to_string())
-        .collect();
+    // Producer 2: the catalog schema — the WHOLE declared set, so a ninth declared
+    // distribution is caught as a set mismatch instead of being silently subsumed by a
+    // subset-presence check.
+    let catalog_slugs: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::declared_distribution_slugs()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect();
     assert_eq!(
         catalog_slugs, expected,
-        "AC2/AC6 (issue 1491): distribution_catalog.rs must declare all 8 canonical distribution \
-         slugs {CANONICAL_SLUGS:?} (as a distributionFormat literal or an enum slug); found \
-         {catalog_slugs:?}"
+        "AC2/AC6: distribution_catalog.rs must declare EXACTLY the 8 canonical distribution \
+         slugs {CANONICAL_SLUGS:?}; found {catalog_slugs:?}"
     );
 
     // Bijection both directions: rendered slugs == catalog-declared slugs == canonical set.
@@ -501,6 +497,22 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
         "AC4 (issue 1491): gts_profile.rs must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
+
+    // Positively RUN the mandated-frame validator over the shipped bundle — not merely
+    // assert the gate is wired. Every payload frame must carry the zstd-rsyncable-L12
+    // transform; a torn CBOR sequence or a non-conforming frame is a hard failure here.
+    let bundle_path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
+    let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
+        panic!(
+            "cannot read the shipped bundle {} ({e}); materialize it first with \
+             `make sync SYNC_OUTPUTS=generated`",
+            bundle_path.display()
+        )
+    });
+    gmeow_pipeline::validate_mandated_frames(&bundle).unwrap_or_else(|e| {
+        panic!("shipped bundle failed mandated zstd-rsyncable-L12 frame validation: {e}")
+    });
 }
 
 // ── F1 — the consumer verb is exercised end-to-end (RUNTIME, no bundle needed) ────
