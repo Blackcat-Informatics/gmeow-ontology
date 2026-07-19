@@ -217,3 +217,61 @@ fn shipped_norm_claims_shacl_conforms_and_fails_without_mandatory_vantage() {
          by the derived shape (a vacuous non-vacuity proof)"
     );
 }
+
+/// Defense-in-depth (Completion-Adversary F4, whole-bundle half): the demonstrator
+/// `ComplianceAssessment` and its norm/event ALSO conform when validated inside the FULL
+/// flattened bundle — the exact dataset `make validate-gts` SHACL-checks
+/// (`purrdf::gts::flattened_dataset_from_bytes` re-homes EVERY named graph onto the default
+/// graph) — not only as the isolated `graph/norm-claims` fragment the test above checks.
+///
+/// The isolated-fragment check is fast but blind to cross-graph typing: a future value-type
+/// (`sh:class`) shape whose target class typing lives in another graph (e.g. the standpoint
+/// individual's `rdf:type` in the standpoint slice) would spuriously FIRE on the lone fragment
+/// yet must CONFORM in-context. This test closes that gap: it validates the whole flattened
+/// bundle and asserts no SHACL violation lands on any norm-claims subject (their IRIs embed the
+/// advice code). Unrelated pre-existing bundle conformance is `make validate-gts`'s concern, so
+/// the assertion is scoped to the D4 subjects. Like the other tests here it `.expect()`s the
+/// committed bundle + post-sync `generated/shapes/*.ttl`, so it runs green only after `make sync`.
+#[test]
+fn shipped_norm_claims_conforms_within_the_whole_flattened_bundle() {
+    let root = repo_root();
+    let shapes_ttl = merged_shapes_ttl(&root);
+    let shapes =
+        purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("parse the merged shape union");
+
+    // Non-vacuity: locate the demonstrator ComplianceAssessment subject from the well-formed
+    // fragment (the same idiom the isolated test uses); it MUST exist in the shipped bundle.
+    let assessment_class = format!("{GMEOW}ComplianceAssessment");
+    let fragment = norm_claims_only_graph(None);
+    let assessment = graph_triples(&fragment)
+        .iter()
+        .filter(|(_, p, o)| p == RDF_TYPE && o == &assessment_class)
+        .map(|(s, _, _)| s.clone())
+        .find(|s| s.contains(ADVICE_CODE))
+        .unwrap_or_else(|| {
+            panic!("no gmeow:ComplianceAssessment embedding `{ADVICE_CODE}` in graph/norm-claims")
+        });
+
+    // Validate the WHOLE flattened bundle — all named graphs re-homed onto the default graph,
+    // exactly the dataset `make validate-gts` runs SHACL over (see the module docs above).
+    let bytes = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
+    let whole = purrdf::gts::flattened_dataset_from_bytes(&bytes)
+        .expect("flatten the shipped gmeow.gts into an RdfDataset");
+    let report = purrdf::shapes::engine::validate_dataset(&whole, &shapes)
+        .expect("run SHACL over the whole flattened bundle");
+
+    // Scope to the norm-claims subjects: their content-addressed IRIs (norm / event / assessment)
+    // all embed ADVICE_CODE, so a violation focused on one of them fails here — while unrelated
+    // bundle-wide conformance (make validate-gts's remit) does not.
+    let norm_claims_violations: Vec<&purrdf::shapes::report::ValidationResult> = report
+        .results
+        .iter()
+        .filter(|r| r.focus_value().contains(ADVICE_CODE))
+        .collect();
+    assert!(
+        norm_claims_violations.is_empty(),
+        "the shipped norm-claims subjects (incl. {assessment}) must SHACL-conform within the whole \
+         flattened bundle, not merely as an isolated fragment; in-context violations: \
+         {norm_claims_violations:#?}"
+    );
+}
