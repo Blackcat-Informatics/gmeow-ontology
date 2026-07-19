@@ -66,13 +66,13 @@ fn err(message: impl Into<String>) -> Diag {
 /// module, mirrored here so this module has no dependency on it).
 const AXIOM_FILES: [&str; 4] = [OWL_DL_PATH, OWL_EL_PATH, CANONICAL_RDF12_PATH, DATALOG_PATH];
 
-/// A fixed, documented allowance for the Design A release manifest (the DCAT
-/// catalog instance + per-format checksums the external distribution ships
-/// alongside the rendered trees, issue #1491 Task 2/3). Not yet a measured
-/// artifact in this repository — this constant is a placeholder pending the
-/// real catalog producer; it is small relative to every measured format and
-/// kept as an explicit, greppable constant rather than folded silently into
-/// `design_a_bytes` with no accounting.
+/// A fixed nominal allowance for the Design A release manifest (the DCAT catalog
+/// instance + per-format checksums the external distribution ships alongside the
+/// rendered trees — produced for real by `crate::docs_distribution`). The manifest
+/// is KB-scale and negligible against every measured format (the smallest is
+/// `pydantic` at ~2.6 MB), so this size comparison carries it as a single explicit,
+/// greppable nominal constant rather than folding it silently into `design_a_bytes`
+/// with no accounting; measuring the exact manifest bytes would not move the total.
 const DESIGN_A_MANIFEST_ALLOWANCE_BYTES: u64 = 4096;
 
 /// One documentation or serialization format's measured footprint.
