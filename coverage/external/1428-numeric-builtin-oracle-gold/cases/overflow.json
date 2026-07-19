@@ -1,0 +1,12 @@
+{
+  "op": "integer_add_overflow",
+  "mode": "gap",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:ans(X, D) :- X is 0, D is 9223372036854775807 + 1.\n?- ex:ans(X, D).\n",
+  "expected_gap_kind": "Overflow",
+  "provenance": {
+    "generator": "hand-derived ℤ reference",
+    "derivation": "9223372036854775807 is i64::MAX. i64::MAX + 1 = 9223372036854775808, which does not fit in a signed 64-bit integer (i64::MAX = 2^63 - 1) -- a checked_add overflow, a declared math:Overflow domain error, never a silent wraparound (e.g. never i64::MIN). `X` is an unused dummy arg (`X is 0`) so the goal atom is arity >= 2, keeping the query on the binary backward path (which actually evaluates the builtin) rather than the arity-generic path (which refuses ANY builtin unconditionally, positive-Datalog-only) -- see the corpus README's arity note; this is what makes the refusal below trace to the REAL overflow condition rather than the arity-routing gap.",
+    "note": "independently derived; never hand-edited to match the native engine. OBSERVABILITY CAVEAT: the public dispatch_query surface collapses every domain gap to the same opaque 'Arithmetic' refusal message -- see quantity_add_dimension_mismatch.json's note for the full explanation. This case only proves the engine refuses rather than wraps/panics on overflow; it cannot independently confirm the refusal was specifically tagged Overflow internally."
+  }
+}

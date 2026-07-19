@@ -1,0 +1,14 @@
+{
+  "op": "rational_exact_div_normalize",
+  "mode": "value",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:ans(X, D) :- X is 0, D is 2 / 4.\n?- ex:ans(X, D).\n",
+  "checks": [
+    { "var": "D", "value_kind": "rational", "expected": "1/2" }
+  ],
+  "provenance": {
+    "generator": "hand-derived exact-ℚ reference",
+    "derivation": "2/4: gcd(2,4)=2 -> reduces to 1/2. Exercises the exact-ℚ normalization path (a fraction NOT already in lowest terms). `X` is an unused dummy arg (`X is 0`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

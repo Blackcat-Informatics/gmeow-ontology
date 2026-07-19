@@ -84,6 +84,16 @@ harness = false
 [[test]]
 name = "dl_oracle_gold"
 
+# The per-op numeric-builtin oracle-gold lane (issue #1428): drives each frozen,
+# independently hand-derived case under `coverage/external/1428-numeric-builtin-oracle-gold/`
+# through the PUBLIC `gmeow_logic::dispatch::dispatch_query` surface (never the
+# crate-private `builtin_eval::eval`), so the exact-ℚ arithmetic / comparison / SI-dimension
+# / dimensioned-quantity builtins are each anchored to an oracle independent of the engine
+# under test. Offline + deterministic (no Docker/Java/network); the standard libtest harness
+# (not datatest-stable).
+[[test]]
+name = "numeric_builtin_oracle_gold"
+
 # The W3C OWL 2 EL soundness-divergence regression gate: re-runs the eight
 # correctness-crux cases (seven agreeing soundness fixes + the owl:Thing-oneOf
 # honest gaps) through the native reasoner and pins each verdict + the exact

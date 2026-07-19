@@ -1,0 +1,15 @@
+{
+  "op": "quantity_add_dimension_mismatch",
+  "mode": "gap",
+  "facts": [
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyA", "lex": "3/1;1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" },
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyC", "lex": "2/1;0/1,0/1,1/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:sum(X, D) :- ex:qtyA(X, A), ex:qtyC(X, B), D is A + B.\n?- ex:sum(X, D).\n",
+  "expected_gap_kind": "DimensionMismatch",
+  "provenance": {
+    "generator": "hand-derived exact-ℚ / ℚ⁷ reference",
+    "derivation": "qtyA = 3 m (dimension [1,0,0,0,0,0,0], length). qtyC = 2 s (dimension [0,0,1,0,0,0,0], time). Quantity `+` REQUIRES the two dimensions be commensurable (intrinsic-homogeneity gate); length != time componentwise (index0: 1 vs 0), so the operands are incommensurable and the addition is undefined -- a declared math:DimensionMismatch domain error, never a silently-computed sum.",
+    "note": "independently derived; never hand-edited to match the native engine. OBSERVABILITY CAVEAT: the public program-runner surface (gmeow_logic::dispatch::dispatch_query) does not carry the specific BuiltinError variant across its API boundary -- every domain gap (ZeroDivisor / Overflow / DimensionMismatch) collapses to the identical opaque native-engine refusal `NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)`, surfaced as the fixed message 'native backward engine does not support Arithmetic; query refused because no fallback engine remains'. The consuming test can therefore only assert the ENGINE REFUSES this program (never silently computes a wrong sum), not that it names DimensionMismatch specifically; `expected_gap_kind` records the kind we independently derived by hand for documentation, not something the public surface can confirm bit-for-bit."
+  }
+}
