@@ -197,6 +197,17 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 ##@ Generated Artifacts And Outputs
 
 sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
+	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
+	@# cold checkout that build output must exist before this pipeline's docs fanout
+	@# runs. `SYNC_OUTPUTS=all` already orders this correctly in ONE pass (the pipeline
+	@# run writes dist/gmeow.jsonld/.yamlld before sync_docs reads them); only the
+	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
+	@# it alone needs an explicit materialize-then-build prerequisite here.
+	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
+		$(MAKE) sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) build; \
+	fi
 	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).

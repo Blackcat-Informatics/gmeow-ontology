@@ -144,9 +144,9 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
         .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
 
-    // The three serialization-family distributions (issue 1491 Task 3, AC2 payload
-    // segmentation): rendered off the SAME committed-bundle carrier dataset the site's
-    // reasoned playground reads, through the single production serializer authorities
+    // The OKF serialization distribution (AC2 payload segmentation): rendered off the
+    // SAME committed-bundle carrier dataset the site's reasoned playground reads,
+    // through the single production serializer authority
     // (`gmeow_pipeline::docs_distribution`) — never re-implemented here.
     let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
     let gts_bytes = std::fs::read(&gts_path).map_err(|e| {
@@ -159,12 +159,38 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
     let carrier_dataset = purrdf::gts::dataset_from_gts_graph(&carrier_graph)
         .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
-    let serialization =
+    let okf =
         gmeow_pipeline::docs_distribution::render_serialization_distributions(&carrier_dataset)
-            .map_err(|e| fail(format!("cannot render serialization distributions: {e}")))?;
-    let okf = serialization.okf;
-    let jsonld = serialization.jsonld;
-    let yamlld = serialization.yamlld;
+            .map_err(|e| {
+                fail(format!(
+                    "cannot render the OKF serialization distribution: {e}"
+                ))
+            })?;
+
+    // JSON-LD-star / YAML-LD-star are NOT re-rendered here — `make build` already wrote
+    // `dist/gmeow.jsonld` / `dist/gmeow.yamlld` off the identical committed-bundle
+    // authority (`gmeow_pipeline::stages::yaml_ld`). The docs distribution REFERENCES
+    // that single build output rather than re-serializing it a second time.
+    // No-optionality: an absent build output is a hard fail naming the missing file and
+    // pointing at `make build`, never a silent skip or a fallback re-render.
+    let jsonld = gmeow_pipeline::docs_distribution::read_build_serialization_tree(
+        &root.join(gmeow_pipeline::stages::yaml_ld::JSON_LD_PATH),
+        "gmeow.jsonld",
+    )
+    .map_err(|e| {
+        fail(format!(
+            "cannot reference the JSON-LD-star build output: {e}"
+        ))
+    })?;
+    let yamlld = gmeow_pipeline::docs_distribution::read_build_serialization_tree(
+        &root.join(gmeow_pipeline::stages::yaml_ld::YAML_LD_PATH),
+        "gmeow.yamlld",
+    )
+    .map_err(|e| {
+        fail(format!(
+            "cannot reference the YAML-LD-star build output: {e}"
+        ))
+    })?;
 
     // Content-address every one of the eight external documentation/serialization
     // distributions and build the release-time DCAT manifest linking each to its

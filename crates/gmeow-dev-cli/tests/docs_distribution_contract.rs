@@ -250,10 +250,9 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     let dev_project = dev_project_source();
     assert!(
         dev_project.contains("render_serialization_distributions"),
-        "AC2/AC6 (issue 1491, single serializer authority): dev_project.rs must render the \
-         okf/jsonld/yamlld distributions through \
-         `gmeow_pipeline::docs_distribution::render_serialization_distributions`, never a \
-         re-implemented serializer"
+        "AC2/AC6 (single serializer authority): dev_project.rs must render the OKF \
+         distribution through `gmeow_pipeline::docs_distribution::render_serialization_distributions`, \
+         never a re-implemented serializer"
     );
     for banned in [
         "fn render_okf",
@@ -262,23 +261,46 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     ] {
         assert!(
             !dev_project.contains(banned),
-            "AC2/AC6 (issue 1491): dev_project.rs must not re-implement `{banned}` — okf/JSON-LD/\
-             YAML-LD serialization has exactly one authority and dev_project.rs must only call it"
+            "AC2/AC6: dev_project.rs must not re-implement `{banned}` — okf/JSON-LD/YAML-LD \
+             serialization has exactly one authority and dev_project.rs must only call it"
+        );
+    }
+    // JSON-LD-star / YAML-LD-star are NOT re-serialized in the docs fanout — `make
+    // build` already wrote dist/gmeow.jsonld / dist/gmeow.yamlld off the identical
+    // committed-bundle authority, and sync_docs must only REFERENCE that single build
+    // output, never call the serializer itself.
+    for banned_call in [
+        "yaml_ld::serialize_graph(",
+        "yaml_ld::serialize_graph_yaml(",
+    ] {
+        assert!(
+            !dev_project.contains(banned_call),
+            "AC2/AC6: dev_project.rs's sync_docs must not call `{banned_call}` — it must \
+             reference the single `make build` output (dist/gmeow.jsonld / dist/gmeow.yamlld) \
+             via `read_build_serialization_tree`, never re-serialize"
+        );
+    }
+    assert!(
+        dev_project.contains("read_build_serialization_tree"),
+        "AC2/AC6: dev_project.rs's sync_docs must reference the jsonld/yamlld docs-distribution \
+         trees via `gmeow_pipeline::docs_distribution::read_build_serialization_tree` over the \
+         build-produced dist/gmeow.jsonld / dist/gmeow.yamlld outputs"
+    );
+    for build_output_path in ["yaml_ld::JSON_LD_PATH", "yaml_ld::YAML_LD_PATH"] {
+        assert!(
+            dev_project.contains(build_output_path),
+            "AC2/AC6: dev_project.rs must source the jsonld/yamlld build-output paths from the \
+             single declared constant `{build_output_path}` (`gmeow_pipeline::stages::yaml_ld`), \
+             never a re-typed literal path that could drift"
         );
     }
 
     let docs_distribution = docs_distribution_source();
-    for authority in [
-        "okf::render_okf",
-        "yaml_ld::serialize_graph",
-        "yaml_ld::serialize_graph_yaml",
-    ] {
-        assert!(
-            docs_distribution.contains(authority),
-            "AC2/AC6 (issue 1491): docs_distribution.rs's render_serialization_distributions must \
-             call the single authority `{authority}`, never a re-derived serializer"
-        );
-    }
+    assert!(
+        docs_distribution.contains("okf::render_okf"),
+        "AC2/AC6: docs_distribution.rs's render_serialization_distributions must call the \
+         single authority `okf::render_okf`, never a re-derived serializer"
+    );
     for banned in [
         "fn render_okf",
         "fn serialize_graph(",
@@ -286,10 +308,67 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
     ] {
         assert!(
             !docs_distribution.contains(banned),
-            "AC2/AC6 (issue 1491): docs_distribution.rs must not locally re-implement `{banned}` — \
-             it is a CALLER of the single serializer authority, never a second source of truth"
+            "AC2/AC6: docs_distribution.rs must not locally re-implement `{banned}` — it is a \
+             CALLER of the single serializer authority, never a second source of truth"
         );
     }
+    // docs_distribution.rs must no longer CALL the JSON-LD-star / YAML-LD-star
+    // serializer at all — that would be the exact duplicate render this gap closes. It
+    // may (and does) still NAME the serializer functions in its module doc comment to
+    // explain why they are absent, so this checks for a call form (trailing `(`), not a
+    // bare substring.
+    for banned_call in [
+        "yaml_ld::serialize_graph(",
+        "yaml_ld::serialize_graph_yaml(",
+    ] {
+        assert!(
+            !docs_distribution.contains(banned_call),
+            "AC2/AC6: docs_distribution.rs must not call `{banned_call}` — \
+             render_serialization_distributions renders OKF ONLY; jsonld/yamlld are referenced \
+             from the `make build` output elsewhere, never re-serialized here"
+        );
+    }
+    assert!(
+        docs_distribution.contains("pub fn read_build_serialization_tree"),
+        "AC2/AC6: docs_distribution.rs must expose `read_build_serialization_tree`, the single \
+         function that references the build-produced dist/gmeow.jsonld / dist/gmeow.yamlld \
+         bytes for the docs distribution"
+    );
+}
+
+/// AC2/AC6 — the jsonld/yamlld docs-distribution trees are sourced by READING the exact
+/// build-output files, never a re-render, exercised via the real production
+/// `read_build_serialization_tree` end-to-end (byte-identical to the file on disk,
+/// hard-fails when the build output is absent).
+#[test]
+fn ac2_ac6_docs_distribution_jsonld_yamlld_are_byte_identical_to_the_build_output() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let jsonld_bytes = b"{\"@context\": \"https://blackcatinformatics.ca/gmeow/\", \"@graph\": []}";
+    let build_output = tmp.path().join("gmeow.jsonld");
+    std::fs::write(&build_output, jsonld_bytes).expect("write fake build output");
+
+    let tree = gmeow_pipeline::docs_distribution::read_build_serialization_tree(
+        &build_output,
+        "gmeow.jsonld",
+    )
+    .expect("reference a present build output");
+    assert_eq!(
+        tree.get("gmeow.jsonld").map(Vec::as_slice),
+        Some(jsonld_bytes.as_slice()),
+        "the docs-distribution jsonld member must be BYTE-IDENTICAL to the canonical \
+         dist/gmeow.jsonld build output, never a re-rendered copy: {tree:?}"
+    );
+
+    let missing = tmp.path().join("does-not-exist.jsonld");
+    let err =
+        gmeow_pipeline::docs_distribution::read_build_serialization_tree(&missing, "gmeow.jsonld")
+            .expect_err("an absent build output must hard-fail, never silently render a fallback");
+    let message = format!("{err}");
+    assert!(
+        message.contains("make build"),
+        "AC2/AC6: a missing dist/gmeow.jsonld build output must point the operator at \
+         `make build`, never silently degrade: {message}"
+    );
 }
 
 // ── AC5 — forbidden-embed + no size gate + no carrier digest ───────────────────────

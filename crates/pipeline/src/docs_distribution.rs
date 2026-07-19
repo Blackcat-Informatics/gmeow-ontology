@@ -4,15 +4,23 @@
 //! External documentation / serialization distribution rendering, content-addressing,
 //! and the release-time DCAT manifest (issue 1491 Task 3).
 //!
-//! This module is the SOLE producer [`crate::stages::okf`] / [`crate::stages::yaml_ld`]
-//! results route through on their way to the `dist/gmeow-docs/{okf,jsonld,yamlld}`
-//! external destinations `gmeow-dev sync` writes (`crates/gmeow-dev-cli`'s `sync_docs`).
-//! It never re-implements a serializer — [`render_serialization_distributions`] calls
-//! ONLY [`crate::stages::export::collect_term_surface`] + [`crate::stages::okf::render_okf`]
-//! (OKF) and [`crate::stages::yaml_ld::serialize_graph`] /
-//! [`crate::stages::yaml_ld::serialize_graph_yaml`] (JSON-LD-star / YAML-LD-star) — the
-//! same single-authority calls [`crate::docs_measure`] already makes off the SAME carrier
-//! dataset shape.
+//! This module is the SOLE producer [`crate::stages::okf`] results route through on
+//! their way to the `dist/gmeow-docs/okf` external destination `gmeow-dev sync` writes
+//! (`crates/gmeow-dev-cli`'s `sync_docs`). It never re-implements a serializer —
+//! [`render_serialization_distributions`] calls ONLY
+//! [`crate::stages::export::collect_term_surface`] + [`crate::stages::okf::render_okf`]
+//! (OKF) — the same single-authority call [`crate::docs_measure`] already makes off the
+//! SAME carrier dataset shape.
+//!
+//! JSON-LD-star / YAML-LD-star are DELIBERATELY absent here: `make build`
+//! (`crates/gmeow-dev-cli`'s `dev_transpile::build`) already renders `dist/gmeow.jsonld`
+//! / `dist/gmeow.yamlld` off the identical committed-bundle authority through
+//! [`crate::stages::yaml_ld::serialize_graph`] / [`crate::stages::yaml_ld::serialize_graph_yaml`].
+//! Re-serializing them a second time here would be a duplicate render with its own
+//! on-disk channel that could silently diverge from the build output — instead
+//! [`read_build_serialization_tree`] REFERENCES that single build output by reading it
+//! off disk, so the docs distribution's `jsonld`/`yamlld` members are always the exact
+//! bytes `make build` produced, never a second serialization pass.
 //!
 //! [`distribution_blake3`] is the shared content-addressing idiom every rendered
 //! distribution tree goes through before it is named in the release manifest: pack the
@@ -58,24 +66,17 @@ const RELEASE_CORPUS_IRI: &str = "https://blackcatinformatics.ca/gmeow/distribut
 
 // ── serialization-family rendering ──────────────────────────────────────────────────
 
-/// The three serialization-family trees rendered off a carrier dataset. Members are
-/// relative paths (no `dist/gmeow-docs/<format>` destination prefix) — the caller
-/// (`gmeow-dev sync`'s `sync_docs`) supplies that base when reconciling to disk.
-#[derive(Debug, Default, Clone)]
-pub struct SerializationTrees {
-    pub okf: BTreeMap<String, Vec<u8>>,
-    pub jsonld: BTreeMap<String, Vec<u8>>,
-    pub yamlld: BTreeMap<String, Vec<u8>>,
-}
-
-/// Render the OKF / JSON-LD-star / YAML-LD-star serialization distributions off
-/// `dataset` through the single production serializer authorities (see the module doc
-/// comment). `render_okf` keys its members under `dist/gmeow-okf/…`; that prefix is
-/// stripped here so [`SerializationTrees::okf`] carries plain relative members, ready
-/// to reconcile under the caller's OWN `dist/gmeow-docs/okf` base.
+/// Render the OKF serialization distribution off `dataset` through the single
+/// production serializer authority (see the module doc comment). `render_okf` keys its
+/// members under `dist/gmeow-okf/…`; that prefix is stripped here so the returned tree
+/// carries plain relative members, ready to reconcile under the caller's OWN
+/// `dist/gmeow-docs/okf` base.
+///
+/// JSON-LD-star / YAML-LD-star are NOT rendered here — see the module doc comment;
+/// their docs-distribution trees come from [`read_build_serialization_tree`] instead.
 pub fn render_serialization_distributions(
     dataset: &RdfDataset,
-) -> Result<SerializationTrees, Diag> {
+) -> Result<BTreeMap<String, Vec<u8>>, Diag> {
     let (title, version, terms) = crate::stages::export::collect_term_surface(dataset)
         .map_err(|e| err(format!("collect the OKF/serialization term surface: {e}")))?;
     let okf_raw = crate::stages::okf::render_okf(&title, &version, &terms)
@@ -96,17 +97,34 @@ pub fn render_serialization_distributions(
             "render_okf produced an empty tree — refusing to publish an empty OKF distribution",
         ));
     }
+    Ok(okf)
+}
 
-    let jsonld_text = crate::stages::yaml_ld::serialize_graph(dataset)
-        .map_err(|e| err(format!("serialize the JSON-LD-star document: {e}")))?;
-    let yamlld_text = crate::stages::yaml_ld::serialize_graph_yaml(dataset, None)
-        .map_err(|e| err(format!("serialize the YAML-LD-star document: {e}")))?;
-
-    Ok(SerializationTrees {
-        okf,
-        jsonld: BTreeMap::from([("gmeow.jsonld".to_string(), jsonld_text.into_bytes())]),
-        yamlld: BTreeMap::from([("gmeow.yamlld".to_string(), yamlld_text.into_bytes())]),
-    })
+/// Reference a single build-produced serialization output (`dist/gmeow.jsonld` /
+/// `dist/gmeow.yamlld` — [`crate::stages::yaml_ld::JSON_LD_PATH`] /
+/// [`crate::stages::yaml_ld::YAML_LD_PATH`], written by `make build` /
+/// `gmeow-dev build` off the SAME committed-bundle carrier dataset the docs fanout
+/// reads) as a one-member docs-distribution tree keyed `member_name` (e.g.
+/// `"gmeow.jsonld"`), ready to reconcile under the caller's OWN
+/// `dist/gmeow-docs/{jsonld,yamlld}` base.
+///
+/// The docs fanout must NEVER re-serialize JSON-LD-star / YAML-LD-star — it reads the
+/// exact bytes `make build` already wrote. No-optionality: a missing `build_output` is a
+/// HARD FAIL naming the file and telling the operator to run `make build` first — never
+/// a silent skip and never a fallback re-render.
+pub fn read_build_serialization_tree(
+    build_output: &Path,
+    member_name: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, Diag> {
+    let bytes = std::fs::read(build_output).map_err(|e| {
+        err(format!(
+            "read the build-produced serialization output {}: {e} — run `make build` first \
+             (the docs distribution references that single build output rather than \
+             re-rendering it)",
+            build_output.display()
+        ))
+    })?;
+    Ok(BTreeMap::from([(member_name.to_string(), bytes)]))
 }
 
 // ── content-addressing ──────────────────────────────────────────────────────────────
@@ -1006,6 +1024,43 @@ mod tests {
         assert!(
             format!("{err}").contains("docs-manifest.ttl"),
             "failure must name the missing manifest: {err}"
+        );
+    }
+
+    // ── read_build_serialization_tree (reference the build output, don't re-render) ──
+
+    #[test]
+    fn read_build_serialization_tree_carries_the_exact_build_output_bytes() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let build_output = tmp.path().join("gmeow.jsonld");
+        let bytes = b"{\"@context\": {}, \"@graph\": []}".to_vec();
+        std::fs::write(&build_output, &bytes).expect("write fake build output");
+
+        let tree = read_build_serialization_tree(&build_output, "gmeow.jsonld")
+            .expect("read a present build output");
+        assert_eq!(
+            tree.get("gmeow.jsonld"),
+            Some(&bytes),
+            "the docs-distribution member must carry the build output's bytes byte-for-byte, \
+             never a re-rendered copy: {tree:?}"
+        );
+        assert_eq!(
+            tree.len(),
+            1,
+            "a single build output must yield exactly one tree member: {tree:?}"
+        );
+    }
+
+    #[test]
+    fn read_build_serialization_tree_fails_closed_when_the_build_output_is_missing() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let missing = tmp.path().join("gmeow.yamlld");
+        let err = read_build_serialization_tree(&missing, "gmeow.yamlld")
+            .expect_err("a missing build output must hard-fail, never silently skip");
+        let message = format!("{err}");
+        assert!(
+            message.contains("gmeow.yamlld") && message.contains("make build"),
+            "failure must name the missing build output and point at `make build`: {message}"
         );
     }
 }
