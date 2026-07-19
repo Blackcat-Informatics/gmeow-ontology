@@ -708,7 +708,7 @@ ex:RequiredShape a sh:NodeShape ;
     }
 
     /// The GMEOW namespace prefix. `crates/validate/src/advisory.rs`'s `GMEOW`
-    /// constant is crate-private, so this trivial namespace string is re-declared
+    /// constant is crate-private, so this trivial namespace string is redeclared
     /// here — the same per-module local-const idiom used across the workspace
     /// (`crates/docs`, `crates/conformance`, …) rather than a shared export.
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
