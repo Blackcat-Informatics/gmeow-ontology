@@ -2323,7 +2323,11 @@ mod tests {
 
         let d_c = super::bilinear_sqdist(&gram, &state, &contentment);
         let d_e = super::bilinear_sqdist(&gram, &state, &elation);
-        assert_eq!(d_c, Ok(rat(43, 100)), "state → contentment is exactly 43/100");
+        assert_eq!(
+            d_c,
+            Ok(rat(43, 100)),
+            "state → contentment is exactly 43/100"
+        );
         assert_eq!(d_e, Ok(rat(38, 100)), "state → elation is exactly 38/100");
 
         // Ordering rides the governed overflow-safe compare, not Rational::cmp.

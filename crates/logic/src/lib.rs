@@ -72,7 +72,7 @@ mod physical;
 /// `(x−y)ᵀG(x−y)` and its overflow-safe ordering, exposed so external crates
 /// (gmeow-affect's nearest-prototype classifier, issue #1385) compute Q9 metric
 /// distances THROUGH the governed moded-builtin family rather than a private path.
-pub use physical::{bilinear_sqdist, compare_sqdist, BilinearFormError};
+pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;

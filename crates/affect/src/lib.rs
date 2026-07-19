@@ -1354,7 +1354,10 @@ ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denomina
         // Elation nearest (19/50 < 43/100), contentment second.
         assert_eq!(c.ranked[0].prototype, cls_iri("Elat"));
         assert_eq!(c.ranked[0].squared_distance, "19/50");
-        assert_eq!(c.ranked[0].distance, sqrt_rational_decimal(r(19, 50)).unwrap());
+        assert_eq!(
+            c.ranked[0].distance,
+            sqrt_rational_decimal(r(19, 50)).unwrap()
+        );
         assert!(c.ranked[0].cosine.is_none()); // no cosine under the distance lens
         assert_eq!(c.ranked[1].prototype, cls_iri("Cont"));
         assert_eq!(c.ranked[1].squared_distance, "43/100");
@@ -1451,7 +1454,10 @@ ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denomina
         let graph = cls_graph(
             diag21_entries(),
             false,
-            &[cls_vec("State", "0.0", "0.0"), cls_vec("Elat", "0.6", "0.6")],
+            &[
+                cls_vec("State", "0.0", "0.0"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
         );
         let state = cls_iri("State");
         let protos = vec![cls_iri("Elat")];
@@ -1466,8 +1472,15 @@ ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denomina
         .unwrap();
         assert_eq!(dist.ranked[0].prototype, cls_iri("Elat"));
 
-        let err = classify(&graph, &state, &protos, VANT_PROFILE, MetricLens::Cosine, None)
-            .expect_err("zero-norm state has undefined cosine");
+        let err = classify(
+            &graph,
+            &state,
+            &protos,
+            VANT_PROFILE,
+            MetricLens::Cosine,
+            None,
+        )
+        .expect_err("zero-norm state has undefined cosine");
         assert!(err.message().contains("zero G-norm"), "{err}");
     }
 
@@ -1502,7 +1515,10 @@ ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denomina
         let graph = cls_graph(
             non_pd_entries(),
             false,
-            &[cls_vec("State", "0.5", "0.0"), cls_vec("Elat", "0.6", "0.6")],
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
         );
         let err = classify(
             &graph,
@@ -1566,7 +1582,10 @@ ex:domD a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionDominance ; 
             None,
         )
         .expect_err("axis wider than the form must hard fail");
-        assert!(err.message().contains("exceeds the vantage form order"), "{err}");
+        assert!(
+            err.message().contains("exceeds the vantage form order"),
+            "{err}"
+        );
     }
 
     // An empty prototype set is a hard fail — there is nothing to rank over.
@@ -1602,7 +1621,10 @@ ex:domD a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionDominance ; 
             None,
         )
         .expect_err("out-of-range magnitude must hard fail");
-        assert!(err.message().contains("outside the vantage profile range"), "{err}");
+        assert!(
+            err.message().contains("outside the vantage profile range"),
+            "{err}"
+        );
     }
 
     // `top_k` truncates the reported ranking, but the margin still uses the TRUE top-two.
