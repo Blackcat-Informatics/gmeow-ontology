@@ -138,9 +138,29 @@ pub fn build_distribution_catalog()
     parse_into_graph(&nt, "application/n-triples", GRAPH_DISTRIBUTION_CATALOG)
 }
 
+/// The declared `gmeow:artifactMediaType` for a distribution slug — the SAME
+/// media type this module folds onto the carrier-time catalog subject, exposed as
+/// the single cross-crate authority so a release-time producer (the external docs
+/// fanout, `gmeow-dev sync`) never re-authors a second media-type table that could
+/// drift from the schema. Returns `None` for an unrecognized slug (not one of the
+/// eight declared distributions).
+pub fn media_type_for_slug(slug: &str) -> Option<&'static str> {
+    if let Some(fmt) = DocFormat::ALL.into_iter().find(|fmt| fmt.slug() == slug) {
+        return Some(doc_render_media_type(fmt));
+    }
+    SerializationDist::ALL
+        .into_iter()
+        .find(|dist| dist.slug() == slug)
+        .map(|dist| dist.media_type())
+}
+
 // ── identity helpers ────────────────────────────────────────────────────────────────
 
-fn dist_iri(slug: &str) -> String {
+/// The canonical Task-2 catalog subject IRI for a distribution slug
+/// (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`). `pub(crate)`
+/// so a release-time instance producer (`crate::docs_distribution`) can mint the
+/// SAME subject its members hang off — never a re-derived string literal.
+pub(crate) fn dist_iri(slug: &str) -> String {
     format!("{DISTRIBUTION_BASE}dist/{slug}")
 }
 
@@ -160,17 +180,24 @@ fn consumer_iri(name: &str) -> String {
     format!("{GMEOW_NS}{name}")
 }
 
-fn iri(ns: &str, local: &str) -> String {
+/// `pub(crate)` so [`crate::docs_distribution`] can address the SAME `gmeow:`
+/// predicate/class IRIs this module uses, rather than re-deriving the namespace
+/// concatenation.
+pub(crate) fn iri(ns: &str, local: &str) -> String {
     format!("{ns}{local}")
 }
 
 // ── N-Triples helpers (mirroring docs_format_rendering.rs / carrier.rs) ─────────────
 
-fn triple(subject: &str, predicate: &str, object: &str) -> String {
+/// `pub(crate)` — the single N-Triples subject/predicate/object-IRI triple
+/// formatter, reused by [`crate::docs_distribution`]'s release-instance emitter so
+/// the escaping/quoting convention never forks.
+pub(crate) fn triple(subject: &str, predicate: &str, object: &str) -> String {
     format!("<{subject}> <{predicate}> <{object}> .")
 }
 
-fn triple_lit(subject: &str, predicate: &str, literal: &str) -> String {
+/// `pub(crate)` — see [`triple`].
+pub(crate) fn triple_lit(subject: &str, predicate: &str, literal: &str) -> String {
     format!("<{subject}> <{predicate}> {} .", nt_literal(literal))
 }
 

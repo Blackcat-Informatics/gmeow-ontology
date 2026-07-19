@@ -144,6 +144,65 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
         .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
 
+    // The three serialization-family distributions (issue #1491 Task 3, AC2 payload
+    // segmentation): rendered off the SAME committed-bundle carrier dataset the site's
+    // reasoned playground reads, through the single production serializer authorities
+    // (`gmeow_pipeline::docs_distribution`) — never re-implemented here.
+    let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
+    let gts_bytes = std::fs::read(&gts_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed bundle {}: {e}",
+            gts_path.display()
+        ))
+    })?;
+    let carrier_graph = purrdf::gts::read_all_segments(&gts_bytes)
+        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
+    let carrier_dataset = purrdf::gts::dataset_from_gts_graph(&carrier_graph)
+        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
+    let serialization =
+        gmeow_pipeline::docs_distribution::render_serialization_distributions(&carrier_dataset)
+            .map_err(|e| fail(format!("cannot render serialization distributions: {e}")))?;
+    let okf = serialization.okf;
+    let jsonld = serialization.jsonld;
+    let yamlld = serialization.yamlld;
+
+    // Content-address every one of the eight external documentation/serialization
+    // distributions and build the release-time DCAT manifest linking each to its
+    // Task-2 catalog subject (issue #1491 Task 3). Rendered in memory unconditionally
+    // (even in check mode) — no-optionality forbids a silent skip of the manifest.
+    type DistTree<'a> = (&'a str, &'a str, &'a BTreeMap<String, Vec<u8>>);
+    let format_trees: [DistTree<'_>; 8] = [
+        ("site", "dist/gmeow-docs/site", &site),
+        ("mdbook", "dist/gmeow-docs/mdbook", &mdbook),
+        ("pdf", "dist/gmeow-docs/pdf", &pdf),
+        ("snippets", "dist/gmeow-docs/snippets", &snippets),
+        ("pydantic", "dist/gmeow-docs/pydantic", &pydantic),
+        ("okf", "dist/gmeow-docs/okf", &okf),
+        ("jsonld", "dist/gmeow-docs/jsonld", &jsonld),
+        ("yamlld", "dist/gmeow-docs/yamlld", &yamlld),
+    ];
+    let mut entries = Vec::with_capacity(format_trees.len());
+    for (slug, rel_path, tree) in format_trees {
+        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree)
+            .map_err(|e| fail(format!("cannot content-address the {slug} distribution: {e}")))?;
+        let media_type = gmeow_pipeline::stages::distribution_catalog::media_type_for_slug(slug)
+            .ok_or_else(|| {
+                fail(format!(
+                    "no declared media type for distribution catalog slug {slug:?}"
+                ))
+            })?;
+        entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: rel_path.to_string(),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    let manifest_nt =
+        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
+            .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
+    let manifest = BTreeMap::from([("docs-manifest.ttl".to_string(), manifest_nt.into_bytes())]);
+
     let destinations = [
         ("ontology-docs", &site),
         ("dist/gmeow-docs/site", &site),
@@ -151,6 +210,13 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         ("dist/gmeow-docs/pdf", &pdf),
         ("dist/gmeow-docs/snippets", &snippets),
         ("dist/gmeow-docs/pydantic", &pydantic),
+        ("dist/gmeow-docs/okf", &okf),
+        ("dist/gmeow-docs/jsonld", &jsonld),
+        ("dist/gmeow-docs/yamlld", &yamlld),
+        // The manifest gets its OWN subdir base — never the shared `dist/gmeow-docs`
+        // parent, which `reconcile_docs_projection_tree` would otherwise prune of
+        // every sibling format's files not present in THIS tree.
+        ("dist/gmeow-docs/manifest", &manifest),
     ];
     let mut outputs = Vec::new();
     let mut reconciliation = DocsProjectionReport::default();

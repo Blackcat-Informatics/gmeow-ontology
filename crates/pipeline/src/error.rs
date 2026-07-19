@@ -319,6 +319,19 @@ define_diag_kind! {
     message = "docs-measure error: {}", message;
 }
 
+define_diag_kind! {
+    /// A hard defect raised while rendering the external documentation /
+    /// serialization distributions or building the release-time DCAT
+    /// distribution manifest (`docs_distribution`, issue #1491 Task 3): a
+    /// serializer failure, a malformed OKF member path, a missing bundled
+    /// `dcat.rq` projection query, or a DCAT projection failure over the
+    /// release-time distribution instance graph.
+    pub struct DocsDistribution { message: String }
+    code = "pipeline.docs-distribution";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "docs-distribution error: {}", message;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -353,6 +366,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     MetaFold::CODE,
     SpanTableConsumedAfterDrop::CODE,
     DocsMeasure::CODE,
+    DocsDistribution::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -400,6 +414,7 @@ pub fn register_all() -> Vec<Code> {
         MetaFold::register(),
         SpanTableConsumedAfterDrop::register(),
         DocsMeasure::register(),
+        DocsDistribution::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),

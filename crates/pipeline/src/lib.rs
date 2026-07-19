@@ -35,6 +35,7 @@ pub mod cache;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod diagnostics_reader;
+pub mod docs_distribution;
 pub mod docs_loss_lattice;
 pub mod docs_measure;
 pub mod error;
