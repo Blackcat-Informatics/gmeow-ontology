@@ -399,6 +399,16 @@ const STRATUM_1: &[Rule] = &[
     // mediates two distinct entities, so it satisfies the discipline on its own.
     // Pure-positive over EDB, so it settles in this stratum, below the stratum-2
     // hasTwoMediatedRelata rules whose NAF ranges over it.
+    //
+    // The functional characteristic has two carriers in the EDB and this marker
+    // UNIONS both, exactly as the cross-world `collect_characteristics` post-pass
+    // does: the deprecated OWL type marker below, and the canonical central
+    // `logic:PropertyCharacteristicAssertion` record above.  Deriving from the
+    // carrier is what keeps the relator-mediation entity-count identical after the
+    // `owl:FunctionalProperty` SOURCE declarations are removed from the slices —
+    // the carrier record survives removal, the OWL marker (still authored on raw
+    // external/conformance inputs, and re-emitted by the OWL grounding VIEW) does
+    // not vanish for those graphs.
     Rule {
         head: pos(
             var("?P"),
@@ -410,6 +420,37 @@ const STRATUM_1: &[Rule] = &[
             TermPat::Const(RDF_TYPE),
             TermPat::Const(OWL_FUNCTIONAL_PROPERTY),
         )],
+        distinct_pairs: NO_GUARD,
+    },
+    // functionalProperty(?P, ?P) :-
+    //     ?rec logic:characterizes ?P,
+    //     ?rec logic:characteristicSort logic:functionalProperty
+    // The canonical carrier derivation: a central characteristic record naming ?P
+    // functional is the greenfield source of the property characteristic (the OWL
+    // marker rule above is its lossy projection).  Join the record's `characterizes`
+    // and `characteristicSort` edges on the record IRI, exactly as
+    // `collect_characteristics` (foundation.rs) joins them for the cross-world
+    // characteristic post-pass.  Pure-positive over EDB, same stratum as the OWL
+    // marker rule, so the two settle together below the stratum-2 NAF that reads
+    // `functionalProperty`.
+    Rule {
+        head: pos(
+            var("?P"),
+            TermPat::Const(logic_iri!("functionalProperty")),
+            var("?P"),
+        ),
+        body: &[
+            pos(
+                var("?rec"),
+                TermPat::Const(LOGIC_CHARACTERIZES),
+                var("?P"),
+            ),
+            pos(
+                var("?rec"),
+                TermPat::Const(LOGIC_CHARACTERISTIC_SORT),
+                TermPat::Const(logic_iri!("functionalProperty")),
+            ),
+        ],
         distinct_pairs: NO_GUARD,
     },
     // mediates(?C, ?R) :- subClassOfT(?C, ?P), mediates(?P, ?R)

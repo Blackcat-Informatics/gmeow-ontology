@@ -25,15 +25,20 @@ use session_common::*;
 /// digest folded into this descriptor. Re-blessed once more for the round-3 certifier
 /// hardening: the reordered soundness differential, the atomic authored-rule reader
 /// (non-resource ref / duplicate slot hard-fails), and the MSA critical-instance size cap
-/// all move the `physical/chase.rs` / `reason/dl.rs` content digest.
+/// all move the `physical/chase.rs` / `reason/dl.rs` content digest. Re-blessed for the
+/// functional-characteristic carrier migration: the foundation chase now derives
+/// `functionalProperty(?P,?P)` from the canonical `logic:PropertyCharacteristicAssertion`
+/// carrier (a new Datalog rule alongside the `owl:FunctionalProperty` marker rule), and
+/// `reason/dl.rs` unions the carrier into the functional-clash reader — both move the folded
+/// program/`reason/dl.rs` content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "49458ce909129def61cc27c2c4b64a20725b54c3c39a62d1d025bce1e67a8ef1";
+    "f55eaae2d9ced14806c02a0a9373c6073faa5b577bea9e82246fc2ffe522c651";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e019f1038a6c118485bff881d422f3cb16693acce002b32e32ff0cea7dae19c9";
+    "0f0c011bf39af6fe81e3dde7ed5f047f88f73bd98b7cf72adc27400234b02372";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

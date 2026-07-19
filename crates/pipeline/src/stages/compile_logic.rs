@@ -539,6 +539,25 @@ impl Stage for CompileLogicStage {
             gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
         );
+        // Authoring-completeness gate for the functional-characteristic carrier migration: every
+        // gmeow: property still declared `owl:FunctionalProperty` MUST also carry its canonical
+        // `logic:PropertyCharacteristicAssertion` functional record, or its functionality would
+        // silently vanish from the derived projection now that the OWL marker is a deprecated,
+        // no-longer-projected source. HARD FAIL over the merged corpus — never a soft warning.
+        let functional_carrier_gaps =
+            gmeow_logic_compile::frontend::functional_properties_missing_logic_carrier(
+                ontology.as_ref(),
+            );
+        if !functional_carrier_gaps.is_empty() {
+            let count = functional_carrier_gaps.len();
+            return Err(stage_err(format!(
+                "functional-characteristic carrier gap: {count} gmeow: propert{} declared \
+                 owl:FunctionalProperty without a logic:PropertyCharacteristicAssertion \
+                 functionalProperty carrier record: {}",
+                if count == 1 { "y" } else { "ies" },
+                functional_carrier_gaps.into_iter().collect::<Vec<_>>().join(", "),
+            )));
+        }
         // Procedural constraints (`logic:Constraint` + the P1–P7 / aggregate sugar) are gathered
         // from the WHOLE merged authored dataset — not only the `logic:` terminal module parsed
         // above — so a constraint may be authored in the slice that OWNS the constrained class (the

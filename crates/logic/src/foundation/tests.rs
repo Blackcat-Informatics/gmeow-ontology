@@ -1694,6 +1694,42 @@ fn characteristic_transitive_closure_via_logic_record() {
 }
 
 #[test]
+fn functional_marker_derives_functional_property_edge_via_owl_marker() {
+    // The deprecated OWL type marker still lifts `functionalProperty(?P, ?P)` into the
+    // chase — the derivation source raw external/conformance graphs and the OWL grounding
+    // VIEW continue to supply after the slice source declarations are removed.
+    let b = "https://example.org/char/functional-marker";
+    let p = format!("{b}/spouse");
+    let nq = format!("<{p}> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{b}/g> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &p, &format!("{LOGIC}functionalProperty"), &p),
+        "owl:FunctionalProperty must derive functionalProperty(spouse, spouse)"
+    );
+}
+
+#[test]
+fn functional_carrier_derives_functional_property_edge_via_logic_record() {
+    // The canonical carrier: a central `logic:PropertyCharacteristicAssertion` record naming
+    // the property functional must drive the SAME `functionalProperty(?P, ?P)` marker the OWL
+    // type marker does — the derivation source that survives the `owl:FunctionalProperty`
+    // slice-source removal, keeping the relator-mediation entity-count identical.
+    let b = "https://example.org/char/functional-record";
+    let p = format!("{b}/spouse");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}functionalProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &p, &format!("{LOGIC}functionalProperty"), &p),
+        "a logic:characterizes/characteristicSort functionalProperty record must derive \
+         functionalProperty(spouse, spouse) like the owl: marker"
+    );
+}
+
+#[test]
 fn characteristic_symmetric_mirror() {
     let b = "https://example.org/char/symmetric";
     let p = format!("{b}/counter");

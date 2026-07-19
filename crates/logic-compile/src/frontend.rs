@@ -2769,11 +2769,11 @@ pub fn derive_validation_shapes(
 /// grounds it. Returned sorted (BTreeSet) for a deterministic diagnostic; a non-empty result is a
 /// HARD FAIL on the sync path, never a soft warning — the caller must stop, not degrade.
 ///
-/// The sync-path caller lands in a later task of this migration; until it does, the invariant is
-/// exercised only by the crate's own tests, so the non-test lib build sees it as (temporarily)
-/// unused — the test build still enforces dead-code, so a genuinely-unused variant would still bite.
-#[cfg_attr(not(test), allow(dead_code))]
-pub(crate) fn functional_properties_missing_logic_carrier(
+/// The live sync-path caller is the `stage-compile-logic` shape-derivation stage
+/// (`crates/pipeline/src/stages/compile_logic.rs`), which runs this over the merged authored
+/// corpus and returns `Err` if the set is non-empty. Post-removal of the `owl:FunctionalProperty`
+/// slice sources it is vacuously satisfied (nothing is `declared`), so it guards RE-introduction.
+pub fn functional_properties_missing_logic_carrier(
     store: &RdfDataset,
 ) -> std::collections::BTreeSet<String> {
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";

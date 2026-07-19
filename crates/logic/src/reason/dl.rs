@@ -106,6 +106,16 @@ const OWL_BOTTOM_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomOb
 const OWL_BOTTOM_DATA_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomDataProperty";
 const OWL_HAS_KEY: &str = "http://www.w3.org/2002/07/owl#hasKey";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+// The canonical `logic:` functional-characteristic carrier: a central
+// `logic:PropertyCharacteristicAssertion` record joins `logic:characterizes ?P` +
+// `logic:characteristicSort logic:functionalProperty`. It is the greenfield source of the
+// functional characteristic (the `owl:FunctionalProperty` type marker above is its lossy
+// projection), so the functional-cardinality clash reads BOTH carriers — the marker keeps
+// deciding raw external/conformance OWL inputs, the record keeps deciding the object-level
+// reasoning EDB after the `owl:FunctionalProperty` slice source declarations are removed.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
 const OWL_NEGATIVE_PROPERTY_ASSERTION: &str =
     "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
 const OWL_SOURCE_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#sourceIndividual";
@@ -2535,15 +2545,14 @@ fn augment_with_extra_dl_clashes(
     }
 
     // ── 4. Functional property with two provably-distinct values ──────────────
-    // For every owl:FunctionalProperty p and subject x, if x has two values on p
-    // that are provably distinct (distinct literals, or distinct named
-    // individuals under the identity stance), x is forced into owl:Nothing.
-    let functional_props: BTreeSet<(String, String)> = facts
-        .iter()
-        .filter(|f| f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY)
-        .map(|f| (f.world.clone(), f.subject.clone()))
-        .collect();
-    for (world, property) in &functional_props {
+    // For every functional property p and subject x, if x has two values on p that
+    // are provably distinct (distinct literals, or distinct named individuals under
+    // the identity stance), x is forced into owl:Nothing. Functionality is read from
+    // BOTH carriers (the `owl:FunctionalProperty` marker AND the canonical
+    // `logic:PropertyCharacteristicAssertion` record), keyed per-world with the
+    // provenance premise that declares it — see `functional_property_sources`.
+    let functional_sources = functional_property_sources(facts);
+    for ((world, property), premises) in &functional_sources {
         // Group this property's (subject -> distinct value-keys) in this world.
         let mut by_subject: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
         for (key, terms) in &value_index {
@@ -2571,11 +2580,7 @@ fn augment_with_extra_dl_clashes(
                         world.clone(),
                     ),
                     "dl:functional-property-clash",
-                    vec![(
-                        property.clone(),
-                        RDF_TYPE.to_owned(),
-                        OWL_FUNCTIONAL_PROPERTY.to_owned(),
-                    )],
+                    premises.clone(),
                 );
             }
         }
@@ -3007,6 +3012,80 @@ fn build_value_index(
 /// resources related by an explicit `owl:differentFrom`. Named resources spelled
 /// differently are NOT assumed distinct (no unique-name assumption), so a
 /// functional property with two merely-named fillers is consistent.
+/// Every property that is functional in a world, keyed `(world, property)`, mapped to the
+/// provenance premise triples that declare it so — the UNION of both carriers:
+///
+/// * the deprecated `owl:FunctionalProperty` type marker (`?P rdf:type owl:FunctionalProperty`),
+///   still authored on raw external/conformance OWL inputs and re-emitted by the OWL grounding
+///   VIEW; and
+/// * the canonical central `logic:PropertyCharacteristicAssertion` record
+///   (`?rec logic:characterizes ?P`, `?rec logic:characteristicSort logic:functionalProperty`),
+///   the greenfield source that survives removal of the `owl:FunctionalProperty` slice
+///   declarations from the object-level reasoning EDB.
+///
+/// Unioning the two carriers here mirrors the foundation `collect_characteristics` pass, so
+/// functional-cardinality enforcement does not regress after the source removal. Both carriers
+/// are joined per-world (a marker/record and the clashing values must share a world, exactly as
+/// the OWL-only reader required). When BOTH declare a property functional in a world the OWL
+/// marker premise is preferred, so provenance is byte-identical to the pre-migration derivation.
+///
+/// `(world, property)` → the provenance premise triples that declare it functional.
+type FunctionalSources = BTreeMap<(String, String), Vec<(String, String, String)>>;
+
+fn functional_property_sources(facts: &BTreeSet<Fact>) -> FunctionalSources {
+    let mut out: FunctionalSources = BTreeMap::new();
+
+    // Carrier records: join `characterizes` + `characteristicSort=logic:functionalProperty` on
+    // the record IRI within one world. Recorded first so a later OWL marker overwrites the
+    // premise (marker preferred, keeping legacy provenance stable).
+    let mut rec_prop: BTreeMap<(String, String), String> = BTreeMap::new();
+    let mut functional_recs: BTreeSet<(String, String)> = BTreeSet::new();
+    for f in facts {
+        if f.predicate == LOGIC_CHARACTERIZES {
+            rec_prop.insert((f.world.clone(), f.subject.clone()), f.object.clone());
+        } else if f.predicate == LOGIC_CHARACTERISTIC_SORT && f.object == LOGIC_FUNCTIONAL_PROPERTY
+        {
+            functional_recs.insert((f.world.clone(), f.subject.clone()));
+        }
+    }
+    for (world, rec) in &functional_recs {
+        let Some(property) = rec_prop.get(&(world.clone(), rec.clone())) else {
+            continue;
+        };
+        out.entry((world.clone(), property.clone()))
+            .or_insert_with(|| {
+                vec![
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERIZES.to_owned(),
+                        property.clone(),
+                    ),
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERISTIC_SORT.to_owned(),
+                        LOGIC_FUNCTIONAL_PROPERTY.to_owned(),
+                    ),
+                ]
+            });
+    }
+
+    // OWL type markers (preferred provenance): overwrite any carrier premise for the same key.
+    for f in facts {
+        if f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY {
+            out.insert(
+                (f.world.clone(), f.subject.clone()),
+                vec![(
+                    f.subject.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_FUNCTIONAL_PROPERTY.to_owned(),
+                )],
+            );
+        }
+    }
+
+    out
+}
+
 fn functional_values_clash(
     facts: &BTreeSet<Fact>,
     world: &str,
@@ -5587,6 +5666,42 @@ mod tests {
         ]);
         let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
         assert!(verdict_ok.consistent, "a single value is consistent");
+    }
+
+    /// Functionality declared ONLY by the canonical `logic:PropertyCharacteristicAssertion`
+    /// carrier record (no `owl:FunctionalProperty` marker) still forces owl:Nothing on a subject
+    /// with two distinct literal values — the derivation source the object-level reasoning EDB
+    /// relies on once the `owl:FunctionalProperty` slice source declarations are removed. Coverage
+    /// stays honest: with no OWL functional construct in the EDB, `functionalProperty` is not
+    /// reported present, yet the clash is still decided from the carrier.
+    #[test]
+    fn functional_data_property_carrier_record_two_literals_clash() {
+        let peter = "http://gmeow.example/Peter";
+        let has_name = "http://gmeow.example/hasName";
+        let rec = "http://gmeow.example/hasName-functional-record";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let store = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+            literal_quad(peter, has_name, "Kichwa-Tembo", str_ty),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two distinct literal values on a carrier-declared functional property clash"
+        );
+
+        let store_ok = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+        ]);
+        let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict_ok.consistent,
+            "a single value under the carrier record is consistent"
+        );
     }
 
     // ── owl:hasKey ────────────────────────────────────────────────────────────
