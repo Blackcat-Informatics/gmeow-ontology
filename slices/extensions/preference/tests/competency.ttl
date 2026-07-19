@@ -71,6 +71,13 @@ ex:cqCycleRow3 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "observation" ; gmeow:cellValueIri exd:obsCA ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exd:candC ] .
 
+# --- CQ / cq-cross-cell-legal-no-reversal (G3 cell-scoping): a cross-cell reversal is legal - #
+ex:cqCrossCellLegalNoReversal a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-cell-legal-no-reversal.rq" ;
+    gmeow:cqDataFile "tests/data/cross-cell-legal-conflict.ttl" ;
+    gmeow:cqExpectRowCount 0 ;
+    gmeow:cqRationale "GMEOW must answer 'is a cross-vantage reversal across two cells legal, or does it trip the within-cell strict-order gate?' (FLAG-1, Principle 9). This is gmeow:VantageScopedStrictOrderConstraint's (G3) exact bad-pattern — a reversed reified gmeow:PreferenceEdge pair joined to a single cell's order. Over the cross-cell-legal-conflict scene (cell 1 prefers A≻B, cell 2 prefers B≻A, each edge under its OWN order) it returns EXACTLY ZERO rows: the reversed edges live under different orders, so they never meet within one cell and G3 does not fire. The same pattern returns a row on the within-cell-order-cycle scene, so a zero count here is probative — the executable proof that G3 is genuinely cell-scoped and the cross-vantage conflict is the legal H1 obstruction." .
+
 # --- CQ / cq-pareto-frontier: the frontier is both non-dominated candidates - #
 ex:cqParetoFrontier a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-pareto-frontier.rq" ;

@@ -101,13 +101,13 @@ The manifest `gmeow:sliceDependsOn` set is exactly `{core… , logic, math}`.
 
 ## Cell-scoped strict order (design decision, not a weakness)
 
-`gmeow:preferredOver` is a strict partial order (irreflexive + asymmetric + transitive)
+`gmeow:strictlyOver` is a strict partial order (irreflexive + asymmetric + transitive)
 **within one `gmeow:PreferenceProjection` cell only**. Only its **irreflexivity** is a
-global characteristic (`gmeow:preferredOverIrreflexivity`, a `logic:PropertyCharacteristicAssertion`
+global characteristic (`gmeow:strictlyOverIrreflexivity`, a `logic:PropertyCharacteristicAssertion`
 — safe, since nothing is strictly preferred to itself under any vantage); its **asymmetry
 and transitivity** are enforced **cell-scoped** by `gmeow:VantageScopedStrictOrderConstraint`
 (G3), **never** as global characteristics. Because a *bare* candidate→candidate
-`gmeow:preferredOver` edge carries no attribution to a cell, G3 (and the sibling refinement
+`gmeow:strictlyOver` edge carries no attribution to a cell, G3 (and the sibling refinement
 gate G2, `gmeow:RestrictionCoherenceConstraint`) cannot ride it — a check over bare edges
 could only ever be *global*, and a global asymmetry check would wrongly reject the legal
 cross-vantage conflict below. The within-cell order is therefore carried by **reified
@@ -117,7 +117,7 @@ through `?cell gmeow:projectionOrder ?order gmeow:orderEdge`, so a reversed pair
 degenerate `a = b` case, a self-loop) is a violation **only within a single cell** — the
 `cross-cell-legal-conflict.ttl` conforms-witness proves two cells asserting opposite orders
 validate clean, and `within-cell-order-cycle.ttl` proves the single-cell reversal is caught. It is *not* enforced globally: two evaluators
-legitimately assert `preferredOver(A,B)` and `preferredOver(B,A)` (Principle 9 coexistence),
+legitimately assert `strictlyOver(A,B)` and `strictlyOver(B,A)` (Principle 9 coexistence),
 and human/aggregate judgments are legitimately cyclic across vantages — that is the H¹
 obstruction, not an error. A global asymmetry marker would reject that legal conflict, and
 a global transitivity marker would *conflate* vantages (composing one evaluator's `A≻B` with

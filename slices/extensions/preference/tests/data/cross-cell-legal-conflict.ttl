@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# CONFORMS-witness for gmeow:VantageScopedStrictOrderConstraint (G3): the cell-scoping proof.
+# Competency data fixture (tests/data/, NOT a counter-example) — the G3 cell-scoping proof.
 # TWO different gmeow:PreferenceProjection cells assert OPPOSITE within-cell orders — cell 1
 # prefers A≻B, cell 2 prefers B≻A — each via its OWN reified gmeow:PreferenceEdge under its OWN
 # gmeow:PreferenceOrder. This is the LEGAL Principle-9 cross-vantage conflict (the H1 obstruction),
-# NOT a violation: because G3 joins both edges through ?cell gmeow:projectionOrder ?order
-# gmeow:orderEdge, the reversed edges never meet under a single order, so G3 does NOT fire. The
-# scene must validate CLEAN (zero findings). This is exactly the conflict a global asymmetry check
-# over bare gmeow:preferredOver would have wrongly rejected (FLAG-1) — the reason G3 rides the
-# cell-attributed reified edge.
+# NOT a violation: because gmeow:VantageScopedStrictOrderConstraint (G3) joins both edges through
+# ?cell gmeow:projectionOrder ?order gmeow:orderEdge, the reversed edges never meet under a single
+# order. The cqCrossCellLegalNoReversal competency question runs G3's exact bad-pattern over this
+# scene and returns ZERO rows — the executable proof that the reversal does NOT fire G3. This is
+# exactly the conflict a global asymmetry check over bare gmeow:strictlyOver would have wrongly
+# rejected (FLAG-1) — the reason G3 rides the cell-attributed reified edge.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .

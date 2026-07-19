@@ -8,7 +8,7 @@
 # R, R beats P), so there is NO Condorcet winner — the classic voting paradox as a
 # non-vanishing H1 obstruction. FLAG-1 is honored: each evaluator's order is carried
 # as a vantage-indexed SET of reified gmeow:PreferenceObservations (each marking its
-# winner with gmeow:preferredOver), NEVER as bare candidate→candidate edges pooled
+# winner with gmeow:strictlyOver), NEVER as bare candidate→candidate edges pooled
 # across vantages. The gmeow:DisagreementObstruction is present and NOT discharged.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

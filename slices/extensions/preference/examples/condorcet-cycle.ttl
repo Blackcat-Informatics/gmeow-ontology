@@ -9,8 +9,8 @@
 # winner. This is the LEGAL H1 obstruction (a non-vanishing math:GluingObstruction,
 # equivalently non-trivial holonomy of the preference math:connectionOfSheaf), not an
 # error. FLAG-1 is honored: the disagreement lives in reified, vantage-indexed
-# observations (each obs carries its own gmeow:vantage and gmeow:preferredOver → its
-# winning candidate), NEVER as bare candidate→candidate gmeow:preferredOver triples in
+# observations (each obs carries its own gmeow:vantage and gmeow:strictlyOver → its
+# winning candidate), NEVER as bare candidate→candidate gmeow:strictlyOver triples in
 # one graph. The gmeow:DisagreementObstruction is present and is NOT discharged, and no
 # resource asserts a global winner.
 
@@ -51,7 +51,7 @@ ex:ctx a gmeow:ComparisonContext ;
 
 # --- The three reified, vantage-indexed observations (the FLAG-1 carriers) ---- #
 # Each observation names the compared pair via gmeow:observedFeature and marks its
-# WINNER via gmeow:preferredOver; the direction is carried INSIDE the reified,
+# WINNER via gmeow:strictlyOver; the direction is carried INSIDE the reified,
 # vantage-indexed observation, so no bare candidate→candidate edge exists.
 ex:featAB a gmeow:InformationObject ;
     rdfs:label "pairwise comparison of A and B"@en ;

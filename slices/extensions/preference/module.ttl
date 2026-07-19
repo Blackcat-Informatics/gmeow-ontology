@@ -153,10 +153,10 @@ gmeow:PreferenceObservation
     logic:subClassOf gmeow:Observation ,
         [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     skos:definition "One vantage's contextual comparative judgment over a candidate set: a gmeow:Observation (inheriting its mandatory gmeow:vantage ⊑ gmeow:accordingTo and its gmeow:observedFeature) whose observed feature is a preference/tie/incomparability among candidates, made under a required gmeow:comparisonContext. It is the atomic, defeasible, attributed unit of the whole apparatus: conflicting observations from different vantages COEXIST as co-equal cells, none privileged (Principle 9), and a Condorcet cycle across them is the legal H1 obstruction, not an error. It is NOT a gmeow:PreferenceClaim (the truth-apt wrapper) nor a gmeow:ProjectionReceipt (a derived ranking): it is one evaluator's observation."@x-gmeow-english ;
-    skos:example "ex:obs1 a gmeow:PreferenceObservation ; gmeow:vantage ex:evaluatorAlice ; gmeow:comparisonContext ex:ctx1 ; gmeow:observedFeature ex:pref_A_over_B ; gmeow:preferredOver ex:candA ; gmeow:confidence ex:high ."@x-gmeow-english ;
+    skos:example "ex:obs1 a gmeow:PreferenceObservation ; gmeow:vantage ex:evaluatorAlice ; gmeow:comparisonContext ex:ctx1 ; gmeow:observedFeature ex:pref_A_over_B ; gmeow:strictlyOver ex:candA ; gmeow:confidence ex:high ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting a preference observation with no gmeow:comparisonContext (a context-free preference is exactly the forbidden universal winner — gmeow:PreferenceContextRequiredConstraint) and avoid resolving conflicting observations by rank; rival vantages coexist (Principle 9) and their disagreement is the H1 obstruction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type one evaluator's comparative judgment gmeow:PreferenceObservation, attribute it with the inherited gmeow:vantage, bind its required gmeow:comparisonContext, carry the compared relation with gmeow:preferredOver / gmeow:preferentiallyEquivalentWith / gmeow:incomparableWith, ground it in evidence (gmeow:groundedIn) and confidence (gmeow:confidence), and let it be reconciled — never overruled — across vantages."@x-gmeow-english ;
+    gmeow:howToUse "Type one evaluator's comparative judgment gmeow:PreferenceObservation, attribute it with the inherited gmeow:vantage, bind its required gmeow:comparisonContext, carry the compared relation with gmeow:strictlyOver / gmeow:preferentiallyEquivalentWith / gmeow:incomparableWith, ground it in evidence (gmeow:groundedIn) and confidence (gmeow:confidence), and let it be reconciled — never overruled — across vantages."@x-gmeow-english ;
     gmeow:useWhen "Use for one vantage's contextual comparative judgment over a candidate set — the atomic, attributed, defeasible unit that conflicting evaluators express as co-equal cells."@x-gmeow-english .
 
 gmeow:comparisonContext
@@ -183,13 +183,13 @@ gmeow:PreferenceClaim
 
 # --- The three comparative relations: strict, tie (symmetric), incomparable --- #
 
-gmeow:preferredOver
+gmeow:strictlyOver
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
-    rdfs:label "preferred over"@x-gmeow-english ;
+    rdfs:label "strictly over"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "The STRICT comparative relation: within one gmeow:PreferenceProjection cell (one vantage's local order), the candidate on the left is strictly preferred to the candidate on the right. It is a strict partial order (irreflexive, asymmetric, transitive — the logic:properPartOf reading) but only its IRREFLEXIVITY is declared globally (gmeow:preferredOverIrreflexivity, safe). Its ASYMMETRY and TRANSITIVITY are NOT declared as global characteristics (FLAG-1): two vantages legitimately assert gmeow:preferredOver(A,B) and gmeow:preferredOver(B,A), and a cross-vantage cycle is the legal H1 obstruction, not a contradiction — cross-vantage conflicts are carried by the reified, vantage-indexed gmeow:PreferenceObservation/gmeow:PreferenceClaim, not by bare conflicting edges. This bare candidate→candidate relation is uncell-scopeable, so per-cell asymmetry is enforced NOT over it but over the cell-attributed reified gmeow:PreferenceEdges (gmeow:edgeWinner/gmeow:edgeLoser hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge) by gmeow:VantageScopedStrictOrderConstraint (G3): winner gmeow:preferredOver loser is the bare reading of an edge, and G3 fires only on a reversed pair under ONE cell's order. It is NOT gmeow:preferentiallyEquivalentWith (a tie) nor gmeow:incomparableWith (a positive non-order)."@x-gmeow-english ;
+    skos:definition "The STRICT comparative relation: within one gmeow:PreferenceProjection cell (one vantage's local order), the candidate on the left is strictly preferred to the candidate on the right. It is a strict partial order (irreflexive, asymmetric, transitive — the logic:properPartOf reading) but only its IRREFLEXIVITY is declared globally (gmeow:strictlyOverIrreflexivity, safe). Its ASYMMETRY and TRANSITIVITY are NOT declared as global characteristics (FLAG-1): two vantages legitimately assert gmeow:strictlyOver(A,B) and gmeow:strictlyOver(B,A), and a cross-vantage cycle is the legal H1 obstruction, not a contradiction — cross-vantage conflicts are carried by the reified, vantage-indexed gmeow:PreferenceObservation/gmeow:PreferenceClaim, not by bare conflicting edges. This bare candidate→candidate relation is uncell-scopeable, so per-cell asymmetry is enforced NOT over it but over the cell-attributed reified gmeow:PreferenceEdges (gmeow:edgeWinner/gmeow:edgeLoser hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge) by gmeow:VantageScopedStrictOrderConstraint (G3): winner gmeow:strictlyOver loser is the bare reading of an edge, and G3 fires only on a reversed pair under ONE cell's order. It is NOT gmeow:preferentiallyEquivalentWith (a tie) nor gmeow:incomparableWith (a positive non-order)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:preferentiallyEquivalentWith
@@ -214,14 +214,14 @@ gmeow:incomparableWith
 
 # --- The reified observation's DIRECTED judgment (vantage-scoped carrier) ------ #
 # A gmeow:PreferenceObservation is a logic:Relator (⊑ gmeow:Observation), NOT an
-# gmeow:InformationObject, so it cannot be the subject of gmeow:preferredOver (a
+# gmeow:InformationObject, so it cannot be the subject of gmeow:strictlyOver (a
 # candidate→candidate InformationObject edge). The observation names its DIRECTED
 # judgment with gmeow:observationPrefers (→ the winning candidate) and, optionally,
 # gmeow:observationDisprefers (→ the dispreferred candidate); the compared pair itself
 # rides gmeow:observedFeature. This is the FLAG-1 cross-vantage coexistence carrier: a
 # cross-vantage cycle is a cycle over observationPrefers judgments (the legal H1
 # obstruction), never a global-strict-order violation. The bare candidate→candidate
-# gmeow:preferredOver edge is reserved for the coherent WITHIN-cell order of one
+# gmeow:strictlyOver edge is reserved for the coherent WITHIN-cell order of one
 # gmeow:PreferenceProjection, where gmeow:VantageScopedStrictOrderConstraint (G3) applies.
 
 gmeow:observationPrefers
@@ -231,9 +231,9 @@ gmeow:observationPrefers
     rdfs:label "observation prefers"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
     logic:subPropertyOf gmeow:observedFeature ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY PREFERRED — the winner of the directed comparison this vantage records. It is the reified, vantage-indexed carrier of a strict preference (⊑ gmeow:observedFeature): the observation, not a bare edge, holds the direction, so two vantages that disagree are two coexisting observations (Principle 9) and their cross-vantage cycle is the legal H1 gmeow:DisagreementObstruction. Distinct from the candidate→candidate gmeow:preferredOver (the within-cell order edge): an observation is a logic:Relator and cannot be a gmeow:preferredOver subject. The dispreferred side rides gmeow:observationDisprefers; the compared pair rides gmeow:observedFeature."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY PREFERRED — the winner of the directed comparison this vantage records. It is the reified, vantage-indexed carrier of a strict preference (⊑ gmeow:observedFeature): the observation, not a bare edge, holds the direction, so two vantages that disagree are two coexisting observations (Principle 9) and their cross-vantage cycle is the legal H1 gmeow:DisagreementObstruction. Distinct from the candidate→candidate gmeow:strictlyOver (the within-cell order edge): an observation is a logic:Relator and cannot be a gmeow:strictlyOver subject. The dispreferred side rides gmeow:observationDisprefers; the compared pair rides gmeow:observedFeature."@x-gmeow-english ;
     skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:vantage ex:eval1 ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using gmeow:preferredOver from an observation (a logic:Relator cannot be its InformationObject subject); avoid it for a tie (gmeow:preferentiallyEquivalentWith) or a positive incomparability (gmeow:incomparableWith), which name no winner."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using gmeow:strictlyOver from an observation (a logic:Relator cannot be its InformationObject subject); avoid it for a tie (gmeow:preferentiallyEquivalentWith) or a positive incomparability (gmeow:incomparableWith), which name no winner."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "On each gmeow:PreferenceObservation that records a strict preference, point gmeow:observationPrefers at the winning candidate and gmeow:observationDisprefers at the loser; carry the pair on gmeow:observedFeature and the frame on gmeow:vantage."@x-gmeow-english ;
     gmeow:useWhen "Use to record which candidate a single vantage's strict-preference observation judges the winner, as the coexisting, vantage-indexed carrier that keeps cross-vantage cycles legal."@x-gmeow-english .
@@ -247,7 +247,7 @@ gmeow:observationDisprefers
     logic:subPropertyOf gmeow:observedFeature ;
     skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY DISPREFERRED — the loser of the directed comparison this vantage records, the counterpart of gmeow:observationPrefers (⊑ gmeow:observedFeature). Together the two name the ordered pair the observation reifies, so 'A ≻ B per this vantage' is a single coexisting cell, never a bare candidate→candidate edge."@x-gmeow-english ;
     skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming a dispreferred side for a tie or a positive incomparability (neither has a loser); avoid gmeow:preferredOver from the observation (a logic:Relator subject is ill-typed)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a dispreferred side for a tie or a positive incomparability (neither has a loser); avoid gmeow:strictlyOver from the observation (a logic:Relator subject is ill-typed)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:observationDisprefers at the losing candidate of a strict-preference observation, paired with gmeow:observationPrefers on the winner."@x-gmeow-english ;
     gmeow:useWhen "Use to record the losing candidate of a single vantage's strict-preference observation."@x-gmeow-english .
@@ -289,12 +289,12 @@ gmeow:PreferenceProjection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Preference Projection"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
-    skos:definition "One CELL of the comparison: a single vantage's local strict partial order over the candidate set — the scope within which gmeow:preferredOver is genuinely irreflexive, asymmetric, and transitive (FLAG-1). It is the math:LocalSection carrier of the sheaf picture: a cell's order is coherent on its own, and it is the gluing of cells that may fail (the H1 obstruction). It is NOT the global comparison (a coexistence of many cells) and NOT a gmeow:ProjectionReceipt (a lossy derived ranking over the whole comparison)."@x-gmeow-english ;
+    skos:definition "One CELL of the comparison: a single vantage's local strict partial order over the candidate set — the scope within which gmeow:strictlyOver is genuinely irreflexive, asymmetric, and transitive (FLAG-1). It is the math:LocalSection carrier of the sheaf picture: a cell's order is coherent on its own, and it is the gluing of cells that may fail (the H1 obstruction). It is NOT the global comparison (a coexistence of many cells) and NOT a gmeow:ProjectionReceipt (a lossy derived ranking over the whole comparison)."@x-gmeow-english ;
     skos:example "ex:cell_alice a gmeow:PreferenceProjection ; gmeow:vantage ex:evaluatorAlice ; gmeow:projectionOrder ex:order_alice ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid enforcing the strict-order characteristics across cells (they are cell-scoped — cross-vantage cycles are the legal obstruction, not an error) and avoid treating a cell as a global winner; a cell is one math:LocalSection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type one vantage's local order gmeow:PreferenceProjection, attribute it with gmeow:vantage, and carry its order via gmeow:projectionOrder; the cell is the scope the gmeow:VantageScopedStrictOrderConstraint enforces strict-order coherence within."@x-gmeow-english ;
-    gmeow:useWhen "Use for a single vantage's local strict partial order over the candidate set — the cell within which gmeow:preferredOver is strict and the math:LocalSection the sheaf glues."@x-gmeow-english .
+    gmeow:useWhen "Use for a single vantage's local strict partial order over the candidate set — the cell within which gmeow:strictlyOver is strict and the math:LocalSection the sheaf glues."@x-gmeow-english .
 
 gmeow:projectionOrder
     a owl:ObjectProperty ;
@@ -306,10 +306,10 @@ gmeow:projectionOrder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Reified within-cell strict-preference EDGES (the cell-attributed order) --- #
-# FLAG-1 / G3 cell-scoping: bare gmeow:preferredOver is a candidate→candidate edge with
+# FLAG-1 / G3 cell-scoping: bare gmeow:strictlyOver is a candidate→candidate edge with
 # NO structural attribution to a cell, so a constraint over it can only ever be GLOBAL —
 # it cannot tell one cell's order from another's, and a global asymmetry check would
-# reject the legal cross-vantage conflict preferredOver(A,B) ∧ preferredOver(B,A)
+# reject the legal cross-vantage conflict strictlyOver(A,B) ∧ strictlyOver(B,A)
 # (Principle 9). The within-cell order is therefore carried by REIFIED gmeow:PreferenceEdge
 # nodes hung under the cell's gmeow:PreferenceOrder (gmeow:orderEdge), each naming its
 # gmeow:edgeWinner and gmeow:edgeLoser. gmeow:VantageScopedStrictOrderConstraint (G3) joins
@@ -321,7 +321,7 @@ gmeow:PreferenceEdge
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "preference edge"@x-gmeow-english ;
-    skos:definition "A reified directed strict-preference edge WITHIN one gmeow:PreferenceProjection cell's order: it names a gmeow:edgeWinner (the strictly preferred candidate) and a gmeow:edgeLoser (the dispreferred one). It is the CELL-ATTRIBUTED carrier of the within-cell strict order — hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge — that makes gmeow:VantageScopedStrictOrderConstraint (G3) genuinely cell-scoped (FLAG-1). It corresponds to the bare candidate→candidate gmeow:preferredOver relation (winner preferredOver loser) but, unlike the bare edge, it is attributable to exactly one cell, so a reversed pair is incoherent only within a single cell — a cross-vantage reversal across two cells is the legal Principle-9 conflict."@x-gmeow-english ;
+    skos:definition "A reified directed strict-preference edge WITHIN one gmeow:PreferenceProjection cell's order: it names a gmeow:edgeWinner (the strictly preferred candidate) and a gmeow:edgeLoser (the dispreferred one). It is the CELL-ATTRIBUTED carrier of the within-cell strict order — hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge — that makes gmeow:VantageScopedStrictOrderConstraint (G3) genuinely cell-scoped (FLAG-1). It corresponds to the bare candidate→candidate gmeow:strictlyOver relation (winner strictlyOver loser) but, unlike the bare edge, it is attributable to exactly one cell, so a reversed pair is incoherent only within a single cell — a cross-vantage reversal across two cells is the legal Principle-9 conflict."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:orderEdge
@@ -339,7 +339,7 @@ gmeow:edgeWinner
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "edge winner"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "The strictly preferred candidate of a within-cell gmeow:PreferenceEdge (the winner side of the directed pair). Corresponds to the subject of the bare gmeow:preferredOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
+    skos:definition "The strictly preferred candidate of a within-cell gmeow:PreferenceEdge (the winner side of the directed pair). Corresponds to the subject of the bare gmeow:strictlyOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:edgeLoser
@@ -348,16 +348,16 @@ gmeow:edgeLoser
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "edge loser"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "The dispreferred candidate of a within-cell gmeow:PreferenceEdge (the loser side of the directed pair). Corresponds to the object of the bare gmeow:preferredOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
+    skos:definition "The dispreferred candidate of a within-cell gmeow:PreferenceEdge (the loser side of the directed pair). Corresponds to the object of the bare gmeow:strictlyOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Strict-order (irreflexivity only, global-safe) + tie/incomparability ----- #
-# FLAG-1 resolution: gmeow:preferredOver carries ONLY a GLOBAL irreflexivity
+# FLAG-1 resolution: gmeow:strictlyOver carries ONLY a GLOBAL irreflexivity
 # characteristic (nothing is strictly preferred to itself under any vantage — safe).
 # Its ASYMMETRY and TRANSITIVITY are enforced CELL-SCOPED ONLY, by the logic:Constraint
 # gmeow:VantageScopedStrictOrderConstraint (G3) — NEVER as global
 # logic:PropertyCharacteristicAssertion records: a global asymmetry marker would reject
-# the legal cross-vantage conflict preferredOver(A,B) ∧ preferredOver(B,A) (Principle 9),
+# the legal cross-vantage conflict strictlyOver(A,B) ∧ strictlyOver(B,A) (Principle 9),
 # and a global transitivity marker would CONFLATE vantages (composing vantage-1's A≻B with
 # vantage-2's B≻C into a spurious A≻C). Cross-vantage conflicts are carried by the reified,
 # vantage-indexed gmeow:PreferenceObservation, not by bare conflicting edges. Tie/
@@ -365,15 +365,15 @@ gmeow:edgeLoser
 # owl:SymmetricProperty (EL-illegal); both are globally safe (a tie/incomparability holds
 # both ways under the vantage that asserts it).
 
-gmeow:preferredOverIrreflexivity
+gmeow:strictlyOverIrreflexivity
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
-    rdfs:label "preferredOver is irreflexive (global-safe)"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:preferredOver is irreflexive: no candidate is strictly preferred to itself under any vantage. This is the ONE strict-order characteristic that is GLOBALLY safe (unlike asymmetry/transitivity, which are cross-vantage-unsafe and are instead enforced cell-scoped by gmeow:VantageScopedStrictOrderConstraint, G3, per FLAG-1). The native coherence gate reads this to reject a reflexive strict-preference edge anywhere."@x-gmeow-english ;
-    logic:characterizes gmeow:preferredOver ;
+    rdfs:label "strictlyOver is irreflexive (global-safe)"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:strictlyOver is irreflexive: no candidate is strictly preferred to itself under any vantage. This is the ONE strict-order characteristic that is GLOBALLY safe (unlike asymmetry/transitivity, which are cross-vantage-unsafe and are instead enforced cell-scoped by gmeow:VantageScopedStrictOrderConstraint, G3, per FLAG-1). The native coherence gate reads this to reject a reflexive strict-preference edge anywhere."@x-gmeow-english ;
+    logic:characterizes gmeow:strictlyOver ;
     logic:characteristicSort logic:irreflexiveProperty ;
-    logic:formalizes gmeow:preferredOver ;
+    logic:formalizes gmeow:strictlyOver ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:equivalenceSymmetry
@@ -808,7 +808,7 @@ gmeow:ngwReconciled a logic:Formula ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
 
 # --- G3: strict-order coherence is enforced WITHIN one vantage only ---------- #
-# Within a single gmeow:PreferenceProjection cell, gmeow:preferredOver must not
+# Within a single gmeow:PreferenceProjection cell, gmeow:strictlyOver must not
 # be reflexive and must not carry both directions (asymmetry); cross-vantage
 # cycles are the LEGAL obstruction, so this is scoped to one cell.
 gmeow:VantageScopedStrictOrderConstraint
@@ -816,7 +816,7 @@ gmeow:VantageScopedStrictOrderConstraint
     rdfs:label "Vantage-scoped strict-order constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: within a single gmeow:PreferenceProjection cell, the cell's gmeow:PreferenceOrder must not carry a reversed pair of gmeow:PreferenceEdges — an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) together with an edge (gmeow:edgeWinner b, gmeow:edgeLoser a) — where a self-loop (a = b) is the degenerate reflexive case (both edges collapse to one). The check is GENUINELY cell-scoped: both edges are reached through ?cell gmeow:projectionOrder ?order gmeow:orderEdge, so it fires ONLY when both sit under the SAME cell's order. Two DIFFERENT cells asserting opposite directions is the legal Principle-9 cross-vantage conflict (the H1 obstruction), NEVER a violation — this is why the check rides the cell-attributed reified gmeow:PreferenceEdge, not the bare candidate→candidate gmeow:preferredOver (which is uncell-scopeable and would wrongly reject that conflict globally, FLAG-1). A ∀→¬∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: within a single gmeow:PreferenceProjection cell, the cell's gmeow:PreferenceOrder must not carry a reversed pair of gmeow:PreferenceEdges — an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) together with an edge (gmeow:edgeWinner b, gmeow:edgeLoser a) — where a self-loop (a = b) is the degenerate reflexive case (both edges collapse to one). The check is GENUINELY cell-scoped: both edges are reached through ?cell gmeow:projectionOrder ?order gmeow:orderEdge, so it fires ONLY when both sit under the SAME cell's order. Two DIFFERENT cells asserting opposite directions is the legal Principle-9 cross-vantage conflict (the H1 obstruction), NEVER a violation — this is why the check rides the cell-attributed reified gmeow:PreferenceEdge, not the bare candidate→candidate gmeow:strictlyOver (which is uncell-scopeable and would wrongly reject that conflict globally, FLAG-1). A ∀→¬∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:PreferenceProjection ;
     logic:severity "Violation" ;
     logic:message "Within a single gmeow:PreferenceProjection cell, the cell's order must be irreflexive and asymmetric: no reversed pair of gmeow:PreferenceEdges (a≻b and b≻a) — nor a self-loop (a≻a) — may sit under one cell's gmeow:PreferenceOrder (cross-vantage reversals across DIFFERENT cells remain the legal obstruction)." ;
@@ -910,7 +910,7 @@ gmeow:RestrictionCoherenceConstraint
     rdfs:label "Restriction coherence constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (G2): when one gmeow:PreferenceProjection cell (this, the sharper) sharpens another (gmeow:vantage related by gmeow:sharpens), the sharper cell's order must RESTRICT, not CONTRADICT, the coarser one — the sharper cell's gmeow:PreferenceOrder may not carry a gmeow:PreferenceEdge (gmeow:edgeWinner b, gmeow:edgeLoser a) where the coarser cell's order carries an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) UNLESS a gmeow:DisagreementObstruction is present to carry the disagreement. Like G3 it rides the cell-attributed reified gmeow:PreferenceEdge (each edge reached through its own cell's gmeow:projectionOrder gmeow:orderEdge), never the uncell-scopeable bare gmeow:preferredOver, so the sharper and coarser edges are genuinely tied to their respective cells. A ∀→¬∃ formula testing a sharpens-linked contradicting pair with no recorded obstruction, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (G2): when one gmeow:PreferenceProjection cell (this, the sharper) sharpens another (gmeow:vantage related by gmeow:sharpens), the sharper cell's order must RESTRICT, not CONTRADICT, the coarser one — the sharper cell's gmeow:PreferenceOrder may not carry a gmeow:PreferenceEdge (gmeow:edgeWinner b, gmeow:edgeLoser a) where the coarser cell's order carries an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) UNLESS a gmeow:DisagreementObstruction is present to carry the disagreement. Like G3 it rides the cell-attributed reified gmeow:PreferenceEdge (each edge reached through its own cell's gmeow:projectionOrder gmeow:orderEdge), never the uncell-scopeable bare gmeow:strictlyOver, so the sharper and coarser edges are genuinely tied to their respective cells. A ∀→¬∃ formula testing a sharpens-linked contradicting pair with no recorded obstruction, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:PreferenceProjection ;
     logic:severity "Violation" ;
     logic:message "A gmeow:PreferenceProjection that sharpens another must restrict, not contradict, its order: a reversed reified gmeow:PreferenceEdge pair along gmeow:sharpens (the sharper cell's order prefers b≻a where the coarser prefers a≻b) with no gmeow:DisagreementObstruction is incoherent refinement." ;
@@ -1171,7 +1171,7 @@ gmeow:VerifierVerdict
     logic:subClassOf gmeow:Observation ;
     skos:definition "A hard-or-soft verifier's verdict on a candidate under a contract: a gmeow:Observation carrying its hardness class (gmeow:hardConstraintClass → gmeow:ConstraintHardness {hard, soft}), the candidate it verifies (gmeow:verifiesCandidate), its contract (gmeow:verifierContract, typed to the core gmeow:InformationObject — a contract rides the norms gmeow:Condition + gmeow:formalizedAs by reference, never a range axiom), and its outcome value (gmeow:verifierOutcome, typed to the core logic:QualityValue — reusing the norms gmeow:EvaluationVerdict vocabulary gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined at the instance level). A HARD verdict of gmeow:verdictNotHeld is unrankable-as-winner within its contract's vantages (gmeow:HardFailureNotOverriddenConstraint), no matter how high the soft aggregate. It is NOT a gmeow:PreferenceObservation (a soft comparison): the two axes are structurally disjoint."@x-gmeow-english ;
     skos:example "ex:vv1 a gmeow:VerifierVerdict ; gmeow:vantage ex:safetyChecker ; gmeow:verifiesCandidate ex:candA ; gmeow:hardConstraintClass gmeow:constraintHardnessHard ; gmeow:verifierContract ex:noPiiContract ; gmeow:verifierOutcome gmeow:verdictNotHeld ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid folding a verifier verdict into a gmeow:preferredOver edge (the hard and soft axes are disjoint — gmeow:HardSoftDisjointnessConstraint) and avoid overriding a hard gmeow:verdictNotHeld with a high soft score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding a verifier verdict into a gmeow:strictlyOver edge (the hard and soft axes are disjoint — gmeow:HardSoftDisjointnessConstraint) and avoid overriding a hard gmeow:verdictNotHeld with a high soft score."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the check gmeow:VerifierVerdict, attribute it with gmeow:vantage, bind the candidate (gmeow:verifiesCandidate) and contract (gmeow:verifierContract), classify its hardness (gmeow:hardConstraintClass), and carry the outcome value with gmeow:verifierOutcome reusing the norms verdict vocabulary."@x-gmeow-english ;
     gmeow:useWhen "Use for a hard-or-soft verifier's contract verdict on a candidate — the structurally-disjoint check that a hard failure of makes a candidate unrankable-as-winner regardless of soft score."@x-gmeow-english .
@@ -1333,18 +1333,18 @@ gmeow:HardFailureOverridden
     skos:definition "The failure raised when a candidate with a hard gmeow:verdictNotHeld verifier verdict is nonetheless bound as a gmeow:selectedCandidate — a soft score overriding a hard gate. Enforced by gmeow:HardFailureNotOverriddenConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-# --- AC3: a hard verdict may not be folded into gmeow:preferredOver ---------- #
+# --- AC3: a hard verdict may not be folded into gmeow:strictlyOver ---------- #
 gmeow:HardSoftDisjointnessConstraint
     a logic:ForbiddenPatternConstraint ;
     rdfs:label "Hard/soft disjointness constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world forbidden-pattern constraint (AC3): a gmeow:VerifierVerdict must NOT carry gmeow:preferredOver — the hard/soft axes are structurally disjoint, and folding a verifier verdict into a soft preference edge collapses a gate into a graded signal. Expands to ∀this. gmeow:VerifierVerdict(this) → ¬∃b. gmeow:preferredOver(this,b)."@x-gmeow-english ;
+    skos:definition "A closed-world forbidden-pattern constraint (AC3): a gmeow:VerifierVerdict must NOT carry gmeow:strictlyOver — the hard/soft axes are structurally disjoint, and folding a verifier verdict into a soft preference edge collapses a gate into a graded signal. Expands to ∀this. gmeow:VerifierVerdict(this) → ¬∃b. gmeow:strictlyOver(this,b)."@x-gmeow-english ;
     logic:onClass gmeow:VerifierVerdict ;
-    logic:forbiddenPredicate gmeow:preferredOver ;
+    logic:forbiddenPredicate gmeow:strictlyOver ;
     logic:formalizes gmeow:VerifierVerdict ;
     logic:severity "Violation" ;
-    logic:message "A gmeow:VerifierVerdict must not carry gmeow:preferredOver; the hard verifier axis and the soft preference axis are structurally disjoint." .
+    logic:message "A gmeow:VerifierVerdict must not carry gmeow:strictlyOver; the hard verifier axis and the soft preference axis are structurally disjoint." .
 
 # =========================================================================== #
 # TASK 5 — Proof / counterproof / counterexample + projection receipts (AC4)   #

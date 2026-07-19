@@ -53,7 +53,7 @@ CandidateSet ─hasCandidate─┐
    PreferenceObservation ──vantage──►  evaluator (co-equal cell, P9)
      │ observedFeature (candidate pair/set + relation)
      │ comparisonContext (task·world·standpoint·time·policy·generation)
-     │ preferredOver / preferentiallyEquivalentWith / incomparableWith
+     │ strictlyOver / preferentiallyEquivalentWith / incomparableWith
      ▼
    ComparisonCompilation ──compiles──►  math:CellComplex (0/1/2-cells)
      │                                   └► math:CellularSheaf (Clifford-fiber stalks)
