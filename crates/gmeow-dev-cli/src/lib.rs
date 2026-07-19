@@ -15,6 +15,7 @@
 
 mod dev_build;
 mod dev_common;
+mod dev_docs_measure;
 mod dev_feedback;
 mod dev_gates;
 mod dev_i18n;
@@ -125,6 +126,10 @@ pub enum Commands {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
+    /// Measure real, deterministic per-format documentation byte sizes and the
+    /// three external-distribution design totals (#1491).
+    #[command(name = "docs-measure")]
+    DocsMeasure,
     /// Fold check/conformance/SARIF evidence into a SIGNED gmeow.gts.
     #[command(name = "release-bundle")]
     ReleaseBundle {
@@ -755,6 +760,7 @@ pub fn run() -> i32 {
         Commands::Fanout { jobs, timings_json } => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
+        Commands::DocsMeasure => dev_docs_measure::docs_measure(),
         Commands::ReleaseBundle {
             out,
             sign_key,
