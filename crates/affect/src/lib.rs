@@ -431,6 +431,118 @@ pub fn distance_and_cosine(
     Ok((distance, cosine))
 }
 
+/// The winning prototype of a nearest-prototype classification, selected by EXACT
+/// squared metric distance.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NearestPrototype {
+    /// The argmin prototype observation IRI.
+    pub prototype: String,
+    /// Its EXACT squared metric distance `‖x − p‖²_G = (x − p)ᵀG(x − p)` to the
+    /// state, as a printable ratio (e.g. `"19/50"`). This is the value the argmin
+    /// is decided on — an exact `Rational`, never the √ decimal.
+    pub squared_distance: String,
+    /// The winning `√(squared_distance)` distance as a fixed-precision decimal
+    /// string. This crosses the solver seam (the only approximation) and is emitted
+    /// for display/report ONLY — never for selection.
+    pub distance: String,
+}
+
+/// The exact per-coordinate difference `x − y`, zero-completing the shorter vector.
+/// Exact `Rational` subtraction; hard-fails on `i128` overflow (never a wraparound).
+fn vector_difference(x: &[Rational], y: &[Rational]) -> gmeow_errors::Result<Vec<Rational>> {
+    let n = x.len().max(y.len());
+    (0..n)
+        .map(|i| {
+            let xi = x.get(i).copied().unwrap_or_else(Rational::zero);
+            let yi = y.get(i).copied().unwrap_or_else(Rational::zero);
+            xi.checked_sub(yi)
+        })
+        .collect()
+}
+
+/// Classify a state observation to its nearest named-emotion prototype by argmin
+/// over the EXACT squared metric distance `‖x − pᵢ‖²_G = (x − pᵢ)ᵀG(x − pᵢ)`,
+/// reusing the shared exact-ℚ [`InnerProductSpace`] of the state's metric basis.
+///
+/// # Exactness contract
+///
+/// Selection is decided ENTIRELY on the exact-rational squared distance
+/// ([`InnerProductSpace::quadratic_form`] of the coordinate difference), compared as
+/// exact [`Rational`]s. Because `√` is monotonically increasing, the order of the
+/// squared distances is identical to the order of the true distances, so the argmin
+/// is the same — but computed WITHOUT ever crossing the solver seam. The `√` decimal
+/// is derived once, for the winner, purely for display in the returned
+/// [`NearestPrototype::distance`]; it is NEVER used to select.
+///
+/// Squared Mahalanobis distance is an order-equivalent *divergence*, not a metric:
+/// it obeys no triangle inequality, so it may not be composed as a true distance.
+/// True-metric composition needs the `√` (the [`NearestPrototype::distance`] decimal),
+/// which crosses the seam and is an approximation.
+///
+/// Ties are broken deterministically to the lexicographically-least prototype IRI.
+///
+/// # Failure (no-optionality)
+///
+/// Every prototype MUST share the state's metric basis (identical Gram + axis map),
+/// exactly as [`distance_and_cosine`] requires; a mismatch is a HARD fail, never a
+/// silently zero-padded number. An EMPTY prototype set is a HARD fail — there is no
+/// candidate to argmin over.
+pub fn nearest_prototype(
+    graph: &Graph,
+    state_iri: &str,
+    prototype_iris: &[String],
+) -> gmeow_errors::Result<NearestPrototype> {
+    if prototype_iris.is_empty() {
+        return Err(Diag::of_kind(error::EmptyPrototypeSet {}));
+    }
+    let index = index_graph(graph);
+    let state = load_inputs(&index, state_iri)?;
+
+    // The running argmin: (prototype IRI, exact squared distance).
+    let mut best: Option<(String, Rational)> = None;
+    for proto_iri in prototype_iris {
+        let proto = load_inputs(&index, proto_iri)?;
+        // Both vectors must be measured with the state's metric; a differing Gram or
+        // axis map would otherwise be silently zero-padded/truncated into a
+        // well-formed but meaningless number. Hard-fail instead (mirrors
+        // `distance_and_cosine`).
+        if proto.space != state.space || proto.axis_to_dim != state.axis_to_dim {
+            return Err(Diag::of_kind(error::MetricBasisMismatch {
+                detail: format!(
+                    "nearest-prototype requires every prototype to share the state's metric \
+                     basis; state {state_iri} and prototype {proto_iri} differ in Gram matrix \
+                     / axis map"
+                ),
+            }));
+        }
+        let diff = vector_difference(&state.vector, &proto.vector)?;
+        // EXACT squared distance — the value the argmin is decided on.
+        let squared = state.space.quadratic_form(&diff)?;
+        let replace = match &best {
+            None => true,
+            // Exact `Rational` comparison; on an exact tie, the lexicographically-least
+            // prototype IRI wins (deterministic).
+            Some((best_iri, best_squared)) => match squared.cmp(best_squared) {
+                std::cmp::Ordering::Less => true,
+                std::cmp::Ordering::Equal => proto_iri.as_str() < best_iri.as_str(),
+                std::cmp::Ordering::Greater => false,
+            },
+        };
+        if replace {
+            best = Some((proto_iri.clone(), squared));
+        }
+    }
+
+    // The prototype set is non-empty, so the loop set `best` at least once.
+    let (prototype, squared) = best.ok_or_else(|| Diag::of_kind(error::EmptyPrototypeSet {}))?;
+    Ok(NearestPrototype {
+        prototype,
+        squared_distance: squared.ratio_string(),
+        // The √ decimal crosses the solver seam — display only, never selection.
+        distance: sqrt_rational_decimal(squared)?,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -799,5 +911,162 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
             .expect_err("mismatched Gram must hard fail");
         assert!(err.message().contains("metric basis"), "{err}");
         assert!(err.message().contains("Gram matrix / axis map"), "{err}");
+    }
+
+    // ── nearest-prototype classification (Q… production surface) ─────────────
+
+    const NEAREST_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/affect/nearest/";
+
+    /// One `gmeow:DerivedAffectIntensityObservation` named `suffix`, over the SHARED
+    /// diag(off_diag=0 always) metric — a `metricProfile` pointing at the caller's
+    /// Gram — with vector `(v0/10, v1/10)`. All observation-local IRIs are suffixed;
+    /// the metric profile + Gram are shared so every block shares one metric basis.
+    fn nearest_observation(suffix: &str, v0_tenths: i128, v1_tenths: i128) -> String {
+        let mut out = String::new();
+        let _ = write!(
+            out,
+            r#"ex:vec{suffix} a gmeow:AffectVectorObservation ;
+    gmeow:vectorComponent ex:valence{suffix} , ex:arousal{suffix} .
+
+ex:valence{suffix} a gmeow:Appraisal ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue "0.{v0_tenths}"^^xsd:decimal .
+
+ex:arousal{suffix} a gmeow:Appraisal ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue "0.{v1_tenths}"^^xsd:decimal .
+
+ex:obs{suffix} a gmeow:DerivedAffectIntensityObservation ;
+    gmeow:intensityBasis ex:vec{suffix} ;
+    gmeow:metricProfile ex:vdMetric ;
+    gmeow:weightingPolicy gmeow:weightingValenceDominant ;
+    gmeow:normFunction gmeow:affectMetricTensorNorm ;
+    gmeow:derivedByFunction gmeow:fnAffectiveIntensity .
+"#
+        );
+        out
+    }
+
+    /// A graph with the diag(2, 1) valence-dominant Gram and three observations —
+    /// the state `(0.5, 0.0)`, the contentment prototype `(0.2, 0.5)`, and the elation
+    /// prototype `(0.6, 0.6)` — every one sharing the one metric basis.
+    fn nearest_graph() -> Graph {
+        let mut turtle = String::new();
+        let _ = writeln!(
+            turtle,
+            "@prefix gmeow: <{GM}> .\n@prefix math: <{MATH}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <{NEAREST_NS}> ."
+        );
+        turtle.push_str(
+            "gmeow:dimensionValence a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"0\"^^xsd:nonNegativeInteger .\n",
+        );
+        turtle.push_str(
+            "gmeow:dimensionArousal a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"1\"^^xsd:nonNegativeInteger .\n",
+        );
+        turtle.push_str(
+            r#"ex:vdMetric a gmeow:AffectScaleProfile ;
+    gmeow:profileRangeMin "-1.0"^^xsd:decimal ;
+    gmeow:profileRangeMax "1.0"^^xsd:decimal ;
+    gmeow:metricGram ex:vdGram .
+
+ex:vdGram a math:GramMatrix ;
+    math:definiteness math:positiveDefinite ;
+    math:hasEntry ex:vdG00 , ex:vdG11 .
+
+ex:vdG00 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratTwo .
+ex:vdG11 a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne .
+
+ex:ratTwo a math:RationalValue ; math:numerator "2"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+
+"#,
+        );
+        turtle.push_str(&nearest_observation("State", 5, 0)); // state (0.5, 0.0)
+        turtle.push_str(&nearest_observation("Contentment", 2, 5)); // (0.2, 0.5)
+        turtle.push_str(&nearest_observation("Elation", 6, 6)); // (0.6, 0.6)
+        let bytes = turtle_to_gts(&turtle);
+        purrdf::gts::reader::read(&bytes, false, None)
+    }
+
+    fn nearest_obs_iri(suffix: &str) -> String {
+        format!("{NEAREST_NS}obs{suffix}")
+    }
+
+    // The metric-nearest prototype under diag(2, 1) is ELATION, though the raw-L²
+    // nearest is CONTENTMENT — the exact squared-distance order flips vs bare L².
+    #[test]
+    fn nearest_prototype_selects_metric_nearest_not_euclidean() {
+        let graph = nearest_graph();
+        let state = nearest_obs_iri("State");
+        let contentment = nearest_obs_iri("Contentment");
+        let elation = nearest_obs_iri("Elation");
+        let prototypes = vec![contentment.clone(), elation.clone()];
+
+        let nearest = nearest_prototype(&graph, &state, &prototypes).expect("classify");
+        // Elation wins: metric squared 38/100 = 19/50 < contentment 43/100.
+        assert_eq!(nearest.prototype, elation);
+        assert_eq!(nearest.squared_distance, "19/50");
+        // The √ decimal is the display seam value: √(38/100) = √0.38.
+        assert_eq!(nearest.distance, sqrt_rational_decimal(r(38, 100)).unwrap());
+
+        // Selection is by EXACT squared distance, NOT raw L²: under bare L²
+        // contentment (0.34) would beat elation (0.37), so the winner would differ.
+        // Verify the exact squared distances are the ones we reasoned about.
+        let space =
+            InnerProductSpace::new(vec![vec![r(2, 1), r(0, 1)], vec![r(0, 1), r(1, 1)]]).unwrap();
+        let x = [r(1, 2), r(0, 1)];
+        let cont = [r(1, 5), r(1, 2)];
+        let elat = [r(3, 5), r(3, 5)];
+        let sq_cont = space
+            .quadratic_form(&vector_difference(&x, &cont).unwrap())
+            .unwrap();
+        let sq_elat = space
+            .quadratic_form(&vector_difference(&x, &elat).unwrap())
+            .unwrap();
+        assert_eq!(sq_cont.ratio_string(), "43/100");
+        assert_eq!(sq_elat.ratio_string(), "19/50");
+        assert!(sq_elat < sq_cont, "elation is the exact metric-nearest");
+
+        // Deterministic: same call twice → identical result.
+        assert_eq!(
+            nearest_prototype(&graph, &state, &prototypes).unwrap(),
+            nearest
+        );
+    }
+
+    // An exact tie breaks to the lexicographically-least prototype IRI.
+    #[test]
+    fn nearest_prototype_tie_breaks_to_least_iri() {
+        let graph = nearest_graph();
+        let state = nearest_obs_iri("State");
+        let elation = nearest_obs_iri("Elation");
+        // The SAME prototype IRI passed under two spellings would be a lex tie; instead
+        // pass elation twice (identical squared distance) and confirm the stable pick.
+        let prototypes = vec![elation.clone(), elation.clone()];
+        let nearest = nearest_prototype(&graph, &state, &prototypes).expect("classify");
+        assert_eq!(nearest.prototype, elation);
+        assert_eq!(nearest.squared_distance, "19/50");
+    }
+
+    // An empty prototype set is a hard fail — there is nothing to argmin over.
+    #[test]
+    fn nearest_prototype_empty_set_hard_fails() {
+        let graph = nearest_graph();
+        let state = nearest_obs_iri("State");
+        let err = nearest_prototype(&graph, &state, &[]).expect_err("empty set must hard fail");
+        assert!(err.message().contains("at least one prototype"), "{err}");
+    }
+
+    // A prototype whose metric basis differs from the state's is a hard fail — never
+    // a silently zero-padded meaningless number.
+    #[test]
+    fn nearest_prototype_mismatched_basis_hard_fails() {
+        // Build a state over the diag(2,1) metric and a prototype over the correlated
+        // off-diag-1/4 metric (a different Gram) — the bases do not match.
+        let state_block = distinct_observation_turtle("S", 0, 1, 5, 0); // diag(1,1)-ish, off 0
+        let proto_block = distinct_observation_turtle("P", 1, 4, 2, 5); // off 1/4 → different metric
+        let graph = two_observation_graph(&state_block, &proto_block);
+        let err = nearest_prototype(&graph, &obs_iri("S"), &[obs_iri("P")])
+            .expect_err("mismatched basis must hard fail");
+        assert!(err.message().contains("metric basis"), "{err}");
     }
 }

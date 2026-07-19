@@ -352,6 +352,14 @@ fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
             frame_str(hasher, op.token());
             hash_qterm(hasher, rhs);
         }
+        QBuiltin::BilinearSqDist { target, gram, x, y } => {
+            hasher.update(&[2]);
+            frame_str(hasher, "bilinearSqDist");
+            hash_qterm(hasher, target);
+            hash_qterm(hasher, gram);
+            hash_qterm(hasher, x);
+            hash_qterm(hasher, y);
+        }
     }
 }
 

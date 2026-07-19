@@ -5,6 +5,9 @@
 
 Welcome, AI Agent! This file is your behavioral contract and instruction manual for contributing to the GMEOW repository. Please read and adhere strictly to the rules below.
 
+@/home/paudley/Active/gmeow-ontology/.goals
+@/home/paudley/Active/gmeow-ontology/.baseline
+
 ---
 
 ## 1. Project Overview & Architecture

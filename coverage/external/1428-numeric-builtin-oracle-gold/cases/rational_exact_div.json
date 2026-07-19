@@ -1,0 +1,14 @@
+{
+  "op": "rational_exact_div",
+  "mode": "value",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:ans(X, D) :- X is 0, D is 6 / 2.\n?- ex:ans(X, D).\n",
+  "checks": [
+    { "var": "D", "value_kind": "rational", "expected": "3/1" }
+  ],
+  "provenance": {
+    "generator": "hand-derived exact-ℚ reference",
+    "derivation": "6/2 = 3 exactly, but the `/` operator is EXACT RATIONAL division and always commits a Value::Rat (never collapses back to Value::Int even when the quotient is a whole number) -- so the expected transport surface is the rational 3/1, not the integer 3. This is the ℚ-path distinguishing fact this case exercises. `X` is an unused dummy arg (`X is 0`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

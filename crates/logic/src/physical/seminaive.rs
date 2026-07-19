@@ -62,7 +62,10 @@ use std::collections::{BTreeSet, HashMap};
 use hashbrown::HashTable;
 use rayon::prelude::*;
 
-use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
+use crate::physical::builtin_eval::{
+    BuiltinGap, BuiltinOutcome, CellResolver, MathTriples, emit_surface, eval as eval_builtin,
+    load_gram_cells, load_vector_dense,
+};
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::{RowId, TermId};
 use crate::physical::plan::{
@@ -89,14 +92,21 @@ fn seminaive_err(detail: impl Into<String>) -> gmeow_errors::Diag {
 /// Carried by [`NativeOutcome::Unsupported`]. `NonStratifiable` is the only variant
 /// the forward semi-naive leg can raise; the others name combinations surfaced by
 /// the native magic-sets, backward, and existential rungs.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum UnsupportedKind {
     /// A negative dependency-graph edge lies inside a cycle — no stratification exists.
     NonStratifiable,
     /// A `!`/cut control construct (no declarative bottom-up meaning).
     Cut,
-    /// An arithmetic / builtin the native core does not evaluate.
-    Arithmetic,
+    /// An arithmetic / builtin the native core could not evaluate in its binding mode,
+    /// or that hit a typed `math:` domain fault (÷0, overflow, incommensurable
+    /// dimensions). The payload is the ledgerable per-solution [`BuiltinGap`]s the
+    /// evaluator captured — the KIND, the operation, and the antecedent operands — so a
+    /// terminal mints a ledgered finding naming the `math:` class rather than an
+    /// anonymous refusal. Empty for a STRUCTURAL refusal (a builtin encountered on a
+    /// path that never evaluates one — the generic magic / FOL lowerings), which carries
+    /// no evaluated gap.
+    Arithmetic(Vec<BuiltinGap>),
     /// A non-binary atom (arity ≠ 2 after the world slot is dropped).
     NonBinaryAtom,
     /// A negation-as-failure body atom whose variables are not range-restricted by a
@@ -1268,7 +1278,7 @@ fn join_body_leapfrog(
     rel: &RelationStore,
     accumulated: &RelationStore,
     delta: Delta,
-    gap: &mut bool,
+    gap: &mut Vec<BuiltinGap>,
 ) -> Vec<Solution> {
     let mut slot_solutions = Vec::new();
     for delta_position in 0..plan.positive().len() {
@@ -1311,7 +1321,8 @@ fn join_body_leapfrog(
         .collect();
 
     if !rule.builtins.is_empty() {
-        solutions = apply_builtins(&rule.builtins, solutions, gap);
+        let resolver = RelationCellResolver { store: accumulated };
+        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
     }
     if !plan.negated().is_empty() {
         solutions.retain(|solution| {
@@ -1339,7 +1350,7 @@ pub(super) fn join_body_indexed(
     rel: &RelationStore,
     accumulated: &RelationStore,
     delta: Delta,
-    gap: &mut bool,
+    gap: &mut Vec<BuiltinGap>,
 ) -> Vec<Solution> {
     if plan.has_cyclic_subplan() {
         return join_body_leapfrog(rule, plan, rel, accumulated, delta, gap);
@@ -1355,7 +1366,7 @@ fn join_body_binary(
     rel: &RelationStore,
     accumulated: &RelationStore,
     delta: Delta,
-    gap: &mut bool,
+    gap: &mut Vec<BuiltinGap>,
 ) -> Vec<Solution> {
     // The positive (join) / negated (NAF) body-atom partition was precomputed ONCE at
     // plan time ([`RulePlan`]); the per-round `filter(..).collect()` allocation is gone.
@@ -1410,7 +1421,8 @@ fn join_body_binary(
     // prunes the solution.  This runs BEFORE the NAF retain so a negated atom over
     // a generator-bound variable sees the binding.
     if !rule.builtins.is_empty() {
-        solutions = apply_builtins(&rule.builtins, solutions, gap);
+        let resolver = RelationCellResolver { store: accumulated };
+        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
     }
 
     if !negated.is_empty() {
@@ -1424,6 +1436,57 @@ fn join_body_binary(
     solutions
 }
 
+/// A [`CellResolver`] reading the exact-rational `math:` Gram/vector cells out of the
+/// accumulated columnar [`RelationStore`] the semi-naive fixpoint has built (the same
+/// store the forward and demand/magic legs both accumulate into). IRIs are addressed in
+/// the store's display surface (`<iri>`); the cell walk mirrors `gmeow_math`'s graph
+/// loaders over the store's `(subject, predicate) → objects` index, so the shared
+/// loaders build the form identically regardless of substrate.
+struct RelationCellResolver<'a> {
+    store: &'a RelationStore,
+}
+
+impl MathTriples for RelationCellResolver<'_> {
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+        let display = format!("<{subject}>");
+        let Some(sid) = self.store.term_id(&display) else {
+            return Vec::new();
+        };
+        let mut out = Vec::new();
+        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row)) = cursor.next() {
+            if let purrdf::TermValue::Iri(iri) = self.store.interner().resolve(object) {
+                out.push(iri.clone());
+            }
+        }
+        out
+    }
+
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+        let display = format!("<{subject}>");
+        let sid = self.store.term_id(&display)?;
+        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row)) = cursor.next() {
+            if let purrdf::TermValue::Literal { lexical_form, .. } =
+                self.store.interner().resolve(object)
+                && let Ok(n) = lexical_form.trim().parse::<i128>()
+            {
+                return Some(n);
+            }
+        }
+        None
+    }
+}
+
+impl CellResolver for RelationCellResolver<'_> {
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, gmeow_math::Rational)>> {
+        load_gram_cells(self, iri)
+    }
+    fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
+        load_vector_dense(self, iri)
+    }
+}
+
 /// Evaluate a rule's arithmetic/comparison builtins against each candidate
 /// solution, in body order, via the shared moded evaluator.
 ///
@@ -1433,7 +1496,12 @@ fn join_body_binary(
 /// sets `gap` and drops the solution — the caller then surfaces a typed refusal for
 /// the WHOLE program rather than present an incomplete native answer, so a dropped
 /// solution is never a wrong answer.
-fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) -> Vec<Solution> {
+fn apply_builtins(
+    builtins: &[QBuiltin],
+    sols: Vec<Solution>,
+    gap: &mut Vec<BuiltinGap>,
+    resolver: &dyn CellResolver,
+) -> Vec<Solution> {
     let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
     'next_sol: for mut sol in sols {
         for b in builtins {
@@ -1442,19 +1510,25 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
             // bound surface directly (no per-lookup allocation).
             let outcome = {
                 let lookup = |name: &str| sol.get(name).map(Cow::Borrowed);
-                eval_builtin(b, &lookup)
+                eval_builtin(b, &lookup, resolver)
             };
             match outcome {
                 BuiltinOutcome::Filter(true) => {}
                 BuiltinOutcome::Filter(false) => continue 'next_sol,
                 BuiltinOutcome::Generate { var, value } => {
-                    sol.bindings.push((var, emit_integer_surface(value)));
+                    sol.bindings.push((var, emit_surface(&value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
                     // A single unbound operand / domain error refuses the WHOLE program,
-                    // so the remaining solutions cannot change the outcome — stop
-                    // evaluating them.
-                    *gap = true;
+                    // so the remaining solutions cannot change the outcome — capture the
+                    // typed gap (KIND + operation + antecedent operands) and stop
+                    // evaluating. `from_outcome` is total for these declining arms, so the
+                    // gap is never anonymous.
+                    if let Some(captured) =
+                        BuiltinGap::from_outcome(b, &outcome, sol.bindings.clone())
+                    {
+                        gap.push(captured);
+                    }
                     return Vec::new();
                 }
             }
@@ -1834,8 +1908,8 @@ fn eval_world_stratified_with_trace(
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     // Ordinary forward materialization carries no arithmetic builtins (the ontology
-    // corpus has none), so this stays false; assert that invariant below.
-    let mut builtin_gap = false;
+    // corpus has none), so this stays empty; assert that invariant below.
+    let mut builtin_gap: Vec<BuiltinGap> = Vec::new();
     for k in 0..total {
         if exe.stratum_is_empty(k) {
             completed += 1; // an empty stratum is trivially saturated
@@ -1874,7 +1948,7 @@ fn eval_world_stratified_with_trace(
     }
 
     debug_assert!(
-        !builtin_gap,
+        builtin_gap.is_empty(),
         "forward materialization rules carry no arithmetic builtins"
     );
 
@@ -1899,7 +1973,7 @@ struct FixpointState<'a> {
     rel: &'a mut RelationStore,
     depth: &'a mut Vec<ProofHeight>,
     derivations: &'a mut Vec<DerivedRow>,
-    builtin_gap: &'a mut bool,
+    builtin_gap: &'a mut Vec<BuiltinGap>,
 }
 
 /// The immutable snapshot every rule task reads during one semi-naive round.
@@ -1923,7 +1997,7 @@ struct RoundSnapshot<'a> {
 struct RoundCandidateBuffer {
     entries: Vec<(FactKey, RuleRoundCandidate)>,
     index: HashTable<usize>,
-    builtin_gap: bool,
+    builtin_gap: Vec<BuiltinGap>,
 }
 
 /// Deterministic structural work observed on the rule-parallel path.
@@ -1965,7 +2039,7 @@ impl RoundCandidateBuffer {
         Self {
             entries: Vec::new(),
             index: HashTable::new(),
-            builtin_gap: false,
+            builtin_gap: Vec::new(),
         }
     }
 
@@ -1995,8 +2069,8 @@ impl RoundCandidateBuffer {
     }
 
     /// Merge a completed rule-local buffer at the scheduling-erasing serial boundary.
-    fn merge_from(&mut self, other: Self, mode: ProvenanceMode) -> gmeow_errors::Result<()> {
-        self.builtin_gap |= other.builtin_gap;
+    fn merge_from(&mut self, mut other: Self, mode: ProvenanceMode) -> gmeow_errors::Result<()> {
+        self.builtin_gap.append(&mut other.builtin_gap);
         for (key, candidate) in other.entries {
             self.insert(key, candidate, mode)?;
         }
@@ -2192,7 +2266,7 @@ fn eval_stratum_fixpoint(
         // Every rule reads this immutable snapshot. Parallel tasks produce independent
         // borrowed-key winner buffers; their program-order merge erases scheduling before
         // the single lexical commit mutates either store or charges the governor.
-        let round = evaluate_round_candidates(
+        let mut round = evaluate_round_candidates(
             exe,
             stratum,
             RoundSnapshot {
@@ -2205,7 +2279,7 @@ fn eval_stratum_fixpoint(
             round_execution,
             parallel_trace.as_deref_mut(),
         )?;
-        *builtin_gap |= round.builtin_gap;
+        builtin_gap.append(&mut round.builtin_gap);
         let round_entries = round.entries;
 
         if round_entries.is_empty() {
@@ -2380,7 +2454,7 @@ pub(crate) fn evaluate(
     // domain/precision error (÷0, overflow).  Such a program is a declared native
     // gap: the whole query is refused rather than presenting an incomplete
     // answer set — never a wrong answer.
-    let mut builtin_gap = false;
+    let mut builtin_gap: Vec<BuiltinGap> = Vec::new();
     for k in 0..total {
         if exe.stratum_is_empty(k) {
             completed += 1;
@@ -2427,8 +2501,10 @@ pub(crate) fn evaluate(
         "Skip-mode evaluate must record no DerivedRows and no depth entries"
     );
 
-    if builtin_gap {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+    if !builtin_gap.is_empty() {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic(
+            builtin_gap,
+        )));
     }
 
     Ok(NativeOutcome::Decided(Budgeted {

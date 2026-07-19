@@ -1,0 +1,18 @@
+{
+  "op": "dimension_commensurable_eq",
+  "mode": "compare",
+  "facts": [
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimA", "lex": "1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" },
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimB", "lex": "1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:commensurable(X, Y) :- ex:dimA(X, A), ex:dimB(X, B), A =:= B, Y is 1.\n?- ex:commensurable(X, Y).\n",
+  "expect_bindings": 1,
+  "checks": [
+    { "var": "X", "value_kind": "const", "expected": "<https://example.org/1428/a>" }
+  ],
+  "provenance": {
+    "generator": "hand-derived ℚ⁷ reference (fixed SI base order L,M,T,I,Θ,N,J)",
+    "derivation": "Both facts carry the SAME ℚ⁷ exponent vector [1,0,0,0,0,0,0] (pure length, L^1). Commensurability (`=:=` over two Value::Dim) is exact ℚ⁷ vector equality, and [1,0,0,0,0,0,0] == [1,0,0,0,0,0,0] componentwise, so the comparison holds and the goal has exactly one answer, X = ex:a. `Y` is an unused dummy arg (`Y is 1`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

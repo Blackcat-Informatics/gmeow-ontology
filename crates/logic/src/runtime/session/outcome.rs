@@ -116,7 +116,7 @@ impl From<crate::physical::UnsupportedKind> for UnsupportedFragment {
         match kind {
             K::NonStratifiable => Self::NonStratifiable,
             K::Cut => Self::Cut,
-            K::Arithmetic => Self::Arithmetic,
+            K::Arithmetic(_) => Self::Arithmetic,
             K::NonBinaryAtom => Self::NonBinaryAtom,
             K::Floundering => Self::Floundering,
             K::NonTerminatingExistential => Self::NonTerminatingExistential,

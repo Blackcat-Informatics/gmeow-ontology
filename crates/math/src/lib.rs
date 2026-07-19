@@ -26,15 +26,20 @@ use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, Term, TermKind};
 
 pub mod clifford;
+pub mod dimension;
 pub mod producers;
 
 mod error;
 use error::{
     ArithmeticOverflow, BadCosine, DecimalParse, DegenerateScale, EmptySpace, GraphRead,
-    IndexOutOfRange, MissingProperty, NegativeSqrt, NoCells, NonSquareGram, NotPositiveDefinite,
-    RationalDomain, ZeroVector,
+    MissingProperty, NegativeSqrt, NoCells, NonSquareGram, NotPositiveDefinite, RationalDomain,
+    ZeroVector,
 };
-pub use error::{MATH_DIAG_CODES, register_all};
+// `IndexOutOfRange` is part of the public surface: a downstream reasoned-graph gate
+// (`gmeow_logic::math_dimension`) distinguishes an out-of-range authored matrix index
+// from a shape-caught structural fault to surface it as a typed `math:MalformedDimension`
+// finding rather than silently skipping.
+pub use error::{IndexOutOfRange, MATH_DIAG_CODES, register_all};
 
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -95,7 +100,15 @@ fn gcd_i128(a: i128, b: i128) -> i128 {
 /// An exact rational number backed by `i128`, always kept gcd-normalized with a
 /// strictly positive denominator. Every arithmetic operation is checked and
 /// **hard-fails** (returns `Err`) on overflow rather than wrapping.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// The normalized `(numerator, denominator)` pair is the canonical representative
+/// of the value, so the derived [`Hash`] is consistent with [`Eq`]: two rationals
+/// that compare equal (e.g. `1/2` and `2/4`, both normalized to `1/2`) hash equal.
+/// `Ord`/`PartialOrd` cross-multiply and **panic** on `i128` overflow (a loud,
+/// deterministic hard fail, since `cmp` cannot return `Result`); overflow-safe
+/// callers on hostile inputs must order via [`Rational::checked_sub`] and inspect
+/// the sign instead of `cmp`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Rational {
     numerator: i128,
     denominator: i128,
@@ -670,6 +683,43 @@ pub fn index_graph(graph: &Graph) -> TripleIndex {
     index
 }
 
+/// Build a [`TripleIndex`] over a purrdf [`RdfDataset`](purrdf::RdfDataset), the
+/// read substrate the exact-rational loaders walk when the source is an in-memory
+/// dataset (e.g. the native reasoned graph) rather than a `.gts` bundle. Every
+/// graph is read (`GraphMatch::Any`), so an invariant computed off the index holds
+/// bundle-wide exactly as the whole-dataset validate sweep did. Literal objects are
+/// indexed by their lexical form; IRI and blank-node terms by their value
+/// (blank-node labels scope-qualified), and quoted-triple terms are skipped — the
+/// same node projection [`index_graph`] applies.
+pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let mut index = TripleIndex::default();
+    for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let subject = match dataset.resolve(quad.s) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            TermRef::Blank { label, scope } => scope.qualify_label(label).into_owned(),
+            TermRef::Literal { .. } | TermRef::Triple { .. } => continue,
+        };
+        let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+            continue;
+        };
+        let object = match dataset.resolve(quad.o) {
+            TermRef::Iri(iri) => Node::Iri(iri.to_owned()),
+            TermRef::Blank { label, scope } => Node::Bnode(scope.qualify_label(label).into_owned()),
+            TermRef::Literal { lexical, .. } => Node::Literal(lexical.to_owned()),
+            TermRef::Triple { .. } => continue,
+        };
+        index
+            .by_subject
+            .entry(subject)
+            .or_default()
+            .entry(predicate.to_owned())
+            .or_default()
+            .push(object);
+    }
+    index
+}
+
 /// Parse a Turtle document into a [`TripleIndex`] over its default graph.
 ///
 /// The Turtle is normalized through the GTS snapshot codec (parse → snapshot →
@@ -887,6 +937,35 @@ mod tests {
     /// The canonical correlated metric G = [[1, 1/4], [1/4, 1]].
     fn correlated_gram() -> InnerProductSpace {
         InnerProductSpace::new(vec![vec![r(1, 1), r(1, 4)], vec![r(1, 4), r(1, 1)]]).expect("space")
+    }
+
+    // Hash is consistent with Eq: equal-valued rationals (normalized to the same
+    // canonical pair) hash equal, so Rational is a sound HashMap/HashSet key.
+    #[test]
+    fn equal_rationals_hash_equal() {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+
+        fn hash_of(value: Rational) -> u64 {
+            let mut hasher = DefaultHasher::new();
+            value.hash(&mut hasher);
+            hasher.finish()
+        }
+
+        // 1/2 and 2/4 normalize to the same (1, 2); Eq and Hash must agree.
+        let half = r(1, 2);
+        let also_half = r(2, 4);
+        assert_eq!(half, also_half);
+        assert_eq!(hash_of(half), hash_of(also_half));
+
+        // A negative denominator normalizes to a positive one; still hashes equal.
+        let neg = r(1, -3);
+        let pos = r(-1, 3);
+        assert_eq!(neg, pos);
+        assert_eq!(hash_of(neg), hash_of(pos));
+
+        // Distinct values (overwhelmingly) hash apart — a weak inequality sanity check.
+        assert_ne!(hash_of(r(1, 2)), hash_of(r(1, 3)));
     }
 
     #[test]
