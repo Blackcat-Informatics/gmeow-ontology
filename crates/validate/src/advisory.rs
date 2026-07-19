@@ -84,6 +84,12 @@ pub const BEST_PRACTICE_NORMATIVE_SYSTEM_IRI: &str =
 const EVENT_TEMPORAL_FRAME_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian";
 
+/// The `gmeow:EventType` the advisory-conduct event carries — `gmeow:eventTypeAudit`.
+/// A ComplianceAssessment is a compliance review of the assessed conduct, so an audit
+/// event type is the apt kind; it also satisfies the advisory "an event should carry a
+/// gmeow:eventType or a temporal placement" modeling shape without a synthetic timestamp.
+const EVENT_TYPE_IRI: &str = "https://blackcatinformatics.ca/gmeow/eventTypeAudit";
+
 /// A pinned, stable `xsd:decimal` lexical form for a confidence value:
 /// exactly one fractional digit (`"1.0"`, `"0.5"`, `"0.0"`).  The confidence
 /// literal rides the base-quad CBOR fold, and the superset/fold gate compares
@@ -424,8 +430,9 @@ fn nq_escape(value: &str) -> String {
 ///   label, the `deonticRecommendation` modality, and the issuing standpoint
 ///   as `gmeow:normIssuer`, `gmeow:partOf` [`BEST_PRACTICE_NORMATIVE_SYSTEM_IRI`].
 /// * `{code}/event` — a `gmeow:Event` carrying exactly one
-///   `gmeow:eventTemporalFrame` ([`EVENT_TEMPORAL_FRAME_IRI`]) and NO
-///   `gmeow:eventTime` (deterministic output — no wall-clock).
+///   `gmeow:eventTemporalFrame` ([`EVENT_TEMPORAL_FRAME_IRI`]), a
+///   `gmeow:eventType` ([`EVENT_TYPE_IRI`]), and NO `gmeow:eventTime`
+///   (deterministic output — no wall-clock).
 /// * `{code}/assessment` — a `gmeow:ComplianceAssessment` linking the event
 ///   and norm, carrying the verdict, the vantage (= standpoint), the stated
 ///   confidence as a pinned `xsd:decimal` literal, and — when
@@ -537,6 +544,12 @@ pub fn project_compliance_assessment(claims: &[AdvisoryClaim], graph_iri: &str) 
             &event,
             &format!("{GMEOW}eventTemporalFrame"),
             &format!("<{EVENT_TEMPORAL_FRAME_IRI}>"),
+            &mut lines,
+        );
+        triple(
+            &event,
+            &format!("{GMEOW}eventType"),
+            &format!("<{EVENT_TYPE_IRI}>"),
             &mut lines,
         );
 
@@ -796,9 +809,13 @@ mod tests {
             "{norm} <{GMEOW}partOf> <{BEST_PRACTICE_NORMATIVE_SYSTEM_IRI}> <{DEMO_GRAPH}> ."
         )));
 
-        // The event carries eventTemporalFrame and NO eventTime.
+        // The event carries eventTemporalFrame + an eventType (satisfying the "type or
+        // temporal placement" modeling shape) and NO eventTime (deterministic output).
         assert!(nquads.contains(&format!(
             "{event} <{GMEOW}eventTemporalFrame> <{EVENT_TEMPORAL_FRAME_IRI}> <{DEMO_GRAPH}> ."
+        )));
+        assert!(nquads.contains(&format!(
+            "{event} <{GMEOW}eventType> <{EVENT_TYPE_IRI}> <{DEMO_GRAPH}> ."
         )));
         assert!(
             !nquads.contains("eventTime"),
