@@ -197,6 +197,17 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 ##@ Generated Artifacts And Outputs
 
 sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
+	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
+	@# cold checkout that build output must exist before this pipeline's docs fanout
+	@# runs. `SYNC_OUTPUTS=all` already orders this correctly in ONE pass (the pipeline
+	@# run writes dist/gmeow.jsonld/.yamlld before sync_docs reads them); only the
+	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
+	@# it alone needs an explicit materialize-then-build prerequisite here.
+	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
+		$(MAKE) sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) build; \
+	fi
 	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
@@ -279,13 +290,17 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
+	$(MAKE) sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
 	gts heads "$(GTS_OUT)"
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
+		dist/gmeow-docs.tar dist/gmeow-docs.tar.blake3 \
+		dist/gmeow-docs/manifest/docs-manifest.ttl dist/gmeow-docs.manifest.ttl.blake3 \
 		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
-		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design)."
+		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design). The attached dist/gmeow-docs.tar is the external documentation distribution (site/mdbook/pdf/snippets/pydantic/okf/jsonld/yamlld), content-addressed by its .blake3 sidecar; dist/gmeow-docs/manifest/docs-manifest.ttl is the DCAT release manifest for those distributions, content-addressed by its own dist/gmeow-docs.manifest.ttl.blake3 sidecar (kept OUTSIDE the archived tree so re-packaging stays idempotent)."
 	@if [ -n "$(CROSSREF_USER)" ] && [ -n "$(CROSSREF_PASS)" ]; then \
 		echo "submitting Crossref deposit as $(CROSSREF_USER) ..."; \
 		curl -fsS -F 'operation=doMDUpload' -F 'login_id=$(CROSSREF_USER)' \
@@ -296,7 +311,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 		echo "DOI registration PENDING: set CROSSREF_USER + CROSSREF_PASS to submit, or run:"; \
 		echo "  curl -F operation=doMDUpload -F login_id=\$$CROSSREF_USER -F login_passwd=\$$CROSSREF_PASS -F fname=@dist/crossref-deposit.xml $(CROSSREF_DEPOSIT_URL)"; \
 	fi
-	@echo "release-publish: published $(RELEASE_TAG) ($(GTS_OUT) + .sha256 + crossref deposit)."
+	@echo "release-publish: published $(RELEASE_TAG) ($(GTS_OUT) + .sha256 + crossref deposit + docs distribution tar/manifest + .blake3 sidecars)."
 
 clean: ## Remove ephemeral build artifacts.
 	rm -rf dist docs/_generated .stamps $(RUST_READY_STAMP)
