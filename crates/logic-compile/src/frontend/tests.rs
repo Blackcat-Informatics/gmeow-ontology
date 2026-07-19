@@ -2217,6 +2217,130 @@ fn functional_completeness_invariant_flags_carrierless_and_clears_when_carried()
 }
 
 #[test]
+fn functional_carrier_integrity_flags_reintroduced_owl_marker() {
+    // The retained RE-introduction guard: a bare owl:FunctionalProperty declaration with no
+    // carrier is a ReintroducedOwlMarker violation — the invariant still bites if the deprecated
+    // marker returns.
+    let ds = shape_dataset("g:legacyId a owl:FunctionalProperty .");
+    let violations = functional_carrier_integrity(ds.as_ref());
+    assert!(
+        violations.iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::ReintroducedOwlMarker { property } if property.ends_with("legacyId")
+        )),
+        "re-introduced owl:FunctionalProperty is a ReintroducedOwlMarker violation: {violations:?}"
+    );
+}
+
+#[test]
+fn functional_carrier_integrity_flags_orphan_carrier() {
+    // A functional carrier whose logic:characterizes names an IRI declared by NO property type is
+    // an OrphanCarrier violation (a misspelled / never-declared target).
+    let ds = shape_dataset(
+        "[] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:neverDeclaredProp ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let violations = functional_carrier_integrity(ds.as_ref());
+    assert!(
+        violations.iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::OrphanCarrier { property } if property.ends_with("neverDeclaredProp")
+        )),
+        "a carrier characterizing an undeclared IRI is an OrphanCarrier violation: {violations:?}"
+    );
+    // A declared property clears the orphan check (only the ledger-drift noise remains for it).
+    let declared = shape_dataset(
+        "g:realProp a owl:ObjectProperty . \
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:realProp ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    assert!(
+        !functional_carrier_integrity(declared.as_ref()).iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::OrphanCarrier { property } if property.ends_with("realProp")
+        )),
+        "a declared property is not an orphan"
+    );
+}
+
+#[test]
+fn functional_carrier_integrity_flags_duplicate_carrier() {
+    // Two functional carrier records naming the same property is a DuplicateCarrier violation.
+    let ds = shape_dataset(
+        "g:dupProp a owl:ObjectProperty . \
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:dupProp ; \
+             logic:characteristicSort logic:functionalProperty . \
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:dupProp ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let violations = functional_carrier_integrity(ds.as_ref());
+    assert!(
+        violations.iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::DuplicateCarrier { property, count }
+                if property.ends_with("dupProp") && *count == 2
+        )),
+        "two carriers for one property is a DuplicateCarrier violation with count 2: {violations:?}"
+    );
+    // A single carrier for the same property does not trip the duplicate check.
+    let single = shape_dataset(
+        "g:dupProp a owl:ObjectProperty . \
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:dupProp ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    assert!(
+        !functional_carrier_integrity(single.as_ref()).iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::DuplicateCarrier { property, .. } if property.ends_with("dupProp")
+        )),
+        "a single carrier is not a duplicate"
+    );
+}
+
+#[test]
+fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
+    // Prove the completeness ledger is NON-VACUOUS: a small store carries NONE of the frozen
+    // ledger's 712 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
+    // the exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
+    // (g:unexpectedProp, absent from the ledger) surfaces as a LedgerUnexpected that names it.
+    let ds = shape_dataset(
+        "g:unexpectedProp a owl:ObjectProperty . \
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:unexpectedProp ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let violations = functional_carrier_integrity(ds.as_ref());
+    let missing: Vec<&String> = violations
+        .iter()
+        .filter_map(|v| match v {
+            FunctionalCarrierViolation::LedgerMissing { property } => Some(property),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        missing.len(),
+        712,
+        "every frozen ledger entry with no live carrier is named as LedgerMissing"
+    );
+    assert!(
+        missing.iter().any(|p| p.ends_with("acceptanceStatus")),
+        "a specific ledger property is named as missing when its carrier is absent"
+    );
+    assert!(
+        violations.iter().any(|v| matches!(
+            v,
+            FunctionalCarrierViolation::LedgerUnexpected { property } if property.ends_with("unexpectedProp")
+        )),
+        "an un-blessed carrier surfaces as a LedgerUnexpected naming it: {violations:?}"
+    );
+}
+
+#[test]
 fn derive_has_value_iri_emits_sh_has_value() {
     let ds = shape_dataset(
         "g:Publisher a owl:Class . \

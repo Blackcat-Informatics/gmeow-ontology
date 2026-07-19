@@ -2805,6 +2805,221 @@ pub fn functional_properties_missing_logic_carrier(
     declared.difference(&carried).cloned().collect()
 }
 
+// --------------------------------------------------------------------------- //
+// Functional-carrier integrity (migration-surviving, non-vacuous)
+// --------------------------------------------------------------------------- //
+
+/// The frozen completeness ledger of every property that MUST bear a functional
+/// `logic:PropertyCharacteristicAssertion` carrier — one canonical IRI per line, sorted, with `#`
+/// comment lines and blank lines ignored.
+///
+/// This is a DELIBERATE, human-blessed committed artifact, exactly like the `dl_oracle_gold`
+/// frozen verdicts and the `reasoning_session_semver` drift-pins: it is NEVER auto-updated. Any
+/// property that gains or loses a functional carrier moves this file in the SAME commit that moves
+/// the carrier, a conscious re-bless the author performs by hand. The
+/// [`functional_carrier_integrity`] gate asserts current-set == ledger and hard-fails on any drift
+/// (a silently-dropped or unexpectedly-added carrier), so a drift can never land unnoticed.
+///
+/// # Re-blessing (a deliberate human act)
+///
+/// When a functional carrier is intentionally added or removed, regenerate this file from the
+/// current corpus and commit it alongside the carrier change. The set is exactly the
+/// `logic:characterizes` targets of the `logic:functionalProperty`-sort
+/// `logic:PropertyCharacteristicAssertion` records over the merged authored corpus (see
+/// [`functional_carrier_property_iris`]); the pinning test `functional_carrier_ledger_matches_corpus`
+/// (in `crates/pipeline/tests`) prints the exact expected body on a mismatch.
+const FUNCTIONAL_CARRIER_LEDGER: &str = include_str!("frontend/functional_carrier_ledger.txt");
+
+/// Parse [`FUNCTIONAL_CARRIER_LEDGER`] into its sorted IRI set (ignoring `#` comments / blanks).
+fn functional_carrier_ledger() -> std::collections::BTreeSet<String> {
+    FUNCTIONAL_CARRIER_LEDGER
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// The RDF/OWL types whose subject "exists as a declared property" for the orphan check: an
+/// `rdf:Property` or any of its OWL sub-kinds. This is the property-declaration reading the
+/// validation-shape derivation uses (`owl:ObjectProperty` / `owl:DatatypeProperty`), widened to
+/// the full property-declaration vocabulary so a carrier target declared with ANY property type is
+/// recognised, and a merely misspelled / never-declared target is not.
+const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/2002/07/owl#FunctionalProperty",
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+    "http://www.w3.org/2002/07/owl#TransitiveProperty",
+    "http://www.w3.org/2002/07/owl#SymmetricProperty",
+    "http://www.w3.org/2002/07/owl#AsymmetricProperty",
+    "http://www.w3.org/2002/07/owl#ReflexiveProperty",
+    "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
+];
+
+/// Every functional carrier record's `logic:characterizes` target, as a property → carrier-count
+/// multiset over the store. A property named functional by two distinct
+/// `logic:PropertyCharacteristicAssertion` records appears with count 2 (the duplicate signal).
+fn functional_carrier_multiset(
+    store: &RdfDataset,
+) -> std::collections::BTreeMap<String, usize> {
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut counts: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            *counts.entry(prop).or_insert(0) += 1;
+        }
+    }
+    counts
+}
+
+/// The set of properties bearing at least one functional carrier record — the exact set the
+/// completeness ledger pins. Sorted and deterministic; this is the generator a re-bless copies
+/// into `frontend/functional_carrier_ledger.txt`.
+pub fn functional_carrier_property_iris(
+    store: &RdfDataset,
+) -> std::collections::BTreeSet<String> {
+    functional_carrier_multiset(store).into_keys().collect()
+}
+
+/// Every subject typed as an RDF/OWL property (see [`PROPERTY_DECLARATION_TYPES`]).
+fn declared_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for ty in PROPERTY_DECLARATION_TYPES {
+        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(ty)) {
+            if let Subject::Iri(iri) = s {
+                props.insert(iri);
+            }
+        }
+    }
+    props
+}
+
+/// A single functional-carrier integrity violation, each a HARD FAIL on the sync path.
+///
+/// The variants make the migration-surviving completeness invariant NON-VACUOUS: unlike the bare
+/// [`functional_properties_missing_logic_carrier`] RE-introduction guard (vacuous once the
+/// `owl:FunctionalProperty` markers were removed), these bite against the LIVE carrier corpus.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FunctionalCarrierViolation {
+    /// A property still typed `owl:FunctionalProperty` with no functional carrier record — the
+    /// original RE-introduction regression guard, retained.
+    ReintroducedOwlMarker { property: String },
+    /// A functional carrier's `logic:characterizes` names an IRI that is not a declared property
+    /// anywhere in the store (a misspelled / never-declared target).
+    OrphanCarrier { property: String },
+    /// A property is named functional by more than one carrier record.
+    DuplicateCarrier { property: String, count: usize },
+    /// A property is in the frozen ledger but bears NO functional carrier now — a silently-dropped
+    /// carrier.
+    LedgerMissing { property: String },
+    /// A property bears a functional carrier but is ABSENT from the frozen ledger — an unexpected
+    /// new carrier that was never blessed.
+    LedgerUnexpected { property: String },
+}
+
+impl fmt::Display for FunctionalCarrierViolation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FunctionalCarrierViolation::ReintroducedOwlMarker { property } => write!(
+                f,
+                "re-introduced owl:FunctionalProperty on {property} without a \
+                 logic:PropertyCharacteristicAssertion functionalProperty carrier record"
+            ),
+            FunctionalCarrierViolation::OrphanCarrier { property } => write!(
+                f,
+                "orphan functional carrier: logic:characterizes names {property}, which is not a \
+                 declared rdf:Property / owl:ObjectProperty / owl:DatatypeProperty in the corpus"
+            ),
+            FunctionalCarrierViolation::DuplicateCarrier { property, count } => write!(
+                f,
+                "duplicate functional carrier: {property} is named functional by {count} \
+                 PropertyCharacteristicAssertion records (exactly one is required)"
+            ),
+            FunctionalCarrierViolation::LedgerMissing { property } => write!(
+                f,
+                "completeness drift: {property} is in the frozen functional-carrier ledger but \
+                 bears no functional carrier now (a silently-dropped carrier); re-bless the \
+                 ledger only if this drop is intended"
+            ),
+            FunctionalCarrierViolation::LedgerUnexpected { property } => write!(
+                f,
+                "completeness drift: {property} bears a functional carrier but is absent from the \
+                 frozen functional-carrier ledger (an unexpected new carrier); re-bless the \
+                 ledger only if this addition is intended"
+            ),
+        }
+    }
+}
+
+/// The migration-surviving functional-carrier integrity gate — the NON-VACUOUS successor to
+/// [`functional_properties_missing_logic_carrier`].
+///
+/// It runs four checks over the merged authored corpus and returns every violation, sorted
+/// deterministically (each kind is drawn from a `BTree*`, so the diagnostic bytes are stable):
+///
+/// 1. **RE-introduction guard** (retained) — any property still typed `owl:FunctionalProperty`
+///    with no functional carrier ([`FunctionalCarrierViolation::ReintroducedOwlMarker`]).
+/// 2. **Orphan carrier** — a carrier `logic:characterizes` target that is not a declared property
+///    ([`FunctionalCarrierViolation::OrphanCarrier`]).
+/// 3. **Duplicate carrier** — a property named functional by more than one record
+///    ([`FunctionalCarrierViolation::DuplicateCarrier`]).
+/// 4. **Positive completeness ledger** — the set of carrier-bearing properties must equal the
+///    committed frozen ledger; any drift yields
+///    [`FunctionalCarrierViolation::LedgerMissing`] / [`FunctionalCarrierViolation::LedgerUnexpected`].
+///
+/// A non-empty result is a HARD FAIL on the sync path (see
+/// `crates/pipeline/src/stages/compile_logic.rs`), never a soft warning — the caller must stop.
+pub fn functional_carrier_integrity(store: &RdfDataset) -> Vec<FunctionalCarrierViolation> {
+    let mut violations: Vec<FunctionalCarrierViolation> = Vec::new();
+
+    // (1) RE-introduction guard — kept verbatim from the pre-migration completeness gate.
+    for property in functional_properties_missing_logic_carrier(store) {
+        violations.push(FunctionalCarrierViolation::ReintroducedOwlMarker { property });
+    }
+
+    let multiset = functional_carrier_multiset(store);
+    let declared = declared_property_iris(store);
+
+    // (2) Orphan carrier + (3) duplicate carrier — both keyed off the sorted carrier multiset.
+    for (property, count) in &multiset {
+        if !declared.contains(property) {
+            violations.push(FunctionalCarrierViolation::OrphanCarrier {
+                property: property.clone(),
+            });
+        }
+        if *count > 1 {
+            violations.push(FunctionalCarrierViolation::DuplicateCarrier {
+                property: property.clone(),
+                count: *count,
+            });
+        }
+    }
+
+    // (4) Positive completeness ledger — the exact carrier-bearing set must equal the frozen ledger.
+    let carried: std::collections::BTreeSet<String> = multiset.into_keys().collect();
+    let ledger = functional_carrier_ledger();
+    for property in ledger.difference(&carried) {
+        violations.push(FunctionalCarrierViolation::LedgerMissing {
+            property: property.clone(),
+        });
+    }
+    for property in carried.difference(&ledger) {
+        violations.push(FunctionalCarrierViolation::LedgerUnexpected {
+            property: property.clone(),
+        });
+    }
+
+    violations
+}
+
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
 ///
 /// Fail-soft, like the rest of the front-end: a malformed shape (a step that is

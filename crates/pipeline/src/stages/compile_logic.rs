@@ -539,23 +539,30 @@ impl Stage for CompileLogicStage {
             gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
         );
-        // Authoring-completeness gate for the functional-characteristic carrier migration: every
-        // gmeow: property still declared `owl:FunctionalProperty` MUST also carry its canonical
-        // `logic:PropertyCharacteristicAssertion` functional record, or its functionality would
-        // silently vanish from the derived projection now that the OWL marker is a deprecated,
-        // no-longer-projected source. HARD FAIL over the merged corpus — never a soft warning.
-        let functional_carrier_gaps =
-            gmeow_logic_compile::frontend::functional_properties_missing_logic_carrier(
-                ontology.as_ref(),
-            );
-        if !functional_carrier_gaps.is_empty() {
-            let count = functional_carrier_gaps.len();
+        // Migration-surviving functional-carrier integrity gate. The pre-migration completeness
+        // check (`functional_properties_missing_logic_carrier`) became VACUOUS once the
+        // `owl:FunctionalProperty` markers were removed — its `declared` set is empty, so it only
+        // guards RE-introduction. `functional_carrier_integrity` restores a NON-VACUOUS invariant
+        // over the LIVE carrier corpus: it keeps that re-introduction guard AND adds (a) orphan
+        // carriers (`logic:characterizes` a non-declared property), (b) duplicate functional
+        // carriers, and (c) a positive completeness ledger (the carrier-bearing set must equal the
+        // committed frozen `functional_carrier_ledger.txt` — a silent add/drop hard-fails with a
+        // diff, forcing a conscious re-bless). HARD FAIL over the merged corpus — never a soft
+        // warning; each violation kind is listed distinctly.
+        let functional_carrier_violations =
+            gmeow_logic_compile::frontend::functional_carrier_integrity(ontology.as_ref());
+        if !functional_carrier_violations.is_empty() {
+            let count = functional_carrier_violations.len();
+            let detail = functional_carrier_violations
+                .iter()
+                .map(|v| format!("  - {v}"))
+                .collect::<Vec<_>>()
+                .join("\n");
             return Err(stage_err(format!(
-                "functional-characteristic carrier gap: {count} gmeow: propert{} declared \
-                 owl:FunctionalProperty without a logic:PropertyCharacteristicAssertion \
-                 functionalProperty carrier record: {}",
-                if count == 1 { "y" } else { "ies" },
-                functional_carrier_gaps.into_iter().collect::<Vec<_>>().join(", "),
+                "functional-carrier integrity: {count} violation{} over the merged corpus \
+                 (each a HARD FAIL — a missing/orphan/duplicate carrier or a completeness-ledger \
+                 drift):\n{detail}",
+                if count == 1 { "" } else { "s" },
             )));
         }
         // Procedural constraints (`logic:Constraint` + the P1–P7 / aggregate sugar) are gathered
