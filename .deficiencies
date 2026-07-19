@@ -1655,3 +1655,28 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   predicate-absence; the "{n} external vocabularies" count check given a numeric left boundary)
   were resolved in-code and re-verified green. Nothing else was scoped down, proxied, or moved
   off-gate.
+
+## 2026-07-18 — #1344 certify broader chase-termination classes, stage-1 (branch paudley/1344-chase-termination-ladder)
+
+- HUMAN-SIGNED-OFF DESCOPE (issue title → delivered ladder): the issue TITLE lists
+  "joint-acyclicity, guardedness, stickiness". The delivered work certifies joint,
+  super-weak, AND model-summarizing acyclicity, but NOT guardedness or stickiness.
+  This is the author's own re-scoping (design comment 2026-07-08: guardedness and
+  stickiness are a different decidability paradigm — bounded treewidth / FO-rewritability
+  — "not the near-term ladder") plus the user's explicit planning choice of "JA + SWA +
+  MSA". FORWARD PATH: guardedness and stickiness are addable as incomparable sibling
+  certifiers alongside JA/SWA on the same `ChaseAdmission` surface (a new `rank` slot +
+  a structural check); the `admits_native`/`to_finding`/`combine` machinery already
+  generalizes to more classes.
+
+- WEAKER-PROXY (conservative super-weak acyclicity): the shipped SWA certifier is a
+  SOUND but conservative rendering of Marnette's super-weak acyclicity — a static
+  Skolemized place graph with one-hop unification. It never over-certifies, is
+  non-vacuous beyond weak acyclicity, and is ladder-reachable, but where a null is
+  laundered through an intermediate datalog rule it conservatively REFUSES rather than
+  accepting, so some genuinely super-weakly-acyclic programs fall through to Uncertified
+  (→ budget) instead of being certified. This is within the "sufficient condition, not
+  complete test" nature all acyclicity classes share (weak acyclicity itself is
+  incomplete). FORWARD PATH: a full multi-hop unification-reachability (tracking the
+  Skolem term through datalog laundering) would close the gap; it converges toward the
+  MSA/MFA critical-instance machinery already shipped for the MSA rung.

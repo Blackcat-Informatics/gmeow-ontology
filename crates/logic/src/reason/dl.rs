@@ -1096,6 +1096,162 @@ fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str
     obligations
 }
 
+/// Namespace for authored general existential rules (the surface that lets a slice
+/// express an arbitrary `∀x. φ(x) → ∃y. ψ(x, y)` rule — not just an OWL restriction —
+/// and have its per-world termination class certified into `gmeow.gts`).
+const LOGIC_EXISTENTIAL_NS: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+
+/// The Skolem-analysis view of an authored-rule term: an IRI is a constant, a string
+/// literal starting `?` is a variable.  Anything else is malformed and skipped.
+fn authored_rule_term(term: &RdfTerm) -> Option<crate::rule_ir::EvalTerm> {
+    use crate::rule_ir::EvalTerm;
+    match term {
+        RdfTerm::Iri(iri) => Some(EvalTerm::named(iri)),
+        RdfTerm::Literal(lit) if lit.lexical_form.starts_with('?') => {
+            Some(EvalTerm::var(&lit.lexical_form))
+        }
+        _ => None,
+    }
+}
+
+/// Read authored general existential rules from `edb`, grouped by the reasoning world
+/// (named graph) they are authored in.  Each `logicx:ExistentialRule` carries
+/// `logicx:body`/`logicx:head` atom nodes, each with `logicx:s`/`logicx:p`/`logicx:o`
+/// (subject/predicate/object).  Existential head variables (head vars the body does not
+/// bind) are derived automatically by [`crate::physical::ExistentialRule::existentials`],
+/// so no explicit `∃` marker is needed.  The produced rules are merged into the same
+/// per-world map the OWL-restriction lowering feeds, so they flow through the identical
+/// per-world `ChaseAdmission::certify` → shipped-certificate path.
+///
+/// A **declared-but-malformed** authored rule is a HARD FAIL, never a silent drop: an atom
+/// node referenced by `logicx:body`/`logicx:head` whose `logicx:s`/`logicx:p`/`logicx:o` is
+/// missing or malformed, or a rule that assembles to an empty body or head, returns an error
+/// (no-optionality: silently dropping a body conjunct would *broaden* the rule and derive
+/// facts never authored).
+pub(crate) fn authored_existential_rules(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<BTreeMap<String, Vec<crate::physical::ExistentialRule>>> {
+    use crate::rule_ir::EvalAtom;
+    let ns = |local: &str| format!("{LOGIC_EXISTENTIAL_NS}{local}");
+    let (rule_type, body_p, head_p, s_p, p_p, o_p) = (
+        ns("ExistentialRule"),
+        ns("body"),
+        ns("head"),
+        ns("s"),
+        ns("p"),
+        ns("o"),
+    );
+
+    let mut is_rule: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut body_nodes: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut head_nodes: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut atom_s: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+    let mut atom_p: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+    let mut atom_o: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
+
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        let key = (world.clone(), subject.clone());
+        match predicate.as_str() {
+            RDF_TYPE if matches!(&object, RdfTerm::Iri(iri) if *iri == rule_type) => {
+                is_rule.insert(key);
+            }
+            p if p == body_p => {
+                if let Some(node) = term_resource_key(&object) {
+                    body_nodes.entry(key).or_default().insert(node);
+                }
+            }
+            p if p == head_p => {
+                if let Some(node) = term_resource_key(&object) {
+                    head_nodes.entry(key).or_default().insert(node);
+                }
+            }
+            p if p == s_p => {
+                atom_s.insert(key, object);
+            }
+            p if p == p_p => {
+                atom_p.insert(key, object);
+            }
+            p if p == o_p => {
+                atom_o.insert(key, object);
+            }
+            _ => {}
+        }
+    }
+
+    // Assemble one atom (deterministic across authoring order) from its node key. A
+    // declared atom node that cannot assemble a well-formed atom is a HARD FAIL, never a
+    // silent drop (dropping a body conjunct would broaden the rule; dropping a head atom
+    // would weaken it — either way silently degrades the authored semantics).
+    let malformed_term = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> has a malformed \
+             logicx:{slot} (expected an IRI constant or a \"?variable\" literal)"
+        ))
+    };
+    let missing_slot = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> is missing its \
+             logicx:{slot}"
+        ))
+    };
+    let atom_of = |world: &str, node: &str| -> gmeow_errors::Result<EvalAtom> {
+        let key = (world.to_owned(), node.to_owned());
+        let subject = authored_rule_term(
+            atom_s
+                .get(&key)
+                .ok_or_else(|| missing_slot("s", world, node))?,
+        )
+        .ok_or_else(|| malformed_term("s", world, node))?;
+        let predicate = match atom_p
+            .get(&key)
+            .ok_or_else(|| missing_slot("p", world, node))?
+        {
+            RdfTerm::Iri(iri) => iri.clone(),
+            _ => return Err(malformed_term("p", world, node)),
+        };
+        let object = authored_rule_term(
+            atom_o
+                .get(&key)
+                .ok_or_else(|| missing_slot("o", world, node))?,
+        )
+        .ok_or_else(|| malformed_term("o", world, node))?;
+        Ok(EvalAtom::positive(subject, &predicate, object))
+    };
+
+    let mut by_world: BTreeMap<String, Vec<crate::physical::ExistentialRule>> = BTreeMap::new();
+    for (world, rule) in is_rule {
+        let key = (world.clone(), rule.clone());
+        let mut body = Vec::new();
+        for node in body_nodes.get(&key).into_iter().flatten() {
+            body.push(atom_of(&world, node)?);
+        }
+        let mut head = Vec::new();
+        for node in head_nodes.get(&key).into_iter().flatten() {
+            head.push(atom_of(&world, node)?);
+        }
+        if body.is_empty() || head.is_empty() {
+            return Err(reason_err(format!(
+                "authored existential rule <{rule}> in world <{world}> is malformed: assembled \
+                 {} body atom(s) and {} head atom(s) (both must be non-empty)",
+                body.len(),
+                head.len()
+            )));
+        }
+        by_world
+            .entry(world)
+            .or_default()
+            .push(crate::physical::ExistentialRule {
+                rule_iri: rule,
+                body,
+                head,
+                distinct: vec![],
+                witness_frontier: None,
+                witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
+            });
+    }
+    Ok(by_world)
+}
+
 fn structured_existential_rules(
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
@@ -1302,7 +1458,13 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     Vec<crate::physical::WitnessDerivation>,
 )> {
     let restrictions = read_restrictions(edb);
-    let existential_rules = structured_existential_rules(&restrictions, edb);
+    let mut existential_rules = structured_existential_rules(&restrictions, edb);
+    // Merge authored general existential rules (arbitrary body/head) into the same
+    // per-world map, so they are certified per-world and shipped alongside the
+    // OWL-restriction certificates.
+    for (world, rules) in authored_existential_rules(edb)? {
+        existential_rules.entry(world).or_default().extend(rules);
+    }
     let lists = read_lists(edb);
 
     let mut facts: BTreeSet<Fact> = raw_resource_facts(edb).into_iter().collect();
@@ -4068,6 +4230,79 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
+    }
+
+    #[test]
+    fn authored_existential_rules_are_read_and_certified_per_world() {
+        // An authored general existential rule (arbitrary body/head atoms — NOT an OWL
+        // restriction) is read per-world and certified by the termination-class ladder.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        // A `?var` term is encoded as a string literal; a constant as an IRI.
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        // MSA swap-diagonal program: `p(x,x) → ∃y. p(x,y)` and `p(x,y) → p(y,x)`.
+        let store = dataset(vec![
+            quad("http://ex/demo/invent", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/invent", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/invent", &lx("head"), "http://ex/demo/h1"),
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/b1", &lx("o"), "?x"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+            quad("http://ex/demo/swap", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/swap", &lx("body"), "http://ex/demo/b2"),
+            quad("http://ex/demo/swap", &lx("head"), "http://ex/demo/h2"),
+            var("http://ex/demo/b2", &lx("s"), "?x"),
+            quad("http://ex/demo/b2", &lx("p"), EX_P),
+            var("http://ex/demo/b2", &lx("o"), "?y"),
+            var("http://ex/demo/h2", &lx("s"), "?y"),
+            quad("http://ex/demo/h2", &lx("p"), EX_P),
+            var("http://ex/demo/h2", &lx("o"), "?x"),
+        ]);
+        let by_world =
+            authored_existential_rules(store.as_ref()).expect("well-formed authored rules");
+        let rules = by_world
+            .get(W)
+            .expect("authored rules land in their graph's world");
+        assert_eq!(rules.len(), 2, "both authored rules parsed");
+        match crate::physical::ChaseAdmission::certify(rules) {
+            crate::physical::ChaseAdmission::ModelSummarizingAcyclic { .. } => {}
+            other => panic!("swap-diagonal must certify as ModelSummarizingAcyclic, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn authored_rule_with_malformed_atom_hard_fails_not_silently_dropped() {
+        // A declared body atom missing its `logicx:o` must HARD FAIL — never a silent drop.
+        // Silently dropping the conjunct would leave the rule with a smaller body, firing
+        // more often and deriving facts the author never wrote (no-optionality violation).
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/r", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            // b1 declares its subject and predicate but is MISSING its logicx:o (object).
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a declared atom missing logicx:o must hard-fail, not be dropped");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:o") && msg.contains("b1"),
+            "error must name the missing slot and the offending atom: {msg}"
+        );
     }
 
     #[test]

@@ -15,6 +15,14 @@ mod session_common;
 use session_common::*;
 
 /// Golden engine-descriptor hash. A drift here is a deliberate engine version bump.
+/// Re-blessed for the broader chase-termination-class ladder (joint / super-weak /
+/// model-summarizing acyclicity certifiers + the authored-existential-rule surface),
+/// which extends the forward reasoning/certificate contract folded into this descriptor.
+/// Re-blessed again for the stage-2 certifier hardening: the partial-order `combine` meet
+/// (incomparable JA∥SWA meet to their glb), the budgeted MSA critical-instance fixpoint
+/// (Exhausted → conservative refuse), the fail-fast authored-rule reader, and the
+/// certifier perf rewrites — all move the `physical/chase.rs` / `reason/dl.rs` content
+/// digest folded into this descriptor.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
     "7d247abd53b94638d4c3c358439c2177e06898ba530b84a5343e29d64bbd7b9d";
 
