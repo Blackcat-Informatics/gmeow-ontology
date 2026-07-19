@@ -1149,30 +1149,65 @@ pub(crate) fn authored_existential_rules(
     let mut atom_p: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
     let mut atom_o: BTreeMap<(String, String), RdfTerm> = BTreeMap::new();
 
+    // Collection-time hard-fails: a `logicx:body`/`head` that does not name a resource, or a
+    // duplicate `logicx:s`/`p`/`o` on one atom node, silently alter the authored rule and are
+    // rejected the moment they are seen (no-optionality — never a silent broaden/overwrite).
+    let non_resource_ref = |slot: &str, world: &str, rule: &str, value: &RdfTerm| {
+        reason_err(format!(
+            "authored existential-rule <{rule}> in world <{world}> has a logicx:{slot} value \
+             that is not a resource ({value:?}); logicx:{slot} must reference an atom-node IRI"
+        ))
+    };
+    let duplicate_slot = |slot: &str, world: &str, node: &str| {
+        reason_err(format!(
+            "authored existential-rule atom <{node}> in world <{world}> has more than one \
+             logicx:{slot}; each atom slot must be authored exactly once"
+        ))
+    };
+
     for (subject, predicate, object, world) in quads_by_subject(edb) {
         let key = (world.clone(), subject.clone());
         match predicate.as_str() {
             RDF_TYPE if matches!(&object, RdfTerm::Iri(iri) if *iri == rule_type) => {
                 is_rule.insert(key);
             }
-            p if p == body_p => {
-                if let Some(node) = term_resource_key(&object) {
+            p if p == body_p => match term_resource_key(&object) {
+                Some(node) => {
                     body_nodes.entry(key).or_default().insert(node);
                 }
-            }
-            p if p == head_p => {
-                if let Some(node) = term_resource_key(&object) {
+                // A non-resource `logicx:body` (a literal or quoted triple) cannot name an
+                // atom node. Silently dropping it would leave the rule with FEWER body
+                // conjuncts than authored — a broadening (no-optionality). HARD FAIL.
+                None => return Err(non_resource_ref("body", &world, &subject, &object)),
+            },
+            p if p == head_p => match term_resource_key(&object) {
+                Some(node) => {
                     head_nodes.entry(key).or_default().insert(node);
                 }
-            }
+                // A non-resource `logicx:head` would silently drop a head atom — a
+                // weakening of the authored rule. HARD FAIL.
+                None => return Err(non_resource_ref("head", &world, &subject, &object)),
+            },
+            // A second `logicx:s`/`p`/`o` on one atom node would silently OVERWRITE the
+            // first, reinterpreting the authored atom. A duplicate slot is malformed
+            // authoring — HARD FAIL rather than pick a winner (no-optionality).
             p if p == s_p => {
-                atom_s.insert(key, object);
+                let duplicate = atom_s.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("s", &world, &subject));
+                }
             }
             p if p == p_p => {
-                atom_p.insert(key, object);
+                let duplicate = atom_p.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("p", &world, &subject));
+                }
             }
             p if p == o_p => {
-                atom_o.insert(key, object);
+                let duplicate = atom_o.insert(key, object).is_some();
+                if duplicate {
+                    return Err(duplicate_slot("o", &world, &subject));
+                }
             }
             _ => {}
         }
@@ -4302,6 +4337,65 @@ mod tests {
         assert!(
             msg.contains("logicx:o") && msg.contains("b1"),
             "error must name the missing slot and the offending atom: {msg}"
+        );
+    }
+
+    #[test]
+    fn authored_rule_with_non_resource_body_ref_hard_fails() {
+        // A `logicx:body` whose value is a literal (not a resource) cannot name an atom node.
+        // Silently dropping it would leave the rule with fewer body conjuncts than authored —
+        // a broadening. It must HARD FAIL at collection time, not be skipped.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            // logicx:body points at a LITERAL — not a resource, so it names no atom node.
+            literal_quad("http://ex/demo/r", &lx("body"), "not-a-node", XSD_STRING),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a non-resource logicx:body must hard-fail, not be silently dropped");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:body") && msg.contains("not a resource"),
+            "error must name the slot and the non-resource cause: {msg}"
+        );
+    }
+
+    #[test]
+    fn authored_rule_with_duplicate_slot_hard_fails() {
+        // Two `logicx:s` triples on one atom node would silently OVERWRITE the first,
+        // reinterpreting the authored atom. A duplicate slot must HARD FAIL, not pick a winner.
+        const LX: &str = "https://blackcatinformatics.ca/gmeow/logic/existential#";
+        const EX_P: &str = "http://ex/p";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+        let lx = |s: &str| format!("{LX}{s}");
+        let var = |s: &str, p: &str, v: &str| literal_quad(s, p, v, XSD_STRING);
+        let store = dataset(vec![
+            quad("http://ex/demo/r", TYPE, &lx("ExistentialRule")),
+            quad("http://ex/demo/r", &lx("body"), "http://ex/demo/b1"),
+            quad("http://ex/demo/r", &lx("head"), "http://ex/demo/h1"),
+            // b1 declares its subject TWICE — a duplicate slot.
+            var("http://ex/demo/b1", &lx("s"), "?x"),
+            var("http://ex/demo/b1", &lx("s"), "?z"),
+            quad("http://ex/demo/b1", &lx("p"), EX_P),
+            var("http://ex/demo/b1", &lx("o"), "?y"),
+            var("http://ex/demo/h1", &lx("s"), "?x"),
+            quad("http://ex/demo/h1", &lx("p"), EX_P),
+            var("http://ex/demo/h1", &lx("o"), "?y"),
+        ]);
+        let err = authored_existential_rules(store.as_ref())
+            .expect_err("a duplicate logicx:s must hard-fail, not silently overwrite");
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("logicx:s") && msg.contains("more than one"),
+            "error must name the duplicated slot: {msg}"
         );
     }
 

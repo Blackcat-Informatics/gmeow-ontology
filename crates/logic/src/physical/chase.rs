@@ -1345,6 +1345,24 @@ impl ChaseAdmission {
             }
         }
 
+        // Bound the analysis BEFORE materializing the critical instance. The critical
+        // instance is `predicates × domain²` facts, and BOTH counts are controlled entirely
+        // by the authored program, so a pathological (and typically *rejected*) program
+        // could allocate an enormous store — exhausting memory or hanging certification —
+        // before the fixpoint step budget below ever applies. If the projected size exceeds
+        // the cap we conservatively return `None` (the ladder falls through to
+        // `Uncertified` → budget) WITHOUT allocating: a HARD refusal, never a silent admit
+        // and never an OOM. The cap is generous for real authored programs (a handful of
+        // predicates over a handful of constants) and only trips on pathological blow-ups.
+        const MSA_CRITICAL_INSTANCE_CAP: usize = 1 << 20;
+        let projected_facts = predicates
+            .len()
+            .saturating_mul(domain_terms.len())
+            .saturating_mul(domain_terms.len());
+        if projected_facts > MSA_CRITICAL_INSTANCE_CAP {
+            return None;
+        }
+
         // The critical instance: every predicate over the whole constant domain, plus the
         // null markers.
         let mut store = crate::physical::store::RelationStore::new();
@@ -2775,6 +2793,42 @@ mod tests {
     }
 
     #[test]
+    fn certify_msa_refuses_oversized_critical_instance_without_materializing() {
+        // A disjoint union of independent acyclic invent rules `p(cI,cI) → ∃y. q(cI,y)`:
+        // no null ever reaches itself, so MSA holds — UNTIL the constant domain grows past
+        // the critical-instance cap. The cap must flip the verdict to `None` (conservative
+        // refuse → the ladder falls through to `Uncertified`) purely on projected size,
+        // WITHOUT materializing `predicates × domain²` facts (no OOM / no hang).
+        let build = |n: usize| -> Vec<ExistentialRule> {
+            (0..n)
+                .map(|i| {
+                    let c = EvalTerm::ConstNamed(format!("http://ex/c/{i}"));
+                    ExistentialRule {
+                        rule_iri: format!("http://ex/rule/invent/{i}"),
+                        body: vec![atom(c.clone(), P, c.clone())],
+                        head: vec![atom(c, Q, var("?y"))],
+                        distinct: vec![],
+                        witness_frontier: None,
+                        witness_policy: WitnessPolicy::FrontierSkolem,
+                    }
+                })
+                .collect()
+        };
+        // Small domain: MSA certifies (the fixpoint actually runs, no self-dependency).
+        match ChaseAdmission::certify_model_summarizing(&build(3)) {
+            Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
+            other => panic!("a small acyclic invent program must certify as MSA, got {other:?}"),
+        }
+        // Oversized domain (> 1024 constants ⇒ predicates × domain² > 1 << 20): the cap
+        // refuses before materialization. This returns near-instantly; a pre-cap build
+        // would allocate millions of facts.
+        assert!(
+            ChaseAdmission::certify_model_summarizing(&build(1100)).is_none(),
+            "an oversized critical instance must conservatively refuse (None), not OOM/hang"
+        );
+    }
+
+    #[test]
     fn model_summarizing_program_runs_natively_unbudgeted_on_route_chase() {
         // Production-surface proof: a program every structural class refuses is admitted
         // by the MSA rung and runs to a natural fixpoint UNBUDGETED on the real router.
@@ -2849,8 +2903,9 @@ mod tests {
                 admission.admits_native(),
                 "{label}: a certified program must admit natively, got {admission:?}"
             );
-            let (_, unbudgeted) = route_chase(W, edb, prog, None).unwrap();
-            let _ = decided(unbudgeted);
+            // Run the BUDGETED oracle FIRST: a false certification of a non-terminating
+            // program exhausts the budget and fails this assertion, rather than hanging the
+            // unbudgeted route below forever (which never returns to fail the test).
             let budgeted = decided(chase_world(W, edb, prog, Some(BIG)).unwrap());
             assert_eq!(
                 budgeted.status,
@@ -2858,6 +2913,10 @@ mod tests {
                 "{label}: a certified program must reach a NATURAL fixpoint (a false \
                  certification would exhaust the budget)"
             );
+            // Only once the budgeted oracle has proven termination do we exercise the
+            // production router unbudgeted — the executable proof that it runs natively.
+            let (_, unbudgeted) = route_chase(W, edb, prog, None).unwrap();
+            let _ = decided(unbudgeted);
         }
     }
 

@@ -19,7 +19,7 @@
 //! surface in a single `make sync`.
 //!
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
-//! the ordered [`shape_files`] file list, per-file Turtle parse via
+//! the ordered `shape_files` file list, per-file Turtle parse via
 //! [`parse_dataset`], per-file blank-label scoping via [`RdfDataset::union`], document
 //! `@prefix` recovery via [`extract_prefixes`] with last-declaration-wins over the
 //! sorted file order, and the final [`from_dataset_with_prefixes`] typing. Only the
