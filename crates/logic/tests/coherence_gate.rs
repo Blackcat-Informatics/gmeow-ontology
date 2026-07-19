@@ -1,7 +1,7 @@
 //! Whole-ontology coherence-gate teeth tests.
 //!
 //! `make check` already runs a whole-ontology native DL consistency pass: the
-//! `reason-gate` target imports the committed `gmeow.gts` bundle and reasons over
+//! `reason-verify` target imports the committed `gmeow.gts` bundle and reasons over
 //! it via the same [`gmeow_logic::reason::reason_closure`] the verdict-only
 //! [`dl_consistency`] entry point wraps. A gate that RUNS but is never shown to CATCH
 //! anything is untrustworthy, so these tests prove it has teeth: an individual forced
@@ -17,13 +17,13 @@
 //!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
 //!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
 //!   and this test goes green→red). The clean-bundle regression guard is the explicit
-//!   `reason-gate` prerequisite of the dedicated `make coherence-gate-teeth` target, so
-//!   the poisoned test does not repeat that whole-bundle chase. This is the literal
-//!   whole-ontology teeth proof and it RUNS ON-GATE. The full-bundle chase is expensive
-//!   (the DL rule set
-//!   applied over the whole ~720k-quad bundle, dominated by the merged-in top-sortal
-//!   disjointness axioms; the SHACL/ShEx validation-shape projection is a
-//!   reasoner-invisible sidecar), so it stays in the exhaustive architectural lane
+//!   `reason-verify` prerequisite of the dedicated `make coherence-gate-teeth` target, so
+//!   the poisoned test does not repeat that clean chase. This is the literal
+//!   whole-ontology teeth proof and it RUNS ON-GATE. It recovers the SAME object-level
+//!   reasoning EDB as production before injecting the clash: documentation, mappings,
+//!   correspondence, reports, and SHACL/ShEx validation-shape sidecars remain shipped
+//!   but reasoner-invisible. The poisoned chase is still a whole-ontology operation, so
+//!   it stays in the exhaustive architectural lane
 //!   selected outside the default nextest profile. That separation is not gate exemption:
 //!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an
 //!   `-E` selector and is wired into `make check` via `CHECK_TARGETS`. The minimal
@@ -34,6 +34,7 @@ use gmeow_logic::foundation::{
     AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate,
 };
 use gmeow_logic::reason::dl_consistency;
+use gmeow_logic::reasoning_graphs::is_object_level_named_graph;
 use gmeow_logic::store::WorldStore;
 use purrdf::{
     NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes, import_gts_events,
@@ -115,6 +116,14 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+fn admitted_reasoning_graph(graph: &Option<RdfTerm>) -> bool {
+    match graph {
+        None => true,
+        Some(RdfTerm::Iri(iri)) => is_object_level_named_graph(iri),
+        Some(_) => false,
+    }
+}
+
 #[test]
 fn dl_consistency_gate_catches_injected_disjoint_clash() {
     // Baseline: the same world without the disjointness is coherent.
@@ -146,12 +155,14 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 
 #[test]
 fn whole_bundle_coherence_gate_catches_injected_clash() {
-    // Load the committed bundle exactly as production `reason-gate` does.
+    // Load the committed bundle exactly as production `reason-verify` does, then recover
+    // its object-level EDB. Running DL closure over every shipped meta/report graph is
+    // both semantically wrong and asymptotically tied to documentation growth.
     let gts_path = repo_root().join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&gts_path)
         .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
     let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
-    let onto = bundle.dataset;
+    let snapshot = bundle.dataset;
 
     // Locate the SHIPPED gmeow:Agent ⊥ gmeow:SocialObject edge in the bundle and read the
     // world (named graph) it lives in. Finding it AT ALL proves the net-new production
@@ -159,10 +170,11 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
     // NO owl:disjointWith of our own (a self-injected one would mask exactly that
     // regression). The DL disjointness rule is world-scoped, so the clashing individual
     // must be typed in the SAME world as the shipped edge.
-    let disjoint_world = onto
+    let disjoint_world = snapshot
         .owned_quads()
         .find_map(|q| {
-            let is_edge = q.predicate == OWL_DISJOINT_WITH
+            let is_edge = admitted_reasoning_graph(&q.graph_name)
+                && q.predicate == OWL_DISJOINT_WITH
                 && matches!(
                     (&q.subject, &q.object),
                     (RdfTerm::Iri(s), RdfTerm::Iri(o))
@@ -186,8 +198,20 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
     }
 
     let mut builder = RdfDatasetBuilder::new();
-    for quad in onto.owned_quads() {
-        builder.push_owned_quad(&quad);
+    for quad in snapshot.owned_quads() {
+        if admitted_reasoning_graph(&quad.graph_name) {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in snapshot.owned_reifiers() {
+        if admitted_reasoning_graph(&reifier.graph) {
+            builder.push_owned_reifier(&reifier);
+        }
+    }
+    for annotation in snapshot.owned_annotations() {
+        if admitted_reasoning_graph(&annotation.graph) {
+            builder.push_owned_annotation(&annotation);
+        }
     }
     builder.push_owned_quad(&type_agent);
     builder.push_owned_quad(&type_social);

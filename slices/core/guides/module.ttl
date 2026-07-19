@@ -6,7 +6,9 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # ── Vocabulary (TBox) ──────────────────────────────────────────────────────────
@@ -108,6 +110,435 @@ gmeow:guideSlug
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "guide slug"@x-gmeow-english ;
     skos:definition "The stable, filesystem-safe slug that identifies a recipe or learning path — the kebab-case key used to derive its documentation page URL and to cross-reference it from a learning path's included recipes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Authoring packet: the brief (TBox) ─────────────────────────────────────────
+
+gmeow:AuthoringPacket
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Authoring Packet"@x-gmeow-english ;
+    rdfs:subClassOf logic:AbstractIndividual ;
+    logic:formalizes logic:guidesAuthoringPacketSubsumption ;
+    skos:definition "A self-contained authoring brief for one batch of a slice's terms: a reified value structure that gathers, for each covered term, its definition and axioms, its bounded graph neighbourhood and definitional-dependency closure, a handful of same-slice exemplar coats that passed the SHACL validation gate (a term with any shape violation is never surfaced), and its cross-ontology and cross-lingual grounding — the mapped external entity plus fr/zh labels JOINed from the slice's translation catalogs. It is authoring context assembled for a human or agent, not an axiom over the modelled world; it is an abstract information structure (a value structure), and every instance is a deterministic projection of gmeow.gts."@x-gmeow-english ;
+    skos:example "ex:packetGroundingLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetSourceSlice <…/slices/logic> ; gmeow:packetBatch 0 ; gmeow:packetCoversTerm logic:Rule , logic:ConfInconsistent ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author packet individuals by hand or treat a packet as a source of truth: a packet is a derived projection, regenerated from the slices and the bundle. Do not read fr/zh labels 'through' a term-equivalence record — translations are JOINed from the per-slice .po catalogs, never carried on the equivalence. Do not silently omit a missing translation or a short exemplar set; record the absence explicitly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Produced by the slice-brief projection as a single consolidated sparse fold at generated/briefs/authoring-packets.nt (all slices' packets in one file), and on demand for a single slice by `gmeow slice brief <dir>`. Partition a slice's terms with --axis / --batch, then read each covered term's definition, axioms, neighbours, exemplars, and grounding coverage. The RDF projection is sparse: it materializes only the present fr/zh/external incidences and summarizes coverage in the per-attribute margins (gmeow:packetFrPresent / packetFrAbsent, packetZhPresent / packetZhAbsent, packetExternalMapped / packetExternalAbsent) — read those counts to see how much grounding is missing, or the on-demand JSON / text view for the explicit per-term absences."@x-gmeow-english ;
+    gmeow:useWhen "Use to give an author or reviewer everything needed to author or review one subdomain batch (~25 terms) of a slice in one place, and to drive downstream glossary-coverage and candidate-review tooling that reasons over which terms are grounded in which language or external ontology."@x-gmeow-english .
+
+gmeow:GroundingCoverage
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Grounding Coverage"@x-gmeow-english ;
+    rdfs:subClassOf logic:AbstractIndividual ;
+    logic:formalizes logic:guidesGroundingCoverageSubsumption ;
+    skos:definition "One PRESENT incidence cell of an authoring packet's grounding cross-table: it records, for a single covered term and a single grounding attribute (French, Chinese, or external-mapped), that the grounding is present, and carries the grounded value. Modelled as a formal-context incidence relation (term × attribute) so downstream tooling can derive the concept lattice of terms sharing a grounding profile. A formal context is naturally sparse: only present incidences are materialized; absence is the derivable complement, recorded by the packet's per-attribute absent counts (gmeow:packetFrAbsent, gmeow:packetZhAbsent, gmeow:packetExternalAbsent) — the standard sparse formal-context encoding. English is always present, so its margin is gmeow:packetTermCount and no English cell is materialized. A cell records a single PRESENT incidence and its grounded value, not a per-term summary blob nor a materialized absent cell — absence is the derivable complement, never given a cell of its own."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingTerm logic:Rule ; gmeow:groundingAttribute gmeow:groundingFr ; gmeow:groundingPredicate \"rdfs:label\" ; gmeow:groundingValue \"Règle\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse the cross-table into one opaque per-term summary blob. Do not materialize a cell per absent incidence (a dense encoding): record absence via the packet's per-attribute absent counts, the derivable complement of the present incidences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Attach one cell per PRESENT (covered term, grounding attribute) incidence to a gmeow:AuthoringPacket via gmeow:packetGrounding. For a language attribute, carry the annotation predicate and the JOINed translation; for the external-mapped attribute, carry the mapped entity, its English label, the alignment predicate and confidence. To find missing grounding, read the packet's per-attribute absent counts, not a materialized absent cell."@x-gmeow-english ;
+    gmeow:useWhen "Use to state, per term and per grounding axis, whether the term is grounded and with what value — the primitive a glossary-coverage lint or authoring dashboard queries."@x-gmeow-english .
+
+gmeow:GroundingAttribute
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Grounding Attribute"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    logic:formalizes logic:guidesGroundingAttributeSubsumption ;
+    skos:definition "The value vocabulary of grounding axes a covered term can be measured against in an authoring packet's coverage cross-table — the columns of the formal context. Its members are the enumerated attributes gmeow:groundingEn, gmeow:groundingFr, gmeow:groundingZh, gmeow:groundingExternalMapped, and gmeow:groundingExemplar. These are the coverage columns a term is measured against, not the covered terms themselves — a term is the incidence's object (gmeow:groundingTerm), never a member of this vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:groundingFr a gmeow:GroundingAttribute ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:groundingEn
+    a gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "English grounding"@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term carrying its native English annotation coat — the source language every term is authored in."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:groundingFr
+    a gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "French grounding"@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term carrying a French translation JOINed from the slice's fr.po catalog, keyed by (term, predicate, lang)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:groundingZh
+    a gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Chinese grounding"@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term carrying a Chinese translation JOINed from the slice's zh.po catalog, keyed by (term, predicate, lang)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:groundingExternalMapped
+    a gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "external-mapped grounding"@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term aligned to an external ontology entity through a term-equivalence, carrying that entity's identifier, English label, alignment predicate and confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:groundingExemplar
+    a gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "exemplar grounding"@x-gmeow-english ;
+    skos:definition "The grounding attribute for a term offered as a same-slice exemplar coat that passed the SHACL validation gate — a worked model an author can imitate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Subsumption grounding (logic: axioms the class taxonomy projects from) ──────
+# The three authoring-packet TBox classes above each declare an rdfs:subClassOf
+# edge; that RDFS taxonomy triple is a lossy projection of the canonical logic:
+# axiom authored here (Principle 17). Each class carries a logic:formalizes
+# back-reference to its subsumption Formula, so the derived rdfs: edge is grounded
+# rather than a second source of truth. A class subsumption C ⊑ D is the
+# universally-quantified implication ∀x. C(x) → D(x), realized as a logic:Formula
+# AST (logic:forall over a logic:antecedent/logic:consequent implication whose
+# atoms are rdf:type class-membership relations), mirroring the constraint ASTs in
+# slices/core/ai/module.ttl.
+
+logic:guidesAuthoringPacketSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "AuthoringPacket ⊑ AbstractIndividual"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:AuthoringPacket rdfs:subClassOf logic:AbstractIndividual taxonomy edge projects from: ∀x. AuthoringPacket(x) → AbstractIndividual(x) — every authoring packet is an abstract individual (a value structure)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:guidesAuthoringPacketImpl .
+logic:guidesAuthoringPacketImpl a logic:Formula ;
+    logic:antecedent logic:guidesAuthoringPacketSub ; logic:consequent logic:guidesAuthoringPacketSuper .
+logic:guidesAuthoringPacketSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthoringPacket ] .
+logic:guidesAuthoringPacketSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:AbstractIndividual ] .
+
+logic:guidesGroundingCoverageSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "GroundingCoverage ⊑ AbstractIndividual"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:GroundingCoverage rdfs:subClassOf logic:AbstractIndividual taxonomy edge projects from: ∀x. GroundingCoverage(x) → AbstractIndividual(x) — every grounding-coverage incidence cell is an abstract individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:guidesGroundingCoverageImpl .
+logic:guidesGroundingCoverageImpl a logic:Formula ;
+    logic:antecedent logic:guidesGroundingCoverageSub ; logic:consequent logic:guidesGroundingCoverageSuper .
+logic:guidesGroundingCoverageSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GroundingCoverage ] .
+logic:guidesGroundingCoverageSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:AbstractIndividual ] .
+
+logic:guidesGroundingAttributeSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "GroundingAttribute ⊑ QualityValue"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:GroundingAttribute rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. GroundingAttribute(x) → QualityValue(x) — every grounding attribute is an enumerated quality value (a coverage column)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:guidesGroundingAttributeImpl .
+logic:guidesGroundingAttributeImpl a logic:Formula ;
+    logic:antecedent logic:guidesGroundingAttributeSub ; logic:consequent logic:guidesGroundingAttributeSuper .
+logic:guidesGroundingAttributeSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GroundingAttribute ] .
+logic:guidesGroundingAttributeSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:QualityValue ] .
+
+logic:guidesAuthoringCandidateSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "AuthoringCandidate ⊑ Conjecture"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:AuthoringCandidate rdfs:subClassOf logic:Conjecture taxonomy edge projects from: ∀x. AuthoringCandidate(x) → Conjecture(x) — every authoring candidate carries a logic:Conjecture verdict (an admissibility-gated proposal is a conjecture with an authoring role)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:guidesAuthoringCandidateImpl .
+logic:guidesAuthoringCandidateImpl a logic:Formula ;
+    logic:antecedent logic:guidesAuthoringCandidateSub ; logic:consequent logic:guidesAuthoringCandidateSuper .
+logic:guidesAuthoringCandidateSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthoringCandidate ] .
+logic:guidesAuthoringCandidateSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+
+# Authoring-packet properties (RBox)
+
+gmeow:packetSourceSlice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet source slice"@x-gmeow-english ;
+    skos:definition "Relates an authoring packet to the slice whose terms it briefs. Functional in spirit: one packet briefs one slice's batch. It names the slice a packet is drawn from, not the individual terms it briefs — those are reached by gmeow:packetCoversTerm."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetSourceSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetAxis
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet axis"@x-gmeow-english ;
+    skos:definition "The subdomain axis a packet is partitioned along — the local name of the grouping used to select which of a slice's terms this packet covers. Under the deterministic partition it filters the slice's sorted term set before batching; absent means the whole slice. It names the subdomain partition a packet is scoped to, not the ordinal chunk within that partition — that ordinal is gmeow:packetBatch."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetAxis \"inference\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetBatch
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet batch"@x-gmeow-english ;
+    skos:definition "The zero-based index of the ~25-term chunk this packet covers within its axis's sorted term set, under the deterministic partition. It is the ordinal position of a chunk within its axis, not the axis label itself (gmeow:packetAxis), and is meaningful only against that axis's sorted term set."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetBatch 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet digest"@x-gmeow-english ;
+    skos:definition "The content address of a packet's semantic body, composed from the per-term definition digests it covers and excluding release-volatile fields, so the packet is byte-stable across releases and regenerates idempotently. It addresses the packet's meaning, not a timestamp or release tag — volatile fields never enter the digest, so two releases of the same terms share it."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetDigest \"blake3:9f2c1a7e\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetCoversTerm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet covers term"@x-gmeow-english ;
+    skos:definition "Relates a packet to a slice term it briefs. Non-functional: a packet covers a batch of terms. The range is open because a packet may cover any documented class, property, or individual of its slice. A covered term is one the packet briefs for authoring, not necessarily one held up as an exemplar to imitate — exemplars are the smaller set named by gmeow:packetExemplar."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetCoversTerm logic:Rule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetExemplar
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet exemplar"@x-gmeow-english ;
+    skos:definition "Relates a packet to a same-slice term offered as an exemplar coat that passed the SHACL validation gate — a worked model for the author to imitate. Non-functional: a packet offers a small handful of exemplars. An exemplar is a passing model held up for imitation, not necessarily one of the batch's covered terms under review — the two roles are named separately (gmeow:packetCoversTerm)."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetExemplar logic:ModusPonens ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetGrounding
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range gmeow:GroundingCoverage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet grounding"@x-gmeow-english ;
+    skos:definition "Relates a packet to one grounding-coverage incidence cell — the (term, attribute) presence facts that make up its grounding cross-table. Non-functional: one cell per covered term per grounding attribute. It links only PRESENT incidence cells, not absent ones — absence is carried by the packet's per-attribute absent counts rather than a materialized cell."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 gmeow:packetGrounding [ a gmeow:GroundingCoverage ; gmeow:groundingTerm logic:Rule ] ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetTermCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet term count"@x-gmeow-english ;
+    skos:definition "The number of terms this packet covers — the header count that makes the brief an actionable worklist. It IS the English grounding margin (English is always present, so no English cell is materialized), and each other attribute's present + absent count recovers that column's full incidence set. It counts the terms a packet covers, not the terms grounded in any given language — those language counts are the per-attribute present margins."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetTermCount 25 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetFrPresent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet French present"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT French translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms WITH a French translation, not those missing one — the complementary shortfall is gmeow:packetFrAbsent."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetFrPresent 18 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetFrAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet French absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT French translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms MISSING a French translation, not those that carry one (gmeow:packetFrPresent), so a coverage gap is an explicit number rather than a silent omission."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetFrAbsent 7 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetZhPresent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet Chinese present"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT Chinese translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms WITH a Chinese translation, not those missing one — the complementary shortfall is gmeow:packetZhAbsent."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetZhPresent 12 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetZhAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet Chinese absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT Chinese translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms MISSING a Chinese translation, not those that carry one (gmeow:packetZhPresent), so a coverage gap is recorded explicitly rather than silently dropped."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetZhAbsent 13 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetExternalMapped
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet external mapped"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT external mapping in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms aligned to an external entity, not terms translated in any particular language — cross-lingual coverage is tracked separately by the fr/zh margins."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetExternalMapped 9 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetExternalAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet external absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT external mapping in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence. It counts terms with NO external mapping, not those that carry one (gmeow:packetExternalMapped), so an unaligned term is a visible recorded fact rather than a silent gap."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetExternalAbsent 16 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:exemplarShortfall
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "exemplar shortfall"@x-gmeow-english ;
+    skos:definition "The number of exemplar coats a packet fell short of its target by, recorded explicitly when a slice has fewer passing coats than the brief seeks, so a thin exemplar set is a visible fact rather than a silent omission. Zero when the target is met."@x-gmeow-english ;
+    skos:example "ex:packetLogicBatch0 a gmeow:AuthoringPacket ; gmeow:exemplarShortfall 2 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingTerm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding term"@x-gmeow-english ;
+    skos:definition "The covered term a grounding-coverage cell is about — the object of the formal-context incidence. It names the term a cell is about, not the grounding axis being measured (that is gmeow:groundingAttribute)."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingTerm logic:Rule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingAttribute
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range gmeow:GroundingAttribute ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding attribute"@x-gmeow-english ;
+    skos:definition "The grounding axis a cell measures — the attribute (column) of the formal-context incidence, drawn from the gmeow:GroundingAttribute value vocabulary. It names the axis a cell measures, not the covered term it measures (that is gmeow:groundingTerm)."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingAttribute gmeow:groundingFr ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingPredicate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding predicate"@x-gmeow-english ;
+    skos:definition "For a language-grounding cell, the annotation predicate the translation is for — for example rdfs:label or skos:definition — so a JOINed value is tied to the exact coat field it translates. It records the annotation predicate a translation stands in for, not the alignment predicate of an external mapping (that is gmeow:groundingAlignPredicate)."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingPredicate \"rdfs:label\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding value"@x-gmeow-english ;
+    skos:definition "The grounded value carried by a present cell — the JOINed fr/zh translation string for a language attribute, or the external entity's description for the external-mapped attribute. It carries the grounded string itself, not a reference to the term or entity it grounds — those identifiers are gmeow:groundingTerm and gmeow:groundingExternalEntity."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingValue \"Règle\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingExternalEntity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding external entity"@x-gmeow-english ;
+    skos:definition "For an external-mapped cell, the external ontology entity the covered term is aligned to through a term-equivalence. It is the aligned entity's identifier, not its human-readable label — that label is gmeow:groundingExternalLabel."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingExternalEntity wd:Q7397 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingExternalLabel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding external label"@x-gmeow-english ;
+    skos:definition "The English label of the aligned external entity, taken from the term-equivalence's object label. It carries the aligned entity's English label, not the entity's identifier itself (gmeow:groundingExternalEntity), so an author reads a name rather than resolving an IRI."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingExternalLabel \"rule of inference\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingAlignPredicate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding alignment predicate"@x-gmeow-english ;
+    skos:definition "The alignment predicate of the external mapping — for example exactMatch, closeMatch, or relatedMatch — surfaced because the strength of the match changes what the author should write. It is the strength of an external match, not the annotation predicate a translation stands in for (gmeow:groundingPredicate)."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingAlignPredicate \"skos:closeMatch\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingConfidence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding confidence"@x-gmeow-english ;
+    skos:definition "The confidence in [0.0, 1.0] recorded on the external mapping the cell surfaces. It grades the external mapping's strength, not the truth of a cross-lingual conflict — that defect is the boolean gmeow:groundingConflict."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingConfidence 0.95 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingConflict
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding conflict"@x-gmeow-english ;
+    skos:definition "Whether a language-grounding cell's translation disagrees with that of a term this term is asserted equivalent to — a cross-lingual grounding defect surfaced for review. Its counterpart term is named by gmeow:groundingConflictWith. It flags a translation that DISAGREES with an equivalent term's, not one that is merely absent — a missing translation is counted by the absent margins, never by this conflict flag."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingConflict true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:groundingConflictWith
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GroundingCoverage ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "grounding conflict with"@x-gmeow-english ;
+    skos:definition "The equivalent term whose translation disagrees with this cell's, when gmeow:groundingConflict is true. It points at the OTHER, equivalent term whose translation disagrees, not the cell's own covered term (gmeow:groundingTerm)."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingConflictWith logic:InferenceRule ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Authoring candidate: the neurosymbolic propose/verify seam (TBox) ────────────
+
+gmeow:AuthoringCandidate
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Authoring Candidate"@x-gmeow-english ;
+    rdfs:subClassOf logic:Conjecture ;
+    logic:formalizes logic:guidesAuthoringCandidateSubsumption ;
+    skos:definition "A proposed authoring contribution submitted through the propose/verify seam: a candidate logic: formula whose admissibility was decided by an isolated-world reasoning verdict, then — ONLY when the verdict corroborated it — appended to the append-only candidate library. It is a logic:Conjecture (it carries the same content-addressed, standpoint-scoped verdict) marked with the authoring role it plays and the slice it targets, so the library answers 'which admissible candidates were proposed for slice X?'. The seam is 'propose (untrusted) / verify (trusted symbolic)': a score moves only via gate-passing content, so a refuted or open candidate is never an AuthoringCandidate in the library."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author candidate individuals by hand or treat the candidate library as a source of truth: a candidate is admitted only by a gate-passing isolated-world verdict through submit_candidate, and the library is runtime agent memory (the read-only twin of the conjecture library), never folded into base-KB reasoning. Do not read a refuted or open proposal as a candidate: only a corroborated verdict admits one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:candidateForSlice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringCandidate ;
+    rdfs:range gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "candidate for slice"@x-gmeow-english ;
+    skos:definition "Relates an authoring candidate to the slice its proposed contribution targets — the provenance that makes the candidate library queryable by slice. It names the slice a candidate is proposed FOR, not the terms it would touch."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:candidateForPacket
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthoringCandidate ;
+    rdfs:range gmeow:AuthoringPacket ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "candidate for packet"@x-gmeow-english ;
+    skos:definition "Relates an authoring candidate to the specific gmeow:AuthoringPacket brief its proposed contribution answers, when the proposer worked from a served brief — the finer-grained provenance twin of gmeow:candidateForSlice."@x-gmeow-english ;
+    skos:example "ex:candidateForLogicRuleAssoc a gmeow:AuthoringCandidate ; gmeow:candidateForPacket <https://blackcatinformatics.ca/gmeow/slices/logic/authoring-packet/whole/batch-0> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Recipes (ABox) ─────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@
 # metadata layer (provenance, confidence, temporal scope).
 #
 # GMEOW is RDF 1.2 / RDF*-FIRST (CONSTITUTION Principles 2-3): statement-level
-# metadata is authored ONCE here, and the `gmeow regenerate` statements generator emits two
+# metadata is authored ONCE here, and the `gmeow-dev sync --mode update --outputs generated` statements generator emits two
 # verified artifacts from it — the RDF 1.2 / RDF* serialization (the canonical
 # LEAD form, via Apache Jena) and the OWL 2 axiom-annotation form (the generated,
 # reasoning-lossless DOWNCAST the OWL 2 DL reasoners consume). The OWL form is a
@@ -36,7 +36,7 @@
     a owl:Ontology ;
     rdfs:label "GMEOW statement DSL vocabulary"@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "Authoring vocabulary for the canonical RDF 1.2 / RDF* statement-metadata layer; compiled to the RDF 1.2 serialization + the OWL axiom-annotation downcast by the `gmeow regenerate` statements generator."@x-gmeow-english .
+    rdfs:comment "Authoring vocabulary for the canonical RDF 1.2 / RDF* statement-metadata layer; compiled to the RDF 1.2 serialization + the OWL axiom-annotation downcast by the `gmeow-dev sync --mode update --outputs generated` statements generator."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # The cell type — one reified statement

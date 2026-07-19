@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+ex:extension a math:CliffordExtension ;
+    math:baseAlgebra ex:base ;
+    math:extendedAlgebra ex:extended .
+
+ex:base a math:CliffordAlgebra ;
+    math:underlyingSet ex:baseCarrier ; math:scalarField math:realNumbers ;
+    math:structureOperation ex:product ; math:satisfiesAxiom ex:associativity ;
+    math:hasBasis ex:basis ; math:hasGrading ex:grading ;
+    math:cliffordInvolution ex:reversion ; math:hasBasisBlade ex:e1 ;
+    math:metricSignature ex:baseSignature ; math:spaceDimension 2 ; math:pseudoscalarSquare 1 .
+ex:extended a math:CliffordAlgebra ;
+    math:underlyingSet ex:extendedCarrier ; math:scalarField math:realNumbers ;
+    math:structureOperation ex:product ; math:satisfiesAxiom ex:associativity ;
+    math:hasBasis ex:basis ; math:hasGrading ex:grading ;
+    math:cliffordInvolution ex:reversion ; math:hasBasisBlade ex:e1 ;
+    math:metricSignature ex:extendedSignature ; math:spaceDimension 4 ; math:pseudoscalarSquare -1 .
+ex:baseCarrier a math:Set .
+ex:extendedCarrier a math:Set .
+ex:product a math:GeometricProduct .
+ex:basis a math:Basis .
+ex:grading a math:Grading .
+ex:reversion a math:Reversion .
+ex:e1 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 1 ; math:generatorSquare 1 .
+ex:baseSignature a math:MetricSignature ; math:signaturePositive 1 ; math:signatureNegative 0 .
+ex:extendedSignature a math:MetricSignature ; math:signaturePositive 2 ; math:signatureNegative 0 .
+ex:associativity a math:Axiom .

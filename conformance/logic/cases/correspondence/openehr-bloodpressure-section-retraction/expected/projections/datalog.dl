@@ -3,7 +3,6 @@
 
 % === Ground facts (axioms) ===
 type("https://gmeow.example/openehr/bp/bpSection", "https://blackcatinformatics.ca/logic/Correspondence", "default").
-accordingTo("https://gmeow.example/openehr/bp/bpSection", "https://gmeow.example/openehr/bp/clinicStandpointDE", "default").
 correspondenceRelation("https://gmeow.example/openehr/bp/bpSection", "https://blackcatinformatics.ca/logic/Subsumes", "default").
 getLeg("https://gmeow.example/openehr/bp/bpSection", "https://gmeow.example/openehr/bp/bpGet", "default").
 hasDeterminacy("https://gmeow.example/openehr/bp/bpSection", "https://blackcatinformatics.ca/logic/Crisp", "default").
@@ -14,7 +13,6 @@ type("https://gmeow.example/openehr/bp/clinicStandpointDE", "https://blackcatinf
 type("https://gmeow.example/openehr/bp/diaBP", "https://blackcatinformatics.ca/logic/Quality", "default").
 genericQuality("https://gmeow.example/openehr/bp/diaBP", "https://blackcatinformatics.ca/gmeow/pressure", "default").
 qualityRole("https://gmeow.example/openehr/bp/diaBP", "https://blackcatinformatics.ca/gmeow/diastolicRole", "default").
-accordingTo("https://gmeow.example/openehr/bp/obsSys1", "https://gmeow.example/openehr/bp/clinicStandpointDE", "default").
 confidence("https://gmeow.example/openehr/bp/obsSys1", '0.98', "default").
 determinacy("https://gmeow.example/openehr/bp/obsSys1", "https://blackcatinformatics.ca/logic/Crisp", "default").
 evidenceStrength("https://gmeow.example/openehr/bp/obsSys1", 'device-measured', "default").

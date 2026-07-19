@@ -383,6 +383,28 @@ ex:ecBindingScoped a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:BindingExpression with a bound math:VariableDeclaration, an indexed math:ArgumentSlot, and a math:VariableOccurrence resolving to the declaration satisfies math:BindingExpressionShape, math:ArgumentSlotShape, and math:VariableOccurrenceShape and validates with no findings." .
 
+ex:ecArgumentSlotsContiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/argument-slots-contiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An application with unique, non-negative math:slotIndex values 0, 1, and 2 satisfies the strict predecessor rule projected from math:ArgumentSlotContiguityConstraint and validates with no findings." .
+
+ex:ecArgumentSlotsNoncontiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slots-noncontiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The slot family has unique, non-negative indexes 0 and 2 but no sibling at predecessor index 1, so math:ArgumentSlotContiguityConstraint MUST emit exactly one shacl.SPARQLConstraintComponent finding (math:NonContiguousArgumentSlots)." .
+
+ex:ecSymbolReferenceResolved a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/symbol-reference-resolved.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:SymbolReference resolving through exactly one math:hasMathematicalSymbol edge to a math:MathematicalSymbol satisfies the reference-leaf contract and validates with no findings." .
+
+ex:ecSymbolReferenceUnresolved a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/symbol-reference-unresolved.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The math:SymbolReference has no math:hasMathematicalSymbol value of class math:MathematicalSymbol, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UnresolvedSymbolReference)." .
+
 ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -638,13 +660,19 @@ ex:ecEmbeddingMissingModel a gmeow:ExampleConformance ;
 ex:ecPersistenceCalibratedEmbedding a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/persistence-calibrated-embedding.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:Filtration over an embedded image declaring four math:FiltrationStages (each with a math:filtrationThreshold gmeow:Quantity and a math:TopologicalSpace math:stageStructure, nested under math:subsetOf), two math:PersistenceLifetimes exercising both a finite math:diesAt and math:diesAt math:PositiveInfinity, and a math:StabilityCalibrationRecord naming its math:calibrationEvidence, math:persistenceDerivedCredence, and math:bottleneckStabilityTheorem, with the credence landing as logic:confidence on a math:ResidualInterpretationClaim — satisfies math:FiltrationShape, math:FiltrationStageShape, math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape, math:EmbeddingShape, math:ResidualInterpretationClaimShape, and the inherited math:AlgebraicStructureShape frames, and validates with no findings." .
+    gmeow:conformanceRationale "A math:Filtration over an embedded image declaring four math:FiltrationStages (each with a math:filtrationThreshold math:Quantity and a math:TopologicalSpace math:stageStructure, nested under math:subsetOf), two math:PersistenceLifetimes exercising both a finite math:diesAt and math:diesAt math:PositiveInfinity, and a math:StabilityCalibrationRecord naming its math:calibrationEvidence, math:persistenceDerivedCredence, and math:bottleneckStabilityTheorem, with the credence landing as logic:confidence on a math:ResidualInterpretationClaim — satisfies math:FiltrationShape, math:FiltrationStageShape, math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape, math:EmbeddingShape, math:ResidualInterpretationClaimShape, and the inherited math:AlgebraicStructureShape frames, and validates with no findings." .
 
 ex:ecFiltrationNoStages a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/filtration-no-stages.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:Filtration naming its ambient object and index kind but declaring no math:hasFiltrationStage (sh:minCount 1 on math:FiltrationShape); a filtration with no stages is ill-formed, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedFiltration)." .
+
+ex:ecStageNoIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/filtration-stage-no-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:FiltrationStage naming its math:stageStructure but NEITHER a one-parameter math:filtrationThreshold NOR a multiparameter math:multiIndex — a stage sitting at no index at all, so the cross-node disjunctive-existence constraint math:StageIndexPresenceConstraint (a stage must carry a threshold or a multi-index) fires. Its math:stageStructure is present so the declarative missing-structure arm stays silent, there is no second stage so the monotonicity law is vacuous, and it is not a math:MultiparameterFiltration so the collapse/diagonal guards cannot fire, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnderspecifiedFiltration)." .
 
 ex:ecPersistenceLifetimeNoDeath a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/persistence-lifetime-missing-death.ttl" ;
@@ -979,7 +1007,7 @@ ex:ecProbabilityValueAboveUnitBad a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/probability-value-above-unit.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a framed math:ProbabilityValue whose gmeow:quantityValue (1.5) exceeds the closed unit interval's sh:maxInclusive 1 on math:ProbabilityValueRangeShape, so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityOutOfBounds)." .
+    gmeow:conformanceRationale "The counter-example is a framed math:ProbabilityValue whose math:quantityValue (1.5) exceeds the closed unit interval's sh:maxInclusive 1 on math:ProbabilityValueRangeShape, so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityOutOfBounds)." .
 
 # === Rule P2: a probability value is never also an odds or log-odds value === #
 
@@ -1126,7 +1154,7 @@ ex:ecDependencyModelApproximateLossy a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A reasoning-facing math:FactorGraph whose math:probabilityModelLowering into logic:DependencyModel carries a NON-exact logic:preservationKind (logic:SoundUnderApproximation) with its dropped constructs enumerated through logic:unsupportedConstruct exercises the lossy branch of the lowering seam; it carries no SHACL target shape and validates with no findings, dogfooding the loss ledger on the non-exact polarity." .
 
-# === Task 8: the two co-equal flagship signed-radial-field scenes conform ==== #
+# === The two co-equal flagship signed-radial-field scenes conform ============ #
 
 ex:ecRadialFieldQualitative a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-qualitative.ttl" ;
@@ -1137,3 +1165,336 @@ ex:ecRadialFieldClosedForm a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-closed-form.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "The closed-form flagship scene — the SAME field given exactly by T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — is well-formed: the field is typed both math:ClosedFormFunction and math:PiecewiseFunction, declares its frame (math:domain plus math:codomain math:ExtendedRealLine), its body AST (math:definingExpression), its formal argument x and five parameters A, B, C, p, q, and its four ring pieces; every defining-expression variable leaf resolves to the formal argument or a declared parameter; and it carries the same rings, divergent limits, and dominant-plateau measure evaluations as its qualitative twin. It validates with no findings." .
+
+# === External-corpus reusable-family framing =============================== #
+
+ex:ecPersistentHomologyComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/persistent-homology-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A persistent-homology activity names its mathematical input, one fully framed filtration, and a persistence-diagram output." .
+
+ex:ecPersistentHomologyNoResult a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistent-homology-no-result.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and filtration but omits the required persistence-diagram result, isolating math:IncompletePersistentHomologyAnalysis." .
+
+ex:ecDimensionalReductionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dimensional-reduction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A dimensional reduction names its input, exact non-negative target dimension, and a fully framed output embedding." .
+
+ex:ecDimensionalReductionNoTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dimensional-reduction-no-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames the input and output embedding but omits targetDimension, isolating math:IncompleteDimensionalityReductionAnalysis." .
+
+ex:ecHamiltonianComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hamiltonian-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A Hamiltonian system names its smooth state space, symplectic form, framed Hamiltonian function, and generated Hamiltonian flow." .
+
+ex:ecHamiltonianNoForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hamiltonian-no-form.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies every Hamiltonian-system role except its symplectic form, isolating math:IncompleteHamiltonianSystem." .
+
+ex:ecCellularSheafComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/cellular-sheaf-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A cellular sheaf names its base complex, cell-indexed stalks, a restriction map, and a compatible section." .
+
+ex:ecCellularSheafNoRestriction a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cellular-sheaf-no-restriction.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a base complex and stalk but no restriction map, isolating math:IncompleteCellularSheaf." .
+
+# === Rule: a global section is over the WHOLE base and glues; an obstruction is anchored === #
+
+ex:ecGlobalSectionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/global-section-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GlobalSection over the WHOLE base (math:sectionRegion = the sheaf's math:sheafBaseComplex) whose restriction map's declared math:RestrictionImage sends its source stalk's value to a value agreeing with the target stalk (1 ↦ 1 = 1), a math:LocalSection over a proper subcomplex, and a math:GluingObstruction anchored through math:obstructionOf. The section is correctly scoped (math:MisscopedSection inert), glues (math:SectionGluingInconsistency inert), and every frame is complete, so it validates with no findings." .
+
+ex:ecGlobalSectionNonidentityRestrictionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/global-section-nonidentity-restriction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GlobalSection glues over a GENUINELY NON-IDENTITY math:SheafRestrictionMap: the map's declared math:RestrictionImage sends the source stalk's value 3 to 6 (a doubling, not the identity), and the target stalk's declared math:stalkValue is 6 — restriction(3) = 6 agrees with the target even though the raw source and target values (3 and 6) disagree, proving math:SectionGluingConsistencyConstraint checks the TRANSPORTED value against the target rather than comparing source and target raw. It validates with no findings." .
+
+ex:ecLocalSectionAsGlobal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/local-section-as-global.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example types a section math:GlobalSection but gives it a math:sectionRegion that is a proper subcomplex, not the whole math:sheafBaseComplex of its math:overSheaf (the cross-node equality constraint math:MisscopedSectionConstraint, region = base). It names both math:overSheaf and math:sectionRegion and its sheaf is complete, so the frames pass; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MisscopedSection)." .
+
+ex:ecGlobalSectionInconsistentGluing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-section-inconsistent-gluing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a correctly-scoped math:GlobalSection (math:sectionRegion = the whole base) whose restriction map's declared math:RestrictionImage sends the source stalk's value 1 to 1 (an identity action), but the target stalk's declared math:stalkValue is 2, so the general gluing condition restriction(1) = 2 fails (the per-restriction-map equality constraint math:SectionGluingConsistencyConstraint). Scope and frame are complete, isolating the gluing failure; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:SectionGluingInconsistency)." .
+
+ex:ecSheafSectionNoStalkOrRestriction a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/sheaf-section-no-stalk-or-restriction.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:LocalSection that names its math:sectionRegion but declares no math:overSheaf, so it is anchored to no math:CellularSheaf and therefore to no actual stalk/restriction semantics (the math:LocalSection frame's qualified min-count on math:overSheaf, onClass math:CellularSheaf). The region is present, isolating the missing sheaf anchor; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteSheafSection)." .
+
+ex:ecGluingObstructionUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gluing-obstruction-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:GluingObstruction that names no math:obstructionOf sheaf (the math:GluingObstruction frame's qualified min-count on math:obstructionOf, onClass math:CellularSheaf), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnanchoredGluingObstruction)." .
+
+# === Rule: a graded cell declares its dimension; a signed incidence its coface, face, and sign === #
+
+ex:ecGradedCellComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/graded-cell-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An oriented simplicial triangle: seven math:Cells each declaring a situated, exact math:cellDimension, the codimension-1 faces named through math:incidentTo, and the 2-cell's boundary reified as three signed math:CellIncidences (±1). It satisfies the derived math:Cell and math:CellIncidence frame shapes and validates with no findings." .
+
+ex:ecCellNoDimension a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cell-no-dimension.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:cellDimension on a math:Cell (sh:qualifiedMinCount 1 onClass math:NaturalNumber, derived from the math:Cell frame's exact-one qualified math:cellDimension restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCell)." .
+
+ex:ecIncidenceNoSign a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incidence-no-sign.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example supplies math:incidenceCoface and math:incidenceFace but omits math:incidenceSign on a math:CellIncidence (sh:minCount 1, derived from the math:CellIncidence frame's math:incidenceSign restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnorientedIncidence). Its two referenced cells are fully dimensioned, so the missing sign is the single isolated violation." .
+
+ex:ecCliffordComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/clifford-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two fully framed Clifford algebras and their exact module decomposition declare scalar field, product, axioms, basis blades, grading, involution, signature, dimensions, extension generator, summands, and split/join witness." .
+
+ex:ecCliffordNoGrading a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-no-grading.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample fully frames a Clifford algebra except for its grading, isolating math:IncompleteCliffordAlgebra." .
+
+ex:ecCliffordExtensionNoGenerator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/clifford-extension-no-generator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies two fully framed Clifford algebras but omits the extension generator, isolating math:IncompleteCliffordExtension." .
+
+ex:ecInformationMeasureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/information-measure-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Entropy, mutual information, Kullback–Leibler divergence, cross entropy, Fisher information, and surprisal each name a complete frame — distribution(s), logarithm base, and unit, plus the joint distribution, reference distribution, likelihood model with score parameter, or outcome each measure requires — and the entropy of a uniform two-outcome distribution carries its exact reference value of 1/1 bit." .
+
+ex:ecInformationMeasureNoDistribution a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/information-measure-no-distribution.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies an entropy's logarithm base and information unit but omits its probability distribution, isolating math:IncompleteInformationMeasure." .
+
+ex:ecHodgeDecompositionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/hodge-decomposition-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Hodge decomposition names a complete frame — the signal, its exact, coexact, and harmonic components, its boundary operator, and its fully framed cellular-sheaf carrier — and demonstrates reconstruction (the signal equals the sum of the three components, residual exactly 0/1) and pairwise orthogonality (each of the three component inner products exactly 0/1)." .
+
+ex:ecHodgeDecompositionMalformedBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/hodge-decomposition-malformed-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Hodge decomposition — signal, exact/coexact/harmonic components, carrier sheaf, reconstruction residual, and the three pairwise-orthogonality inner products — but omits its required boundary operator, isolating math:IncompleteHodgeDecomposition." .
+
+ex:ecCombinatorialLaplacianIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/combinatorial-laplacian-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a combinatorial Laplacian's carrier complex, degree, and upper boundary operator but omits its required lower boundary operator, isolating math:IncompleteCombinatorialLaplacian." .
+
+ex:ecMapperConstructionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/mapper-construction-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The Mapper construction names a complete frame — its source metric space, its fully framed filter function, its finitely enumerated cover of two overlapping closed intervals, its deterministic single-linkage clustering rule at the exact threshold 1/1, and its output nerve complex — so the cover and clustering are determined data rather than free resolution choices." .
+
+ex:ecMapperConstructionNoFilter a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-filter.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, cover of two overlapping intervals, clustering rule, and output nerve — but omits its required filter function, isolating math:IncompleteMapperConstruction." .
+
+ex:ecMapperConstructionNoCover a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/mapper-construction-no-cover.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed Mapper construction — source metric space, filter function, clustering rule, and output nerve — but omits its required cover of the filter codomain, isolating math:IncompleteMapperConstruction." .
+
+ex:ecVectorSymbolicComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/vector-symbolic-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The binding, bundling, and unbinding each name a complete frame — their vector space, their basis, their operand vectors (two operands for the binding and bundling; the bound vector, key, and recovered operand for the unbinding), their capacity descriptor at the exact bound 2/1, and their recovery-loss contract at the exact loss 0/1 — so under the exact bipolar MAP algebra the retrieval is certified invertible rather than an implicit similarity claim." .
+
+ex:ecVectorSymbolicCapacityDegradation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-capacity-degradation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic binding — vector space, basis, two operand vectors, and an exact recovery-loss contract — but omits its required capacity descriptor, leaving the superposition-crosstalk limit unstated and isolating math:IncompleteVectorSymbolicOperation." .
+
+ex:ecVectorSymbolicNonInvertibility a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/vector-symbolic-non-invertibility.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counterexample supplies a fully framed vector-symbolic unbinding — vector space, basis, bound vector, key, recovered operand, and capacity descriptor — but omits its required recovery-loss (fidelity) contract, so it cannot certify the retrieval as invertible and isolates math:IncompleteVectorSymbolicOperation." .
+
+# === Chain/cochain complexes: the square-zero laws and their adjunction ===== #
+
+ex:ecChainComplexComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The filled oriented triangle with its two-level signed incidences has ∂∘∂ = 0 at every vertex (every codimension-2 (coface, far-face) group's signed incidence-sign-product sum is 0), so it satisfies math:BoundarySquareZeroConstraint (the simplicial diamond) and math:GeneralBoundarySquareZeroConstraint (the finite signed sum); its math:Cycle, bounding math:Boundary, math:HomologyGroup (H₁ = Z/B), and constant sheaf are each fully framed, and it validates with no findings." .
+
+ex:ecSquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:SimplicialComplex with a codimension-2 composition path (faceX ▷ edgeP ▷ vertexQ) that has no distinct partner face — a broken diamond breaking ∂∘∂ = 0 — so the sh:sparql constraint of math:BoundarySquareZeroConstraint fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). It carries no math:CellIncidence (so math:GeneralBoundarySquareZeroConstraint has nothing to sum) and is not a math:CochainComplex, isolating the single violation." .
+
+ex:ecGeneralCwSquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/general-cw-square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a general math:CellComplex (not simplicial) whose codimension-2 (coface cX, far-face aZ) group has a single boundary composition of sign product +1, so the finite signed sum Σ_b [cX:b]·[b:aZ] = +1 ≠ 0; the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). Being a plain math:CellComplex, the simplicial math:BoundarySquareZeroConstraint does not target it, isolating the single violation." .
+
+ex:ecSimplicialSignedNoncancellingDiamond a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/simplicial-signed-noncancelling-diamond.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:SimplicialComplex whose codimension-2 diamond IS combinatorially complete (coface cX has two distinct codimension-1 faces bY, bW, each a codimension-1 face of far-face aZ), so the unsigned math:BoundarySquareZeroConstraint ∃-partner check passes and does NOT fire. But its reified ±1 math:CellIncidence records carry the wrong (non-induced) orientation — both composition sign products are +1, so Σ_b [cX:b]·[b:aZ] = +2 ≠ 0 — and the logic:JoinAggregateConstraint math:GeneralBoundarySquareZeroConstraint (onClass math:Cell, so it also targets signed simplicial complexes) fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundarySquareZero). This isolates the composition point of the two enforcement layers: the combinatorial check passes while the general signed-sum check catches the orientation error, proving a signed simplicial complex is never left unchecked." .
+
+ex:ecCoboundarySquareZeroBroken a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/coboundary-square-zero-broken.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CochainComplex with a codimension-2 co-composition path (vertexA ◁ edgeB ◁ faceC) that has no distinct partner coface — a broken co-diamond breaking δ∘δ = 0 — so the sh:sparql constraint of math:CoboundarySquareZeroConstraint fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenCoboundarySquareZero). It names its math:cochainCoboundary (so the cochain-complex frame is satisfied) and is not a math:SimplicialComplex, isolating the single violation." .
+
+ex:ecAdjunctionInconsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/adjunction-inconsistent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example links a boundary math:CellIncidence and its declared transpose coboundary math:CellIncidence (math:adjointIncidence) — a TRUE transpose pair naming the SAME two cells with their incidenceCoface/incidenceFace endpoints swapped — carrying disagreeing ±1 signs (+1 vs −1), so the adjunction δ = ∂* fails; the sh:sparql constraint of math:BoundaryCoboundaryAdjunctionConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:BrokenBoundaryCoboundaryAdjunction). No math:incidentTo relation is asserted between the two cells, so no boundary composition the general-sum constraint would score can form, isolating the single violation." .
+
+ex:ecCochainComplexNoCoboundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cochain-complex-no-coboundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CochainComplex declaring no math:cochainCoboundary (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:cochainCoboundary restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCochainComplex). It carries no cells, so no co-diamond constraint targets it, isolating the single violation." .
+
+ex:ecCoboundaryNotInImage a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/coboundary-not-in-image.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Coboundary declaring no math:coboundaryOf (sh:qualifiedMinCount 1 onClass math:CoboundaryOperator, derived from the min-1 qualified math:coboundaryOf restriction), so it is not grounded as the image of a coboundary operator; validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteCoboundary)." .
+
+# === Multiparameter / zigzag persistence OBJECTS ============================= #
+
+ex:ecMultiparameterFiltrationComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-filtration-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MultiparameterFiltration naming its math:filtrationIndexPoset and a math:hasFiltrationStage whose math:multiIndex is a two-component math:Vector with INDEPENDENT exact coordinates satisfies its frame, carries a genuine multi-index (so math:CollapsedMultiparameterFiltration stays silent), and has functionally independent coordinates (so math:DiagonalDegenerateFiltration stays silent); validation emits no findings." .
+
+ex:ecMultiparameterFiltrationGridComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-filtration-grid-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A genuinely two-parameter math:MultiparameterFiltration sampling three grid points (1,2), (1,3), (2,3): stages (1,2) and (1,3) share the same math:componentValue node at index 0 while differing at index 1, and (1,3) and (2,3) share the value node at index 1 while differing at index 0 — the fix-one-vary-another witnesses that satisfy math:MultiparameterFunctionalDependenceConstraint (its positive path). No single stage is a literal (t,t) diagonal, so math:DiagonalDegenerateFiltration stays silent; the multi-index is present, so math:CollapsedMultiparameterFiltration stays silent; validation emits no findings." .
+
+ex:ecPersistenceModuleComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/persistence-module-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PersistenceModule (a subclass of the existing math:Functor grounding) naming its math:moduleIndex poset and a math:structureMap satisfies its frame; it is not also a math:PersistenceLifetime, so math:PersistenceModuleLifetimeConflation stays silent, and validation emits no findings." .
+
+ex:ecPersistenceMorphismComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/persistence-morphism-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PersistenceMorphism naming both its math:morphismSource and math:morphismTarget math:PersistenceModule endpoints satisfies its frame, and both endpoint modules name their own math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent; validation emits no findings." .
+
+ex:ecZigzagDiagramComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/zigzag-diagram-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ZigzagDiagram declaring a math:zigzagArrow whose math:arrowDirection is math:backwardArrow (alongside a forward arrow) is genuinely bidirectional, so math:DegenerateZigzagDiagram stays silent and validation emits no findings." .
+
+ex:ecMultiparameterPersistenceBundle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/multiparameter-persistence.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The bundle demonstrator exhibits a well-formed math:MultiparameterFiltration (independent multi-index coordinates), math:PersistenceModule, math:PersistenceMorphism, and a bidirectional math:ZigzagDiagram together; every object satisfies its frame and none trips a collapse guard, so validation emits no findings." .
+
+ex:ecMultiparameterCollapse a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-collapses-to-oneparam.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration whose stage carries only a single real math:filtrationThreshold and NO math:multiIndex, so the cross-node existence constraint math:CollapsedMultiparameterFiltrationConstraint (a multiparameter filtration must have at least one stage carrying a math:multiIndex) fires. It IS complete for its frame — math:filtrationIndexPoset and a math:hasFiltrationStage are present, so math:IncompleteMultiparameterFiltration stays silent — and there is no math:multiIndex at all, so math:DiagonalDegenerateFiltration cannot fire; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:CollapsedMultiparameterFiltration)." .
+
+ex:ecMultiparameterDiagonal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-diagonal-degenerate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration whose stage's math:multiIndex carries two components at distinct math:atIndex positions (0 and 1) sharing the SAME math:componentValue node — the diagonal (t, t) — so the cross-node equality constraint math:DiagonalDegenerateFiltrationConstraint fires. It IS complete for its frame (poset and stage present) and a math:multiIndex IS present (so math:CollapsedMultiparameterFiltration cannot fire); validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DiagonalDegenerateFiltration)." .
+
+ex:ecMultiparameterAffineDegenerate a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-affine-degenerate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MultiparameterFiltration with TWO stages at multi-index (1, 2) and (2, 4) — the second coordinate always exactly twice the first, an affine (t, 2t) functional dependence, NOT the literal diagonal (t, t). Neither stage's own math:multiIndex repeats a math:componentValue node across its two positions, so the single-stage math:DiagonalDegenerateFiltrationConstraint stays silent; but no pair of stages ever varies one coordinate while holding the other fixed (both coordinates always differ together), so the coordinate-independence witness math:MultiparameterFunctionalDependenceConstraint requires cannot exist, and it fires. It IS complete for its frame and a math:multiIndex IS present on both stages (so math:IncompleteMultiparameterFiltration and math:CollapsedMultiparameterFiltration stay silent); validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DiagonalDegenerateFiltration)." .
+
+ex:ecZigzagForwardOnly a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/zigzag-forward-only.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ZigzagDiagram whose every math:zigzagArrow is a math:forwardArrow — no math:backwardArrow — so the guarded-existence constraint math:DegenerateZigzagDiagramConstraint (a zigzag must have at least one backward arrow) fires; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DegenerateZigzagDiagram)." .
+
+ex:ecPersistenceModuleLifetimeConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-lifetime-as-module.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:PersistenceModule and math:PersistenceLifetime, tripping the sh:not [ sh:class math:PersistenceLifetime ] of math:PersistenceModuleLifetimeConflationShape (the derived twin of the direct math:PersistenceModule owl:disjointWith math:PersistenceLifetime axiom). It is COMPLETE for both kinds — its math:moduleIndex and math:structureMap satisfy the module frame, and its math:overFiltration, math:persistenceFeature, math:bornAt, and essential math:diesAt math:PositiveInfinity satisfy the lifetime frame — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:PersistenceModuleLifetimeConflation)." .
+
+ex:ecPersistenceModuleIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-module-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PersistenceModule naming its math:moduleIndex but omitting any math:structureMap (sh:qualifiedMinCount 1, derived from the min-1 qualified math:structureMap restriction); the math:moduleIndex arm stays satisfied and the node is not also a math:PersistenceLifetime, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceModule)." .
+
+ex:ecPersistenceMorphismNoTarget a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-morphism-no-target.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PersistenceMorphism naming its math:morphismSource but omitting its math:morphismTarget (sh:qualifiedMinCount 1, derived from the min-1 qualified math:morphismTarget restriction); the math:morphismSource arm stays satisfied by a well-formed math:PersistenceModule (naming its math:moduleIndex and math:structureMap so math:IncompletePersistenceModule stays silent), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompletePersistenceMorphism)." .
+
+# === Rule: a connection names what it is ON; transport names rule + path; holonomy names loop + connection =========================== #
+
+ex:ecHolonomyLoopComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/holonomy-loop-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture carries both readings fully framed: the DISCRETE math:FlatConnection is the math:CellularSheaf's restriction maps (math:connectionOfSheaf / math:connectionOn) with a math:transportCochain that is a math:Cocycle (flat ⇔ closed), a math:ParallelTransport naming its rule and path, and a math:Holonomy naming its loop and connection; the SECONDARY manifold reading is a math:Connection ON a math:Atlas with a math:Holonomy around a coordinate loop. Every connection names what it is ON, every transport names rule and path, every holonomy names loop and connection, and the flat connection's transport cochain is a cocycle, so validation emits no findings." .
+
+ex:ecHolonomyBundle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/holonomy.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The bundle demonstrator exhibits the discrete sheaf connection (a math:FlatConnection whose math:transportCochain is a math:Cocycle), its math:ParallelTransport and math:Holonomy around a 3-cell loop, and the secondary manifold math:Connection on a math:Atlas with its own math:Holonomy — every object satisfies its frame and none trips a failure class, so validation emits no findings." .
+
+ex:ecHolonomyNoLoop a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/holonomy-no-loop.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Holonomy naming its math:holonomyOf math:Connection but omitting its math:holonomyLoop (sh:minCount 1, derived from the min-1 math:holonomyLoop restriction); the math:holonomyOf arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteHolonomy)." .
+
+ex:ecConnectionNoTransportRule a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/connection-no-transport-rule.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Connection naming NEITHER a math:CellularSheaf (math:connectionOfSheaf) NOR a math:Atlas/bundle (math:connectionOn) — a connection with no base to transport over (sh:minCount 1, derived from the min-1 math:connectionOn restriction). The node declares no other property, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteConnection)." .
+
+ex:ecParallelTransportNoPath a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/parallel-transport-no-path.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ParallelTransport naming its math:transportConnection rule but omitting its math:transportAlong path (sh:minCount 1, derived from the min-1 math:transportAlong restriction); the math:transportConnection arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteParallelTransport)." .

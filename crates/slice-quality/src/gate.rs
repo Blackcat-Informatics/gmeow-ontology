@@ -542,13 +542,23 @@ pub fn registry_ratchet_monotonicity(
     violations
 }
 
-/// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
-/// the rubric's ladder — `None` when the slice has not opted in.
+/// The manifest-reading + ladder-resolution step shared by [`declared_tier`] (the
+/// repo-anchored ratchet gate, resolving against a full [`Rubric`]'s ladder) and
+/// [`crate::lint::declared_quality_tier`] (the checkout-free consumer lint gate,
+/// resolving against a bundle-flattened [`crate::model::MeasurementStandard`]'s
+/// ladder) — one manifest-reading authority, never two independently-drifting
+/// copies. `tiers` is whichever ladder half the caller holds; the PREDICATE read
+/// is always `gmeow:sliceQualityTier` (never `gmeow:sliceTier`, a distinct
+/// domain predicate). `None` when the slice declares no claim (undeclared,
+/// advisory-only).
 ///
 /// # Errors
-/// Returns a message if the manifest cannot be read or names a tier the rubric
-/// does not define (a hard error — an unknown tier is not silently ignored).
-pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<Option<Tier>> {
+/// Returns a message if the manifest cannot be read or names a tier `tiers` does
+/// not define (a hard error — an unknown tier is not silently ignored).
+pub(crate) fn declared_tier_against(
+    slice_dir: &Path,
+    tiers: &[Tier],
+) -> gmeow_errors::Result<Option<Tier>> {
     let manifest = slice_dir.join("manifest.ttl");
     let ds = crate::dataset_from_paths(&[&manifest])?;
     let Some(slice_iri) = instances_of(&ds, &graph::g("Slice")).into_iter().next() else {
@@ -560,9 +570,9 @@ pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<
     };
     match one_iri(&ds, sid, pred) {
         None => Ok(None),
-        Some(tier_iri) => rubric
-            .standard
-            .tier(&tier_iri)
+        Some(tier_iri) => tiers
+            .iter()
+            .find(|t| t.iri == tier_iri)
             .cloned()
             .map(Some)
             .ok_or_else(|| {
@@ -571,6 +581,16 @@ pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<
                 })
             }),
     }
+}
+
+/// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
+/// the rubric's ladder — `None` when the slice has not opted in.
+///
+/// # Errors
+/// Returns a message if the manifest cannot be read or names a tier the rubric
+/// does not define (a hard error — an unknown tier is not silently ignored).
+pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<Option<Tier>> {
+    declared_tier_against(slice_dir, &rubric.standard.tiers)
 }
 
 /// The local name of an IRI (the tail after the last `/` or `#`) — used to name a

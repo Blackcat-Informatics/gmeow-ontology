@@ -291,7 +291,7 @@ fn main() -> gmeow_errors::Result<()> {
     let mut corpus_ledgers: BTreeMap<String, Value> = BTreeMap::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         let findings = divergence_findings(&ledger);
         let tally = agreement_tally(corpus, comps);
         let graph = emit_divergence_nq(corpus, comps);
@@ -361,7 +361,7 @@ fn main() -> gmeow_errors::Result<()> {
     //    verdict-agreement against the committed baseline; ANY divergence is a
     //    cost-regression gmeow:Finding routed through the SHARED divergence ledger
     //    (content-addressed identity), and hard-fails the run. This is the richer
-    //    honesty surface behind the primary on-gate `check-generated` cost-ledger
+    //    honesty surface behind the primary on-gate strict-sync cost-ledger
     //    drift gate. Run BEFORE the artifact is assembled (it borrows the records). ──
     if let Some(baseline_path) = &check_cost {
         run_cost_regression_check(baseline_path, &case_records)?;
@@ -682,8 +682,12 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
     // Bootstrap and base scratch evaluation are intentionally outside the measured
     // transaction. The optimized consumer is a loop over one stable base session.
-    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
-        .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+    let mut session = IncrementalForwardSession::prepare(
+        base.as_ref(),
+        &program,
+        &gmeow_logic::annotation::AnnotationContract::exact(),
+    )
+    .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
     let base_scratch = run_native_forward(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
     let base_fp = fingerprint_rows(&base_scratch.rows);
@@ -1569,7 +1573,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     let mut regression_findings: Vec<Value> = Vec::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         regressions += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
@@ -1658,7 +1662,7 @@ fn run_parallelism_regression_check(
         published: published_token,
     };
     let rows = compare_external_corpus("relational-core-mini", &[comparison]);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     if ledger.corpus_only == 0 {
         eprintln!(
             "✓ rule-parallel cost-regression check: four-worker structural evidence matches {}.",
@@ -2041,8 +2045,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
             let updated_scratch = run_native_forward(&updated, &program)
                 .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
-            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
-                .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+            let mut session = IncrementalForwardSession::prepare(
+                base.as_ref(),
+                &program,
+                &gmeow_logic::annotation::AnnotationContract::exact(),
+            )
+            .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
             let inserted = session
                 .insert(delta.as_ref(), None)
                 .map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
@@ -2216,7 +2224,7 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     let mut findings: Vec<Value> = Vec::new();
     for (corpus, comps) in &comps_by_corpus {
         let rows = compare_external_corpus(corpus, comps);
-        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        let ledger = build_ledger(Vec::new(), Vec::new(), rows);
         disagreements += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
@@ -2317,7 +2325,7 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
             // hard-fail report, each carrying its content-addressed ledger identity.
             if tally.corpus_only > 0 || tally.dl_gap > 0 {
                 let rows = compare_external_corpus(corpus, comps);
-                let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+                let ledger = build_ledger(Vec::new(), Vec::new(), rows);
                 for f in divergence_findings(&ledger) {
                     if f.code == "reason.divergence.corpus-only"
                         || f.code == "reason.divergence.dl-gap"

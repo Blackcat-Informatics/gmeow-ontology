@@ -23,9 +23,8 @@ use gmeow_math::Rational;
 
 use crate::model::{owl, rdf, rdfs, skos};
 
-/// Strongly-typed configuration for the three lints, supplied by the Python
-/// caller from its single-source-of-truth constants. No untyped dict bag — every
-/// field is explicit so the FFI boundary stays legible.
+/// Strongly-typed configuration for the three lints — no untyped dict bag,
+/// every field is explicit and typed.
 #[derive(Debug, Clone)]
 pub struct LintConfig {
     /// The GMEOW vocabulary namespace (`config.NAMESPACE`).
@@ -38,28 +37,23 @@ pub struct LintConfig {
     pub core_slice_iris: HashSet<String>,
     /// Standard annotation predicates whose literals are policed by Check 2.
     /// Defaults to [`default_annotation_predicates`] — this crate is the single
-    /// source of truth; Python reads the set from here, it is no longer
-    /// pushed in from `language_tags`.
+    /// source of truth for the set.
     pub annotation_predicates: HashSet<String>,
 }
 
-/// The canonical annotation predicates whose literals the Check-2 language-tag
-/// policy polices — `rdfs:label`, `skos:definition`, `rdfs:comment`, `dcterms:title`,
-/// `dcterms:description`. This crate owns the registry; the Python
-/// `language_tags` helpers read it back through the PyO3 `annotation_predicates`
-/// surface rather than maintaining a parallel constant.
+/// The annotation predicates whose literals the Check-2 external-language-tag
+/// policy polices — a **view over the single localizable authority**
+/// ([`crate::localizable::LOCALIZABLE_PREDICATES`]), never a parallel constant.
+/// Check-2 skips GMEOW-namespace predicates by its own namespace guard (they are
+/// Check-1's concern), so the GMEOW members of the authority are harmless no-ops
+/// here; the effective surface is the standard cross-vocabulary annotation
+/// predicates plus the SKOS lexical predicates.
 #[must_use]
 pub fn default_annotation_predicates() -> Vec<String> {
-    [
-        "http://www.w3.org/2000/01/rdf-schema#label",
-        "http://www.w3.org/2004/02/skos/core#definition",
-        "http://www.w3.org/2000/01/rdf-schema#comment",
-        "http://purl.org/dc/terms/title",
-        "http://purl.org/dc/terms/description",
-    ]
-    .iter()
-    .map(|s| (*s).to_owned())
-    .collect()
+    crate::localizable::LOCALIZABLE_PREDICATES
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
 }
 
 /// The structural kind of a GMEOW term — the priority order is the index here,
@@ -1885,16 +1879,6 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
-/// The `gmeow:` vocabulary namespace root — the canonical GMEOW IRI stem. A
-/// `gmeow:Quantity` (the superclass of `math:ProbabilityValue`) carries its
-/// magnitude in `gmeow:quantityValue`, distinct from the `math:Quantity`-scoped
-/// `math:quantityValue`.
-const GMEOW_NS_ROOT: &str = "https://blackcatinformatics.ca/gmeow/";
-
-fn gmeow_iri(term: &str) -> String {
-    format!("{GMEOW_NS_ROOT}{term}")
-}
-
 /// Parse a plain decimal literal (optional leading `-`/`+`, an integer part, an
 /// optional `.frac`) into an EXACT [`Rational`]: the value is the digit string with
 /// the point removed over `10^(count of fractional digits)`. Scientific notation
@@ -2029,10 +2013,10 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
 
     // Gate 1 — math:ProbabilityOutOfBounds: a math:ProbabilityValue is ALWAYS in the
     // closed unit interval [0, 1]. Its magnitude is read exactly (a math:RationalValue
-    // numerator/denominator pair, else its gmeow:quantityValue decimal) and compared by
+    // numerator/denominator pair, else its math:quantityValue decimal) and compared by
     // exact-rational order; an unreadable magnitude is skipped, never coerced.
     for node in ds_subjects_of_type(ds, &math_iri("ProbabilityValue")) {
-        let Some(mag) = read_magnitude(ds, &node, &[gmeow_iri("quantityValue")]) else {
+        let Some(mag) = read_magnitude(ds, &node, &[math_iri("quantityValue")]) else {
             continue;
         };
         if mag < zero || mag > one {
@@ -2075,11 +2059,7 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
             && let Some(q) = ds_object_iris_sorted(ds, &p, &math_iri("parameterQuantity"))
                 .into_iter()
                 .next()
-            && let Some(mag) = read_magnitude(
-                ds,
-                &q,
-                &[gmeow_iri("quantityValue"), math_iri("quantityValue")],
-            )
+            && let Some(mag) = read_magnitude(ds, &q, &[math_iri("quantityValue")])
             && mag <= zero
         {
             report.push_error(
@@ -2581,8 +2561,8 @@ pub fn term_naming_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport
 }
 
 /// The declared-term IRI set over a native [`RdfDataset`]
-/// (`set(_collect_typed_terms(graph))`) — exposed for `guide_anchor_lint`'s anchor
-/// resolution (which keeps its markdown logic in Python).
+/// (`set(_collect_typed_terms(graph))`) — the term universe used for guide/markdown
+/// anchor-reference resolution.
 pub fn declared_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> Vec<String> {
     collect_typed_terms_dataset(ds, cfg).into_keys().collect()
 }
@@ -2620,6 +2600,28 @@ mod tests {
 
     fn store_from(ttl: &str) -> Arc<RdfDataset> {
         parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
+    }
+
+    /// The Check-2 policy is a VIEW over the single localizable authority, never a
+    /// peer constant: every predicate it polices is a member of the authority, and
+    /// the authority is the full 14-predicate surface.
+    #[test]
+    fn check2_policy_is_a_view_over_the_localizable_authority() {
+        let authority: HashSet<&str> = crate::localizable::LOCALIZABLE_PREDICATES
+            .iter()
+            .copied()
+            .collect();
+        assert!(
+            default_annotation_predicates()
+                .iter()
+                .all(|p| authority.contains(p.as_str())),
+            "default_annotation_predicates must be a subset of the localizable authority"
+        );
+        assert_eq!(
+            crate::localizable::LOCALIZABLE_PREDICATES.len(),
+            14,
+            "the localizable authority must carry all 14 predicates"
+        );
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -4002,8 +4004,8 @@ mod tests {
         // boundary — the gate is inclusive, so neither fires math:ProbabilityOutOfBounds.
         let ds = dataset_from(&format!(
             "{MATH_PROB_PREFIXES}\
-             ex:zero a math:ProbabilityValue ; gmeow:quantityValue \"0\" .\n\
-             ex:one a math:ProbabilityValue ; gmeow:quantityValue \"1.0\" .\n"
+             ex:zero a math:ProbabilityValue ; math:quantityValue \"0\" .\n\
+             ex:one a math:ProbabilityValue ; math:quantityValue \"1.0\" .\n"
         ));
         let report = structural_lint_dataset(&ds, &cfg());
         assert!(

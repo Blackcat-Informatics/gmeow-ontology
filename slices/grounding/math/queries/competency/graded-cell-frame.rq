@@ -1,0 +1,14 @@
+# External-corpus coverage: graded cells and their signed boundary incidences.
+# Each math:CellIncidence exposes its coface (a graded math:Cell), that coface's
+# math:cellDimension, and the exact ±1 math:incidenceSign as separate reusable data.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?cell ?dimension ?incidence ?sign
+WHERE {
+  ?incidence a math:CellIncidence ;
+             math:incidenceCoface ?cell ;
+             math:incidenceSign ?signValue .
+  ?cell math:cellDimension ?dimension .
+  BIND(STR(?signValue) AS ?sign)
+}
+ORDER BY ?cell ?incidence

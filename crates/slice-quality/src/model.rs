@@ -14,6 +14,9 @@ use std::cmp::Ordering;
 /// The GMEOW namespace prefix every rubric IRI shares.
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// The canonical mathematics grounding namespace.
+pub const MATH: &str = "https://blackcatinformatics.ca/math/";
+
 /// One rung of the quality ladder — a `gmeow:QualityTier` individual.
 ///
 /// Tiers are totally ordered by [`Tier::rank`]; the ordering is what makes the
@@ -87,7 +90,7 @@ pub struct Threshold {
 }
 
 /// One measured quality axis — a `gmeow:QualityAxis` individual with its bindings.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Axis {
     /// The full axis IRI.
     pub iri: String,
@@ -109,7 +112,7 @@ pub struct Axis {
 }
 
 /// A dated, self-cleaning exemption — a `gmeow:AxisExemption` individual.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Exemption {
     /// The exemption IRI.
     pub iri: String,
@@ -154,7 +157,7 @@ pub struct SliceTierFloorCommitment {
 /// `grade_axis` / `meet`) and the axis primitives consult — never a governance
 /// floor. Splitting it out of [`Rubric`] gives scoring a floor-free projection
 /// (interface segregation): a scorer cannot reach a committed floor, only measure.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct MeasurementStandard {
     /// The tier ladder, sorted ascending by rank.
     pub tiers: Vec<Tier>,
@@ -180,7 +183,7 @@ impl MeasurementStandard {
 /// committed floor sets (`gmeow:AxisFloorCommitment` measured-score floors and
 /// `gmeow:SliceTierFloor` roll-up tier floors). SCORING never reads any of these —
 /// they gate a measured score, they never produce one.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct GovernanceFloors {
     /// The dated exemptions.
     pub exemptions: Vec<Exemption>,

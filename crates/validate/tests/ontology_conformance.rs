@@ -45,14 +45,17 @@ use rstest::rstest;
 // ── Tests migrated from tests/test_shapes.py ─────────────────────────────────
 #[case::wellformed_relator_fixture_conforms(Case::file("shapes", "relator-wellformed"))]
 #[case::malformed_relator_fixture_is_flagged(
+    // The genderValue AND usageAppellation exactly-one bounds migrated to the projected
+    // surface (generated/shapes/validation-shapes.ttl GenderIdentity-shape / NameUsage-shape),
+    // which the fixture corpus deliberately excludes — their witnesses ride the production
+    // shape union below (`malformed_relator_gender_value_bounds_on_union`). The suppression
+    // warning likewise migrated to gmeow:SupersededFacetSuppressionConstraint on that union.
+    // What remains authored on the fixture corpus is the orthogonality disjointness check.
     Case::file("shapes", "relator-malformed")
         .fails()
         .violations(&[
-            "exactly one gmeow:Gender value",
-            "must use exactly one appellation",
             "may fill at most one of these mutually disjoint classes",
         ])
-        .warnings(&["should set gmeow:displayable false"])
 )]
 #[case::suppression_warning_does_not_fail_validation(
     Case::file("shapes", "suppression-warning-only")
@@ -165,7 +168,7 @@ ex:customRealm a gmeow:FrameRealm .
         .messages(&[
             "exactly one starting entity (gmeow:observedFeature)",
             "exactly one target entity (gmeow:proximityTo)",
-            "exactly one scalar quantity result",
+            "at least one math:Quantity result",
         ])
 )]
 #[case::wellformed_expertise_fixture_conforms(Case::file("shapes", "expertise-wellformed"))]
@@ -215,4 +218,26 @@ ex:customRealm a gmeow:FrameRealm .
 )]
 fn ontology_conformance(#[case] case: Case) {
     case.run();
+}
+
+/// The genderValue exactly-one bound of the retired hand-authored
+/// `gmeow:GenderIdentityFacetShape` now rides the projected declarative surface
+/// (`generated/shapes/validation-shapes.ttl`, `GenderIdentity-shape`
+/// `sh:minCount 1` / `sh:maxCount 1` on `gmeow:genderValue`), which the fixture
+/// corpus deliberately excludes — witness both bounds by path on the LIVE
+/// production shape union (projected shapes carry no `sh:message`).
+#[test]
+fn malformed_relator_gender_value_bounds_on_union() {
+    Case::file("shapes", "relator-malformed")
+        .shape_union()
+        .fails()
+        .fails_on_path(
+            "https://blackcatinformatics.ca/gmeow/genderValue",
+            "MinCountConstraintComponent",
+        )
+        .fails_on_path(
+            "https://blackcatinformatics.ca/gmeow/genderValue",
+            "MaxCountConstraintComponent",
+        )
+        .run();
 }

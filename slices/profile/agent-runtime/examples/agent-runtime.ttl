@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The agent-runtime PROFILE demonstrator — a single coherent scenario that
+# exercises the whole selection (Principle 16: the profile mints NOTHING; every
+# term below is authored in a dependency slice and only COMPOSED here). A durable
+# digital subject (core/inhabitation) inhabits a served model (extensions/model-
+# serving), whose serving mode is an operational-state regime (core/awareness) and
+# whose runtime turn issues a tool call (extensions/agentic), with the produced
+# output traced back to the exact invocation. The cross-slice glue rides the OPEN
+# gmeow:configurationFacet and the OPEN-range gmeow:sessionConfiguration /
+# gmeow:sessionSubjectStage at the instance level, so no profile-minted property
+# is needed. The flat gmeow:generatedForSubject shortcut is NOT hand-asserted: it
+# is materialized by the model-serving projection CONSTRUCT and proven equal to
+# this full cross-slice collapse by the profile's competency corpus.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agent-runtime/> .
+
+# --- core/inhabitation: the durable subject ----------------------------------
+# The agentive Kind bears its durable identity through a SubjectStage grouped
+# under one SubjectLineage (numerical identity is never asserted by node reuse).
+ex:lillithBot a gmeow:SoftwareAgent .
+ex:lillithLineage a gmeow:SubjectLineage .
+ex:lillithStage a gmeow:SubjectStage ;
+    gmeow:stageBearer ex:lillithBot ;
+    gmeow:stageOfLineage ex:lillithLineage .
+
+# The subject stands in a NON-contested inhabitation relationship with a host,
+# whose constant-configuration sub-interval carries the served deployment through
+# the OPEN gmeow:configurationFacet — the mints-nothing composition point.
+ex:tenure1 a gmeow:InhabitationTenure ;
+    gmeow:inhabitationSubject ex:lillithBot ;
+    gmeow:inhabitedHost ex:serverH ;
+    gmeow:inhabitationLocusKind gmeow:locusVessel ;
+    gmeow:duringInterval ex:tenureInterval .
+ex:serverH a gmeow:PhysicalObject .
+ex:tenureInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-07-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:configA a gmeow:InhabitationConfiguration ;
+    gmeow:configurationOfTenure ex:tenure1 ;
+    gmeow:configurationEmbodiment ex:endpointEmbodiment ;
+    gmeow:configurationFacet ex:opusDeployment ;    # open facet — the served model, no minted glue
+    gmeow:duringInterval ex:configInterval .
+ex:configInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-07-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:endpointEmbodiment a gmeow:EmbodimentAssignment ;
+    gmeow:assignmentSubject ex:lillithBot ;
+    gmeow:assignmentCarrier ex:apiEndpointRole .
+ex:apiEndpointRole a gmeow:EmbodimentCarrierRole .
+
+# --- extensions/model-serving: the served runtime ----------------------------
+# One served artifact documented by a card through the SPLIT describe-relations;
+# a deployment binding the artifact, its service agent, host, and endpoint.
+ex:opusArtifact a gmeow:ModelArtifact .
+ex:opusCard a gmeow:ModelCard ;
+    gmeow:describesModelArtifact ex:opusArtifact ;
+    gmeow:describesModelService ex:opusDeployment .
+ex:opusDeployment a gmeow:ModelDeployment ;
+    gmeow:deploymentArtifact ex:opusArtifact ;
+    gmeow:deploymentService ex:opusServiceAgent ;
+    gmeow:deploymentHost ex:usEast1 ;
+    gmeow:deploymentEndpoint ex:opusEndpoint .
+ex:opusServiceAgent a gmeow:SoftwareAgent .
+ex:usEast1 a gmeow:Entity .
+
+# --- core/awareness: the serving MODE as an operational-state regime ----------
+# The serving mode rides a gmeow:AwarenessTenure whose gmeow:awarenessSubject is
+# the deployment's SERVICE AGENT (awarenessSubject ranges over gmeow:Agent, never
+# the deployment relator or the execution event).
+ex:opusServing a gmeow:AwarenessTenure ;
+    gmeow:awarenessSubject ex:opusServiceAgent ;
+    gmeow:awarenessMode gmeow:modeOnlineInference ;
+    gmeow:awarenessScalar 0.7 ;
+    gmeow:duringInterval ex:servingWindow .
+ex:servingWindow a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-07-01T14:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-07-01T14:00:03Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- execution · session · invocation ----------------------------------------
+# The session links BACK to the durable subject STAGE (gmeow:sessionSubjectStage)
+# and to the in-force configuration (gmeow:sessionConfiguration), so the runtime
+# turn resolves through the composed slices to the durable gmeow:SubjectLineage.
+ex:execution1 a gmeow:RuntimeExecution ;
+    gmeow:executionOfDeployment ex:opusDeployment .
+ex:session1 a gmeow:AgentSession ;
+    gmeow:sessionSubjectStage ex:lillithStage ;
+    gmeow:sessionConfiguration ex:configA .
+ex:invocation1 a gmeow:ModelInvocation ;
+    gmeow:invocationInExecution ex:execution1 ;
+    gmeow:subEventOf ex:session1 .
+
+# --- extensions/agentic: a tool call in the turn -----------------------------
+# The invocation DELEGATES to a distinct tool gmeow:SoftwareAgent via a
+# gmeow:ToolCall (usedTool is required); its result rides as a plain literal.
+ex:webSearchTool a gmeow:SoftwareAgent .
+ex:call1 a gmeow:ToolCall ;
+    gmeow:calledByInvocation ex:invocation1 ;
+    gmeow:usedTool ex:webSearchTool ;
+    gmeow:toolArguments "{\"query\": \"agent-runtime profile closure\"}" ;
+    gmeow:toolResult "{\"ok\": true}" ;
+    gmeow:atTime "2026-07-01T14:00:01Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- the output (canon only; the flat cross-slice shortcut is MATERIALIZED by --
+# --- the model-serving projection CONSTRUCT, never hand-asserted here) ---------
+ex:output a gmeow:InformationObject ;
+    gmeow:wasGeneratedBy ex:invocation1 .

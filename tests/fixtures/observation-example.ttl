@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/test/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -12,8 +13,8 @@
 #   - Vantage (observer / standpoint)
 #   - ObservedFeature + ObservationResult
 #   - ReferenceFrame inheritance
-#   - ScalarQuantity for literal results
-#   - Quantity / MeasuredValue as domain-neutral aliases (#77)
+#   - math:Quantity for literal results
+#   - math:Quantity as the sole domain-neutral quantity authority
 #   - isResultOf for explicit result→observation provenance (#77)
 #   - Co-equal conflicting claims (Principle 9)
 # =========================================================================== #
@@ -90,16 +91,18 @@ ex:obsTempStation1
     gmeow:assertedAt "2024-07-15T12:00:00Z"^^xsd:dateTime .
 
 ex:tempStation1
-    a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "25.3"^^xsd:decimal ;
+    a math:Quantity ;
+    math:hasDimension math:temperatureDimension ;
+    math:quantityValue "25.3"^^xsd:decimal ;
     gmeow:unit <http://qudt.org/vocab/unit/DEG_C> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     gmeow:hasDeterminacy gmeow:determinacyCrisp .
 
 ex:weatherStation1
     a gmeow:Agent ;
     rdfs:label "Weather Station YEG-01"@en .
 
-# --- Measurement: mass using Quantity (domain-neutral alias) ---------------- #
+# --- Measurement: mass using the canonical math:Quantity -------------------- #
 # Demonstrates the value×unit×determinacy×provenance bundle (#77).
 
 ex:obsMassLab1
@@ -116,10 +119,12 @@ ex:obsMassLab1
     gmeow:assertedAt "2024-08-01T10:00:00Z"^^xsd:dateTime .
 
 ex:massSampleA
-    a gmeow:Quantity ;
-    gmeow:quantityValue "42.195"^^xsd:decimal ;
+    a math:Quantity ;
+    math:hasDimension math:massDimension ;
+    math:quantityValue "42.195"^^xsd:decimal ;
     gmeow:quantityUncertainty "0.001"^^xsd:decimal ;
     gmeow:unit <http://qudt.org/vocab/unit/KiloGM> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
     gmeow:hasDeterminacy gmeow:determinacyCrisp ;
     gmeow:isResultOf ex:obsMassLab1 .
 

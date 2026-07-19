@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:cl11 a math:CliffordAlgebra ;
+    math:underlyingSet ex:cl11Carrier ;
+    math:scalarField math:realNumbers ;
+    math:structureOperation ex:cl11Product ;
+    math:satisfiesAxiom ex:associativity ;
+    math:hasBasis ex:cl11Basis ;
+    math:hasGrading ex:cl11Grading ;
+    math:cliffordInvolution ex:cl11Reversion ;
+    math:hasBasisBlade ex:cl11e1 , ex:cl11e2 ;
+    math:metricSignature ex:cl11Signature ;
+    math:spaceDimension "4"^^xsd:nonNegativeInteger ;
+    math:pseudoscalarSquare 1 .
+ex:cl20 a math:CliffordAlgebra ;
+    math:underlyingSet ex:cl20Carrier ;
+    math:scalarField math:realNumbers ;
+    math:structureOperation ex:cl20Product ;
+    math:satisfiesAxiom ex:associativity ;
+    math:hasBasis ex:cl20Basis ;
+    math:hasGrading ex:cl20Grading ;
+    math:cliffordInvolution ex:cl20Reversion ;
+    math:hasBasisBlade ex:cl20e1 , ex:cl20e2 ;
+    math:metricSignature ex:cl20Signature ;
+    math:spaceDimension "4"^^xsd:nonNegativeInteger ;
+    math:pseudoscalarSquare -1 .
+ex:extension a math:CliffordExtension , math:CliffordModuleDecomposition ;
+    math:baseAlgebra ex:cl11 ;
+    math:extendedAlgebra ex:cl20 ;
+    math:extensionGenerator ex:cl20e1 ;
+    math:decomposedObject ex:cl20 ;
+    math:moduleBaseSummand ex:cl11 ;
+    math:moduleExtensionSummand ex:newSummand ;
+    math:splitJoinVerified true .
+
+ex:cl11Carrier a math:Set .
+ex:cl20Carrier a math:Set .
+ex:cl11Product a math:GeometricProduct .
+ex:cl20Product a math:GeometricProduct .
+ex:cl11Basis a math:Basis .
+ex:cl20Basis a math:Basis .
+ex:cl11Grading a math:Grading .
+ex:cl20Grading a math:Grading .
+ex:cl11Reversion a math:Reversion , math:CliffordInvolution .
+ex:cl20Reversion a math:Reversion , math:CliffordInvolution .
+ex:cl11Signature a math:MetricSignature ; math:signaturePositive 1 ; math:signatureNegative 1 .
+ex:cl20Signature a math:MetricSignature ; math:signaturePositive 2 ; math:signatureNegative 0 .
+ex:cl11e1 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 1 ; math:generatorSquare 1 .
+ex:cl11e2 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 2 ; math:generatorSquare -1 .
+ex:cl20e1 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 1 ; math:generatorSquare 1 .
+ex:cl20e2 a math:BasisBlade ; math:bladeGrade 1 ; math:generatorIndex 2 ; math:generatorSquare 1 .
+ex:associativity a math:Axiom .
+ex:newSummand a math:MathematicalObject .

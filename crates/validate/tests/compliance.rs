@@ -39,7 +39,7 @@ fn fake_runs() -> BTreeMap<String, GateRun> {
         ("validate", GateRun::new(0, Some(3))),
         ("constitution-check", GateRun::new(0, Some(3))),
         ("lint-alignment", GateRun::new(0, Some(0))),
-        ("check-generated", GateRun::new(0, Some(0))),
+        ("sync", GateRun::new(0, Some(0))),
     ]
     .into_iter()
     .map(|(k, v)| (k.to_string(), v))

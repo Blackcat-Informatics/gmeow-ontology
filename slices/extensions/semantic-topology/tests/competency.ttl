@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the semantic-topology slice, executed by the native
+# Rust slice-test harness over the full merged ontology, asserted lane (gmeow:reasoningNone).
+# Each instance-classifier question overlays the worked example (gmeow:cqDataFile, slice-
+# relative) and pins its rows exactly (RowsExact). The four questions are the executable
+# half of this slice's contract: frame a compilation (correspondence + loss), prove a
+# computed feature is a math:LocalSection that is a global truth ONLY via extension +
+# discharge (the governing rule), frame the compilation's standpoint/world/time context,
+# and frame a claim's vantage-attributed defeasible status.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+@prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/> .
+
+# --- CQ1 / compilation frame: correspondence + loss are recorded ------------- #
+ex:cqCompilationFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-compilation-frame.rq" ;
+    gmeow:cqDataFile "examples/compilation-worked.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCompilationFrameShape ;
+    gmeow:cqRationale "GMEOW must answer 'what did a compilation produce and record?' The worked compilation produces ex:complex and ex:filtration and records ex:correspondence and ex:preservation; the asserted answer is exactly this one fully-resolved row, proving a compilation is auditable and loss-honest rather than a black box." ;
+    gmeow:cqExpectRow ex:cqCompilationFrameRow .
+
+ex:cqCompilationFrameShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "compilation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "complex" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "filtration" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "correspondence" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCompilationFrameRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "compilation" ; gmeow:cellValueIri exd:compilation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complex" ; gmeow:cellValueIri exd:complex ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri exd:filtration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "correspondence" ; gmeow:cellValueIri exd:correspondence ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri exd:preservation ] .
+
+# --- CQ2 / GOVERNING: a computed feature is a LocalSection, global IFF it lifts -- #
+ex:cqTopologyClaimNotGlobalTruth a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-topology-claim-not-global-truth.rq" ;
+    gmeow:cqDataFile "examples/compilation-worked.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqTopologyClaimNotGlobalTruthShape ;
+    gmeow:cqRationale "GMEOW must answer 'when is a computed topological feature ACTUALLY a global truth?' — not merely 'does some claim carry a local/global/obstruction triple'. The query JOINS through gmeow:claimForComputation to the gmeow:TopologyComputation that gmeow:assertsGlobalTruth true, proving the governing rule executably: for the one computation asserting global truth, exactly one claim (ex:claim) both carries its feature as a math:LocalSection (ex:localsection), extends it to a math:GlobalSection (ex:globalsection, H⁰), AND discharges the H¹ math:GluingObstruction (ex:obstruction) — the discharge the assertion requires, not an unrelated claim that merely happens to carry the three fields." ;
+    gmeow:cqExpectRow ex:cqTopologyClaimNotGlobalTruthRow .
+
+ex:cqTopologyClaimNotGlobalTruthShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "computation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "localSection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "globalSection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "obstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqTopologyClaimNotGlobalTruthRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "computation" ; gmeow:cellValueIri exd:computation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "localSection" ; gmeow:cellValueIri exd:localsection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:globalsection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction ] .
+
+# --- CQ3: the compilation's standpoint/world/time context -------------------- #
+ex:cqCompilationContextFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-compilation-context-frame.rq" ;
+    gmeow:cqDataFile "examples/compilation-worked.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCompilationContextFrameShape ;
+    gmeow:cqRationale "GMEOW must answer 'what perspective, world, and interval is a compiled topology relative to?' The worked compilation is indexed to ex:standpoint, ex:world, and ex:timescope; the asserted answer is exactly this one row, proving a compiled topology never floats free of its epistemic context." ;
+    gmeow:cqExpectRow ex:cqCompilationContextFrameRow .
+
+ex:cqCompilationContextFrameShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "compilation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "standpoint" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "world" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "timeScope" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCompilationContextFrameRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "compilation" ; gmeow:cellValueIri exd:compilation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exd:standpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueIri exd:world ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "timeScope" ; gmeow:cellValueIri exd:timescope ] .
+
+# --- CQ4: the claim's vantage-attributed, defeasible status ------------------ #
+ex:cqTopologyClaimAttributedStatusFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/semantic-topology/queries/competency/st-topology-claim-attributed-status-frame.rq" ;
+    gmeow:cqDataFile "examples/compilation-worked.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqTopologyClaimAttributedStatusFrameShape ;
+    gmeow:cqRationale "GMEOW must answer 'from whose vantage, and with what defeasible status, is a topology claim held?' The worked claim is held from ex:standpoint and lands as the defeasible gmeow:Finding ex:finding at gmeow:severityInfo; the asserted answer is exactly this one row, proving a computed feature lands as a vantage-attributed, defeasible claim, never an anonymous global truth." ;
+    gmeow:cqExpectRow ex:cqTopologyClaimAttributedStatusFrameRow .
+
+ex:cqTopologyClaimAttributedStatusFrameShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "finding" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn [ logic:columnVariable "severity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqTopologyClaimAttributedStatusFrameRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exd:standpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "finding" ; gmeow:cellValueIri exd:finding ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "severity" ; gmeow:cellValueIri gmeow:severityInfo ] .

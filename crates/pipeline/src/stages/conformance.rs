@@ -74,6 +74,115 @@ pub(crate) struct TallyRecord {
     pub(crate) agree: usize,
     pub(crate) corpus_only: usize,
     pub(crate) dl_gap: usize,
+    /// The structured capability-gap shapes recorded in the corpus's divergence-case
+    /// `profile.json` (`gmeow:gapShape` tokens → counts), sorted. Present only when the
+    /// corpus carries structured gaps (a divergence corpus), so non-gap corpora keep
+    /// their tally bytes unchanged. This is the shipped, drift-gated consumer of the
+    /// reified gap-shape data: the agreement matrix renders a per-shape breakdown from it.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub(crate) gap_shapes: std::collections::BTreeMap<String, usize>,
+}
+
+/// Parse and validate one case's wire `gap_shape` token against the closed
+/// [`gmeow_logic::entail::CapabilityGapShape`] taxonomy — the SINGLE validation gate
+/// every producer reading a `gap_shape` string goes through (shared by
+/// [`gap_shapes_for_corpus`] and [`capability_gap_cases`]), so an unrecognized token
+/// hard-fails identically no matter which caller reads it first.
+fn parse_gap_shape_token(
+    profile_path: &Path,
+    shape: &str,
+) -> Result<gmeow_logic::entail::CapabilityGapShape, gmeow_errors::Diag> {
+    gmeow_logic::entail::CapabilityGapShape::from_token(shape).ok_or_else(|| {
+        let valid: Vec<&str> = gmeow_logic::entail::CapabilityGapShape::ALL
+            .iter()
+            .map(gmeow_logic::entail::CapabilityGapShape::as_token)
+            .collect();
+        stage_err(&format!(
+            "{} carries an unrecognized gap_shape token {shape:?} — not one of the closed \
+             gmeow:gapShape taxonomy ({valid:?})",
+            profile_path.display()
+        ))
+    })
+}
+
+/// Read the structured `gmeow:gapShape` tally from a corpus directory's divergence
+/// cases: for every `<case>/profile.json` carrying a `gap_shape` string, count it.
+/// A metadata read (like the corpus lane), NOT a re-grade of the cases.
+fn gap_shapes_for_corpus(corpus_dir: &Path) -> Result<BTreeMap<String, usize>, gmeow_errors::Diag> {
+    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    for case_dir in sorted_dirs(corpus_dir)? {
+        let profile_path = case_dir.join("profile.json");
+        if !profile_path.is_file() {
+            continue;
+        }
+        let text = std::fs::read_to_string(&profile_path)
+            .map_err(|e| stage_err(&format!("read {}: {e}", profile_path.display())))?;
+        let value: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| stage_err(&format!("parse {}: {e}", profile_path.display())))?;
+        if let Some(shape) = value.get("gap_shape").and_then(|v| v.as_str()) {
+            let shape = parse_gap_shape_token(&profile_path, shape)?;
+            *counts.entry(shape.as_token().to_owned()).or_insert(0) += 1;
+        }
+    }
+    Ok(counts)
+}
+
+/// Walk every committed external corpus case under `root`/[`EXTERNAL_ROOT`] and collect
+/// the `(corpus, case, shape)` triple for every case whose `profile.json` carries a
+/// valid `gap_shape` token — the per-CASE identity [`capability_gaps_nq`] reifies as a
+/// `gmeow:CapabilityGap` individual (distinct from [`gap_shapes_for_corpus`]'s per-corpus
+/// aggregate count). Reuses [`parse_gap_shape_token`], the SAME validation
+/// `gap_shapes_for_corpus` runs, so an unrecognized token hard-fails identically from
+/// either producer. Sorted by `(corpus, case, token)` for a deterministic fold.
+fn capability_gap_cases(
+    root: &Path,
+) -> Result<Vec<(String, String, gmeow_logic::entail::CapabilityGapShape)>, gmeow_errors::Diag> {
+    let external = root.join(EXTERNAL_ROOT);
+    let mut out: Vec<(String, String, gmeow_logic::entail::CapabilityGapShape)> = Vec::new();
+    if !external.is_dir() {
+        return Ok(out);
+    }
+    for corpus_dir in sorted_dirs(&external)? {
+        let corpus = dir_name(&corpus_dir)?;
+        for case_dir in sorted_dirs(&corpus_dir)? {
+            let case = dir_name(&case_dir)?;
+            let profile_path = case_dir.join("profile.json");
+            if !profile_path.is_file() {
+                continue;
+            }
+            let text = std::fs::read_to_string(&profile_path)
+                .map_err(|e| stage_err(&format!("read {}: {e}", profile_path.display())))?;
+            let value: serde_json::Value = serde_json::from_str(&text)
+                .map_err(|e| stage_err(&format!("parse {}: {e}", profile_path.display())))?;
+            if let Some(shape) = value.get("gap_shape").and_then(|v| v.as_str()) {
+                let shape = parse_gap_shape_token(&profile_path, shape)?;
+                out.push((corpus.clone(), case, shape));
+            }
+        }
+    }
+    out.sort_by(|a, b| {
+        a.0.cmp(&b.0)
+            .then_with(|| a.1.cmp(&b.1))
+            .then_with(|| a.2.as_token().cmp(b.2.as_token()))
+    });
+    Ok(out)
+}
+
+/// Project every [`capability_gap_cases`] entry into a reified `gmeow:CapabilityGap`
+/// N-Quads block via [`gmeow_conformance::divergence::emit_capability_gap_nq`], sorted
+/// by IRI so the concatenated product is byte-stable regardless of directory-walk
+/// order — the ontological image of the agreement-matrix "Capability gaps (by shape)"
+/// breakdown, riding in `graph/conformance` beside the divergence findings and the
+/// reified comparisons.
+fn capability_gaps_nq(root: &Path) -> Result<String, gmeow_errors::Diag> {
+    let mut blocks: Vec<(String, String)> = capability_gap_cases(root)?
+        .into_iter()
+        .map(|(corpus, case, shape)| {
+            gmeow_conformance::divergence::emit_capability_gap_nq(&corpus, &case, shape)
+        })
+        .collect();
+    blocks.sort();
+    Ok(blocks.into_iter().map(|(_, block)| block).collect())
 }
 
 /// The committed external-corpus root: one `<corpus>/<case>/` subtree per vendored
@@ -102,7 +211,7 @@ struct GradedCase {
 /// folds (corroboration findings + reified comparison + tally individuals), so an
 /// all-agree corpus now contributes a non-empty graph.
 pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    Ok(divergence_nq_from_corpora(&grade_external_corpora(root)?))
+    full_conformance_nq(root, &grade_external_corpora(root)?)
 }
 
 /// Grade every committed external corpus case once, grouped by corpus and sorted
@@ -127,33 +236,54 @@ pub fn grade_external_corpora(
     Ok(by_corpus)
 }
 
+/// Append `nq` onto `out`, ensuring a newline separator between blocks — the shared
+/// newline discipline every conformance N-Quads producer uses, so blocks concatenate
+/// cleanly (never glomming two lines together) and an empty block contributes nothing
+/// (no phantom blank line).
+fn push_nq_block(nq: &str, out: &mut String) {
+    if !nq.is_empty() {
+        out.push_str(nq);
+        if !out.ends_with('\n') {
+            out.push('\n');
+        }
+    }
+}
+
 /// Project the graded corpora into the `graph/conformance` N-Quads, concatenated in
 /// corpus order. EVERY comparison folds: the divergence `gmeow:Finding` graph (now
 /// including non-blocking corroboration findings for agreements), one reified
 /// `gmeow:ConformanceComparison` individual per comparison, and one aggregate
 /// `gmeow:CorpusAgreementTally` individual per corpus — so an all-agree corpus now
 /// contributes a non-empty graph rather than nothing.
-fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalComparison>>) -> Vec<u8> {
+fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalComparison>>) -> String {
     let mut out = String::new();
-    let push = |nq: &str, out: &mut String| {
-        if !nq.is_empty() {
-            out.push_str(nq);
-            if !out.ends_with('\n') {
-                out.push('\n');
-            }
-        }
-    };
     for (corpus, comparisons) in by_corpus {
         // The per-case findings + reified comparison individuals.
-        push(&emit_divergence_nq(corpus, comparisons), &mut out);
+        push_nq_block(&emit_divergence_nq(corpus, comparisons), &mut out);
         // The aggregate per-corpus tally individual (computed via the same grading the
         // dashboard tally JSON uses — a pure classification, not a second disk walk).
-        push(
+        push_nq_block(
             &emit_agreement_tally_nq(&agreement_tally(corpus, comparisons)),
             &mut out,
         );
     }
-    out.into_bytes()
+    out
+}
+
+/// The FULL `graph/conformance` N-Quads product every consumer of this stage's fold must
+/// see identically: the per-corpus divergence findings + reified comparisons + tallies
+/// ([`divergence_nq_from_corpora`]) followed by the reified `gmeow:CapabilityGap`
+/// individuals ([`capability_gaps_nq`]). This is the SINGLE shared producer both
+/// [`ConformanceStage::run`] and [`build_conformance_divergence`] call, so the
+/// [`CONFORMANCE_NQ_PATH`] byte artifact and the parsed `GRAPH_CONFORMANCE` dataset are
+/// always built from identical bytes.
+fn full_conformance_nq(
+    root: &Path,
+    by_corpus: &BTreeMap<String, Vec<ExternalComparison>>,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let mut out = divergence_nq_from_corpora(by_corpus);
+    push_nq_block(&capability_gaps_nq(root)?, &mut out);
+    Ok(out.into_bytes())
 }
 
 /// Project the graded corpora into the deterministic per-corpus agreement-tally JSON
@@ -174,10 +304,10 @@ pub(crate) fn agreement_tallies_json(
             corpus_only,
             dl_gap,
         } = agreement_tally(corpus, comparisons);
-        let meta = gmeow_conformance::external::load_corpus_meta(
-            &external.join(corpus).join("corpus.json"),
-        )
-        .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
+        let corpus_dir = external.join(corpus);
+        let meta = gmeow_conformance::vendored::load_corpus_meta(&corpus_dir.join("corpus.json"))
+            .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
+        let gap_shapes = gap_shapes_for_corpus(&corpus_dir)?;
         records.insert(
             corpus.clone(),
             TallyRecord {
@@ -186,6 +316,7 @@ pub(crate) fn agreement_tallies_json(
                 agree,
                 corpus_only,
                 dl_gap,
+                gap_shapes,
             },
         );
     }
@@ -480,7 +611,13 @@ impl Stage for ConformanceStage {
         // The committed external corpus is a raw source read: every case's
         // published source (W3C `source/manifest.ttl`, TPTP `source/problem.p`, or
         // OntoUML `source/model.ttl`) plus its frozen native verdict busts this
-        // stage's cache (a corpus edit re-grades + re-folds the bundle).
+        // stage's cache (a corpus edit re-grades + re-folds the bundle). EVERY case
+        // dir's `profile.json` — not just an OntoUML one — also busts the cache: since
+        // `capability_gap_cases` reads it for the `gap_shape` token that now folds a
+        // `gmeow:CapabilityGap` individual, a manifest/SZS divergence case's
+        // `profile.json` edit must re-grade + re-fold the bundle too (previously only
+        // the OntoUML branch carried it, leaving that case's `profile.json` out of the
+        // cache key — a latent stale-fold bug).
         let external = root.join(EXTERNAL_ROOT);
         let mut files: Vec<PathBuf> = Vec::new();
         if external.is_dir() {
@@ -490,31 +627,33 @@ impl Stage for ConformanceStage {
                     let szs = case_dir.join("source").join("problem.p");
                     let model = case_dir.join("source").join("model.ttl");
                     let verdicts = case_dir.join("expected").join("verdicts.json");
+                    let mut matched = true;
                     if manifest.is_file() {
                         files.push(manifest);
                     } else if szs.is_file() {
                         files.push(szs);
                     } else if model.is_file() {
                         // An OntoUML foundation-discipline case grades `source/model.ttl`
-                        // against its documented anti-pattern. The model, its frozen
+                        // against its documented anti-pattern. The model and its frozen
                         // `expected/materialized.nq` golden (absent for a source-only
-                        // divergence case), and the `profile.json` provenance all bust
-                        // the cache — without them a case edit would leave a stale fold.
+                        // divergence case) bust the cache too.
                         files.push(model);
                         let materialized = case_dir.join("expected").join("materialized.nq");
                         if materialized.is_file() {
                             files.push(materialized);
                         }
-                        let profile = case_dir.join("profile.json");
-                        if profile.is_file() {
-                            files.push(profile);
-                        }
-                        continue;
                     } else {
-                        continue;
+                        matched = false;
                     }
-                    if verdicts.is_file() {
+                    if matched && verdicts.is_file() {
                         files.push(verdicts);
+                    }
+                    // Every case dir's `profile.json` provenance (`gap_shape`,
+                    // `documented_antipattern`, …) busts the cache, regardless of which
+                    // source branch the case matched.
+                    let profile = case_dir.join("profile.json");
+                    if profile.is_file() {
+                        files.push(profile);
                     }
                 }
             }
@@ -526,7 +665,7 @@ impl Stage for ConformanceStage {
         // Grade the committed corpus ONCE; both projections read this single result
         // (PIPELINE_SPINE §3.2/§8 — no re-walk, no re-grade).
         let by_corpus = grade_external_corpora(input.root)?;
-        let nq = divergence_nq_from_corpora(&by_corpus);
+        let nq = full_conformance_nq(input.root, &by_corpus)?;
         let tallies = agreement_tallies_json(input.root, &by_corpus)?;
         // Attach the conformance graph (divergence findings + reified comparison and
         // tally individuals) as the carrier's `graph/conformance` named graph so the
@@ -615,6 +754,44 @@ mod tests {
                 "line not in the conformance graph: {line}"
             );
         }
+    }
+
+    #[test]
+    fn combined_conformance_nq_carries_reified_capability_gaps() {
+        // The committed `entailment-mini-divergence` corpus carries two structured
+        // gap-shape cases (`multi-triple-conclusion` → vendoring-multi-goal,
+        // `role-conclusion` → role-assertion). The FULL conformance NQ (the same
+        // producer `run()` and `build_conformance_divergence` share) must reify both as
+        // `gmeow:CapabilityGap` individuals pointing at the correct `gmeow:GapShape`
+        // ontology individuals — the G3 fold this test guards.
+        let root = repo_root();
+        let a = build_conformance_divergence(&root).expect("grade run a");
+        let b = build_conformance_divergence(&root).expect("grade run b");
+        assert_eq!(a, b, "the combined conformance NQ must be deterministic");
+
+        let text = String::from_utf8(a).expect("utf-8");
+        for line in text.lines() {
+            assert!(
+                line.ends_with(&format!(
+                    "<{}> .",
+                    gmeow_conformance::divergence::CONFORMANCE_GRAPH
+                )),
+                "line not in the conformance graph: {line}"
+            );
+        }
+        const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+        assert!(
+            text.contains(&format!("<{GMEOW}CapabilityGap>")),
+            "must reify at least one gmeow:CapabilityGap individual: {text}"
+        );
+        assert!(
+            text.contains(&format!("<{GMEOW}GapShapeVendoringMultiGoal>")),
+            "must carry the vendoring-multi-goal committed case's ontology individual: {text}"
+        );
+        assert!(
+            text.contains(&format!("<{GMEOW}GapShapeRoleAssertion>")),
+            "must carry the role-assertion committed case's ontology individual: {text}"
+        );
     }
 
     #[test]

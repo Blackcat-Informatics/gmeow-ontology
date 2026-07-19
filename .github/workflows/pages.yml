@@ -1,19 +1,27 @@
 name: Pages
 
 # Publish the ontology documentation site to GitHub Pages. The site is the
-# self-contained static HTML tree rendered by the Rust `export-docs` renderer
-# directly from the committed, drift-gated `generated/dist/gmeow.gts` bundle —
-# so the published site is always a faithful projection of the shipped bundle,
-# never a separately-maintained copy. `ontology-docs/` is gitignored on purpose
-# (never committed, per AGENTS.md); it is rebuilt fresh on every deploy.
+# self-contained static HTML tree rendered by the source-backed Rust `sync`
+# pipeline. Documentation remains external to `gmeow.gts`, but is derived from
+# the same canonical source model and pipeline run rather than maintained as a
+# separate copy. `ontology-docs/` is gitignored and rebuilt on every deploy.
 
 on:
   push:
     branches: [main]
-    # Only re-publish when something that can change the rendered site moves:
-    # the bundle the site is projected from, the renderer/CLI, or this workflow.
+    # The site is rendered from CANONICAL SOURCES (make sync SYNC_OUTPUTS=docs), not
+    # from the git-ignored generated/ product — so trigger on the sources the bundle and
+    # site are projected from, the renderer/CLI/pipeline, or this workflow, never on a
+    # generated/ path (which no longer exists in the tree).
     paths:
-      - generated/dist/gmeow.gts
+      - slices/**
+      - shapes/**
+      - dsl/**
+      - imports/**
+      - metadata/**
+      - queries/**
+      - i18n/**
+      - ontology/**
       - crates/docs/**
       - crates/gmeow-dev-cli/**
       - crates/pipeline/**
@@ -47,17 +55,17 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      # Render the static site from canonical repository sources. Documentation is
-      # intentionally external to gmeow.gts; `export-docs` remains the stable CI
-      # surface and writes the self-contained Pages tree into ontology-docs/.
+      # Render every documentation projection from canonical repository sources.
+      # The site remains external to gmeow.gts; sync writes the Pages tree into
+      # ontology-docs/ and validates the complete one-pass fixed point.
       - name: Render ontology docs
-        run: cargo run -q -p gmeow-dev-cli -- export-docs --format site --directory ontology-docs --force
+        run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs
 
       - name: Configure Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ontology-docs
 
@@ -73,4 +81,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

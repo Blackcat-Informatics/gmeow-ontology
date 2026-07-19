@@ -1,0 +1,256 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix cov:   <https://blackcatinformatics.ca/gmeow/examples/math/coverage/> .
+
+# A compact worked graph for the external-corpus coverage families. It
+# demonstrates the reusable grounding frames; it does not assert an E8
+# representation, which would require a separately calculated faithful,
+# equivariant representation witness.
+
+cov:persistentAnalysis a math:PersistentHomology ;
+    math:analysisInput cov:pointCloud ;
+    math:overFiltration cov:ripsFiltration ;
+    math:analysisOutput cov:persistenceDiagram .
+
+cov:pointCloud a math:MathematicalObject .
+cov:persistenceDiagram a math:PersistenceDiagram , math:MathematicalObject .
+cov:ripsFiltration a math:Filtration ;
+    math:filtrationAmbient cov:pointCloud ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage cov:ripsStage .
+cov:ripsStage a math:FiltrationStage ;
+    math:filtrationThreshold cov:epsilon ;
+    math:stageStructure cov:ripsComplex .
+cov:epsilon a math:Quantity ;
+    math:quantityValue "1.0"^^xsd:decimal ;
+    math:hasDimension math:lengthDimension ;
+    gmeow:unit cov:scaleUnit ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameLatentVectorSpace .
+math:lengthDimension a math:Dimension .
+cov:ripsComplex a math:VietorisRipsComplex , math:TopologicalSpace .
+
+cov:reduction a math:DimensionalReduction , math:UMAPReduction ;
+    math:analysisInput cov:pointCloud ;
+    math:targetDimension "2"^^xsd:nonNegativeInteger ;
+    math:usesInitialization cov:spectralInitialization ;
+    math:analysisOutput cov:embedding .
+cov:spectralInitialization a math:SpectralInitialization .
+cov:embedding a math:Embedding ;
+    math:domain cov:sourceSet ;
+    math:codomain cov:targetSet ;
+    math:embeddingSource cov:pointCloud ;
+    math:targetSpace cov:latentPlane ;
+    math:embeddingFunction cov:embeddingFunction ;
+    math:embeddingModel cov:umapModel .
+cov:sourceSet a math:Set .
+cov:targetSet a math:Set .
+cov:latentPlane a math:MathematicalObject .
+cov:embeddingFunction a math:Function ;
+    math:domain cov:sourceSet ;
+    math:codomain cov:targetSet .
+cov:umapModel a math:LearnedModel .
+
+cov:hamiltonianSystem a math:HamiltonianSystem ;
+    math:stateSpace cov:phaseSpace ;
+    math:symplecticForm cov:omega ;
+    math:hamiltonianFunction cov:hamiltonian ;
+    math:generatesFlow cov:hamiltonianFlow .
+cov:phaseSpace a math:SmoothManifold ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:smoothStructure .
+cov:omega a math:SymplecticForm .
+cov:hamiltonian a math:HamiltonianFunction ;
+    math:domain cov:phaseSet ;
+    math:codomain cov:scalarSet .
+cov:phaseSet a math:Set .
+cov:scalarSet a math:Set .
+cov:hamiltonianFlow a math:HamiltonianFlow .
+
+cov:cellularSheaf a math:CellularSheaf ;
+    math:sheafBaseComplex cov:baseComplex ;
+    math:hasStalk cov:vertexStalk , cov:edgeStalk ;
+    math:restrictionMap cov:vertexToEdge ;
+    math:hasSection cov:globalSection .
+cov:baseComplex a math:CellComplex .
+cov:vertexStalk a math:SheafStalk ; math:stalkOverCell cov:vertex .
+cov:edgeStalk a math:SheafStalk ; math:stalkOverCell cov:edge .
+cov:vertexToEdge a math:SheafRestrictionMap ;
+    math:sourceObject cov:vertexStalk ;
+    math:targetObject cov:edgeStalk .
+cov:globalSection a math:SheafSection .
+cov:vertex a math:MathematicalObject .
+cov:edge a math:MathematicalObject .
+
+cov:cl120 a math:CliffordAlgebra ;
+    math:underlyingSet cov:cl120Carrier ;
+    math:scalarField math:realNumbers ;
+    math:structureOperation cov:cl120Product ;
+    math:satisfiesAxiom cov:associativity , cov:anticommutation ;
+    math:hasBasis cov:cl120Basis ;
+    math:hasGrading cov:cl120Grading ;
+    math:cliffordInvolution cov:cl120Reversion ;
+    math:hasBasisBlade cov:e1 ;
+    math:metricSignature cov:signature120 ;
+    math:spaceDimension "4096"^^xsd:nonNegativeInteger ;
+    math:pseudoscalarSquare 1 .
+cov:cl130 a math:CliffordAlgebra ;
+    math:underlyingSet cov:cl130Carrier ;
+    math:scalarField math:realNumbers ;
+    math:structureOperation cov:cl130Product ;
+    math:satisfiesAxiom cov:associativity , cov:anticommutation ;
+    math:hasBasis cov:cl130Basis ;
+    math:hasGrading cov:cl130Grading ;
+    math:cliffordInvolution cov:cl130Reversion ;
+    math:hasBasisBlade cov:e13 ;
+    math:metricSignature cov:signature130 ;
+    math:spaceDimension "8192"^^xsd:nonNegativeInteger ;
+    math:pseudoscalarSquare 1 .
+# The native Clifford producer carries the exact module decomposition and
+# split/join witness; this compact instance shows the reusable extension frame.
+cov:cl130Extension a math:CliffordExtension ;
+    math:baseAlgebra cov:cl120 ;
+    math:extendedAlgebra cov:cl130 ;
+    math:extensionGenerator cov:e13 .
+
+cov:cl120Carrier a math:Set .
+cov:cl130Carrier a math:Set .
+cov:cl120Product a math:GeometricProduct .
+cov:cl130Product a math:GeometricProduct .
+cov:cl120Basis a math:Basis .
+cov:cl130Basis a math:Basis .
+cov:cl120Grading a math:Grading .
+cov:cl130Grading a math:Grading .
+cov:cl120Reversion a math:Reversion , math:CliffordInvolution .
+cov:cl130Reversion a math:Reversion , math:CliffordInvolution .
+cov:signature120 a math:MetricSignature ;
+    math:signaturePositive 12 ; math:signatureNegative 0 .
+cov:signature130 a math:MetricSignature ;
+    math:signaturePositive 13 ; math:signatureNegative 0 .
+cov:e1 a math:BasisBlade ;
+    math:bladeGrade 1 ; math:generatorIndex 1 ; math:generatorSquare 1 .
+cov:e13 a math:BasisBlade ;
+    math:bladeGrade 1 ; math:generatorIndex 13 ; math:generatorSquare 1 .
+cov:associativity a math:Axiom .
+cov:anticommutation a math:Axiom .
+
+# Information-theoretic coverage: the Shannon entropy of a uniform two-outcome
+# distribution is recoverable from its distribution, logarithm base, and unit as
+# separate reusable objects, and carries its exact reference value of 1/1 bit.
+cov:coverageEntropy a math:Entropy ;
+    math:overDistribution cov:uniformTwo ;
+    math:informationBase math:logBaseTwo ;
+    math:informationUnit math:bit ;
+    math:measureValue cov:oneBit .
+cov:uniformTwo a math:Distribution ;
+    math:distributionFamily cov:uniformFamily .
+cov:uniformFamily a math:DistributionFamily .
+cov:oneBit a math:RationalValue ;
+    math:numerator 1 ; math:denominator 1 .
+# The canonical logarithm base and information unit of the measure. Their types are
+# restated here (as with math:lengthDimension above) so the frame is complete when
+# this scene is read in closed-world isolation: base 2 is a math:LogarithmBase and
+# the bit is the math:InformationUnit paired with it.
+math:logBaseTwo a math:LogarithmBase .
+math:bit a math:InformationUnit .
+
+# Hodge-decomposition coverage: a decomposition is recoverable from its signal,
+# its exact/coexact/harmonic components, and its boundary operator as separate
+# reusable objects. Reconstruction (signal = exact + coexact + harmonic) and
+# pairwise orthogonality are witnessed by exact 0/1 residual and inner products.
+cov:hodgeDecomposition a math:HodgeDecomposition ;
+    math:decomposesFlow cov:hodgeSignal ;
+    math:exactComponent cov:hodgeExact ;
+    math:coexactComponent cov:hodgeCoexact ;
+    math:harmonicComponent cov:hodgeHarmonic ;
+    math:hodgeBoundaryOperator cov:hodgeBoundary ;
+    math:overSheaf cov:hodgeSheaf ;
+    math:reconstructionResidual cov:hodgeZero ;
+    math:exactCoexactInnerProduct cov:hodgeZero ;
+    math:exactHarmonicInnerProduct cov:hodgeZero ;
+    math:coexactHarmonicInnerProduct cov:hodgeZero .
+cov:hodgeSignal a math:SheafSection , math:MathematicalObject .
+cov:hodgeExact a math:ExactComponent .
+cov:hodgeCoexact a math:CoexactComponent .
+cov:hodgeHarmonic a math:HarmonicComponent .
+cov:hodgeBoundary a math:BoundaryOperator .
+cov:hodgeSheaf a math:CellularSheaf ;
+    math:sheafBaseComplex cov:hodgeComplex ;
+    math:hasStalk cov:hodgeStalk ;
+    math:restrictionMap cov:hodgeRestriction .
+cov:hodgeComplex a math:CellComplex .
+cov:hodgeStalk a math:SheafStalk .
+cov:hodgeRestriction a math:SheafRestrictionMap .
+cov:hodgeZero a math:RationalValue ;
+    math:numerator 0 ; math:denominator 1 .
+
+# Mapper-construction coverage: a Mapper is recoverable from its source metric
+# space, its filter (lens) function, its finitely enumerated cover, its
+# deterministic clustering rule, and its output nerve complex as separate reusable
+# objects, without a project-specific graph surrogate that flattens the
+# filter/cover/clustering frame. The cover is two explicit overlapping intervals
+# and the clustering rule fixes an exact single-linkage threshold (1/1), so the
+# construction is deterministic.
+cov:mapperConstruction a math:MapperConstruction ;
+    math:sourceMetricSpace cov:mapperSource ;
+    math:filterFunction cov:mapperFilter ;
+    math:coverScheme cov:mapperCover ;
+    math:clusteringRule cov:mapperClustering ;
+    math:outputNerve cov:mapperNerve .
+cov:mapperSource a math:MetricSpace .
+# The filter (lens) function f: X → ℝ carries its frame: its domain is the set of
+# points of the source metric space and its codomain is the set of filter values.
+cov:mapperFilter a math:Function ;
+    math:domain cov:mapperFilterDomain ;
+    math:codomain cov:mapperFilterCodomain .
+cov:mapperFilterDomain a math:Set .
+cov:mapperFilterCodomain a math:Set .
+cov:mapperCover a math:Cover ;
+    math:hasCoverElement cov:mapperCoverLow , cov:mapperCoverHigh .
+cov:mapperCoverLow a math:CoverElement .
+cov:mapperCoverHigh a math:CoverElement .
+cov:mapperClustering a math:ClusteringRule ;
+    math:clusteringThreshold cov:mapperThreshold .
+cov:mapperThreshold a math:RationalValue ;
+    math:numerator 1 ; math:denominator 1 .
+cov:mapperNerve a math:NerveComplex .
+
+# Vector-symbolic coverage: a binding is recoverable from its vector space, its
+# basis, its operand vectors, its capacity descriptor, and its recovery-loss
+# (fidelity) contract as separate reusable objects, without a project-specific
+# similarity-score surrogate that flattens the capacity/recovery frame. The algebra
+# is bipolar MAP (elementwise product), which is exactly invertible, so the
+# recovery-loss contract states loss 0/1 and the capacity is the exact rational 2/1.
+cov:vsaBinding a math:VectorBinding ;
+    math:overVectorSpace cov:vsaSpace ;
+    math:overBasis cov:vsaBasis ;
+    math:vsaOperand cov:vsaOperandA , cov:vsaOperandB ;
+    math:operationCapacity cov:vsaCapacity ;
+    math:recoveryLossContract cov:vsaContract .
+# The ambient vector space, genuinely framed as the math:AlgebraicStructure it is
+# (math:VectorSpace ⊑ math:AlgebraicStructure): its carrier is the math:Set of
+# vectors, its math:structureOperation is vector addition, and it satisfies the
+# additive associativity axiom of its underlying abelian group.
+cov:vsaSpace a math:VectorSpace ;
+    math:underlyingSet cov:vsaVectorSet ;
+    math:structureOperation cov:vsaVectorAddition ;
+    math:satisfiesAxiom cov:vsaAdditiveAssociativity .
+cov:vsaVectorSet a math:Set .
+cov:vsaVectorAddition a math:Operation .
+cov:vsaAdditiveAssociativity a math:Axiom .
+cov:vsaBasis a math:Basis .
+cov:vsaOperandA a math:Vector ;
+    math:inBasis cov:vsaBasis .
+cov:vsaOperandB a math:Vector ;
+    math:inBasis cov:vsaBasis .
+cov:vsaCapacity a math:VectorSymbolicCapacity ;
+    math:capacityBound cov:vsaCapacityBound .
+cov:vsaCapacityBound a math:RationalValue ;
+    math:numerator 2 ; math:denominator 1 .
+cov:vsaContract a math:RecoveryLossContract ;
+    math:lossBound cov:vsaLossBound .
+cov:vsaLossBound a math:RationalValue ;
+    math:numerator 0 ; math:denominator 1 .

@@ -13,6 +13,10 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
+# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
+# an independent implementation reproduces the byte-exact digest.
+blake3 = "1"
 gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -24,6 +28,9 @@ sha2 = "0.10"
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
 # frame must match the actual bytes the surface hash is taken over.
 unicode-normalization = "0.1"
+# UTS #39 skeletons are the normative collision oracle for the GMN glyph table. The
+# registry rejects two distinct glyphs with the same skeleton inside one sigil scope.
+unicode-security = "0.1.2"
 # The GMN glyph-cost primitive measures a symbol's REAL token cost over the LLM token
 # channel with a pinned, embedded BPE vocabulary (`cl100k_base`) — deterministic (the vocab
 # is compiled in; no network, no filesystem I/O) and pure Rust (no Python binding). It is

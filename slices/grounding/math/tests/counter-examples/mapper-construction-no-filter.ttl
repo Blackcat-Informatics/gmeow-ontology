@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# Missing-filter counterexample: the Mapper construction supplies a complete
+# frame — source metric space, cover of two overlapping intervals, deterministic
+# clustering rule, and output nerve complex — but OMITS its required filter (lens)
+# function (math:filterFunction). Without the filter there is no map through which
+# to pull back the cover, so the whole construction is undefined: it isolates
+# math:IncompleteMapperConstruction via the single derived QualifiedMinCount
+# constraint on math:filterFunction.
+ex:mapper a math:MapperConstruction ;
+    math:sourceMetricSpace ex:source ;
+    math:coverScheme ex:cover ;
+    math:clusteringRule ex:clustering ;
+    math:outputNerve ex:nerve .
+
+ex:source a math:MetricSpace .
+
+ex:cover a math:Cover ;
+    math:hasCoverElement ex:coverLow , ex:coverHigh .
+ex:coverLow a math:CoverElement , math:Interval ;
+    math:lowerEndpoint 0 ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperEndpoint 2 ;
+    math:upperInclusion math:closedEndpoint .
+ex:coverHigh a math:CoverElement , math:Interval ;
+    math:lowerEndpoint 1 ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperEndpoint 3 ;
+    math:upperInclusion math:closedEndpoint .
+
+ex:clustering a math:ClusteringRule ;
+    math:clusteringThreshold ex:threshold .
+ex:threshold a math:RationalValue ;
+    math:numerator 1 ;
+    math:denominator 1 .
+
+ex:nerve a math:NerveComplex .

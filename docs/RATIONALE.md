@@ -84,8 +84,8 @@ GMEOW answers each challenge with a deliberate architectural choice:
   of this layer ([Principle 3](../CONSTITUTION.md)). *(Addresses provenance/confidence,
   temporal validity, and lossless-vs-canonical.)*
 - **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by the native `logic:`
-  reasoner (fast EL pre-check plus a sound-and-complete OWL 2 DL check, cross-checked
-  in-process against the `purrdf::entail` oracle) on every build; published with content negotiation,
+  reasoner (fast EL pre-check plus a sound-and-complete OWL 2 DL check, the single
+  reasoning authority) on every build; published with content negotiation,
   VoID/DCAT, a DOI, and submitted to the LOD Cloud.
 - **Contested facts as coexisting standpoints — no winner.** A disputed fact is recorded
   as several `gmeow:accordingTo`-indexed claims that coexist, none privileged — *whose
@@ -107,7 +107,7 @@ GMEOW answers each challenge with a deliberate architectural choice:
   *(Addresses lossless capture and cross-system coreference; now spans 13+ realms from
   terrestrial to celestial to biological-sequence to fictional.)*
 - **Observation & measurement as first-class claims.** Built on frame-relativity, a universal
-  `gmeow:Observation` (SOSA/SensorThings) and `gmeow:Quantity`/`MeasuredValue` (QUDT) make
+  `gmeow:Observation` (SOSA/SensorThings) and `math:Quantity` (QUDT) make
   every measurement an attributed, unit-bearing, frame-aware claim — with ontic *determinacy*
   held apart from epistemic *confidence*, and data quality recorded against W3C DQV / ISO 19157.
   This is what turns GMEOW from a person-metadata vocabulary into one that scientific

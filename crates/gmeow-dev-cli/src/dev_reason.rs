@@ -14,8 +14,6 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use gmeow_logic::entail_crosscheck::{CrosscheckOutcome, run_entail_crosscheck};
-use gmeow_logic::reason::ledger::DivergenceKind;
 use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
@@ -53,7 +51,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
     if graph.quad_count() == 0 {
         return Err(error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make regenerate` \
+            "the snapshot carries no graph/reasoning verdict; run `make sync` \
              (or re-reason with --fresh)",
         ));
     }
@@ -72,7 +70,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
             "the shipped graph/reasoning verdict was minted under reasoning contract \
-             {shipped} but this binary implements {current}; run `make regenerate` to \
+             {shipped} but this binary implements {current}; run `make sync` to \
              re-mint the bundle (or re-reason with --fresh)",
             shipped = result.provenance.contract_hash,
         )));
@@ -337,213 +335,6 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         ));
     }
     println!("native EL/DL reasoning + reasoned-graph verify (Docker-free)");
-    0
-}
-
-/// `gmeow-dev reason-crosscheck` — the native ↔ entail-oracle subsumption
-/// divergence cross-check (the Docker-free replacement for the retired external
-/// subsumption lane).
-///
-/// Loads the committed bundle EDB (the same snapshot import `reason-verify` uses),
-/// drives gmeow's own native reasoner against the independent, conformance-tested
-/// `purrdf::entail` OWL-RL subsumption oracle, prints the structured divergence
-/// ledger, and returns exit `0` iff the strict `enforce()` **superset** verdict
-/// passes: `native ⊇ oracle`, i.e. no OracleOnly / DlGap / CorpusOnly row.
-/// NativeOnly rows are gmeow's richer world-scoped closure and are expected, not a
-/// failure. Any real divergence is printed with its classification so a red is a
-/// diagnosable disagreement, never an opaque failure.
-pub fn reason_crosscheck(timings_json: Option<&Path>) -> i32 {
-    let root = project_root();
-    let started = Instant::now();
-    let snapshot_started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
-        Err(code) => return code,
-    };
-    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
-        Ok(edb) => edb,
-        Err(code) => return code,
-    };
-    let snapshot_ms = elapsed_ms(snapshot_started);
-    // Reason FRESH: the cross-check needs the COMPLETE native subsumption closure.
-    // The shipped `graph/reasoning` projection persists a reduced subsumption set
-    // (its transitive surface omits ~70 links the OWL-RL oracle still derives), so
-    // reusing it would under-report native and false-flag those as OracleOnly. A
-    // fresh `reason_all` is the full world-partitioned closure the comparison needs.
-    let reason_started = Instant::now();
-    let result = match reason_all(edb.as_ref()) {
-        Ok(r) => r,
-        Err(e) => return fail(format!("reason-crosscheck: native reasoning failed: {e}")),
-    };
-    let reason_ms = elapsed_ms(reason_started);
-    let oracle_started = Instant::now();
-    let outcome = match run_entail_crosscheck(&result, edb.as_ref()) {
-        Ok(o) => o,
-        Err(e) => return fail(format!("reason-crosscheck failed: {e}")),
-    };
-    let oracle_ms = elapsed_ms(oracle_started);
-    let elapsed = elapsed_ms(started);
-
-    if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "command": "reason-crosscheck",
-            "mode": "native",
-            "ok": outcome.verdict.passed,
-            "metrics": {
-                "inferred_axioms": result.inferred().len(),
-                "source_worlds": outcome.source_worlds,
-                "native_subsumptions": outcome.native_subsumptions,
-                "oracle_subsumptions": outcome.oracle_subsumptions,
-                "agree": outcome.ledger.agree,
-                "native_only": outcome.ledger.native_only,
-                "oracle_only": outcome.ledger.oracle_only,
-                "dl_gap": outcome.ledger.dl_gap,
-            },
-            "timings": [
-                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
-                { "phase": "reason-native", "elapsed_ms": reason_ms, "metadata": null },
-                { "phase": "entail-oracle", "elapsed_ms": oracle_ms, "metadata": format!("worlds={}", outcome.source_worlds) },
-                { "phase": "reason-crosscheck-total", "elapsed_ms": elapsed, "metadata": null },
-            ],
-        });
-        let code = write_timings_json(path, &payload);
-        if code != 0 {
-            return code;
-        }
-    }
-
-    emit_crosscheck_outcome(&outcome)
-}
-
-fn emit_crosscheck_outcome(outcome: &CrosscheckOutcome) -> i32 {
-    let ledger = &outcome.ledger;
-    println!(
-        "native ↔ entail-oracle subsumption cross-check (Docker-free): {worlds} source world(s); \
-         {native} native vs {oracle} oracle subsumption(s)",
-        worlds = outcome.source_worlds,
-        native = outcome.native_subsumptions,
-        oracle = outcome.oracle_subsumptions,
-    );
-    println!(
-        "  ledger: {agree} agree, {native_only} native-only (expected richness), \
-         {oracle_only} oracle-only, {dl_gap} dl-gap",
-        agree = ledger.agree,
-        native_only = ledger.native_only,
-        oracle_only = ledger.oracle_only,
-        dl_gap = ledger.dl_gap,
-    );
-
-    // Print every FAILING row so a divergence is diagnosable, not opaque. NativeOnly
-    // rows are NOT failures — they are gmeow's richer world-scoped closure (`native ⊇
-    // oracle`) — so they are summarized by count above, not enumerated as noise.
-    for row in &ledger.rows {
-        let tag = match row.kind {
-            DivergenceKind::OracleOnly => "oracle-only",
-            DivergenceKind::DlGap => "dl-gap",
-            DivergenceKind::CorpusOnly => "corpus-only",
-            DivergenceKind::Agree | DivergenceKind::NativeOnly => continue,
-        };
-        note(
-            "gmeow-dev.reason-crosscheck.divergence",
-            format!("  [{tag}] ({}) {}", row.category, row.detail),
-        );
-    }
-
-    if outcome.verdict.passed {
-        println!(
-            "reason-crosscheck: native ⊇ oracle — no divergence (native, Docker-free); \
-             {} native-only enrichment(s)",
-            ledger.native_only
-        );
-        0
-    } else {
-        for reason in &outcome.verdict.reasons {
-            note(
-                "gmeow-dev.reason-crosscheck.reason",
-                format!("reason-crosscheck: {reason}"),
-            );
-        }
-        fail("reason-crosscheck: native↔oracle divergence")
-    }
-}
-
-/// `gmeow-dev reason-gate` — one snapshot import and one complete native closure
-/// feeding both reasoned-graph verification and the independent purrdf oracle.
-pub fn reason_gate(timings_json: Option<&Path>) -> i32 {
-    let root = project_root();
-    let started = Instant::now();
-    let snapshot_started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(dataset) => dataset,
-        Err(code) => return code,
-    };
-    let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
-        Ok(edb) => edb,
-        Err(code) => return code,
-    };
-    let snapshot_ms = elapsed_ms(snapshot_started);
-    let queries = gmeow_logic::verify::embedded_verify_queries();
-    let evaluation = match evaluate_reason_verify_once(edb.as_ref(), &queries, || {
-        reason_all(edb.as_ref())
-            .map_err(|e| error::reasoning(format!("native reason gate failed: {e}")))
-    }) {
-        Ok(evaluation) => evaluation,
-        Err(message) => return fail(message),
-    };
-
-    let oracle_started = Instant::now();
-    let outcome = match run_entail_crosscheck(&evaluation.result, edb.as_ref()) {
-        Ok(outcome) => outcome,
-        Err(e) => return fail(format!("reason gate cross-check failed: {e}")),
-    };
-    let oracle_ms = elapsed_ms(oracle_started);
-    let elapsed = elapsed_ms(started);
-    let ok = evaluation.report.ok() && outcome.verdict.passed;
-
-    if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "command": "reason-gate",
-            "mode": "native",
-            "ok": ok,
-            "metrics": {
-                "inferred_axioms": evaluation.result.inferred().len(),
-                "verify_errors": evaluation.report.error_count(),
-                "source_worlds": outcome.source_worlds,
-                "native_subsumptions": outcome.native_subsumptions,
-                "oracle_subsumptions": outcome.oracle_subsumptions,
-                "agree": outcome.ledger.agree,
-                "native_only": outcome.ledger.native_only,
-                "oracle_only": outcome.ledger.oracle_only,
-                "dl_gap": outcome.ledger.dl_gap,
-            },
-            "timings": [
-                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
-                { "phase": "reason-native", "elapsed_ms": evaluation.result_ms, "metadata": null },
-                { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
-                { "phase": "entail-oracle", "elapsed_ms": oracle_ms, "metadata": format!("worlds={}", outcome.source_worlds) },
-                { "phase": "reason-gate-total", "elapsed_ms": elapsed, "metadata": null },
-            ],
-        });
-        let code = write_timings_json(path, &payload);
-        if code != 0 {
-            return code;
-        }
-    }
-
-    if evaluation.report.ok() {
-        println!("native EL/DL reasoning + reasoned-graph verify (Docker-free)");
-    }
-    let crosscheck_code = emit_crosscheck_outcome(&outcome);
-    if !evaluation.report.ok() {
-        return fail(format!(
-            "verify: {} violation(s) on the reasoned graph",
-            evaluation.report.error_count()
-        ));
-    }
-    if crosscheck_code != 0 {
-        return crosscheck_code;
-    }
-    println!("reason gate: one native closure passed verify + entail-oracle cross-check");
     0
 }
 

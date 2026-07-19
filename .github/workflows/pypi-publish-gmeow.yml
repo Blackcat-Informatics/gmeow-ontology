@@ -4,8 +4,8 @@
 # `gmeow-ontology` project (OIDC; no long-lived API token).
 #
 # The `gmeow_models/` tree under packages/python/ is a GENERATED, committed
-# artifact (written + drift-checked by `gmeow-dev regenerate`); this workflow
-# packages the committed tree, it does not regenerate it.
+# artifact (written + drift-checked by `gmeow-dev sync`); this workflow packages
+# the committed tree and does not execute the synchronization pipeline.
 name: Publish gmeow-ontology to PyPI
 
 permissions: {}
@@ -34,7 +34,7 @@ jobs:
       - name: Guard — the generated package must be present
         run: |
           test -f packages/python/gmeow_models/__init__.py \
-            || { echo "packages/python/gmeow_models is missing — run 'make regenerate' and commit it"; exit 1; }
+            || { echo "packages/python/gmeow_models is missing — run 'make sync' and commit it"; exit 1; }
 
       - name: Build the wheel + sdist
         run: |
@@ -62,7 +62,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist-gmeow-ontology
           path: dist/

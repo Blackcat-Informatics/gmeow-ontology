@@ -27,10 +27,13 @@ pub(crate) use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
 use crate::bcp47::Bcp47Target;
-use crate::bridge::IngestDiagnostic;
+use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::conllu::ConlluTarget;
-use crate::emit::digest16;
-use crate::gmn1_codec::{Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write};
+use crate::emit::{digest16, ntriples_sorted};
+use crate::gmn1_codec::{
+    CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
+};
+use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, grammar_correspondence, grammar_leg_pair,
     grammar_to_ntriples, parse_grammar, serialize_grammar,
@@ -73,6 +76,21 @@ pub struct LangProjectionInput {
     /// from `lang_models` so the TBox-bearing module surface is scanned ONLY for varieties and
     /// never fed to a document/surface/meaning bridge.
     pub varieties: Vec<NamedSource>,
+    /// The one carrier-authored GMN dictionary and scoped glyph registry. Keeping this
+    /// separate from each projected source graph ensures every writer/reader invocation uses
+    /// the codebook the shipped ontology pins, rather than a source-local empty fallback.
+    pub gmn_dictionary: Option<GmnDictionary>,
+    /// The resolved current GMN codebook — the second clean carrier of codebook identity
+    /// (reference inventory, script graphemes, pinned versions) the conformance pack's
+    /// codebook digest folds over alongside [`gmn_dictionary`](Self::gmn_dictionary). Set
+    /// together with the dictionary from the SAME lang module dataset so the emitted digest
+    /// equals what the gate/CLI recompute; `None` ⇒ no pack is emitted.
+    pub gmn_codebook: Option<CurrentCodebook>,
+    /// The AUTHORED GMN grammar bytes (`grammars/gmn.ebnf`, pre-render) — the grammar leaf of
+    /// the conformance pack's Merkle root. Kept separate from [`grammars`](Self::grammars),
+    /// whose `gmn` entry the projection stage replaces with the graph-rendered production, so
+    /// the pack pins the authored template rather than a derivative. `None` ⇒ no pack.
+    pub gmn_grammar_source: Option<Vec<u8>>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -361,7 +379,7 @@ impl LangProjectionTarget for AbnfTarget {
 /// [`gmn1_write`], and MEASURES the round-trip via [`gmn1_read`] +
 /// [`gmn0_canonically_equal`] — never declares it.
 ///
-/// This target's `emit` NEVER hard-fails on an uncovered construct (unlike a `Bridge`):
+/// This target's `emit` NEVER hard-fails on an uncovered source construct (unlike a `Bridge`):
 /// `lang_models` here spans EVERY slice's `examples/*.ttl` referencing `lang:` (the
 /// registry's input aBox carries no slice-scoping metadata to filter on), while the
 /// GMN-1 codec's TOTAL-coverage claim (Task 6) is scoped to the grounding slices only —
@@ -374,6 +392,9 @@ impl LangProjectionTarget for AbnfTarget {
 /// claim is the dedicated, grounding-scoped round-trip gate wired into
 /// `crates/pipeline/src/stages/gmn1_gate.rs` — this target's job is registration on the
 /// seam and an honest per-source preservation record, not that gate's total-coverage bar.
+/// The selected target's version-pinned dictionary is different: it is a mandatory codec
+/// capability, so a source-driven emission with no dictionary hard-fails before any source
+/// is examined rather than degrading to an artifact-free lossy result.
 struct Gmn1Target;
 
 const GMN1_CORR_BASE: &str = "https://blackcatinformatics.ca/lang/gmn1-correspondence/";
@@ -386,6 +407,44 @@ impl LangProjectionTarget for Gmn1Target {
 
     fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
         let mut emissions = Vec::new();
+        if !input.lang_models.is_empty() {
+            let dict = input
+                .gmn_dictionary
+                .as_ref()
+                .ok_or_else(|| IngestDiagnostic {
+                    failure_class: LangFailure::SilentIngestDrop,
+                    construct: "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
+                        .to_owned(),
+                })?;
+            emissions.extend(self.per_source_emissions(input, dict));
+        }
+        // The bundle-level self-certifying conformance pack: the decoder identity an
+        // independent implementation pins against, appended ONCE after the per-source loop
+        // (so no new registered target is added and the registry-completeness gate is not
+        // touched). Emitted iff the carrier supplied the codebook resolution AND the authored
+        // grammar — the projection stage sets all three pack inputs together with the
+        // dictionary, so in the real pipeline the pack is always present.
+        if let (Some(dict), Some(codebook), Some(grammar)) = (
+            input.gmn_dictionary.as_ref(),
+            input.gmn_codebook.as_ref(),
+            input.gmn_grammar_source.as_ref(),
+        ) {
+            emissions.push(gmn1_conformance_pack_emission(dict, codebook, grammar));
+        }
+        Ok(emissions)
+    }
+}
+
+impl Gmn1Target {
+    /// The per-source GMN-1 emissions: each `lang_models` source's GMN-0 normal form lowered
+    /// to GMN-1 text with a MEASURED round-trip (never declared). Factored out of
+    /// [`LangProjectionTarget::emit`] so the bundle-level pack emission rides beside it.
+    fn per_source_emissions(
+        &self,
+        input: &LangProjectionInput,
+        dict: &GmnDictionary,
+    ) -> Vec<LangEmission> {
+        let mut emissions = Vec::new();
         for source in &input.lang_models {
             let Ok(ds) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
                 // A source that fails to parse as Turtle is out of this target's domain
@@ -395,11 +454,8 @@ impl LangProjectionTarget for Gmn1Target {
                 continue;
             };
             let model = Gmn0Model::from_dataset(&ds);
-            let dict = GmnDictionary::from_dataset(&ds).unwrap_or_default();
-
-            let write_result = gmn1_write(&model, &dict);
-            let (exact, artifact_text, unsupported) = match write_result {
-                Ok(doc) => match gmn1_read(&doc, &dict) {
+            let (exact, artifact_text, unsupported) = match gmn1_write(&model, dict) {
+                Ok(doc) => match gmn1_read(&doc, dict) {
                     Ok(back) if gmn0_canonically_equal(&model, &back) => {
                         (true, doc.text, Vec::new())
                     }
@@ -454,8 +510,138 @@ impl LangProjectionTarget for Gmn1Target {
                 source_rdf: Vec::new(),
             });
         }
-        Ok(emissions)
+        emissions
     }
+}
+
+// ── GMN-1 conformance pack (bundle-level decoder identity) ──────────────────────────
+
+/// The stable, shipped-identity IRIs the conformance-pack projection asserts over. NOT
+/// under `example.org`: the pack IS shipped bundle identity, so its subject and the parts it
+/// references live in the gmeow namespace beside `gmnCodebookCurrent`.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The pack subject: the current shipped GMN-1 conformance pack, mirroring how
+/// `gmnCodebookCurrent` names the current codebook.
+const GMN_PACK_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnPackCurrent";
+/// The GMN-1 pack's own get-leg step (distinct from the write/read round-trip leg), so the
+/// pack correspondence names its own projection step rather than conflating with the codec.
+const GMN1_PACK_GET_LEG: &str = "https://blackcatinformatics.ca/lang/gmn1PackProjectStep";
+
+/// The bundle-level self-certifying conformance-pack emission: ONE RDF artifact
+/// (`gmn1/conformance-pack.ttl`, `is_rdf: true`) carrying the DERIVED codebook Merkle digest
+/// on `gmnCodebookCurrent`, the pack individual typed `gmeow:GmnConformancePack` with its
+/// `gmeow:gmnPackRoot` Merkle root, and the pack's `gmeow:references` to the codebook, the
+/// dictionary bijection, and the grammar. The same triples ride into the reasoned
+/// `graph/lang-projection-corpus` via `source_rdf`, so a bundle consumer resolves the pack
+/// root by query, not only by reading the file. Carries an EXACT `logic:Correspondence` (the
+/// pack is a faithful projection of the codebook — its root recomputes from the parts it
+/// names), with its own leg pair and a measured-true round-trip (the digests are
+/// deterministic and recompute).
+fn gmn1_conformance_pack_emission(
+    dict: &GmnDictionary,
+    codebook: &CurrentCodebook,
+    grammar_bytes: &[u8],
+) -> LangEmission {
+    let digest = codebook_digest(codebook, dict);
+    let root = pack_root(&digest, dict, grammar_bytes);
+    let grammar_digest = grammar_leaf(grammar_bytes);
+    let nt = ntriples_sorted(pack_triples(&digest, &root, &grammar_digest));
+
+    let mut loss = LossLedger::new();
+    LangEmission {
+        artifacts: vec![EmittedArtifact {
+            path_suffix: "gmn1/conformance-pack.ttl".to_owned(),
+            bytes: nt.clone(),
+            is_rdf: true,
+        }],
+        correspondence: gmn1_pack_correspondence(),
+        ledger: vec![emit_ledger_row(
+            &mut loss,
+            "gmn1:conformance-pack".to_owned(),
+            String::new(),
+            true,
+            PreservationKind::Exact,
+            "n/a".to_owned(),
+            Vec::new(),
+            Vec::new(),
+        )],
+        loss,
+        leg_pair: Some(gmn1_pack_leg_pair()),
+        emitted_reading_count: None,
+        source_iri: GMN_PACK_IRI.to_owned(),
+        unsupported: Vec::new(),
+        round_trip_holds: true,
+        lossy_kind: PreservationKind::Exact,
+        source_rdf: nt,
+    }
+}
+
+/// The conformance-pack N-Triples: the codebook self-digest on `gmnCodebookCurrent`, the grammar
+/// Merkle leaf on `gmnGrammar`, the typed pack individual, its Merkle root, and its three part
+/// references. All digest literals are lowercase-hex (grammar leaf) or algorithm-tagged
+/// (`blake3:<hex>`) ASCII and need no escaping. The grammar leaf enters the bundle so the shipped
+/// `gmeow gmn verify` recomputes `gmnPackRoot` from the bundle alone, with no source checkout.
+fn pack_triples(codebook_digest: &str, pack_root: &str, grammar_digest: &str) -> Vec<String> {
+    let g = |local: &str| format!("{GMEOW_NS}{local}");
+    let triple = |s: &str, p: &str, o: &str| format!("<{s}> <{p}> <{o}> .");
+    let lit = |s: &str, p: &str, l: &str| format!("<{s}> <{p}> \"{l}\" .");
+    vec![
+        // The DERIVED codebook self-digest enters the bundle here.
+        lit(
+            &g("gmnCodebookCurrent"),
+            &g("gmnCodebookDigest"),
+            codebook_digest,
+        ),
+        // The DERIVED grammar Merkle leaf (pack-root part 2) enters the bundle here.
+        lit(&g("gmnGrammar"), &g("gmnGrammarDigest"), grammar_digest),
+        triple(GMN_PACK_IRI, RDF_TYPE, &g("GmnConformancePack")),
+        lit(GMN_PACK_IRI, &g("gmnPackRoot"), pack_root),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnCodebookCurrent")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnDictV3")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnGrammar")),
+    ]
+}
+
+/// The EXACT `logic:Correspondence` the conformance-pack emission carries: a
+/// `logic:SectionRetraction`/`logic:ExactPreservation` rung with a discharged `GetPut`,
+/// named on its own `gmn1-conformance-pack` source key and pack projection leg — the pack is
+/// a faithful projection of the codebook whose root recomputes from the parts it names.
+fn gmn1_pack_correspondence() -> Correspondence {
+    let iri = format!(
+        "{GMN1_CORR_BASE}{}",
+        digest16("gmn1-corr", "gmn1-conformance-pack")
+    );
+    Correspondence::new(
+        iri,
+        CorrespondenceRelation::Subsumes,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        Some(Determinacy::Crisp),
+        Some(GMN1_PACK_GET_LEG.to_owned()),
+        None,
+        vec![LawClaimIr {
+            law: CorrespondenceLaw::GetPut,
+            verdict: DischargeVerdict::ObligationDischarged,
+            condition: Some(DischargeCondition::DischargeSyntacticReachability),
+        }],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("exact gmn1 conformance-pack correspondence is well-formed by construction")
+}
+
+/// The GMN-1 pack get/put leg pair — declarative projection-step metadata whose put leg is
+/// the structural inverse of the get leg (the round-trip the driver cross-checks).
+fn gmn1_pack_leg_pair() -> (LegPath, LegPath) {
+    let get = LegPath::Step(GMN1_PACK_GET_LEG.to_owned());
+    let put = get.invert();
+    (get, put)
 }
 
 /// The EXACT `logic:Correspondence` a GMN-1 emission carries when its measured
@@ -671,4 +857,117 @@ fn lossy_grammar_correspondence(source_key: &str) -> Correspondence {
         None,
     )
     .expect("lossy grammar correspondence is well-formed by construction")
+}
+
+#[cfg(test)]
+mod pack_tests {
+    use super::*;
+    use std::path::Path;
+
+    fn lang_slice_file(rel: &str) -> Vec<u8> {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../slices/grounding/lang")
+            .join(rel);
+        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    /// Drive the pack emission from the REAL carrier lang codebook/dictionary/grammar (no
+    /// per-source models), and assert the artifact is produced, is valid Turtle, carries the
+    /// pack class + a blake3-tagged root + the codebook digest on `gmnCodebookCurrent`, is
+    /// DETERMINISTIC across runs, and that the root matches an independent recomputation of
+    /// the Merkle construction.
+    #[test]
+    fn gmn1_conformance_pack_projects_deterministic_self_certifying_identity() {
+        let module = lang_slice_file("module.ttl");
+        let grammar = lang_slice_file("grammars/gmn.ebnf");
+        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
+        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
+        let codebook =
+            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
+
+        let input = LangProjectionInput {
+            gmn_dictionary: Some(dict.clone()),
+            gmn_codebook: Some(codebook.clone()),
+            gmn_grammar_source: Some(grammar.clone()),
+            ..Default::default()
+        };
+
+        // With no lang_models, the sole emission is the bundle-level conformance pack.
+        let emissions = Gmn1Target.emit(&input).expect("gmn1 emit");
+        let pack = emissions
+            .iter()
+            .find(|e| e.source_iri == GMN_PACK_IRI)
+            .expect("bundle-level conformance-pack emission present");
+        let artifact = pack
+            .artifacts
+            .iter()
+            .find(|a| a.path_suffix == "gmn1/conformance-pack.ttl")
+            .expect("pack artifact keyed at gmn1/conformance-pack.ttl");
+        assert!(artifact.is_rdf, "the pack artifact is an RDF serialization");
+
+        // The pack correspondence derives Exact (the driver's Invariant 1 acceptance path).
+        assert!(
+            crate::is_exact_correspondence(&pack.correspondence),
+            "the pack carries an exact correspondence"
+        );
+        assert!(
+            pack.round_trip_holds,
+            "the pack's round-trip is measured true"
+        );
+
+        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
+        // Valid Turtle: N-Triples is a Turtle subset, so a Turtle parse must accept it.
+        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
+            .expect("the pack artifact is valid Turtle");
+
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/gmeow/GmnConformancePack>"),
+            "pack artifact types the pack individual:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/gmeow/gmnPackRoot> \"blake3:"),
+            "pack artifact carries a blake3-tagged gmnPackRoot:\n{ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "<https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent> \
+                 <https://blackcatinformatics.ca/gmeow/gmnCodebookDigest> \"blake3:"
+            ),
+            "pack artifact carries the codebook digest on gmnCodebookCurrent:\n{ttl}"
+        );
+        // The same triples ride into the reasoned corpus graph via source_rdf.
+        assert_eq!(
+            pack.source_rdf, artifact.bytes,
+            "the pack triples ride the corpus graph verbatim"
+        );
+
+        // Deterministic: a second emission is byte-identical.
+        let again = Gmn1Target.emit(&input).expect("gmn1 emit (second run)");
+        let pack2 = again
+            .iter()
+            .find(|e| e.source_iri == GMN_PACK_IRI)
+            .expect("second pack emission");
+        assert_eq!(
+            artifact.bytes, pack2.artifacts[0].bytes,
+            "the conformance pack is byte-deterministic"
+        );
+
+        // Independent recomputation of the Merkle construction matches the emitted root.
+        let expected_digest = codebook_digest(&codebook, &dict);
+        let expected_root = pack_root(&expected_digest, &dict, &grammar);
+        let expected_root_triple = format!(
+            "<{GMN_PACK_IRI}> <https://blackcatinformatics.ca/gmeow/gmnPackRoot> \
+             \"{expected_root}\" ."
+        );
+        assert!(
+            ttl.contains(&expected_root_triple),
+            "emitted gmnPackRoot must equal the independently recomputed Merkle root\n\
+             expected: {expected_root_triple}\ngot:\n{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("\"{expected_digest}\"")),
+            "emitted codebook digest must equal the recomputed codebook_digest\n\
+             expected: {expected_digest}\ngot:\n{ttl}"
+        );
+    }
 }

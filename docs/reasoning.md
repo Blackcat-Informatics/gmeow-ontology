@@ -39,36 +39,33 @@ The OWL existential lives in `ontology/modules/*.ttl`; the matching SHACL cardin
 `shapes/gmeow-shapes.ttl`. `ontology/modules/gender.ttl` even says so inline: *"'exactly one'
 lives in SHACL"*.
 
-## The four lanes
+## The three lanes
 
-GMEOW runs four complementary verification lanes. Each owns a distinct class of invariant.
+GMEOW runs three complementary verification lanes. Each owns a distinct class of invariant.
 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
-| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `make reason-gate`; focused: `make reason-crosscheck` |
 | **Entailment tests** | native OWL 2 RL chase (`gmeow_logic::reason::rl_closure`) | open | positive derivations — property chains, transitivity, sub-property closure | `crates/logic/tests/ontology_entailments.rs` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
-`gmeow_logic` lane is the required authority. The `purrdf::entail` engine survives as an
-in-process, Docker-free cross-check oracle, run on-gate.
+`gmeow_logic` lane is the **single** reasoning authority — there is no live second reasoner
+on-gate. Engine-independent coverage of the retired `purrdf::entail` comparison is retained
+without running a second engine, via the committed, frozen `dl_oracle_gold` corpus (an offline
+conformance test asserting native ⊇ frozen oracle) and the native gap-zero DL⊇EL crosscheck
+ledger (`dl-el-crosscheck-report.ttl`).
 
-### Lane 1–2 — Native reasoner plus the entailment cross-check oracle
+### Lane 1 — Native reasoner
 
-`make reason` runs the native Docker-free EL/DL authority. `make reason-gate` computes one
-complete native result, verifies that value, and gives the same value to the
-**`purrdf::entail`** engine — an in-process OWL-RL +
-OWL-Direct-tableau reasoner, itself 70/70 W3C-entailment conformance-tested — as a Docker-free
-oracle that cross-checks the native lane's **subsumption** closure (native ⊇ oracle). Consistency
-is not part of the oracle comparison: the native reasoner decides consistency through
-`is_consistent()`. `make reason-verify` and `make reason-crosscheck` retain the focused halves
-for diagnosis without making the aggregate gate chase the bundle twice. A contradiction — e.g. an
+`make reason` runs the native Docker-free EL/DL authority. `make reason-verify` computes one
+complete native result and verifies that value in the same closure, so the aggregate gate never
+chases the bundle twice. A contradiction — e.g. an
 individual placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) —
 makes the native reasoner report an inconsistency. These are the *open-world* gates:
 unsatisfiability and inconsistency, nothing else.
 
-### Lane 3 — native OWL 2 RL entailment tests (Docker-free)
+### Lane 2 — native OWL 2 RL entailment tests (Docker-free)
 
 For *positive* entailments we run the native OWL 2 RL chase (`gmeow_logic::reason::rl_closure`, in
 `crates/logic/tests/ontology_entailments.rs`) so the tests run on every Rust test invocation without
@@ -87,7 +84,7 @@ materialization — it is entailed by the property chain, authored nowhere in th
 questions whose expected answer is entailed rather than asserted opt into the native RDFS-closed
 lane (`gmeow:cqReasoning gmeow:reasoningRdfs`, see `crates/slicetest/src/stores.rs`).
 
-### Lane 4 — closed-world validation (SHACL + native `verify`)
+### Lane 3 — closed-world validation (SHACL + native `verify`)
 
 Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot enforce:
 
@@ -119,9 +116,10 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   - no class is a subclass — asserted **or inferred** — of two disjoint axes.
 
   This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
-  Docker. The independent cross-check of the native verdicts is likewise Docker-free: the
-  in-process `purrdf::entail` oracle (`gmeow-dev reason-gate`) confirms the native
-  **subsumption** closure on-gate (consistency stays with the native reasoner, off this gate).
+  Docker. The native reasoner is the sole authority for the reasoned closure; there is no live
+  second reasoner confirming it on-gate. Engine-independent coverage of that former comparison
+  is retained via the committed, frozen `dl_oracle_gold` corpus and the native gap-zero DL⊇EL
+  crosscheck ledger.
 
 ## The gUFO grounding reaches outward (foundational bridging)
 
@@ -146,9 +144,7 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 ```bash
 make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
-make reason-gate    # one native closure shared by verify + purrdf-entail cross-check
-make reason-verify  # focused native reason + verify
-make reason-crosscheck # focused native-vs-oracle subsumption comparison
+make reason-verify  # native reasoning + reasoned-graph verify, one closure (Docker-free)
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
 make rust-test  # native OWL 2 RL entailment tests (crates/logic) + conformance tests
 uv run pytest   # SHACL data-shape tests + native verify tests

@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-math"
 description = "GMEOW reusable exact-rational geometry: an inner-product-space over a metric Gram matrix plus the pure math: graph loaders, computed OUTSIDE the reasoned core"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

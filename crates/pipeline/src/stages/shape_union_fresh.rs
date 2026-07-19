@@ -16,7 +16,7 @@
 //! read off disk"); this module extends the SAME law to the shape-union consumers —
 //! `stage-export-json-schema`, `stage-export-pydantic`, and `stage-validate` — through
 //! ONE fresh-union implementation, so a shape-source edit reaches every derived
-//! surface in a single `make regenerate`.
+//! surface in a single `make sync`.
 //!
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
 //! the ordered [`shape_files`] file list, per-file Turtle parse via
@@ -29,7 +29,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
-use purrdf::shapes::shape_union::shape_files;
+use purrdf::shapes::shape_union::EXCLUDED;
 use purrdf::shapes::shapes::{Shapes, from_dataset_with_prefixes};
 use purrdf::shapes::text_ingest::extract_prefixes;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
@@ -125,35 +125,113 @@ pub fn fresh_generated_shape_members(
     Ok(fresh)
 }
 
+fn parse_err(message: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Parse { message })
+}
+
+/// Every `*.ttl` directly under `dir`, sorted — a byte-faithful replica of purrdf's
+/// private `ttl_files` (an absent directory yields an empty list, never a hard-fail).
+/// This lets the AUTHORED sections be enumerated WITHOUT `purrdf::shape_files`, whose
+/// `generated/shapes/*.ttl` fail-closed enforcement cannot serve a cold tree — the
+/// generated members are THIS run's products, sourced from the carrier, never disk.
+fn ttl_files_sorted(dir: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+    let mut out: Vec<std::path::PathBuf> = Vec::new();
+    if !dir.exists() {
+        return Ok(out);
+    }
+    for entry in std::fs::read_dir(dir)
+        .map_err(|e| parse_err(format!("failed to read {}: {e}", dir.display())))?
+    {
+        let path = entry
+            .map_err(|e| {
+                parse_err(format!(
+                    "failed to read dir entry in {}: {e}",
+                    dir.display()
+                ))
+            })?
+            .path();
+        if path.extension().and_then(|e| e.to_str()) == Some("ttl") && path.is_file() {
+            out.push(path);
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// `shapes/*.ttl` minus the DSL/manifest lints ([`EXCLUDED`]), sorted — purrdf
+/// `shape_files` section 1, replicated so it never triggers the `generated/shapes`
+/// fail-closed read.
+fn authored_base_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+    let mut base = ttl_files_sorted(&root.join("shapes"))?;
+    base.retain(|p| {
+        p.file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| !EXCLUDED.contains(&n))
+    });
+    Ok(base)
+}
+
+/// `slices/*/*/shapes.ttl` (exactly two directory levels), sorted — a byte-faithful
+/// replica of purrdf's private `slice_shape_files` (section 3 of `shape_files`).
+fn authored_slice_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+    let slices_dir = root.join("slices");
+    let mut out: Vec<std::path::PathBuf> = Vec::new();
+    if !slices_dir.exists() {
+        return Ok(out);
+    }
+    for group in std::fs::read_dir(&slices_dir)
+        .map_err(|e| parse_err(format!("failed to read {}: {e}", slices_dir.display())))?
+    {
+        let group_path = group
+            .map_err(|e| {
+                parse_err(format!(
+                    "dir entry error under {}: {e}",
+                    slices_dir.display()
+                ))
+            })?
+            .path();
+        if !group_path.is_dir() {
+            continue;
+        }
+        // A read error would silently drop an entire slice subtree from the union —
+        // hard-fail (no-optionality), matching purrdf's sibling read_dir.
+        for slice in std::fs::read_dir(&group_path)
+            .map_err(|e| parse_err(format!("failed to read {}: {e}", group_path.display())))?
+        {
+            let slice_path = slice
+                .map_err(|e| {
+                    parse_err(format!(
+                        "dir entry error under {}: {e}",
+                        group_path.display()
+                    ))
+                })?
+                .path();
+            if !slice_path.is_dir() {
+                continue;
+            }
+            let candidate = slice_path.join("shapes.ttl");
+            if candidate.is_file() {
+                out.push(candidate);
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
 /// The AUTHORED (disk-read) half of the shape union — `shapes/*.ttl` minus the DSL
-/// lints plus `slices/*/*/shapes.ttl` — i.e. [`shape_files`] with every
-/// `generated/shapes/` member removed. A fresh-union consumer declares exactly these
+/// lints plus `slices/*/*/shapes.ttl` — purrdf `shape_files` sections 1 and 3, WITHOUT
+/// its `generated/shapes` fail-closed read (the generated members are this run's
+/// products, sourced from the carrier). A fresh-union consumer declares exactly these
 /// as its raw `input_files` (cache soundness for the authored sources); the generated
 /// members' freshness is covered by the producer products' digests on its
 /// `consumes()` edges, so they are deliberately NOT declared (a `generated/` path in
-/// `input_files` is itself the stale-disk-fold bug class).
+/// `input_files` is itself the stale-disk-fold bug class), and enumerating them off
+/// disk would additionally cold-fail on a clean clone.
 pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-    let files = shape_files(root)
-        .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
-    // GENERATED-READ-OK: path classification only — the prefix EXCLUDES generated members
-    // from the disk-read list; no generated bytes are read here.
-    let generated_prefix = Path::new("generated/shapes");
-    let mut authored = Vec::with_capacity(files.len());
-    for file in files {
-        let rel = file.strip_prefix(root).map_err(|_| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!(
-                    "shape-union file {} lies outside repo root {}",
-                    file.display(),
-                    root.display()
-                ),
-            })
-        })?;
-        if !rel.starts_with(generated_prefix) {
-            authored.push(file);
-        }
-    }
-    Ok(authored)
+    let mut files = authored_base_shape_files(root)?;
+    files.extend(authored_slice_shape_files(root)?);
+    Ok(files)
 }
 
 /// Parse the full shape union into ONE frozen [`RdfDataset`] + typed [`Shapes`],
@@ -165,18 +243,16 @@ pub fn authored_shape_files(root: &Path) -> Result<Vec<std::path::PathBuf>, gmeo
 /// file list, same per-file parse, same per-file blank scoping ([`RdfDataset::union`]
 /// standardizes each input's blanks apart), same document-prefix recovery
 /// (last declaration wins over the merge order), same
-/// [`from_dataset_with_prefixes`] typing. The generated section is the sorted UNION
-/// of the on-disk `generated/shapes/*.ttl` listing and the `fresh` keys, so a
-/// produced member that does not exist on disk yet (a first run — the very case a
-/// disk enumeration can never serve) still joins the union.
+/// [`from_dataset_with_prefixes`] typing. The generated section is exactly the sorted
+/// `fresh` product keys — never a disk enumeration of `generated/shapes/*.ttl`, which
+/// is absent on a clean clone and the previous run's bytes on a warm one. On a fixed
+/// point the fresh keys equal the on-disk listing, so the union order is byte-identical
+/// to `purrdf::shapes::shape_union::shape_files`.
 ///
 /// # Errors
 ///
 /// HARD-fails (no-optionality, never a stale-disk fallback) when:
 ///   * a `fresh` key does not lie under `generated/shapes/`;
-///   * an on-disk `generated/shapes/*.ttl` union member has NO entry in `fresh`
-///     (a disk read here would freeze the last-committed bytes forever — the
-///     stale-disk-fold class);
 ///   * an authored member cannot be read, any member fails to parse as Turtle, or
 ///     the merged union carries an unsupported SHACL construct.
 pub fn load_shapes_fresh(
@@ -194,55 +270,20 @@ pub fn load_shapes_fresh(
         }
     }
 
-    // The registry file list (base authored → generated → slice authored, each
-    // section sorted). Partition it by repo-relative prefix; the sections are the
-    // only three kinds `shape_files` produces.
-    let files = shape_files(root).map_err(union_err)?;
-    let mut base: Vec<std::path::PathBuf> = Vec::new();
-    let mut generated_disk: BTreeSet<String> = BTreeSet::new();
-    let mut slices: Vec<std::path::PathBuf> = Vec::new();
-    // GENERATED-READ-OK: path classification only — generated members are keyed into the
-    // fresh product map; their bytes come from stage products, never disk.
-    let generated_prefix = Path::new("generated/shapes");
-    let base_prefix = Path::new("shapes");
-    let slices_prefix = Path::new("slices");
-    for file in files {
-        let rel = file.strip_prefix(root).map_err(|_| {
-            union_err(format!(
-                "shape-union file {} lies outside repo root {}",
-                file.display(),
-                root.display()
-            ))
-        })?;
-        if rel.starts_with(generated_prefix) {
-            let rel_str = rel.to_str().ok_or_else(|| {
-                union_err(format!(
-                    "generated shape-union member {} is not a UTF-8 path under the \
-                     repo root",
-                    file.display()
-                ))
-            })?;
-            generated_disk.insert(rel_str.to_string());
-        } else if rel.starts_with(base_prefix) {
-            base.push(file);
-        } else if rel.starts_with(slices_prefix) {
-            slices.push(file);
-        } else {
-            return Err(union_err(format!(
-                "shape-union file {} does not lie under generated/shapes/, shapes/, or \
-                 slices/ — unclassifiable member",
-                file.display()
-            )));
-        }
-    }
+    // The authored sections (base `shapes/*.ttl` → slice `slices/*/*/shapes.ttl`,
+    // each sorted), replicating purrdf's `shape_files` sections 1 and 3 WITHOUT its
+    // `generated/shapes` fail-closed read.
+    let base = authored_base_shape_files(root)?;
+    let slices = authored_slice_shape_files(root)?;
 
-    // The generated section: the sorted union of the on-disk listing and the fresh
-    // keys, every byte product-sourced. An on-disk member with no fresh entry is the
-    // stale-disk-fold class — HARD-fail, never a disk read.
-    let mut generated_members: BTreeSet<String> = fresh.keys().cloned().collect();
-    generated_members.extend(generated_disk);
+    // The generated section is exactly the fresh product keys (sorted; `fresh` is a
+    // BTreeMap). A stale on-disk `generated/shapes/*.ttl` this run does not produce is
+    // intentionally ignored — the fanout prunes it as an orphan, and reading it here
+    // would be the stale-disk-fold class. The fresh keys are the sole authority.
+    let generated_members: BTreeSet<&str> = fresh.keys().map(String::as_str).collect();
 
-    // One ordered (label, bytes) walk replicating load_shapes' per-file loop.
+    // One ordered (label, bytes) walk replicating load_shapes' per-file loop:
+    // base (disk) → generated (fresh product bytes) → slices (disk).
     enum Member<'a> {
         Disk(std::path::PathBuf),
         Fresh(&'a str),
@@ -265,12 +306,12 @@ pub fn load_shapes_fresh(
                 })?),
             ),
             Member::Fresh(rel) => {
+                // `ordered`'s Fresh entries are exactly `fresh`'s keys, so this lookup
+                // always resolves; the defensive error covers only an internal invariant break.
                 let bytes = fresh.get(*rel).map(Vec::as_slice).ok_or_else(|| {
                     union_err(format!(
-                        "generated shape-union member {rel} exists on disk but no fresh \
-                         product byte was supplied; refusing the stale on-disk read (the \
-                         stale-disk-fold class, fail-closed) — the consuming stage must \
-                         consume its producer (see fresh_generated_shape_members)"
+                        "internal invariant: generated shape-union member {rel} was ordered \
+                         from the fresh product map but has no bytes"
                     ))
                 })?;
                 ((*rel).to_string(), std::borrow::Cow::Borrowed(bytes))
@@ -377,20 +418,29 @@ mod tests {
         );
     }
 
-    /// A generated member on disk with NO fresh entry must HARD-fail — a silent
-    /// disk fallback would reintroduce the stale-disk-fold class.
+    /// A generated member on disk with NO fresh entry is IGNORED: the fresh product
+    /// keys are the SOLE authority for the generated section, so a stale on-disk file
+    /// this run does not produce never joins the union (the fanout prunes it as an
+    /// orphan). Reading it would be the stale-disk-fold class; and the authored section
+    /// is enumerated without purrdf's `generated/shapes` fail-closed read, so an empty
+    /// fresh set on a cold-shaped tree loads cleanly rather than hard-failing.
     #[test]
-    fn missing_fresh_entry_for_disk_member_hard_fails() {
+    fn stale_disk_generated_member_without_fresh_entry_is_ignored() {
         let repo = mock_repo(&format!(
             "{PREFIXES}ex:StaleShape a sh:NodeShape ; sh:targetClass ex:Stale .\n"
         ));
         let fresh: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        let err = load_shapes_fresh(repo.path(), &fresh)
-            .expect_err("an uncovered generated member must fail closed");
-        let msg = format!("{err}");
+        let (_store, shapes) = load_shapes_fresh(repo.path(), &fresh)
+            .expect("union loads with no fresh generated members");
+        let classes = target_classes(&shapes);
         assert!(
-            msg.contains("validation-shapes.ttl") && msg.contains("stale-disk-fold"),
-            "the hard-fail must name the uncovered member and the bug class: {msg}"
+            !classes.contains(&"https://example.test/Stale".to_string()),
+            "a stale on-disk generated member with no fresh entry must NOT join the union \
+             (fresh keys are the sole generated authority); got {classes:?}"
+        );
+        assert!(
+            classes.contains(&"https://example.test/Authored".to_string()),
+            "the authored disk member still joins; got {classes:?}"
         );
     }
 

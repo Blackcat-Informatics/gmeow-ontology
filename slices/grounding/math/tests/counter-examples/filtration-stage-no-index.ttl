@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:StageIndexPresenceConstraint: a math:FiltrationStage that
+# names its math:stageStructure but sits at NO index at all — it carries NEITHER a
+# one-parameter math:filtrationThreshold NOR a multiparameter math:multiIndex. A stage
+# must name its position in the filtration's index; one that names neither says nothing
+# about WHERE it sits, so the cross-node disjunctive-existence constraint (a stage carries
+# a threshold OR a multi-index) fires — shacl.SPARQLConstraintComponent
+# (math:UnderspecifiedFiltration).
+# ISOLATION: the stage's own math:stageStructure frame IS satisfied (a math:TopologicalSpace
+# is present), so the declarative missing-structure arm of math:UnderspecifiedFiltration
+# stays silent; there is no second stage, so the monotonicity law is vacuous; and it is not
+# a math:MultiparameterFiltration, so the collapse/diagonal guards cannot fire. EXACTLY ONE
+# finding. Back-reference: math:StageIndexPresenceConstraint (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecStageNoIndex).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+# A stage naming its substructure but NEITHER a math:filtrationThreshold NOR a
+# math:multiIndex — it sits at no index at all.
+ex:stage a math:FiltrationStage ;
+    math:stageStructure ex:cx .
+
+ex:cx a math:TopologicalSpace .

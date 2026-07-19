@@ -14,8 +14,17 @@ use std::path::Path;
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
 use gmeow_slice_quality::ScoringEnv;
-use gmeow_slice_quality::model::{MeasurementStandard, Rubric, SliceAssessment, Tier};
+#[cfg(test)]
+use gmeow_slice_quality::model::{MeasurementStandard, Tier};
+use gmeow_slice_quality::model::{Rubric, SliceAssessment};
 use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
+// `RUBRIC_MODULE` is the canonical, ontology-resident home of the CENTRALIZED
+// rubric authority — the measurement standard (tier ladder + axes) and the
+// guarded-vocabulary registry (single defining literal lives in
+// `gmeow_slice_quality`; this crate never redeclares it). It anchors the
+// merge-base reconstruction ([`base_rubric_at`]) and the seed-command paste
+// hints below.
+use gmeow_slice_quality::{RUBRIC_MODULE, resolve_min_tier, tier_gate_passes};
 
 use crate::dev_common::{emit_error, fail, note, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
@@ -121,7 +130,7 @@ pub fn slice_quality(
     let dir = root.join(dir);
     // Load the floor-free measurement standard from the repo rubric, then score the one
     // slice against it in repo mode (byte-identical to the retired repo-coupled path).
-    let standard = match repo_rubric(&root) {
+    let standard = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r.standard,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
@@ -159,45 +168,6 @@ pub fn slice_quality(
     }
 }
 
-/// The G11 gate decision for one slice: does `measured` satisfy the `--min-tier`
-/// bar? `required == None` is the advisory case (always passes / exit 0); otherwise
-/// the ladder's total order (`Tier::sort_key`) decides, so measured must be at or
-/// above the required tier. This is the single source of truth for both the
-/// single-slice and `--all` sweep gates.
-#[must_use]
-fn tier_gate_passes(measured: &Tier, required: Option<&Tier>) -> bool {
-    match required {
-        None => true,
-        Some(req) => measured.sort_key() >= req.sort_key(),
-    }
-}
-
-/// Resolve a `--min-tier` argument against the rubric ladder, accepting either a
-/// tier's human label (`Grounded`) or its IRI local name (`tierGrounded`),
-/// case-insensitively. Returns a clear error naming the available rungs on an
-/// unknown tier — a HARD FAIL, never a silently-ignored gate request.
-fn resolve_min_tier<'a>(
-    standard: &'a MeasurementStandard,
-    name: &str,
-) -> gmeow_errors::Result<&'a Tier> {
-    let local_of =
-        |iri: &str| -> String { iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned() };
-    if let Some(t) = standard
-        .tiers
-        .iter()
-        .find(|t| t.label.eq_ignore_ascii_case(name) || local_of(&t.iri).eq_ignore_ascii_case(name))
-    {
-        return Ok(t);
-    }
-    let mut rungs: Vec<&Tier> = standard.tiers.iter().collect();
-    rungs.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
-    let known: Vec<String> = rungs.iter().map(|t| t.label.clone()).collect();
-    Err(sqe(format!(
-        "slice-quality: unknown --min-tier {name:?} (want one of: {})",
-        known.join(", ")
-    )))
-}
-
 /// Score every discovered slice against one loaded rubric and print a roll-up
 /// summary.
 ///
@@ -211,7 +181,7 @@ fn resolve_min_tier<'a>(
 /// the shipped graph never diverge.
 fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &DiagnosticsConfig) -> i32 {
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    let rubric = match repo_rubric(root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
@@ -336,28 +306,11 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     0
 }
 
-/// The canonical, ontology-resident home of the committed floors: the rubric slice
-/// module the gate reads BOTH the per-axis measured-score floors
-/// (`gmeow:AxisFloorCommitment`) and the per-slice roll-up tier floors
-/// (`gmeow:SliceTierFloor`) out of, and the file the floor-monotonicity check diffs
-/// against its merge-base version. The governance TSVs are no longer read.
-const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
-
-/// Load the whole rubric (the floor-free measurement `standard` scoring reads plus the
-/// governance `floors` the ratchet gate reads) from the canonical [`RUBRIC_MODULE`]
-/// under `root`. The engine no longer exposes a conflated repo-rubric loader; this gate
-/// is a legitimate consumer of BOTH halves (it scores AND ratchets in one pass), so it
-/// reconstructs the whole from the same on-disk file — byte-identical to the retired
-/// `load_repo_rubric`.
-///
-/// # Errors
-/// Returns a diagnostic if the rubric module cannot be read/parsed or is structurally
-/// incomplete (the same hard-fail conditions the engine loader enforced).
-fn repo_rubric(root: &Path) -> gmeow_errors::Result<Rubric> {
-    let module = root.join(RUBRIC_MODULE);
-    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
-    gmeow_slice_quality::rubric::load_rubric(&ds)
-}
+/// The human-facing source label prefixing floor / ceiling / registry monotonicity
+/// violation messages. The messages themselves already name the offending slice / axis /
+/// vocabulary; this labels the authoring surface, which is now every slice's `module.ttl`
+/// rather than one rubric module.
+const GOVERNANCE_SOURCE_LABEL: &str = "governance floors (authored across slices' module.ttl)";
 
 /// The generated per-axis floor projection path named in a per-axis floor failure
 /// message — the lossy TSV view of the ontology-resident commitments, kept only as
@@ -384,14 +337,23 @@ fn is_grounding_slice(slice_dir: &Path) -> bool {
         .any(|w| w[0] == "slices" && w[1] == "grounding")
 }
 
-/// The `make check` opt-in tier ratchet gate.
+/// The `make check` opt-in tier ratchet gate, over the real repository root.
 ///
 /// For every slice that declares `gmeow:sliceQualityTier`: the measured roll-up
 /// must be ≥ the declared tier, and the declared tier must be ≥ the committed
 /// floor. Undeclared slices are advisory and never fail. Exit 1 on any failure.
 pub fn slice_quality_gate() -> i32 {
-    let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    slice_quality_gate_at(&project_root())
+}
+
+/// The root-parameterized core of [`slice_quality_gate`]: run the whole opt-in
+/// ratchet gate against `repo_root` rather than the hardwired [`project_root`], so the
+/// gate can be driven end-to-end against a fixture repository (dependency-injected
+/// root) instead of only the live checkout. The public zero-argument
+/// [`slice_quality_gate`] is the thin `make check` entry point over `project_root()`.
+pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
+    let root = repo_root.to_path_buf();
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
@@ -420,6 +382,32 @@ pub fn slice_quality_gate() -> i32 {
         return fail(format!(
             "slice-quality-gate: {} rubric structural failure(s)",
             structural.len()
+        ));
+    }
+
+    // Coat-side DISTINCTIVENESS gate: within a slice, no two distinct TBox terms may
+    // share a normalized skeleton for a distinguishing coat — usage coats
+    // (useWhen/avoidWhen/howToUse) and skos:definition, all under one no-strip skeleton
+    // (lowercase + whitespace-collapse; load-bearing CURIEs kept as content). A hard
+    // boolean reject at N=2 (any collision), NOT a scored axis or a tuned floor: a coat
+    // cosmetically dressed up but substantively identical to another term's is a
+    // near-duplicate template. Reds the gate on any collision, naming the slice,
+    // predicate, skeleton, and colliding terms.
+    let coat_dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    let mut coat_collisions: Vec<String> = Vec::new();
+    for dir in &coat_dirs {
+        match gmeow_slice_quality::coat_guard::slice_coat_collisions(dir) {
+            Ok(hits) => coat_collisions.extend(hits),
+            Err(e) => return fail(format!("slice-quality-gate: {e}")),
+        }
+    }
+    if !coat_collisions.is_empty() {
+        for e in &coat_collisions {
+            emit_error("gmeow-dev.slice-quality.gate", format!("FAIL {e}"));
+        }
+        return fail(format!(
+            "slice-quality-gate: {} coat distinctiveness violation(s) — a coat must distinguish its term",
+            coat_collisions.len()
         ));
     }
 
@@ -599,21 +587,18 @@ pub fn slice_quality_gate() -> i32 {
         }
         BaseRef::Resolved(base) => {
             let mut mono: Vec<String> = Vec::new();
-            // Both floor levels are diffed against the ONE rubric module at the base.
-            match git_show_base(&root, &base, RUBRIC_MODULE) {
-                BaseFile::Absent => note(
+            // The floor / ceiling / registry ratchets are diffed against the base rubric
+            // reconstructed over EVERY slice's module.ttl at the base (not one file), so a
+            // floor lowered in ANY slice is caught — not only one authored in the rubric.
+            match base_rubric_at(&root, &base) {
+                Ok(None) => note(
                     "gmeow-dev.slice-quality.gate",
                     format!(
-                        "slice-quality-gate: floor-monotonicity check SKIPPED for {RUBRIC_MODULE} — the file is absent at base {base} (brand-new file, nothing to regress against)"
+                        "slice-quality-gate: floor-monotonicity check SKIPPED — {RUBRIC_MODULE} is absent at base {base} (brand-new rubric, nothing to regress against)"
                     ),
                 ),
-                BaseFile::Error(e) => return fail(format!("slice-quality-gate: {e}")),
-                BaseFile::Contents(text) => {
-                    let base_rubric =
-                        match load_rubric_from_ttl(&text, &format!("{base}:{RUBRIC_MODULE}")) {
-                            Ok(r) => r,
-                            Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                        };
+                Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                Ok(Some(base_rubric)) => {
                     // Tier floors: project the base commitments through the SAME
                     // ladder-resolving projection the working set used.
                     let base_floors = match tier_floors_from_rubric(&base_rubric) {
@@ -621,7 +606,7 @@ pub fn slice_quality_gate() -> i32 {
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
                     let tier_mono = gmeow_slice_quality::gate::tier_floor_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_floors,
                         &floors,
                         |slice| live_slices.contains(slice),
@@ -633,7 +618,7 @@ pub fn slice_quality_gate() -> i32 {
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
                     let axis_mono = gmeow_slice_quality::gate::axis_floor_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_axis,
                         &axis_floors,
                         |slice, axis| live_slices.contains(slice) && live_axes.contains(axis),
@@ -644,7 +629,7 @@ pub fn slice_quality_gate() -> i32 {
                     // committed ceiling shared by base and working may never RISE.
                     let base_ceilings = ceilings_from_rubric(&base_rubric);
                     let cmono = gmeow_slice_quality::gate::projection_ceiling_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_ceilings,
                         &working_ceilings,
                     );
@@ -656,7 +641,7 @@ pub fn slice_quality_gate() -> i32 {
                     // default ceiling, or expanding an exemption set all red the gate,
                     // so the gate cannot be quietly weakened without raising a cell.
                     mono.extend(gmeow_slice_quality::gate::registry_ratchet_monotonicity(
-                        RUBRIC_MODULE,
+                        GOVERNANCE_SOURCE_LABEL,
                         &base_rubric.floors.vocabularies,
                         &rubric.floors.vocabularies,
                     ));
@@ -687,7 +672,7 @@ pub fn slice_quality_gate() -> i32 {
                             let bm = base_res.get(key).copied().unwrap_or(0);
                             if *committed > bm {
                                 mono.push(format!(
-                                    "{RUBRIC_MODULE}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
+                                    "{GOVERNANCE_SOURCE_LABEL}: NEW projection ceiling slice {slice} vocab {vocab} count {committed} exceeds base measured residue {bm} — a new ceiling may only grandfather residue present at the merge base, never freshly-authored constructs"
                                 ));
                             }
                         }
@@ -1189,6 +1174,7 @@ fn tier_floors_from_rubric(
 /// # Errors
 /// A HARD FAIL when the base module text cannot be parsed/frozen or is not a
 /// structurally-complete rubric — the gate never compares against an unreadable base.
+#[cfg(test)]
 fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_errors::Result<Rubric> {
     let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
         .map_err(|e| sqe(format!("{source_label}: parse failed: {e}")))?;
@@ -1198,6 +1184,78 @@ fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_errors::Result<
         .freeze()
         .map_err(|e| sqe(format!("{source_label}: dataset freeze failed: {e}")))?;
     gmeow_slice_quality::rubric::load_rubric(&frozen)
+}
+
+/// Reconstruct the whole SEGREGATED rubric as it existed at merge base `base`, unioning
+/// EVERY working-tree slice's `module.ttl` read at the base ref (mirroring
+/// [`measure_base_residues`]' multi-file base read) so the floor-monotonicity diff
+/// compares the working floor set against the base floor set authored across ALL slices,
+/// not only the single rubric module. The centralized measurement standard + vocabulary
+/// registry come from the rubric module at base; the distributed floor / tier-floor /
+/// ceiling commitments come from the base union — segregated through the SAME
+/// [`gmeow_slice_quality::segregate_rubric`] the working-tree loader uses, so the base
+/// comparand can never diverge from how the working set is assembled.
+///
+/// Returns `Ok(None)` when the rubric module itself is ABSENT at base (a merge base
+/// predating the rubric slice, or a brand-new file) — the earlier single-file check
+/// skipped the monotonicity diff in exactly that case, so this preserves that behavior.
+/// A slice whose `module.ttl` is absent at base contributes nothing (its working floors
+/// read as additions — allowed). Because the diff keys on `(slice, axis)` rather than on
+/// file, a floor MOVED between two slice modules base→working still compares by value.
+///
+/// # Errors
+/// HARD-FAILS on any `git` failure other than a legitimately-absent path (propagated
+/// from [`git_show_base`]), on a Turtle parse/freeze failure of a present base module,
+/// or on the centralized-authority guard (a centralized individual authored outside the
+/// rubric slice at base).
+fn base_rubric_at(root: &Path, base: &str) -> gmeow_errors::Result<Option<Rubric>> {
+    // Centralized half: the rubric module at base. Absent → skip the whole diff.
+    let rubric_text = match git_show_base(root, base, RUBRIC_MODULE) {
+        BaseFile::Absent => return Ok(None),
+        BaseFile::Error(e) => return Err(sqe(e)),
+        BaseFile::Contents(text) => text,
+    };
+    let canonical =
+        gmeow_slice_quality::rubric::load_rubric(&*gmeow_slice_quality::dataset_from_texts(&[
+            rubric_text.as_str(),
+        ])?)?;
+
+    // Distributed half: every discovered slice's module.ttl read at base, unioned (the
+    // rubric slice is itself discovered, so the union carries the tier ladder + axes the
+    // widened load requires). Track each text's rel-path label alongside it so a
+    // cross-file governance collision at base can be diagnosed with both offending
+    // filenames — the same precision the working-tree loader gives via
+    // `detect_cross_file_governance_collisions`.
+    let mut union_labeled: Vec<(String, String)> = Vec::new();
+    for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
+        let rel = dir
+            .join("module.ttl")
+            .strip_prefix(root)
+            .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        match git_show_base(root, base, &rel) {
+            BaseFile::Absent => {}
+            BaseFile::Error(e) => return Err(sqe(e)),
+            BaseFile::Contents(text) => union_labeled.push((rel, text)),
+        }
+    }
+    let collision_refs: Vec<(&str, &str)> = union_labeled
+        .iter()
+        .map(|(rel, text)| (rel.as_str(), text.as_str()))
+        .collect();
+    gmeow_slice_quality::detect_cross_file_governance_collisions_texts(&collision_refs)?;
+    let union_refs: Vec<&str> = union_labeled
+        .iter()
+        .map(|(_, text)| text.as_str())
+        .collect();
+    let widened = gmeow_slice_quality::rubric::load_rubric(
+        &*gmeow_slice_quality::dataset_from_texts(&union_refs)?,
+    )?;
+
+    Ok(Some(gmeow_slice_quality::segregate_rubric(
+        canonical, widened,
+    )?))
 }
 
 /// The set of every Rust *item* name defined anywhere under `crates/` — built by a
@@ -1271,7 +1329,7 @@ fn format_floor_value(score: f64) -> String {
 fn format_floor_line(slice_iri: &str, axis_local: &str, score: f64) -> String {
     let slice_local = axis_local_name(slice_iri);
     format!(
-        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
+        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <{slice_iri}> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
         format_floor_value(score)
     )
 }
@@ -1332,8 +1390,9 @@ fn collect_seed_lines(
 
 /// `gmeow-dev slice-quality-seed-floors` — emit `gmeow:AxisFloorCommitment` TTL for
 /// the live measured scores, so a human can seed a NEW axis's floors at the actual
-/// live measurement and paste them into
-/// `slices/core/slice-quality-rubric/module.ttl`.
+/// live measurement and paste them into the owning slice's own `module.ttl`
+/// (the floor is authored by the slice it governs, not necessarily the rubric
+/// slice — see `rdfs:isDefinedBy <{slice_iri}>` in [`format_floor_line`]).
 ///
 /// EXACTLY ONE of `--axis <axis-local>` (seed the one named rubric axis) or
 /// `--all-axes` (seed every rubric axis a slice grades that lacks a floor) must be
@@ -1364,7 +1423,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     };
 
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
     };
@@ -1417,7 +1476,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
         SeedSelector::All => "all unfloored axes".to_owned(),
     };
     println!(
-        "# seeded gmeow:AxisFloorCommitment individuals for axis {scope} — paste into {RUBRIC_MODULE}"
+        "# seeded gmeow:AxisFloorCommitment individuals for axis {scope} — paste into the owning slice's own module.ttl"
     );
     for line in &lines {
         println!("{line}");
@@ -1434,15 +1493,16 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
 fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> String {
     let slice_local = axis_local_name(slice_iri);
     format!(
-        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
+        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <{slice_iri}> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
     )
 }
 
 /// `gmeow-dev slice-quality-seed-ceilings` — emit `gmeow:ProjectionCeilingCommitment`
 /// TTL at the CURRENT measured ungrounded residue for every (slice, guarded
 /// projection-vocabulary) pair with nonzero residue, so a human can grandfather the
-/// existing residue and paste it into
-/// `slices/core/slice-quality-rubric/module.ttl`.
+/// existing residue and paste it into the owning slice's own `module.ttl`
+/// (the ceiling is authored by the slice it governs, not necessarily the rubric
+/// slice — see `rdfs:isDefinedBy <{slice_iri}>` in [`format_ceiling_line`]).
 ///
 /// Reads the guarded vocabulary registry off the loaded rubric
 /// (`rubric.floors.vocabularies` — the ontology-resident set Task 2 seeded) and
@@ -1460,7 +1520,7 @@ fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> Strin
 /// human commits it.
 pub fn slice_quality_seed_ceilings() -> i32 {
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
     };
@@ -1499,7 +1559,9 @@ pub fn slice_quality_seed_ceilings() -> i32 {
     entries.sort_by(|a, b| a.0.cmp(&b.0));
 
     // A short comment header (no issue/PR numbers) — then only the TTL lines.
-    println!("# seeded gmeow:ProjectionCeilingCommitment individuals — paste into {RUBRIC_MODULE}");
+    println!(
+        "# seeded gmeow:ProjectionCeilingCommitment individuals — paste into the owning slice's own module.ttl"
+    );
     for (_, line) in &entries {
         println!("{line}");
     }
@@ -1525,7 +1587,7 @@ pub fn slice_quality_seed_ceilings() -> i32 {
 /// migration, never by tuning it toward this report's numbers.
 pub fn slice_quality_projection_debt() -> i32 {
     let root = project_root();
-    let rubric = match repo_rubric(&root) {
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
     };
@@ -2198,5 +2260,312 @@ mod seed_floors_tests {
     fn both_selectors_hard_fail() {
         // (f) Both --axis and --all-axes → hard fail (mutually exclusive).
         assert_ne!(slice_quality_seed_floors(Some("axisGmn1Coverage"), true), 0);
+    }
+}
+
+/// Git-backed coverage for the floor-MONOTONICITY base reconstruction over ALL slices.
+/// Before the widening, the base side of the raise-only ratchet read floors from a
+/// single `git show <base>:slices/core/slice-quality-rubric/module.ttl`, so a floor
+/// authored in a NON-rubric slice and then lowered read as a fresh addition (allowed) —
+/// the monotonicity ratchet was blind to it. These tests build a real two-state git
+/// repo (a base commit authoring a non-rubric floor, a working tree lowering/deleting
+/// it) and drive the real [`base_rubric_at`] multi-slice `git show` reconstruction, so
+/// they fail against the pre-widening single-file base read and pass after it.
+#[cfg(test)]
+mod base_monotonicity_git_tests {
+    use super::*;
+    use gmeow_slice_quality::gate::axis_floor_monotonicity;
+    use std::process::Command;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    /// A structurally-complete minimal rubric module (a two-rung ladder, one axis, one
+    /// threshold) — the CENTRALIZED authority the base reconstruction reads from the
+    /// rubric slice.
+    fn rubric_module() -> String {
+        format!(
+            r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisGmn1Coverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "gmn1_coverage_axis" ;
+    gmeow:axisDimension gmeow:dimGmn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrGmn .
+gmeow:thrGmn a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+        )
+    }
+
+    /// A DEMO (non-rubric) slice `module.ttl` authoring one `gmeow:AxisFloorCommitment`
+    /// against the demo slice on `axisGmn1Coverage` at `floor`.
+    fn demo_module(floor: &str) -> String {
+        format!(
+            r#"@prefix gmeow: <{NS}> .
+gmeow:afc-demo a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisGmn1Coverage ;
+    gmeow:floorValue {floor} .
+"#
+        )
+    }
+
+    struct GitFixture {
+        root: std::path::PathBuf,
+    }
+    impl Drop for GitFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    /// Run a git command in `root`, isolated from user/system config (never signs).
+    fn git(root: &std::path::Path, args: &[&str]) {
+        let out = Command::new("git")
+            .current_dir(root)
+            .env("LC_ALL", "C")
+            .env("HOME", root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(args)
+            .output()
+            .expect("git runs");
+        assert!(
+            out.status.success(),
+            "git {args:?} failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    /// Build a git repo fixture holding the rubric slice + a demo slice authoring a
+    /// non-rubric floor at `base_floor`, commit it (the merge base), and return the
+    /// fixture and the base commit SHA. The caller then rewrites the working tree.
+    fn fixture_with_base_floor(base_floor: &str) -> (GitFixture, String) {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut root = std::env::temp_dir();
+        root.push(format!("gmeow-basemono-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let fx = GitFixture { root: root.clone() };
+
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(rubric_dir.join("manifest.ttl"), "# rubric slice\n").unwrap();
+        std::fs::write(rubric_dir.join("module.ttl"), rubric_module()).unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        std::fs::write(demo_dir.join("module.ttl"), demo_module(base_floor)).unwrap();
+
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "user.email", "test@example.com"]);
+        git(&root, &["config", "user.name", "Test"]);
+        git(&root, &["config", "commit.gpgsign", "false"]);
+        git(&root, &["add", "-A"]);
+        git(&root, &["commit", "-q", "-m", "base"]);
+        let out = Command::new("git")
+            .current_dir(&root)
+            .env("HOME", &root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(["rev-parse", "HEAD"])
+            .output()
+            .expect("git rev-parse runs");
+        assert!(out.status.success(), "git rev-parse failed");
+        let base = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+        (fx, base)
+    }
+
+    fn demo_key() -> (String, String) {
+        (format!("{NS}sliceDemo"), "axisGmn1Coverage".to_owned())
+    }
+
+    #[test]
+    fn base_reconstruction_sees_a_non_rubric_floor_and_reds_a_lowering() {
+        // Base commit authors a non-rubric floor at 0.90; working tree lowers it to 0.50.
+        let (fx, base) = fixture_with_base_floor("0.9");
+        std::fs::write(
+            fx.root.join("slices/demo/demo/module.ttl"),
+            demo_module("0.5"),
+        )
+        .unwrap();
+
+        // The base rubric reconstructed over ALL slices' module.ttl at base MUST carry
+        // the demo slice's 0.90 floor — proving the multi-slice git-show base
+        // reconstruction sees floors authored OUTSIDE the rubric module (the whole point
+        // of the widening; the single-file base read never saw it).
+        let base_rubric = base_rubric_at(&fx.root, &base)
+            .expect("base reconstruction succeeds")
+            .expect("rubric module present at base");
+        let base_axis = axis_floors_from_rubric(&base_rubric).unwrap();
+        assert_eq!(
+            base_axis.get(&demo_key()).copied(),
+            Some(0.9),
+            "base reconstruction must see the non-rubric slice's floor"
+        );
+
+        // The working set, through the real segregated loader, carries 0.50.
+        let work_rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let work_axis = axis_floors_from_rubric(&work_rubric).unwrap();
+        assert_eq!(work_axis.get(&demo_key()).copied(), Some(0.5));
+
+        // The monotonicity comparator, fed the REAL reconstructed base map, reds the
+        // lowering and names the non-rubric slice.
+        let mono =
+            axis_floor_monotonicity(GOVERNANCE_SOURCE_LABEL, &base_axis, &work_axis, |_, _| true);
+        assert!(
+            mono.violations
+                .iter()
+                .any(|v| v.contains("sliceDemo") && v.contains("LOWERED")),
+            "a lowered non-rubric floor must red naming the slice: {:?}",
+            mono.violations
+        );
+    }
+
+    #[test]
+    fn base_reconstruction_reds_a_still_live_non_rubric_floor_deletion() {
+        let (fx, base) = fixture_with_base_floor("0.9");
+        // Working tree DELETES the demo floor entirely (only the prefix line remains).
+        std::fs::write(
+            fx.root.join("slices/demo/demo/module.ttl"),
+            format!("@prefix gmeow: <{NS}> .\n"),
+        )
+        .unwrap();
+
+        let base_rubric = base_rubric_at(&fx.root, &base).unwrap().unwrap();
+        let base_axis = axis_floors_from_rubric(&base_rubric).unwrap();
+        let work_rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let work_axis = axis_floors_from_rubric(&work_rubric).unwrap();
+        assert_eq!(base_axis.get(&demo_key()).copied(), Some(0.9));
+        assert_eq!(work_axis.get(&demo_key()).copied(), None);
+
+        // The slice is still live → deleting its committed floor is a hard violation.
+        let mono =
+            axis_floor_monotonicity(GOVERNANCE_SOURCE_LABEL, &base_axis, &work_axis, |_, _| true);
+        assert!(
+            mono.violations
+                .iter()
+                .any(|v| v.contains("sliceDemo") && v.contains("DELETED")),
+            "a still-live non-rubric floor deletion must red naming the slice: {:?}",
+            mono.violations
+        );
+    }
+}
+
+/// End-to-end coverage of the ratchet gate's floor ENFORCEMENT after the
+/// governance-source widening — both the gate's per-axis floor DECISION over a floor
+/// authored in a NON-rubric slice, and the whole real-repository gate driven through the
+/// extracted root-parameterized [`slice_quality_gate_at`].
+#[cfg(test)]
+mod gate_enforcement_tests {
+    use super::*;
+    use gmeow_slice_quality::gate::evaluate_axis_floor;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    struct TempFixture {
+        root: std::path::PathBuf,
+    }
+    impl Drop for TempFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.root);
+        }
+    }
+
+    /// A minimal on-disk fixture repo (no git): a complete rubric slice plus a
+    /// non-rubric demo slice authoring one `gmeow:AxisFloorCommitment` at `floor`.
+    fn fixture_with_non_rubric_floor(floor: &str) -> TempFixture {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut root = std::env::temp_dir();
+        root.push(format!("gmeow-gate-enforce-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let rubric_dir = root.join("slices/core/slice-quality-rubric");
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(&rubric_dir).unwrap();
+        std::fs::create_dir_all(&demo_dir).unwrap();
+        std::fs::write(
+            rubric_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisGmn1Coverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "gmn1_coverage_axis" ;
+    gmeow:axisDimension gmeow:dimGmn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrGmn .
+gmeow:thrGmn a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(rubric_dir.join("manifest.ttl"), "# rubric slice\n").unwrap();
+        std::fs::write(
+            demo_dir.join("module.ttl"),
+            format!(
+                r#"@prefix gmeow: <{NS}> .
+gmeow:afc-demo a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceDemo ;
+    gmeow:floorAxis gmeow:axisGmn1Coverage ;
+    gmeow:floorValue {floor} .
+"#
+            ),
+        )
+        .unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        TempFixture { root }
+    }
+
+    #[test]
+    fn a_non_rubric_slice_floor_is_enforced_by_the_gate_per_axis_decision() {
+        // A floor committed at 1.0 in a NON-rubric slice's module.ttl.
+        let fx = fixture_with_non_rubric_floor("1.0");
+        let slice = format!("{NS}sliceDemo");
+
+        // The gate reads floors through the same segregated loader; project them into the
+        // (slice, axis-local) → floor map the per-axis floor pass consumes.
+        let rubric = gmeow_slice_quality::load_repo_rubric(&fx.root).unwrap();
+        let axis_floors = axis_floors_from_rubric(&rubric).unwrap();
+
+        // The gate's per-axis floor RESOLUTION (`axis_floor_for`) now RESOLVES the
+        // non-rubric floor — before the widening the loader never saw it, so this
+        // returned None and the axis went silently unfloored.
+        let resolved = axis_floor_for(&axis_floors, &slice, "axisGmn1Coverage", false)
+            .unwrap()
+            .expect("the non-rubric slice's committed floor is resolved by the gate");
+        assert_eq!(resolved, 1.0);
+
+        // The gate's per-axis VERDICT reds a measured score below the committed floor,
+        // and passes one that meets it — exactly the decision the gate emits per grade.
+        assert!(
+            evaluate_axis_floor(0.5, resolved).is_failure(),
+            "a measured score below the committed non-rubric floor must red the gate"
+        );
+        assert!(
+            !evaluate_axis_floor(1.0, resolved).is_failure(),
+            "a measured score meeting the floor must not red"
+        );
+    }
+
+    #[test]
+    fn the_real_repository_slice_quality_gate_is_green_end_to_end() {
+        // Drive the WHOLE gate through the extracted root-parameterized entry against the
+        // live checkout. Exit 0 confirms (a) `slice_quality_gate_at` runs end-to-end and
+        // (b) the governance-source widening did not red the real gate — only the rubric
+        // slice authors floors today, so the union equals the pre-widening set. This is
+        // the production-surface analog of the `make check` slice-quality gate.
+        assert_eq!(
+            slice_quality_gate_at(&project_root()),
+            0,
+            "the real-repo slice-quality gate must stay green after the governance-source widening"
+        );
     }
 }

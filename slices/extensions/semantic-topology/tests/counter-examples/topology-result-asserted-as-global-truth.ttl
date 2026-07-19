@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the GOVERNING gmeow:AssertedTopologyResultConstraint: a
+# gmeow:TopologyComputation asserts a global truth (gmeow:assertsGlobalTruth true) but NO
+# gmeow:TopologyClaim discharges it — there is no claim that gmeow:claimForComputation this
+# computation, extends its data to a math:GlobalSection, AND discharges the H¹
+# math:GluingObstruction. A computed feature is a math:LocalSection, never automatically a
+# global truth, so the ∀→∃(join) SPARQL constraint MUST reject it with
+# shacl.SPARQLConstraintComponent. gmeow:producesResult correctly points at a
+# gmeow:TopologyResult wrapper, so the ONLY violation is the undischarged global-truth
+# assertion, not a result-object conflation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/semantic-topology/tests/> .
+
+ex:computationBad a gmeow:TopologyComputation ;
+    gmeow:producesResult ex:result ;
+    gmeow:assertsGlobalTruth true .               # <-- asserted global truth, no discharging claim
+
+ex:result a gmeow:TopologyResult ;
+    gmeow:resultArtifact ex:diagram .
+
+ex:diagram a math:PersistenceDiagram .            # pure math: referent (NOT gmeow:TopologyResult)

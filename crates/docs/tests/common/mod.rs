@@ -5,7 +5,8 @@
 //!
 //! The cache machinery lives in [`gmeow_docs::fixture`]; this module only pins
 //! the repo root (via the crate manifest dir) and exposes the loaders under the
-//! `common::cached_model()` / `common::cached_site()` names the binaries call.
+//! `common::cached_model()` / `common::cached_site()` / `common::cached_book()`
+//! names the binaries call.
 //! The cache is primed once before the test processes spawn by the
 //! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
 //! job run immediately before `cargo nextest`, so no test pays the ~12 s model
@@ -47,4 +48,13 @@ pub fn cached_site() -> Site {
 /// here instead of paying a live `render_site_lang` walk.
 pub fn cached_site_lang(lang: &str) -> Site {
     gmeow_docs::fixture::load_site_lang(&repo_root(), lang)
+}
+
+/// The default mdBook render (`render_book(&model, &ExecutableDocsData::default())`),
+/// loaded from the shared once-per-run cache. `mdbook_render` tests that render the
+/// default book read it from here so the suite pays the full book render once, not
+/// once per process. Tests that mutate the model or pass custom executable data
+/// still call `render_book` directly.
+pub fn cached_book() -> Site {
+    gmeow_docs::fixture::load_book(&repo_root())
 }

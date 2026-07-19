@@ -1,0 +1,10 @@
+# External-corpus coverage: an H¹ gluing obstruction names the sheaf whose
+# local-to-global lifting it obstructs.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?obstruction ?sheaf
+WHERE {
+  ?obstruction a math:GluingObstruction ;
+               math:obstructionOf ?sheaf .
+}
+ORDER BY ?obstruction

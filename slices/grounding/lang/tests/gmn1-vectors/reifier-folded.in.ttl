@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# The canonical RDF 1.2 reifier: x rdf:reifies <<( s p o )>>, with accordingTo (st) and
+# hasAvailableEvidence (ev) folded onto the same reifier subject in ONE record. The three
+# triples are authored as separate statements on the shared subject (identical GMN-0 model).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+gmeow:reifier1 rdf:reifies <<( gmeow:doorGate1 gmeow:hasState logic:Open )>> .
+gmeow:reifier1 gmeow:accordingTo gmeow:sensorStandpoint .
+gmeow:reifier1 gmeow:hasAvailableEvidence gmeow:span42 .

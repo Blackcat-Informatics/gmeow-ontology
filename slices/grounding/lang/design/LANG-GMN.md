@@ -61,6 +61,37 @@ ladder has three levels, and only the crossings between levels carry judgments:
   get-leg-only: `logic:ValidationOnly`, `logic:BridgeView`, no round-trip obligation. The razor:
   a zstd-compressed claim is the same claim (a codec); a compaction is not (a dialect level).
 
+### Per-claim inversion is natural
+
+The GMN-1 preservation witness (`gmeow:gmnCorrNormalToGmn`) is discharged at **claim
+granularity**, not merely as one opaque whole-model round trip. A **claim** is a **canonical-
+subject group** of the RDFC-1.0 normal form — the quads sharing one canonical subject after
+RDFC-1.0 blank-node labelling. `decode ∘ encode = id_S` is **natural with respect to this
+decomposition**: the witness round-trips the whole model once, then compares — per canonical-
+subject group — the blake3 digest and the key-set of the group on the GMN-0 side against the
+group recovered through the codec, so **each claim inverts independently** and any divergence
+localizes to the offending canonical subject rather than smearing across the model. The witness
+**never re-canonicalizes a claim in isolation** — canonicalization is a whole-model operation, and
+re-normalizing a fragment would fabricate a subject the whole model does not carry — so the
+per-claim comparison reads the single normal form both codec legs share, exactly the granularity
+at which the mnemomorphic obligation is meaningful. The claim is discharged by the executed
+per-claim witness, precisely as the ladder's other crossings are discharged by their reconstruction
+gates.
+
+Two further legs sharpen the judgment:
+
+- **Byte-exact idempotence.** `encode ∘ decode = id` holds **byte-for-byte** on the GMN-1
+  surface: decoding a conforming document and re-encoding it reproduces the same bytes — the
+  determinism the envelope's digest discipline depends on. This is strictly stronger than
+  `put ∘ get = id_S` (which recovers the model, not the byte serialization) and is checked as its
+  own leg.
+- **MSG-standalone, honestly scoped.** For a claim that is **ground or blank-closed** — its
+  canonical-subject group mentions no blank node shared with another group — the codec additionally
+  satisfies the stronger *minimal-self-contained-graph* standalone property: the claim encodes and
+  inverts as a self-contained unit. The leg is scoped to exactly those claims and **never asserted
+  over blank-node-bridged groups**, where standalone inversion would be an overclaim — an honest
+  boundary, not a silent gap.
+
 ## The rate–fidelity contract
 
 GMN is a **source code over the LLM token channel**, and it is specified as coding theory
@@ -69,7 +100,7 @@ specifies a code — codebook, rate, fidelity:
 - **Codebook** — `gmeow:GmnCodebook` (`gmeow:gmnCodebookCurrent`): the GMN script plus the ten
   sigil roles (linked through `gmeow:references`) plus the alias-table version
   (`gmeow:gmnDictionaryVersion`) and glyph-table version (`gmeow:gmnGlyphTableVersion`). The alias
-  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV1`) whose
+  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV3`) whose
   `gmeow:GmnDictionaryEntry` members each bind one full GMEOW term to one compact alias string — a
   gated **bijection** over its covered term set (injectivity, `lang:GmnDictionaryAliasCollision`).
   A reader that holds the codebook holds everything needed to decode a conforming document.
@@ -128,7 +159,7 @@ and the alias-table reference (resolved, with `gmeow:gmnDictionaryVersion`, to t
 individual of the dialect lineage):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 ```
 
 A **record** is a sigil followed by a braced key–value list. **Key order is generation order**,
@@ -140,7 +171,7 @@ identified by everything before them. Keys that are absent are simply omitted; k
 present appear in exactly this order. A valid record:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12}
 ```
 
@@ -207,7 +238,7 @@ and a dedicated phase marker is declined.
 A record exercising the new slots, alongside a `@p` process record exercising the `@p`-only pair:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12, m: poss, ek: inst}
 @p{s: gate1, p: cycling, o: doorGate1, st: sensorCrew, bd: open, it: cycleSeries1}
 ```
@@ -227,13 +258,12 @@ is admitted **only** if it clears at least one of two razor halves, and both hal
   inequality for every marker admitted under this half.
 - **(b) Ambiguity-class elimination.** The marker retires a *named* `lang:Gmn*` failure class —
   discharged by an executable fixture pair (the class fires on the un-marked form, is absent on
-  the marked form), run through the codec/validator gate. Because the GMN-1 codec and validator
-  are Task 6's build, not yet in this tree, no marker in this charter is admitted under half (b)
-  at this stage — a graph-level SHACL check cannot see a *compaction*-only ambiguity, since the
-  underlying RDF graph is already fully disambiguated regardless of the compact surface's key
-  set. Every marker above is therefore admitted under half (a) alone, honestly, rather than
-  claiming an unfalsifiable ambiguity-class win now. A future marker proposed once the codec
-  exists may qualify under (b) instead, with its fixture pair authored at that time.
+  the marked form), run through the codec/validator gate. The codec and validator now execute this
+  half, but no current factored qualifier is admitted by it: a graph-level check cannot see a
+  *compaction*-only ambiguity when the underlying RDF graph is already fully disambiguated.
+  Every current qualifier therefore earns admission under half (a), honestly. A future marker may
+  qualify under half (b) only when its named failure and positive/negative codec fixtures land in
+  the same change.
 - **No symbolic orthography, ever.** Every slot above is a named ASCII key and every value is a
   named ASCII alias — no private glyph is minted for any of them, and none enters the shared GMN
   script (`gmeow:gmnScript`) repertoire, which stays reserved for the codepoint-explicit,
@@ -244,7 +274,7 @@ A **schema-once tabular batch** declares its columns once in an `@claims[...]` h
 streams bare rows — the token-economy form for homogeneous runs. A valid batch:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @claims[s p o q]
 gate1 locatedIn yardNorth 0.95
 gate2 locatedIn yardSouth 0.88
@@ -273,19 +303,21 @@ byte-comparable — the property the digest discipline of the envelope contract 
 forbidden. The grammar's fraction production is exactly two digits, so the rule is enforced by
 the parse table itself, not by convention.
 
-The four validator-tier failure classes, each with its labeled INVALID block:
+Four of the six validator-tier failure classes carry a labeled INVALID block below (the two
+residuals — `lang:GmnNonDecodableGrammar` and the default-graph refusal `lang:GmnGraphOutOfDomain`
+— carry none, being driven from synthetic inputs rather than a normative example):
 
 INVALID — `lang:GmnNonCanonicalOrder` (wrong key order: the confidence precedes the subject):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{q: 0.95, s: gate1, p: hasState, o: doorGate1}
 ```
 
 INVALID — `lang:GmnMalformedNumber` (scientific notation; a three-fractional-digit confidence):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: gate1, p: hasState, o: doorGate1, q: 9.5e-1}
 @c{s: gate2, p: hasState, o: doorGate2, q: 0.951}
 ```
@@ -296,11 +328,11 @@ INVALID — `lang:GmnUndeclaredDialectVersion` (no `@gmn` header before the firs
 @c{s: gate1, p: hasState, o: doorGate1, q: 0.95}
 ```
 
-INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v1`
+INVALID — `lang:GmnUncoveredTerm` (grammar-valid tokens that the pinned dictionary `dict-v3`
 does not mint and no named-key ruling covers — undecodable, never guessable):
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @c{s: zx9, p: quuxes, o: gate1, q: 0.50}
 ```
 
@@ -313,11 +345,50 @@ on without leaving the channel. Corrections are **deltas over stable record iden
 claims-about-claims — new records with their own standpoint, never in-place mutation of history:
 
 ```text
-@gmn{v: 1, aliases: dict-v1}
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
 @err{id: c42, class: GmnMalformedNumber}
 @patch{id: c42, q: 0.95}
 @retract{id: c17}
 ```
+
+**The GMN-0 model mapping is total, so an independent implementation inverts a repair record the
+same way it inverts any other.** Each repair record decodes to a subject typed by its role —
+`gmeow:GmnErr`, `gmeow:GmnPatch`, or `gmeow:GmnRetract` — carrying:
+
+- **`gmeow:gmnRepairId`** — the stable identifier of the target record the repair speaks about,
+  carried **verbatim** (the `id:` field of every repair record). It is the join key back to the
+  record under repair, never a fresh mint.
+- **`gmeow:gmnRepairClass`** — the failure class an `@err` names (the `class:` field), a
+  `lang:Gmn*` failure-class IRI, so the rejection is itself a typed, queryable object the emitting
+  model can dispatch on.
+- **restated payload fields** — a `@patch` additionally carries the restated fields of the
+  identified record (here `q: 0.95`), in the same canonical key order and by-reference discipline
+  as the record it corrects; a `@retract` carries only its `gmeow:gmnRepairId`.
+
+Every repair record is thus a **claim-about-a-claim** with its own identity and standpoint —
+`@err` observes a failure, `@patch` asserts a corrected restatement, `@retract` withdraws — and
+none mutates the targeted record in place. Because the mapping is a plain typed-subject encoding
+with no free text, the round-trip and per-claim inversion witnesses cover repair records exactly as
+they cover asserted claims.
+
+## RDF-1.2 triple terms and the default-graph domain
+
+GMN-1 round-trips **RDF-1.2 triple terms and their reifiers losslessly**. A triple term appears
+only in **object position**, reached through `rdf:reifies`, and its surface is the parenthesized
+form `( s p o )`; there is no subject- or predicate-position triple term and no free-standing
+quoted triple. Ingestion **materializes purrdf's reifier/annotation side-tables**, so a reifier
+authored in Turtle reaches the codec intact and inverts through the same per-claim witness as any
+other claim — the construct is an image of the crossing, never a dropped term. The former hard-fail
+on a quoted triple is retired: the construct is now covered, so refusing it would be a false
+negative rather than an honest boundary.
+
+**The in-scope GMN-0 normal form is default-graph only.** The GMN-0 narrow waist over the
+grounding sources carries **no named-graph quads** — a fact verified over the sources, not assumed
+— so GMN-1's declared domain is the default graph. A named-graph quad is therefore **not** a
+generic uncovered term: it is the honest typed domain boundary `lang:GmnGraphOutOfDomain`, raised
+by the writer's default-graph domain check and **never quietly discarded, mislabeled
+`lang:GmnUncoveredTerm`, or flattened into the default graph**. Widening the domain to named graphs
+would be a future crossing carrying its own witness, never a silent tolerance.
 
 ## The primer card
 
@@ -342,7 +413,12 @@ codebook wearing documentation's clothes.
   sigil-scoped exemption: each reading pins its record scope through `gmeow:gmnSigilScope`, and an
   unscoped collision is `lang:GmnGlyphCollision` — ambiguity in the glyph table itself.
 - **Coverage gate.** Every term the writer emits is either glyphed or covered by an explicit
-  named-key ruling; a term that is neither is `lang:GmnUncoveredTerm`.
+  named-key ruling; a term that is neither is `lang:GmnUncoveredTerm`. The independent glyph-
+  optimality audit is closed in both directions: every `gmeow:GmnSymbolCandidate` is scored, and
+  every target already reachable through an executable Denotation → Grapheme registry binding
+  must have a candidate. Adding a working glyph without its candidate therefore creates
+  `slice-quality.gmn-glyph-optimality.unaudited-executable-target` and enters the denominator; an
+  executable sign can never grow silently outside the audited inventory.
 - **Borrow real notation or use a named key.** A glyph is drawn from an established notation
   (DL's ⊑, measure theory's μ) or the term stays a named key — the dialect invents no private
   symbols. Symbol provenance is a **citation**: the citations vocabulary (`gmeow:cites`, promoted
@@ -357,9 +433,15 @@ The `lang:` plane of the shared glyph inventory. It is authored, not declared: e
 the crate-side token-cost primitive encodes for the glyph's rendering under the pinned codebook
 vocabulary, cross-checked so an authored value can never drift from the measurement.
 
-- **Disposition is read off the measurement.** A symbol earns a glyph slot **iff it costs a single
-  token**; a dearer symbol is not paying its way against a one-token named key and stays a key.
-  The disposition is computed, never pre-committed: the crate-side benchmark decides.
+- **Disposition is read off the measurement and safety evidence.** A conventional Unicode sign may
+  earn a glyph slot when it costs no more than its meaningful ASCII fallback; a cheaper named key
+  wins, ambiguity moves the distinction into a structured constructor, and a semantic mismatch is
+  rejected. The disposition is recorded, never inferred from typography: the crate-side benchmark
+  and the named ambiguity/confusability/mismatch basis decide.
+  - **`⊑`** (U+2291) costs three pinned tokens, no more than the explicit `is_subclass_of` fallback, so the
+    established description-logic sign earns a scoped `@ℒ` glyph without a token penalty. Its
+    denotation target is canonical `logic:subClassOf`; the grounding correspondence to
+    `rdfs:subClassOf` owns the external spelling, preserving the grounding direction.
   - **`*`** (U+002A) is one token — it earns a glyph for the ungrammatical form, its reading pinned
     to the lang-AST record scope through `gmeow:gmnSigilScope` because the codepoint is reused by
     mathematical multiplication in the shared inventory.
@@ -407,9 +489,13 @@ lookahead beyond one token is ever needed. The consequence is the dialect's deep
 **the parser and the constrained decoder are the same automaton** — the table that validates a
 GMN stream is the table that constrains a model's generation of one. The determinism class is a
 declared contract, never taken on faith: the parse-table construction over the grammar's rules is
-the machine check, `lang:GmnNonDecodableGrammar` names its failure, and the EBNF exact round-trip
-lift (`grammars/gmn.ebnf` lifting to an isomorphic grammar object and back) is the partial
-executable check already in force.
+the machine check, `lang:GmnNonDecodableGrammar` names its failure, and the graph-derived glyph
+registry renders the EBNF token production used by the same reader/writer. The authored
+`grammars/gmn.ebnf` is therefore a structural template, not a second codebook: it contains one
+`glyphToken ::= GRAPH_DERIVED_GLYPH_TOKEN` replacement seam and no literal glyph list. Regeneration
+must replace that one production from the registry before parsing or shipping it; zero or multiple
+seams hard-fail. Registry removal, wrong-scope, all-sigil, and generated-projection tests make that
+check executable end to end.
 
 ## Versioning
 
@@ -429,7 +515,7 @@ every accepted prior entering only through a judged migration crossing, never si
 ## The envelope contract
 
 A `gmeow:GmnEnvelope` is the attested carrier of a GMN payload across a serialization boundary,
-and its eight-field contract is total — a missing field is `lang:GmnMissingEnvelopeField`:
+and its nine-field contract is total — a missing field is `lang:GmnMissingEnvelopeField`:
 
 | Field | Vocabulary | Carries |
 |---|---|---|
@@ -439,12 +525,35 @@ and its eight-field contract is total — a missing field is `lang:GmnMissingEnv
 | security ring | `gmeow:gmnSecurityRing` | the deontic serialization boundary — a point in a factored `(level, compartment)` information-flow lattice; the transitive `gmeow:gmnRingWithin` order between rings is DERIVED from those coordinates, never hand-chained (see [Ring-lattice model](#the-ring-lattice-model) below). Minted fresh after checking the rights and agreements vocabulary: `gmeow:RightsStatement` deontics regulate content licensing, not serialization boundaries |
 | standpoint | `gmeow:accordingTo` | the asserting standpoint |
 | generating activity | `gmeow:wasGeneratedBy` | the emission run's provenance |
-| content digest | `gmeow:contentDigest` | byte-exact identity, blake3 |
+| content digest | `gmeow:contentDigest` | byte-exact payload identity, blake3 over the RDFC-1.0 canonical N-Quads |
 | losslessness judgment | `gmeow:gmnEnvelopeCorrespondence` | the single `logic:Correspondence` judging the crossing back to the normal form — never a boolean flag |
+| codebook digest | `gmeow:gmnCodebookDigest` | decoder identity — a blake3 Merkle root over the codebook's per-part leaves |
 
-**The digest domain is pinned.** `gmeow:contentDigest` is a blake3 digest computed over the
-canonical GMN-0 normal-form bytes — pre-envelope, post-NFC — so equal models share a digest across
-surface variants: two envelopes carrying different encodings of one model carry one digest.
+**The payload-digest domain is pinned.** `gmeow:contentDigest` is a blake3 digest computed over
+the **RDFC-1.0 canonical N-Quads** of the GMN-0 normal form — pre-envelope, post-NFC — so equal
+models share a digest across surface variants: two envelopes carrying different encodings of one
+model carry one digest.
+
+**The codebook-digest domain is pinned byte-exact.** `gmeow:gmnCodebookDigest` is a blake3
+**Merkle root** over the codebook's per-part leaves — the dialect, dictionary, and glyph-table
+versions; the script graphemes; the sigil-role glyphs; the dictionary's `term␟alias` bijection;
+the glyph-table rows; and the declared rate — so two codebooks share a digest **iff they decode
+identically**. The wire format is pinned to the byte, nothing left to the implementation: the
+digest is the ASCII string `blake3:` followed by **64 lowercase hex** characters. Each per-part
+leaf is built from entry lines of the form `key␟value` (the U+001F unit separator), **NFC-
+normalized**, **sorted by Unicode-scalar order**, and `\n`-joined; the root then hashes
+`label␟leaf-hex\n` lines in a **fixed part order**. Where `gmeow:contentDigest` fixes *payload*
+identity, `gmeow:gmnCodebookDigest` fixes *decoder* identity — together they pin both halves of
+"the same bytes decode the same way". An envelope whose declared codebook digest does not equal the
+codebook's recomputed Merkle root is `lang:GmnCodebookDigestMismatch`, raised by the native GMN
+gate that recomputes the digest — not a SHACL shape and not the per-record codec validator.
+
+**The conformance pack is the content-addressed decoder identity.** A `gmeow:GmnConformancePack`
+bundles the decoder's whole identity into one content-addressed object whose `gmeow:gmnPackRoot` is
+a blake3 **Merkle root over three leaves** — the codebook digest above, the authored grammar bytes,
+and the sigil table. The pack is **projected into `gmeow.gts`**, so a reader resolves a
+`gmeow:gmnPackRoot` to the exact codebook, grammar, and sigil table a document was written against;
+the pack root is the stable name of "which decoder", the codebook digest one of its leaves.
 
 ## The ring-lattice model
 
@@ -541,8 +650,45 @@ sibling's. This charter is the contract they all implement against.
 ## Conformance
 
 Every hard rule above is a row of the [`LANG-CONFORMANCE.md`](LANG-CONFORMANCE.md) gate matrix
-("GMN dialect rules") with a named `lang:Gmn*` failure class — fourteen rules total, nine
-enforced by the SHACL gates in `shapes.ttl` (each naming its class through
-`gmeow:enforcesFailureClass`), five by the GMN parser/writer's validator tier against the
-normative example blocks of this charter. A violation
-is a typed, queryable object, not a log line.
+("GMN dialect rules"), each — bar the class-less `@λ` column-order build assert — carrying a named
+failure class, and every row is **execution-verified on-gate**, not asserted by fixture existence.
+The matrix's `lang:Gmn*`-classed rows number **twenty**, across three failure-raising tiers:
+
+- **thirteen** enforced by the SHACL gates in `shapes.ttl` (each naming its class through
+  `gmeow:enforcesFailureClass`) — the twelve declarative rules of this charter
+  (`lang:GmnNonCanonicalCodepoint`, `lang:GmnConfusableGlyph`, `lang:GmnGlyphCollision`,
+  `lang:GmnMissingEnvelopeField`, `lang:GmnDictionaryAliasCollision`, `lang:GmnRingLatticeMalformed`,
+  `lang:GmnVersionOverclaim`, `lang:GmnCompactionWithoutProvenance`, `lang:GmnCompactionOverclaim`,
+  `lang:GmnUndispositionedTerm`, `lang:GmnUnattributedPlane`, `lang:GmnUncostedScriptGlyph`) plus
+  the cross-slice export-ring reading `lang:GmnUnringedExportCrossing` the conformance charter
+  derives from the ring model;
+- **six** by the GMN parser/writer's validator tier — the codec's `Gmn1Error` classes: the four
+  labeled INVALID example blocks above (`lang:GmnUncoveredTerm`, `lang:GmnNonCanonicalOrder`,
+  `lang:GmnMalformedNumber`, `lang:GmnUndeclaredDialectVersion`), the residual
+  `lang:GmnNonDecodableGrammar`, and the default-graph-domain refusal `lang:GmnGraphOutOfDomain`;
+- **one**, `lang:GmnCodebookDigestMismatch`, by the native GMN conformance gate that recomputes the
+  codebook Merkle-root digest and compares it to the envelope's declared `gmeow:gmnCodebookDigest`
+  — neither a SHACL shape nor the per-record codec validator.
+
+Two further matrix rows raise no `lang:Gmn*` class: the reused `lang:SilentDisambiguation` native
+lint (a compaction collapsing co-resident readings), and the class-less `@λ` CoNLL-U column-order
+build assert (drift is a build failure). Beside them a slice-quality glyph-optimality advisory
+ratchets executable glyph coverage rather than raising a failure class. A violation is a typed,
+queryable object, not a log line.
+
+### The frozen conformance-vector corpus
+
+An independent implementation is held to the same bytes this one emits. The frozen
+conformance-vector corpus at `slices/grounding/lang/tests/gmn1-vectors/` pairs each authored
+default-graph-only GMN-0 input (`<name>.in.ttl`) with codec-**derived** frozen surface bytes
+(`<name>.gmn`) — never transcribed by hand: the frozen output is exactly what the production writer
+emits over the input, and a stale artifact is a hard fail. Each positive vector discharges three
+witnesses over its reconstruction — **byte-exact** equality against the frozen bytes, **per-claim
+inversion** (the canonical-subject-group naturality above), and **byte-exact idempotence** — while
+tier-separated negatives (malformed read inputs; wrong- or missing-codebook-digest envelopes) each
+raise exactly their recorded class. The corpus pins the **codebook digest** and the **pack root**,
+so a conforming decoder is content-addressed, not merely behaviourally similar.
+
+`gmeow gmn verify` is the independent-implementation conformance surface: it drives the corpus
+through the production codec and reports each vector's byte-exact, per-claim, and idempotence
+result, so a second implementation certifies itself against the same frozen evidence the gate uses.

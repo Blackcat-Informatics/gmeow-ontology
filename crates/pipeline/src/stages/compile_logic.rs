@@ -10,7 +10,7 @@
 //! rail — they terminated on disk and in conformance fixtures. This stage makes the
 //! compiler a first-class DAG node: it parses the canonical logic source, runs every
 //! projection back-end once, and emits — as committed artifacts the single-pass
-//! regenerate/drift gate owns —
+//! update/drift gate owns —
 //!
 //! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
 //!   Datalog, N3, gUFO, CLIF, CGIF and XCL projections, and the projection-report loss
@@ -39,8 +39,8 @@ use gmeow_logic_compile::ir::{LogicProgram, PreservationKind};
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
-    CorrespondenceProgram, affine_triangle_worked_example, extract_correspondences,
-    extract_leg_programs, project_correspondence,
+    CorrespondenceProgram, extract_correspondences, extract_leg_programs, parse_correspondence,
+    project_correspondence,
 };
 use gmeow_logic_compile::projections::correspondence_gates::{
     assert_gates, evaluate_gates, liftability,
@@ -66,7 +66,7 @@ pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
 /// [`PipelineHandle::Logic`] handle to THIS graph's canonical digest, and
 /// `stage-snapshot` folds the same projection into the bundle under this IRI — so the
 /// in-graph carriage and the typed handle are the two faces of one content identity.
-pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
+pub const GRAPH_LOGIC: &str = gmeow_logic::reasoning_graphs::GRAPH_LOGIC;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the relational-core
 /// lowering of the compiled [`LogicProgram`] (C8) — the engine-agnostic
@@ -77,8 +77,7 @@ pub const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic"
 /// of one content identity. A downstream consumer reads this LOWERED lane WITHOUT
 /// re-lowering. When the full-FOL formula lowering lands, its richer lowering plugs into
 /// this SAME lane (same dialect + carried residue).
-pub const GRAPH_RELATIONAL_CORE: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/relational-core";
+pub const GRAPH_RELATIONAL_CORE: &str = gmeow_logic::reasoning_graphs::GRAPH_RELATIONAL_CORE;
 
 /// The named-graph IRI carrying the deterministic RDF projection of the compiled
 /// [`CorrespondenceProgram`] (C10) — the `logic:Correspondence` carrier lane and
@@ -181,6 +180,32 @@ pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/Te
 /// `paths::project_path_shapes` emits zero per-shape `property-path:<iri>` ledger rows,
 /// and the docs term-loss table (`TermLossDigest`) is vacuous on every term.
 pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/predicate-paths.ttl";
+/// The authored §14 affine-triangle worked example the correspondence lane reads.
+///
+/// A SCOPED worked-example source (the `PATH_SHAPES_EXAMPLE_PATH` precedent): parsed
+/// INDEPENDENTLY of the merged authored corpus and read back via
+/// [`gmeow_logic_compile::projections::correspondence::parse_correspondence`] into the
+/// one [`CorrespondenceProgram`] the lane projects onto `graph/correspondence`. This is
+/// the honest DOGFOODED replacement for the former hardcoded Rust worked example: the
+/// affine cell is authored `logic:` TTL, not a `CorrespondenceProgram` literal in code.
+pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
+    "slices/grounding/logic/examples/affine-correspondence.ttl";
+/// The authored goal-directed demonstrator corpus (Task 5): six `logic:ReasoningProgram`
+/// individuals (Peano addition, cons-list membership, three-valued SLG-WFS negation, the
+/// positive/negative order-sorted math-subsort pair, and the function-free reachability
+/// oracle fixture) that `stage-goal-directed` compiles and evaluates through the native
+/// backward engine.
+///
+/// A SCOPED worked-example source (the `PATH_SHAPES_EXAMPLE_PATH` / `CORRESPONDENCE_EXAMPLE_PATH`
+/// precedent): parsed INDEPENDENTLY of the merged authored corpus via `parse_logic_str`, and
+/// only its [`gmeow_logic_compile::ir::ReasoningProgramIr`]s are folded onto `program` — never
+/// its axioms (e.g. the `ex:one a math:Integer` order-sort typing triple, which
+/// `extract_reasoning_programs` already captures into each program's own `constant_sorts`),
+/// rules, contracts, or formulas, which stay scoped to this file and are discarded (L3: the
+/// cell's clause `Formula`s must never enter `graph/logic` / `graph/relational-core` as
+/// top-level rules/formulas).
+pub const REASONING_PROGRAMS_EXAMPLE_PATH: &str =
+    "slices/grounding/logic/examples/reasoning-programs.ttl";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -207,12 +232,35 @@ pub const LOGIC_PROJECTIONS_CHANNEL: &str = "pipeline/logic-projections.json";
 
 /// The payload of [`LOGIC_PROJECTIONS_CHANNEL`]: the logic program's projection rows
 /// (the eight whole-program targets + the per-shape `property-path:<iri>` rows) and the
-/// three report-header counts, so the mappings stage can re-serialize the report over
-/// the union without re-running the logic compiler.
+/// report-header counts, so the mappings stage can re-serialize the report over the union
+/// without re-running the logic compiler.
+///
+/// Count ownership is split by seam:
+/// - `header` carries ONLY the axiom/rule/profile/formula counts compile-logic solely
+///   owns (read straight off the compiled program). Its `correspondence_count` /
+///   `lawful_uplift_count` / `claimed_uplift_count` fields ride the channel as 0 — they are
+///   NOT owned here.
+/// - `base_correspondence_count` / `base_lawful_uplift_count` carry the curated affine-gate
+///   BASE (the §14 affine-triangle worked-example gate verdicts). mappings composes this
+///   base with the external-term up-projection audit to form the committed
+///   `correspondenceCount` / `lawfulUpliftCount`. mappings is the SINGLE writer of the final
+///   correspondence/uplift/claimed counts (`fold_up_projection_audit`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogicProjectionsChannel {
-    /// The report-header counts (`axiomCount`/`ruleCount`/`profileCount`).
+    /// The report-header counts compile-logic solely owns
+    /// (`axiomCount`/`ruleCount`/`profileCount`/`formulaCount`). The correspondence/uplift
+    /// count fields of this header ride as 0: mappings owns the final composed values.
     pub header: ReportHeader,
+    /// The curated affine-gate BASE for `logic:correspondenceCount`: the number of
+    /// correspondences in the §14 affine-triangle gate lane. mappings adds the external-term
+    /// audit's `total()` to this base to form the committed count (mappings is the single
+    /// writer of the final field).
+    pub base_correspondence_count: usize,
+    /// The curated affine-gate BASE for `logic:lawfulUpliftCount`: the lawful (round-trip /
+    /// mnemomorphism PASS) up-lift count from the affine-triangle gate report. mappings adds
+    /// the external-term audit's proved tier to this base to form the committed count
+    /// (mappings is the single writer of the final field).
+    pub base_lawful_uplift_count: usize,
     /// The logic projection rows that fed the compiler's own (diagnostics-only) report.
     pub projections: Vec<ProjectionResult>,
     /// The compile's single loss store as owned, serializable nodes (the channel is JSON, so the
@@ -253,14 +301,83 @@ pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
         .map_err(|e| stage_err(format!("canonicalize N-Triples projection: {e}")))
 }
 
+/// The §14 affine-triangle worked example as the PRODUCTION path derives it: read the
+/// authored `CORRESPONDENCE_EXAMPLE_PATH` cell and re-derive its [`CorrespondenceProgram`]
+/// via `parse_correspondence`. Test-only helper so every pipeline test exercises the SAME
+/// canonical authored source the stage does (the fidelity oracle in `gmeow-logic-compile`
+/// proves this equals the `affine_triangle_worked_example` Rust literal byte-for-byte).
+/// Build the `stage-source-load` upstream a test needs to run [`CompileLogicStage`]. Rather
+/// than run the full (heavy) source-load stage — quality sweep, span index, self-description
+/// fold — this builds a MINIMAL product carrying ONLY the one named graph compile-logic
+/// reads: the denylist narrowing of `load_authored_dataset` rooted into
+/// [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`], EXACTLY as the real stage
+/// publishes it. compile-logic's `project_named_graph(GRAPH_LOGIC_COMPILE_INPUTS)` reads it
+/// identically, so the tests exercise the real consumer path at the old (single corpus
+/// parse) cost.
+#[cfg(test)]
+pub(crate) fn source_load_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
+    let base = crate::stages::source_load::load_authored_dataset(root)
+        .expect("load authored corpus for compile-logic upstream");
+    let narrowed = crate::stages::source_load::logic_compile_input_subgraph(base.as_ref())
+        .expect("narrow the logic-compile-inputs corpus for compile-logic upstream");
+    let dataset = crate::stages::carrier::rooted_in_graph(
+        narrowed.as_ref(),
+        crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS,
+    )
+    .expect("root the logic-compile-inputs test graph");
+    let bundle = bundle_from_artifacts_over(
+        dataset,
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+    );
+    let mut upstream = BTreeMap::new();
+    upstream.insert(
+        "stage-source-load".to_string(),
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+    );
+    upstream
+}
+
+#[cfg(test)]
+pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(CORRESPONDENCE_EXAMPLE_PATH);
+    let source = std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read authored affine correspondence cell {path:?}: {e}"));
+    let dataset = parse_dataset(source.as_bytes(), "text/turtle", None)
+        .expect("parse authored affine correspondence cell");
+    parse_correspondence(&dataset).expect("re-derive authored affine correspondence program")
+}
+
 /// The `stage-compile-logic` pipeline stage.
-pub struct CompileLogicStage;
+pub struct CompileLogicStage {
+    /// The upstream products this stage consumes — `stage-source-load`, off which it reads
+    /// the narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
+    /// merged authored corpus its five augmentation readers walk).
+    consumes: Vec<String>,
+    /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
+    /// graph of the `stage-source-load` product (a SOUND denylist narrowing of the whole
+    /// corpus), so a documentation-only edit that touches no read predicate leaves that
+    /// graph's digest unchanged and this (compiler) stage's cache key stable.
+    entities: Vec<(String, Vec<String>)>,
+}
 
 impl CompileLogicStage {
-    /// Construct the stage. It consumes no upstream product; it reads the canonical
-    /// logic source directly from disk (declared via [`Stage::input_files`]).
+    /// Construct the stage. It consumes `stage-source-load`, reading ONLY that product's
+    /// narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
+    /// five augmentation readers (validation shapes, constraints, correspondences, leg
+    /// programs, the diagnostic meta-fold); the canonical `logic:` source and the vendored
+    /// OPTs / worked examples it still reads directly from disk (declared via
+    /// [`Stage::input_files`]).
     pub fn new() -> Self {
-        Self
+        Self {
+            consumes: vec!["stage-source-load".to_string()],
+            entities: vec![(
+                "stage-source-load".to_string(),
+                vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+            )],
+        }
     }
 }
 
@@ -297,7 +414,16 @@ impl Stage for CompileLogicStage {
         "stage-compile-logic"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
+    }
+    /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
+    /// `graph/logic-compile-inputs` named graph (the SOUND denylist narrowing of the whole
+    /// authored corpus). Declaring that single entity folds only that graph's digest into
+    /// the compiler's cache key, so a documentation-only edit — one touching only the
+    /// stripped SKOS/Dublin-Core/PROV/VANN predicates — leaves the graph unchanged and this
+    /// (compiler) stage skips re-running.
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
@@ -315,20 +441,38 @@ impl Stage for CompileLogicStage {
         // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so
         // `project_path_shapes` emits real per-shape ledger rows (G1: the B2 per-term
         // projection-loss table is no longer vacuous).
-        "compile-logic.v5"
+        // v6: the affine worked example is now read from `CORRESPONDENCE_EXAMPLE_PATH`
+        // (authored `logic:` TTL) via `parse_correspondence`, not a hardcoded Rust literal.
+        // v7: the correspondence/uplift BASE rides the channel's `base_*` fields; the report
+        // header's count fields ship as 0, and mappings is the single owner of the final counts.
+        // v8: the five augmentation readers consume the narrowed source-load
+        // `graph/logic-compile-inputs` graph (a SOUND denylist narrowing of the whole
+        // authored corpus) instead of re-parsing the corpus from disk; the whole-corpus file
+        // list is dropped from `input_files` and freshness rides the typed `consumed_entities`
+        // edge.
+        // v9: the authored goal-directed demonstrator corpus
+        // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
+        // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
+        // hand-interned Rust demonstrator constants.
+        "compile-logic.v9"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
-        // The compiler parses the logic: source and the vendored OPT, and derives validation
-        // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
-        // must bust this stage's cache.
-        let mut files = vec![
+        // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
+        // two worked-example cells directly from disk, so those are declared as raw input
+        // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
+        // declared here: the five augmentation readers now read the narrowed
+        // `graph/logic-compile-inputs` entity off the `stage-source-load` product
+        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge — a
+        // documentation-only edit that leaves the narrowed graph's digest unchanged no
+        // longer busts the (expensive) compiler's cache.
+        Ok(vec![
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
             root.join(OPT_TEST_DATATYPES_PATH),
             root.join(PATH_SHAPES_EXAMPLE_PATH),
-        ];
-        files.extend(crate::stages::source_load::authored_files(root)?);
-        Ok(files)
+            root.join(CORRESPONDENCE_EXAMPLE_PATH),
+            root.join(REASONING_PROGRAMS_EXAMPLE_PATH),
+        ])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
@@ -366,7 +510,31 @@ impl Stage for CompileLogicStage {
         // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
-        let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
+        //
+        // Read the merged authored corpus as the NARROWED `graph/logic-compile-inputs`
+        // entity off the `stage-source-load` product — a SOUND (denylist) narrowing of
+        // `load_authored_dataset` with only pure-documentation predicates stripped, proved
+        // reader-identical by the `logic_compile_input_subgraph_preserves_reader_output`
+        // guard. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
+        // default graph, so the five augmentation readers (all graph-position-agnostic over
+        // the default graph) consume it directly. A missing product or an empty projection
+        // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
+        let source_load = input.upstream.get("stage-source-load").ok_or_else(|| {
+            stage_err("missing stage-source-load product for the graph/logic-compile-inputs corpus")
+        })?;
+        let ontology = Arc::new(
+            source_load
+                .bundle()
+                .dataset()
+                .project_named_graph(crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS),
+        );
+        if ontology.quad_count() == 0 {
+            return Err(stage_err(format!(
+                "stage-source-load product carries an empty <{}> graph — the narrowed \
+                 compile-logic input corpus is missing (corrupt upstream product)",
+                crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
+            )));
+        }
         validation_shapes.extend(
             gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
@@ -403,6 +571,36 @@ impl Stage for CompileLogicStage {
         path_shapes.extend(path_shapes_program.path_shapes);
         let program = program.with_path_shapes(path_shapes);
 
+        // Fold in the authored goal-directed demonstrator corpus (see
+        // `REASONING_PROGRAMS_EXAMPLE_PATH`'s doc comment): parse the cell as an
+        // INDEPENDENT logic: source and take ONLY its `reasoning_programs` — its
+        // axioms (the `ex:one a math:Integer` order-sort typing triple is captured
+        // by `extract_reasoning_programs` into each program's own `constant_sorts`,
+        // not through the plain-axiom lane)/rules/contracts/formulas stay scoped to
+        // this file and are discarded, so the demonstrator corpus never pollutes the
+        // compiled program's domain axioms or reaches graph/logic /
+        // graph/relational-core as top-level rules/formulas (L3). Its diagnostics ARE
+        // folded in (never silently dropped), same as every other frontend diagnostic
+        // here.
+        let reasoning_programs_source =
+            std::fs::read_to_string(input.root.join(REASONING_PROGRAMS_EXAMPLE_PATH))
+                .map_err(|e| stage_err(format!("read {REASONING_PROGRAMS_EXAMPLE_PATH}: {e}")))?;
+        let (reasoning_programs_program, reasoning_programs_diagnostics) = parse_logic_str(
+            &reasoning_programs_source,
+            Some(REASONING_PROGRAMS_EXAMPLE_PATH.to_string()),
+        )
+        .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+        diagnostics.extend(reasoning_programs_diagnostics);
+        if reasoning_programs_program.reasoning_programs.is_empty() {
+            return Err(stage_err(format!(
+                "{REASONING_PROGRAMS_EXAMPLE_PATH} carries zero logic:ReasoningProgram \
+                 individuals — the goal-directed demonstrator corpus is missing (corrupt \
+                 worked-example source)"
+            )));
+        }
+        let program =
+            program.with_reasoning_programs(reasoning_programs_program.reasoning_programs);
+
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         // Discharge every authored correspondence's lens law by EXECUTION so the five
@@ -423,7 +621,24 @@ impl Stage for CompileLogicStage {
         // never enforced there — this is the one place they are thrown, AND the one place the
         // committed loss ledger learns its `correspondenceCount` / `lawfulUpliftCount` over
         // REAL gate verdicts (the honest replacement for the SSSOM "81% liftable" heuristic).
-        let correspondence = affine_triangle_worked_example();
+        // Read the affine cell from its authored `logic:` TTL (the honest dogfooded
+        // replacement for the former hardcoded Rust worked example) and re-derive the one
+        // `CorrespondenceProgram` via `parse_correspondence` — the EXACT inverse of the
+        // `project_correspondence` below, so `graph/correspondence` stays byte-identical.
+        // Read/parse failure is a HARD FAIL (no-optionality): a missing or malformed cell
+        // is a corrupt build, never a silently-empty lane.
+        let correspondence_source =
+            std::fs::read_to_string(input.root.join(CORRESPONDENCE_EXAMPLE_PATH))
+                .map_err(|e| stage_err(format!("read {CORRESPONDENCE_EXAMPLE_PATH}: {e}")))?;
+        let correspondence_dataset =
+            parse_dataset(correspondence_source.as_bytes(), "text/turtle", None)
+                .map_err(|e| stage_err(format!("parse {CORRESPONDENCE_EXAMPLE_PATH}: {e}")))?;
+        let correspondence = parse_correspondence(&correspondence_dataset).map_err(|e| {
+            stage_err(format!(
+                "re-derive correspondence from {CORRESPONDENCE_EXAMPLE_PATH}: {}",
+                e.message()
+            ))
+        })?;
         let (gated, _gate_outcomes) = correspondence
             .clone()
             .with_derived_puts()
@@ -434,8 +649,19 @@ impl Stage for CompileLogicStage {
         let gate_report = evaluate_gates(&gated, &[], &gate_verdicts);
         assert_gates(&gate_report).map_err(|e| stage_err(format!("correspondence gate: {e}")))?;
         let lift = liftability(&gate_report);
-        arts.report_header.correspondence_count = gated.correspondences.len();
-        arts.report_header.lawful_uplift_count = lift.lawful;
+        // Count-ownership seam (Seam 1): compile-logic no longer writes the FINAL
+        // `correspondence_count` / `lawful_uplift_count` into the report header. It ships the
+        // curated affine-gate BASE explicitly on the channel (`base_correspondence_count` /
+        // `base_lawful_uplift_count`, populated below from `gated`/`lift`), and mappings'
+        // `fold_up_projection_audit` is the SINGLE writer that composes base + external-term
+        // audit into the committed counts. Force the header's count fields to 0 so the channel
+        // header carries no correspondence/uplift base (`ReportHeader::of_program` seeds
+        // `correspondence_count` from `program.correspondences.len()`, which is empty in
+        // production but is zeroed here to make the single-owner contract explicit and
+        // future-proof).
+        arts.report_header.correspondence_count = 0;
+        arts.report_header.lawful_uplift_count = 0;
+        arts.report_header.claimed_uplift_count = 0;
 
         // Authored-correspondence enforcement: extract EVERY `a logic:Correspondence`
         // individual from the merged authored surface (the supersession ledger and any
@@ -541,6 +767,10 @@ impl Stage for CompileLogicStage {
         // mappings assembles + emits the final `PROJECTION_REPORT_PATH`.
         let channel = LogicProjectionsChannel {
             header: arts.report_header,
+            // The curated affine-gate BASE the mappings stage composes with the external-term
+            // up-projection audit to form the committed correspondence/uplift counts.
+            base_correspondence_count: gated.correspondences.len(),
+            base_lawful_uplift_count: lift.lawful,
             projections: arts.logic_projections.clone(),
             loss_nodes: arts.loss.to_nodes(),
         };
@@ -930,7 +1160,10 @@ mod tests {
                     return product;
                 }
 
-                let upstream = BTreeMap::new();
+                // compile-logic now consumes the `stage-source-load` product (the
+                // narrowed `graph/logic-compile-inputs` entity), so the fixture must
+                // supply that upstream — an empty map would hard-fail the stage.
+                let upstream = source_load_upstream(&root);
                 let product = stage
                     .run(StageInput {
                         root: &root,
@@ -998,7 +1231,7 @@ mod tests {
     #[test]
     fn compile_logic_stage_emits_every_product() {
         let root = repo_root();
-        let upstream = BTreeMap::new();
+        let upstream = source_load_upstream(&root);
         let out = CompileLogicStage::new()
             .run(StageInput {
                 root: &root,
@@ -1121,6 +1354,142 @@ mod tests {
             "the loss witnesses' antecedent DAG must derive a gmeow:findingRootCause \
              through the authored meta rules; got {:?}",
             derivation.root_cause
+        );
+    }
+
+    /// Seam 3 soundness guard: the denylist narrowing published as
+    /// `graph/logic-compile-inputs` is READER-IDENTICAL to the full authored corpus. Over the
+    /// REAL repo it runs EACH of the five compile-logic augmentation readers on BOTH the full
+    /// authored base (`load_authored_dataset`) and the denylisted subgraph
+    /// (`logic_compile_input_subgraph`) and asserts the IR output is identical — so the
+    /// stripped predicate families (documentation: SKOS + RDFS presentational; alignment/
+    /// mapping: SKOS mapping predicates + SSSOM `semapv:`; foreign-domain example vocab: gUFO/
+    /// schema.org/FOAF/Wikidata; and the bibliographic-metadata families incl. Dublin Core/PROV/
+    /// VANN/VoID/DCAT/…) are provably never read. If the denylist ever strips a read predicate,
+    /// a reader's output diverges and this test REDS. Non-vacuity is asserted FIRST for EVERY
+    /// reader (validation shapes, constraints, correspondences, leg programs, and the meta-fold
+    /// root cause are each proven non-empty on the full corpus) so the test cannot pass
+    /// vacuously — the widened denylist most affects the correspondence-adjacent readers, so
+    /// their non-emptiness is load-bearing.
+    ///
+    /// On-gate: running the five readers over the whole corpus twice measures ~2.3s, well
+    /// under the 25s budget, so it stays on the default gate (no `#[ignore]`).
+    #[test]
+    fn logic_compile_input_subgraph_preserves_reader_output() {
+        use gmeow_errors::render::to_gmeow_rdf;
+        use gmeow_logic_compile::loss_ledger::LossLedger;
+
+        let root = repo_root();
+        let full = crate::stages::source_load::load_authored_dataset(&root)
+            .expect("load the full authored corpus");
+        let narrow = crate::stages::source_load::logic_compile_input_subgraph(full.as_ref())
+            .expect("build the denylisted logic-compile-inputs subgraph");
+
+        // The narrowing must have actually REMOVED documentation triples (else it proves
+        // nothing about the denylist) yet KEPT the vast majority of the corpus.
+        assert!(
+            narrow.quad_count() < full.quad_count(),
+            "the denylist must strip at least some documentation triples: full {} == narrow {}",
+            full.quad_count(),
+            narrow.quad_count()
+        );
+
+        // Reader 1: closed-world validation shapes. Non-vacuity FIRST.
+        let vs_full = gmeow_logic_compile::frontend::derive_validation_shapes(full.as_ref())
+            .expect("derive validation shapes over the full corpus");
+        let vs_narrow = gmeow_logic_compile::frontend::derive_validation_shapes(narrow.as_ref())
+            .expect("derive validation shapes over the narrowed corpus");
+        assert!(
+            !vs_full.is_empty(),
+            "non-vacuity: the full corpus must derive at least one validation shape"
+        );
+        assert_eq!(
+            vs_full, vs_narrow,
+            "derive_validation_shapes must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 2: procedural constraints. Non-vacuity FIRST.
+        let (c_full, _c_full_diags) =
+            gmeow_logic_compile::frontend::extract_all_constraints(full.as_ref());
+        let (c_narrow, _c_narrow_diags) =
+            gmeow_logic_compile::frontend::extract_all_constraints(narrow.as_ref());
+        assert!(
+            !c_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one constraint"
+        );
+        assert_eq!(
+            c_full, c_narrow,
+            "extract_all_constraints must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 3: authored correspondences. Non-vacuity FIRST — the broadened denylist
+        // strips the SKOS mapping surface and SSSOM/foreign-domain vocab that sit adjacent to
+        // correspondence cells, so an empty correspondence set here would hide a regression.
+        let (corr_full, corr_full_errs) = extract_correspondences(full.as_ref());
+        let (corr_narrow, corr_narrow_errs) = extract_correspondences(narrow.as_ref());
+        assert!(
+            !corr_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one authored correspondence"
+        );
+        assert_eq!(
+            corr_full, corr_narrow,
+            "extract_correspondences must be reader-identical across the denylist narrowing"
+        );
+        assert_eq!(
+            corr_full_errs, corr_narrow_errs,
+            "extract_correspondences malformed-cell errors must match across the narrowing"
+        );
+
+        // Reader 4: the correspondence leg programs (over the SAME correspondences).
+        // Non-vacuity FIRST — the authored corpus carries gm: leg-path bodies (equivalence and
+        // structural cells), so an empty program set would mean the reader silently found none.
+        let legs_full = extract_leg_programs(full.as_ref(), &corr_full);
+        let legs_narrow = extract_leg_programs(narrow.as_ref(), &corr_narrow);
+        assert!(
+            !legs_full.is_empty(),
+            "non-vacuity: the full corpus must extract at least one correspondence leg program"
+        );
+        assert_eq!(
+            legs_full, legs_narrow,
+            "extract_leg_programs must be reader-identical across the denylist narrowing"
+        );
+
+        // Reader 5: the diagnostic meta-fold. `MetaProgram` has no `PartialEq`, so compare
+        // the two programs BEHAVIORALLY — run each over the SAME real projected finding graph
+        // and assert identical (and non-empty) `MetaDerivation` (which IS `Eq`).
+        let meta_full = crate::stages::meta_findings::MetaProgram::from_source_dataset(&full)
+            .expect("meta-fold parses over the full corpus")
+            .expect("the full corpus carries gmeow:DiagnosticMetaRule rules");
+        let meta_narrow = crate::stages::meta_findings::MetaProgram::from_source_dataset(&narrow)
+            .expect("meta-fold parses over the narrowed corpus")
+            .expect("the narrowed corpus carries gmeow:DiagnosticMetaRule rules");
+        let mut loss = LossLedger::new();
+        loss.record_projection_drops(
+            "owl-dl",
+            PreservationKind::SoundUnder,
+            &["OWL-DL cannot carry full first-order formulas".to_owned()],
+            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
+        );
+        loss.record_projection_drops(
+            "datalog",
+            PreservationKind::SoundUnder,
+            &["Datalog cannot carry existential heads".to_owned()],
+            &["logic:Formula #7 dropped as unsupported residue".to_owned()],
+        );
+        let projected = to_gmeow_rdf(&loss.project_report(TOOL));
+        let deriv_full = meta_full
+            .derive(&projected)
+            .expect("meta chase over the full corpus program");
+        let deriv_narrow = meta_narrow
+            .derive(&projected)
+            .expect("meta chase over the narrowed corpus program");
+        assert!(
+            !deriv_full.root_cause.is_empty(),
+            "non-vacuity: the authored meta rules must derive a root cause on the full corpus"
+        );
+        assert_eq!(
+            deriv_full, deriv_narrow,
+            "MetaProgram::from_source_dataset must be reader-identical across the denylist narrowing"
         );
     }
 
@@ -1533,7 +1902,7 @@ mod tests {
 
         // The production affine triangle passes the five gates: the wiring will not spuriously
         // fail the build (and the full stage `run` succeeds in the sibling tests).
-        let (gated, _) = affine_triangle_worked_example()
+        let (gated, _) = affine_worked_example_program()
             .with_derived_puts()
             .expect("derive affine put legs");
         let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
@@ -1571,10 +1940,8 @@ mod tests {
     /// with its backing graph (no-optionality, fail-closed).
     #[test]
     fn pin_correspondence_handle_hard_fails_on_digest_mismatch() {
-        use gmeow_logic_compile::projections::correspondence::{
-            affine_triangle_worked_example, project_correspondence,
-        };
-        let program = affine_triangle_worked_example();
+        use gmeow_logic_compile::projections::correspondence::project_correspondence;
+        let program = affine_worked_example_program();
         let nt = project_correspondence(&program);
         let dataset = correspondence_graph_dataset(&nt).expect("graph/correspondence dataset");
         let mut bundle =

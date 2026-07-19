@@ -10,7 +10,11 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use purrdf::RdfDataset;
+use purrdf::ir::InMemoryPageProvider;
+use purrdf::{
+    PageGeneration, PagedDataset, PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad,
+    RdfTerm, TermValue,
+};
 
 use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_errors::dag::DagNode;
@@ -19,6 +23,28 @@ use gmeow_errors::model::Finding;
 use gmeow_errors::{
     Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
 };
+use gmeow_logic::annotation::{
+    AnnotationContract, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
+};
+use gmeow_logic::dispatch::{
+    RelationAnnotationRequest, RelationQueryError, dispatch_query_annotated_with_relations,
+};
+use gmeow_logic::external_relation::{
+    NeverCancelled, QueryRelationProviders, RelationAnnotationDimension, RelationOrderDirection,
+    RelationOrdering, RelationProviderBudget, RelationProviderDescriptor,
+    RelationProviderRegistration, RelationTuple, TableRelationProvider,
+};
+use gmeow_logic::provenance::ZWeightSemiring;
+use gmeow_logic::query_ir::{Budget, parse_query_program};
+use gmeow_logic::result::PreservationClaim;
+use gmeow_logic::runtime::{
+    Checkpoint, FragmentDisposition, IncompleteCause, IntegrityFault, OperationOutcome,
+    PagedCompositionMetrics, ReasoningSession, RebuildReason, SessionDelta, Suppression,
+    UnsupportedFragment, edb_data_generation,
+};
+use gmeow_logic::seam::{WorldFactSnapshot, WorldSourceIdentity};
+use gmeow_logic::store::WorldStore;
+use gmeow_logic_compile::result_shape::ColumnKind;
 use gmeow_pipeline::diagnostics_reader::{
     FindingIndex, WitnessIndex, WitnessRecord, explain_finding, explain_witness, minimal_fatal_cut,
     read_findings, read_invented_witnesses, render_shared_dag, verdict,
@@ -626,6 +652,1701 @@ pub fn conjecture_test(
         println!("persisted no");
     }
     0
+}
+
+// ── candidate (propose/verify seam) ──────────────────────────────────────────
+
+/// `gmeow candidate submit` — test a candidate `logic:` formula against a KB and, ONLY if the
+/// isolated-world verdict CORROBORATES it (admissible), APPEND it to the append-only candidate
+/// library. Delegates to the SHARED [`gmeow_pipeline::mcp::run_submit_candidate`] core (the same
+/// path the MCP `submit_candidate` tool runs), so there is one implementation, not two. A refuted
+/// or open candidate is not admitted (a non-zero exit), and `--dry-run` writes nothing.
+#[allow(clippy::too_many_arguments)]
+pub fn candidate_submit(
+    reporter: &dyn Reporter,
+    formula: &Path,
+    kb: &Path,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    for_slice: Option<&str>,
+    for_packet: Option<&str>,
+    dry_run: bool,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> i32 {
+    let formula_ttl = match std::fs::read_to_string(formula) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", formula.display()),
+            );
+        }
+    };
+    let kb_ttl = match std::fs::read_to_string(kb) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.read",
+                format!("cannot read {}: {e}", kb.display()),
+            );
+        }
+    };
+
+    let out = match gmeow_pipeline::mcp::run_submit_candidate(
+        &gmeow_pipeline::mcp::CandidateSubmitInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            for_slice,
+            for_packet,
+            dry_run,
+            max_steps,
+            max_answers,
+        },
+    ) {
+        Ok(out) => out,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("candidate submission failed: {e}"),
+            );
+        }
+    };
+
+    println!("lifecycle {}", out.lifecycle);
+    println!("information {}", out.information);
+    println!("evaluation {}", out.evaluation);
+    println!("completeness {}", out.completeness);
+    println!("discharge {}", out.discharge);
+    println!("admissible {}", out.admissible);
+    println!("candidate {}", out.node_iri);
+
+    // NOT admissible (refuted / open): the write was refused and nothing was appended. Report and
+    // fail (exit 1), mirroring the MCP `ok:false` path.
+    if let Some(reason) = &out.precondition_unmet {
+        return fail(
+            reporter,
+            "gmeow-cli.candidate.not-admissible",
+            format!("submitCandidate precondition unmet (candidate not admissible): {reason}"),
+        );
+    }
+    if out.dry_run {
+        println!("persisted dry-run (nothing written)");
+    } else if out.committed {
+        println!("persisted committed");
+    } else {
+        println!("persisted no");
+    }
+    0
+}
+
+/// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
+/// the SHARED [`gmeow_pipeline::mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
+/// or already-withdrawn id is a hard error (a non-zero exit).
+pub fn candidate_withdraw(
+    reporter: &dyn Reporter,
+    candidate_id: &str,
+    reason: Option<&str>,
+    dry_run: bool,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_withdraw_candidate(
+        candidate_id,
+        reason.unwrap_or(""),
+        dry_run,
+    ) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.withdraw-failed",
+                format!("candidate withdrawal failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.withdraw")
+}
+
+/// `gmeow candidate list` — list admitted candidates with their disposition + provenance.
+/// Delegates to the SHARED [`gmeow_pipeline::mcp::run_list_candidates`] core.
+pub fn candidate_list(
+    reporter: &dyn Reporter,
+    slice: Option<&str>,
+    disposition: Option<&str>,
+) -> i32 {
+    let body = match gmeow_pipeline::mcp::run_list_candidates(slice, disposition) {
+        Ok(body) => body,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.list-failed",
+                format!("candidate list failed: {e}"),
+            );
+        }
+    };
+    render_candidate_json(reporter, &body, "gmeow-cli.candidate.list")
+}
+
+/// Print a candidate tool's JSON response body verbatim, mapping its `ok` flag to the process
+/// exit: an `ok:false` envelope (e.g. an unmet withdrawal precondition) is a hard failure.
+fn render_candidate_json(reporter: &dyn Reporter, body: &str, code: &str) -> i32 {
+    let value: serde_json::Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => return fail(reporter, code, format!("malformed tool response: {e}")),
+    };
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&value).unwrap_or_else(|_| body.to_string())
+    );
+    if value.get("ok").and_then(serde_json::Value::as_bool) == Some(false) {
+        let msg = value
+            .get("error")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("candidate operation failed");
+        return fail(reporter, code, msg.to_string());
+    }
+    0
+}
+
+// ── hybrid-query ─────────────────────────────────────────────────────────────
+
+/// The isolated query world every `hybrid-query --facts` document is re-homed
+/// into, mirroring `gmeow conjecture test`'s scenario-world isolation: the
+/// caller's facts are ordinary asserted RDF, never mutated, and never joined
+/// against any other world already resident in the process.
+const HYBRID_QUERY_WORLD: &str = "https://blackcatinformatics.ca/gmeow/hybrid-query/world";
+
+/// The semantic profile `hybrid-query` evaluates under: positive Horn Datalog,
+/// the same default the `gmeow-dev logic query` developer surface uses.
+const HYBRID_QUERY_PROFILE: &str = "PositiveHornProfile";
+
+/// No caller-supplied asserted-RDF annotation source: every asserted fact
+/// contributes the multiplicative identity, so an answer's combined annotation
+/// is driven entirely by the provider's own ZWeight scores.
+fn hybrid_query_unscored(_: AnnotationFactRef<'_>) -> Option<i64> {
+    None
+}
+
+/// Stable per-site diagnostic code every `--candidates` parse failure lowers to
+/// (the Diag substrate replaces a bare `String` error — Phase-6 honest invariant).
+const CANDIDATES_DIAG_CODE: &str = "gmeow-cli.hybrid-query.candidates";
+
+/// Parse one non-blank, non-comment `--candidates` line into a provider row.
+///
+/// The line format is `<arg1-iri> <arg2-iri> annotation order-key`,
+/// whitespace-separated (tabs or spaces are both accepted, and repeated
+/// whitespace is collapsed): `arg1-iri`/`arg2-iri` MUST be bracketed absolute
+/// IRIs (`<https://example.org/x>`); `annotation` is a signed 64-bit ZWeight
+/// integer; `order-key` is the provider's own lexical rank token for the
+/// pushed-down total order (the final field, taken verbatim — it may not
+/// itself contain whitespace).
+fn parse_candidate_line(line: &str, line_no: usize) -> Result<RelationTuple<i64>, Diag> {
+    let fields: Vec<&str> = line.split_whitespace().collect();
+    let [arg1, arg2, annotation, order_key] = fields.as_slice() else {
+        return Err(error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!(
+                "line {line_no}: expected 4 whitespace-separated fields \
+                 `<arg1-iri> <arg2-iri> annotation order-key`, got {} field(s)",
+                fields.len()
+            ),
+        ));
+    };
+    let parse_iri = |field: &str| -> Result<String, Diag> {
+        let trimmed = field.strip_prefix('<').and_then(|s| s.strip_suffix('>'));
+        let Some(trimmed) = trimmed else {
+            return Err(error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "line {line_no}: {field:?} must be a bracketed absolute IRI, \
+                     e.g. <https://example.org/x>"
+                ),
+            ));
+        };
+        purrdf::iri::parse(trimmed).map_err(|e| {
+            error_diag(
+                CANDIDATES_DIAG_CODE,
+                format!("line {line_no}: invalid IRI {trimmed:?}: {e}"),
+            )
+        })?;
+        Ok(trimmed.to_owned())
+    };
+    let arg1 = parse_iri(arg1)?;
+    let arg2 = parse_iri(arg2)?;
+    let annotation: i64 = annotation.parse().map_err(|e| {
+        error_diag(
+            CANDIDATES_DIAG_CODE,
+            format!("line {line_no}: invalid annotation integer {annotation:?}: {e}"),
+        )
+    })?;
+    Ok(RelationTuple {
+        arguments: vec![TermValue::iri(arg1), TermValue::iri(arg2)],
+        annotation,
+        order_key: (*order_key).to_owned(),
+    })
+}
+
+/// Parse a whole `--candidates` file: one tuple per non-blank, non-`#`-comment
+/// line (see [`parse_candidate_line`] for the line grammar).
+fn parse_candidates_file(text: &str) -> Result<Vec<RelationTuple<i64>>, Diag> {
+    let mut rows = Vec::new();
+    for (offset, raw_line) in text.lines().enumerate() {
+        let line = raw_line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        rows.push(parse_candidate_line(line, offset + 1)?);
+    }
+    Ok(rows)
+}
+
+/// Load an RDF facts file (Turtle or N-Triples, chosen by extension) and
+/// re-home every triple into the isolated [`HYBRID_QUERY_WORLD`] — the
+/// caller's asserted facts join against the provider relation inside one
+/// scenario world, never against any other world.
+fn load_hybrid_query_facts(reporter: &dyn Reporter, facts: &Path) -> Result<WorldStore, i32> {
+    let suffix = facts
+        .extension()
+        .map(|e| format!(".{}", e.to_string_lossy().to_lowercase()))
+        .unwrap_or_default();
+    let media = match suffix.as_str() {
+        ".ttl" | ".turtle" => "text/turtle",
+        ".nt" | ".ntriples" => "application/n-triples",
+        _ => {
+            return Err(fail(
+                reporter,
+                "gmeow-cli.hybrid-query.facts-format",
+                format!(
+                    "--facts {} must be Turtle (.ttl/.turtle) or N-Triples (.nt/.ntriples)",
+                    facts.display()
+                ),
+            ));
+        }
+    };
+    let bytes = read_bytes(reporter, facts)?;
+    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-parse",
+            format!("cannot parse {}: {e}", facts.display()),
+        )
+    })?;
+    let world = RdfTerm::iri(HYBRID_QUERY_WORLD);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        builder.push_owned_quad(
+            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone()),
+        );
+    }
+    let dataset = builder.freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-rehome",
+            format!(
+                "cannot re-home {} into the query world: {e}",
+                facts.display()
+            ),
+        )
+    })?;
+    let store = WorldStore::new();
+    store.load_dataset(&dataset).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.hybrid-query.facts-load",
+            format!("cannot load {} into the query world: {e}", facts.display()),
+        )
+    })?;
+    Ok(store)
+}
+
+/// `gmeow hybrid-query` — register one external relation provider (a table of
+/// candidate tuples the caller supplies, e.g. lexical or vector-similarity
+/// hits) and drive a query-scoped, annotated Datalog query against it END TO
+/// END on the shipped `gmeow` binary: load ordinary asserted RDF facts, parse
+/// the query program, seal the provider registration + deterministic budget,
+/// dispatch through [`dispatch_query_annotated_with_relations`], and print
+/// both the resolved answer bindings and the query receipt (every
+/// contributing provider's identity, artifact generation, and per-invocation
+/// request/response evidence) — so this capability is observably exercised
+/// from the consumer CLI, not only from `crates/logic`'s own test binary.
+///
+/// External relation tuples are DERIVED QUERY INPUTS, never asserted ontology
+/// facts: `--candidates` is a plain line-oriented table, deliberately not RDF.
+/// A provider failure or declared incompleteness is printed to stderr and
+/// yields a non-zero exit — it never renders as an empty completed answer.
+#[allow(clippy::too_many_arguments)]
+pub fn hybrid_query(
+    reporter: &dyn Reporter,
+    facts: &Path,
+    program: &Path,
+    candidates: &Path,
+    relation: &str,
+    provider_iri: &str,
+    model_iri: &str,
+    artifact_generation: &str,
+    per_call_limit: usize,
+    max_calls: u64,
+    max_rows: u64,
+) -> i32 {
+    let store = match load_hybrid_query_facts(reporter, facts) {
+        Ok(store) => store,
+        Err(code) => return code,
+    };
+    let source =
+        match WorldFactSnapshot::from_world(&store, HYBRID_QUERY_WORLD, HYBRID_QUERY_PROFILE) {
+            Ok(source) => source,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.hybrid-query.snapshot",
+                    format!("cannot snapshot the query world: {e}"),
+                );
+            }
+        };
+
+    let program_src = match std::fs::read_to_string(program) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("cannot read {}: {e}", program.display()),
+            );
+        }
+    };
+    let program = match parse_query_program(&program_src) {
+        Ok(program) => program,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.program",
+                format!("cannot parse query program: {e}"),
+            );
+        }
+    };
+
+    let candidates_text = match std::fs::read_to_string(candidates) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("cannot read {}: {e}", candidates.display()),
+            );
+        }
+    };
+    let rows = match parse_candidates_file(&candidates_text) {
+        Ok(rows) => rows,
+        Err(detail) => {
+            return fail(
+                reporter,
+                CANDIDATES_DIAG_CODE,
+                format!(
+                    "cannot parse {}: {}",
+                    candidates.display(),
+                    detail.message()
+                ),
+            );
+        }
+    };
+
+    let provider = TableRelationProvider::new(artifact_generation, rows);
+    let algebra_iri = TupleAnnotationAlgebra::identity(&ZWeightSemiring).to_owned();
+    let ordering = match RelationOrdering::new(
+        format!("{relation}/order"),
+        RelationOrderDirection::Ascending,
+    ) {
+        Ok(ordering) => ordering,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider ordering contract: {e}"),
+            );
+        }
+    };
+    let descriptor = match RelationProviderDescriptor::new(
+        provider_iri,
+        artifact_generation,
+        model_iri,
+        relation,
+        vec![ColumnKind::Iri, ColumnKind::Iri],
+        RelationAnnotationDimension::Similarity,
+        algebra_iri,
+        PreservationClaim::exact(),
+        ordering,
+    ) {
+        Ok(descriptor) => descriptor,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider descriptor: {e}"),
+            );
+        }
+    };
+    let registration =
+        match RelationProviderRegistration::new(descriptor, per_call_limit, &provider) {
+            Ok(registration) => registration,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.hybrid-query.contract",
+                    format!("invalid provider registration: {e}"),
+                );
+            }
+        };
+    let budget = match RelationProviderBudget::new(max_calls, max_rows) {
+        Ok(budget) => budget,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider budget: {e}"),
+            );
+        }
+    };
+    // A named local, not a call-site temporary: `providers` below borrows this for
+    // the whole query execution, and a temporary's scope would not outlive the
+    // statement that constructs `providers`.
+    let never_cancelled = NeverCancelled;
+    let providers = match QueryRelationProviders::new(vec![registration], budget, &never_cancelled)
+    {
+        Ok(providers) => providers,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.contract",
+                format!("invalid provider set: {e}"),
+            );
+        }
+    };
+
+    let contract = AnnotationContract::exact();
+    let request = RelationAnnotationRequest::new(
+        AnnotationRequest::new(&ZWeightSemiring, &contract, hybrid_query_unscored),
+        &providers,
+    );
+    let result = dispatch_query_annotated_with_relations(
+        &source,
+        HYBRID_QUERY_WORLD,
+        &program,
+        HYBRID_QUERY_PROFILE,
+        &Budget::default(),
+        request,
+    );
+
+    match result {
+        Ok(result) => {
+            for answer in &result.answer.answers {
+                // `Binding` is a `BTreeMap`, so this is already deterministically
+                // sorted by variable name.
+                let rendered: Vec<String> = answer
+                    .binding
+                    .iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect();
+                println!(
+                    "answer {} annotation={}",
+                    if rendered.is_empty() {
+                        "(true)".to_owned()
+                    } else {
+                        rendered.join(", ")
+                    },
+                    answer.annotation
+                );
+            }
+            println!("status {:?}", result.answer.status);
+            println!(
+                "receipt query-contract {}",
+                result.receipt.query_contract_hash
+            );
+            println!(
+                "receipt provider-manifest {}",
+                result.receipt.provider_manifest_hash
+            );
+            println!("receipt engine {}", result.receipt.engine_descriptor_hash);
+            println!("receipt hash {}", result.receipt.receipt_hash);
+            for (provider_iri, generation) in &result.receipt.contributing_providers {
+                println!("receipt contributing-provider {provider_iri} generation {generation}");
+            }
+            for invocation in &result.receipt.invocations {
+                println!(
+                    "receipt invocation relation={} provider={} model={} generation={} \
+                     status={:?} request={} response-hash={} delivered={} admitted={} \
+                     contributed={}",
+                    invocation.relation_iri,
+                    invocation.provider_iri,
+                    invocation.model_iri,
+                    invocation.artifact_generation,
+                    invocation.status,
+                    invocation.request_iri,
+                    invocation.response_hash.as_deref().unwrap_or("-"),
+                    invocation.delivered_rows,
+                    invocation.admitted_rows,
+                    invocation.contributed,
+                );
+            }
+            0
+        }
+        Err(RelationQueryError::Contract(e)) => fail(
+            reporter,
+            "gmeow-cli.hybrid-query.contract",
+            format!("provider/algebra contract mismatch: {e}"),
+        ),
+        Err(RelationQueryError::Query {
+            diagnostic,
+            receipt,
+        }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.query-failed",
+                format!(
+                    "query evaluation failed: {diagnostic} (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+        Err(RelationQueryError::Provider { error, receipt }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.provider-failed",
+                format!(
+                    "external relation provider did not complete: {error} \
+                     (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+    }
+}
+
+// ── entails ──────────────────────────────────────────────────────────────────
+
+/// Parse an RDF file into a dataset, inferring the syntax from its extension. A
+/// `file://` base IRI is derived from the path so RDF/XML relative IRIs resolve.
+/// Returns the failure exit code on read / parse error (a hard fail, never a
+/// degraded empty graph).
+fn parse_rdf_file(
+    reporter: &dyn Reporter,
+    path: &Path,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    let media = match path.extension().and_then(|e| e.to_str()) {
+        Some(ext) => ext.to_lowercase(),
+        None => {
+            return Err(fail(
+                reporter,
+                "gmeow-cli.entails.unknown-syntax",
+                format!(
+                    "cannot infer RDF syntax for {} (no extension); expected one of \
+                     .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
+                    path.display()
+                ),
+            ));
+        }
+    };
+    let base = std::path::absolute(path)
+        .ok()
+        .map(|abs| format!("file://{}", abs.display()));
+    purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.entails.parse",
+            format!("cannot parse {} as {media}: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow entails` — decide whether the premise graph entails the conclusion
+/// (`A ⊨ C`) natively, by refutation over the DL consistency calculus
+/// ([`gmeow_logic::entail::dl_entails`]). Prints a stable, greppable verdict:
+/// `verdict entailed` / `verdict not-entailed` / `verdict gap` (plus `gap-shape` /
+/// `gap-detail` for a gap). A malformed / unparsable input is a hard fail (exit 1);
+/// an honest capability gap is a successful, decided answer (exit 0).
+pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i32 {
+    let premise_ds = match parse_rdf_file(reporter, premise) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let conclusion_ds = match parse_rdf_file(reporter, conclusion) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+
+    let verdict = match gmeow_logic::entail::dl_entails(premise_ds.as_ref(), conclusion_ds.as_ref())
+    {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.entails.failed",
+                format!("entailment check failed: {e}"),
+            );
+        }
+    };
+
+    println!("verdict {}", verdict.as_token());
+    if let gmeow_logic::entail::EntailmentVerdict::Gap(gap) = &verdict {
+        println!("gap-shape {}", gap.shape.as_token());
+        println!("gap-detail {}", gap.detail);
+    }
+    0
+}
+
+// ── logic backward ───────────────────────────────────────────────────────────
+
+/// `rdfs:subClassOf` — the covering-edge predicate `stage-goal-directed` filters
+/// its reasoned closure on (`crates/pipeline/src/stages/goal_directed.rs`), read
+/// here directly off a parsed source graph instead of a full pipeline reasoning
+/// pass.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+/// The TOLD `rdfs:subClassOf` covering edges `(sub IRI, super IRI)` in `dataset`
+/// — an IRI-to-IRI triple on that predicate — deduplicated and sorted.
+/// `crate::physical::unify::SortOrder::from_subclass_edges` (inside
+/// `gmeow_logic`) computes its OWN reflexive-transitive closure over whatever
+/// covering edges it is handed, so passing the told edges of a simple subsort
+/// chain (e.g. `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber`) is
+/// sufficient for the engine to accept `math:Integer ⊑ math:RealNumber` —
+/// there is no need (and this command makes no attempt) to pre-compute a
+/// reasoned closure.
+fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
+    let mut edges: Vec<(String, String)> = dataset
+        .owned_quads()
+        .filter(|q| q.predicate == RDFS_SUBCLASS_OF)
+        .filter_map(|q| match (&q.subject, &q.object) {
+            (RdfTerm::Iri(s), RdfTerm::Iri(o)) => Some((s.clone(), o.clone())),
+            _ => None,
+        })
+        .collect();
+    edges.sort();
+    edges.dedup();
+    edges
+}
+
+/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
+/// extraction — deliberately independent of the `logic:` compiler frontend
+/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
+/// `Formula` data an engine caller can read back), so this reads the file's own
+/// triples directly.
+fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-backward.subsort-parse",
+            format!("cannot parse {} as Turtle: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow logic backward` — evaluate one or more authored `logic:ReasoningProgram`
+/// cells through the native proof-carrying SLG-WFS backward engine
+/// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
+/// production path `stage-goal-directed` folds into `gmeow.gts`'s
+/// `graph/goal-directed`. Never a reimplementation: this command lowers the
+/// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
+/// collects `rdfs:subClassOf` covering edges straight off the parsed source
+/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
+/// point the pipeline stage calls.
+///
+/// Hard-fails (exit 1, never a silent empty success) on: a missing
+/// `--program-file`, an unparsable file (or one carrying error-grade parse
+/// diagnostics), a file with zero `logic:ReasoningProgram` individuals, or a
+/// `--program-iri` naming no program in the file.
+pub fn logic_backward(
+    reporter: &dyn Reporter,
+    program_file: &Path,
+    program_iri: Option<&str>,
+    subsort_source: Option<&Path>,
+) -> i32 {
+    if !program_file.exists() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.missing-file",
+            format!("--program-file {} does not exist", program_file.display()),
+        );
+    }
+    let (program, diagnostics) =
+        match gmeow_logic_compile::frontend::parse_logic_path(program_file, None) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.parse",
+                    format!("cannot parse {}: {e}", program_file.display()),
+                );
+            }
+        };
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{} {}: {}", d.severity.as_str(), d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.malformed",
+            format!(
+                "{} carries {} error-grade parse diagnostic(s): {}",
+                program_file.display(),
+                errors.len(),
+                errors.join("; ")
+            ),
+        );
+    }
+    if program.reasoning_programs.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-backward.no-programs",
+            format!(
+                "{} carries zero logic:ReasoningProgram individuals",
+                program_file.display()
+            ),
+        );
+    }
+
+    let selected: Vec<gmeow_logic_compile::ir::ReasoningProgramIr> = match program_iri {
+        None => program.reasoning_programs,
+        Some(iri) => {
+            let mut programs = program.reasoning_programs;
+            let Some(pos) = programs.iter().position(|p| p.iri == iri) else {
+                let known: Vec<&str> = programs.iter().map(|p| p.iri.as_str()).collect();
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.unknown-program",
+                    format!(
+                        "--program-iri {iri:?} names no logic:ReasoningProgram in {}; known: {}",
+                        program_file.display(),
+                        known.join(", ")
+                    ),
+                );
+            };
+            vec![programs.swap_remove(pos)]
+        }
+    };
+
+    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
+    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    let program_dataset = match parse_turtle_dataset(reporter, program_file) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut subsort_edges = collect_subclass_edges(&program_dataset);
+    if let Some(source) = subsort_source {
+        let extra_dataset = match parse_turtle_dataset(reporter, source) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        subsort_edges.extend(collect_subclass_edges(&extra_dataset));
+        subsort_edges.sort();
+        subsort_edges.dedup();
+    }
+
+    // The SAME production entry point `stage-goal-directed` calls — no second
+    // engine, no reimplementation.
+    let evals =
+        match gmeow_logic::goal_directed::evaluate_reasoning_programs(&selected, &subsort_edges) {
+            Ok(evals) => evals,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.logic-backward.evaluate",
+                    format!("backward evaluation failed: {e}"),
+                );
+            }
+        };
+
+    // Deterministic ordering throughout: `evaluate_reasoning_programs` already
+    // sorts programs by name, answers by `(atom, bindings, derivation_iri)`, and
+    // verdicts by `(atom, verdict)` (G12).
+    for eval in &evals {
+        println!("program {}", eval.name);
+        println!("  description: {}", eval.description);
+        println!("  goal: {}", eval.goal);
+        println!("  status: {}", eval.status);
+        for ans in &eval.answers {
+            println!(
+                "  answer atom={} proof-checked={} derivation={}",
+                ans.atom, ans.proof_checks, ans.derivation_iri
+            );
+            for (var, surface) in &ans.bindings {
+                println!("    binding {var} = {surface}");
+            }
+        }
+        for v in &eval.verdicts {
+            println!("  verdict atom={} verdict={}", v.atom, v.verdict);
+        }
+    }
+    0
+}
+
+// ── logic session (the operational ReasoningSession consumer) ──────────────────
+
+/// The single named-graph world IRI the session EDB/additions are re-homed into.
+/// The incremental maintenance fragment is single-world, so every fact the façade
+/// folds lives here (an ordinary Turtle EDB, whose triples land in the default
+/// graph, is deterministically re-homed into this world).
+const SESSION_WORLD_DEFAULT: &str = "https://blackcatinformatics.ca/gmeow/logic/session/world";
+
+/// The graph IRI the printed `SessionIdentity` N-Quads are scoped to.
+const SESSION_IDENTITY_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/logic/session/identity";
+
+/// Load an authored `logic:`-vocabulary program Turtle into a canonical
+/// [`gmeow_logic_compile::ir::LogicProgram`] via the SAME production frontend
+/// `gmeow logic backward` uses. Hard-fails (never a silent empty program) on a
+/// missing file, an unparsable file, or one carrying error-grade parse diagnostics.
+fn session_load_program(
+    reporter: &dyn Reporter,
+    program_file: &Path,
+) -> Result<gmeow_logic_compile::ir::LogicProgram, i32> {
+    if !program_file.exists() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.missing-program",
+            format!("--program {} does not exist", program_file.display()),
+        ));
+    }
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_path(program_file, None).map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.program-parse",
+                format!("cannot parse {}: {e}", program_file.display()),
+            )
+        })?;
+    let errors: Vec<String> = diagnostics
+        .iter()
+        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
+        .map(|d| format!("{} {}: {}", d.severity.as_str(), d.code, d.message))
+        .collect();
+    if !errors.is_empty() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.program-malformed",
+            format!(
+                "{} carries {} error-grade parse diagnostic(s): {}",
+                program_file.display(),
+                errors.len(),
+                errors.join("; ")
+            ),
+        ));
+    }
+    if program.rules.is_empty() {
+        return Err(fail(
+            reporter,
+            "gmeow-cli.logic-session.no-rules",
+            format!(
+                "{} carries zero logic:Rule individuals",
+                program_file.display()
+            ),
+        ));
+    }
+    Ok(program)
+}
+
+/// Load an RDF file (Turtle/N-Triples/N-Quads/TriG, syntax inferred from the
+/// extension) and re-home every quad into the single named-graph `world`, so the
+/// façade sees exactly one world regardless of the source serialization's graph
+/// structure. A hard fail (never a degraded empty world) on read/parse/freeze error.
+fn session_load_world_dataset(
+    reporter: &dyn Reporter,
+    path: &Path,
+    world: &str,
+) -> Result<RdfDataset, i32> {
+    let parsed = parse_rdf_file(reporter, path)?;
+    let graph = RdfTerm::iri(world.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in parsed.owned_quads() {
+        builder.push_owned_quad(
+            &RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(graph.clone()),
+        );
+    }
+    let dataset = builder.freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.edb-rehome",
+            format!(
+                "cannot re-home {} into the session world: {e}",
+                path.display()
+            ),
+        )
+    })?;
+    // The façade takes an owned `RdfDataset` for deltas/suppressions; the builder
+    // hands back a fresh single-reference `Arc`, so unwrap it into the owned world.
+    Arc::try_unwrap(dataset).map_err(|_| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.edb-own",
+            "internal: a freshly-frozen session dataset was unexpectedly shared",
+        )
+    })
+}
+
+/// An owned, empty single-world dataset — the additions slot of a suppression-only
+/// committed delta (`checkpoint --retract` without `--apply`). Never a degraded
+/// success: a freeze/own failure is a hard CLI fail.
+fn session_empty_world_dataset(reporter: &dyn Reporter) -> Result<RdfDataset, i32> {
+    let dataset = RdfDatasetBuilder::new().freeze().map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.empty-additions",
+            format!("cannot build an empty additions dataset: {e}"),
+        )
+    })?;
+    Arc::try_unwrap(dataset).map_err(|_| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.empty-own",
+            "internal: a freshly-frozen empty session dataset was unexpectedly shared",
+        )
+    })
+}
+
+/// Open a session over `edb`/`program` under the default contract and the exact
+/// annotation semiring, mapping a façade open error to a hard CLI fail.
+fn session_open(
+    reporter: &dyn Reporter,
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> Result<ReasoningSession, i32> {
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    ReasoningSession::open(edb, program, &contract, &annotation).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.open",
+            format!("cannot open reasoning session: {e}"),
+        )
+    })
+}
+
+/// The source-contract identity the CLI's demand-paged world source is named under,
+/// distinct from the resident authorized-EDB generation contract. It records that the
+/// data-generation was paged in through the in-memory `PagedDataset` provider.
+const SESSION_PAGED_SOURCE_CONTRACT: &str =
+    "https://blackcatinformatics.ca/logic/session/paged-in-memory-provider-v1";
+
+/// Compose a session over a demand-paged world-source that pages the SAME authorized
+/// world facts back in through a `PagedDataset`, exercising the `open_paged` composition
+/// surface on the production CLI.
+///
+/// `page_size` chunks the EDB quads into pages of that many quads (each a single-world
+/// frozen `RdfDataset`) so the page-fault accounting is non-trivial; `None` or a size
+/// `>=` the quad count pages the whole world as one page. The paged
+/// [`WorldSourceIdentity`] is DETERMINISTIC — its generation reuses the canonical EDB
+/// content-address ([`edb_data_generation`]) under the paged source contract — so the
+/// printed identity is stable and reproducible. Any paged freeze/seal/open error is a
+/// hard CLI fail (never a silent resident fallback).
+fn session_open_paged(
+    reporter: &dyn Reporter,
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    world: &str,
+    page_size: Option<usize>,
+) -> Result<ReasoningSession, i32> {
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+
+    // Deterministic, content-addressed paged identity: the generation is the canonical
+    // EDB content-address (identical to the resident data-generation), named under the
+    // paged provider's own source contract.
+    let identity: WorldSourceIdentity = edb_data_generation(edb, SESSION_PAGED_SOURCE_CONTRACT)
+        .map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-generation",
+                format!("cannot content-address the paged EDB generation: {e}"),
+            )
+        })?;
+
+    // Page the authorized world quads (already re-homed into `world`) into one or more
+    // single-world frozen pages. Chunking makes the page-fault accounting non-trivial;
+    // the chunks are quad-disjoint, so the paged seal admits them.
+    let quads: Vec<RdfQuad> = edb.owned_quads().collect();
+    let total = quads.len();
+    let chunk = match page_size {
+        Some(size) if size > 0 && size < total => size,
+        // `None`, `0`, or a size that would not split the world → one whole-world page.
+        _ => total.max(1),
+    };
+    let mut pages: Vec<Arc<RdfDataset>> = Vec::new();
+    for window in quads.chunks(chunk) {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in window {
+            builder.push_owned_quad(quad);
+        }
+        let page = builder.freeze().map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-page-freeze",
+                format!("cannot freeze a paged world page: {e}"),
+            )
+        })?;
+        pages.push(page);
+    }
+    // An empty EDB pages one empty world page, so the provider always has ≥1 page.
+    if pages.is_empty() {
+        let page = RdfDatasetBuilder::new().freeze().map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-session.paged-page-freeze",
+                format!("cannot freeze the empty paged world page: {e}"),
+            )
+        })?;
+        pages.push(page);
+    }
+
+    let provider = Arc::new(InMemoryPageProvider::with_generation(
+        pages,
+        PageGeneration(0),
+    ));
+    let paged = PagedDataset::from_provider(provider).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.paged-seal",
+            format!("cannot seal the paged world source: {e}"),
+        )
+    })?;
+
+    ReasoningSession::open_paged(
+        &paged,
+        identity,
+        world,
+        program,
+        &contract,
+        &annotation,
+        PagedQueryLimits::UNBOUNDED,
+    )
+    .map_err(|outcome| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.open-paged",
+            format!("cannot open paged reasoning session: {outcome:?}"),
+        )
+    })
+}
+
+/// Print the page-fault / source-access accounting of a paged-composed session, so the
+/// `open_paged` composition is observable/dogfooded on the CLI. Every line is a stable,
+/// greppable `paged-*` key.
+fn print_paged_metrics(metrics: &PagedCompositionMetrics) {
+    let source = &metrics.source;
+    let backend = &metrics.backend;
+    println!("paged-source-delivered-quads {}", source.delivered_quads());
+    println!("paged-source-primary-quads {}", source.primary_quads);
+    println!("paged-source-pattern-probes {}", source.pattern_probes);
+    println!("paged-backend-generation {}", backend.generation.0);
+    println!(
+        "paged-backend-requested-pages {}",
+        backend.requested_pages.len()
+    );
+    println!("paged-backend-consumed-pages {}", backend.consumed_pages);
+    println!("paged-backend-consumed-bytes {}", backend.consumed_bytes);
+}
+
+/// A stable, greppable label for a program's fragment disposition.
+fn render_fragment_disposition(disposition: &FragmentDisposition) -> String {
+    match disposition {
+        FragmentDisposition::Incremental => "incremental".to_owned(),
+        FragmentDisposition::RequiresFullRebuild(reason) => {
+            format!("requires-full-rebuild {}", render_rebuild_reason(reason))
+        }
+        FragmentDisposition::Unsupported(kind) => {
+            format!("unsupported {}", render_unsupported_fragment(kind))
+        }
+        // `FragmentDisposition` is `#[non_exhaustive]`: a future tier still prints.
+        _ => "unknown".to_owned(),
+    }
+}
+
+/// A stable label for a rebuild reason.
+fn render_rebuild_reason(reason: &RebuildReason) -> &'static str {
+    match reason {
+        RebuildReason::BoundedRetractionUnsupported => "bounded-retraction-unsupported",
+        RebuildReason::AdditionsOutsideIncrementalFragment => {
+            "additions-outside-incremental-fragment"
+        }
+        RebuildReason::ContractOrEngineDriftSinceCheckpoint => {
+            "contract-or-engine-drift-since-checkpoint"
+        }
+        // `RebuildReason` is `#[non_exhaustive]`: a future reason still prints.
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an unsupported-fragment kind.
+fn render_unsupported_fragment(kind: &UnsupportedFragment) -> &'static str {
+    match kind {
+        UnsupportedFragment::NonStratifiable => "non-stratifiable",
+        UnsupportedFragment::Cut => "cut",
+        UnsupportedFragment::Arithmetic => "arithmetic",
+        UnsupportedFragment::NonBinaryAtom => "non-binary-atom",
+        UnsupportedFragment::Floundering => "floundering",
+        UnsupportedFragment::NonTerminatingExistential => "non-terminating-existential",
+        UnsupportedFragment::NonTerminatingArithmetic => "non-terminating-arithmetic",
+        UnsupportedFragment::ClauseBodyTooWide => "clause-body-too-wide",
+        // `UnsupportedFragment` is `#[non_exhaustive]`: a future kind still prints.
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an incomplete-operation cause.
+fn render_incomplete_cause(cause: &IncompleteCause) -> &'static str {
+    match cause {
+        IncompleteCause::StepBudget => "step-budget",
+        IncompleteCause::Cancelled => "cancelled",
+        IncompleteCause::Deadline => "deadline",
+        IncompleteCause::SourceBudgetExhausted => "source-budget-exhausted",
+        _ => "unknown",
+    }
+}
+
+/// A stable label for an integrity fault.
+fn render_integrity_fault(fault: &IntegrityFault) -> String {
+    match fault {
+        IntegrityFault::PreconditionMismatch {
+            expected_state_hash,
+            delta_base,
+        } => format!(
+            "PreconditionMismatch expected-state-hash={expected_state_hash} delta-anchor={delta_base}"
+        ),
+        IntegrityFault::IdentityMismatch { expected, found } => {
+            format!("IdentityMismatch expected={expected} found={found}")
+        }
+        IntegrityFault::CorruptCheckpoint {
+            expected_address,
+            computed_address,
+        } => format!(
+            "CorruptCheckpoint stored-address={expected_address} computed-address={computed_address}"
+        ),
+        IntegrityFault::IllegalSignedTransaction { detail } => {
+            format!("IllegalSignedTransaction {detail}")
+        }
+        IntegrityFault::CheckpointReplayDivergence {
+            expected_head,
+            replayed_head,
+        } => format!(
+            "CheckpointReplayDivergence expected-head={expected_head} replayed-head={replayed_head}"
+        ),
+        _ => "unknown".to_owned(),
+    }
+}
+
+/// Print a typed [`OperationOutcome`] to stdout (the product stream) in a stable,
+/// greppable, diffable shape, and return the CLI exit code. A typed refusal/route
+/// (`RequiresFullRebuild`, `UnsupportedFragment`, `Incomplete`, `Invalid`) is a
+/// DECIDED answer — the observable proof the façade classifies rather than silently
+/// approximates — so it exits `0`, like an honest `entails` gap. Only a genuine
+/// `EngineFailure` is a hard fail (exit `1`).
+fn render_outcome(reporter: &dyn Reporter, outcome: &OperationOutcome) -> i32 {
+    match outcome {
+        OperationOutcome::Applied {
+            run,
+            new_state_hash,
+        } => {
+            println!("outcome Applied");
+            println!("  new-head {new_state_hash}");
+            println!("  consumed-steps {}", run.consumed_steps);
+            println!("  derived-count {}", run.derived_count);
+            println!("  signed-changes {}", run.changes.len());
+            println!("  derivations {}", run.derivations.len());
+            0
+        }
+        OperationOutcome::RequiresFullRebuild { reason } => {
+            println!("outcome RequiresFullRebuild");
+            println!("  reason {}", render_rebuild_reason(reason));
+            0
+        }
+        OperationOutcome::UnsupportedFragment { kind } => {
+            println!("outcome UnsupportedFragment");
+            println!("  kind {}", render_unsupported_fragment(kind));
+            0
+        }
+        OperationOutcome::Incomplete { status, cause } => {
+            println!("outcome Incomplete");
+            println!("  status {status}");
+            println!("  cause {}", render_incomplete_cause(cause));
+            0
+        }
+        OperationOutcome::Invalid { fault } => {
+            println!("outcome Invalid");
+            println!("  fault {}", render_integrity_fault(fault));
+            0
+        }
+        OperationOutcome::EngineFailure { diagnostic } => fail(
+            reporter,
+            "gmeow-cli.logic-session.engine-failure",
+            format!("reasoning-session engine failure: {}", diagnostic.message()),
+        ),
+        // `OperationOutcome` is `#[non_exhaustive]`: an unknown future variant is a
+        // hard fail (never a silent success).
+        _ => fail(
+            reporter,
+            "gmeow-cli.logic-session.unknown-outcome",
+            "reasoning-session returned an unrecognized outcome variant",
+        ),
+    }
+}
+
+/// Print the maintained derived closure with per-fact proof provenance, in a
+/// deterministic, diffable order. This is the production reader that makes the
+/// incrementally-maintained answer set (and its annotations) observable.
+fn render_facts_and_provenance(session: &ReasoningSession) {
+    let facts = session.facts();
+    println!("facts {}", facts.len());
+    for row in &facts.rows {
+        let args: Vec<String> = row
+            .args
+            .iter()
+            .map(gmeow_logic::provenance::term_display)
+            .collect();
+        println!("fact {} {}", row.predicate, args.join(" "));
+    }
+
+    // The maintained closure's per-fact derivation witnesses are the reasoning
+    // OUTPUT (firing rule + premises + signed Z-weight). Sort a copy on the full
+    // tuple so the reader is byte-diffable across runs.
+    let mut derivations = session.provenance().to_vec();
+    derivations.sort_by(|a, b| {
+        (&a.subject, &a.predicate, &a.object, &a.rule_iri, a.weight).cmp(&(
+            &b.subject,
+            &b.predicate,
+            &b.object,
+            &b.rule_iri,
+            b.weight,
+        ))
+    });
+    println!("provenance {}", derivations.len());
+    for prov in &derivations {
+        println!(
+            "derivation subject={} predicate={} object={} rule={} weight={} proof-height={}",
+            prov.subject,
+            prov.predicate,
+            prov.object,
+            prov.rule_iri,
+            prov.weight,
+            prov.proof_height
+        );
+        let mut premises = prov.premises.clone();
+        premises.sort();
+        for (subject, predicate, object) in &premises {
+            println!("  premise {subject} {predicate} {object}");
+        }
+    }
+}
+
+/// `gmeow logic session open` — open a session and print its seven-axis identity,
+/// genesis head, and fragment disposition.
+pub fn logic_session_open(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    world: Option<&str>,
+    paged: bool,
+    page_size: Option<usize>,
+) -> i32 {
+    let world = world.unwrap_or(SESSION_WORLD_DEFAULT);
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    // `--page-size` implies the paged composition path.
+    let paged = paged || page_size.is_some();
+    let session = if paged {
+        match session_open_paged(reporter, &edb, &program, world, page_size) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    } else {
+        match session_open(reporter, &edb, &program) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    };
+    print!("{}", session.identity().to_nquads(SESSION_IDENTITY_GRAPH));
+    println!("genesis-head {}", session.head());
+    println!(
+        "fragment-disposition {}",
+        render_fragment_disposition(session.fragment_disposition())
+    );
+    if let Some(metrics) = session.paged_metrics() {
+        print_paged_metrics(metrics);
+    }
+    0
+}
+
+/// `gmeow logic session apply` — build a content-addressed delta anchored on the
+/// session's own data-generation and current head, apply it, and print the typed
+/// outcome plus the advanced head.
+pub fn logic_session_apply(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    additions: &Path,
+    retract: Option<&Path>,
+    max_steps: Option<u64>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let additions = match session_load_world_dataset(reporter, additions, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut retirements = Vec::new();
+    if let Some(retract) = retract {
+        let row = match session_load_world_dataset(reporter, retract, world) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        };
+        retirements.push(Suppression::new(row));
+    }
+
+    let mut session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+    let base_commit = session.identity().data_generation.clone();
+    let expected_head = session.head().to_owned();
+    let delta = match SessionDelta::new(
+        base_commit,
+        expected_head,
+        additions,
+        retirements,
+        max_steps,
+    ) {
+        Ok(delta) => delta,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.delta",
+                format!("cannot build session delta: {e}"),
+            );
+        }
+    };
+    let outcome = session.apply(&delta);
+    println!("delta-identity {}", delta.delta_identity);
+    let code = render_outcome(reporter, &outcome);
+    println!("head {}", session.head());
+    code
+}
+
+/// `gmeow logic session facts` — open (optionally applying a delta first) and READ
+/// BACK the maintained derived closure with proof provenance. The anti-DARK reader.
+pub fn logic_session_facts(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    apply: Option<&Path>,
+    retract: Option<&Path>,
+    paged: bool,
+    page_size: Option<usize>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    // `--page-size` implies the paged composition path; the maintained closure read
+    // back is identical to the resident open.
+    let paged = paged || page_size.is_some();
+    let mut session = if paged {
+        match session_open_paged(reporter, &edb, &program, world, page_size) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    } else {
+        match session_open(reporter, &edb, &program) {
+            Ok(s) => s,
+            Err(code) => return code,
+        }
+    };
+
+    // Apply a committed delta before reading the closure back whenever either
+    // additions (`--apply`) or suppressions (`--retract`) are supplied. The retirement
+    // rows are re-homed into the session world and wrapped in `Suppression::new`
+    // exactly as `logic_session_checkpoint` / `logic_session_apply` do (the identical
+    // suppression-building path — NOT a second one), so a NON-EMPTY suppression is
+    // folded into the applied delta and the read-back closure + per-fact proof heights
+    // reflect the retraction (a surviving fact's min-proof-height RISES when its
+    // shortest proof is retired).
+    if apply.is_some() || retract.is_some() {
+        let additions = match apply {
+            Some(apply) => match session_load_world_dataset(reporter, apply, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+            None => match session_empty_world_dataset(reporter) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+        };
+        let mut retirements = Vec::new();
+        if let Some(retract) = retract {
+            let row = match session_load_world_dataset(reporter, retract, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            };
+            retirements.push(Suppression::new(row));
+        }
+        let base_commit = session.identity().data_generation.clone();
+        let expected_head = session.head().to_owned();
+        let delta =
+            match SessionDelta::new(base_commit, expected_head, additions, retirements, None) {
+                Ok(delta) => delta,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.logic-session.delta",
+                        format!("cannot build session delta: {e}"),
+                    );
+                }
+            };
+        let outcome = session.apply(&delta);
+        // Surface the apply classification, then STOP before reading a
+        // non-advanced closure back if the engine genuinely failed.
+        let code = render_outcome(reporter, &outcome);
+        if code != 0 {
+            return code;
+        }
+    }
+
+    println!("head {}", session.head());
+    render_facts_and_provenance(&session);
+    if let Some(metrics) = session.paged_metrics() {
+        print_paged_metrics(metrics);
+    }
+    0
+}
+
+/// `gmeow logic session checkpoint` — open (optionally applying a delta first), mint
+/// a content-addressed checkpoint, and write it to disk as JSON.
+pub fn logic_session_checkpoint(
+    reporter: &dyn Reporter,
+    edb: &Path,
+    program: &Path,
+    apply: Option<&Path>,
+    retract: Option<&Path>,
+    out: &Path,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let mut session = match session_open(reporter, &edb, &program) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+
+    // Apply a committed delta before checkpointing whenever either additions
+    // (`--apply`) or suppressions (`--retract`) are supplied. The retirement rows are
+    // re-homed into the session world exactly as the additions are (the identical path
+    // `logic_session_apply` uses), so the checkpoint persists — and `restore` replays —
+    // a delta carrying a NON-EMPTY suppression.
+    if apply.is_some() || retract.is_some() {
+        let additions = match apply {
+            Some(apply) => match session_load_world_dataset(reporter, apply, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+            None => match session_empty_world_dataset(reporter) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            },
+        };
+        let mut retirements = Vec::new();
+        if let Some(retract) = retract {
+            let row = match session_load_world_dataset(reporter, retract, world) {
+                Ok(ds) => ds,
+                Err(code) => return code,
+            };
+            retirements.push(Suppression::new(row));
+        }
+        let base_commit = session.identity().data_generation.clone();
+        let expected_head = session.head().to_owned();
+        let delta =
+            match SessionDelta::new(base_commit, expected_head, additions, retirements, None) {
+                Ok(delta) => delta,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.logic-session.delta",
+                        format!("cannot build session delta: {e}"),
+                    );
+                }
+            };
+        let code = render_outcome(reporter, &session.apply(&delta));
+        if code != 0 {
+            return code;
+        }
+    }
+
+    let checkpoint = session.checkpoint();
+    let json = match serde_json::to_string_pretty(&checkpoint) {
+        Ok(json) => json,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.checkpoint-serialize",
+                format!("cannot serialize checkpoint: {e}"),
+            );
+        }
+    };
+    if let Err(e) = std::fs::write(out, format!("{json}\n")) {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-session.checkpoint-write",
+            format!("cannot write checkpoint to {}: {e}", out.display()),
+        );
+    }
+    println!("checkpoint-written {}", out.display());
+    println!("content-address {}", checkpoint.content_address);
+    println!("journal-head {}", checkpoint.journal_head);
+    println!("edb-generation {}", checkpoint.edb_generation);
+    0
+}
+
+/// Load a checkpoint from disk EXACTLY as stored — via serde, NOT `Checkpoint::new`
+/// (which would recompute `content_address` and hide tampering). The stored
+/// `content_address` survives the round-trip, so `Checkpoint::verify` detects a
+/// tampered field.
+fn session_load_checkpoint(reporter: &dyn Reporter, path: &Path) -> Result<Checkpoint, i32> {
+    let bytes = read_bytes(reporter, path)?;
+    serde_json::from_slice::<Checkpoint>(&bytes).map_err(|e| {
+        fail(
+            reporter,
+            "gmeow-cli.logic-session.checkpoint-parse",
+            format!("cannot parse checkpoint {}: {e}", path.display()),
+        )
+    })
+}
+
+/// `gmeow logic session restore` — load a checkpoint and restore by
+/// re-materialization, printing the typed outcome (including the identity-gated /
+/// tamper-detecting rejections).
+pub fn logic_session_restore(
+    reporter: &dyn Reporter,
+    input: &Path,
+    edb: &Path,
+    program: &Path,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let checkpoint = match session_load_checkpoint(reporter, input) {
+        Ok(cp) => cp,
+        Err(code) => return code,
+    };
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    match ReasoningSession::restore(&checkpoint, &edb, &program, &contract, &annotation) {
+        Ok(session) => {
+            println!("outcome Restored");
+            println!("  head {}", session.head());
+            println!(
+                "  fragment-disposition {}",
+                render_fragment_disposition(session.fragment_disposition())
+            );
+            0
+        }
+        Err(outcome) => render_outcome(reporter, &outcome),
+    }
+}
+
+/// `gmeow logic session restart` — restart from a checkpoint and resume at its
+/// durable journal head. With `--reapply`, re-submit an already-committed delta
+/// (anchored on the STALE genesis head) to demonstrate the structural double-apply
+/// refusal surviving a persist→restore boundary.
+pub fn logic_session_restart(
+    reporter: &dyn Reporter,
+    input: &Path,
+    edb: &Path,
+    program: &Path,
+    reapply: Option<&Path>,
+) -> i32 {
+    let world = SESSION_WORLD_DEFAULT;
+    let checkpoint = match session_load_checkpoint(reporter, input) {
+        Ok(cp) => cp,
+        Err(code) => return code,
+    };
+    let program = match session_load_program(reporter, program) {
+        Ok(p) => p,
+        Err(code) => return code,
+    };
+    let edb = match session_load_world_dataset(reporter, edb, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let contract = gmeow_logic_compile::ir::ReasoningContract::new();
+    let annotation = AnnotationContract::exact();
+    let mut session =
+        match ReasoningSession::restart(&checkpoint, &edb, &program, &contract, &annotation) {
+            Ok(session) => session,
+            Err(outcome) => return render_outcome(reporter, &outcome),
+        };
+    println!("outcome Restarted");
+    println!("  head {}", session.head());
+
+    let Some(reapply) = reapply else {
+        return 0;
+    };
+    let additions = match session_load_world_dataset(reporter, reapply, world) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    // Anchor the re-submitted delta on the GENESIS head (the session identity's
+    // descriptor hash) — the precondition the delta carried when it was first
+    // committed BEFORE the checkpoint. The restarted head is the durable
+    // post-commit `journal_head`, so this stale-anchored re-submission fails the
+    // transition precondition → `Invalid{PreconditionMismatch}` (the no-double-apply
+    // guard surviving a real persist→restore boundary).
+    let base_commit = session.identity().data_generation.clone();
+    let genesis_head = session.identity().descriptor_hash.clone();
+    let delta = match SessionDelta::new(base_commit, genesis_head, additions, Vec::new(), None) {
+        Ok(delta) => delta,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.logic-session.delta",
+                format!("cannot build session delta: {e}"),
+            );
+        }
+    };
+    println!("reapply-delta-identity {}", delta.delta_identity);
+    render_outcome(reporter, &session.apply(&delta))
 }
 
 // ── validate ─────────────────────────────────────────────────────────────────
@@ -1265,8 +2986,6 @@ pub fn transpile(
             source,
             &maximal_inputs,
             &tag_map,
-            None,
-            None,
         ) {
             Ok(r) => r,
             Err(e) => return fail(reporter, "gmeow-cli.transpile.okf", e.to_string()),
@@ -2108,6 +3827,294 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     }
 }
 
+/// `gmeow slice lint` — the checkout-free tier-domination gate over an external
+/// slice directory scored against the embedded `gmeow.gts` bundle. PASS (exit
+/// `0`) iff the measured roll-up tier meets the effective bar: the higher-rank
+/// of the slice's OWN declared `gmeow:sliceQualityTier` claim and any explicit
+/// `--min-tier`; `1` when below the bar; `2` on an operational hard fail
+/// (unscorable dir, unknown `--min-tier`, unreadable declared claim, or unknown
+/// `--format`). Advisories are always emitted (graded `Error`/`Warning` relative
+/// to the bar) but never gate — see [`gmeow_slice_quality::lint_report`].
+pub fn slice_lint(
+    reporter: &dyn Reporter,
+    dir: &Path,
+    min_tier: Option<&str>,
+    format: &str,
+) -> i32 {
+    let report = match gmeow_slice_quality::score_external_slice_bytes(BUNDLE_GTS, dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.score",
+                format!("cannot score {}: {e}", dir.display()),
+                2,
+            );
+        }
+    };
+    let required = match min_tier {
+        None => None,
+        Some(name) => match gmeow_slice_quality::resolve_min_tier(&report.standard, name) {
+            Ok(t) => Some(t.clone()),
+            Err(e) => {
+                return fail_code(
+                    reporter,
+                    "gmeow-cli.slice.lint.unknown-tier",
+                    format!("{e}"),
+                    2,
+                );
+            }
+        },
+    };
+    let declared = match gmeow_slice_quality::declared_quality_tier(dir, &report.standard) {
+        Ok(t) => t,
+        Err(e) => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.declared-tier",
+                format!("cannot read declared tier for {}: {e}", dir.display()),
+                2,
+            );
+        }
+    };
+    let outcome = gmeow_slice_quality::lint_report(&report, declared.as_ref(), required.as_ref());
+    let rendered = match format {
+        "human" => Ok(outcome.render_text(&report)),
+        "json" => gmeow_errors::render::to_json(&outcome.findings),
+        "sarif" => gmeow_errors::render::to_sarif(&outcome.findings),
+        other => {
+            return fail_code(
+                reporter,
+                "gmeow-cli.slice.lint.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or sarif"),
+                2,
+            );
+        }
+    };
+    match rendered {
+        Ok(text) => {
+            print!("{text}");
+            if outcome.passed { 0 } else { 1 }
+        }
+        Err(e) => fail_code(
+            reporter,
+            "gmeow-cli.slice.lint.render",
+            format!("cannot render slice-lint report: {e}"),
+            2,
+        ),
+    }
+}
+
+// ── slice brief ──────────────────────────────────────────────────────────────
+
+/// `gmeow slice brief` — render a slice's `gmeow:AuthoringPacket`(s) in one of two
+/// explicit modes (exactly one source, both/neither is a hard error):
+///
+/// * a slice `dir` → LIVE re-assembly over the slice's OWN sources (module.ttl,
+///   mappings/, i18n/), gated by SHACL per-term conformance against the repo shape
+///   union (needs a checkout with `generated/shapes/`) — see [`slice_brief_live`].
+/// * `--from-bundle <slice>` → serve the PRE-ASSEMBLED packet(s) straight from the
+///   embedded gmeow.gts bundle, checkout-free — see [`slice_brief_from_bundle`].
+///
+/// The live path's per-term exemplar tiers come from the SINGLE canonical library
+/// tiering [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The
+/// bundle path runs the SAME [`gmeow_pipeline::mcp::extract_authoring_packets`] core the
+/// MCP `slice_brief` tool serves. A `--batch` out of range is a typed hard failure
+/// through [`fail`] (a non-zero exit) on both paths, never a panic or an empty packet.
+pub fn slice_brief(
+    reporter: &dyn Reporter,
+    dir: Option<&Path>,
+    from_bundle: Option<&str>,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Exactly one source: LIVE re-assembly from a slice `dir`, or the pre-assembled
+    // packet served `--from-bundle`. Both/neither is a hard error (explicit selection,
+    // no silent default).
+    match (dir, from_bundle) {
+        (Some(_), Some(_)) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.ambiguous-source",
+            "pass EITHER a slice directory OR --from-bundle <slice>, not both".to_string(),
+        ),
+        (None, None) => fail(
+            reporter,
+            "gmeow-cli.slice.brief.missing-source",
+            "pass a slice directory (live re-assembly) or --from-bundle <slice> (bundle serve)"
+                .to_string(),
+        ),
+        (None, Some(slice)) => slice_brief_from_bundle(reporter, slice, axis, batch, format),
+        (Some(dir), None) => slice_brief_live(reporter, dir, axis, batch, format),
+    }
+}
+
+/// `gmeow slice brief --from-bundle <slice>` — serve the pre-assembled authoring
+/// packet(s) for a slice straight from the embedded gmeow.gts bundle, via the SAME
+/// [`gmeow_pipeline::mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
+/// runs (one implementation, not two). Checkout-free: no repo root, no SHACL shape union.
+fn slice_brief_from_bundle(
+    reporter: &dyn Reporter,
+    slice: &str,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    let out = match gmeow_pipeline::mcp::slice_brief_from_bundle(
+        BUNDLE_GTS,
+        slice,
+        axis,
+        batch.map(u64::from),
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.bundle",
+                format!("cannot serve packet for slice {slice:?}: {e}"),
+            );
+        }
+    };
+    let rendered = match format {
+        "json" => serde_json::to_string_pretty(&out).unwrap_or_else(|_| out.to_string()),
+        "turtle" => out
+            .get("turtle")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        "human" => render_bundle_brief_human(&out),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    println!("{rendered}");
+    0
+}
+
+/// A compact human summary of a bundle-served authoring brief: per-packet identity,
+/// term/exemplar counts, coverage margins, and the covered-term IRIs (whose full
+/// definitions resolve via `gmeow lookup`).
+fn render_bundle_brief_human(out: &serde_json::Value) -> String {
+    // Write directly into the buffer (infallible into a `String`) rather than allocating a fresh
+    // `format!` string per line/term.
+    use std::fmt::Write as _;
+    let mut s = String::new();
+    let slice = out.get("slice").and_then(|v| v.as_str()).unwrap_or("?");
+    let count = out
+        .get("packet_count")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let _ = writeln!(s, "slice {slice} — {count} packet(s)");
+    if let Some(packets) = out.get("packets").and_then(|v| v.as_array()) {
+        for p in packets {
+            let iri = p.get("packet_iri").and_then(|v| v.as_str()).unwrap_or("?");
+            let terms = p.get("term_count").and_then(|v| v.as_i64()).unwrap_or(0);
+            let axis = p.get("axis").and_then(|v| v.as_str()).unwrap_or("?");
+            let batch = p.get("batch").and_then(|v| v.as_i64()).unwrap_or(0);
+            let grounding = p
+                .get("grounding")
+                .and_then(|v| v.as_array())
+                .map_or(0, Vec::len);
+            let _ = writeln!(
+                s,
+                "\n{iri}\n  axis {axis}, batch {batch}, {terms} term(s), {grounding} grounding cell(s)"
+            );
+            if let Some(covers) = p.get("covers_terms").and_then(|v| v.as_array()) {
+                for t in covers {
+                    if let Some(t) = t.as_str() {
+                        let _ = writeln!(s, "  - {t}");
+                    }
+                }
+            }
+        }
+    }
+    s
+}
+
+/// `gmeow slice brief <dir>` — the live, checkout-anchored re-assembly path.
+fn slice_brief_live(
+    reporter: &dyn Reporter,
+    dir: &Path,
+    axis: Option<&str>,
+    batch: Option<u32>,
+    format: &str,
+) -> i32 {
+    // Resolve the repo root and load the SHACL shape union the pipeline gates against,
+    // so the CLI's exemplar tiering matches the committed projection in a checkout.
+    let repo_root = match gmeow_slice_brief::resolve_repo_root(dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.repo-root",
+                format!("cannot resolve repo root for {}: {e}", dir.display()),
+            );
+        }
+    };
+    let shapes = match gmeow_slice_brief::load_shape_union(&repo_root) {
+        Ok(s) => s,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.shapes",
+                format!(
+                    "cannot load SHACL shape union from {}: {e}",
+                    repo_root.display()
+                ),
+            );
+        }
+    };
+    let tiers = match gmeow_slice_brief::exemplar_tiers(dir, &shapes) {
+        Ok(t) => t,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.tiers",
+                format!("cannot tier {}: {e}", dir.display()),
+            );
+        }
+    };
+    let packet = match gmeow_slice_brief::assemble_packet(&gmeow_slice_brief::BriefInputs {
+        slice_dir: dir,
+        axis,
+        batch,
+        exemplar_tiers: &tiers,
+        exemplar_target: 3,
+    }) {
+        Ok(p) => p,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.assemble",
+                format!(
+                    "cannot assemble authoring packet for {}: {e}",
+                    dir.display()
+                ),
+            );
+        }
+    };
+    let rendered = match format {
+        "human" => packet.render_text(),
+        "json" => packet.to_json(),
+        "turtle" => packet.to_turtle(),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or turtle"),
+            );
+        }
+    };
+    print!("{rendered}");
+    0
+}
+
 /// `gmeow slice projection-ceilings` — surface the committed projection-vocabulary
 /// ratchet (the guarded registry + the per-(slice, vocabulary) ceilings) straight from
 /// the embedded `gmeow.gts` bundle, dogfooding Principle 17 from the shippable
@@ -2361,6 +4368,94 @@ mod explain_tests {
             explain(reporter.as_ref(), iri, None),
             0,
             "a shipped chase-invented null explains successfully"
+        );
+    }
+}
+
+#[cfg(test)]
+mod entails_tests {
+    use gmeow_cli_core::{ConsoleMode, reporter_for};
+
+    use super::*;
+
+    /// Drive the REAL `gmeow entails` production surface (parse files → dl_entails →
+    /// exit code) over a premise `x∈A, A⊑B` and three conclusions: an entailed
+    /// membership, a non-entailed membership, and a role-assertion gap; plus a hard
+    /// fail on an unreadable file.
+    #[test]
+    fn entails_decides_positive_negative_gap_and_hard_fails_missing() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let premise = dir.path().join("premise.ttl");
+        std::fs::write(
+            &premise,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:A .\n\
+             ex:A rdfs:subClassOf ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_pos = dir.path().join("pos.ttl");
+        std::fs::write(
+            &concl_pos,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:B .\n",
+        )
+        .unwrap();
+
+        let concl_neg = dir.path().join("neg.ttl");
+        std::fs::write(
+            &concl_neg,
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix ex: <http://ex/> .\n\
+             ex:x rdf:type ex:C .\n",
+        )
+        .unwrap();
+
+        let concl_gap = dir.path().join("gap.ttl");
+        std::fs::write(
+            &concl_gap,
+            "@prefix ex: <http://ex/> .\nex:x ex:knows ex:y .\n",
+        )
+        .unwrap();
+
+        let reporter = reporter_for(ConsoleMode::Silent);
+        let r = reporter.as_ref();
+
+        // The production handler returns exit 0 for every decided verdict (entailed,
+        // not-entailed, and an honest gap) — the verdict itself is on stdout.
+        assert_eq!(entails(r, &premise, &concl_pos), 0, "entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_neg), 0, "not-entailed exits 0");
+        assert_eq!(entails(r, &premise, &concl_gap), 0, "an honest gap exits 0");
+
+        // The underlying verdicts are correct on the real datasets (parsed exactly as
+        // the CLI does).
+        let prem = parse_rdf_file(r, &premise).expect("premise parses");
+        let pos = parse_rdf_file(r, &concl_pos).expect("pos parses");
+        let neg = parse_rdf_file(r, &concl_neg).expect("neg parses");
+        let gap = parse_rdf_file(r, &concl_gap).expect("gap parses");
+        use gmeow_logic::entail::{EntailmentVerdict, GapShape, dl_entails};
+        assert_eq!(
+            dl_entails(prem.as_ref(), pos.as_ref()).unwrap(),
+            EntailmentVerdict::Entailed
+        );
+        assert_eq!(
+            dl_entails(prem.as_ref(), neg.as_ref()).unwrap(),
+            EntailmentVerdict::NotEntailed
+        );
+        assert!(matches!(
+            dl_entails(prem.as_ref(), gap.as_ref()).unwrap(),
+            EntailmentVerdict::Gap(g) if g.shape == GapShape::RoleAssertion
+        ));
+
+        // A missing conclusion file is a hard fail (exit 1), never a degraded verdict.
+        let missing = dir.path().join("nope.ttl");
+        assert_eq!(
+            entails(r, &premise, &missing),
+            1,
+            "missing input hard-fails"
         );
     }
 }

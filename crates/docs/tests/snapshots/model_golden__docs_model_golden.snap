@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
-  "slice_count": 82,
-  "term_count": 4886,
-  "dependency_edge_count": 1159,
+  "slice_count": 84,
+  "term_count": 5546,
+  "dependency_edge_count": 1243,
   "term_count_by_category": {
-    "Class": 1522,
+    "Class": 1754,
     "Datatype": 1,
-    "Individual": 715,
-    "Property": 2648
+    "Individual": 807,
+    "Property": 2984
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -40,6 +40,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/documents",
     "https://blackcatinformatics.ca/gmeow/slices/dreaming",
     "https://blackcatinformatics.ca/gmeow/slices/email",
+    "https://blackcatinformatics.ca/gmeow/slices/embedding-projection",
     "https://blackcatinformatics.ca/gmeow/slices/employment",
     "https://blackcatinformatics.ca/gmeow/slices/entities",
     "https://blackcatinformatics.ca/gmeow/slices/epistemics",
@@ -85,6 +86,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/quality",
     "https://blackcatinformatics.ca/gmeow/slices/rights",
     "https://blackcatinformatics.ca/gmeow/slices/risk",
+    "https://blackcatinformatics.ca/gmeow/slices/semantic-topology",
     "https://blackcatinformatics.ca/gmeow/slices/sensory",
     "https://blackcatinformatics.ca/gmeow/slices/sensory-environment",
     "https://blackcatinformatics.ca/gmeow/slices/sexuality",
@@ -148,8 +150,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "42a00e09c34a1b2d32662a38ede41b060a0dbbf14d2f703ddfc093788939092d",
-        "semantic_digest": "3c4146747590396bbd444ba05272ff0434f6a75232822a8503460a521732b51e"
+        "raw_digest": "06d16d51d48025b272755518c3421b877c1eef396095347a2d0324e93067f17e",
+        "semantic_digest": "7624f4c2c37e493284cd977f7d0e24e4d168a81282c7b3e6eecf1650ced90ecf"
       },
       {
         "role": "TestDsl",
@@ -212,7 +214,8 @@ expression: summary
         "full",
         "memory",
         "music",
-        "narrative"
+        "narrative",
+        "purremb"
       ]
     },
     {
@@ -264,15 +267,16 @@ expression: summary
         "full",
         "memory",
         "music",
-        "narrative"
+        "narrative",
+        "purremb"
       ]
     },
     {
-      "iri": "https://blackcatinformatics.ca/gmeow/VerdictEquivalent",
+      "iri": "https://blackcatinformatics.ca/gmeow/GapShapeExistentialWitness",
       "slug": "",
-      "curie": "gmeow:VerdictEquivalent",
-      "label": "Verdict Equivalent",
-      "definition": "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped.",
+      "curie": "gmeow:GapShapeExistentialWitness",
+      "label": "Gap Shape Existential Witness",
+      "definition": "The gmeow:GapShape for a conclusion carrying a blank-node (existential) subject or object, which needs Skolem-witness semantics outside the ground-refutation fragment the native DL reasoner decides over. A genuine reasoner-fragment gap.",
       "category": "Individual",
       "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
       "parents": [],
@@ -297,18 +301,18 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:d555d0a0896396726c7c86786c0a2fdac89909a2f8f2111ff2a8ec67ca44a8b7",
+      "content_digest": "blake3:2975cace510b2098d48653aebfe8f0a966ecaf8cce2f23d18799f36912fafb19",
       "profiles": [
         "claims",
         "full"
       ]
     }
   ],
-  "mapping_set_count": 86,
-  "linkage_count": 2033,
-  "example_count": 158,
+  "mapping_set_count": 99,
+  "linkage_count": 2114,
+  "example_count": 177,
   "concern_count": 7,
-  "external_term_count": 1717,
+  "external_term_count": 1800,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -423,15 +427,16 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 324,
-  "competency_count": 193,
+  "shape_count": 145,
+  "competency_count": 270,
   "sample_shape": {
-    "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
-    "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
     "messages": [
-      "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted."
+      "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold).",
+      "An AdequacyAssessment must name exactly one gmeow:EpistemicStandard (gmeow:adequacyUnderStandard)."
     ],
-    "owner_slice": "root"
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/epistemics"
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",

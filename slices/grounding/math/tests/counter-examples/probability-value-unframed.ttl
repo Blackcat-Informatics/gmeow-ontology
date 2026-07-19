@@ -4,7 +4,7 @@
 # Counter-example for math:ProbabilityValueFramedShape (Rule P3): a math:ProbabilityValue
 # that names NEITHER its gmeow:hasReferenceFrame NOR its logic:probabilityModel, so the
 # sh:or over those two arms fails — shacl.OrConstraintComponent (math:UnframedProbabilityValue).
-# Single violation: its in-range gmeow:quantityValue (0.5) keeps the range gate
+# Single violation: its in-range math:quantityValue (0.5) keeps the range gate
 # math:ProbabilityValueRangeShape (P1) SATISFIED, it is not typed math:OddsValue /
 # math:LogOddsValue so math:ProbabilityScaleDisjointShape (P2) stays satisfied, and it
 # carries no logic:confidence so math:ConfidenceAsProbabilityConstraint (P10) stays silent —
@@ -17,4 +17,5 @@
 @prefix ex:    <http://example.org/math/> .
 
 ex:bareLiteralProbability a math:ProbabilityValue ;
-    gmeow:quantityValue "0.5"^^xsd:decimal .
+    math:quantityValue "0.5"^^xsd:decimal .
+<http://example.org/math/bareLiteralProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

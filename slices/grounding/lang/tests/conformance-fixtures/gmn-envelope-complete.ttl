@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 # Conforming GMN fixture: a complete envelope. The gmeow:GmnEnvelope carries its full
-# eight-field contract (the three dialect coordinates, the boundary ring, the asserting
-# standpoint, the generating activity, the byte-exact digest, and the losslessness
-# judgment) so lang:GmnEnvelopeContractShape validates with no findings. The judgment is
-# a logic:Correspondence — the honest section/retraction verdict of the GMN-0 → GMN-1
-# crossing (mirroring gmeow:gmnCorrNormalToGmn), never a boolean lossless flag.
+# nine-field contract (the three dialect coordinates, the declared codebook identity, the
+# boundary ring, the asserting standpoint, the generating activity, the byte-exact digest,
+# and the losslessness judgment) so lang:GmnEnvelopeContractShape validates with no findings.
+# The gmeow:gmnCodebookDigest is the codebook's recomputed Merkle root (the SAME value the
+# frozen gmn1-vectors manifest.ttl pins), so the native GMN codebook-digest gate passes. The
+# judgment is a logic:Correspondence — the honest section/retraction verdict of the GMN-0 →
+# GMN-1 crossing (mirroring gmeow:gmnCorrNormalToGmn), never a boolean lossless flag.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -25,8 +27,9 @@ ex:corrEnvelope a logic:Correspondence ;
 
 ex:envelopeComplete a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;

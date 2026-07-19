@@ -89,6 +89,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
+            "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
             "https://blackcatinformatics.ca/gmeow/graph/metadata",
             "https://blackcatinformatics.ca/gmeow/graph/provenance",
             "https://blackcatinformatics.ca/gmeow/graph/quality-assessment",
@@ -111,13 +112,22 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
+    // stage-goal-directed — the checked backward-engine answers + proof derivations.
+    entry(
+        &mut t,
+        "stage-goal-directed",
+        &["https://blackcatinformatics.ca/gmeow/graph/goal-directed"],
+        &[],
+    );
+
     // stage-math-producers — the five flagship producer graphs plus the probability-model
-    // seam producer graph and the p-value tri-slice producer graph.
+    // seam, p-value tri-slice, and exact Clifford producer graphs.
     entry(
         &mut t,
         "stage-math-producers",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
@@ -125,6 +135,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
         ],
+        &[],
+    );
+
+    // stage-slice-brief — the per-slice authoring-packet corpus (base graph); the snapshot
+    // re-roots the SAME triples into their fanout twin (below).
+    entry(
+        &mut t,
+        "stage-slice-brief",
+        &["https://blackcatinformatics.ca/gmeow/graph/authoring-briefs"],
         &[],
     );
 
@@ -137,6 +156,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws",
             "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus",
+            "https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus",
@@ -192,6 +212,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             // carrier (R6): a budget-free, proof-carrying coherence artifact the consumer
             // read tool surfaces directly.
             "https://blackcatinformatics.ca/gmeow/graph/attestations",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq",
@@ -202,6 +223,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.correspondence.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.relational-core.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/projection-report.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/shape-grounding-ledger.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/agent-runtime.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/claims.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/dreaming.ttl",
@@ -209,8 +231,10 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/memory.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/music.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/narrative.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/purremb.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/functions.fno.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/glossary.vartrans.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/list-functions.fno.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/lillith.dcat.ttl",

@@ -118,24 +118,18 @@ impl Stage for JsonSchemaStage {
         )?;
         let (_store, shapes) =
             crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
-        let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
-        let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
+        // Compile + enrich via the ONE shared builder json-schema and schemas (LinkML/
+        // TypeScript/GraphQL) both compile through, so their `$defs` stay byte-identical.
+        // Already serialized via the exact `schema_bytes` convention (serde pretty +
+        // trailing LF), so the artifact bytes are used as-is — no re-parse round trip.
+        let compiled =
+            crate::stages::schema_compile::enriched_compiled_schema(input.root, &shapes)?;
         report_losses(&compiled.losses);
-        // Enrich the shipped JSON Schema with the ontology's open value vocabularies —
-        // the SAME enrichment the Pydantic surface applies, so both agree. Re-serialized
-        // via `schema_bytes` (serde pretty + trailing LF), which reproduces `purrdf`'s
-        // own `to_pretty` byte convention exactly.
-        let mut schema: serde_json::Value =
-            serde_json::from_str(&compiled.schema_json).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!("parse compiled JSON Schema: {e}"),
-                })
-            })?;
-        let onto = crate::stages::value_vocab::load_ontology_store(input.root)?;
-        let onto_view = crate::stages::export::FoldView::new(&onto);
-        crate::stages::value_vocab::enrich_value_vocab_enums(&mut schema, &ns, &onto_view);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(JSON_SCHEMA_PATH.to_string(), schema_bytes(&schema)?);
+        artifacts.insert(
+            JSON_SCHEMA_PATH.to_string(),
+            compiled.schema_json.into_bytes(),
+        );
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
         // The two hand-authored self-describing schemas, co-located with their Rust
         // types (drift-resistance). They ride REP_SCHEMAS so a repo-free consumer can
@@ -156,13 +150,18 @@ impl Stage for JsonSchemaStage {
     }
 }
 
-fn report_losses(losses: &[purrdf::shapes::json_schema::LossRecord]) {
+fn report_losses(losses: &purrdf::LossLedger) {
     let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
-    for loss in losses {
+    for loss in losses.entries() {
+        let subject = loss
+            .location
+            .as_deref()
+            .and_then(|location| location.subject.as_deref())
+            .unwrap_or("<unlocated>");
         grouped
-            .entry((loss.construct.as_str(), loss.reason.as_str()))
+            .entry((loss.code.as_ref(), loss.note.as_ref()))
             .or_default()
-            .push(loss.shape_iri.as_str());
+            .push(subject);
     }
     for ((construct, reason), mut shapes) in grouped {
         shapes.sort_unstable();

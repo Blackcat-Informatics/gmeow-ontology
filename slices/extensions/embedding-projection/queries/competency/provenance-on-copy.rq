@@ -1,0 +1,15 @@
+# R2 — provenance retained on a copy (violation finder). A gmeow:EmbeddingProjection
+# that carries gmeow:wasDerivedFrom (it is a derived copy) but has DROPPED its
+# disclosure classification — missing gmeow:hasSensitivity OR gmeow:hasDisclosurePolicy.
+# A re-serialized copy must retain its source's classification, never orphan it.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:wasDerivedFrom ?src .
+  FILTER(
+    NOT EXISTS { ?proj gmeow:hasSensitivity ?s } ||
+    NOT EXISTS { ?proj gmeow:hasDisclosurePolicy ?d }
+  )
+}
+ORDER BY ?proj

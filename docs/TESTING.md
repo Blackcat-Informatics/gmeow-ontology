@@ -10,6 +10,15 @@ live in its `tests/` directory **as ontology data** in the test-DSL vocabulary
 faster than per-test Python (oxigraph SPARQL, no interpreter per assertion) and
 keeps tests inspectable and projectable like every other GMEOW term.
 
+Generic RDF 1.2 / RDF\* and SPARQL engine compliance is owned by PurRDF's own
+test suite. GMEOW tests the ontology and its products: every repository query
+test pins an expected result instead of merely proving that an upstream engine
+can execute it. The native `logic:` reasoner is the single reasoning
+authority; there is no live second reasoner on-gate. Engine-independent
+coverage of GMEOW's native reasoning calculus is retained without running a
+second engine, via the committed, frozen `dl_oracle_gold` corpus and the
+native gap-zero DL⊇EL crosscheck ledger.
+
 This document describes the test-DSL, the native harness, and — in detail — the
 **competency-question reasoning model**, which is the one place the harness makes
 a deliberate cost/fidelity trade-off.
@@ -69,7 +78,11 @@ validation outcome (`gmeow:expectedOutcome` conforms/violates, with
 form). The harness validates the example against the slice module + shapes via
 the native SHACL engine (`gmeow_validate`) and compares finding codes. This is
 **slice-scoped** — an example that references cross-slice classes is validated in
-full by `make validate`, not here.
+full by `make validate`, not here. The one data-scope exception is the grounding
+kernel: because `logic:`, `lang:`, and `math:` are co-foundational peers, each of
+their conformance files sees all three grounding modules while enforcing only the
+tested slice's shapes. This exposes peer-owned type witnesses without duplicating
+their canonical declarations (Principles 4 and 19).
 
 ## Competency-question reasoning (the D+C model)
 

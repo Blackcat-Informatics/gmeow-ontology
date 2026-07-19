@@ -51,6 +51,8 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.linkage.no-correspondence-surface",
     "slice-quality.linkage.no-calculus-eligible-correspondence",
     "slice-quality.linkage.uncalculated-correspondence",
+    "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+    "slice-quality.gmn-glyph-optimality.unaudited-executable-target",
     "slice-quality.projection.hand-authored-shapes",
     "slice-quality.projection.no-mappings",
     "slice-quality.testing.no-cells",
@@ -63,6 +65,8 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.gmn1-coverage.no-repo-root",
     "slice-quality.gmn1-coverage.no-dictionary",
     "slice-quality.gmn1-coverage.uncovered",
+    "slice-quality.gmn-glyph-optimality.no-candidates",
+    "slice-quality.gmn-glyph-optimality.incomplete",
     // Documentation-maturity axis codes (doc_maturity.rs).
     "slice-quality.doc-maturity.missing-dimension",
     "slice-quality.doc-maturity.model-unavailable",
@@ -73,6 +77,12 @@ pub const FINDING_CODES: &[&str] = &[
     // deficient axis carries no template (a rubric authoring gap, never swallowed).
     "slice-quality.axis-advice",
     "slice-quality.axis-advice.missing-template",
+    // The lint-gate synthetic finding (`crate::lint::lint_report`) — minted only
+    // when the measured roll-up fails to dominate the effective tier bar. Not a
+    // scoring code (no axis, no rollup); registered here so it still carries a
+    // registered code + help URI through the same json/sarif/html projections
+    // every other slice-quality finding does.
+    "slice-quality.lint.below-min-tier",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry
@@ -257,6 +267,28 @@ pub fn score_slice_with_standard(
     })
 }
 
+#[cfg(test)]
+impl SliceReport {
+    /// Test-only constructor: assemble a [`SliceReport`] from already-computed
+    /// parts, bypassing [`score_slice_with_standard`]'s scoring pass entirely.
+    /// Used by `crate::lint`'s unit tests to build synthetic reports (a
+    /// declared tier ratchet, a graded advisory, a degenerate empty-grade
+    /// slice, …) without a real slice directory or rubric dataset.
+    pub(crate) fn for_test(
+        standard: MeasurementStandard,
+        assessment: SliceAssessment,
+        advisories: Vec<Finding>,
+        axis_weight: std::collections::HashMap<String, f64>,
+    ) -> Self {
+        Self {
+            standard,
+            assessment,
+            advisories,
+            axis_weight,
+        }
+    }
+}
+
 impl SliceReport {
     /// The roll-up tier label.
     #[must_use]
@@ -396,10 +428,6 @@ const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 /// (the scorer is a deterministic Rust primitive, not expert judgement).
 const METHOD_COMPUTATIONAL_MODEL: &str =
     "https://blackcatinformatics.ca/gmeow/methodComputationalModel";
-/// A normalized quality score is a dimensionless ratio in `[0,1]`; the honest QUDT
-/// unit is UNITLESS (never PERCENT — a 0.97 ratio is not 0.97 %).
-const QUDT_UNITLESS: &str = "http://qudt.org/vocab/unit/UNITLESS";
-
 impl SliceReport {
     /// Project this slice assessment into the `gmeow:` RDF vocabulary as
     /// deterministic N-Quads, all in the `gmeow:graph/slice-quality` named graph.
@@ -410,8 +438,8 @@ impl SliceReport {
     /// subclass) whose `gmeow:assessedEntity` is the slice IRI, whose
     /// `gmeow:qualityDimension` is the axis's emitted dimension, whose
     /// `gmeow:observationMethod` is `gmeow:methodComputationalModel`, and whose two
-    /// coexisting `gmeow:observationResult`s are (a) a `gmeow:ScalarQuantity` wrapping
-    /// the normalized score (`gmeow:quantityValue` + UNITLESS `gmeow:unit`) and (b)
+    /// coexisting `gmeow:observationResult`s are (a) a `math:Quantity` wrapping
+    /// the normalized score (`math:quantityValue` + `math:dimensionless`) and (b)
     /// the categorical `gmeow:QualityTier` the score earned. The roll-up tier is one
     /// more top-level `gmeow:QualityAssessment` whose sole result is the meet tier —
     /// dimension-spanning, so it carries no `gmeow:qualityDimension`.
@@ -509,8 +537,8 @@ impl SliceReport {
                 &format!("<{METHOD_COMPUTATIONAL_MODEL}>"),
                 &mut lines,
             );
-            // Result 1: the normalized score, wrapped in a ScalarQuantity (the range of
-            // observationResult is gmeow:Entity — a bare literal is forbidden here).
+            // Result 1: the normalized score, wrapped in a math:Quantity (the range of
+            // observationResult is logic:Individual — a bare literal is forbidden here).
             triple(
                 &assessment_subject,
                 &format!("{}observationResult", crate::model::GMEOW),
@@ -537,23 +565,24 @@ impl SliceReport {
                 &mut lines,
             );
 
-            // The score ScalarQuantity: value + dimensionless unit.
+            // The score math:Quantity: value + dimensionless dimension. A normalized
+            // ratio has no unit witness and therefore needs no measurement frame.
             triple(
                 &score_subject,
                 RDF_TYPE,
-                &format!("<{}ScalarQuantity>", crate::model::GMEOW),
+                &format!("<{}Quantity>", crate::model::MATH),
                 &mut lines,
             );
             triple(
                 &score_subject,
-                &format!("{}quantityValue", crate::model::GMEOW),
+                &format!("{}quantityValue", crate::model::MATH),
                 &format!("\"{}\"^^<{XSD_DECIMAL}>", fmt_score(grade.score)),
                 &mut lines,
             );
             triple(
                 &score_subject,
-                &format!("{}unit", crate::model::GMEOW),
-                &format!("<{QUDT_UNITLESS}>"),
+                &format!("{}hasDimension", crate::model::MATH),
+                &format!("<{}dimensionless>", crate::model::MATH),
                 &mut lines,
             );
             annotate(

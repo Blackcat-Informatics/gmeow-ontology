@@ -1,10 +1,11 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 335
 expression: head
 ---
 # Linkages
 
-**2033** term equivalences across **86** mapping set(s), cross-walking GMEOW terms to external vocabularies.
+**2114** term equivalences across **99** mapping set(s), cross-walking GMEOW terms to external vocabularies.
 
 ## mapsetAccessibility
 

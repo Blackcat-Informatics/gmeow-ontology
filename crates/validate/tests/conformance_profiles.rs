@@ -96,8 +96,11 @@ ex:orphanRealm gmeow:graphBoxRole gmeow:boxABox .
     .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 // A Profile with `gmeow:profileAppliesTo` set to a plain literal (not a class IRI)
-// must fail SHACL with a violation mentioning one of profileAppliesTo / ProfileShape
-// / class (case-sensitive disjunction → `any_violation`).
+// must fail SHACL. The obligation migrated to the projected surface
+// (generated/shapes/validation-shapes.ttl Profile-shape, sh:class owl:Class on
+// gmeow:profileAppliesTo), which the fixture corpus deliberately excludes —
+// witness it by path on the LIVE production shape union (projected shapes
+// carry no sh:message).
 #[case::profile_shape_fails_for_invalid_profile_applies_to(
     Case::inline(format!(
         "{PREFIXES}\
@@ -108,8 +111,12 @@ ex:myProfile gmeow:profileDescriptor gmeow:hasProfile .
 ex:myProfile gmeow:profileAppliesTo \"not-a-class\" .
 "
     ))
+    .shape_union()
     .fails()
-    .any_violation(&["profileAppliesTo", "ProfileShape", "class"])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/profileAppliesTo",
+        "ClassConstraintComponent"
+    )
 )]
 fn profiles(#[case] case: Case) {
     case.run();

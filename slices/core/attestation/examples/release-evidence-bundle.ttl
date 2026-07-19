@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: release-as-evidence (CONSTITUTION.md §18). The
-# `make full-release` lane folds every check / classic-cross-check / conformance
-# / SARIF / compliance / perf result into a single SIGNED gmeow.gts bundle, where
+# `make full-release` lane folds every check / conformance / SARIF / compliance
+# / perf result into a single SIGNED gmeow.gts bundle, where
 # each result rides as a content-addressed blob described by a gmeow:Attestation
 # envelope. This file is the canonical shape the Rust release stage emits into the
 # bundle's graph/attestations named graph: a top-level release-manifest
@@ -50,21 +50,7 @@ ex:releaseAttestation a gmeow:Attestation ;
     gmeow:hasSignature        ex:releaseSig ;
     gmeow:verificationResult  ex:releaseVerification .
 
-# === Child attestation 1: the native↔oracle cross-check agreement matrix. ======
-ex:crossCheckArtifact a gmeow:AttestationArtifact ;
-    gmeow:artifactMediaType "application/sarif+json" ;
-    gmeow:contentDigest     "blake3:1111111111111111111111111111111111111111111111111111111111111111" .
-
-ex:crossCheckAttestation a gmeow:Attestation ;
-    gmeow:attester            ex:releaseBot ;
-    gmeow:attestedSubject     ex:gmeowRelease ;
-    gmeow:attestationType     gmeow:attestationTypeCrossCheckAgreement ;
-    gmeow:issuedAt            "2026-06-25T00:00:00Z"^^xsd:dateTime ;
-    gmeow:attestationArtifact ex:crossCheckArtifact ;
-    gmeow:hasSignature        ex:releaseSig ;
-    gmeow:verificationResult  ex:releaseVerification .
-
-# === Child attestation 2: the public conformance-suite verdicts. ===============
+# === Child attestation 1: the public conformance-suite verdicts. ===============
 ex:conformanceArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/json" ;
     gmeow:contentDigest     "blake3:2222222222222222222222222222222222222222222222222222222222222222" .
@@ -78,7 +64,7 @@ ex:conformanceAttestation a gmeow:Attestation ;
     gmeow:hasSignature        ex:releaseSig ;
     gmeow:verificationResult  ex:releaseVerification .
 
-# === Child attestation 3: the SHACL/diagnostics SARIF findings (quality report).
+# === Child attestation 2: the SHACL/diagnostics SARIF findings (quality report).
 ex:sarifArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/sarif+json" ;
     gmeow:contentDigest     "blake3:3333333333333333333333333333333333333333333333333333333333333333" .
@@ -92,7 +78,7 @@ ex:sarifAttestation a gmeow:Attestation ;
     gmeow:hasSignature        ex:releaseSig ;
     gmeow:verificationResult  ex:releaseVerification .
 
-# === Child attestation 4: the machine-readable compliance report (quality report).
+# === Child attestation 3: the machine-readable compliance report (quality report).
 ex:complianceArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "text/turtle" ;
     gmeow:contentDigest     "blake3:4444444444444444444444444444444444444444444444444444444444444444" .
@@ -106,7 +92,7 @@ ex:complianceAttestation a gmeow:Attestation ;
     gmeow:hasSignature        ex:releaseSig ;
     gmeow:verificationResult  ex:releaseVerification .
 
-# === Child attestation 5: the perf results, carried as DATA, never a gate. ======
+# === Child attestation 4: the perf results, carried as DATA, never a gate. ======
 ex:perfArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/json" ;
     gmeow:contentDigest     "blake3:5555555555555555555555555555555555555555555555555555555555555555" .

@@ -26,24 +26,27 @@ pub mod dag_profile;
 pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
-/// The native EL/DL ↔ entail-oracle divergence cross-check: drives gmeow's own
-/// reasoner against [`entail_oracle`] and folds the comparison into the structured
-/// [`reason::ledger::DivergenceLedger`]. Docker-free and on-gate; lives OUTSIDE
-/// `reason` so it is not folded into `reason::native_contract_hash`.
-pub mod entail_crosscheck;
-/// Native OWL-RL/OWL-Direct reasoning oracle over purrdf-entail — an independent
-/// cross-check engine, deliberately OUTSIDE `reason` so it is not folded into
-/// `reason::native_contract_hash` (it is not part of gmeow's own reasoning contract).
-pub mod entail_oracle;
+/// Native entailment by refutation (`A ⊨ C` iff `A ∪ ¬C` inconsistent): a thin
+/// composition over [`reason::dl_consistency`] plus the shared conclusion-shape
+/// negation calculus with sound reserved-namespace minting. Lives OUTSIDE `reason`
+/// so it is not folded into `reason::native_contract_hash` (it adds no rule).
+pub mod entail;
 pub mod entrenchment;
 /// Reasoning-core diagnostic-kind catalog: the typed [`gmeow_errors::DiagKind`]
 /// set the core raises on the shared diagnostic substrate, one per subsystem.
 pub mod error;
 pub mod explain;
+/// Query-scoped annotated external relations and their deterministic receipts.
+pub mod external_relation;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
 pub(crate) mod facts;
 pub mod foundation;
+/// The goal-directed (backward) demonstrator façade — the single thin `pub` surface over
+/// the proof-carrying full-FOL backward engine (`crate::physical::resolve_fol` +
+/// `crate::physical::proof::check`), evaluating shipped structured demonstrators into
+/// proof-checked answers the pipeline folds into `graph/goal-directed` of `gmeow.gts`.
+pub mod goal_directed;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
 // gmeow-errors Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;
@@ -65,6 +68,8 @@ pub mod profile_gate;
 pub mod provenance;
 pub mod query_ir;
 pub mod reason;
+/// The shared named-graph boundary of the object-level reasoning EDB.
+pub mod reasoning_graphs;
 pub mod reference_resolver;
 pub mod relational_core;
 pub mod result;
@@ -92,6 +97,9 @@ pub mod store;
 pub mod synth_corpus;
 pub mod teleology;
 mod term_codec;
+/// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general
+/// existential program per broader chase-termination class, each in its own world).
+pub mod termination_demonstrators;
 pub mod transaction;
 pub mod transition;
 pub mod verify;

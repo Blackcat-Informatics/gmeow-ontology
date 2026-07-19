@@ -22,16 +22,17 @@ most declarative to most procedural:
 
 - **OWL axiom** — subsumption, disjointness, domain/range carried in `module.ttl` and checked by the
   native reasoner over the reasoned graph.
-- **SHACL Core** — node/property shapes in `shapes.ttl` (cardinality, datatype, value range,
-  `sh:in`) lowered from the canonical `logic:` validation-shape node kind
+- **SHACL Core** — node/property shapes derived from EL-safe OWL/RDFS axioms in `module.ttl`
+  (cardinality, datatype, class, and value constraints), under the canonical validation doctrine
   (`slices/grounding/logic/design/LOGIC-VALIDATION.md`).
 - **SHACL-SPARQL** — constraints that need a query (uniqueness across a set, cross-node
   cardinality-by-role, contiguity), authored as `logic:` rules and projected to
   `sh:SPARQLConstraint`.
 - **source-lint** — a Rust source-level check over the slice TTL before folding (the discipline that
   catches string-only computable expressions and dangling references early).
-- **Rust validator** — a check in the future native crates (`math-ast`, `stats-model`) that is not
-  expressible as a shape (normalization identity, contiguity in strict mode, kernel totality).
+- **Rust validator** — a native check for obligations that genuinely need specialized execution
+  (normalization identity and kernel totality); slot contiguity is already a canonical
+  `logic:Constraint` projected to SHACL-SPARQL.
 - **competency query** — a `queries/competency/*.rq` that must return the expected answer on the
   slice examples; a competency failure is a coverage gap, not a data violation.
 - **projection test** — an acceptance query over a generated lowering that fails if loss is
@@ -49,11 +50,11 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A computable expression is not represented only by a string literal | source-lint + SHACL Core | `math:StringOnlyComputableExpression` |
 | An `ApplicationExpression` has exactly one operator | SHACL Core | `math:ApplicationOperatorCardinality` |
 | Each `ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
-| Slot indexes are unique per application | SHACL-SPARQL | `math:DuplicateArgumentSlotIndex` |
-| Strict-mode slot indexes are zero-based and contiguous | Rust validator | `math:NonContiguousArgumentSlots` |
+| Slot indexes are unique per application | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`) | `math:MalformedArgumentSlot` |
+| Slot indexes are non-negative, zero-based, and contiguous | canonical `logic:Constraint` → SHACL-SPARQL (`math:ArgumentSlotContiguityConstraint`), composed with the non-negative and uniqueness gates | `math:NonContiguousArgumentSlots` |
 | Every variable occurrence is bound or explicitly declared free | SHACL-SPARQL | `math:UnscopedVariableOccurrence` |
 | A free variable declares type/domain context | SHACL Core | `math:UntypedFreeVariable` |
-| A `SymbolReference` resolves locally or to a declared external symbol | Rust validator + mapping check | `math:UnresolvedSymbolReference` |
+| A `SymbolReference` resolves to exactly one local `math:MathematicalSymbol`; external identifiers align from that symbol | SHACL Core derived from the exact-one OWL restriction | `math:UnresolvedSymbolReference` |
 | A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | SHACL Core | `math:UndeclaredLogicLowering` |
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
@@ -89,6 +90,9 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A homomorphic-encryption scheme declares its homomorphic operation, hardness assumption, and noise model | SHACL Core | `math:UnderspecifiedEncryptionScheme` |
 | The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
 | A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
+| A `math:CliffordAlgebra` declares its scalar field, signature, basis, grading, exact dimension, pseudoscalar square, involution, basis blade, carrier, product, and axioms | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordAlgebra` |
+| A `math:CliffordExtension` names its base algebra, extended algebra, and extension generator | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordExtension` |
+| A `math:CliffordModuleDecomposition` names both summands and carries a true exact split/join witness | SHACL Core derived from OWL restrictions + native producer test | `math:IncompleteCliffordExtension` |
 
 Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (atoms
 over `logic:relation` predications, the logical connectives, and quantifiers) — `math:` expresses the law and `logic:` owns
@@ -178,6 +182,8 @@ silent prose.
 |---|---|---|
 | Each `math:ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
 | Slot indexes are unique within one application/binder | SHACL-SPARQL | `math:MalformedArgumentSlot` |
+| Slot indexes form the strict zero-based contiguous sequence 0..n−1 | canonical `logic:Constraint` → SHACL-SPARQL | `math:NonContiguousArgumentSlots` |
+| Each `math:SymbolReference` resolves to exactly one local `math:MathematicalSymbol` | SHACL Core | `math:UnresolvedSymbolReference` |
 | A `math:VariableOccurrence` resolves to a declaration (bound or explicitly free) | SHACL Core | `math:UnscopedVariableOccurrence` |
 | A binder binds a variable over a body | SHACL Core | `math:MalformedBindingExpression` |
 | A truth-valued expression lowered into `logic:` (`math:compilesToLogicFormula`) declares its denotation kind and preservation | SHACL Core | `math:UndeclaredLogicLowering` |
@@ -193,6 +199,9 @@ silent prose.
 | A `math:MetricSignature`'s `p + q` equals the manifold's dimension, and its `(p, q)` split agrees with the structure kind (Riemannian ⇒ `q = 0`; Lorentzian ⇒ exactly one timelike) | SHACL-SPARQL | `math:DimensionMismatch` |
 | A `math:Compactification` names all four roles (original space, compactifying map, compactified space, boundary at infinity); a `math:ConformalCompactification` additionally names its conformal factor | SHACL Core | `math:UnderspecifiedCompactification` |
 | **A `math:Complement` names its ambient space and its complement-semantics** | SHACL Core | `math:UnqualifiedComplement` |
+| A `math:PersistentHomology` activity names its input, one filtration, and a persistence-diagram output | SHACL Core derived from OWL restrictions | `math:IncompletePersistentHomologyAnalysis` |
+| A `math:HamiltonianSystem` names its smooth state space, symplectic form, Hamiltonian function, and generated flow | SHACL Core derived from OWL restrictions | `math:IncompleteHamiltonianSystem` |
+| A `math:CellularSheaf` names its base complex, at least one stalk, and at least one restriction map | SHACL Core derived from OWL restrictions | `math:IncompleteCellularSheaf` |
 
 The named-complement rule is the charter's distinguished gate: it generalizes the
 bedrock set-theoretic complement (`math:complementWithin`, replaced) to
@@ -219,10 +228,11 @@ property of the vector.
 | A `math:PCAAnalysis` declares its input, centering and scaling policy, covariance operator, eigensolver, and its component / loading / score / explained-variance / residual outputs | SHACL Core | `math:IncompletePCAAnalysis` |
 | **The meaning of a residual, component, or latent dimension is a `math:ResidualInterpretationClaim` — a `gmeow:Observation` with a `gmeow:vantage` and a result — never a property (no direct meaning property is minted)** | SHACL Core | `math:ResidualMeaningAsProperty` |
 | A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
+| A `math:DimensionalReduction` names its input, exact non-negative target dimension, and embedding output | SHACL Core derived from OWL restrictions | `math:IncompleteDimensionalityReductionAnalysis` |
 | A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
 | A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
 | A `math:Filtration` declares at least one `math:FiltrationStage`, and every stage names its `math:filtrationThreshold` and `math:stageStructure` (structural presence only — monotonicity ε₁ ≤ ε₂ ⇒ containment is the first-order law `math:filtrationMonotonicityLaw`, not a shape) | SHACL Core | `math:UnderspecifiedFiltration` |
-| A `math:PersistenceLifetime` names its `math:overFiltration`, its `math:persistenceFeature`, its `math:bornAt`, and its `math:diesAt` — a finite `gmeow:Quantity` or `math:PositiveInfinity` for an essential feature, never omitted | SHACL Core | `math:UnderspecifiedPersistenceLifetime` |
+| A `math:PersistenceLifetime` names its `math:overFiltration`, its `math:persistenceFeature`, its `math:bornAt`, and its `math:diesAt` — a finite `math:Quantity` or `math:PositiveInfinity` for an essential feature, never omitted | SHACL Core | `math:UnderspecifiedPersistenceLifetime` |
 | A `math:StabilityCalibrationRecord` names its `math:calibrationEvidence`, its `math:credenceDerivationKind`, and its `math:stabilityGuarantee` — the persistence-derived credence is warranted, not a heuristic | SHACL Core | `math:UngroundedStabilityCalibration` |
 
 The residual-meaning rule is the charter's distinguished gate: because no direct

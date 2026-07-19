@@ -95,7 +95,7 @@ pub struct ValidateOptions {
     /// validation is run in Rust.
     pub test_dsl_shapes_ttl: Option<String>,
     /// Project root for the content-addressed `.cache/validate` cache. When
-    /// `None`, caching is disabled; Task 4 wires Python to pass `PROJECT_ROOT`
+    /// `None`, caching is disabled; `gmeow-dev validate` passes `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
     pub project_root: Option<PathBuf>,
     /// Optional GTS byte bundle. When present, the orchestration builds the
@@ -314,7 +314,9 @@ fn finding_identity_key(finding: &Finding) -> String {
 }
 
 /// A complete validation run: shared store, parsed shapes, timings, diagnostics,
-/// and any data Python needs to finish phases that stay Python-side.
+/// and the auxiliary data downstream Rust phases consume (declared terms for
+/// the authoring-integrity undeclared-term gate; advisory claims for the D4
+/// dual-projection materialisation).
 ///
 /// The single diagnostic product is [`ValidationRun::report`] — one canonical
 /// [`Report`]. The legacy `errors`/`warnings` string surfaces are
@@ -329,7 +331,10 @@ pub struct ValidationRun {
     pub timings: Vec<Timing>,
     /// The single canonical diagnostics report aggregated across all phases.
     pub report: Report,
-    /// Declared GMEOW-term IRIs, for Python's `guide_anchor_lint`.
+    /// Declared GMEOW-term IRIs collected from this run's dataset via
+    /// [`lint::declared_terms_dataset`] — the same collector
+    /// [`crate::authoring_integrity`] uses independently for its
+    /// undeclared-term gate.
     pub declared_terms: Vec<String>,
     /// The dual-projection claim hooks for advisory findings (D1);
     /// D4 materialises them as RDF.
@@ -339,13 +344,14 @@ pub struct ValidationRun {
 impl ValidationRun {
     /// Run the full validation orchestration.
     ///
-    /// The phase order matches Python's `validate_all()`:
+    /// The phases run in this fixed order:
     /// 1. Turtle syntax check
     /// 2. `owl:sameAs` external-entity ban
     /// 3. Structural lint
     /// 4. Term-naming lint
     /// 5. Slice-ownership lint
-    /// 6. Declared-term collection (for Python guide-anchor lint)
+    /// 6. Declared-term collection (feeds the authoring-integrity
+    ///    undeclared-term gate)
     /// 7. Reasoning/gUFO invariants
     /// 8. Merged SHACL validation
     /// 9. Example coverage check
@@ -463,9 +469,9 @@ impl ValidationRun {
         }
 
         // Phase 1: Turtle syntax check (only meaningful for per-file sources).
-        // `short_circuit` tracks the syntax / sameAs errors specifically, matching
-        // Python's "short-circuit iff syntax or sameAs failed" (signature errors
-        // above never drive it).
+        // `short_circuit` tracks the syntax / sameAs errors specifically: the run
+        // short-circuits iff syntax or sameAs failed (signature errors above
+        // never drive it).
         let mut short_circuit = false;
         if options.gts_bytes.is_none() {
             let result = timed(&mut timings, "syntax", options, None, || {
@@ -484,7 +490,7 @@ impl ValidationRun {
             short_circuit |= intern_phase(&mut run_ledger, result);
         }
 
-        // Python short-circuits if syntax or sameAs failed — no merged graph work.
+        // Short-circuit iff syntax or sameAs failed — no merged graph work.
         if short_circuit {
             let mut report = run_ledger.project_report("validate");
             crate::rule_catalog::populate_rules(&mut report);
@@ -511,7 +517,8 @@ impl ValidationRun {
         });
         run_ledger.union(lint_report.ledger());
 
-        // Phase 6: declared-term collection for Python's guide-anchor lint.
+        // Phase 6: declared-term collection, feeding the authoring-integrity
+        // undeclared-term gate.
         let declared_terms = timed(&mut timings, "declared-terms", options, None, || {
             lint::declared_terms_dataset(&dataset, lint_config)
         });
@@ -533,8 +540,8 @@ impl ValidationRun {
 
         // Phase 5: slice ownership defects. The full slice-ownership feedback
         // surface still reports dependency observations as warnings; the validate
-        // gate folds only ownership defects, preserving the old gating surface
-        // while avoiding a second ownership-analysis pass in Python.
+        // gate folds only ownership defects, preserving the same gating surface
+        // while avoiding a second ownership-analysis pass over the same dataset.
         //
         // The ownership/catalog pass is needed only for the cached real-repo
         // gate: it supplies both those ownership-defect errors and the semantic
@@ -569,6 +576,89 @@ impl ValidationRun {
                     &finding,
                 );
             }
+        }
+
+        // Phase 5b: ontology-surface authoring gates — the whole-corpus structural
+        // invariants (shape-IRI ownership, graft isolation, slice discipline). Same
+        // cached-real-repo posture as ownership: both read the on-disk slice/shape
+        // corpus, so they fold exactly when `slice_analysis` ran (cache + slices_dir
+        // present). Error findings gate `make validate` — a duplicate slice IRI, a
+        // missing tier, a merged-shape IRI collision, or a norms graft leaking into
+        // the core `rights` module HARD-FAILS on the live path, not just in a test.
+        // Ontology-surface authoring gates run whenever `project_root` names a real
+        // repository source tree (it carries `slices/` and `shapes/`), deriving the
+        // slice tree from the repo root when `slices_dir` is not supplied
+        // explicitly. Gating on the repo-source MARKERS — NOT `slice_analysis` — is
+        // deliberate: the live `gmeow-dev validate` / `make validate` entry sets
+        // `project_root` but not `slices_dir`, so this fold fires there and its
+        // Error findings HARD-FAIL the live gate (a merged-shape IRI collision, a
+        // norms graft leak, a duplicate slice IRI, a missing tier, an undeclared
+        // term, or an untagged localizable literal). A `--gts` bundle validation or
+        // a repo-free cache harness has no `slices/`/`shapes/` source tree, so the
+        // gates correctly do not apply there (feature scoping, not degradation).
+        if let Some(project_root) = &options.project_root
+            && project_root.join("slices").is_dir()
+            && project_root.join("shapes").is_dir()
+        {
+            let slices_path = options.slices_dir.as_deref().map_or_else(
+                || project_root.join("slices"),
+                |d| std::path::Path::new(d).to_path_buf(),
+            );
+            let authoring = crate::authoring_integrity::authoring_integrity_findings(
+                project_root,
+                &slices_path,
+            )?;
+            for finding in authoring
+                .into_iter()
+                .filter(|finding| finding.severity == Severity::Error)
+            {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.authoring_integrity"),
+                    Standpoint::Binding,
+                    &finding,
+                );
+            }
+        }
+
+        // Phase 5c: ownership + example-coverage on the live repo-source path.
+        // Phase 5 (validate.ownership) and Phase 9 (example-coverage) gate on
+        // `slices_dir`, which the live `gmeow-dev validate` / `make validate` entry
+        // never sets — so both were DARK there. When `project_root` names a real
+        // source tree (carries `slices/` + `shapes/`) but no explicit `slices_dir`
+        // drove `slice_analysis`, derive the slice tree from the repo root and fold
+        // both gates so an ownership defect or a missing example HARD-FAILS live,
+        // exactly like Phase 5b. Guarded on `slice_analysis.is_none()` so a harness
+        // that supplies `slices_dir` never runs these gates twice.
+        if slice_analysis.is_none()
+            && let Some(project_root) = &options.project_root
+            && project_root.join("slices").is_dir()
+            && project_root.join("shapes").is_dir()
+        {
+            let slices_path = options.slices_dir.as_deref().map_or_else(
+                || project_root.join("slices"),
+                |d| std::path::Path::new(d).to_path_buf(),
+            );
+            let slices_path_str = slices_path.to_string_lossy().into_owned();
+            let (_, ownership) =
+                timed(&mut timings, "slice-ownership-live", options, None, || {
+                    slice_catalog_and_ownership(&slices_path_str)
+                })?;
+            for finding in slice_ownership::ownership_findings(&ownership)
+                .into_iter()
+                .filter(|finding| finding.severity == Severity::Error)
+            {
+                intern_finding(
+                    &mut run_ledger,
+                    StageId::new("validate.ownership"),
+                    Standpoint::Binding,
+                    &finding,
+                );
+            }
+            let coverage = timed(&mut timings, "example-coverage-live", options, None, || {
+                check_example_coverage(&slices_path_str)
+            })?;
+            intern_phase(&mut run_ledger, coverage);
         }
 
         // Phase 8: merged SHACL validation against the shared store.
@@ -926,7 +1016,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
             pair_loss_ledger("gts", to)
                 .entries()
                 .iter()
-                .map(|e| e.code.to_owned())
+                .map(|e| e.code.to_string())
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -2537,7 +2627,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
                 pair_loss_ledger("gts", to)
                     .entries()
                     .iter()
-                    .map(|e| e.code.to_owned())
+                    .map(|e| e.code.to_string())
                     .collect::<Vec<_>>()
             })
             .collect();

@@ -275,9 +275,9 @@ ex:saMorphismNotFunction a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    math:Morphism rdfs:subClassOf math:Function .
+    math:Morphism logic:subClassOf math:Function .
 }""" ;
     gmeow:saRationale "A math:Morphism MUST NOT be a subclass of math:Function: a morphism's domain and codomain range over algebraic structures, not bare sets, so making it a function would let the set-typed math:FunctionFramingShape misfire on structure-typed domains. Morphism is its own object-layer parent." .
 
@@ -1091,15 +1091,16 @@ ex:saPiecewiseGrounded a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     math:PiecewiseFunction rdfs:subClassOf math:Function .
     math:FunctionPiece a owl:Class .
-    math:UnderspecifiedPiecewiseFunction rdfs:subClassOf math:MathConformanceFailure .
-    math:UnbackedAnalyticProperty rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedPiecewiseFunction logic:subClassOf math:MathConformanceFailure .
+    math:UnbackedAnalyticProperty logic:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function (rdfs:subClassOf), so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each subclass math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: failure." .
+    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function, so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each use canonical logic:subClassOf to specialize math:MathConformanceFailure, so each violation is a typed, queryable object and RDFS remains a projection rather than semantic authority." .
 
 # --- Task 8 — the two co-equal flagship signed-radial-field scenes ---------- #
 
@@ -1188,3 +1189,242 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "The closed-form scene carries the same four ring measure evaluations as its qualitative twin, so the same dominance MUST hold: Ring 2's math:measureResult strictly exceeds every other radial-cf ring's, executed as the numeric FILTER inequality. Pinning the dominance on BOTH paths proves the two co-equal demonstrators agree on the volume-dominant plateau — the equation entails what the qualitative markers assert." .
+
+# --- Reference layer, expression AST, ACT, and quantity authority (#1557) -- #
+
+ex:saMathematicalReferenceLayer a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:MathematicalConcept logic:subClassOf math:MathematicalObject .
+    math:MathematicalSymbol logic:subClassOf math:MathematicalObject .
+    math:MathematicalNotation logic:subClassOf math:MathematicalObject .
+    math:MathematicalTheory logic:subClassOf math:MathematicalObject .
+    math:MathematicalContext logic:subClassOf math:MathematicalObject .
+    math:MathematicalDefinition logic:subClassOf math:MathematicalObject .
+    math:hasMathematicalSymbol a owl:ObjectProperty .
+    math:hasNotation a owl:ObjectProperty .
+    math:definedInTheory a owl:ObjectProperty .
+    math:usesDefinition a owl:ObjectProperty .
+    math:formalizesExpression a owl:ObjectProperty .
+    math:informalGloss a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "The reference layer MUST keep mathematical concept, symbol, notation, theory, context, and definition as distinct local mathematical-object classes, connected by the six designed properties rather than collapsed into glyphs or external identifiers." .
+
+ex:saReferenceAstContract a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:LiteralExpression logic:subClassOf math:MathematicalExpression .
+    math:NumberLiteral logic:subClassOf math:LiteralExpression .
+    math:SymbolReference logic:subClassOf math:MathematicalExpression .
+    math:ExpressionType logic:subClassOf math:MathematicalObject .
+    math:expressionType a owl:ObjectProperty .
+    math:normalForm a owl:ObjectProperty .
+    math:SymbolReference logic:subClassOf ?allRestriction, ?maxRestriction, ?minRestriction .
+    ?allRestriction logic:onProperty math:hasMathematicalSymbol ; logic:allValuesFrom math:MathematicalSymbol .
+    ?maxRestriction logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 .
+    ?minRestriction logic:onProperty math:hasMathematicalSymbol ; logic:minQualifiedCardinality 1 .
+}""" ;
+    gmeow:saRationale "The AST MUST expose literal and symbol-reference leaves, expression typing and normalization, and an exact-one typed symbol-resolution obligation; a display string is never the computable expression." .
+
+ex:saAppliedCategoryTheoryCore a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:Category logic:subClassOf math:MathematicalObject .
+    math:Morphism logic:subClassOf math:MathematicalObject .
+    math:Functor logic:subClassOf math:Morphism .
+    math:NaturalTransformation logic:subClassOf math:Morphism .
+    math:sourceObject a owl:ObjectProperty .
+    math:targetObject a owl:ObjectProperty .
+    math:composesWith a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The applied-category-theory seam MUST provide first-class Category, Morphism, Functor, and NaturalTransformation referents with explicit source, target, and composition properties; it must not overload set-typed function domain/codomain." .
+
+ex:saArgumentSlotContiguityGrounded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ArgumentSlotContiguityConstraint a logic:Constraint ;
+        logic:formalizes math:ArgumentSlotContiguityShape ;
+        logic:integrity ?formula ;
+        gmeow:enforcesFailureClass math:NonContiguousArgumentSlots .
+    ?formula (logic:forall|logic:antecedent|logic:consequent|logic:and|logic:or|logic:exists)+ ?sumAtom .
+    ?formula (logic:forall|logic:antecedent|logic:consequent|logic:and|logic:or|logic:exists)+ ?equalAtom .
+    math:NonContiguousArgumentSlots logic:subClassOf math:MathConformanceFailure .
+    ?sumAtom logic:relation logic:termSum .
+    ?equalAtom logic:relation logic:termEqual .
+}""" ;
+    gmeow:saRationale "Strict slot contiguity MUST be a canonical executable logic:Constraint using predecessor arithmetic, wired to math:NonContiguousArgumentSlots; prose-only strict mode is not sufficient." .
+
+ex:saMathQuantityAuthority a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Quantity a owl:Class ;
+        logic:subClassOf math:MathematicalObject , logic:QualityValue .
+    math:quantityValue a owl:DatatypeProperty .
+    FILTER NOT EXISTS { math:Quantity logic:subClassOf logic:Object }
+    FILTER NOT EXISTS { math:quantityValue logic:subPropertyOf logic:measuredValue }
+    FILTER NOT EXISTS { gmeow:Quantity a owl:Class }
+    FILTER NOT EXISTS { gmeow:ScalarQuantity a owl:Class }
+    FILTER NOT EXISTS { gmeow:MeasuredValue a owl:Class }
+    FILTER NOT EXISTS { gmeow:quantityValue a owl:DatatypeProperty }
+}""" ;
+    gmeow:saRationale "The math slice MUST own the sole quantity class and numeric-value property. A math:Quantity is an abstract logic:QualityValue, never a substantial logic:Object; the generic value property is not globally a logic:measuredValue because it also serves cardinalities, approximations, and declared values. Observation-specific frame, unit, provenance, determinacy, and uncertainty properties qualify measured quantities contextually." .
+
+ex:saProbabilityScalesAreDimensionless a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?scale { math:ProbabilityValue math:OddsValue math:LogOddsValue }
+    ?scale logic:subClassOf [
+        a logic:Restriction ;
+        logic:onProperty math:hasDimension ;
+        logic:hasValue math:dimensionless
+    ] .
+    VALUES ?generatedScale { math:OddsValue math:LogOddsValue }
+    ?generatedScale logic:subClassOf
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Dimension ] .
+}""" ;
+    gmeow:saRationale "Probability, odds, and log-odds are dimensionless quantity scales by axiom, not prose only; their inherited exactly-one dimension must therefore be math:dimensionless. Odds and log-odds restate the exact-one restriction locally because generated validation and functional-model views target those subclasses directly rather than assuming an entailment pre-pass." .
+
+# --- External-concept topology taxonomy is logic-owned (MUST) -------------- #
+
+ex:saExternalTopologyTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:SimplicialComplex logic:subClassOf math:CellComplex .
+    math:ChainComplex logic:subClassOf math:MathematicalObject .
+    math:BoundaryOperator logic:subClassOf math:Operation .
+    math:CoboundaryOperator logic:subClassOf math:Operation .
+    math:CechComplex logic:subClassOf math:SimplicialComplex .
+    math:AlphaComplex logic:subClassOf math:SimplicialComplex .
+    math:PersistenceBarcode logic:subClassOf math:MathematicalObject .
+    math:PersistenceLandscape logic:subClassOf math:MathematicalObject .
+    math:BettiSummary logic:subClassOf math:MathematicalObject .
+    math:BettiNumber logic:subClassOf math:NaturalNumber .
+    math:MapperConstruction logic:subClassOf gmeow:Activity .
+    math:MultiparameterPersistence logic:subClassOf math:PersistentHomology .
+    math:ZigzagPersistence logic:subClassOf math:PersistentHomology .
+}""" ;
+    gmeow:saRationale "The computational-topology coverage family MUST preserve its mathematical distinctions through canonical logic:subClassOf edges: complexes remain in the complex hierarchy, persistence encodings remain mathematical objects, Mapper remains an activity, and the multi-parameter and zigzag methods remain specializations of persistent homology. This executes the taxonomy itself rather than treating a term inventory or prose mention as test coverage." .
+
+# --- External-concept quadratic and Clifford taxonomy is logic-owned (MUST) #
+
+ex:saExternalCliffordTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:QuadraticSpace logic:subClassOf math:VectorSpace .
+    math:QuadraticForm logic:subClassOf math:Function .
+    math:CliffordInvolution logic:subClassOf math:Operation .
+    math:CliffordConjugation logic:subClassOf math:CliffordInvolution .
+}""" ;
+    gmeow:saRationale "The quadratic/Clifford coverage family MUST distinguish the carrier space, its scalar-valued quadratic form, the general involution operation, and Clifford conjugation as one particular involution. These canonical logic:subClassOf assertions prevent the runtime kernel's structures from collapsing into an untyped collection and exercise the exact semantic edges the producer relies on." .
+
+# --- External-concept information-theoretic taxonomy is logic-owned (MUST) --- #
+
+ex:saExternalInformationTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:InformationMeasure logic:subClassOf math:MathematicalObject .
+    math:Entropy logic:subClassOf math:InformationMeasure .
+    math:MutualInformation logic:subClassOf math:InformationMeasure .
+    math:KullbackLeiblerDivergence logic:subClassOf math:InformationMeasure .
+    math:CrossEntropy logic:subClassOf math:InformationMeasure .
+    math:FisherInformation logic:subClassOf math:InformationMeasure .
+    math:Surprisal logic:subClassOf math:InformationMeasure .
+    math:JointDistribution logic:subClassOf math:Distribution .
+    math:LogarithmBase logic:subClassOf math:MathematicalObject .
+    math:InformationUnit logic:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The information-theoretic coverage family MUST keep each measure a specialization of math:InformationMeasure, keep a mutual information's operand a math:JointDistribution specializing math:Distribution, and keep the logarithm base and information unit first-class mathematical objects. These canonical logic:subClassOf edges prevent entropy, divergence, and Fisher information from collapsing into a single untyped scoring token and exercise the exact semantic edges the completeness restrictions and competency frame rely on." .
+
+# --- External-concept Hodge-decomposition taxonomy is logic-owned (MUST) ----- #
+
+ex:saExternalHodgeTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:HodgeDecomposition logic:subClassOf math:MathematicalObject .
+    math:ExactComponent logic:subClassOf math:MathematicalObject .
+    math:CoexactComponent logic:subClassOf math:MathematicalObject .
+    math:HarmonicComponent logic:subClassOf math:MathematicalObject .
+    math:HodgeLaplacian logic:subClassOf math:Operation .
+    math:SheafLaplacian logic:subClassOf math:Operation .
+    math:BoundaryOperator logic:subClassOf math:Operation .
+    math:CellularSheaf logic:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The Hodge-decomposition coverage family MUST keep the decomposition and its exact, coexact, and harmonic components first-class mathematical objects, keep the Hodge and sheaf Laplacians and the boundary operator operations, and keep the cellular-sheaf carrier a mathematical object. These canonical logic:subClassOf edges prevent the exact/coexact/harmonic split from collapsing into a single untyped flow token and exercise the exact semantic edges the completeness restrictions and reconstruction/orthogonality competency frame rely on." .
+
+# --- External-concept Mapper-construction taxonomy is logic-owned (MUST) ------ #
+
+ex:saExternalMapperTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:MapperConstruction logic:subClassOf gmeow:Activity .
+    math:MetricSpace logic:subClassOf math:TopologicalSpace .
+    math:Cover logic:subClassOf math:MathematicalObject .
+    math:CoverElement logic:subClassOf math:Set .
+    math:ClusteringRule logic:subClassOf math:MathematicalObject .
+    math:NerveComplex logic:subClassOf math:SimplicialComplex .
+}""" ;
+    gmeow:saRationale "The Mapper-construction coverage family MUST keep the construction a gmeow:Activity, keep the source metric space a topological space, keep the cover and its cover elements and the clustering rule first-class mathematical objects (a cover element a set), and keep the output nerve a simplicial complex. These canonical logic:subClassOf edges prevent the filter/cover/clustering frame from collapsing into a bare untyped graph and exercise the exact semantic edges the completeness restrictions and the reusable-frame competency query rely on." .
+
+# --- External-concept vector-symbolic taxonomy is logic-owned (MUST) --------- #
+
+ex:saExternalVectorSymbolicTaxonomy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:VectorSymbolicOperation logic:subClassOf math:Operation .
+    math:VectorBinding logic:subClassOf math:VectorSymbolicOperation .
+    math:VectorBundling logic:subClassOf math:VectorSymbolicOperation .
+    math:VectorUnbinding logic:subClassOf math:VectorSymbolicOperation .
+    math:VectorSymbolicCapacity logic:subClassOf math:MathematicalObject .
+    math:RecoveryLossContract logic:subClassOf math:MathematicalObject .
+}""" ;
+    gmeow:saRationale "The vector-symbolic coverage family MUST keep binding, bundling, and unbinding specializations of math:VectorSymbolicOperation (itself an operation), and keep the capacity descriptor and the recovery-loss (fidelity) contract first-class mathematical objects. These canonical logic:subClassOf edges prevent the capacity/recovery frame from collapsing into a bare similarity-score token and exercise the exact semantic edges the completeness restrictions and the reusable-frame competency query rely on — recovery being approximate unless an exact algebra proves otherwise." .

@@ -6,13 +6,20 @@
 //! Python test assembled via `g.add(...)`, converts to N-Triples, and validates
 //! against the whole shapes corpus.
 //!
-//! Retained in Python (not migrated):
-//!   - `test_self_description_loader`: calls `load_self_description()` — not a
-//!     SHACL conformance check; pure Python business-logic assertion.
-//!   - `test_self_description_models_project_repository_and_brand_assets`: parses
-//!     a disk file and uses `in g` triple-membership checks; not a SHACL run.
-//!   - `test_canonical_description_is_standardized`: cross-format sweep (YAML,
-//!     ontology header, self-desc) with SPARQL-like object iteration; no SHACL.
+//! Recreated natively (no longer Python) in `self_description_conformance.rs` —
+//! these three checks are pure business-logic / cross-format assertions over the
+//! authored self-model, not SHACL runs, so they ship there as native Rust gate
+//! tests instead of as twins in this file:
+//!   - `test_self_description_loader` → `self_description_loader_pins_fields`
+//!     (loader field assertions via the public `load_self_description` API).
+//!   - `test_self_description_models_project_repository_and_brand_assets` →
+//!     `models_project_repository_and_brand_assets` (project / repository /
+//!     license / brand-asset triple membership, incl. the negative
+//!     `gmeow:depicts`-absent assertion).
+//!   - `test_canonical_description_is_standardized` →
+//!     `canonical_abstract_is_standardized` (one abstract, standardized across
+//!     self-desc / ontology header / CITATION.cff, with the external-vocabulary
+//!     count + no-hard-coded-slice-count prose guards).
 
 mod conformance_support;
 use conformance_support::*;
@@ -69,8 +76,13 @@ ex:work a gmeow:Work .
 ex:work rdfs:label \"Test Work\" .
 "
     ))
+    // The citationIntent exactly-one obligation migrated from the retired
+    // gmeow:CitationActShape to an OWL restriction PROJECTED to the production shape union
+    // (generated/shapes/validation-shapes.ttl as sh:minCount 1). The projected shape carries
+    // no bespoke sh:message, so assert on the min-count component + path.
+    .shape_union()
     .fails()
-    .violations_ci(&["citation intent"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/citationIntent", "MinCountConstraintComponent")
 )]
 fn citations(#[case] case: Case) {
     case.run();

@@ -124,6 +124,16 @@ pub struct ExampleConformance {
     pub outcome: Outcome,
     /// `gmeow:expectedViolationCode` — the `shacl.<LocalName>` code (violates only).
     pub violation_code: Option<String>,
+    /// `gmeow:expectedSourceShape` — OPTIONAL (violates cells only). The SHACL
+    /// `sh:sourceShape` IRI the matching finding must originate from. Every
+    /// `logic:Constraint` projects to the SAME generic finding component
+    /// (`shacl.SPARQLConstraintComponent`), so the component code alone cannot
+    /// prove the SPECIFIC named rule fired. When present, the harness additionally
+    /// requires the finding that matched `expectedViolationCode` to carry this
+    /// source shape (exact IRI, or a local-name suffix match). Absent → the check
+    /// is component-code-only, exactly as before (backward-compatible: a cell that
+    /// does not set it is unaffected).
+    pub expected_source_shape: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -214,11 +224,12 @@ SELECT ?sa ?polarity ?pattern ?shape ?scope ?rationale WHERE {
 }";
 
 const Q_CONFORMANCE: &str = "
-SELECT ?ec ?file ?outcome ?code ?rationale WHERE {
+SELECT ?ec ?file ?outcome ?code ?shape ?rationale WHERE {
   ?ec a gmeow:ExampleConformance ;
       gmeow:exampleFile ?file ;
       gmeow:expectedOutcome ?outcome .
   OPTIONAL { ?ec gmeow:expectedViolationCode ?code }
+  OPTIONAL { ?ec gmeow:expectedSourceShape ?shape }
   OPTIONAL { ?ec gmeow:conformanceRationale ?rationale }
 }";
 
@@ -417,6 +428,9 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
             })?,
             outcome,
             violation_code: opt_string(&sol, "code"),
+            // An IRI object; term_iri keeps it as the resolved absolute IRI so it
+            // compares directly against the finding's `sh:sourceShape` term.
+            expected_source_shape: sol.get("shape").and_then(term_iri),
             rationale: opt_string(&sol, "rationale"),
         });
     }
@@ -525,6 +539,7 @@ fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<Result
             TermKind::Iri => ColumnKind::Iri,
             TermKind::BlankNode => ColumnKind::BlankNode,
             TermKind::Literal => ColumnKind::Literal { datatype },
+            TermKind::TripleTerm => ColumnKind::TripleTerm,
         };
         columns.push(ResultColumn { var, kind, binding });
     }

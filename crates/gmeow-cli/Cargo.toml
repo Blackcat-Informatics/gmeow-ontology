@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-cli"
 description = "The consumer/wheel-only `gmeow` command-line surface (verify, validate, describe, project, export, convert, music)."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -34,6 +34,12 @@ gmeow-affect = { path = "../affect" }
 # evidence, and its inverse. Drives `gmeow affect ingest-goemotions` / `recover-goemotions`.
 gmeow-affect-ingest = { path = "../affect-ingest" }
 gmeow-pipeline = { path = "../pipeline" }
+# The GMN-1 codec + digest/witness/pack layer. A pure-Rust runtime rlib the wheel
+# ships (in the tree transitively via gmeow-pipeline): its `gmn1_write`/`gmn1_read`,
+# `codebook_digest`/`content_digest`/`pack_root`, and per-claim/idempotence witnesses
+# are the conformance surface `gmeow gmn` exposes so an independent GMN-1
+# implementation can conform against the shipped CLI, not only the gates/tests.
+gmeow-lang-bridge = { path = "../lang-bridge" }
 # The slice-quality scoring engine. Wheel-safe: it is already in the wheel's tree
 # transitively via gmeow-pipeline, and its zero-config `score_external_slice_bytes`
 # scores an external slice directory against the embedded bundle standards (a
@@ -42,6 +48,12 @@ gmeow-pipeline = { path = "../pipeline" }
 # subcommand — a genuine consumer runtime capability, never a repo-maintenance
 # crate (the wheel-only razor holds).
 gmeow-slice-quality = { path = "../slice-quality" }
+# The authoring-brief assembly engine. Wheel-safe pure-Rust rlib (in the tree
+# transitively via gmeow-pipeline): `completeness_tiers` + `assemble_packet` build
+# and render a gmeow:AuthoringPacket over a slice directory's own sources. Live
+# runtime consumer: `src/commands.rs::slice_brief`, wired to `gmeow slice brief` —
+# a genuine consumer capability, never a repo-maintenance crate.
+gmeow-slice-brief = { path = "../slice-brief" }
 # The consumer `describe` / `docs-on` term-card engine. A pure-Rust rlib (its
 # `python` feature stays OFF here) — a runtime library the wheel ships, not a
 # repo-maintenance crate.

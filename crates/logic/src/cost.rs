@@ -692,6 +692,40 @@ pub struct SignedForwardRow {
     pub weight: i64,
 }
 
+/// The proof provenance of one newly-derived fact in an incremental transaction —
+/// the genuine per-fact witness the differential circuit computes.
+///
+/// The subject/predicate/object and `premises` are rendered with the same
+/// [`crate::provenance::term_display`] surface the full-recompute oracle
+/// ([`crate::reason::reason_program`] → [`crate::reason::InferredAxiom`]) uses, so an
+/// incremental witness is directly comparable, field-for-field, against the from-scratch
+/// oracle's `(rule_name, premises)` for the same derived `(subject, predicate, object)`.
+/// `weight` is the genuinely-computed signed Z-set multiplicity at the set boundary
+/// (`+1` for a newly-present derived fact). `proof_height` is the minimal-proof-height
+/// annotation the canonical witness carries — `1 + max(premise heights)` over the tropical
+/// [`crate::provenance::MinProofHeightSemiring`] — recomputed by a min-height fixpoint over
+/// the settled closure (NOT delta-maintained through the Z-set circuit, which the tropical
+/// semiring's missing additive inverse forbids), so it equals the full reasoner's height
+/// for the same fact under both insertion and deletion.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DerivedProvenance {
+    /// The derived fact's subject surface (`term_display`).
+    pub subject: String,
+    /// The derived fact's predicate IRI.
+    pub predicate: String,
+    /// The derived fact's object surface (`term_display`).
+    pub object: String,
+    /// The firing rule IRI that committed this derivation.
+    pub rule_iri: String,
+    /// The antecedent premises `(subject, predicate, object)` (all `term_display`).
+    pub premises: Vec<(String, String, String)>,
+    /// The signed Z-set multiplicity at the set boundary (`+1` for a newly-present fact).
+    pub weight: i64,
+    /// The canonical witness's minimal proof height (`0` for an asserted leaf), equal to
+    /// the full forward reasoner's proof height for this fact.
+    pub proof_height: u32,
+}
+
 /// The deterministic result of one incremental forward transaction.
 #[derive(Debug, Clone)]
 pub struct NativeIncrementalRun {
@@ -710,6 +744,10 @@ pub struct NativeIncrementalRun {
     /// The positive derived-change cost vector. Retractions never receive a
     /// fabricated reverse-rule attribution.
     pub cost: CostVector,
+    /// Per-newly-derived-fact proof provenance (firing rule + premises + signed
+    /// Z-weight) — the maintained closure's genuine derivation witnesses for this
+    /// transaction, comparable against the full-recompute oracle.
+    pub derivations: Vec<DerivedProvenance>,
     /// Whether an inline step bound completed or cut the transaction.
     pub status: crate::seam::BudgetStatus,
     /// Native engine identity.
@@ -1003,23 +1041,47 @@ fn incremental_grounding_run(
 }
 
 impl IncrementalForwardSession {
-    /// Prepare a fixed-rule incremental session from a single named-graph world.
+    /// Prepare a fixed-rule incremental session from a single named-graph world under a
+    /// bound annotation contract.
+    ///
+    /// The incremental maintainer materializes the EXACT tropical minimal-proof-height
+    /// annotation ([`crate::provenance::MinProofHeightSemiring`]) alongside the Z-set
+    /// closure. That algebra is a genuine (idempotent) semiring, so it honors the exact
+    /// annotation contract; a contract that declares an over-approximating algebra selects
+    /// a different, non-exact algebra the maintainer does not compute. Per no-optionality,
+    /// silently substituting exact proof-height for a declared-approximate algebra is
+    /// forbidden, so such a contract is REFUSED here (the façade routes it to a full
+    /// rebuild) rather than served with a mismatched annotation. The bound contract's
+    /// canonical key is folded into the physical session identity so a cached session under
+    /// a different annotation framing can never be reused across contracts.
     ///
     /// # Errors
     ///
-    /// Returns an error when the EDB is not exactly one named world, the canonical
-    /// program is outside finite positive binary Datalog, or it cannot be stratified.
+    /// Returns an error when the annotation contract selects an algebra outside the
+    /// incrementally-maintained fragment, the EDB is not exactly one named world, the
+    /// canonical program is outside finite positive binary Datalog, or it cannot be
+    /// stratified.
     pub fn prepare(
         edb: &RdfDataset,
         program: &gmeow_logic_compile::ir::LogicProgram,
+        annotation: &crate::annotation::AnnotationContract,
     ) -> gmeow_errors::Result<Self> {
+        if !annotation_maintainable_incrementally(annotation) {
+            return Err(cost_err(
+                "the incremental maintainer materializes the exact minimal-proof-height \
+                 annotation; a declared over-approximating annotation algebra is outside the \
+                 incrementally-maintained fragment and must route to a full rebuild"
+                    .to_owned(),
+            ));
+        }
         let (world, facts) = incremental_dataset_facts(edb, None)?;
         let eval_rules = crate::lower::lower_eval_rules(program)?;
         let strata = crate::certify::predicate_strata(&eval_rules);
         let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
         let contract_hash = format!(
-            "gmeow-native-incremental-forward-v1:{}",
-            blake3::hash(world.as_bytes()).to_hex()
+            "gmeow-native-incremental-forward-v1:{}\0annotation={}",
+            blake3::hash(world.as_bytes()).to_hex(),
+            annotation.canonical_key()
         );
         let inner = crate::physical::IncrementalSession::new(contract_hash, facts, &eval_rules)?;
         Ok(Self {
@@ -1069,6 +1131,57 @@ impl IncrementalForwardSession {
         Ok(run)
     }
 
+    /// The maintained least-model closure as a deterministically-ordered public row
+    /// set — the current fixed point after every committed transaction.
+    ///
+    /// This is the closure reader the operational `ReasoningSession` façade surfaces
+    /// (e.g. the `gmeow logic session facts` command) right after `open`, before any
+    /// delta has produced a [`NativeIncrementalRun`]. It reuses the same
+    /// `forward_row_from_fact` projection as [`Self::insert`]/[`Self::retract`], so the
+    /// rows are byte-comparable with a run's `rows`.
+    #[must_use]
+    pub fn closure_rows(&self) -> ForwardRows {
+        forward_rows_from_facts(&self.inner.closure(), &self.world)
+    }
+
+    /// One canonical proof witness for every DERIVED fact in the CURRENT maintained
+    /// closure — the full-closure provenance the façade's `provenance()` surfaces
+    /// (including the initial settle, before any delta).
+    ///
+    /// Rendered with the same `term_display` surface as a run's per-delta derivations,
+    /// so a witness is comparable field-for-field against the full-recompute oracle.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a rule-evaluation failure from the closure re-descent.
+    pub fn closure_provenance(&self) -> gmeow_errors::Result<Vec<DerivedProvenance>> {
+        Ok(self
+            .inner
+            .closure_derivations()?
+            .into_iter()
+            .map(|(fact, witness)| DerivedProvenance {
+                subject: crate::provenance::term_display(&fact.subject),
+                predicate: fact.predicate.clone(),
+                object: crate::provenance::term_display(&fact.object),
+                rule_iri: witness.rule_iri.clone(),
+                premises: witness
+                    .premises
+                    .iter()
+                    .map(|premise| {
+                        (
+                            crate::provenance::term_display(&premise.subject),
+                            premise.predicate.clone(),
+                            crate::provenance::term_display(&premise.object),
+                        )
+                    })
+                    .collect(),
+                // A present derived fact has set-membership Z-weight +1.
+                weight: 1,
+                proof_height: witness.proof_height.get(),
+            })
+            .collect())
+    }
+
     /// Apply an unbounded retract-only dataset.
     ///
     /// Bounded deletion deliberately remains outside this seam until a sound partial
@@ -1111,6 +1224,20 @@ impl IncrementalForwardSession {
     }
 }
 
+/// Whether the incremental maintainer can honor `annotation` exactly.
+///
+/// The maintainer materializes the exact tropical minimal-proof-height semiring, so it
+/// honors an exact contract (`approximation == None`). A contract that declares an
+/// over-approximating algebra selects a non-exact algebra the maintainer does not compute
+/// and is therefore NOT incrementally maintainable — the façade routes it to a full
+/// rebuild instead of silently substituting the exact annotation.
+#[must_use]
+pub(crate) fn annotation_maintainable_incrementally(
+    annotation: &crate::annotation::AnnotationContract,
+) -> bool {
+    annotation.approximation.is_none()
+}
+
 fn incremental_run(
     world: &str,
     strata: &BTreeMap<String, u32>,
@@ -1132,6 +1259,38 @@ fn incremental_run(
     })? as u64;
     let cost = CostVector::from_incremental_delta(&delta, strata, asserted_changes)?;
     let rows = forward_rows_from_facts(&closure, world);
+    // Per-newly-derived-fact provenance: match each positive closure change against its
+    // canonical firing witness. Rendered with `term_display` so it is comparable to the
+    // full-recompute `InferredAxiom` oracle field-for-field.
+    let derivations: Vec<DerivedProvenance> = delta
+        .changes
+        .iter()
+        .filter(|change| change.weight > 0)
+        .filter_map(|change| {
+            delta
+                .derivations
+                .get(&change.fact.key())
+                .map(|witness| DerivedProvenance {
+                    subject: crate::provenance::term_display(&change.fact.subject),
+                    predicate: change.fact.predicate.clone(),
+                    object: crate::provenance::term_display(&change.fact.object),
+                    rule_iri: witness.rule_iri.clone(),
+                    premises: witness
+                        .premises
+                        .iter()
+                        .map(|premise| {
+                            (
+                                crate::provenance::term_display(&premise.subject),
+                                premise.predicate.clone(),
+                                crate::provenance::term_display(&premise.object),
+                            )
+                        })
+                        .collect(),
+                    weight: change.weight,
+                    proof_height: witness.proof_height.get(),
+                })
+        })
+        .collect();
     let changes = delta
         .changes
         .into_iter()
@@ -1148,6 +1307,7 @@ fn incremental_run(
         joined_rows: delta.joined_rows,
         inner_iterations: delta.inner_iterations,
         cost,
+        derivations,
         status,
         engine: EngineId::native(),
     })

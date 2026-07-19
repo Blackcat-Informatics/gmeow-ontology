@@ -192,3 +192,19 @@ ex:minimumReviewers
     logic:aggFunction "COUNT" ;
     logic:aggPath ex:reviewer ;
     logic:onClass ex:Submission .
+
+# A multi-hop-join product-aggregate policy authored through the compact join-aggregate record: over
+# a two-leg join (coface → cell → far-face) the SUM of the incidence-sign PRODUCT must be 0 per
+# (coface, far-face) group — the general-CW ∂²=0 boundary-composition law. The two legs share the
+# intermediate cell as their join variable; the frontend parses this into canonical Constraint IR
+# carrying the JoinAggregate satellite that drives the GROUP BY/HAVING projection.
+ex:boundarySquareZero
+    a logic:JoinAggregateConstraint ;
+    logic:aggComparator "=" ;
+    logic:aggFunction "SUM" ;
+    logic:aggThreshold 0 ;
+    logic:joinPath (
+        [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]
+        [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]
+    ) ;
+    logic:onClass ex:TopCell .

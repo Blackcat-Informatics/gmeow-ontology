@@ -441,10 +441,11 @@ impl Stage for ReasonStage {
         &self.resources
     }
     fn cache_policy(&self) -> CachePolicy {
-        // This product carries the full closure plus several large report lanes.
-        // Structural cache hydration must parse that closure and re-derive its typed
-        // handle serially; the native reasoner rebuilds it faster from the already-live
-        // compile product. Recompute keeps every reasoning and diagnostics gate active.
+        // This cumulative product carries the full closure plus several large report
+        // lanes. A measured packed-cache hit still had to restore the whole carrier
+        // and re-derive its typed handle serially; that cost exceeded recomputing the
+        // reason stage from its already-live upstream carrier. Cache pure inputs and
+        // whole-run cleanliness instead of materializing this aggregate boundary.
         CachePolicy::Recompute
     }
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {

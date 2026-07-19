@@ -33,6 +33,28 @@ use purrdf::{
     parse_dataset, serialize_dataset,
 };
 
+// ── Grounding-correspondence vocabulary ──────────────────────────────────────
+
+pub const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
+pub const GROUNDING_CORRESPONDENCE: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+pub const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
+pub const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+pub const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
+pub const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
+pub const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
+pub const MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
+pub const PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+
+pub fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String {
+    assert_eq!(
+        values.len(),
+        1,
+        "{cell} must carry exactly one {field}, found {values:?}"
+    );
+    values.into_iter().next().unwrap()
+}
+
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
 /// Absolute path to the repository root (`crates/validate/../../`).
@@ -97,7 +119,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
         .unwrap_or_else(|e| {
             panic!(
                 "no generated shapes under generated/shapes/ — \
-                 run `gmeow regenerate frame-shapes` (P11 enforcement lives there): {e}"
+                 run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there): {e}"
             )
         })
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -111,7 +133,7 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
     assert!(
         !paths.is_empty(),
         "no generated shapes under generated/shapes/ — \
-         run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
+         run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there)"
     );
     paths.sort();
     paths
@@ -310,6 +332,35 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
 /// the serial engine's. No assertion surface changes: every shape still runs
 /// against the whole graph.
 pub fn validate_dataset_sharded(dataset: &RdfDataset, shapes: &Shapes) -> ValidationReport {
+    // No focus restriction: every resolved (shape, focus) pair is validated.
+    validate_dataset_sharded_focus(dataset, shapes, |_| true)
+}
+
+/// [`validate_dataset_sharded`] with an additional **focus-node allowlist**.
+///
+/// `focus_allowed(focus)` is consulted AFTER the round-robin shard assignment and
+/// gates whether the owning worker actually evaluates that focus node's
+/// constraints. The gate is a PURE, deterministic function of the focus term, so it
+/// is identical in every worker: the round-robin `calls % workers == w` split still
+/// assigns each (shape, focus) pair to exactly one worker (the `calls` counter
+/// advances on EVERY pair in every worker, preserving the exact partition), and the
+/// allowlist then keeps only the allowed pairs. A disallowed pair is validated by
+/// nobody; an allowed pair by exactly its owning worker — so the merged, re-sorted
+/// report is the exact SUBSET of the unfiltered report restricted to allowed focus
+/// nodes, byte-identical under the engine's TOTAL sort key.
+///
+/// [`validate_with_ontology_shape_union`] uses this to skip re-validating the
+/// INVARIANT base ontology (which validates clean — zero results — and is identical
+/// across every conformance case) and evaluate only the focus nodes the tiny fixture
+/// introduces or touches. See that function for the verdict-preservation argument.
+pub fn validate_dataset_sharded_focus<F>(
+    dataset: &RdfDataset,
+    shapes: &Shapes,
+    focus_allowed: F,
+) -> ValidationReport
+where
+    F: Fn(&Term) -> bool + Sync,
+{
     use purrdf::shapes::engine::{project_dataset, validate_projected_dataset_with_focus_filter};
 
     let projected =
@@ -317,16 +368,17 @@ pub fn validate_dataset_sharded(dataset: &RdfDataset, shapes: &Shapes) -> Valida
     let workers = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1);
+    let focus_allowed = &focus_allowed;
     let mut results: Vec<purrdf::shapes::report::ValidationResult> = std::thread::scope(|scope| {
         let mut handles = Vec::with_capacity(workers);
         for w in 0..workers {
             let projected = Arc::clone(&projected);
             handles.push(scope.spawn(move || {
                 let mut calls = 0usize;
-                validate_projected_dataset_with_focus_filter(projected, shapes, |_, _| {
+                validate_projected_dataset_with_focus_filter(projected, shapes, |_, focus| {
                     let mine = calls % workers == w;
                     calls += 1;
-                    mine
+                    mine && focus_allowed(focus)
                 })
                 .expect("native SHACL validation must succeed")
                 .results
@@ -375,32 +427,153 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
     validate_dataset_sharded(&dataset, whole_shapes())
 }
 
-/// Parsed SHACL shape model for the LIVE production shape union.
+/// The single generated shape file the CONFORMANCE union drops from the live
+/// production corpus — a pure test-harness performance scope, NOT a production
+/// change.
 ///
-/// `purrdf::shapes::shape_union::load_shapes` assembles exactly the corpus the
-/// live validator (`gmeow validate` / `stage-validate`) runs — including
+/// `generated/shapes/result-shapes.ttl` carries the ~216 competency-query
+/// result-ROW NodeShapes. Each targets its focus set with a `sh:SPARQLTarget`
+/// (`SELECT ?this WHERE { ?cq gmeow:cqResultShape <…> . ?cq gmeow:cqExpectRow ?this }`),
+/// and — unlike `sh:targetClass`, which the engine skips by class index — a
+/// `sh:SPARQLTarget` runs an UNCONDITIONAL whole-graph SPARQL SELECT on every
+/// validation. The domain conformance fixtures (creative_works / images / …)
+/// carry NO `gmeow:cqExpectRow` rows, so all 216 targets resolve to zero focus
+/// nodes and can produce no result — yet each still scans the whole merged
+/// ontology once per case. Dropping them from the CONFORMANCE-ONLY union removes
+/// that wasted cost while leaving every conformance verdict byte-identical: a
+/// shape that matches no focus node in the corpus contributes no result to any
+/// report. The result-row shapes validate CQ result-row STRUCTURE, which the
+/// domain conformance tests never assert on; their coverage lives in the
+/// competency-query lane, not here.
+///
+/// This exclusion is scoped ENTIRELY to the conformance harness ([`conformance_shapes`]);
+/// it does NOT touch `purrdf::shapes::shape_union::load_shapes` / its `EXCLUDED`
+/// list, so the LIVE production union (`gmeow validate` / `stage-validate`) and the
+/// superset/fold gate still enforce `result-shapes.ttl` exactly as before.
+pub const CONFORMANCE_EXCLUDED_GENERATED: &[&str] = &["result-shapes.ttl"];
+
+/// Parsed SHACL shape model for the CONFORMANCE-scoped shape union.
+///
+/// Reassembles the SAME corpus as `purrdf::shapes::shape_union::load_shapes`
+/// (the LIVE production union `gmeow validate` / `stage-validate` run, INCLUDING
 /// `generated/shapes/validation-shapes.ttl`, the OWL-restriction cardinality
-/// projection that [`whole_shapes`] deliberately EXCLUDES. Cached in a
-/// [`OnceLock`] so the disk I/O + parse happens at most once per test process.
-pub fn production_shapes() -> &'static Shapes {
+/// projection that [`whole_shapes`] deliberately EXCLUDES) — reusing the SAME
+/// public `shape_files` ordering, per-file blank-standardized `RdfDataset::union`,
+/// and per-file prefix recovery + `from_dataset_with_prefixes` parse — but drops
+/// the files in [`CONFORMANCE_EXCLUDED_GENERATED`] (`result-shapes.ttl`) whose
+/// unconditional `sh:SPARQLTarget` whole-graph scans dominate per-case cost while
+/// producing no result on the domain fixtures. Every other shape is loaded exactly
+/// as production loads it, so no conformance verdict changes. This mirrors the
+/// `load_shapes` body verbatim (minus the file filter); it does NOT modify or call
+/// through the production `load_shapes`, so production validation is untouched.
+/// Cached in a [`OnceLock`] so the disk I/O + parse happens at most once per test
+/// process.
+pub fn conformance_shapes() -> &'static Shapes {
+    use std::collections::BTreeMap;
+
     static CACHE: OnceLock<Shapes> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(&repo_root())
-            .expect("load production SHACL shape union");
-        shapes
+        let files = purrdf::shapes::shape_union::shape_files(&repo_root())
+            .expect("assemble conformance SHACL shape file list");
+        let mut prefix_map: BTreeMap<String, String> = BTreeMap::new();
+        let mut per_file: Vec<Arc<RdfDataset>> = Vec::with_capacity(files.len());
+        for file in &files {
+            // Drop ONLY the conformance-excluded generated files (result-shapes.ttl).
+            if file
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| CONFORMANCE_EXCLUDED_GENERATED.contains(&n))
+            {
+                continue;
+            }
+            let bytes = std::fs::read(file)
+                .unwrap_or_else(|e| panic!("failed to read shape file {}: {e}", file.display()));
+            let text = std::str::from_utf8(&bytes)
+                .unwrap_or_else(|e| panic!("shape file {} is not UTF-8: {e}", file.display()));
+            let dataset = parse_dataset(&bytes, "text/turtle", None).unwrap_or_else(|e| {
+                panic!("failed to parse Turtle shape file {}: {e}", file.display())
+            });
+            per_file.push(dataset);
+            // Per-file `@prefix` recovery (the IR drops document prefixes); last
+            // declaration wins over the sorted file list, matching `load_shapes`.
+            for (prefix, namespace) in purrdf::shapes::text_ingest::extract_prefixes(text) {
+                prefix_map.insert(prefix, namespace);
+            }
+        }
+        // Union all per-file datasets into one, standardizing blanks apart per file
+        // (exactly as `load_shapes` does via `RdfDataset::union`).
+        let merged = if per_file.is_empty() {
+            RdfDatasetBuilder::new()
+                .freeze()
+                .expect("empty conformance shapes dataset must freeze")
+        } else {
+            let refs: Vec<&RdfDataset> = per_file.iter().map(AsRef::as_ref).collect();
+            Arc::new(RdfDataset::union(&refs))
+        };
+        let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
+        purrdf::shapes::shapes::from_dataset_with_prefixes(&merged, &doc_prefixes)
+            .expect("parse conformance SHACL shape union")
     })
 }
 
-/// Validate `base_ontology + fixture` against the LIVE production shape union
-/// (`purrdf::shapes::shape_union::load_shapes`, what `gmeow validate` /
-/// `stage-validate` run) — this INCLUDES generated/shapes/validation-shapes.ttl (the
-/// OWL-derived cardinality projection), unlike `whole_shapes()`.
+/// Validate `base_ontology + fixture` against the CONFORMANCE-scoped shape union
+/// ([`conformance_shapes`]) — the SAME corpus `gmeow validate` / `stage-validate`
+/// run (INCLUDES `generated/shapes/validation-shapes.ttl`, the OWL-derived
+/// cardinality projection, unlike `whole_shapes()`) EXCEPT the result-row
+/// `sh:SPARQLTarget` shapes in `result-shapes.ttl`, which produce no result on the
+/// domain fixtures (see [`CONFORMANCE_EXCLUDED_GENERATED`]). The exclusion is
+/// verdict-preserving and scoped to this harness; production validation is
+/// unchanged.
+///
+/// ## Focus scoping (the second, dominant optimization)
+///
+/// The merged data graph is the ~100k-quad base ontology plus a handful of fixture
+/// triples. The base ontology is INVARIANT across every conformance case and
+/// validates CLEAN against this union (zero results — see the drift proof: a merged
+/// base + a *passing* fixture yields an empty report, so the base alone contributes
+/// nothing). Yet the engine re-evaluates every base focus node against every shape
+/// on every case — that whole-base re-validation, not the result-row shapes, is the
+/// measured cost. We restrict constraint evaluation to the focus nodes the fixture
+/// could affect: every IRI that appears as a SUBJECT or OBJECT of a fixture quad
+/// (covering both a node's outgoing edges and, for inverse-path shapes, its incoming
+/// edges), plus ALL blank nodes (a safe superset — blank labels are relabeled by the
+/// merge, so they cannot be matched by IRI; base blanks validate clean anyway).
+///
+/// A focus node OUTSIDE this set is a pure-base node whose entire triple
+/// neighborhood equals its base-only neighborhood (the fixture, being `ex:`-scoped
+/// and disjoint, adds no triple with it in subject or object position), so it
+/// validates identically to base-alone → contributes zero results. Skipping it
+/// cannot change any verdict, and the report stays the exact subset restricted to
+/// fixture-reachable focus. The remaining ~handful of fixture focus nodes are
+/// validated in full against the whole shape union, so every asserted violation on a
+/// fixture node is preserved.
 pub fn validate_with_ontology_shape_union(fixture_nt: &str) -> ValidationReport {
     let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
     let fixture = nt_to_dataset(fixture_nt);
-    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    let fixture_quads = flat_rdf_quads_from_dataset(&fixture);
+
+    // The IRIs the fixture mentions in subject or object position — the only nodes
+    // whose validation the fixture can change (see the doc comment's argument).
+    let mut fixture_iris: BTreeSet<String> = BTreeSet::new();
+    for quad in &fixture_quads {
+        if let purrdf::RdfTerm::Iri(iri) = &quad.subject {
+            fixture_iris.insert(iri.clone());
+        }
+        if let purrdf::RdfTerm::Iri(iri) = &quad.object {
+            fixture_iris.insert(iri.clone());
+        }
+    }
+
+    merged.extend(fixture_quads);
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
-    validate_dataset_sharded(&dataset, production_shapes())
+    validate_dataset_sharded_focus(&dataset, conformance_shapes(), |focus| match focus {
+        Term::NamedNode(n) => fixture_iris.contains(n.as_str()),
+        // Blank focus nodes are always included (safe superset): fixture blanks are
+        // relabeled by the merge and cannot be matched by IRI, and base blanks
+        // validate clean, so including them preserves verdicts without omission.
+        Term::BlankNode(_) => true,
+        _ => true,
+    })
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────

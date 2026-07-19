@@ -9,7 +9,7 @@
 //! compile diagnostics. This gate proves each is routed:
 //!
 //! * IR + loss ledger + diagnostics are first-class `stage-compile-logic` DAG
-//!   products (committed artifacts the regenerate/drift gate owns), and
+//!   products (committed artifacts the update/drift gate owns), and
 //! * the loss ledger rides the assembled bundle as the `projection-ledger` named
 //!   graph while the compile diagnostics union into the `diagnostics` graph.
 //!
@@ -41,9 +41,38 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-/// Run the compile-logic stage over the repo and return its product.
+/// Run the compile-logic stage over the repo and return its product. compile-logic reads
+/// the narrowed `graph/logic-compile-inputs` corpus off the source-load product, so build a
+/// MINIMAL upstream carrying ONLY that named graph — the denylist narrowing of
+/// `load_authored_dataset`, rooted exactly as `stage-source-load` publishes it — rather than
+/// running the full (heavy quality-sweep) source-load stage.
 fn compile_product(root: &Path) -> StageProduct {
-    let upstream = BTreeMap::new();
+    use gmeow_pipeline::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS;
+    use gmeow_pipeline::stages::source_load::{
+        load_authored_dataset, logic_compile_input_subgraph,
+    };
+
+    let base = load_authored_dataset(root).expect("load the authored corpus");
+    let narrowed = logic_compile_input_subgraph(base.as_ref()).expect("narrow the corpus");
+    // Root every quad into the graph/logic-compile-inputs named graph (source-load's publish
+    // form), so compile-logic's `project_named_graph(GRAPH_LOGIC_COMPILE_INPUTS)` finds it.
+    let graph = purrdf::RdfTerm::Iri(GRAPH_LOGIC_COMPILE_INPUTS.to_string());
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for mut quad in narrowed.owned_quads() {
+        quad.graph_name = Some(graph.clone());
+        builder.push_owned_quad(&quad);
+    }
+    let dataset = builder.freeze().expect("freeze logic-compile-inputs graph");
+    let bundle = gmeow_pipeline::bundle::bundle_from_artifacts_over(
+        dataset,
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+    );
+    let mut upstream = BTreeMap::new();
+    upstream.insert(
+        "stage-source-load".to_string(),
+        StageProduct::from_bundle("stage-source-load", std::sync::Arc::new(bundle)),
+    );
     CompileLogicStage::new()
         .run(StageInput {
             root,
@@ -82,6 +111,17 @@ fn compiler_products_are_first_class_dag_artifacts() {
     );
     let mut mappings_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     mappings_upstream.insert("stage-compile-logic".to_string(), product);
+    let constraint_shapes = gmeow_pipeline::stages::constraint_shapes::ConstraintShapesStage
+        .run(StageInput {
+            root: &root,
+            upstream: &BTreeMap::new(),
+        })
+        .expect("constraint-shapes stage")
+        .product;
+    mappings_upstream.insert(
+        "stage-export-constraint-shapes".to_string(),
+        constraint_shapes,
+    );
     let mappings = MappingsStage::new()
         .run(StageInput {
             root: &root,

@@ -9,14 +9,19 @@
 //! subject/predicate/object, a confidence, and a justification), so its ledger-row
 //! preservation is `SoundUnder`.
 //!
-//! The renderer reproduces GMEOW's bespoke SSSOM TSV byte-for-byte: the YAML-ish `#`
-//! header with `curie_map`, the dynamic column set (a `*_label` column appears only
-//! when some row populates it), refused-mapping trailers folded in as `# #`
-//! comments, and rows sorted by `(subject_id, predicate_id, object_id)`. Extraction
-//! runs over the oxigraph-free [`DslView`]; the version/date come from the caller
-//! (which reads `metadata/gmeow-self.ttl`).
+//! Extraction (deriving [`SssomMapping`] rows and per-file [`MappingSet`] header
+//! metadata from the DSL) is GMEOW's own; SERIALIZATION is `purrdf::sssom::serialize_tsv`
+//! (the canonical PurRDF SSSOM TSV codec — YAML-ish `#` header with `curie_map`, dynamic
+//! column set, rows sorted by `(subject_id, predicate_id, object_id)`). The one GMEOW
+//! convention `purrdf`'s codec has no slot for — a refused/deferred-mapping provenance
+//! trailer folded in as `# #` comments — is spliced into the canonical output afterwards
+//! ([`splice_trailer`]), so no content is lost even though the row/header serialization
+//! itself is no longer bespoke. Extraction runs over the oxigraph-free [`DslView`]; the
+//! version/date come from the caller (which reads `metadata/gmeow-self.ttl`).
 
 use std::collections::{BTreeMap, BTreeSet};
+
+use purrdf::{SssomMapping, SssomMappingSet, SssomMeta};
 
 use crate::ingest::DslView;
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
@@ -44,6 +49,8 @@ const LOGIC_GROUNDING_CORRESPONDENCE: &str =
 const LOGIC_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
 const LOGIC_MORPHISM_KIND: &str = "https://blackcatinformatics.ca/logic/morphismKind";
 const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+const LOGIC_SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
+const LOGIC_TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
 const GM_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
 const GM_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GM_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
@@ -52,29 +59,6 @@ const GM_SET_TRAILER: &str = "https://blackcatinformatics.ca/gmeow/setTrailer";
 
 const DEFAULT_JUSTIFICATION: &str = "https://w3id.org/semapv/vocab/ManualMappingCuration";
 
-/// The canonical SSSOM column order GMEOW writes. A label column only appears when at
-/// least one row populates it; the [`SSSOM_ALWAYS`] columns are always present.
-const SSSOM_ORDER: &[&str] = &[
-    "subject_id",
-    "subject_label",
-    "predicate_id",
-    "object_id",
-    "object_label",
-    "mapping_justification",
-    "confidence",
-    "comment",
-];
-
-/// The columns GMEOW always emits, even when blank for every row.
-const SSSOM_ALWAYS: &[&str] = &[
-    "subject_id",
-    "predicate_id",
-    "object_id",
-    "mapping_justification",
-    "confidence",
-    "comment",
-];
-
 /// One `gmeow:TermEquivalence` cell — compiles to exactly one SSSOM row. IRIs are
 /// kept full and absolute; CURIE-shortening happens at render time.
 ///
@@ -82,11 +66,11 @@ const SSSOM_ALWAYS: &[&str] = &[
 /// `logic:Correspondence` transpiler materializes one typed node per cell from THE SAME
 /// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
-pub(crate) struct EquivalenceCell {
-    pub(crate) subject: String,
-    pub(crate) predicate: String,
-    pub(crate) obj: String,
-    pub(crate) confidence: Option<f64>,
+pub struct EquivalenceCell {
+    pub subject: String,
+    pub predicate: String,
+    pub obj: String,
+    pub confidence: Option<f64>,
     pub(crate) justification: Option<String>,
     /// Optional authored law-spine rung. Absent cells retain the predicate-derived SSSOM
     /// default; grounding bridges author this explicitly so a commitment shift can never
@@ -96,6 +80,12 @@ pub(crate) struct EquivalenceCell {
     pub(crate) morphism_kind: Option<String>,
     /// Optional authored per-correspondence preservation judgment.
     pub(crate) preservation: Option<String>,
+    /// Explicit source endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignSubject`.
+    pub(crate) source_endpoint: Option<String>,
+    /// Explicit target endpoint of a grounding correspondence. Ordinary SSSOM cells may
+    /// omit it; grounding cells must carry it and it must agree with `alignObject`.
+    pub(crate) target_endpoint: Option<String>,
     /// Whether the frontend cell is explicitly a `logic:GroundingCorrespondence`.
     pub(crate) grounding: bool,
     comment: String,
@@ -106,7 +96,7 @@ pub(crate) struct EquivalenceCell {
     lossy_drops: Vec<String>,
     sssom_file: String,
     subject_label: String,
-    object_label: String,
+    pub object_label: String,
 }
 
 /// Per-file SSSOM header metadata (`gmeow:MappingSet`).
@@ -129,7 +119,7 @@ struct ProjectionSssomMetadata {
     object_label: String,
 }
 
-type RowsByFile = BTreeMap<String, Vec<Row>>;
+type RowsByFile = BTreeMap<String, Vec<SssomMapping>>;
 type PreservationLedger = Vec<ProjectionResult>;
 
 /// The discovered SSSOM source model: every equivalence cell and the per-file
@@ -174,7 +164,7 @@ pub fn lower_sssom(
     let mut loss = crate::loss_ledger::LossLedger::new();
     let sources = collect_sources(view)?;
     let (rows_by_file, ledger) = build_rows_and_ledger(&sources, lookup, &mut loss)?;
-    let sets = render_sets(&sources.mapping_sets, &rows_by_file, version, release_date)?;
+    let sets = render_sets(&sources.mapping_sets, &rows_by_file, version, release_date);
     Ok(SssomLowering { sets, ledger, loss })
 }
 
@@ -282,16 +272,16 @@ fn build_rows_and_ledger(
         by_file
             .entry(cell.sssom_file.clone())
             .or_default()
-            .push(Row {
-                subject_id: sssom_id(&cell.subject, table),
-                subject_label: cell.subject_label.clone(),
-                predicate_id: sssom_id(&cell.predicate, table),
-                object_id: sssom_id(&cell.obj, table),
-                object_label: cell.object_label.clone(),
-                mapping_justification: sssom_id(&justification, table),
-                confidence: conf(cell.confidence),
-                comment: cell.comment.clone(),
-            });
+            .push(checked_mapping(
+                sssom_id(&cell.subject, table),
+                opt(cell.subject_label.clone()),
+                sssom_id(&cell.predicate, table),
+                sssom_id(&cell.obj, table),
+                opt(cell.object_label.clone()),
+                sssom_id(&justification, table),
+                cell.confidence,
+                opt(cell.comment.clone()),
+            )?);
     }
 
     for cell in &sources.projections {
@@ -332,22 +322,25 @@ fn build_rows_and_ledger(
 
             let pairs = projection_sssom_pairs(cell, binding)?;
             for (subject, obj) in pairs {
-                by_file.entry(file.to_owned()).or_default().push(Row {
-                    subject_id: sssom_id(&subject, table),
-                    subject_label: metadata.subject_label.clone(),
-                    predicate_id: sssom_id(predicate, table),
-                    object_id: sssom_id(&obj, table),
-                    object_label: metadata.object_label.clone(),
-                    mapping_justification: sssom_id(
-                        metadata
-                            .justification
-                            .as_deref()
-                            .unwrap_or(DEFAULT_JUSTIFICATION),
-                        table,
-                    ),
-                    confidence: conf(binding.confidence),
-                    comment: metadata.comment.clone(),
-                });
+                by_file
+                    .entry(file.to_owned())
+                    .or_default()
+                    .push(checked_mapping(
+                        sssom_id(&subject, table),
+                        opt(metadata.subject_label.clone()),
+                        sssom_id(predicate, table),
+                        sssom_id(&obj, table),
+                        opt(metadata.object_label.clone()),
+                        sssom_id(
+                            metadata
+                                .justification
+                                .as_deref()
+                                .unwrap_or(DEFAULT_JUSTIFICATION),
+                            table,
+                        ),
+                        binding.confidence,
+                        opt(metadata.comment.clone()),
+                    )?);
             }
 
             let mut residue = vec![
@@ -405,7 +398,7 @@ pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
 /// Every `gmeow:TermEquivalence` cell discovered over `view`, in extraction order — the
 /// frontend transpiler's input. Shares [`extract_equivalences`] with the SSSOM renderer,
 /// so the typed correspondence set and the rendered TSV read the store identically.
-pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
+pub fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
     let mut out = Vec::new();
     extract_equivalences(view, &mut out);
     out
@@ -565,6 +558,8 @@ fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
             morphism_class: view.object_iri(&subject, LOGIC_MORPHISM_CLASS),
             morphism_kind: view.object_iri(&subject, LOGIC_MORPHISM_KIND),
             preservation: view.object_iri(&subject, LOGIC_PRESERVATION_KIND),
+            source_endpoint: view.object_iri(&subject, LOGIC_SOURCE_ENDPOINT),
+            target_endpoint: view.object_iri(&subject, LOGIC_TARGET_ENDPOINT),
             grounding: grounding.contains(&subject),
             comment: view
                 .object_literal(&subject, GM_COMMENT)
@@ -608,46 +603,68 @@ fn extract_mapping_sets(view: &DslView, out: &mut BTreeMap<String, MappingSet>) 
 
 // ── Rendering (pure — reproduces the historical bespoke TSV byte-for-byte) ────────
 
-/// One materialized SSSOM row: the eight named column cells.
-struct Row {
+/// Build one checked [`SssomMapping`] row, hard-failing on a cell that would
+/// corrupt the TSV (a raw tab/CR/LF). SSSOM is tab-separated, newline-delimited,
+/// so such a character would silently split a value across columns or rows —
+/// `purrdf::sssom::serialize_tsv` does not itself guard against this (it trusts
+/// its caller), so GMEOW keeps the check here, at construction time, rather than
+/// letting a corrupt cell reach the shared serializer.
+#[allow(clippy::too_many_arguments)]
+fn checked_mapping(
     subject_id: String,
-    subject_label: String,
+    subject_label: Option<String>,
     predicate_id: String,
     object_id: String,
-    object_label: String,
+    object_label: Option<String>,
     mapping_justification: String,
-    confidence: String,
-    comment: String,
+    confidence: Option<f64>,
+    comment: Option<String>,
+) -> gmeow_errors::Result<SssomMapping> {
+    check_tsv_cell("subject_id", &subject_id)?;
+    if let Some(v) = &subject_label {
+        check_tsv_cell("subject_label", v)?;
+    }
+    check_tsv_cell("predicate_id", &predicate_id)?;
+    check_tsv_cell("object_id", &object_id)?;
+    if let Some(v) = &object_label {
+        check_tsv_cell("object_label", v)?;
+    }
+    check_tsv_cell("mapping_justification", &mapping_justification)?;
+    if let Some(v) = &comment {
+        check_tsv_cell("comment", v)?;
+    }
+    Ok(SssomMapping {
+        subject_id,
+        subject_label,
+        predicate_id,
+        object_id,
+        object_label,
+        mapping_justification,
+        confidence,
+        comment,
+        extras: BTreeMap::new(),
+    })
 }
 
-impl Row {
-    fn cell(&self, column: &str) -> &str {
-        match column {
-            "subject_id" => &self.subject_id,
-            "subject_label" => &self.subject_label,
-            "predicate_id" => &self.predicate_id,
-            "object_id" => &self.object_id,
-            "object_label" => &self.object_label,
-            "mapping_justification" => &self.mapping_justification,
-            "confidence" => &self.confidence,
-            "comment" => &self.comment,
-            _ => "",
-        }
-    }
+/// `None` for an empty string, `Some(value)` otherwise — the bespoke `Row`'s
+/// blank-means-absent convention, lifted onto `purrdf::SssomMapping`'s
+/// `Option<String>` label/comment slots.
+fn opt(value: String) -> Option<String> {
+    if value.is_empty() { None } else { Some(value) }
 }
 
 fn render_sets(
     mapping_sets: &BTreeMap<String, MappingSet>,
-    by_file: &BTreeMap<String, Vec<Row>>,
+    by_file: &BTreeMap<String, Vec<SssomMapping>>,
     version: &str,
     release_date: &str,
-) -> gmeow_errors::Result<BTreeMap<String, String>> {
+) -> BTreeMap<String, String> {
     let mut out: BTreeMap<String, String> = BTreeMap::new();
     for (file, rows) in by_file {
         let meta = mapping_sets.get(file);
-        out.insert(file.clone(), render_one(rows, meta, version, release_date)?);
+        out.insert(file.clone(), render_one(rows, meta, version, release_date));
     }
-    Ok(out)
+    out
 }
 
 /// Reject a TSV cell whose value carries a raw tab/CR/LF. SSSOM is tab-separated,
@@ -664,157 +681,119 @@ fn check_tsv_cell(column: &str, value: &str) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
-fn render_one(
-    rows: &[Row],
-    meta: Option<&MappingSet>,
-    version: &str,
-    release_date: &str,
-) -> gmeow_errors::Result<String> {
-    let columns: Vec<&str> = SSSOM_ORDER
-        .iter()
-        .copied()
-        .filter(|c| SSSOM_ALWAYS.contains(c) || rows.iter().any(|r| !r.cell(c).is_empty()))
-        .collect();
-
-    let mut used: BTreeSet<String> = BTreeSet::new();
+/// The registry `prefix → namespace` curie_map a set of rows actually uses —
+/// every `prefix:` token the registry recognizes across the four CURIE-bearing
+/// columns (subject/predicate/object/justification), so the header declares
+/// exactly the prefixes the body needs and no more.
+fn used_curie_map(rows: &[SssomMapping]) -> BTreeMap<String, String> {
+    let mut used: BTreeSet<&str> = BTreeSet::new();
     for r in rows {
         for tok in [
-            &r.subject_id,
-            &r.predicate_id,
-            &r.object_id,
-            &r.mapping_justification,
+            r.subject_id.as_str(),
+            r.predicate_id.as_str(),
+            r.object_id.as_str(),
+            r.mapping_justification.as_str(),
         ] {
             if let Some((prefix, _)) = tok.split_once(':')
                 && registry_iri(prefix).is_some()
             {
-                used.insert(prefix.to_owned());
+                used.insert(prefix);
             }
         }
     }
-
-    let mut lines = sssom_header(meta, &used, version, release_date);
-
-    if let Some(meta) = meta
-        && !meta.trailer.is_empty()
-    {
-        // Refused/deferred mappings kept IN the artifact: a second '#' makes each
-        // trailer line a YAML-invisible comment.
-        for line in meta.trailer.lines() {
-            lines.push(format!("# #{}", line.strip_prefix('#').unwrap_or(line)));
-        }
-    }
-
-    lines.push(columns.join("\t"));
-
-    let mut sorted: Vec<&Row> = rows.iter().collect();
-    sorted.sort_by(|a, b| {
-        (&a.subject_id, &a.predicate_id, &a.object_id).cmp(&(
-            &b.subject_id,
-            &b.predicate_id,
-            &b.object_id,
-        ))
-    });
-    for r in sorted {
-        let mut cells: Vec<&str> = Vec::with_capacity(columns.len());
-        for c in &columns {
-            let value = r.cell(c);
-            check_tsv_cell(c, value)?;
-            cells.push(value);
-        }
-        lines.push(cells.join("\t"));
-    }
-
-    let mut text = lines.join("\n");
-    text.push('\n');
-    Ok(text)
+    used.into_iter()
+        .filter_map(|prefix| registry_iri(prefix).map(|ns| (prefix.to_owned(), ns.to_owned())))
+        .collect()
 }
 
-fn sssom_header(
+/// The `SssomMeta` header GMEOW writes for one mapping set. `mapping_set_id`,
+/// `mapping_set_version`, and `license` are an all-or-nothing trio (present only
+/// when the file has a registered `gmeow:MappingSet` with a non-empty `setId`);
+/// `mapping_tool`/`mapping_tool_version`/`mapping_date` are always present.
+fn build_meta(
     meta: Option<&MappingSet>,
-    used: &BTreeSet<String>,
+    curie_map: BTreeMap<String, String>,
     version: &str,
     release_date: &str,
-) -> Vec<String> {
-    let mut lines: Vec<String> = Vec::new();
-    if let Some(meta) = meta
-        && !meta.set_id.is_empty()
-    {
-        lines.push(format!("# mapping_set_id: {}", meta.set_id));
-        lines.push(format!("# mapping_set_version: {version}"));
-        lines.push(format!("# license: {}", meta.license));
+) -> SssomMeta {
+    let has_set_id = meta.is_some_and(|m| !m.set_id.is_empty());
+    let (mapping_set_id, mapping_set_version, license) = if has_set_id {
+        let m = meta.expect("has_set_id implies meta is Some");
+        (
+            Some(m.set_id.clone()),
+            Some(version.to_owned()),
+            Some(m.license.clone()),
+        )
+    } else {
+        (None, None, None)
+    };
+    let comment = meta
+        .filter(|m| !m.comment.is_empty())
+        .map(|m| json_quote_ascii(&collapse_whitespace(&m.comment)));
+    SssomMeta {
+        mapping_set_id,
+        mapping_set_version,
+        license,
+        mapping_tool: Some(
+            "gmeow-dev sync --mode update --outputs generated (mappings)".to_owned(),
+        ),
+        mapping_tool_version: Some(version.to_owned()),
+        mapping_date: Some(release_date.to_owned()),
+        comment,
+        curie_map,
+        extra: BTreeMap::new(),
     }
-    lines.push("# mapping_tool: gmeow regenerate (mappings)".to_owned());
-    lines.push(format!("# mapping_tool_version: {version}"));
-    lines.push(format!("# mapping_date: {release_date}"));
-    if let Some(meta) = meta
-        && !meta.comment.is_empty()
-    {
-        let collapsed = collapse_whitespace(&meta.comment);
-        lines.push(format!("# comment: {}", json_quote_ascii(&collapsed)));
+}
+
+/// Splice GMEOW's refused/deferred-mapping provenance trailer back into the
+/// canonical `purrdf::sssom::serialize_tsv` output, right before the TSV
+/// column-header row. `purrdf`'s SSSOM codec deliberately treats a `# #…` line
+/// as a documentation comment, not mapping-set metadata (its `parse_tsv` skips
+/// such lines outright — see its module doc), so it has no `SssomMeta` slot for
+/// this content; splicing it in at render time is GMEOW's own provenance
+/// convention layered on top of the canonical serializer, not a competing SSSOM
+/// serializer.
+fn splice_trailer(tsv: String, trailer: &str) -> String {
+    if trailer.is_empty() {
+        return tsv;
     }
-    lines.push("# curie_map:".to_owned());
-    for prefix in used {
-        if let Some(iri) = registry_iri(prefix) {
-            lines.push(format!("#   {prefix}: {iri}"));
+    let lines: Vec<&str> = tsv.lines().collect();
+    let insert_at = lines
+        .iter()
+        .position(|line| !line.starts_with('#'))
+        .unwrap_or(lines.len());
+    let mut out: Vec<String> = Vec::with_capacity(lines.len() + trailer.lines().count());
+    for (i, line) in lines.iter().enumerate() {
+        if i == insert_at {
+            for trailer_line in trailer.lines() {
+                out.push(format!(
+                    "# #{}",
+                    trailer_line.strip_prefix('#').unwrap_or(trailer_line)
+                ));
+            }
         }
+        out.push((*line).to_owned());
     }
-    lines
+    let mut text = out.join("\n");
+    text.push('\n');
+    text
 }
 
-// ── Formatting helpers (byte-parity-critical; mirror Python `_conf`/`%g`) ─────────
-
-fn conf(value: Option<f64>) -> String {
-    let Some(v) = value else {
-        return String::new();
+fn render_one(
+    rows: &[SssomMapping],
+    meta: Option<&MappingSet>,
+    version: &str,
+    release_date: &str,
+) -> String {
+    let curie_map = used_curie_map(rows);
+    let set = SssomMappingSet {
+        meta: build_meta(meta, curie_map, version, release_date),
+        mappings: rows.to_vec(),
     };
-    if v == v.trunc() {
-        format!("{v:.1}")
-    } else {
-        format_g(v)
-    }
-}
-
-fn format_g(v: f64) -> String {
-    const SIG: usize = 6;
-    if v == 0.0 {
-        return "0".to_owned();
-    }
-    let exponent = v.abs().log10().floor() as i32;
-    if exponent < -4 || exponent >= SIG as i32 {
-        let mantissa_prec = SIG.saturating_sub(1);
-        let s = format!("{v:.*e}", mantissa_prec);
-        return trim_scientific(&s);
-    }
-    let decimals = (SIG as i32 - 1 - exponent).max(0) as usize;
-    let s = format!("{v:.*}", decimals);
-    trim_fixed(&s)
-}
-
-fn trim_scientific(s: &str) -> String {
-    let (mantissa, exp) = match s.split_once('e') {
-        Some((m, e)) => (m, e),
-        None => return s.to_owned(),
-    };
-    let mantissa = trim_fixed(mantissa);
-    let (sign, digits) = match exp.strip_prefix('-') {
-        Some(d) => ('-', d),
-        None => ('+', exp.strip_prefix('+').unwrap_or(exp)),
-    };
-    let digits = if digits.len() < 2 {
-        format!("{digits:0>2}")
-    } else {
-        digits.to_owned()
-    };
-    format!("{mantissa}e{sign}{digits}")
-}
-
-fn trim_fixed(s: &str) -> String {
-    if s.contains('.') {
-        let trimmed = s.trim_end_matches('0');
-        let trimmed = trimmed.strip_suffix('.').unwrap_or(trimmed);
-        trimmed.to_owned()
-    } else {
-        s.to_owned()
+    let tsv = purrdf::sssom::serialize_tsv(&set);
+    match meta {
+        Some(m) if !m.trailer.is_empty() => splice_trailer(tsv, &m.trailer),
+        _ => tsv,
     }
 }
 
@@ -857,15 +836,18 @@ mod tests {
     #[test]
     fn render_one_emits_canonical_tsv() {
         let table = ns_to_prefix();
-        let make = |subj: &str, pred: &str, obj: &str, c: Option<f64>| Row {
-            subject_id: sssom_id(subj, table),
-            subject_label: String::new(),
-            predicate_id: sssom_id(pred, table),
-            object_id: sssom_id(obj, table),
-            object_label: String::new(),
-            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
-            confidence: conf(c),
-            comment: String::new(),
+        let make = |subj: &str, pred: &str, obj: &str, c: Option<f64>| {
+            checked_mapping(
+                sssom_id(subj, table),
+                None,
+                sssom_id(pred, table),
+                sssom_id(obj, table),
+                None,
+                sssom_id(DEFAULT_JUSTIFICATION, table),
+                c,
+                None,
+            )
+            .expect("well-formed row")
         };
         // Two rows, deliberately out of (subject, predicate, object) order.
         let rows = vec![
@@ -888,12 +870,12 @@ mod tests {
             comment: "Demo  set\nwith   wrap".to_owned(),
             trailer: "# REFUSED nothing here".to_owned(),
         };
-        let text = render_one(&rows, Some(&meta), "0.1.0", "2026-06-03").unwrap();
+        let text = render_one(&rows, Some(&meta), "0.1.0", "2026-06-03");
         let expected = "\
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: \"Demo set with wrap\"
@@ -912,17 +894,18 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
     #[test]
     fn label_column_appears_only_when_populated() {
         let table = ns_to_prefix();
-        let row = Row {
-            subject_id: sssom_id(&format!("{GMEOW}Foo"), table),
-            subject_label: "Foo label".to_owned(),
-            predicate_id: sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
-            object_id: sssom_id(&format!("{GMEOW}Bar"), table),
-            object_label: String::new(),
-            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
-            confidence: conf(None),
-            comment: String::new(),
-        };
-        let text = render_one(&[row], None, "0.1.0", "2026-06-03").unwrap();
+        let row = checked_mapping(
+            sssom_id(&format!("{GMEOW}Foo"), table),
+            Some("Foo label".to_owned()),
+            sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
+            sssom_id(&format!("{GMEOW}Bar"), table),
+            None,
+            sssom_id(DEFAULT_JUSTIFICATION, table),
+            None,
+            None,
+        )
+        .expect("well-formed row");
+        let text = render_one(&[row], None, "0.1.0", "2026-06-03");
         let header_row = text
             .lines()
             .find(|l| l.starts_with("subject_id"))
@@ -935,20 +918,19 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
     }
 
     #[test]
-    fn render_one_rejects_tab_in_cell() {
+    fn checked_mapping_rejects_tab_in_cell() {
         let table = ns_to_prefix();
-        let row = Row {
-            subject_id: sssom_id(&format!("{GMEOW}Foo"), table),
-            subject_label: "has\ttab".to_owned(),
-            predicate_id: sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
-            object_id: sssom_id(&format!("{GMEOW}Bar"), table),
-            object_label: String::new(),
-            mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
-            confidence: conf(None),
-            comment: String::new(),
-        };
-        let err = render_one(&[row], None, "0.1.0", "2026-06-03")
-            .expect_err("a cell with a tab must be rejected");
+        let err = checked_mapping(
+            sssom_id(&format!("{GMEOW}Foo"), table),
+            Some("has\ttab".to_owned()),
+            sssom_id("http://www.w3.org/2004/02/skos/core#exactMatch", table),
+            sssom_id(&format!("{GMEOW}Bar"), table),
+            None,
+            sssom_id(DEFAULT_JUSTIFICATION, table),
+            None,
+            None,
+        )
+        .expect_err("a cell with a tab must be rejected");
         assert!(err.message().contains("subject_label"), "{err}");
     }
 

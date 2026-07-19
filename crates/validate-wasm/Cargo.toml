@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-validate-wasm"
 description = "wasm32 bindings for the repo-free GMEOW Tier-1 validator: validate authored RDF against a gmeow.gts bundle client-side (editor / browser / LLM client), returning JSON findings"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
