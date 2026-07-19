@@ -1,0 +1,57 @@
+{
+  "schema": "gmeow-history-rewrite-local-verification-v1",
+  "verified_at": "2026-07-18T18:41:37-06:00",
+  "fresh_clone": {
+    "main": "1361ab1dfcaba673c64b5a47b49c195524344291",
+    "initial_pack_size_mib": 74.14,
+    "canonical_pack_after_audit_ref_fetch_mib": 75.24,
+    "reachable_generated_paths": 0,
+    "tracked_generated_paths": 0,
+    "generated_checkout_before_bootstrap": "absent"
+  },
+  "source_first_bootstrap": {
+    "make_help": "pass",
+    "make_install": "pass",
+    "generated_files": 393,
+    "generated_size_mib_rounded": 193,
+    "gmeow_gts_bytes": 23274144,
+    "gmeow_version": "0.2.0",
+    "gmeow_dev_version": "0.2.0",
+    "gmeow_lsp_version": "0.2.0",
+    "git_status_after_install": "clean"
+  },
+  "quality_gate": {
+    "command": "make check",
+    "profile": "full-fallback",
+    "result": "all checks passed",
+    "nextest_passed": 6533,
+    "nextest_failed": 0,
+    "nextest_skipped": 78,
+    "docker_free": true,
+    "java_free": true
+  },
+  "recreated_worktrees": {
+    "paudley/1344-chase-termination-ladder": {
+      "head": "f14c40e73345c60c22c137be0ba434db7f07d192",
+      "clean": true,
+      "non_generated_tree_fingerprint_matches": true
+    },
+    "paudley/1428-native-numeric-builtins": {
+      "head": "dc76a07b9e0fc19499ad5a842fa9a7265d511c99",
+      "clean": true,
+      "non_generated_tree_fingerprint_matches": true
+    },
+    "paudley/1551-logic-only-shape-retirement": {
+      "head": "7b32a53977826971366a9d98c76de88e82a8975a",
+      "clean": true,
+      "non_generated_tree_fingerprint_matches": true
+    }
+  },
+  "audit": {
+    "ghprsq_refs": 693,
+    "ghprsq_notes": 461,
+    "notes_signature": "good",
+    "ledger_signature": "good",
+    "fsck": "pass"
+  }
+}
