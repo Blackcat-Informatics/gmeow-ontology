@@ -301,6 +301,39 @@ fn asymmetric_gram_is_flagged() {
     );
 }
 
+/// A Gram matrix whose maximum authored index is astronomically large. `dim` is
+/// derived from the max `math:atRow`/`math:atColumn`, so this would drive a
+/// `dim`×`dim` dense allocation — an OOM/abort — were the index not bounded to
+/// `[0, MAX_BASIS_DIM)` by `load_gram` before any matrix is sized.
+fn gram_oversized_index(huge: i128) -> String {
+    format!(
+        "{PREFIXES}\
+         ex:g a math:GramMatrix ; math:definiteness math:positiveDefinite ;\n\
+           math:hasEntry ex:e00 , ex:eBig .\n\
+         ex:e00  a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:one .\n\
+         ex:eBig a math:MatrixEntry ; math:atRow {huge} ; math:atColumn {huge} ; math:entryValue ex:one .\n\
+         ex:one a math:RationalValue ; math:numerator 1 ; math:denominator 1 .\n"
+    )
+}
+
+#[test]
+fn oversized_gram_index_is_bounded_not_allocated() {
+    // A diagonal entry at index 1_000_000_000 makes the symmetry check pass but would
+    // demand a ~1e9 × 1e9 dense matrix. The order bound must convert this into a typed
+    // math:MalformedDimension finding BEFORE allocation. That this test returns at all
+    // (no OOM/abort) is the proof the guard runs ahead of the allocation.
+    let f = findings(&gram_oversized_index(1_000_000_000));
+    assert!(
+        has_class(&f, "math:MalformedDimension"),
+        "an out-of-range authored Gram index must raise math:MalformedDimension, not \
+         allocate: {f:?}"
+    );
+    assert!(
+        !has_class(&f, "math:NonPositiveDefiniteNorm"),
+        "a bounded-out oversized Gram must not also reach the LDLᵀ certificate: {f:?}"
+    );
+}
+
 #[test]
 fn upper_triangle_only_gram_is_symmetric() {
     // The ordinary idiom: author only the (0,1) off-diagonal; the absent (1,0) mate is

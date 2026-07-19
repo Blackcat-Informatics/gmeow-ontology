@@ -32,10 +32,14 @@ pub mod producers;
 mod error;
 use error::{
     ArithmeticOverflow, BadCosine, DecimalParse, DegenerateScale, EmptySpace, GraphRead,
-    IndexOutOfRange, MissingProperty, NegativeSqrt, NoCells, NonSquareGram, NotPositiveDefinite,
-    RationalDomain, ZeroVector,
+    MissingProperty, NegativeSqrt, NoCells, NonSquareGram, NotPositiveDefinite, RationalDomain,
+    ZeroVector,
 };
-pub use error::{MATH_DIAG_CODES, register_all};
+// `IndexOutOfRange` is part of the public surface: a downstream reasoned-graph gate
+// (`gmeow_logic::math_dimension`) distinguishes an out-of-range authored matrix index
+// from a shape-caught structural fault to surface it as a typed `math:MalformedDimension`
+// finding rather than silently skipping.
+pub use error::{IndexOutOfRange, MATH_DIAG_CODES, register_all};
 
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

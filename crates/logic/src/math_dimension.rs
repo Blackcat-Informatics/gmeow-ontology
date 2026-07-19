@@ -23,8 +23,8 @@
 use gmeow_errors::{Finding, Severity};
 use gmeow_math::dimension::{DimVector, load_dimension_vector, node_dimension};
 use gmeow_math::{
-    InnerProductSpace, Rational, TripleIndex, all_iris, first_iri, first_literal, has_type,
-    index_dataset, load_gram, subjects,
+    IndexOutOfRange, InnerProductSpace, Rational, TripleIndex, all_iris, first_iri, first_literal,
+    has_type, index_dataset, load_gram, subjects,
 };
 use purrdf::RdfDataset;
 use std::collections::BTreeMap;
@@ -294,11 +294,28 @@ fn check_gram_positive_definiteness(index: &TripleIndex, findings: &mut Vec<Find
     let positive_definite = math("positiveDefinite");
     let represents_form = math("representsForm");
     for gram in subjects_of_type(index, &math("GramMatrix")) {
-        // Load the exact-rational cells. A Gram that cannot be loaded (missing
-        // cells/indices) is a structural malformation the cardinality shapes catch,
-        // not a symmetry/definiteness verdict; skip.
-        let Ok(cells) = load_gram(index, &gram) else {
-            continue;
+        // Load the exact-rational cells. `load_gram` bounds each authored
+        // `math:atRow`/`math:atColumn` to `[0, MAX_BASIS_DIM)`, so an out-of-range index
+        // (`math:atRow "1000000000"`) hard-fails HERE rather than sizing a `dim`×`dim`
+        // dense matrix and aborting. An out-of-range index is NOT a cardinality fault the
+        // shapes catch — it is a `math:MalformedDimension` this gate must surface, never a
+        // silent skip. A genuinely-structural malformation (missing cells / properties) is
+        // caught by the cardinality shapes, so it stays a skip.
+        let cells = match load_gram(index, &gram) {
+            Ok(cells) => cells,
+            Err(diag) if diag.is::<IndexOutOfRange>() => {
+                findings.push(error(
+                    CODE_MALFORMED,
+                    format!(
+                        "math:MalformedDimension: Gram matrix {gram} authors a matrix index \
+                         beyond the supported metric-form order ({}); a positive-definiteness \
+                         certificate is not materialized for an out-of-range form",
+                        diag.message()
+                    ),
+                ));
+                continue;
+            }
+            Err(_) => continue,
         };
         // Symmetry FIRST — the LDLᵀ certificate below assumes a symmetric matrix, so
         // an asymmetric Gram must be caught and skipped before it reaches the factor.
