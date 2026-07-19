@@ -2252,9 +2252,10 @@ mod tests {
 
     /// The valence-dominant worked example (G = diag(2, 1)): the exact squared
     /// distance from the state (1/2, 0) to two named prototypes, and the metric-nearest
-    /// verdict. Reproduces `slices/core/affect/examples/nearest-prototype-metric.ttl`:
-    /// contentment → 43/100, elation → 38/100, and 38/100 < 43/100 (elation is nearest
-    /// under the valence-dominant metric even though contentment is raw-L² nearest).
+    /// verdict — the teaching point carried by the canonical
+    /// `slices/core/affect/examples/classify-canonical-prototype.ttl`: the closer
+    /// prototype in the valence-dominant metric (38/100) is NOT the raw-L² nearest
+    /// (43/100), so metric-nearest ≠ Euclidean-nearest (38/100 < 43/100).
     #[test]
     fn bilinear_sqdist_reproduces_nearest_prototype_worked_example() {
         let g = "urn:gmeow:test:gram";
