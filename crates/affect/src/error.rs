@@ -108,8 +108,10 @@ define_diag_kind! {
 define_diag_kind! {
     /// A coordinate vector (state or prototype) has more axes than the vantage form's
     /// order, or the two vectors differ in dimension — measuring it under the vantage
-    /// metric would silently truncate a coordinate (a wrong answer). `detail` names
-    /// the observation and the dimensions.
+    /// metric would silently truncate a coordinate (a wrong answer); or a derived basis
+    /// dimension exceeds the engine's maximum basis order (`MAX_BASIS_DIM`), which would
+    /// otherwise size an unbounded matrix. `detail` names the observation/Gram and the
+    /// dimensions.
     pub struct CoordinateDimensionMismatch { detail: String }
     code = "affect.classify.dimension-mismatch";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);

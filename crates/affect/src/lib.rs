@@ -241,9 +241,16 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
     if dim == 0 {
         return Err(Diag::of_kind(error::EmptyAffectBasis {}));
     }
-    // Every contributing index was bounded below `MAX_BASIS_DIM`, so the
-    // derived dimension is bounded too; assert it before it sizes the matrix.
-    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
+    // Every contributing index was bounded below `MAX_BASIS_DIM`, so the derived
+    // dimension is bounded too; enforce it in ALL build profiles before it sizes
+    // the matrix (a debug_assert would compile out of release).
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "derived affect basis dimension {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
 
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in gram_cells {
@@ -384,7 +391,15 @@ pub fn crosscheck_authored_definiteness(
                 gram_iri: gram_iri.to_owned(),
             })
         })?;
-    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
+    // Enforced in ALL build profiles (a debug_assert would compile out of release);
+    // every Gram index is bounded below `MAX_BASIS_DIM` upstream, so this cannot fire.
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "Gram matrix {gram_iri} order {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in cells {
         gram[row][col] = value;
@@ -716,7 +731,15 @@ pub fn classify(
                 gram_iri: gram_iri.clone(),
             })
         })?;
-    debug_assert!(dim <= MAX_BASIS_DIM, "vantage dimension {dim} exceeds cap");
+    // Enforced in ALL build profiles (a debug_assert would compile out of release);
+    // every vantage-Gram index is bounded below `MAX_BASIS_DIM` upstream.
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "vantage Gram {gram_iri} order {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
 
     // ── PD-certify the vantage Gram: the builtin TRUSTS positive-definiteness, so a
     //    non-PD vantage would make the "distances" negative and the argmin garbage. ─
