@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! `gmeow-dev docs-package` — package the materialized `dist/gmeow-docs/` external
-//! documentation distribution (issue 1491 Task 3's `sync_docs` output) into one
-//! deterministic content-addressed release asset, alongside a standalone digest of
-//! its DCAT release manifest.
+//! documentation distribution (`sync_docs`'s output) into one deterministic
+//! content-addressed release asset, alongside a standalone digest of its DCAT
+//! release manifest.
 //!
 //! This is the release-publication counterpart to `docs-measure`/`sync_docs`: it
 //! NEVER renders or reconciles the docs tree itself (that authority stays with

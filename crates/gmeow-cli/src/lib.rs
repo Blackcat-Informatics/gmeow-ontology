@@ -294,9 +294,9 @@ pub enum Commands {
         #[command(subcommand)]
         command: SliceCommands,
     },
-    /// External documentation distribution tools (issue 1491 Task 5): the
-    /// checkout-free consumer twin of the release-time docs distribution — dogfoods
-    /// the Task-2 catalog and verifies the Task-3/4 content-addressed distribution.
+    /// External documentation distribution tools: the checkout-free consumer twin
+    /// of the release-time docs distribution — dogfoods the distribution catalog
+    /// and verifies the content-addressed distribution.
     Docs {
         #[command(subcommand)]
         cmd: DocsCmd,
@@ -445,13 +445,13 @@ pub enum SliceCommands {
     },
 }
 
-/// The `gmeow docs` nested subcommands (issue 1491 Task 5).
+/// The `gmeow docs` nested subcommands.
 #[derive(Debug, Subcommand)]
 pub enum DocsCmd {
     /// Resolve the per-format consumer-need matrix by querying the meta-level
     /// distribution-catalog named graph shipped inside the embedded `gmeow.gts`
-    /// bundle (AC2) — dogfooding the Task-2 ontology content, never a re-authored
-    /// static table.
+    /// bundle (AC2) — dogfooding the distribution-catalog ontology content, never a
+    /// re-authored static table.
     Matrix,
     /// Verify a materialized documentation distribution's blake3 content digests
     /// against its DCAT manifest (`<dir>/manifest/docs-manifest.ttl`).

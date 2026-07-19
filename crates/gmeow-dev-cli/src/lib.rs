@@ -128,12 +128,12 @@ pub enum Commands {
         timings_json: Option<PathBuf>,
     },
     /// Measure real, deterministic per-format documentation byte sizes and the
-    /// three external-distribution design totals (1491).
+    /// three external-distribution design totals.
     #[command(name = "docs-measure")]
     DocsMeasure,
     /// Package the materialized `dist/gmeow-docs/` external documentation
-    /// distribution into one deterministic content-addressed release asset (1491
-    /// Task 4), alongside a `.blake3` sidecar for the DCAT release manifest.
+    /// distribution into one deterministic content-addressed release asset,
+    /// alongside a `.blake3` sidecar for the DCAT release manifest.
     #[command(name = "docs-package")]
     DocsPackage {
         #[arg(long = "out", default_value = "dist/gmeow-docs.tar")]

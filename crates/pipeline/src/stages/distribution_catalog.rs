@@ -169,7 +169,7 @@ pub fn declared_distribution_slugs() -> std::collections::BTreeSet<&'static str>
 
 // ── identity helpers ────────────────────────────────────────────────────────────────
 
-/// The canonical Task-2 catalog subject IRI for a distribution slug
+/// The canonical distribution-catalog subject IRI for a distribution slug
 /// (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`). `pub(crate)`
 /// so a release-time instance producer (`crate::docs_distribution`) can mint the
 /// SAME subject its members hang off — never a re-derived string literal.

@@ -194,8 +194,8 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
 
     // Content-address every one of the eight external documentation/serialization
     // distributions and build the release-time DCAT manifest linking each to its
-    // Task-2 catalog subject (issue 1491 Task 3). Rendered in memory unconditionally
-    // (even in check mode) — no-optionality forbids a silent skip of the manifest.
+    // distribution-catalog subject. Rendered in memory unconditionally (even in
+    // check mode) — no-optionality forbids a silent skip of the manifest.
     type DistTree<'a> = (&'a str, &'a str, &'a BTreeMap<String, Vec<u8>>);
     let format_trees: [DistTree<'_>; 8] = [
         ("site", "dist/gmeow-docs/site", &site),

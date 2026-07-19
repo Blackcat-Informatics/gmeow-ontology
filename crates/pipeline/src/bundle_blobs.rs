@@ -19,7 +19,7 @@
 //! external, content-addressed distributions rendered by
 //! `make sync SYNC_OUTPUTS=docs` and published as release assets (re-embedding them
 //! in `gmeow.gts` is forbidden; see
-//! `docs/design/1491-external-docs-distribution.md`). Their absence from the
+//! `docs/design/external-docs-distribution.md`). Their absence from the
 //! committed bundle is gated by the `documentation_projections_are_absent` test.
 //!
 //! This module reads those blobs back **from the snapshot bytes alone, with no

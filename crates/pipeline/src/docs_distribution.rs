@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! External documentation / serialization distribution rendering, content-addressing,
-//! and the release-time DCAT manifest (issue 1491 Task 3).
+//! and the release-time DCAT manifest.
 //!
 //! This module is the SOLE producer [`crate::stages::okf`] results route through on
 //! their way to the `dist/gmeow-docs/okf` external destination `gmeow-dev sync` writes
@@ -29,8 +29,8 @@
 //! bytes, formatted `blake3:<hex>`.
 //!
 //! [`build_docs_distribution_manifest`] builds the release-time DCAT catalog instance:
-//! one `gmeow:Corpus` node whose `gmeow:corpusMember` rows ARE the Task-2 canonical
-//! catalog subjects (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`,
+//! one `gmeow:Corpus` node whose `gmeow:corpusMember` rows ARE the canonical
+//! distribution-catalog subjects (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`,
 //! [`crate::stages::distribution_catalog::dist_iri`]) — so the release-time instance
 //! references the exact same carrier-time schema subject, never a re-minted IRI — each
 //! carrying its rendered tree's `gmeow:contentDigest` + `gmeow:sourceLocation`. The
@@ -249,7 +249,7 @@ fn collect_docs_files(
 
 // ── release-time DCAT manifest ──────────────────────────────────────────────────────
 
-/// One rendered distribution's manifest row: its Task-2 catalog slug (`site`, `okf`,
+/// One rendered distribution's manifest row: its distribution-catalog slug (`site`, `okf`,
 /// …), the release-relative path it ships at, its [`distribution_blake3`] content
 /// digest, and its declared media type
 /// ([`crate::stages::distribution_catalog::media_type_for_slug`]).
@@ -263,7 +263,7 @@ pub struct DistributionEntry {
 
 /// Emit the sorted, deduped, byte-stable N-Triples release-instance graph: one
 /// `gmeow:Corpus` node ([`RELEASE_CORPUS_IRI`]) with one `gmeow:corpusMember` per
-/// entry, each member node BEING its Task-2 catalog subject
+/// entry, each member node BEING its distribution-catalog subject
 /// ([`dist_iri`]) and carrying `gmeow:sourceLocation`, `gmeow:contentDigest`, and
 /// `gmeow:artifactMediaType`.
 fn release_instance_ntriples(entries: &[DistributionEntry]) -> String {
@@ -340,7 +340,7 @@ pub fn build_docs_distribution_manifest(
     })
 }
 
-// ── consumer-side catalog matrix (issue 1491 Task 5, `gmeow docs matrix`) ─────────
+// ── consumer-side catalog matrix (`gmeow docs matrix`) ────────────────────────────
 
 /// The IRI-namespace-local-name tail of `iri` (the segment after its final `/`).
 /// Uniformly recovers a slug from every kind of subject this module's catalog reads
@@ -351,8 +351,8 @@ fn local_name(iri: &str) -> String {
     iri.rsplit('/').next().unwrap_or(iri).to_string()
 }
 
-/// One resolved row of the per-format consumer-need matrix (issue 1491 AC2):
-/// a single `gmeow:DocumentationDistribution` from the Task-2 catalog, as read back
+/// One resolved row of the per-format consumer-need matrix (AC2):
+/// a single `gmeow:DocumentationDistribution` from the distribution catalog, as read back
 /// by [`read_distribution_matrix`] — the production dogfooding consumer of the
 /// catalog's ontology content (`gmeow docs matrix`), never a re-authored static
 /// table.
@@ -370,8 +370,8 @@ pub struct DistributionRow {
 }
 
 /// Resolve the per-format consumer-need matrix by QUERYING the meta-level
-/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (issue 1491
-/// AC2), dogfooding the Task-2 catalog content rather than re-deriving it.
+/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (AC2),
+/// dogfooding the distribution catalog content rather than re-deriving it.
 ///
 /// The named graph survives only through the STRUCTURAL reader
 /// ([`purrdf::gts::read_graph`]) — the flattened-dataset fold collapses named graphs
@@ -381,8 +381,8 @@ pub struct DistributionRow {
 /// `gts_base_graph`/`flattened_dataset`.
 ///
 /// No-optionality: an absent or empty catalog graph, or a catalog subject missing a
-/// required facet, is a HARD FAIL — the shipped bundle MUST carry a complete Task-2
-/// catalog, never a silently partial matrix.
+/// required facet, is a HARD FAIL — the shipped bundle MUST carry a complete
+/// distribution catalog, never a silently partial matrix.
 pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>, Diag> {
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| err(format!("gts read_graph failed: {e}")))?;
@@ -414,7 +414,7 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
     if catalog.is_empty() {
         return Err(err(format!(
             "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
-             Task-2 distribution catalog is missing; re-materialize the bundle with `make sync`"
+             distribution catalog is missing; re-materialize the bundle with `make sync`"
         )));
     }
 
@@ -514,7 +514,7 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
     Ok(rows)
 }
 
-// ── manifest verification (issue 1491 Task 5, `gmeow docs verify`) ────────────────
+// ── manifest verification (`gmeow docs verify`) ───────────────────────────────────
 
 /// One format's blake3 verification outcome: the manifest's declared digest vs. the
 /// digest recomputed by re-packaging `<dir>/<slug>` through [`package_docs_dir`] — the
@@ -819,7 +819,7 @@ mod tests {
             let catalog_iri = dist_iri(&entry.slug);
             assert!(
                 manifest.contains(&format!("<{catalog_iri}>")),
-                "manifest must link entry {} to its Task-2 catalog subject {catalog_iri}:\n{manifest}",
+                "manifest must link entry {} to its distribution-catalog subject {catalog_iri}:\n{manifest}",
                 entry.slug
             );
         }

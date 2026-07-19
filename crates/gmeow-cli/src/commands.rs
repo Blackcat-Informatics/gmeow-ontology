@@ -4183,11 +4183,11 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
     }
 }
 
-// ── docs (issue 1491 Task 5) ───────────────────────────────────────────────────
+// ── docs ─────────────────────────────────────────────────────────────────────────
 
 /// `gmeow docs matrix` — resolve the per-format consumer-need matrix by QUERYING the
 /// meta-level distribution-catalog named graph shipped inside the embedded
-/// `gmeow.gts` bundle (issue 1491 AC2), dogfooding the Task-2 ontology content
+/// `gmeow.gts` bundle (AC2), dogfooding the distribution-catalog ontology content
 /// rather than re-deriving a static table. Prints a deterministic table (slug |
 /// family | consumers | media-type | dropped-capabilities) to stdout.
 pub fn docs_matrix(reporter: &dyn Reporter) -> i32 {

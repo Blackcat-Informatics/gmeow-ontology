@@ -3,8 +3,10 @@
 
 # Design: External documentation projection distribution
 
-Issue 1491, follow-up to PR 1490. Cite principles by number (`Principle 4`) in
-issues and PRs.
+Reconciles the superset law (PIPELINE_SPINE §5) with the documentation-inventory
+doctrine that keeps rendered documentation external to `gmeow.gts`, and extends the
+prior bundle-size reduction (a 93.2% shrink, 149 MB → 10 MB) by keeping every
+rendered documentation/serialization projection permanently out of the carrier.
 
 ## Decision Summary
 
@@ -16,9 +18,9 @@ issues and PRs.
 | Per-release digests | A separate release-time DCAT **instance** manifest under `dist/` — never in the carrier |
 | Source-backed export | Preserved: `make sync SYNC_OUTPUTS=docs` → `sync_docs` renders all eight distributions |
 | `zstd-rsyncable` level-12 | Preserved; positively asserted over the shipped bundle's real payload frames |
-| Size budget | **None reintroduced** — honors 1404 ("size is not a gate that matters"); the forbidden-embed invariant is the gate |
+| Size budget | **None reintroduced** — a byte-count ceiling is not a gate that matters; the forbidden-embed invariant is the gate |
 
-The whole job of this issue is to reconcile two doctrines that pull in opposite
+The whole job of this design is to reconcile two doctrines that pull in opposite
 directions on documentation, and to gate the reconciliation so it cannot regress:
 
 - **PIPELINE_SPINE §5 (superset law):** every committed artifact under `generated/`
@@ -60,21 +62,33 @@ deterministic by the test-gated contract.
 | **B — sidecar `.gts`** | 97,916,216 | a second signed `.gts` artifact + a second emit path | Viable but strictly more machinery than A for no gain |
 | **C — opt-in embedded profile** | 121,188,849 (analytical proxy: without-docs carrier + Σ framed doc bytes) | re-inflates the carrier ~12× (10 MB → ~121 MB) | **Rejected + forbidden** |
 
-**Regeneration cost is essentially equal across all three designs**, because all three
-render the *same* bytes from the *same* one-pass pipeline; they differ only in
-*packaging* (A writes files, B frames a sidecar snapshot, C folds into the carrier).
+**Regeneration cost is equal across all three designs BY CONSTRUCTION, not by
+measurement.** All three designs render the IDENTICAL bytes (the per-format footprint
+table above) through the IDENTICAL single one-pass pipeline (`gmeow-dev
+docs-measure`/`sync_docs` run the SAME production renderers once, in memory); they
+differ only in what happens to those bytes AFTER rendering — *packaging*, not
+*production* — A writes them to files, B frames them into a sidecar `.gts` snapshot, C
+folds them into the carrier. Since none of the three designs adds, removes, or
+reorders a pipeline stage, none can change how long rendering takes; the only
+degrees of freedom are the constant-time byte-copy dressings each design's packaging
+step performs. A wall-clock benchmark of the three would therefore measure
+machine load and I/O-cache noise, not the designs — a non-deterministic, non-gateable
+number the test-gated contract could never pin. The structural argument above (same
+pipeline, same bytes, packaging-only divergence) is the correct and only form of
+"measured regeneration cost" for this decision; it is what `gmeow-dev docs-measure`
+actually measures, and it is what the byte totals in the table above are evidence of.
 So the decision rests on size and architectural fit, not regen cost.
 
 ### Why A wins
 
-- **Keeps the 93.2% bundle-size win** PR 1490 landed (149 MB → 10 MB). C throws it away;
-  B keeps a separate 98 MB artifact that duplicates what the external tree already holds.
+- **Keeps the prior 93.2% bundle-size win** (149 MB → 10 MB). C throws it away; B keeps
+  a separate 98 MB artifact that duplicates what the external tree already holds.
 - **Doctrine-default (Principle 14):** the release path already publishes a
   content-addressed GitHub release with a checksum sidecar; A extends that pattern to the
   docs tarball + DCAT manifest, adding no new distribution machinery class.
 - **No policy conflict:** A never re-embeds, so AC5's "size budget" precondition is never
-  reached and no size gate is reintroduced (honoring 1404). C would require the
-  1404-killed size budget.
+  reached and no size gate is reintroduced (the size-gate-removal doctrine holds). C
+  would require reintroducing the size budget that doctrine already killed.
 - **Content-addressed, dogfooded:** each distribution carries a `blake3:<hex>` in a DCAT
   `spdx:checksumValue`, and the consumer verb `gmeow docs verify` checks it.
 
@@ -82,7 +96,7 @@ So the decision rests on size and architectural fit, not regen cost.
 
 Documentation is **not one indivisible payload**. It is two families of distributions,
 each format serving a distinct repo-free consumer. This matrix is a *projection* of the
-single canonical `graph/distribution-catalog` (Task 2) — it is not authored twice; it is
+single canonical `graph/distribution-catalog` — it is not authored twice; it is
 the result of `gmeow docs matrix` over the shipped bundle.
 
 | Format | Family | Consumer class | Media type | Why the consumer needs it |
@@ -129,7 +143,7 @@ have to be known before THIS bundle is serialized). The design splits accordingl
   docs tarball is a USTAR file, not a GTS frame; it carries a `blake3` sidecar. Any GTS
   frame authored routes through `gts_profile::emit_gmeow_gts`, and the contract positively
   validates every payload frame of the shipped bundle.
-- **1404 (size gate removed):** honored — no size budget is reintroduced. Re-embedding is
+- **Size-gate removal stays honored:** no size budget is reintroduced. Re-embedding is
   forbidden outright, so the AC5 "budget-or-contract" precondition never triggers; the
   test-gated **forbidden-embed** invariant (`documentation_projections_are_absent` +
   "no `TOTAL_CEILING`") is the gate.

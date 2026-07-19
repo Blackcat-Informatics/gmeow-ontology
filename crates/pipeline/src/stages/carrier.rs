@@ -483,7 +483,7 @@ fn serialize_carrier_snapshot_without_docs(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    // The canonical distribution catalog (issue 1491 AC2/AC6): a carrier-time,
+    // The canonical distribution catalog (AC2/AC6): a carrier-time,
     // clock-free, byte-stable meta-level graph declaring which documentation
     // distributions exist, their family, their consumer class, and their declared
     // capability loss — folded alongside the opaque-fanout manifest.
@@ -2514,8 +2514,8 @@ fn collect_fanout_opaque_members(
 pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
     "https://blackcatinformatics.ca/gmeow/graph/fanout-opaque-manifest";
 
-/// The meta-level named graph carrying the canonical distribution catalog (issue
-/// 1491 AC2/AC6): WHICH documentation distributions exist, their FAMILY, their
+/// The meta-level named graph carrying the canonical distribution catalog (AC2/AC6):
+/// WHICH documentation distributions exist, their FAMILY, their
 /// CONSUMER class, and (for the doc-render family) their declared capability LOSS. See
 /// [`crate::stages::distribution_catalog`]. NOT in
 /// `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`, so — like
