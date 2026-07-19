@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deliverable D4 (#763 Task 6, Part 2) — Completion-Adversary F2 reasoning-reuse
+//! Deliverable D4 (issue 763 Task 6, Part 2) — Completion-Adversary F2 reasoning-reuse
 //! demonstration.
 //!
 //! Models `crates/logic/tests/ontology_entailments.rs`'s scoped-closure pattern: union a
@@ -77,7 +77,7 @@ fn turtle_quads(rel_paths: &[&str]) -> Vec<RdfQuad> {
 
 /// The `graph/norm-claims` named graph of the committed `generated/dist/gmeow.gts`, folded
 /// into owned quads in one default-graph world (the "union graph/norm-claims into the
-/// reasoning EDB" step) — the emitted `gmeow:ComplianceAssessment`/`gmeow:Event`/`gmeow:Rule`
+/// reasoning EDB" step) — the emitted `gmeow:ComplianceAssessment`/`gmeow:Event`/`gmeow:Norm`
 /// A-Box, read back through the native GTS reader exactly as `norm_claims_bundle.rs` does.
 fn norm_claims_abox_quads() -> Vec<RdfQuad> {
     let bytes =

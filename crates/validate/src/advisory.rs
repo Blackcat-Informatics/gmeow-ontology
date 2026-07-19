@@ -66,7 +66,7 @@ pub const ADVISORY_DEFAULT_CONFIDENCE: f64 = 1.0;
 /// verdict is "not (yet) held" rather than any positive compliance verdict.
 pub const VERDICT_NOT_HELD_IRI: &str = "https://blackcatinformatics.ca/gmeow/verdictNotHeld";
 
-/// The base IRI under which (D4) mints the per-claim `gmeow:Rule` /
+/// The base IRI under which (D4) mints the per-claim `gmeow:Norm` /
 /// `gmeow:Event` / `gmeow:ComplianceAssessment` triple of individuals, keyed
 /// by the claim's diagnostic `code`: `{NORM_CLAIMS_BASE_IRI}{code}/{norm,event,assessment}`.
 pub const NORM_CLAIMS_BASE_IRI: &str = "https://blackcatinformatics.ca/gmeow/norm-claims/";
@@ -420,7 +420,7 @@ fn nq_escape(value: &str) -> String {
 /// For each [`AdvisoryClaim`] this mints THREE individuals, IRI-keyed off the
 /// claim's diagnostic `code` under [`NORM_CLAIMS_BASE_IRI`]:
 ///
-/// * `{code}/norm` — a `gmeow:Rule` carrying the advised proposition as its
+/// * `{code}/norm` — a `gmeow:Norm` carrying the advised proposition as its
 ///   label, the `deonticRecommendation` modality, and the issuing standpoint
 ///   as `gmeow:normIssuer`, `gmeow:partOf` [`BEST_PRACTICE_NORMATIVE_SYSTEM_IRI`].
 /// * `{code}/event` — a `gmeow:Event` carrying exactly one
@@ -474,8 +474,12 @@ pub fn project_compliance_assessment(claims: &[AdvisoryClaim], graph_iri: &str) 
         let event = format!("<{event_iri}>");
         let assessment = format!("<{assessment_iri}>");
 
-        // ── NORM (gmeow:Rule) ────────────────────────────────────────────
-        triple(&norm, RDF_TYPE, &format!("<{GMEOW}Rule>"), &mut lines);
+        // ── NORM (gmeow:Norm) ────────────────────────────────────────────
+        // A plain gmeow:Norm, NOT gmeow:Rule: gmeow:Rule is the rights-graft Relator
+        // that must name a gmeow:RightsAction via gmeow:ruleAction; a best-practice
+        // recommendation is a bare social-convention norm (gmeow:deonticModality's own
+        // domain is gmeow:Norm), so a gmeow:Norm is the faithful type.
+        triple(&norm, RDF_TYPE, &format!("<{GMEOW}Norm>"), &mut lines);
         triple(
             &norm,
             RDFS_LABEL,
@@ -778,9 +782,9 @@ mod tests {
             "expected exactly one confidence triple with lexical form \"1.0\":\n{nquads}"
         );
 
-        // The norm is typed gmeow:Rule and carries deonticModality / normIssuer / partOf.
+        // The norm is typed gmeow:Norm and carries deonticModality / normIssuer / partOf.
         assert!(nquads.contains(&format!(
-            "{norm} <{RDF_TYPE}> <{GMEOW}Rule> <{DEMO_GRAPH}> ."
+            "{norm} <{RDF_TYPE}> <{GMEOW}Norm> <{DEMO_GRAPH}> ."
         )));
         assert!(nquads.contains(&format!(
             "{norm} <{GMEOW}deonticModality> <{DEONTIC_RECOMMENDATION_IRI}> <{DEMO_GRAPH}> ."

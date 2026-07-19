@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deliverable D4 (#763 Task 6, Part 1) — Completion-Adversary F4 falsifiable check.
+//! Deliverable D4 (issue 763 Task 6, Part 1) — Completion-Adversary F4 falsifiable check.
 //!
 //! `gmeow-dev validate --gts` (`make validate-gts`) SHACL-validates the SHIPPED bundle
 //! through `ValidationRun::run(gts_bytes: Some(..))` →
@@ -17,8 +17,10 @@
 //! restriction on `gmeow:ComplianceAssessment` (`slices/extensions/norms/module.ttl`,
 //! `owl:Restriction` on `gmeow:vantage` with `owl:minQualifiedCardinality 1`) actually
 //! FIRES as a SHACL violation on the shipped assessment: it validates the well-formed
-//! `graph/norm-claims` subgraph (must CONFORM) and a mutant with the assessment's single
-//! `gmeow:vantage` triple dropped (must NOT conform). If the Task-1 restriction were ever
+//! `graph/norm-claims` fragment unioned with the bundle's default graph — the object-level
+//! TBox, exactly the flattened dataset `make validate-gts` checks (must CONFORM) — and a
+//! mutant with the assessment's single `gmeow:vantage` triple dropped (must NOT conform).
+//! If the Task-1 restriction were ever
 //! deleted, no derived shape would fire, the mutant would incorrectly conform, and this
 //! test would fail — the non-vacuity proof Completion-Adversary F4 requires.
 //!
@@ -90,12 +92,25 @@ fn norm_claims_only_graph(omit: Option<(&str, &str)>) -> Graph {
         .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))
         .expect("graph/norm-claims graph-name term must be interned in the shipped bundle");
 
+    // Validate the `graph/norm-claims` fragment UNIONED WITH the bundle's DEFAULT graph
+    // (`gname == None` — the object-level TBox + authored individuals), re-homed onto the
+    // default graph. This mirrors EXACTLY the flattened dataset `make validate-gts` SHACL-
+    // checks (`flattened_dataset_from_bytes` re-homes every named graph onto the default),
+    // so every type the emitted assessment/norm/event reference resolves — `gmeowBestPractice
+    // a gmeow:Standpoint`, `verdictNotHeld a gmeow:EvaluationVerdict`, `temporalFrameUTCGregorian
+    // a gmeow:TemporalFrame`, etc. Validating the fragment in isolation would spuriously fail
+    // any shape whose sh:class value-type lives in the shared TBox, not the fragment.
+    let mut norm_claims_present = false;
     let quads: Vec<_> = g
         .quads
         .iter()
         .filter(|&&(s, p, _, gname)| {
-            if gname != Some(graph_id) {
+            let in_scope = gname == Some(graph_id) || gname.is_none();
+            if !in_scope {
                 return false;
+            }
+            if gname == Some(graph_id) {
+                norm_claims_present = true;
             }
             match omit {
                 Some((subject, predicate)) => {
@@ -108,7 +123,7 @@ fn norm_claims_only_graph(omit: Option<(&str, &str)>) -> Graph {
         .collect();
 
     assert!(
-        !quads.is_empty(),
+        norm_claims_present && !quads.is_empty(),
         "graph/norm-claims must carry a non-empty triple set in the shipped bundle"
     );
 

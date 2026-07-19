@@ -1419,9 +1419,9 @@ gmeow:ConditionEvaluation rdfs:subClassOf
 # do not assert. Mirrors the gmeow:Assessment / gmeow:ConditionEvaluation pattern above.
 gmeow:ComplianceAssessment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:complianceVerdict ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:EvaluationVerdict ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessedEvent ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Event ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessedNorm ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Norm ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:complianceVerdict ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessedEvent ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessedNorm ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:ConditionGroup rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,

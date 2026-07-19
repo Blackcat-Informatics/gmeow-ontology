@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deliverable D4 (#763 Task 5) acceptance tests over the SHIPPED bundle.
+//! Deliverable D4 (issue 763 Task 5) acceptance tests over the SHIPPED bundle.
 //!
 //! (Completion-Adversary F1/F3): observe BOTH advice wings in the materialized
 //! `generated/dist/gmeow.gts` — the flat `graph/diagnostics` Note finding AND the
@@ -162,7 +162,9 @@ fn shipped_bundle_diagnostics_carries_the_advisory_finding() {
     );
 
     let finding_code_pred = format!("{GMEOW}findingCode");
-    let code_literal = format!("\"{ADVICE_CODE}\"");
+    // `graph_triples` resolves a literal object to its lexical VALUE (no surrounding
+    // quotes, no datatype suffix) via the GTS term table, so match the bare code.
+    let code_literal = ADVICE_CODE.to_string();
     let finding_subjects: Vec<&str> = triples
         .iter()
         .filter(|(_, p, o)| p == &finding_code_pred && o == &code_literal)
@@ -201,7 +203,9 @@ fn shipped_bundle_pairs_the_finding_and_the_norm_claim_by_advisory_code() {
     let norm_claims = graph_triples(GRAPH_NORM_CLAIMS);
 
     let finding_code_pred = format!("{GMEOW}findingCode");
-    let code_literal = format!("\"{ADVICE_CODE}\"");
+    // `graph_triples` resolves a literal object to its lexical VALUE (no surrounding
+    // quotes, no datatype suffix) via the GTS term table, so match the bare code.
+    let code_literal = ADVICE_CODE.to_string();
     let has_matching_finding_code = diagnostics
         .iter()
         .any(|(_, p, o)| p == &finding_code_pred && o == &code_literal);
