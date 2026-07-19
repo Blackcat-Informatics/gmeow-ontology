@@ -60,10 +60,10 @@ Each case JSON has:
   the comparison holds, `0` when it does not).
 * `expected_gap_kind` (mode `gap`) — the `math:` failure class we
   independently derived the program should hit (`ZeroDivisor` / `Overflow` /
-  `DimensionMismatch`) — see the honesty caveat below.
+  `DimensionMismatch`); the consuming gate asserts the ledgered refusal names
+  exactly this class (see "Gap kinds are ledgered" below).
 * `provenance.derivation` — the worked-by-hand arithmetic/vector steps.
-* `provenance.note` — the independence declaration (and, for gap cases, the
-  observability caveat).
+* `provenance.note` — the independence declaration.
 
 ## Construct families covered
 
@@ -135,31 +135,31 @@ This is exactly the pattern `crates/logic/src/dispatch.rs`'s own
 `facts` fixtures here are not a novel shortcut — they reproduce an existing,
 already-production-exercised entry point.
 
-## Honesty caveat: gap-kind granularity is NOT observable at the public surface
+## Gap kinds are ledgered with per-kind identity (observable at the public surface)
 
-`gmeow_logic::dispatch::dispatch_query` — the only public entry point that
-runs a program — reports every domain gap (zero divisor, overflow, dimension
-mismatch, and the unreachable malformed-dimension) as the SAME opaque
-`NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)`, which
-`dispatch_query` turns into the fixed error message `"native backward engine
-does not support Arithmetic; query refused because no fallback engine
-remains"`. `UnsupportedKind::Arithmetic` carries no payload anywhere in the
-crate (`crates/logic/src/physical/seminaive.rs`,
-`crates/logic/src/physical/magic.rs`, `crates/logic/src/physical/magic_generic.rs`,
-`crates/logic/src/physical/resolve_fol.rs` all raise the same bare variant) —
-the fine-grained `BuiltinError` (`ZeroDivisor` / `Overflow` /
-`DimensionMismatch` / `MalformedDimension`) lives and dies inside the
-crate-private `eval()` call and is discarded before any public API returns.
+Each moded-builtin domain gap is preserved through the reasoning spine as a
+structured `BuiltinGap` (carrying the `BuiltinError` kind, the op, and the
+antecedent bindings) and ledgered as a distinct divergence finding with its own
+`finding_iri`/`anchor_iri` and a `reason.builtin-gap.{kind}` code. So the
+`gmeow_logic::dispatch::dispatch_query` refusal for a gapped program NAMES the
+specific `math:` failure class it anchors — e.g. `math:ZeroDivisor`,
+`math:Overflow`, `math:DimensionalInhomogeneity` (the class
+`BuiltinError::DimensionMismatch` anchors). `UnsupportedKind::Arithmetic` carries
+the `Vec<BuiltinGap>` and the terminals route it through
+`crates/logic/src/reason/builtin_gap.rs` (mirroring the divergence-ledger).
 
 The three gap cases here (`zero_divisor.json`, `overflow.json`,
-`quantity_add_dimension_mismatch.json`) therefore prove the honest, weaker,
-but still real and non-tautological claim the public surface CAN support:
-each program is independently derived (by hand) to hit a specific domain
-error, and the native engine really does REFUSE it (never silently computes
-a wrong number, wraps around, or ignores dimensional incompatibility). Their
-`expected_gap_kind` records which `math:` class we derived by hand, for
-documentation; the consuming gate cannot verify that specific tag through
-`dispatch_query` and does not claim to.
+`quantity_add_dimension_mismatch.json`) each independently (by hand) derive that
+a program must hit a specific domain error, and the consuming gate asserts BOTH
+that the native engine REFUSES it (never silently computes a wrong number, wraps
+around, or ignores dimensional incompatibility) AND that the refusal surfaces the
+exact ledgered `math:` class recorded in `expected_gap_kind` — the "gap kinds
+ledgered (never silently wrong)" acceptance criterion, verified against the
+independent oracle rather than round-tripped through the engine.
+
+`MalformedDimension` remains unanchored (see the routing note above): a malformed
+transport literal is discarded via `.ok()` before it can reach
+`BuiltinOutcome::Error`, so no program can raise it.
 
 ## The offline gate
 

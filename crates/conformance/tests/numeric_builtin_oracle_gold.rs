@@ -17,11 +17,12 @@
 //! crate-private `eval()`.
 //!
 //! Three "gap" cases independently derive that a program MUST be refused
-//! (`math:ZeroDivisor` / `math:Overflow` / `math:DimensionMismatch`), but the
-//! public `dispatch_query` surface collapses every domain gap to the same
-//! opaque `"...does not support Arithmetic..."` refusal (see the corpus
-//! README's honesty caveat) — so those cases assert the observable refusal,
-//! not the unrecoverable fine-grained tag.
+//! (`math:ZeroDivisor` / `math:Overflow` / `math:DimensionalInhomogeneity`).
+//! Each moded-builtin gap is now ledgered with per-kind identity, so the
+//! `dispatch_query` refusal NAMES the specific `math:` failure class it
+//! anchors — these cases assert the exact ledgered kind is surfaced, the
+//! "gap kinds ledgered (never silently wrong)" acceptance criterion exercised
+//! against the independent oracle.
 //!
 //! Offline + deterministic: no Docker, Java, network, or Python.
 
@@ -253,16 +254,29 @@ fn native_engine_matches_the_independent_numeric_builtin_oracle_gold() {
                          engine DECIDED an answer: {answer:?}"
                     )),
                     Err(diag) => {
-                        // The public surface collapses every domain gap to this one fixed
-                        // message (see the corpus README's honesty caveat) — assert the
-                        // observable refusal, not the unrecoverable fine-grained tag.
-                        let expected_message = "native backward engine does not support \
-                                                 Arithmetic; query refused because no fallback \
-                                                 engine remains";
-                        if diag.message() != expected_message {
+                        // The moded-builtin gap is now ledgered with per-kind identity, so
+                        // the refusal NAMES the specific `math:` failure class each gap
+                        // anchors. Assert the observable refusal DOES surface the exact
+                        // kind — not merely that some Arithmetic gap occurred. This is the
+                        // "gap kinds ledgered (never silently wrong)" acceptance criterion
+                        // exercised end-to-end from the independent oracle.
+                        let expected_class = match expected_kind {
+                            "ZeroDivisor" => "ZeroDivisor",
+                            "Overflow" => "Overflow",
+                            "ZeroDenominator" => "ZeroDenominator",
+                            // BuiltinError::DimensionMismatch anchors the inhomogeneity class.
+                            "DimensionMismatch" => "DimensionalInhomogeneity",
+                            "MalformedDimension" => "MalformedDimension",
+                            "MetricForm" => "NonPositiveDefiniteNorm",
+                            other => other,
+                        };
+                        let needle = format!(
+                            "https://blackcatinformatics.ca/math/{expected_class}"
+                        );
+                        if !diag.message().contains(&needle) {
                             failures.push(format!(
-                                "{ctx}: expected the standard Arithmetic-gap refusal message, \
-                                 got {:?}",
+                                "{ctx}: expected the refusal to name the ledgered gap class \
+                                 {needle} (derived kind {expected_kind}), got {:?}",
                                 diag.message()
                             ));
                         }
