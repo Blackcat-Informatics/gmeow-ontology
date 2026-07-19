@@ -163,8 +163,7 @@ gmeow:hasCapability
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stageImpl
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage impl"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;

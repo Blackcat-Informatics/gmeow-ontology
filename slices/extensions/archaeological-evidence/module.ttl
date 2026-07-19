@@ -167,8 +167,7 @@ gmeow:attributedScript
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributionTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attribution target"@x-gmeow-english ;
@@ -324,8 +323,7 @@ gmeow:findContextStratigraphy
         gmeow:boxRBox .
 
 gmeow:findContextTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context target"@x-gmeow-english ;
@@ -336,8 +334,7 @@ gmeow:findContextTarget
         gmeow:boxRBox .
 
 gmeow:inscriptionCarrier
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Inscription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "inscription carrier"@x-gmeow-english ;
@@ -346,8 +343,7 @@ gmeow:inscriptionCarrier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:readingOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "reading of"@x-gmeow-english ;
@@ -367,8 +363,7 @@ gmeow:readingResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:translationOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "translation of"@x-gmeow-english ;
@@ -388,8 +383,7 @@ gmeow:translationResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transliterationOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "transliteration of"@x-gmeow-english ;

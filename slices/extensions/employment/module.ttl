@@ -67,8 +67,7 @@ gmeow:employmentInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentOccupation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment occupation"@x-gmeow-english ;
@@ -77,8 +76,7 @@ gmeow:employmentOccupation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment role"@x-gmeow-english ;
@@ -88,8 +86,7 @@ gmeow:employmentRole
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentSeniority
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment seniority"@x-gmeow-english ;
@@ -98,8 +95,7 @@ gmeow:employmentSeniority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment type"@x-gmeow-english ;

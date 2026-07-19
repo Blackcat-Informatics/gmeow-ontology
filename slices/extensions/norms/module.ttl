@@ -379,8 +379,7 @@ gmeow:anchorMeaning
     gmeow:useWhen "Use to carry what scores in an anchor's range MEAN — the mandatory calibration prose, one per language tag."@x-gmeow-english .
 
 gmeow:anchorRangeMax
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor range maximum"@x-gmeow-english ;
@@ -393,8 +392,7 @@ gmeow:anchorRangeMax
     gmeow:useWhen "Use to set the upper bound of a score anchor's range."@x-gmeow-english .
 
 gmeow:anchorRangeMin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor range minimum"@x-gmeow-english ;
@@ -407,8 +405,7 @@ gmeow:anchorRangeMin
     gmeow:useWhen "Use to set the lower bound of a score anchor's range."@x-gmeow-english .
 
 gmeow:assessedEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessed event"@x-gmeow-english ;
@@ -422,8 +419,7 @@ gmeow:assessedEvent
     gmeow:useWhen "Use on a ComplianceAssessment to name the single event whose compliance is being judged — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:assessedNorm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessed norm"@x-gmeow-english ;
@@ -436,8 +432,7 @@ gmeow:assessedNorm
     gmeow:useWhen "Use on a ComplianceAssessment to name the single norm against which the event is judged."@x-gmeow-english .
 
 gmeow:assessmentCriterion
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessment criterion"@x-gmeow-english ;
@@ -450,8 +445,7 @@ gmeow:assessmentCriterion
     gmeow:useWhen "Use on an Assessment to name the single criterion applied — one Assessment per criterion, zeros included."@x-gmeow-english .
 
 gmeow:assessmentRubric
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessment rubric"@x-gmeow-english ;
@@ -464,8 +458,7 @@ gmeow:assessmentRubric
     gmeow:useWhen "Use on an Assessment to name the rubric under which it was made — version-pinning context for the score."@x-gmeow-english .
 
 gmeow:assessmentScoreValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessment score value"@x-gmeow-english ;
@@ -478,8 +471,7 @@ gmeow:assessmentScoreValue
     gmeow:useWhen "Use to carry an Assessment's numeric score on the scale its criterion or rubric declares."@x-gmeow-english .
 
 gmeow:assessmentTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessment target"@x-gmeow-english ;
@@ -523,8 +515,7 @@ gmeow:authorityMedium
     gmeow:strongerThan gmeow:authorityConditional .
 
 gmeow:complianceVerdict
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "compliance verdict"@x-gmeow-english ;
@@ -564,8 +555,7 @@ gmeow:conditionParameter
     gmeow:useWhen "Use to attach one or more named parameter bindings to a condition template."@x-gmeow-english .
 
 gmeow:conditionText
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Condition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "condition text"@x-gmeow-english ;
@@ -626,8 +616,7 @@ gmeow:criterionDomainStylistic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:deonticModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "deontic modality"@x-gmeow-english ;
@@ -668,8 +657,7 @@ gmeow:deonticRecommendation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:evaluatedCondition
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConditionEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluated condition"@x-gmeow-english ;
@@ -683,8 +671,7 @@ gmeow:evaluatedCondition
     gmeow:useWhen "Use on a ConditionEvaluation to name the single condition it reports on — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:evaluationVerdict
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConditionEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluation verdict"@x-gmeow-english ;
@@ -697,8 +684,7 @@ gmeow:evaluationVerdict
     gmeow:useWhen "Use on a ConditionEvaluation to carry its single outcome from the gmeow:EvaluationVerdict vocabulary."@x-gmeow-english .
 
 gmeow:exemplarPolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "exemplar polarity"@x-gmeow-english ;
@@ -823,8 +809,7 @@ gmeow:expressesNorm
     gmeow:useWhen "Use on a Persona to name a norm it expresses — making the 'same principia, different registers' invariant queryable across an agent's personas."@x-gmeow-english .
 
 gmeow:expressionLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConditionExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression language"@x-gmeow-english ;
@@ -837,8 +822,7 @@ gmeow:expressionLanguage
     gmeow:useWhen "Use to declare the single named language of a condition expression from the gmeow:ExpressionLanguage vocabulary."@x-gmeow-english .
 
 gmeow:expressionText
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ConditionExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression text"@x-gmeow-english ;
@@ -877,8 +861,7 @@ gmeow:groupMember
     gmeow:useWhen "Use to attach a member condition to a condition group; nest groups as members for arbitrary boolean trees."@x-gmeow-english .
 
 gmeow:groupOperator
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConditionGroup ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "group operator"@x-gmeow-english ;
@@ -1003,8 +986,7 @@ gmeow:overrides
     gmeow:useWhen "Use for the flat case — recording that one norm prevails over another when both apply, as a pairwise claim indexed to whoever asserts it."@x-gmeow-english .
 
 gmeow:parameterEntity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter entity"@x-gmeow-english ;
@@ -1016,8 +998,7 @@ gmeow:parameterEntity
     gmeow:useWhen "Use to bind a parameter to an entity for IRI-valued bindings — 'jurisdiction = ex:canada'."@x-gmeow-english .
 
 gmeow:parameterName
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter name"@x-gmeow-english ;
@@ -1030,8 +1011,7 @@ gmeow:parameterName
     gmeow:useWhen "Use to name a parameter as it appears in the condition's text or expressions — the binding's key."@x-gmeow-english .
 
 gmeow:parameterValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter value"@x-gmeow-english ;
@@ -1043,8 +1023,7 @@ gmeow:parameterValue
     gmeow:useWhen "Use to bind a parameter to a literal value."@x-gmeow-english .
 
 gmeow:penaltyPole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
@@ -1057,8 +1036,7 @@ gmeow:penaltyPole
     gmeow:useWhen "Use to name the single pole a criterion penalizes — what its low end is for."@x-gmeow-english .
 
 gmeow:personaBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Persona ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "persona bearer"@x-gmeow-english ;
@@ -1105,8 +1083,7 @@ gmeow:polarityPositive
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:precedenceHigher
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence higher"@x-gmeow-english ;
@@ -1119,8 +1096,7 @@ gmeow:precedenceHigher
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that prevails during the tenure."@x-gmeow-english .
 
 gmeow:precedenceLower
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence lower"@x-gmeow-english ;
@@ -1133,8 +1109,7 @@ gmeow:precedenceLower
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that yields during the tenure."@x-gmeow-english .
 
 gmeow:precedenceScope
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence scope"@x-gmeow-english ;
@@ -1194,8 +1169,7 @@ gmeow:registerPublic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:rewardPole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
@@ -1214,8 +1188,7 @@ gmeow:ruleAssignee
     rdfs:subPropertyOf gmeow:normBearer .
 
 gmeow:scaleMax
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale maximum"@x-gmeow-english ;
@@ -1228,8 +1201,7 @@ gmeow:scaleMax
     gmeow:useWhen "Use to set the upper bound of a score scale."@x-gmeow-english .
 
 gmeow:scaleMin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale minimum"@x-gmeow-english ;
@@ -1242,8 +1214,7 @@ gmeow:scaleMin
     gmeow:useWhen "Use to set the lower bound of a score scale."@x-gmeow-english .
 
 gmeow:scaleStep
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale step"@x-gmeow-english ;
@@ -1295,8 +1266,7 @@ gmeow:systemIssuer
     gmeow:useWhen "Use to name the agent or standpoint that issues a whole normative system."@x-gmeow-english .
 
 gmeow:usesScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "uses scale"@x-gmeow-english ;
     rdfs:range gmeow:ScoreScale ;
@@ -1415,8 +1385,7 @@ gmeow:ScoreScale rdfs:subClassOf
 # Range + functional axioms backing the authored gmeow:usesScale target shape
 # (at most one scale per holder; every value is a ScoreScale). The range is an
 # open-world axiom opted in to closed-world validation via a ClosureEntry.
-gmeow:usesScale a owl:FunctionalProperty ;
-    rdfs:range gmeow:ScoreScale .
+gmeow:usesScale rdfs:range gmeow:ScoreScale .
 
 [ a logic:ClosureEntry ;
   logic:closureKey "https://blackcatinformatics.ca/gmeow/usesScale" ;

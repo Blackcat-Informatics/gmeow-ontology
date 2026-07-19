@@ -356,8 +356,7 @@ gmeow:datingMethodUraniumLead
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:duringInterval
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TimeScopedRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "during interval"@x-gmeow-english ;
@@ -370,8 +369,7 @@ gmeow:duringInterval
     gmeow:useWhen "Use to attach a gmeow:TimeScopedRelation to the gmeow:TimeInterval that delimits its validity — the single scope edge of a reified tenure."@x-gmeow-english .
 
 gmeow:edtfValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "EDTF value"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -383,8 +381,7 @@ gmeow:edtfValue
     gmeow:useWhen "Use when a point or span is approximate, uncertain, seasonal, or open-ended — '1804?', '19XX', '2020-21/2020-09' — and a single crisp xsd:dateTime would lie about the precision."@x-gmeow-english .
 
 gmeow:endedAtTime
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "ended at time"@x-gmeow-english ;
@@ -397,8 +394,7 @@ gmeow:endedAtTime
     gmeow:useWhen "Use to stamp the close of a gmeow:TimeInterval as a single crisp dateTime; omit it entirely to model an interval that is still running."@x-gmeow-english .
 
 gmeow:frameCalendarSystem
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame calendar system"@x-gmeow-english ;
@@ -411,8 +407,7 @@ gmeow:frameCalendarSystem
     gmeow:useWhen "Use to record the calendar a frame reckons dates in when more than a bare scale is needed — civil and historical frames name one of the co-equal calendars (P9)."@x-gmeow-english .
 
 gmeow:frameReferencePosition
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame reference position"@x-gmeow-english ;
@@ -425,8 +420,7 @@ gmeow:frameReferencePosition
     gmeow:useWhen "Use to wire a frame to the place its time depends on — a timezone for civil offset, an observatory for sidereal time, a planet for an off-Earth calendar."@x-gmeow-english .
 
 gmeow:frameTimeScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame time scale"@x-gmeow-english ;
@@ -481,8 +475,7 @@ gmeow:granularityYear
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasEndInstant
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has end instant"@x-gmeow-english ;
@@ -495,8 +488,7 @@ gmeow:hasEndInstant
     gmeow:useWhen "Use to bound an interval's close with a full gmeow:Instant when that endpoint needs its own frame, granularity, determinacy, or EDTF value — the reified counterpart of gmeow:endedAtTime."@x-gmeow-english .
 
 gmeow:hasStartInstant
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has start instant"@x-gmeow-english ;
@@ -552,8 +544,7 @@ gmeow:inTemporalFrame
     gmeow:useWhen "Use to declare the gmeow:TemporalFrame interpreting a gmeow:Instant's value — the frame edge for points that satisfies the instant's frame-relativity requirement (P11)."@x-gmeow-english .
 
 gmeow:instantValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Instant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "instant value"@x-gmeow-english ;
@@ -747,8 +738,7 @@ gmeow:intervalStarts
     gmeow:useWhen "Use when two intervals share a start instant but the subject ends first — an initial sub-span (probation, trial period) that begins with its enclosing span."@x-gmeow-english .
 
 gmeow:measuredAge
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measured age"@x-gmeow-english ;
@@ -761,8 +751,7 @@ gmeow:measuredAge
     gmeow:useWhen "Use for a measurement that yields an elapsed-time figure (years before present, sample age) rather than an absolute calendar date — the radiocarbon/geologic style of result."@x-gmeow-english .
 
 gmeow:measuredDate
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measured date"@x-gmeow-english ;
@@ -818,8 +807,7 @@ gmeow:measurementHoloceneStart
     gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy .
 
 gmeow:measurementMethod
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurement method"@x-gmeow-english ;
@@ -861,8 +849,7 @@ gmeow:measurementQuaternaryStart
     gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy .
 
 gmeow:measurementUncertainty
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurement uncertainty"@x-gmeow-english ;
@@ -901,8 +888,7 @@ gmeow:periodContainsPeriod
     gmeow:useWhen "Use in whole-rooted projections that traverse from a larger period down to its constituents — the natural direction when the enclosing era is the subject."@x-gmeow-english .
 
 gmeow:periodEnd
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period end"@x-gmeow-english ;
@@ -1052,8 +1038,7 @@ gmeow:recordedNoLaterThan
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:startedAtTime
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "started at time"@x-gmeow-english ;

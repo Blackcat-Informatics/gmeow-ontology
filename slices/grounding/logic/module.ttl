@@ -4796,7 +4796,7 @@ logic:versionOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "versionOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. Functionality is enforced by gmeow:versionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. The canonical logic: carrier is the sole source of this characteristic; functionality is enforced natively through DL consistency, and the OWL grounding view projects owl:FunctionalProperty from this record."@x-gmeow-english ;
     logic:characterizes gmeow:versionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:versionOf .
@@ -4806,7 +4806,7 @@ logic:editionOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "editionOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. Functionality is enforced by gmeow:editionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. The canonical logic: carrier is the sole source of this characteristic; functionality is enforced natively through DL consistency, and the OWL grounding view projects owl:FunctionalProperty from this record."@x-gmeow-english ;
     logic:characterizes gmeow:editionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:editionOf .
@@ -15173,8 +15173,7 @@ logic:BackwardEvaluation
     skos:definition "The logic:EvaluationMode value selecting goal-directed SLG-WFS backward resolution: subsumptive demand-driven answer keying (SLG tabling), structured-term unification over logic:FunctionTerm arguments, explicit proof objects for each derived answer, and three-valued well-founded negation for logic:not-negated body literals. The one evaluation strategy this vocabulary supports today; contrast a future forward-chase member of logic:EvaluationMode over the identical clause set."@x-gmeow-english .
 
 logic:evaluationMode
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:ReasoningProgram ;
     rdfs:range logic:EvaluationMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15192,8 +15191,7 @@ logic:clause
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:programQuery
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:ReasoningProgram ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15764,8 +15762,7 @@ logic:joinAggregateComparison
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:forall
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15774,8 +15771,7 @@ logic:forall
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:exists
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15802,8 +15798,7 @@ logic:or
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:not
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15812,8 +15807,7 @@ logic:not
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:antecedent
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15822,8 +15816,7 @@ logic:antecedent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:consequent
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15841,8 +15834,7 @@ logic:iff
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:relation
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Type ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15851,8 +15843,7 @@ logic:relation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:functionSymbol
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:FunctionTerm ;
     rdfs:range logic:Type ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15879,8 +15870,7 @@ logic:quantifiedVariable
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termIri
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term IRI"@x-gmeow-english ;
@@ -15888,8 +15878,7 @@ logic:termIri
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15898,8 +15887,7 @@ logic:termIndex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termVariable
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15908,8 +15896,7 @@ logic:termVariable
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termLiteral
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15918,8 +15905,7 @@ logic:termLiteral
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termLiteralDatatype
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range rdfs:Datatype ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15928,8 +15914,7 @@ logic:termLiteralDatatype
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termSequenceMarker
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -15938,8 +15923,7 @@ logic:termSequenceMarker
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termApplication
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain logic:TermCarrier ;
     rdfs:range logic:FunctionTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18038,41 +18022,6 @@ logic:RecoveryCase logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:recoveryTransform ; logic:allValuesFrom logic:Formula ] .
 
 # Global at-most-one semantics for the carriers legacy SHACL constrained with maxCount 1.
-logic:candidateSourceHash a owl:FunctionalProperty .
-logic:candidateExtractionProvenance a owl:FunctionalProperty .
-logic:candidateScope a owl:FunctionalProperty .
-logic:candidateContract a owl:FunctionalProperty .
-logic:candidateCategory a owl:FunctionalProperty .
-logic:candidateLifecycle a owl:FunctionalProperty .
-logic:candidateProjectionBehavior a owl:FunctionalProperty .
-logic:candidateSemanticRisk a owl:FunctionalProperty .
-logic:candidateFormalizes a owl:FunctionalProperty .
-logic:candidateSourceField a owl:FunctionalProperty .
-logic:planGoal a owl:FunctionalProperty .
-logic:planSuccessMode a owl:FunctionalProperty .
-logic:satisfactionStatus a owl:FunctionalProperty .
-logic:feasibilityStatus a owl:FunctionalProperty .
-logic:lifecycleStatus a owl:FunctionalProperty .
-logic:goalEvaluationStatus a owl:FunctionalProperty .
-logic:satisfactionDegree a owl:FunctionalProperty .
-logic:objectiveValue a owl:FunctionalProperty .
-logic:utility a owl:FunctionalProperty .
-logic:effect a owl:FunctionalProperty .
-logic:invariant a owl:FunctionalProperty .
-logic:observation a owl:FunctionalProperty .
-logic:actionResource a owl:FunctionalProperty .
-logic:guardsPrecondition a owl:FunctionalProperty .
-logic:freshnessHorizon a owl:FunctionalProperty .
-logic:freshnessWindowStart a owl:FunctionalProperty .
-logic:freshnessWindowEnd a owl:FunctionalProperty .
-logic:obligationForbiddenPredicate a owl:FunctionalProperty .
-logic:conjectureFormula a owl:FunctionalProperty .
-logic:conjectureStandpoint a owl:FunctionalProperty .
-logic:conjectureLifecycleState a owl:FunctionalProperty .
-logic:verdictProvenance a owl:FunctionalProperty .
-logic:witnessIndividual a owl:FunctionalProperty .
-logic:witnessWorld a owl:FunctionalProperty .
-logic:recoveryTransform a owl:FunctionalProperty .
 
 # Flagship acceptance witnesses: each required carrier is canonical, typed, and retains its
 # exact failure class through the generated validation-shape projection.
@@ -18393,7 +18342,7 @@ gmeow:UnwiredFlagshipScenario a logic:Category , owl:Class ;
     gmeow:avoidWhen "Avoid pointing gmeow:enforcesFailureClass at this abstract marker on a scenario individual; the enforcing class of a real scenario is a concrete slice-local conformance failure, and this marker only names the WIRING failure of the acceptance object itself."@x-gmeow-english ;
     gmeow:howToUse "In a grounding slice, make <Slice>UnwiredFlagshipScenario a subclass of only its own <Slice>ConformanceFailure root; this spec-layer marker itself is never a subclass target. The shared gmeow:FlagshipScenarioShape (not a per-slice shape) already carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, so slice authors do not redeclare that annotation."@x-gmeow-english .
 
-gmeow:demonstratedByExample a owl:DatatypeProperty , owl:FunctionalProperty ;
+gmeow:demonstratedByExample a owl:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
     logic:range xsd:string ;
     rdfs:label "demonstrated by example"@x-gmeow-english ;
@@ -18404,7 +18353,7 @@ gmeow:demonstratedByExample a owl:DatatypeProperty , owl:FunctionalProperty ;
     gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative worked example that realizes it — the positive artifact the discharge harness validates clean."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative, like gmeow:exampleFile) and avoid naming more than one worked example per scenario."@x-gmeow-english .
 
-gmeow:demonstratedByCompetency a owl:ObjectProperty , owl:FunctionalProperty ;
+gmeow:demonstratedByCompetency a owl:ObjectProperty ;
     logic:domain gmeow:FlagshipScenario ;
     rdfs:label "demonstrated by competency"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -18414,7 +18363,7 @@ gmeow:demonstratedByCompetency a owl:ObjectProperty , owl:FunctionalProperty ;
     gmeow:useWhen "Use on a gmeow:FlagshipScenario to reference, by IRI, the gmeow:CompetencyQuestion that pins its structure and numbers."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a literal here (the value is an IRI into tests/competency.ttl) and avoid pointing at a competency question that carries no gmeow:cqExpectRow — the cross-check requires a pinned green competency."@x-gmeow-english .
 
-gmeow:demonstratedByProducer a owl:DatatypeProperty , owl:FunctionalProperty ;
+gmeow:demonstratedByProducer a owl:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
     logic:range xsd:string ;
     rdfs:label "demonstrated by producer"@x-gmeow-english ;
@@ -18425,7 +18374,7 @@ gmeow:demonstratedByProducer a owl:DatatypeProperty , owl:FunctionalProperty ;
     gmeow:useWhen "Use on every gmeow:FlagshipScenario to name the native producer identifier the execution-discharge harness dispatches and runs."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the discharge harness does not actually run — an unrun label is not a discharged acceptance bar."@x-gmeow-english .
 
-gmeow:guardedByCounterExample a owl:DatatypeProperty , owl:FunctionalProperty ;
+gmeow:guardedByCounterExample a owl:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
     logic:range xsd:string ;
     rdfs:label "guarded by counter-example"@x-gmeow-english ;

@@ -85,8 +85,7 @@ gmeow:aggSum
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:aggregationFunction
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SpatialAggregation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "aggregation function"@x-gmeow-english ;
@@ -104,8 +103,7 @@ gmeow:hasBin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:minimumPopulation
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:SpatialAggregation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "minimum population"@x-gmeow-english ;

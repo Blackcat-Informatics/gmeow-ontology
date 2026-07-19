@@ -453,8 +453,7 @@ gmeow:levelNative
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:levelScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProficiencyLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "level scale"@x-gmeow-english ;
@@ -701,8 +700,7 @@ gmeow:profModalityWriting
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:proficiencyAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency agent"@x-gmeow-english ;
@@ -720,8 +718,7 @@ gmeow:proficiencyInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency language"@x-gmeow-english ;
@@ -730,8 +727,7 @@ gmeow:proficiencyLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency level"@x-gmeow-english ;
@@ -740,8 +736,7 @@ gmeow:proficiencyLevel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency modality"@x-gmeow-english ;
@@ -750,8 +745,7 @@ gmeow:proficiencyModality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency scale"@x-gmeow-english ;
@@ -905,8 +899,7 @@ gmeow:stateInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stateLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "state language"@x-gmeow-english ;

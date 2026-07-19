@@ -89,8 +89,7 @@ gmeow:awarenessScalar
     gmeow:useWhen "Use for a continuous, normalised arousal or vigilance value — a vigilance index for a human, or a temperature-like sampling regime for a machine in gmeow:modeSampling / gmeow:modeOnlineInference; the fine-grained companion of the named gmeow:awarenessLevel."@x-gmeow-english .
 
 gmeow:awarenessSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AwarenessTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awareness subject"@x-gmeow-english ;

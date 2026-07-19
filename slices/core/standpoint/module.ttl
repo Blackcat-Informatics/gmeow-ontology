@@ -146,8 +146,7 @@ gmeow:bullshit
         gmeow:boxCBox .
 
 gmeow:claimModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim modality"@x-gmeow-english ;
@@ -218,8 +217,7 @@ gmeow:sharpens
     gmeow:useWhen "Use to order two standpoints by precisification — when one frame is a strict refinement of another (every precisification it admits is admitted by the broader frame), building the standpoint poset whose top is gmeow:universalStandpoint."@x-gmeow-english .
 
 gmeow:standpointClaim
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint claim"@x-gmeow-english ;
@@ -257,8 +255,7 @@ gmeow:tenurePosition
     gmeow:useWhen "Use to name the standpoint-indexed claim a gmeow:StandpointTenure says the frame held over its interval — the reified statement that becomes the gmeow:observedFeature of the generated StandpointClaim."@x-gmeow-english .
 
 gmeow:tenureStandpoint
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "tenure standpoint"@x-gmeow-english ;
@@ -659,8 +656,7 @@ gmeow:standpointSupportStatus
 # ── Reified twins (StandpointClaim form, mirror gmeow:claimModality; functional; NOT subPropertyOf observationResult) ──
 
 gmeow:claimPolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim polarity"@x-gmeow-english ;
@@ -674,8 +670,7 @@ gmeow:claimPolarity
     gmeow:useWhen "Use to assign the affirm / deny / suspend direction a gmeow:StandpointClaim takes — the reified-relator counterpart of gmeow:standpointPolarity and the canonical carrier of the legacy refuted (deny)."@x-gmeow-english .
 
 gmeow:claimModalForce
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim modal force"@x-gmeow-english ;
@@ -689,8 +684,7 @@ gmeow:claimModalForce
     gmeow:useWhen "Use to assign the alethic □/◊ register a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointModalForce, kept distinct from credence and confidence."@x-gmeow-english .
 
 gmeow:claimCredence
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim credence"@x-gmeow-english ;
@@ -704,8 +698,7 @@ gmeow:claimCredence
     gmeow:useWhen "Use to record the precise numeric credence a gmeow:StandpointClaim carries — the advisory finer-grained surface that must be consistent with the authoritative qualitative band whose threshold range contains it."@x-gmeow-english .
 
 gmeow:claimCredenceLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim credence level"@x-gmeow-english ;
@@ -719,8 +712,7 @@ gmeow:claimCredenceLevel
     gmeow:useWhen "Use to assign the qualitative credence band a gmeow:StandpointClaim carries — the surface the lossless legacy projection keys on."@x-gmeow-english .
 
 gmeow:claimAssertoricForce
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim assertoric force"@x-gmeow-english ;
@@ -734,8 +726,7 @@ gmeow:claimAssertoricForce
     gmeow:useWhen "Use to assign the speech-act force a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointAssertoricForce."@x-gmeow-english .
 
 gmeow:claimTruthDirectedness
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim truth directedness"@x-gmeow-english ;
@@ -749,8 +740,7 @@ gmeow:claimTruthDirectedness
     gmeow:useWhen "Use to assign the standpoint's truth-orientation a gmeow:StandpointClaim carries — the canonical carrier of the legacy bullshit (indifferent)."@x-gmeow-english .
 
 gmeow:claimSupportStatus
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim support status"@x-gmeow-english ;

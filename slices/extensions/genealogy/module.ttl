@@ -196,8 +196,7 @@ gmeow:hasSpouse
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipChild
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationship child"@x-gmeow-english ;
@@ -207,8 +206,7 @@ gmeow:relationshipChild
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipParent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationship parent"@x-gmeow-english ;

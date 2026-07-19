@@ -388,8 +388,7 @@ gmeow:appraisalDimension
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal of"@x-gmeow-english ;
@@ -407,8 +406,7 @@ gmeow:appraisalQuality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalScaleProfile
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal scale profile"@x-gmeow-english ;
@@ -439,8 +437,7 @@ gmeow:dimensionFamily
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileMidpoint
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile midpoint"@x-gmeow-english ;
@@ -449,8 +446,7 @@ gmeow:profileMidpoint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profilePolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile polarity"@x-gmeow-english ;
@@ -459,8 +455,7 @@ gmeow:profilePolarity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMax
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range max"@x-gmeow-english ;
@@ -469,8 +464,7 @@ gmeow:profileRangeMax
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range min"@x-gmeow-english ;
@@ -479,8 +473,7 @@ gmeow:profileRangeMin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileTransform
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile transform"@x-gmeow-english ;
@@ -510,8 +503,7 @@ gmeow:derivedByFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:intensityBasis
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "intensity basis"@x-gmeow-english ;
@@ -520,8 +512,7 @@ gmeow:intensityBasis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricProfile
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric profile"@x-gmeow-english ;
@@ -530,8 +521,7 @@ gmeow:metricProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:normFunction
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "norm function"@x-gmeow-english ;
@@ -540,8 +530,7 @@ gmeow:normFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:labelSetDecision
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "label set decision"@x-gmeow-english ;
@@ -559,8 +548,7 @@ gmeow:impliesLabelSetDecision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decidedLabel
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decided label"@x-gmeow-english ;
@@ -569,8 +557,7 @@ gmeow:decidedLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionCrossedThreshold
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
@@ -579,8 +566,7 @@ gmeow:decisionCrossedThreshold
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision margin"@x-gmeow-english ;
@@ -602,8 +588,7 @@ gmeow:vectorComponent
     gmeow:useWhen "Use to group the per-axis appraisal cells that make up a vector reading under one queryable identity."@x-gmeow-english .
 
 gmeow:vectorProfile
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectVectorObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vector profile"@x-gmeow-english ;
@@ -612,8 +597,7 @@ gmeow:vectorProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:weightingPolicy
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weighting policy"@x-gmeow-english ;
@@ -622,8 +606,7 @@ gmeow:weightingPolicy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricGram
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric Gram matrix"@x-gmeow-english ;
@@ -632,8 +615,7 @@ gmeow:metricGram
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:coreAxisIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoreAffectDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "core axis index"@x-gmeow-english ;
@@ -642,8 +624,7 @@ gmeow:coreAxisIndex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sparseAxisCompletion
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sparse-axis completion"@x-gmeow-english ;
@@ -720,7 +701,7 @@ gmeow:modelFramework
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelIdentifier
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model identifier"@x-gmeow-english ;
@@ -729,7 +710,7 @@ gmeow:modelIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelRevision
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model revision"@x-gmeow-english ;
@@ -746,8 +727,7 @@ gmeow:modelTask
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producedBy
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "produced by"@x-gmeow-english ;
@@ -764,7 +744,7 @@ gmeow:scoreCalibration
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:scoreSemantics
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "score semantics"@x-gmeow-english ;
@@ -1178,8 +1158,7 @@ gmeow:emotionAnticipation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emotion bearer"@x-gmeow-english ;

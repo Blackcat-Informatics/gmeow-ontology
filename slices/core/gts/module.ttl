@@ -140,8 +140,7 @@ gmeow:codecBase85
         gmeow:boxConfigBox .
 
 gmeow:codecClass
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TransformCodec ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "codec class"@x-gmeow-english ;
@@ -224,8 +223,7 @@ gmeow:codecZstd
         gmeow:boxConfigBox .
 
 gmeow:gtsHeadId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS head id"@x-gmeow-english ;
@@ -240,8 +238,7 @@ gmeow:gtsHeadId
     gmeow:useWhen "Use to commit to a segment's entire history with a single chain head — the version-fingerprint identity used to cite a segment, build a document's composite identity, or keep a compaction source citable."@x-gmeow-english .
 
 gmeow:gtsProfile
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS profile"@x-gmeow-english ;
@@ -327,8 +324,7 @@ gmeow:gtsSegment
     gmeow:useWhen "Use in document-rooted projections and traversals — when enumerating a document's segments from the document side is the natural direction to state or query."@x-gmeow-english .
 
 gmeow:gtsSegmentIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment index"@x-gmeow-english ;
@@ -342,8 +338,7 @@ gmeow:gtsSegmentIndex
     gmeow:useWhen "Use to fix a segment's place in its document's append-only file order — the index that, taken over the segment heads, reconstructs the document's composite identity."@x-gmeow-english .
 
 gmeow:gtsSegmentOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment of"@x-gmeow-english ;
@@ -372,8 +367,7 @@ gmeow:opacityMissingKey
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:opacityReason
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opacity reason"@x-gmeow-english ;
@@ -394,8 +388,7 @@ gmeow:opacityUnknownCodec
         gmeow:boxConfigBox .
 
 gmeow:opaqueFrameIn
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opaque frame in"@x-gmeow-english ;
