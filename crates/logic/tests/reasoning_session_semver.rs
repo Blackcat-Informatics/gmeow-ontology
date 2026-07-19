@@ -36,13 +36,13 @@ use session_common::*;
 /// alongside the `owl:hasKey` list, so the datatype/single-property key survives removal of the
 /// `owl:hasKey` slice declaration — moving the `reason/dl.rs` content digest folded here.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "8c7a89804b39f539bf0346c110c10a05d8c8f72adc9f36b4b33658f506531d05";
+    "f03598d6681e34539f5984dd97cc9c4ed92f94ca3169f4fec959f8424da47515";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f12b866430d083715b4c4f743225fd2429825bd97f6d87c066da246ff5cb8c4e";
+    "35d5fea03662c6ec29a771051565fbff8772bb69267efdfd4b3dd7097bcdfb7b";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
