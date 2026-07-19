@@ -595,15 +595,31 @@ fn analyze(shape: &ValidationShapeIr) -> Analysis {
             }
             for pc in &shape.properties {
                 if !is_range && is_functional_pc(pc) && pc.path == *p {
-                    stmts.insert(format!("{} a owl:FunctionalProperty .", ang(p)));
+                    // The canonical carrier the forward derive now reads (the deprecated
+                    // `owl:FunctionalProperty` marker is no longer a projection source): a
+                    // `logic:PropertyCharacteristicAssertion` joining `logic:characterizes` (P) with
+                    // `logic:characteristicSort logic:functionalProperty`.
+                    stmts.insert(format!(
+                        "[] a logic:PropertyCharacteristicAssertion ; \
+                         logic:characterizes {} ; \
+                         logic:characteristicSort logic:functionalProperty .",
+                        ang(p)
+                    ));
                     core_props.push(pc.clone());
                 } else if is_range && is_inverse_functional_pc(pc) && pc.path == *p {
-                    stmts.insert(format!("{} a owl:InverseFunctionalProperty .", ang(p)));
+                    // The inverse-functional peer carrier (see the functional arm above).
+                    stmts.insert(format!(
+                        "[] a logic:PropertyCharacteristicAssertion ; \
+                         logic:characterizes {} ; \
+                         logic:characteristicSort logic:inverseFunctionalProperty .",
+                        ang(p)
+                    ));
                     core_props.push(pc.clone());
                 } else {
                     residue.insert(format!(
-                        "property shape on {} under a {} target has no owl:Functional / \
-                         InverseFunctionalProperty antecedent (carried in the canonical logic: layer)",
+                        "property shape on {} under a {} target has no functional / \
+                         inverse-functional characteristic-assertion antecedent (carried in the \
+                         canonical logic: layer)",
                         pc.path,
                         if is_range { "range" } else { "domain" }
                     ));
@@ -824,7 +840,16 @@ mod tests {
             None,
         )
         .unwrap();
-        assert!(lift(&s).axioms_ttl.contains("owl:FunctionalProperty"));
+        let ttl = lift(&s).axioms_ttl;
+        assert!(
+            ttl.contains("logic:PropertyCharacteristicAssertion")
+                && ttl.contains("logic:characteristicSort logic:functionalProperty"),
+            "functional lift emits the canonical logic: carrier record, not owl:FunctionalProperty: {ttl}"
+        );
+        assert!(
+            !ttl.contains("owl:FunctionalProperty"),
+            "the deprecated owl:FunctionalProperty marker is no longer lifted: {ttl}"
+        );
         certify(&s).expect("functional property must certify");
     }
 
@@ -846,10 +871,16 @@ mod tests {
             None,
         )
         .unwrap();
+        let ttl = lift(&s).axioms_ttl;
         assert!(
-            lift(&s)
-                .axioms_ttl
-                .contains("owl:InverseFunctionalProperty")
+            ttl.contains("logic:PropertyCharacteristicAssertion")
+                && ttl.contains("logic:characteristicSort logic:inverseFunctionalProperty"),
+            "inverse-functional lift emits the canonical logic: carrier record, not \
+             owl:InverseFunctionalProperty: {ttl}"
+        );
+        assert!(
+            !ttl.contains("owl:InverseFunctionalProperty"),
+            "the deprecated owl:InverseFunctionalProperty marker is no longer lifted: {ttl}"
         );
         certify(&s).expect("inverse-functional property must certify");
     }

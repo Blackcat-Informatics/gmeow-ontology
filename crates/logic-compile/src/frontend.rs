@@ -2244,15 +2244,13 @@ pub fn derive_validation_shapes(
     }
 
     // ── FAMILY 3 — property-level axioms (SubjectsOf(P) / ObjectsOf(P) targets) ────────────
-    // Collect every GMEOW-NS property: the four OWL property-type declarations plus any subject
-    // of rdfs:domain / rdfs:range.
+    // Collect every GMEOW-NS property: the OWL object/datatype property-type declarations plus any
+    // subject of rdfs:domain / rdfs:range. The functional / inverse-functional characteristics are
+    // NOT seeded here — they are read from the canonical `logic:` carrier below (a functional-only
+    // property, e.g. gmeow:unit, is discovered straight from its characteristic-assertion record,
+    // not from a property-type marker).
     let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for ty in [
-        "ObjectProperty",
-        "DatatypeProperty",
-        "FunctionalProperty",
-        "InverseFunctionalProperty",
-    ] {
+    for ty in ["ObjectProperty", "DatatypeProperty"] {
         for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
             if let Subject::Iri(iri) = &s
                 && is_authoring_ns(iri)
@@ -2272,8 +2270,6 @@ pub fn derive_validation_shapes(
         }
     }
 
-    let functional = Node::iri(format!("{owl}FunctionalProperty"));
-    let inverse_functional = Node::iri(format!("{owl}InverseFunctionalProperty"));
     for p in &props {
         if optouts.contains(p) {
             continue;
@@ -2356,35 +2352,93 @@ pub fn derive_validation_shapes(
                 }
             }
         }
-        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P). A
-        // functional/inverse-functional axiom is a genuine closed-world cardinality bound (it
-        // constrains, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure
-        // opt-out), independent of the domain/range opt-in above.
-        if contains(store, &p_subj, &nn(RDF_TYPE), &functional) {
+    }
+
+    // ── Functional / inverse-functional characteristics — read from the canonical logic: carrier ──
+    // The `owl:FunctionalProperty` / `owl:InverseFunctionalProperty` property-type markers are a
+    // DEPRECATED projection source; the single authority is the `logic:PropertyCharacteristicAssertion`
+    // record that joins `logic:characterizes` (the characterized property P) with
+    // `logic:characteristicSort` (the marker) — the same carrier the native coherence gate reads.
+    // A functional/inverse-functional characteristic is a genuine closed-world cardinality bound (it
+    // CONSTRAINS, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure opt-out),
+    // independent of the domain/range opt-in above. The functional cap lands on BOTH the
+    // property-scoped SubjectsOf(P) domain shape AND — so the declarative class-node reader
+    // (Pydantic / ShEx) narrows the field to scalar — every rdfs:domain class node shape of P. A
+    // property with NO rdfs:domain (e.g. gmeow:unit) keeps ONLY the property-scoped cap; no class
+    // node shape is fabricated. The merge (`merge_same_path_properties`) folds the class-scoped cap
+    // cleanly into any restriction the class already authored on P.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes) else {
+            continue;
+        };
+        if optouts.contains(&prop) {
+            continue;
+        }
+        let sorts = objects(store, &rec, &p_characteristic_sort);
+        let prop_subj = Subject::Iri(prop.clone());
+        if sorts.contains(&functional_sort) {
+            // Property-scoped cap: each subject of P has ≤1 value (sh:maxCount 1 on P).
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?;
-            entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::SubjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            // Class-scoped cap: the same maxCount-1 on each rdfs:domain class node shape, so the
+            // class-node reader narrows the Python field to scalar.
+            for c in objects(store, &prop_subj, &p_domain) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
-        // owl:InverseFunctionalProperty → each object of P has ≤1 subject (inverse sh:maxCount 1).
-        if contains(store, &p_subj, &nn(RDF_TYPE), &inverse_functional) {
+        if sorts.contains(&inverse_functional_sort) {
+            // Inverse-functional: each object of P has ≤1 subject via P (inverse sh:maxCount 1), on
+            // both the property-scoped ObjectsOf(P) shape and each rdfs:range class node shape.
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?
             .inverted();
-            entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::ObjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            for c in objects(store, &prop_subj, &p_range) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?
+                    .inverted();
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
     }
 
@@ -2702,6 +2756,51 @@ pub fn derive_validation_shapes(
         shapes.push(shape);
     }
     Ok(shapes)
+}
+
+/// The authoring-completeness invariant for the functional-characteristic carrier migration.
+///
+/// Every `gmeow:` property still declared `owl:FunctionalProperty` MUST also carry a
+/// `logic:PropertyCharacteristicAssertion` record whose `logic:characteristicSort` is
+/// `logic:functionalProperty` and whose `logic:characterizes` names it — the canonical carrier the
+/// SHACL/Pydantic projection now reads (the `owl:FunctionalProperty` marker is a deprecated,
+/// no-longer-projected source). A property in the returned set is an AUTHORING GAP: its
+/// functionality would silently vanish from the derived projection because no carrier record
+/// grounds it. Returned sorted (BTreeSet) for a deterministic diagnostic; a non-empty result is a
+/// HARD FAIL on the sync path, never a soft warning — the caller must stop, not degrade.
+///
+/// The sync-path caller lands in a later task of this migration; until it does, the invariant is
+/// exercised only by the crate's own tests, so the non-test lib build sees it as (temporarily)
+/// unused — the test build still enforces dead-code, so a genuinely-unused variant would still bite.
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) fn functional_properties_missing_logic_carrier(
+    store: &RdfDataset,
+) -> std::collections::BTreeSet<String> {
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    let owl_functional = Node::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
+    // Every gmeow:-owned property carrying the deprecated OWL functional marker.
+    let mut declared: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for s in subjects_with(store, &nn(RDF_TYPE), &owl_functional) {
+        if let Subject::Iri(iri) = &s
+            && iri.starts_with(GMEOW_NS)
+        {
+            declared.insert(iri.clone());
+        }
+    }
+    // Every property named by a functional-sort characteristic-assertion carrier record.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut carried: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            carried.insert(prop);
+        }
+    }
+    declared.difference(&carried).cloned().collect()
 }
 
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.

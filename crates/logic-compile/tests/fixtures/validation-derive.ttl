@@ -9,11 +9,12 @@
 # carries at least one lossy (residue-bearing) construct — the faceted-datatype
 # regex pattern on `g:bic`.
 
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix g:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix g:     <https://blackcatinformatics.ca/gmeow/> .
 
 # Cardinality restriction → sh:minCount / sh:maxCount (OwlRestriction provenance).
 g:JournalEntry a owl:Class ;
@@ -34,8 +35,15 @@ g:Animal a owl:Class .
 g:Plant a owl:Class ;
     owl:disjointWith g:Animal .
 
-# Functional datatype property → sh:maxCount 1.
-g:primaryId a owl:FunctionalProperty .
+# Functional property, sourced from the canonical logic: carrier (a
+# logic:PropertyCharacteristicAssertion joining logic:characterizes + logic:characteristicSort) —
+# the deprecated owl:FunctionalProperty marker is no longer a projection source. With an rdfs:domain
+# the sh:maxCount 1 lands on BOTH the property-scoped {primaryId}-domain-shape AND the g:Doc class
+# node shape (sh:targetClass), so the declarative class-node reader narrows the field to scalar.
+g:primaryId rdfs:domain g:Doc .
+[] a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes g:primaryId ;
+    logic:characteristicSort logic:functionalProperty .
 
 # Single-property key → an inverse-path uniqueness shape (sh:inversePath ; sh:maxCount 1).
 g:GTSSegment a owl:Class ;

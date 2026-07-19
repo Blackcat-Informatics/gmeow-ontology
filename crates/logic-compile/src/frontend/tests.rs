@@ -2014,7 +2014,15 @@ fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
 
 #[test]
 fn derive_functional_property_subjects_of_max_one() {
-    let ds = shape_dataset("g:id a owl:FunctionalProperty .");
+    // A functional characteristic is read from the canonical logic: carrier (a
+    // logic:PropertyCharacteristicAssertion joining logic:characterizes + logic:characteristicSort),
+    // NOT the deprecated owl:FunctionalProperty marker. With no rdfs:domain, only the
+    // property-scoped SubjectsOf(P) cap is derived.
+    let ds = shape_dataset(
+        "[] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:id ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let shape = shapes
         .iter()
@@ -2030,8 +2038,30 @@ fn derive_functional_property_subjects_of_max_one() {
 }
 
 #[test]
+fn derive_functional_property_deprecated_owl_marker_is_not_projected() {
+    // The bare owl:FunctionalProperty marker no longer projects a cap: it is a deprecated source,
+    // superseded by the logic: carrier. A property carrying ONLY the marker (no carrier record)
+    // derives no functional shape at all.
+    let ds = shape_dataset("g:id a owl:FunctionalProperty .");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| matches!(
+            &s.target,
+            ShapeTarget::SubjectsOf(p) if p.ends_with("id")
+        )),
+        "deprecated owl:FunctionalProperty marker must not project a SubjectsOf cap: {shapes:?}"
+    );
+}
+
+#[test]
 fn derive_inverse_functional_property_objects_of_inverted_max_one() {
-    let ds = shape_dataset("g:isbn a owl:InverseFunctionalProperty .");
+    // Inverse-functional is likewise read from the logic: carrier (zero live instances in the
+    // repo; a tested capability). With no rdfs:range, only the property-scoped ObjectsOf(P) cap.
+    let ds = shape_dataset(
+        "[] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:isbn ; \
+             logic:characteristicSort logic:inverseFunctionalProperty .",
+    );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let shape = shapes
         .iter()
@@ -2044,6 +2074,146 @@ fn derive_inverse_functional_property_objects_of_inverted_max_one() {
         .expect("a property on isbn");
     assert_eq!(pc.max_count, Some(1), "inverse-functional → sh:maxCount 1");
     assert!(pc.inverse, "inverse-functional is an inverted path");
+}
+
+#[test]
+fn derive_functional_carrier_caps_domain_class_node_shape() {
+    // The functional cap must ALSO land on the domain CLASS node shape (sh:targetClass C), which is
+    // what the declarative class-node reader (Pydantic/ShEx) consults to narrow the field to scalar.
+    // A functional carrier record on P + P rdfs:domain C ⇒ the {C} Class shape carries a forward
+    // maxCount=1 on P (in addition to the property-scoped SubjectsOf(P) cap).
+    let ds = shape_dataset(
+        "g:Book a owl:Class . \
+         g:primaryAuthor rdfs:domain g:Book .\n\
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:primaryAuthor ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let class_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("Book")))
+        .expect("a Class(Book) shape");
+    let pc = class_shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("primaryAuthor"))
+        .expect("Class(Book) carries a property on primaryAuthor");
+    assert_eq!(
+        pc.max_count,
+        Some(1),
+        "functional cap lands on the domain class node shape"
+    );
+    assert!(!pc.inverse, "a forward functional cap, not inverse");
+    // And the property-scoped cap is still present.
+    assert!(
+        shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("primaryAuthor"))
+            && s.properties.iter().any(|p| p.path.ends_with("primaryAuthor") && p.max_count == Some(1))),
+        "the property-scoped SubjectsOf(primaryAuthor) cap is still emitted: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_functional_carrier_no_domain_fabricates_no_class() {
+    // A functional property with NO rdfs:domain (the gmeow:unit shape) gets ONLY the property-scoped
+    // cap — no class node shape is synthesized (there is no domain class to attach it to).
+    let ds = shape_dataset(
+        "[] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:unit ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("unit"))),
+        "the property-scoped SubjectsOf(unit) cap is emitted"
+    );
+    assert!(
+        !shapes.iter().any(|s| matches!(&s.target, ShapeTarget::Class(_))),
+        "no class node shape is fabricated for a domain-less functional property: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_inverse_functional_carrier_caps_range_class_node_shape() {
+    // The inverse-functional cap must ALSO land on the range CLASS node shape as an INVERTED
+    // maxCount=1: an inverse-functional carrier record on P + P rdfs:range C ⇒ the {C} Class shape
+    // carries an inverted maxCount=1 on P.
+    let ds = shape_dataset(
+        "g:Isbn a owl:Class . \
+         g:isbn rdfs:range g:Isbn .\n\
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:isbn ; \
+             logic:characteristicSort logic:inverseFunctionalProperty .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let class_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("Isbn")))
+        .expect("a Class(Isbn) shape");
+    let pc = class_shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("isbn"))
+        .expect("Class(Isbn) carries a property on isbn");
+    assert_eq!(pc.max_count, Some(1), "inverse-functional cap → maxCount 1");
+    assert!(pc.inverse, "inverse-functional cap is an inverted path");
+}
+
+#[test]
+fn derive_colourspace_maxqualified_thing_idiom_unchanged_by_carrier() {
+    // The colourspace idiom — a NON-functional property capped by a class-scoped
+    // `logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing` restriction — is derived by the
+    // FAMILY 1 restriction walk and is UNCHANGED by the functional-carrier rewrite (there is no
+    // functional carrier record; the cap comes from the restriction, not a characteristic).
+    let ds = shape_dataset(
+        "g:Availability a owl:Class ; rdfs:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:availabilityStatus ; \
+           logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let class_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("Availability")))
+        .expect("a Class(Availability) shape");
+    let pc = class_shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("availabilityStatus"))
+        .expect("Class(Availability) carries a property on availabilityStatus");
+    assert_eq!(
+        pc.max_count,
+        Some(1),
+        "maxQualifiedCardinality 1 ; onClass owl:Thing degrades to a plain sh:maxCount 1"
+    );
+    assert!(!pc.inverse, "the restriction cap is a forward path");
+    // No functional carrier record exists, so no property-scoped SubjectsOf cap is spuriously added.
+    assert!(
+        !shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("availabilityStatus"))),
+        "the non-functional property gets no SubjectsOf cap: {shapes:?}"
+    );
+}
+
+#[test]
+fn functional_completeness_invariant_flags_carrierless_and_clears_when_carried() {
+    // An owl:FunctionalProperty declaration with NO logic: carrier record is an authoring gap: the
+    // invariant returns the offending property.
+    let gap = shape_dataset("g:legacyId a owl:FunctionalProperty .");
+    let missing = functional_properties_missing_logic_carrier(gap.as_ref());
+    assert!(
+        missing.iter().any(|p| p.ends_with("legacyId")),
+        "carrierless owl:FunctionalProperty is flagged: {missing:?}"
+    );
+    // Add the carrier record and the gap clears.
+    let carried = shape_dataset(
+        "g:legacyId a owl:FunctionalProperty .\n\
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:legacyId ; \
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    assert!(
+        functional_properties_missing_logic_carrier(carried.as_ref()).is_empty(),
+        "a carrier record clears the authoring gap"
+    );
 }
 
 #[test]
@@ -2603,13 +2773,16 @@ fn derive_qualified_cardinality_without_on_class_hard_fails() {
 
 #[test]
 fn derive_domain_and_functional_merge_into_one_subjects_of_shape() {
-    // A domain axiom (opted IN to closed-world reading) AND a functionality axiom on the SAME
-    // property must fold into ONE SubjectsOf(P) shape carrying both the node Class and the
+    // A domain axiom (opted IN to closed-world reading) AND a functional carrier record on the
+    // SAME property must fold into ONE SubjectsOf(P) shape carrying both the node Class and the
     // maxCount-1 property. (The functional maxCount derives regardless; the domain node-class
     // needs the ClosedWorldClosure opt-in since domain is open-world by default.)
     let ds = shape_dataset_with_logic(
         "g:Doc a owl:Class . \
-         g:isbn a owl:FunctionalProperty ; rdfs:domain g:Doc .\n\
+         g:isbn rdfs:domain g:Doc .\n\
+         [] a logic:PropertyCharacteristicAssertion ; \
+             logic:characterizes g:isbn ; \
+             logic:characteristicSort logic:functionalProperty .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:isbn ; logic:closureValue logic:ClosedWorldClosure .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
