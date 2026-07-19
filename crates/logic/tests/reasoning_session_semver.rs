@@ -22,15 +22,18 @@ use session_common::*;
 /// (incomparable JA∥SWA meet to their glb), the budgeted MSA critical-instance fixpoint
 /// (Exhausted → conservative refuse), the fail-fast authored-rule reader, and the
 /// certifier perf rewrites — all move the `physical/chase.rs` / `reason/dl.rs` content
-/// digest folded into this descriptor.
+/// digest folded into this descriptor. Re-blessed once more for the round-3 certifier
+/// hardening: the reordered soundness differential, the atomic authored-rule reader
+/// (non-resource ref / duplicate slot hard-fails), and the MSA critical-instance size cap
+/// all move the `physical/chase.rs` / `reason/dl.rs` content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "7d247abd53b94638d4c3c358439c2177e06898ba530b84a5343e29d64bbd7b9d";
+    "49458ce909129def61cc27c2c4b64a20725b54c3c39a62d1d025bce1e67a8ef1";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "0719dc482dcee9d6f28579c1a63b0c8939f53d17cb0b864e47d7f4f4e37031ee";
+    "e019f1038a6c118485bff881d422f3cb16693acce002b32e32ff0cea7dae19c9";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
