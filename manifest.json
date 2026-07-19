@@ -1,0 +1,76 @@
+{
+  "schema": "gmeow-history-rewrite-ledger-v1",
+  "prepared_at": "2026-07-18T18:00:21-06:00",
+  "issue": 1600,
+  "principles": [4, 7],
+  "removed_path": "generated/",
+  "filter_repo_version": "c1511bf3728f",
+  "filter_command": "git filter-repo --path generated/ --invert-paths --prune-empty never --prune-degenerate never --no-ff --preserve-commit-hashes --preserve-commit-encoding --force",
+  "counts": {
+    "mapped_commits": 7167,
+    "dropped_commits": 0,
+    "commits_with_removed_path_after_filter": 0,
+    "heads": 11,
+    "tags": 10,
+    "ghprsq_refs": 693,
+    "ghprsq_notes": 461,
+    "remote_refs_before": 1575
+  },
+  "sizes": {
+    "github_repository_before_kib": 18612162,
+    "filtered_mirror_pack_bytes": 90147462
+  },
+  "principal_refs": {
+    "main": {
+      "old": "9032c2f6e6b8803488842e85478612ce3944d242",
+      "new": "1361ab1dfcaba673c64b5a47b49c195524344291"
+    },
+    "refs/notes/ghprsq": {
+      "old": "0ce958e6a9cd6dba11d53802795ce2b60d944f83",
+      "new": "d72940f185289c547a2ec3bcf9e6523e236c9818"
+    }
+  },
+  "preserved_worktree_heads": {
+    "paudley/1344-chase-termination-ladder": {
+      "old_remote": "de0243df9bdeeb2d002d28ff97c00a482ca7f3c3",
+      "old_local": "70783cbd375b23101596009943e57d402d920b38",
+      "new": "f14c40e73345c60c22c137be0ba434db7f07d192"
+    },
+    "paudley/1428-native-numeric-builtins": {
+      "old": "d4b2b38ce5dfc8552b01d8f39b244502a851fc3d",
+      "new": "dc76a07b9e0fc19499ad5a842fa9a7265d511c99"
+    },
+    "paudley/1551-logic-only-shape-retirement": {
+      "old": "7fd6eacc70e607de1a3bf91cd7b9e489195aa700",
+      "new": "7b32a53977826971366a9d98c76de88e82a8975a"
+    }
+  },
+  "annotated_tags": {
+    "v0.2.0": {
+      "old_tag_object": "0f5f929978c50f6b271b18e708a6d4ad70b5c83b",
+      "new_tag_object": "11f8487fdaf137373d3baee1f9bebc57a382b718"
+    },
+    "v1.0.2-last-apache": {
+      "old_tag_object": "7434c1701bd298e2aea9ec1e76e9083af36ff15c",
+      "new_tag_object": "070e1d9d4d49b2d730b23ac6c9739acd384ff495"
+    }
+  },
+  "sha256": {
+    "refs/remote-original.refs": "8694bc7c7a07ea0770d96975921120fb5a3b947e442ca4dbdc4d51a3421c7c92",
+    "refs/pre-filter-with-local.refs": "907032b5a322e3bc864f374d7453fa04d3807cb1832dce73207e5018b92fcef2",
+    "maps/commit-map.tsv": "17bfd01c1bd15d63980392cd53d19005bdcfdb7cf75cd61a08bcbbcd5a876464",
+    "maps/ghprsq-ref-map.tsv": "8882c571ce21adf72e4b731972a1fd19fa4b3ccb9a119a06991166832c77f12a",
+    "maps/notes-map.tsv": "e80de6c474232554193cf82dfc7d2b84b2ced25237237279541a381c812f7370",
+    "fingerprints/heads-before.tsv": "133bfc7e03d42e1e55f59a4568d2a6deda22fa1d239458ee8015f882f35293ec",
+    "fingerprints/heads-after.tsv": "b21b8571117b2f7f28d668a4b15a5d45cca3be8d3c72567ab5dbaade2fe967b1",
+    "fingerprints/tags-before.tsv": "8b012449173ee73e2b57579f841da14eba60495658af6a918fbb18e1aee4a116",
+    "fingerprints/tags-after.tsv": "e0fdf0da86608e1d80db8f2fe776844203e130a9983fed020fc287d7d2409892",
+    "audit/ghprsq-before.tsv": "06e80f301be2b046abb1a35d099f1f3753afb8d6a4db332f5bbda230ecccdfaf",
+    "audit/ghprsq-after.tsv": "302cacfafd6221b900c83c426aa11550da2cb37e68251aa0ba1e369be080af15",
+    "audit/notes-before.tsv": "6c4c91ad541b356ed9bd4d86904afc26767f557768e596ccb5094c0ccd8a4fcc",
+    "audit/notes-after.tsv": "b43cbe4e3a47fe736ca84a3ce73671d96e4ef3cbed8fca5dfe349f98ee561a00",
+    "github/ruleset-before.json": "13b03a24d3667668d6c85123acd330010bd1531264069d7dfe81b9c1625927c2",
+    "github/open-prs-before.json": "922fd3a26d20cb106ff29e946f76d74722c8aec6e1baed7a0909ec356e05ac9f",
+    "github/repository-before.json": "95edbf6b2f58b7462cf932a4a2d10714a1b9a774e42f6abff3a2ad993ce549df"
+  }
+}
