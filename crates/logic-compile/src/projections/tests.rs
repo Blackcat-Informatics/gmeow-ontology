@@ -1328,6 +1328,38 @@ fn covering_lowers_to_owl_disjoint_union_when_members_pairwise_disjoint() {
 }
 
 #[test]
+fn functional_carrier_record_projects_owl_functional_property() {
+    // The canonical `logic:PropertyCharacteristicAssertion` carrier — with NO direct
+    // `?P rdf:type owl:FunctionalProperty` / `logic:functionalProperty` marker — must still make
+    // the OWL grounding view emit `owl:FunctionalProperty` on the characterized property, exactly
+    // as each carrier record's prose promises now that the deprecated marker is no longer an
+    // authored source.
+    let program = parse(
+        "ex:hasLeadRecord a logic:PropertyCharacteristicAssertion ;\n\
+         \x20   logic:characterizes ex:hasLead ;\n\
+         \x20   logic:characteristicSort logic:functionalProperty .",
+    );
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
+    let triples = triple_set(&dl.content);
+    let prop = "https://example.org/test/hasLead";
+    assert!(
+        triples.iter().any(|t| {
+            t == &format!("<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#FunctionalProperty>")
+        }),
+        "the owl view must project owl:FunctionalProperty on the characterized property from the \
+         carrier record:\n{}",
+        triples.join("\n")
+    );
+    assert!(
+        triples.iter().any(|t| {
+            t == &format!("<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#ObjectProperty>")
+        }),
+        "the projected functional property is typed as an owl:ObjectProperty:\n{}",
+        triples.join("\n")
+    );
+}
+
+#[test]
 fn owl_restriction_round_trips_through_dl_projection() {
     // Adapt an OWL restriction into the logic: IR, then project OWL-DL back: the
     // owl:Restriction graph must reappear (anchored on the deterministic skolem node).
