@@ -196,12 +196,7 @@ fn builtin_of(b: &QBuiltin) -> QBuiltin {
         // Only the TARGET is a value the constraint stage may generate/bind; the
         // gram/x/y operands are IRI inputs (a `Var` bound to an IRI is `?`-prefixed so
         // the solution lookup resolves it, a `Const` IRI is carried unchanged).
-        QBuiltin::BilinearSqDist {
-            target,
-            gram,
-            x,
-            y,
-        } => QBuiltin::BilinearSqDist {
+        QBuiltin::BilinearSqDist { target, gram, x, y } => QBuiltin::BilinearSqDist {
             target: prefix_builtin_term(target),
             gram: prefix_builtin_term(gram),
             x: prefix_builtin_term(x),

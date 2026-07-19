@@ -187,7 +187,7 @@ pub(crate) use magic_generic::ExternalRelationEvaluationError;
 // are consumed by the forward/backward evaluators wired on the next rungs.
 #[allow(unused_imports)]
 pub(crate) use builtin_eval::{
-    BuiltinError, BuiltinOutcome, CellResolver, MATH_CELL_PREDICATES, MathTriples, NoCellResolver,
-    Value, XSD_INTEGER, emit_integer_surface, emit_surface, eval as eval_builtin, load_gram_cells,
-    load_vector_dense,
+    BuiltinError, BuiltinGap, BuiltinGapKind, BuiltinOutcome, CellResolver, MATH_CELL_PREDICATES,
+    MathTriples, NoCellResolver, Value, XSD_INTEGER, emit_integer_surface, emit_surface,
+    eval as eval_builtin, load_gram_cells, load_vector_dense,
 };

@@ -215,6 +215,170 @@ pub(crate) enum BuiltinError {
     MetricForm,
 }
 
+impl BuiltinError {
+    /// The stable kebab code suffix identifying this domain-fault kind — the single
+    /// source of the kind→identity mapping the ledger keys on
+    /// (`reason.builtin-gap.{suffix}`). Total over every arm, so no fault is
+    /// anonymous.
+    #[must_use]
+    pub(crate) fn code_suffix(&self) -> &'static str {
+        match self {
+            BuiltinError::ZeroDivisor => "zero-divisor",
+            BuiltinError::Overflow => "overflow",
+            BuiltinError::ZeroDenominator => "zero-denominator",
+            BuiltinError::DimensionMismatch => "dimension-mismatch",
+            BuiltinError::MalformedDimension => "malformed-dimension",
+            BuiltinError::MetricForm => "metric-form",
+        }
+    }
+
+    /// The bare `math:` conformance-failure class IRI this fault anchors — the same
+    /// class each arm's doc comment names. Total, so every fault carries an
+    /// ontology anchor (never a bare Rust side-channel).
+    #[must_use]
+    pub(crate) fn math_class(&self) -> &'static str {
+        match self {
+            BuiltinError::ZeroDivisor => "https://blackcatinformatics.ca/math/ZeroDivisor",
+            BuiltinError::Overflow => "https://blackcatinformatics.ca/math/Overflow",
+            BuiltinError::ZeroDenominator => "https://blackcatinformatics.ca/math/ZeroDenominator",
+            BuiltinError::DimensionMismatch => {
+                "https://blackcatinformatics.ca/math/DimensionalInhomogeneity"
+            }
+            BuiltinError::MalformedDimension => {
+                "https://blackcatinformatics.ca/math/MalformedDimension"
+            }
+            BuiltinError::MetricForm => {
+                "https://blackcatinformatics.ca/math/NonPositiveDefiniteNorm"
+            }
+        }
+    }
+}
+
+/// Why a moded builtin declined to produce a value at a candidate solution — the
+/// distinction the seminaive collapse site MUST preserve.
+///
+/// [`BuiltinGapKind::Unbound`] is a *mode* gap (an operand needed for evaluation is
+/// still free — the evaluator declines rather than guess); [`BuiltinGapKind::Error`]
+/// is a *domain* fault (÷0, overflow, incommensurable dimensions — a typed
+/// `math:` conformance failure). Collapsing the two would lose the reason a program
+/// was refused, so they stay disjoint all the way to the ledger.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum BuiltinGapKind {
+    /// An operand was unbound in its required mode.
+    Unbound,
+    /// A domain / precision / dimensional fault (a typed `math:` failure class).
+    Error(BuiltinError),
+}
+
+impl BuiltinGapKind {
+    /// The stable kebab code suffix identifying this gap kind
+    /// (`reason.builtin-gap.{suffix}`). `Unbound` is `"unbound"`; an `Error`
+    /// delegates to [`BuiltinError::code_suffix`], so each domain fault keeps its
+    /// distinct per-kind identity.
+    #[must_use]
+    pub(crate) fn code_suffix_or_unbound(&self) -> &'static str {
+        match self {
+            BuiltinGapKind::Unbound => "unbound",
+            BuiltinGapKind::Error(e) => e.code_suffix(),
+        }
+    }
+
+    /// The bare `math:` conformance-failure class IRI this gap anchors, or `None`
+    /// for a pure mode gap (`Unbound` names no domain-failure class).
+    #[must_use]
+    pub(crate) fn math_class(&self) -> Option<&'static str> {
+        match self {
+            BuiltinGapKind::Unbound => None,
+            BuiltinGapKind::Error(e) => Some(e.math_class()),
+        }
+    }
+}
+
+/// One ledgerable moded-builtin gap captured at the seminaive collapse site: the
+/// KIND (mode gap vs. typed domain fault), the rendered builtin operation, and the
+/// antecedent bindings under which it arose.
+///
+/// This is the structured payload the old payload-less `gap: &mut bool` channel
+/// destroyed. It threads the whole seminaive spine so a refused program's terminal
+/// can mint a ledgered finding naming the `math:` class, the op, and the operands —
+/// never an anonymous "arithmetic gap".
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct BuiltinGap {
+    /// Why the builtin declined (mode gap or typed domain fault).
+    pub(crate) kind: BuiltinGapKind,
+    /// The rendered builtin operation (e.g. `X is 1 // 0`, `A > B`,
+    /// `D is bilinearSqDist(G, X, Y)`).
+    pub(crate) op: String,
+    /// The antecedent solution bindings `(var, surface)` in effect when the gap
+    /// arose — the operands the finding's message and antecedent key carry.
+    pub(crate) bindings: Vec<(String, String)>,
+}
+
+impl BuiltinGap {
+    /// Capture a gap from a builtin outcome that declined, rendering the op and
+    /// snapshotting the antecedent bindings. Returns `None` for a producing outcome
+    /// (`Filter`/`Generate`), so the caller maps only the declining arms.
+    #[must_use]
+    pub(crate) fn from_outcome(
+        builtin: &QBuiltin,
+        outcome: &BuiltinOutcome,
+        bindings: Vec<(String, String)>,
+    ) -> Option<Self> {
+        let kind = match outcome {
+            BuiltinOutcome::Unbound => BuiltinGapKind::Unbound,
+            BuiltinOutcome::Error(e) => BuiltinGapKind::Error(*e),
+            BuiltinOutcome::Filter(_) | BuiltinOutcome::Generate { .. } => return None,
+        };
+        Some(BuiltinGap {
+            kind,
+            op: render_builtin_op(builtin),
+            bindings,
+        })
+    }
+}
+
+/// Render a moded builtin to a stable human operation string for a gap message /
+/// focus key: `target is lhs op rhs`, `lhs cmp rhs`, or
+/// `target is bilinearSqDist(gram, x, y)`.
+#[must_use]
+pub(crate) fn render_builtin_op(builtin: &QBuiltin) -> String {
+    match builtin {
+        QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        } => format!(
+            "{} is {} {} {}",
+            render_term(target),
+            render_term(lhs),
+            op.token(),
+            render_term(rhs)
+        ),
+        QBuiltin::Compare { lhs, op, rhs } => {
+            format!("{} {} {}", render_term(lhs), op.token(), render_term(rhs))
+        }
+        QBuiltin::BilinearSqDist { target, gram, x, y } => format!(
+            "{} is bilinearSqDist({}, {}, {})",
+            render_term(target),
+            render_term(gram),
+            render_term(x),
+            render_term(y)
+        ),
+    }
+}
+
+/// Render one operand term for [`render_builtin_op`] — a stable, allocation-light
+/// surface for a diagnostic message (never re-parsed).
+fn render_term(term: &QTerm) -> Cow<'static, str> {
+    match term {
+        QTerm::Num(n) => Cow::Owned(n.to_string()),
+        QTerm::Var(v) => Cow::Owned(v.clone()),
+        QTerm::Const(c) => Cow::Owned(c.clone()),
+        QTerm::Struct(_) => Cow::Borrowed("<struct>"),
+    }
+}
+
 /// The outcome of moded builtin evaluation against a partial substitution.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum BuiltinOutcome {
@@ -838,9 +1002,15 @@ pub(crate) fn load_gram_cells(
     let mut cells = Vec::with_capacity(entries.len());
     for entry in entries {
         let row = bounded_index(src.math_literal_i128(&entry, MATH_AT_ROW)?, "matrix row").ok()?;
-        let col =
-            bounded_index(src.math_literal_i128(&entry, MATH_AT_COLUMN)?, "matrix column").ok()?;
-        let value_iri = src.math_iri_objects(&entry, MATH_ENTRY_VALUE).into_iter().next()?;
+        let col = bounded_index(
+            src.math_literal_i128(&entry, MATH_AT_COLUMN)?,
+            "matrix column",
+        )
+        .ok()?;
+        let value_iri = src
+            .math_iri_objects(&entry, MATH_ENTRY_VALUE)
+            .into_iter()
+            .next()?;
         cells.push((row, col, load_rational_value(src, &value_iri)?));
     }
     Some(cells)
@@ -857,8 +1027,11 @@ pub(crate) fn load_vector_dense(src: &dyn MathTriples, vector_iri: &str) -> Opti
     }
     let mut cells: Vec<(usize, Rational)> = Vec::with_capacity(components.len());
     for component in components {
-        let idx =
-            bounded_index(src.math_literal_i128(&component, MATH_AT_INDEX)?, "vector index").ok()?;
+        let idx = bounded_index(
+            src.math_literal_i128(&component, MATH_AT_INDEX)?,
+            "vector index",
+        )
+        .ok()?;
         let value_iri = src
             .math_iri_objects(&component, MATH_COMPONENT_VALUE)
             .into_iter()
@@ -923,7 +1096,9 @@ fn compute_bilinear_sqdist(
         .map_err(overflow)?;
 
     let space = InnerProductSpace::new(matrix).map_err(|_| BuiltinError::MetricForm)?;
-    let sqdist = space.quadratic_form(&diff).map_err(|_| BuiltinError::MetricForm)?;
+    let sqdist = space
+        .quadratic_form(&diff)
+        .map_err(|_| BuiltinError::MetricForm)?;
     Ok(Value::Rat(sqdist))
 }
 
@@ -1022,12 +1197,7 @@ pub(crate) fn eval<'a>(
                 CompareResult::Gap => BuiltinOutcome::Unbound,
             }
         }
-        QBuiltin::BilinearSqDist {
-            target,
-            gram,
-            x,
-            y,
-        } => {
+        QBuiltin::BilinearSqDist { target, gram, x, y } => {
             // All three operand IRIs must be bound/ground to compute; an unbound or
             // non-IRI operand is a declared mode gap (decline, never guess).
             let (Some(gram_iri), Some(x_iri), Some(y_iri)) = (
@@ -1091,12 +1261,7 @@ mod tests {
 
     /// A `BilinearSqDist` builtin over the given operand terms.
     fn bilinear(target: QTerm, gram: QTerm, x: QTerm, y: QTerm) -> QBuiltin {
-        QBuiltin::BilinearSqDist {
-            target,
-            gram,
-            x,
-            y,
-        }
+        QBuiltin::BilinearSqDist { target, gram, x, y }
     }
 
     /// A metric-form [`CellResolver`] test double: canned Gram cells and named
@@ -1254,7 +1419,12 @@ mod tests {
         let lookup = env(&[]);
         assert_eq!(
             eval(
-                &is(QTerm::Num(3), QTerm::Num(6), ArithOp::ExactDiv, QTerm::Num(2)),
+                &is(
+                    QTerm::Num(3),
+                    QTerm::Num(6),
+                    ArithOp::ExactDiv,
+                    QTerm::Num(2)
+                ),
                 &lookup
             ),
             BuiltinOutcome::Filter(true),
@@ -1263,7 +1433,12 @@ mod tests {
         // Negative control: a genuinely-different integer target still filters false.
         assert_eq!(
             eval(
-                &is(QTerm::Num(4), QTerm::Num(6), ArithOp::ExactDiv, QTerm::Num(2)),
+                &is(
+                    QTerm::Num(4),
+                    QTerm::Num(6),
+                    ArithOp::ExactDiv,
+                    QTerm::Num(2)
+                ),
                 &lookup
             ),
             BuiltinOutcome::Filter(false),
@@ -1272,7 +1447,12 @@ mod tests {
         // A non-integral exact result is not equal to any integer target.
         assert_eq!(
             eval(
-                &is(QTerm::Num(1), QTerm::Num(1), ArithOp::ExactDiv, QTerm::Num(2)),
+                &is(
+                    QTerm::Num(1),
+                    QTerm::Num(1),
+                    ArithOp::ExactDiv,
+                    QTerm::Num(2)
+                ),
                 &lookup
             ),
             BuiltinOutcome::Filter(false),
@@ -2102,7 +2282,12 @@ mod tests {
             vectors: vec![("urn:gmeow:test:x".to_owned(), vec![rat(1, 1)])],
         };
         // The `y` operand is an unbound variable → gap.
-        let b = bilinear(var("D"), iri_const(g), iri_const("urn:gmeow:test:x"), var("Y"));
+        let b = bilinear(
+            var("D"),
+            iri_const(g),
+            iri_const("urn:gmeow:test:x"),
+            var("Y"),
+        );
         assert_eq!(
             super::eval(&b, &env(&[]), &resolver),
             BuiltinOutcome::Unbound

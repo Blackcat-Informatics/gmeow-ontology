@@ -914,12 +914,7 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
         QBuiltin::Compare { lhs, op, rhs } => {
             format!("{} {} {}", term(lhs), op.token(), term(rhs))
         }
-        QBuiltin::BilinearSqDist {
-            target,
-            gram,
-            x,
-            y,
-        } => format!(
+        QBuiltin::BilinearSqDist { target, gram, x, y } => format!(
             "{} is bilinearSqDist({}, {}, {})",
             term(target),
             term(gram),

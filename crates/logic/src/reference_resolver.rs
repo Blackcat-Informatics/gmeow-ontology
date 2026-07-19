@@ -331,12 +331,24 @@ impl<'a> ResolveState<'a> {
                 new_subst.insert(root, crate::physical::emit_surface(&value));
                 self.resolve_conjunct(rest, &new_subst, seen)
             }
-            crate::physical::BuiltinOutcome::Unbound
-            | crate::physical::BuiltinOutcome::Error(_) => Err(reference_err(
-                "arithmetic/comparison builtin has an unbound operand or domain error in \
+            // A pure mode gap (an operand still unbound) stays the plain reference-oracle
+            // refusal — the top-down SLD oracle declines rather than guess.
+            crate::physical::BuiltinOutcome::Unbound => Err(reference_err(
+                "arithmetic/comparison builtin has an unbound operand in \
                  the declarative reference oracle"
                     .to_owned(),
             )),
+            // A typed domain fault (÷0, overflow, incommensurable dimensions) is minted
+            // into a ledgered builtin-gap finding naming its `math:` conformance class,
+            // the operation, and the antecedent operands — never an anonymous "domain
+            // error" — through the single shared helper.
+            outcome @ crate::physical::BuiltinOutcome::Error(_) => {
+                let bindings: Vec<(String, String)> =
+                    subst.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+                let gap = crate::physical::BuiltinGap::from_outcome(builtin, &outcome, bindings)
+                    .expect("an Error outcome always yields a ledgerable gap");
+                Err(crate::reason::builtin_gap::builtin_gap_diag(&gap))
+            }
         }
     }
 
@@ -652,12 +664,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 op: *op,
                 rhs: rename_term(rhs, suffix),
             },
-            QBuiltin::BilinearSqDist {
-                target,
-                gram,
-                x,
-                y,
-            } => QBuiltin::BilinearSqDist {
+            QBuiltin::BilinearSqDist { target, gram, x, y } => QBuiltin::BilinearSqDist {
                 target: rename_term(target, suffix),
                 gram: rename_term(gram, suffix),
                 x: rename_term(x, suffix),

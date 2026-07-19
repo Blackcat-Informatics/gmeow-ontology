@@ -1183,11 +1183,7 @@ fn parse_named_function(s: &str) -> Option<(&str, Vec<&str>)> {
     }
     let open = s.find('(')?;
     let name = s[..open].trim();
-    if name.is_empty()
-        || !name
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_')
-    {
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
         return None;
     }
     let inner = &s[open + 1..s.len() - 1];

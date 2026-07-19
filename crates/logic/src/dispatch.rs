@@ -463,15 +463,50 @@ pub fn dispatch_query(
         &mut dag,
     )? {
         crate::physical::NativeOutcome::Decided(answer) => Ok(answer),
-        crate::physical::NativeOutcome::Unsupported(kind) => {
-            Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
-                detail: format!(
-                    "native backward engine does not support {kind:?}; query refused because \
-                     no fallback engine remains"
-                ),
-            }))
-        }
+        crate::physical::NativeOutcome::Unsupported(kind) => Err(refuse_native_gap(&kind)),
     }
+}
+
+/// Build the typed refusal diagnostic for a native declared gap.
+///
+/// A moded-builtin gap ([`UnsupportedKind::Arithmetic`] carrying captured
+/// [`BuiltinGap`](crate::physical::BuiltinGap)s) is NOT an anonymous "does not support
+/// Arithmetic": it is minted into a [`gmeow_errors::DiagLedger`] of ledgered per-kind
+/// findings (distinct `finding_iri`/`anchor_iri` per `math:` failure class) via the
+/// single shared [`crate::reason::builtin_gap`] helper, and the returned diagnostic
+/// NAMES each gap's `math:` class + operation, with the ledgered findings' identity
+/// hung off it as antecedent quad IRIs. A structural refusal (empty gaps) or any other
+/// kind keeps the plain typed-refusal message.
+fn refuse_native_gap(kind: &crate::physical::UnsupportedKind) -> gmeow_errors::Diag {
+    if let crate::physical::UnsupportedKind::Arithmetic(gaps) = kind
+        && !gaps.is_empty()
+    {
+        let ledger = crate::reason::builtin_gap::builtin_gap_ledger(gaps);
+        // The ledgered per-kind finding IRIs, carried as explain-skeleton citations so the
+        // refusal is joinable to the distinct findings the ledger projected.
+        let finding_iris: Vec<String> = ledger
+            .findings("reason")
+            .into_iter()
+            .filter_map(|f| f.finding_iri)
+            .collect();
+        return gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: crate::reason::builtin_gap::builtin_gap_refusal_detail(gaps),
+        })
+        .with_derived_from_quads(finding_iris);
+    }
+    // A structural refusal (an empty-gap `Arithmetic`, or any other declared kind) keeps
+    // the plain typed-refusal message. `Arithmetic` renders WITHOUT its (empty) gap
+    // payload so the label stays the stable `Arithmetic`, never `Arithmetic([])`.
+    let label = match kind {
+        crate::physical::UnsupportedKind::Arithmetic(_) => "Arithmetic".to_owned(),
+        other => format!("{other:?}"),
+    };
+    gmeow_errors::Diag::of_kind(crate::error::Reason {
+        detail: format!(
+            "native backward engine does not support {label}; query refused because \
+             no fallback engine remains"
+        ),
+    })
 }
 
 /// Resolve directly over an infallible resident or validated succinct-pack RDF view.
