@@ -317,7 +317,8 @@ gmeow:projectionOrder
 # pair is a violation ONLY when BOTH edges sit under the SAME cell's order — two DIFFERENT
 # cells asserting opposite directions is the legal coexistence, never a violation.
 gmeow:PreferenceEdge
-    a owl:Class ;
+    a logic:Kind ,
+        owl:Class ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "preference edge"@x-gmeow-english ;
@@ -2888,17 +2889,18 @@ gmeow:ComparisonCompilation a logic:Event .
 gmeow:CandidateSourceCorrespondence a logic:Kind .
 gmeow:ProjectionPreservationRecord a logic:Kind .
 gmeow:PreferenceOrder a logic:Kind .
+gmeow:PreferenceEdge a logic:Kind .
 gmeow:ConsensusSection a logic:Kind .
 gmeow:DisagreementObstruction a logic:Kind .
 gmeow:VerifierVerdict a logic:SubKind .
 gmeow:ConstraintHardness a logic:AbstractIndividualType .
-gmeow:PreferenceProof a logic:Kind .
+gmeow:PreferenceProof a logic:SubKind .
 gmeow:PreferenceCounterexample a logic:Kind .
 gmeow:ProjectionReceipt a logic:Kind .
 gmeow:ProjectionKind a logic:AbstractIndividualType .
 gmeow:ProjectionDeterminism a logic:AbstractIndividualType .
 gmeow:DisclosedLossEntry a logic:Kind .
-gmeow:DpoView a logic:Kind .
+gmeow:DpoView a logic:SubKind .
 gmeow:PreferenceLearningEvent a logic:Event .
 gmeow:ModelConfigDelta a logic:Kind .
 gmeow:TokenizerContract a logic:Kind .
