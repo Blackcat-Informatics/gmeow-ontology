@@ -85,13 +85,74 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A nearest-prototype classification was asked to argmin over an EMPTY
-    /// prototype set — there is no candidate to select, so it hard-fails rather
-    /// than returning a meaningless "no nearest".
+    /// A nearest-prototype classification was asked to rank over an EMPTY prototype
+    /// set — there is no candidate to select, so it hard-fails rather than returning
+    /// a meaningless "no nearest".
     pub struct EmptyPrototypeSet {}
-    code = "affect.nearest.empty-prototype-set";
+    code = "affect.classify.empty-prototype-set";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
     message = "nearest-prototype classification requires at least one prototype observation";
+}
+
+define_diag_kind! {
+    /// The explicitly chosen vantage Gram is not positive-definite. The bilinear-form
+    /// builtin TRUSTS positive-definiteness (it is certified off-gate), so a non-PD
+    /// vantage would yield negative "distances" and a garbage argmin — hard-fail the
+    /// classification up front instead. `detail` names the Gram and the LDLᵀ verdict.
+    pub struct NonPositiveDefiniteVantage { detail: String }
+    code = "affect.classify.vantage-not-pd";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// A coordinate vector (state or prototype) has more axes than the vantage form's
+    /// order, or the two vectors differ in dimension — measuring it under the vantage
+    /// metric would silently truncate a coordinate (a wrong answer). `detail` names
+    /// the observation and the dimensions.
+    pub struct CoordinateDimensionMismatch { detail: String }
+    code = "affect.classify.dimension-mismatch";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// Two prototype signatures are COINCIDENT under the vantage metric (zero
+    /// G-distance apart) — an authoring error that makes the nearest-prototype margin
+    /// bisector undefined. `detail` names the coincident pair.
+    pub struct CoincidentPrototypes { detail: String }
+    code = "affect.classify.coincident-prototypes";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// A state or prototype vector has ZERO G-norm, so its cosine (direction) is
+    /// undefined — cosine-lens classification hard-fails rather than inventing an
+    /// angle for the origin. `detail` names the zero-norm observation.
+    pub struct ZeroNormCosine { detail: String }
+    code = "affect.classify.zero-norm-cosine";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// An authored coordinate magnitude lies OUTSIDE the vantage profile's declared
+    /// bipolar range, so unit-clamp normalization / the metric would read a value the
+    /// scale does not define. `detail` names the cell, the value, and the range.
+    pub struct ValueOutOfRange { detail: String }
+    code = "affect.classify.value-out-of-range";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// The #1428 bilinear-form distance builtin declined (a malformed vantage form or
+    /// an exact-arithmetic overflow) — never a wrong answer. `detail` carries the fault.
+    pub struct BilinearDistanceFailed { detail: String }
+    code = "affect.classify.distance-failed";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
 }
 
 /// The complete affect diagnostic-code catalog, in registration order.
@@ -105,6 +166,12 @@ pub const AFFECT_DIAG_CODES: &[&str] = &[
     DefinitenessCrosscheckFailed::CODE,
     MetricBasisMismatch::CODE,
     EmptyPrototypeSet::CODE,
+    NonPositiveDefiniteVantage::CODE,
+    CoordinateDimensionMismatch::CODE,
+    CoincidentPrototypes::CODE,
+    ZeroNormCosine::CODE,
+    ValueOutOfRange::CODE,
+    BilinearDistanceFailed::CODE,
 ];
 
 /// Eagerly intern every affect diagnostic code (idempotent).
@@ -119,6 +186,12 @@ pub fn register_all() -> Vec<Code> {
         DefinitenessCrosscheckFailed::register(),
         MetricBasisMismatch::register(),
         EmptyPrototypeSet::register(),
+        NonPositiveDefiniteVantage::register(),
+        CoordinateDimensionMismatch::register(),
+        CoincidentPrototypes::register(),
+        ZeroNormCosine::register(),
+        ValueOutOfRange::register(),
+        BilinearDistanceFailed::register(),
     ]
 }
 
