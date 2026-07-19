@@ -31,14 +31,15 @@
 //! No-optionality: a missing `dcat.rq` or a projection failure is a HARD FAIL, never a
 //! silently empty manifest.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_errors::Diag;
-use purrdf::RdfDataset;
+use purrdf::{RdfDataset, RdfTerm};
 
 use crate::error::DocsDistribution as DocsDistributionError;
 use crate::projections::{TagMap, project_graph};
+use crate::stages::carrier::GRAPH_DISTRIBUTION_CATALOG;
 use crate::stages::distribution_catalog::{dist_iri, iri, triple, triple_lit};
 
 fn err(message: impl Into<String>) -> Diag {
@@ -295,6 +296,285 @@ pub fn build_docs_distribution_manifest(
         .map_err(|e| err(format!("project the release distribution instance through dcat.rq: {e}")))
 }
 
+// ── consumer-side catalog matrix (issue #1491 Task 5, `gmeow docs matrix`) ─────────
+
+/// The IRI-namespace-local-name tail of `iri` (the segment after its final `/`).
+/// Uniformly recovers a slug from every kind of subject this module's catalog reads
+/// mint: a `…/family/<slug>` family IRI, a `…/capability/<slug>` capability IRI, and a
+/// `{GMEOW_NS}<name>` consumer IRI (`GMEOW_NS` itself ends in `/`, so the tail IS the
+/// bare local name in that case too).
+fn local_name(iri: &str) -> String {
+    iri.rsplit('/').next().unwrap_or(iri).to_string()
+}
+
+/// One resolved row of the per-format consumer-need matrix (issue #1491 AC2):
+/// a single `gmeow:DocumentationDistribution` from the Task-2 catalog, as read back
+/// by [`read_distribution_matrix`] — the production dogfooding consumer of the
+/// catalog's ontology content (`gmeow docs matrix`), never a re-authored static
+/// table.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DistributionRow {
+    pub slug: String,
+    pub family: String,
+    pub media_type: String,
+    /// Sorted, deduped consumer local names (`gmeow:eligibleForConsumer`).
+    pub consumers: Vec<String>,
+    /// Sorted, deduped dropped-capability slugs
+    /// (`gmeow:declaredLoss`/`gmeow:accountsForParameter`) — empty for the
+    /// serialization family, which declares no loss.
+    pub dropped_capabilities: Vec<String>,
+}
+
+/// Resolve the per-format consumer-need matrix by QUERYING the meta-level
+/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (issue #1491
+/// AC2), dogfooding the Task-2 catalog content rather than re-deriving it.
+///
+/// The named graph survives only through the STRUCTURAL reader
+/// ([`purrdf::gts::read_graph`]) — the flattened-dataset fold collapses named graphs
+/// away (see [`crate::projections::discharged_section_cells_from_bundle`] for the same
+/// read/filter idiom over a different meta-level graph) — so this reads the raw
+/// quad/term arrays off the fold and filters by graph-name term value, never
+/// `gts_base_graph`/`flattened_dataset`.
+///
+/// No-optionality: an absent or empty catalog graph, or a catalog subject missing a
+/// required facet, is a HARD FAIL — the shipped bundle MUST carry a complete Task-2
+/// catalog, never a silently partial matrix.
+pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>, Diag> {
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
+        .map_err(|e| err(format!("gts read_graph failed: {e}")))?;
+    let term = |id: usize| -> String {
+        graph.terms.get(id).and_then(|t| t.value.clone()).unwrap_or_default()
+    };
+    let catalog: Vec<(String, String, String)> = graph
+        .quads
+        .iter()
+        .filter_map(|&(s, p, o, gname)| {
+            let gid = gname?;
+            (term(gid) == GRAPH_DISTRIBUTION_CATALOG).then(|| (term(s), term(p), term(o)))
+        })
+        .collect();
+    if catalog.is_empty() {
+        return Err(err(format!(
+            "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
+             Task-2 distribution catalog is missing; re-materialize the bundle with `make sync`"
+        )));
+    }
+
+    let pred_dist_type = iri(GMEOW_NS, "DocumentationDistribution");
+    let pred_format = iri(GMEOW_NS, "distributionFormat");
+    let pred_family = iri(GMEOW_NS, "distributionFamily");
+    let pred_media = iri(GMEOW_NS, "artifactMediaType");
+    let pred_consumer = iri(GMEOW_NS, "eligibleForConsumer");
+    let pred_loss = iri(GMEOW_NS, "declaredLoss");
+    let pred_accounts = iri(GMEOW_NS, "accountsForParameter");
+
+    let subjects: BTreeSet<&str> = catalog
+        .iter()
+        .filter(|(_, p, o)| *p == RDF_TYPE && *o == pred_dist_type)
+        .map(|(s, _, _)| s.as_str())
+        .collect();
+    if subjects.is_empty() {
+        return Err(err(format!(
+            "the <{GRAPH_DISTRIBUTION_CATALOG}> named graph carries no \
+             gmeow:DocumentationDistribution subject"
+        )));
+    }
+
+    let mut rows = Vec::with_capacity(subjects.len());
+    for subject in subjects {
+        let slug = catalog
+            .iter()
+            .find(|(s, p, _)| s == subject && *p == pred_format)
+            .map(|(_, _, o)| o.clone())
+            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:distributionFormat")))?;
+        let family = catalog
+            .iter()
+            .find(|(s, p, _)| s == subject && *p == pred_family)
+            .map(|(_, _, o)| local_name(o))
+            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:distributionFamily")))?;
+        let media_type = catalog
+            .iter()
+            .find(|(s, p, _)| s == subject && *p == pred_media)
+            .map(|(_, _, o)| o.clone())
+            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:artifactMediaType")))?;
+
+        let mut consumers: Vec<String> = catalog
+            .iter()
+            .filter(|(s, p, _)| s == subject && *p == pred_consumer)
+            .map(|(_, _, o)| local_name(o))
+            .collect();
+        if consumers.is_empty() {
+            return Err(err(format!(
+                "distribution {subject} is missing gmeow:eligibleForConsumer"
+            )));
+        }
+        consumers.sort();
+        consumers.dedup();
+
+        let loss_nodes: Vec<&str> = catalog
+            .iter()
+            .filter(|(s, p, _)| s == subject && *p == pred_loss)
+            .map(|(_, _, o)| o.as_str())
+            .collect();
+        let mut dropped_capabilities: Vec<String> = Vec::with_capacity(loss_nodes.len());
+        for loss_node in loss_nodes {
+            let cap = catalog
+                .iter()
+                .find(|(s, p, _)| s == loss_node && *p == pred_accounts)
+                .map(|(_, _, o)| local_name(o))
+                .ok_or_else(|| {
+                    err(format!("loss node {loss_node} is missing gmeow:accountsForParameter"))
+                })?;
+            dropped_capabilities.push(cap);
+        }
+        dropped_capabilities.sort();
+        dropped_capabilities.dedup();
+
+        rows.push(DistributionRow {
+            slug,
+            family,
+            media_type,
+            consumers,
+            dropped_capabilities,
+        });
+    }
+    rows.sort_by(|a, b| a.slug.cmp(&b.slug));
+    Ok(rows)
+}
+
+// ── manifest verification (issue #1491 Task 5, `gmeow docs verify`) ────────────────
+
+/// One format's blake3 verification outcome: the manifest's declared digest vs. the
+/// digest recomputed by re-packaging `<dir>/<slug>` through [`package_docs_dir`] — the
+/// SAME content-addressing idiom the release manifest was built from
+/// ([`distribution_blake3`]/[`package_docs_dir`]), so `ok` is a genuine byte-content
+/// proof, never a metadata-only comparison.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DistributionVerdict {
+    pub slug: String,
+    pub declared: String,
+    pub actual: String,
+    pub ok: bool,
+}
+
+/// Verify a materialized documentation distribution's blake3 content digests against
+/// its DCAT manifest (`<dir>/manifest/docs-manifest.ttl`) — the consumer-side twin of
+/// the release-time manifest build ([`build_docs_distribution_manifest`]).
+///
+/// Reads every `dcat:Distribution` the manifest declares (its catalog subject IRI
+/// `…/distribution/dist/<slug>` yields the slug; its `spdx:checksum`/
+/// `spdx:checksumValue` pair yields the declared VERBATIM `blake3:<hex>` digest), then
+/// for each — optionally restricted to the single slug `only` — recomputes
+/// [`package_docs_dir`]`(dir.join(slug)).1` and compares.
+///
+/// No-optionality: a missing/unparseable manifest, a manifest with zero declared
+/// distributions, an `only` slug the manifest does not name, or a referenced format
+/// directory that is missing/empty under `dir`, is a HARD FAIL — never a silently
+/// skipped or partial verdict list.
+pub fn verify_docs_distribution(
+    dir: &Path,
+    only: Option<&str>,
+) -> Result<Vec<DistributionVerdict>, Diag> {
+    let manifest_path = dir.join("manifest").join("docs-manifest.ttl");
+    let bytes = std::fs::read(&manifest_path).map_err(|e| {
+        err(format!(
+            "read the DCAT distribution manifest {}: {e} — materialize it first with \
+             `make sync SYNC_MODE=update SYNC_OUTPUTS=docs`",
+            manifest_path.display()
+        ))
+    })?;
+    let dataset = purrdf::parse_dataset(&bytes, "application/n-triples", None)
+        .map_err(|e| err(format!("parse {} as N-Triples: {e}", manifest_path.display())))?;
+    let quads = purrdf::flat_rdf_quads_from_dataset(dataset.as_ref());
+
+    const DIST_BASE: &str = "https://blackcatinformatics.ca/gmeow/distribution/dist/";
+    const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#Distribution";
+    const SPDX_CHECKSUM: &str = "http://spdx.org/rdf/terms#checksum";
+    const SPDX_CHECKSUM_VALUE: &str = "http://spdx.org/rdf/terms#checksumValue";
+
+    let mut declared: BTreeMap<String, String> = BTreeMap::new();
+    for quad in &quads {
+        if quad.predicate != RDF_TYPE {
+            continue;
+        }
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let RdfTerm::Iri(object) = &quad.object else {
+            continue;
+        };
+        if object != DCAT_DISTRIBUTION {
+            continue;
+        }
+        let Some(slug) = subject.strip_prefix(DIST_BASE) else {
+            continue;
+        };
+
+        let checksum_node = quads
+            .iter()
+            .find(|q| q.subject == quad.subject && q.predicate == SPDX_CHECKSUM)
+            .ok_or_else(|| {
+                err(format!(
+                    "distribution {slug} is missing spdx:checksum in {}",
+                    manifest_path.display()
+                ))
+            })?;
+        let checksum_value = quads
+            .iter()
+            .find(|q| q.subject == checksum_node.object && q.predicate == SPDX_CHECKSUM_VALUE)
+            .and_then(|q| match &q.object {
+                RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                err(format!(
+                    "distribution {slug} checksum node is missing spdx:checksumValue in {}",
+                    manifest_path.display()
+                ))
+            })?;
+        declared.insert(slug.to_string(), checksum_value);
+    }
+    if declared.is_empty() {
+        return Err(err(format!(
+            "{} declares zero dcat:Distribution rows — nothing to verify",
+            manifest_path.display()
+        )));
+    }
+
+    let slugs: Vec<String> = match only {
+        Some(slug) => {
+            if !declared.contains_key(slug) {
+                return Err(err(format!(
+                    "{} names no distribution {slug:?}",
+                    manifest_path.display()
+                )));
+            }
+            vec![slug.to_string()]
+        }
+        None => declared.keys().cloned().collect(),
+    };
+
+    let mut verdicts = Vec::with_capacity(slugs.len());
+    for slug in slugs {
+        let declared_digest = declared
+            .get(&slug)
+            .expect("slug was sourced from the declared map's own keys")
+            .clone();
+        let format_dir = dir.join(&slug);
+        let (_, actual_digest) = package_docs_dir(&format_dir)
+            .map_err(|e| err(format!("recompute the digest for distribution {slug}: {e}")))?;
+        let ok = declared_digest == actual_digest;
+        verdicts.push(DistributionVerdict {
+            slug,
+            declared: declared_digest,
+            actual: actual_digest,
+            ok,
+        });
+    }
+    verdicts.sort_by(|a, b| a.slug.cmp(&b.slug));
+    Ok(verdicts)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -490,5 +770,158 @@ mod tests {
         sorted.sort();
         sorted.dedup();
         assert_eq!(lines, sorted, "release instance N-Triples must be sorted+deduped");
+    }
+
+    // ── read_distribution_matrix ────────────────────────────────────────────────
+
+    /// Fold the REAL [`crate::stages::distribution_catalog::build_distribution_catalog`]
+    /// output (a pure function of committed sources — no `make sync` dependency) into a
+    /// minimal synthetic GTS snapshot carrying just that named graph, exactly as the
+    /// real bundle carries it.
+    fn synthetic_gts_with_catalog() -> Vec<u8> {
+        let dataset = crate::stages::distribution_catalog::build_distribution_catalog()
+            .expect("build distribution catalog");
+        let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+        builder.add_dataset(&dataset).expect("add catalog dataset to snapshot builder");
+        crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+            .expect("frame the synthetic GTS snapshot")
+    }
+
+    #[test]
+    fn read_distribution_matrix_over_a_synthetic_bundle_returns_all_eight_slugs() {
+        let gts_bytes = synthetic_gts_with_catalog();
+        let rows = read_distribution_matrix(&gts_bytes).expect("read distribution matrix");
+        let slugs: Vec<&str> = rows.iter().map(|r| r.slug.as_str()).collect();
+        assert_eq!(
+            slugs,
+            vec!["jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"],
+            "matrix must carry exactly the eight declared distributions, sorted by slug"
+        );
+
+        let site = rows.iter().find(|r| r.slug == "site").expect("site row");
+        assert_eq!(site.family, "doc-render");
+        assert_eq!(site.media_type, "text/html");
+        assert_eq!(site.consumers, vec!["consumerPublicSite".to_string()]);
+
+        let okf = rows.iter().find(|r| r.slug == "okf").expect("okf row");
+        assert_eq!(okf.family, "serialization");
+        assert_eq!(okf.consumers, vec!["consumerKnowledgeFederation".to_string()]);
+        assert!(
+            okf.dropped_capabilities.is_empty(),
+            "serialization family declares no loss: {okf:?}"
+        );
+    }
+
+    #[test]
+    fn read_distribution_matrix_fails_closed_without_the_catalog_graph() {
+        let builder = purrdf::gts_compose::SnapshotBuilder::new();
+        let gts_bytes = crate::gts_profile::emit_gmeow_gts(
+            &builder,
+            vec![purrdf::gts_compose::BlobRow {
+                data: b"unrelated".to_vec(),
+                media_type: "application/octet-stream".to_string(),
+                rep: "not-catalog".to_string(),
+            }],
+            Vec::new(),
+            None,
+            None,
+            None,
+        )
+        .expect("frame a GTS snapshot with no distribution-catalog graph");
+        let err = read_distribution_matrix(&gts_bytes)
+            .expect_err("a bundle with no distribution-catalog graph must hard-fail");
+        assert!(
+            format!("{err}").contains("distribution-catalog"),
+            "failure must name the missing catalog graph: {err}"
+        );
+    }
+
+    // ── verify_docs_distribution ────────────────────────────────────────────────
+
+    #[test]
+    fn verify_docs_distribution_passes_fresh_then_fails_on_tamper() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let docs_dir = tmp.path();
+        let sample_dir = docs_dir.join("sample");
+        std::fs::create_dir_all(&sample_dir).expect("mkdir sample");
+        std::fs::write(sample_dir.join("a.txt"), b"hello").expect("write a.txt");
+
+        let (_, digest) = package_docs_dir(&sample_dir).expect("package sample");
+        let entries = vec![DistributionEntry {
+            slug: "sample".to_string(),
+            rel_path: "dist/gmeow-docs/sample".to_string(),
+            blake3: digest.clone(),
+            media_type: "text/plain".to_string(),
+        }];
+        let gts_bytes = synthetic_gts_with_dcat_query();
+        let manifest =
+            build_docs_distribution_manifest(&entries, &gts_bytes).expect("build manifest");
+        let manifest_dir = docs_dir.join("manifest");
+        std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
+        std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");
+
+        let verdicts = verify_docs_distribution(docs_dir, None).expect("verify fresh package");
+        assert_eq!(verdicts.len(), 1, "expected exactly one verdict: {verdicts:?}");
+        assert_eq!(verdicts[0].slug, "sample");
+        assert_eq!(verdicts[0].declared, digest);
+        assert_eq!(verdicts[0].actual, digest);
+        assert!(verdicts[0].ok, "a freshly packaged tree must verify clean: {:?}", verdicts[0]);
+
+        // Flip a byte in the packaged tree — the recomputed digest must diverge and the
+        // verdict must flip to failed, never silently pass.
+        std::fs::write(sample_dir.join("a.txt"), b"HELLO").expect("tamper a.txt");
+        let verdicts = verify_docs_distribution(docs_dir, None).expect("verify tampered package");
+        assert_eq!(verdicts.len(), 1);
+        assert_ne!(
+            verdicts[0].actual, verdicts[0].declared,
+            "tampering must change the recomputed digest"
+        );
+        assert!(!verdicts[0].ok, "a tampered tree must fail verification: {:?}", verdicts[0]);
+
+        // `only` filtering on the sole declared slug still finds it.
+        let filtered =
+            verify_docs_distribution(docs_dir, Some("sample")).expect("verify filtered by slug");
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].slug, "sample");
+    }
+
+    #[test]
+    fn verify_docs_distribution_fails_closed_on_unknown_only_slug() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let docs_dir = tmp.path();
+        let sample_dir = docs_dir.join("sample");
+        std::fs::create_dir_all(&sample_dir).expect("mkdir sample");
+        std::fs::write(sample_dir.join("a.txt"), b"hello").expect("write a.txt");
+        let (_, digest) = package_docs_dir(&sample_dir).expect("package sample");
+        let entries = vec![DistributionEntry {
+            slug: "sample".to_string(),
+            rel_path: "dist/gmeow-docs/sample".to_string(),
+            blake3: digest,
+            media_type: "text/plain".to_string(),
+        }];
+        let gts_bytes = synthetic_gts_with_dcat_query();
+        let manifest =
+            build_docs_distribution_manifest(&entries, &gts_bytes).expect("build manifest");
+        let manifest_dir = docs_dir.join("manifest");
+        std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
+        std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");
+
+        let err = verify_docs_distribution(docs_dir, Some("does-not-exist"))
+            .expect_err("an unknown --format slug must hard-fail");
+        assert!(
+            format!("{err}").contains("does-not-exist"),
+            "failure must name the unknown slug: {err}"
+        );
+    }
+
+    #[test]
+    fn verify_docs_distribution_fails_closed_on_missing_manifest() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let err = verify_docs_distribution(tmp.path(), None)
+            .expect_err("a missing manifest must hard-fail");
+        assert!(
+            format!("{err}").contains("docs-manifest.ttl"),
+            "failure must name the missing manifest: {err}"
+        );
     }
 }

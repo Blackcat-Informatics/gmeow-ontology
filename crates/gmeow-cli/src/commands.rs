@@ -4183,6 +4183,88 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
     }
 }
 
+// ── docs (issue #1491 Task 5) ───────────────────────────────────────────────────
+
+/// `gmeow docs matrix` — resolve the per-format consumer-need matrix by QUERYING the
+/// meta-level distribution-catalog named graph shipped inside the embedded
+/// `gmeow.gts` bundle (issue #1491 AC2), dogfooding the Task-2 ontology content
+/// rather than re-deriving a static table. Prints a deterministic table (slug |
+/// family | consumers | media-type | dropped-capabilities) to stdout.
+pub fn docs_matrix(reporter: &dyn Reporter) -> i32 {
+    let rows = match gmeow_pipeline::docs_distribution::read_distribution_matrix(BUNDLE_GTS) {
+        Ok(rows) => rows,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.docs.matrix.read",
+                format!("cannot read the distribution catalog matrix from the bundle: {e}"),
+            );
+        }
+    };
+    println!(
+        "{:<10} {:<14} {:<40} {:<24} dropped-capabilities",
+        "slug", "family", "consumers", "media-type"
+    );
+    for row in &rows {
+        println!(
+            "{:<10} {:<14} {:<40} {:<24} {}",
+            row.slug,
+            row.family,
+            row.consumers.join(","),
+            row.media_type,
+            if row.dropped_capabilities.is_empty() {
+                "-".to_string()
+            } else {
+                row.dropped_capabilities.join(",")
+            }
+        );
+    }
+    0
+}
+
+/// `gmeow docs verify [--dir <path>] [--format <slug>]` — verify a materialized
+/// documentation distribution's blake3 content digests against its DCAT manifest
+/// (`<dir>/manifest/docs-manifest.ttl`). Exit `0` iff every verdict is `ok`; a
+/// single digest mismatch — or a hard read/parse failure — is a failure, with the
+/// mismatches reported as diagnostics on stderr.
+pub fn docs_verify(reporter: &dyn Reporter, dir: &Path, format: Option<&str>) -> i32 {
+    let verdicts = match gmeow_pipeline::docs_distribution::verify_docs_distribution(dir, format) {
+        Ok(v) => v,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.docs.verify.read",
+                format!("cannot verify the docs distribution under {}: {e}", dir.display()),
+            );
+        }
+    };
+    let mut all_ok = true;
+    for verdict in &verdicts {
+        if verdict.ok {
+            println!("ok        {}  {}", verdict.slug, verdict.declared);
+        } else {
+            all_ok = false;
+            println!(
+                "MISMATCH  {}  declared={} actual={}",
+                verdict.slug, verdict.declared, verdict.actual
+            );
+        }
+    }
+    if all_ok {
+        return 0;
+    }
+    let mismatched: Vec<&str> =
+        verdicts.iter().filter(|v| !v.ok).map(|v| v.slug.as_str()).collect();
+    fail(
+        reporter,
+        "gmeow-cli.docs.verify.mismatch",
+        format!(
+            "blake3 digest mismatch for distribution(s): {}",
+            mismatched.join(", ")
+        ),
+    )
+}
+
 #[cfg(test)]
 mod explain_tests {
     use gmeow_cli_core::{ConsoleMode, reporter_for};
