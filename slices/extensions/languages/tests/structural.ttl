@@ -321,9 +321,9 @@ ex:saKnowsLanguageNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:knowsLanguage a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:knowsLanguage ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:knowsLanguage MUST NOT be functional — a person knows multiple languages." .
 
@@ -393,8 +393,8 @@ ex:saVarietyKindNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:varietyKind a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:varietyKind ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:varietyKind MUST NOT be functional — a single variety can be classified as both a language and a dialect by different standpoints (Principle 9)." .
 
 # --- 37. varietyOf is an ObjectProperty but NOT functional (MUST / MUST-NOT)
@@ -410,8 +410,8 @@ ex:saVarietyOfNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:varietyOf a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:varietyOf ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:varietyOf MUST NOT be functional — a variety may be held to be of more than one parent language across standpoints (e.g., Scots of English vs Scots of West Germanic)." .
 
 # ---------------------------------------------------------------------------
@@ -446,10 +446,10 @@ ex:saStateNonFunctionalRolesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:stateStatusValue gmeow:stateAuthority gmeow:stateInterval }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:stateStatusValue, gmeow:stateAuthority and gmeow:stateInterval MUST NOT be functional — a language state can co-carry multiple status values, authorities and overlapping intervals under different standpoints (Principle 9)." .
 

@@ -85,10 +85,10 @@ ex:saCausalPropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:typeCauses gmeow:typeEnables gmeow:typePrevents gmeow:typeMitigates gmeow:linkNext }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "None of gmeow:typeCauses, typeEnables, typePrevents, typeMitigates, linkNext MUST NOT be owl:FunctionalProperty — each event type may cause many others; gmeow:linkNext branches (diverging failure trees)." .
 
@@ -124,10 +124,10 @@ ex:saSourceVariablePropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:linkStrength gmeow:cascadeSeverity gmeow:hazardSeverity gmeow:mitigationStatus }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:linkStrength, cascadeSeverity, hazardSeverity, and mitigationStatus MUST NOT be owl:FunctionalProperty — divergent estimates/grades/statuses coexist via the statement layer; single-valuedness per base graph is SHACL's job (hasAuthorityLevel convention)." .
 
@@ -136,9 +136,9 @@ ex:saLinkMechanismNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:linkMechanism a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:linkMechanism ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:linkMechanism MUST NOT be owl:FunctionalProperty — mechanism prose is localizable; one account per language tag is allowed (localizable-prose convention)." .
 

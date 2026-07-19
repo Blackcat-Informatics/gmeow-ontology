@@ -72,8 +72,8 @@ ex:saInstanceOfConceptNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:instanceOfConcept a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:instanceOfConcept ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:instanceOfConcept MUST NOT be functional — an entity may instantiate many concepts, and competing categorizations coexist (Principle 9)." .
 
 # --- 4a. typicality is a decimal DatatypeProperty on ConceptCategorization (MUST)
@@ -96,8 +96,8 @@ ex:saTypicalityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:typicality a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:typicality ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:typicality MUST NOT be functional — multiple sources may report typicality, and those reports coexist (Principle 9)." .
 
 # --- 5a. subsumes / composedOf are Concept→Concept ObjectProperties (MUST) -----
@@ -123,9 +123,10 @@ ex:saConceptStructurePropertiesNotFunctionalNotTransitive a gmeow:StructuralAsse
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:subsumes gmeow:composedOf }
-    { ?p a owl:FunctionalProperty . }
+    { ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty . }
     UNION
     { ?p a owl:TransitiveProperty . }
 }""" ;

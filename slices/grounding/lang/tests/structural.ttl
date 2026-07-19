@@ -88,15 +88,23 @@ ex:saNoForbiddenCharacteristics a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    ?p a ?characteristic .
-    FILTER (?characteristic IN (
-        owl:SymmetricProperty, owl:AsymmetricProperty, owl:IrreflexiveProperty,
-        owl:FunctionalProperty, owl:InverseFunctionalProperty
-    ))
-    FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
+    {
+        ?p a ?characteristic .
+        FILTER (?characteristic IN (
+            owl:SymmetricProperty, owl:AsymmetricProperty, owl:IrreflexiveProperty,
+            owl:FunctionalProperty, owl:InverseFunctionalProperty
+        ))
+        FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
+    }
+    UNION
+    {
+        ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
+        FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/lang/"))
+    }
 }""" ;
-    gmeow:saRationale "No lang: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; exact-one validation is canonically expressed by qualified maximum restrictions plus class-scoped closed-world closure, and the inverse pairing of lang:spansWords / lang:tokenOf is documented in prose." .
+    gmeow:saRationale "No lang: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; exact-one validation is canonically expressed by qualified maximum restrictions plus class-scoped closed-world closure, and the inverse pairing of lang:spansWords / lang:tokenOf is documented in prose. Functionality is now carried on the logic: PropertyCharacteristicAssertion carrier, so the second UNION arm forbids a functional carrier over any lang: property (the deprecated owl:FunctionalProperty marker stays forbidden in the first arm as defence in depth)." .
 
 # --- 6. The Frege triangle's three corners are pairwise disjoint (MUST) ------ #
 ex:saFregeDisjoint a gmeow:StructuralAssertion ;

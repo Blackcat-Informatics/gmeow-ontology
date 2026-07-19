@@ -121,8 +121,9 @@ ex:saHasSexualOrientationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasSexualOrientation a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:hasSexualOrientation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasSexualOrientation MUST NOT be functional — concurrent or time-scoped orientations and superseded prior values coexist." .
 
 # --- 13. hasRomanticOrientation is NOT functional (MUST-NOT) -----------------
@@ -130,8 +131,9 @@ ex:saHasRomanticOrientationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasRomanticOrientation a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:hasRomanticOrientation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasRomanticOrientation MUST NOT be functional — concurrent or time-scoped orientations and superseded prior values coexist." .
 
 # --- 14. No flat orientation shortcut datatype properties (MUST-NOT) ---------

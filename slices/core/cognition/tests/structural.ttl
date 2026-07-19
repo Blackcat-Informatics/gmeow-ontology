@@ -101,8 +101,9 @@ ex:saKnowledgeProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:knowledgeProficiencyInterval a owl:FunctionalProperty .
+    ?fpRec logic:characterizes gmeow:knowledgeProficiencyInterval ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:knowledgeProficiencyInterval MUST NOT be owl:FunctionalProperty -- several temporal spans may attach to one relator (non-functional; the suppression-not-deletion doctrine, Principle 10)." .
 

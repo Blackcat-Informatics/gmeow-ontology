@@ -122,8 +122,8 @@ ex:saHasBinNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasBin a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasBin ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasBin MUST NOT be functional — a spatial aggregation spans multiple bins." .
 
 # --- 6. minimumPopulation datatype property shape (MUST) ---------------------

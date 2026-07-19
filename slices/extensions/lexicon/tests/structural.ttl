@@ -50,8 +50,8 @@ ex:saHasLexicalFormNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasLexicalForm a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasLexicalForm ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasLexicalForm MUST NOT be functional — a single lexical item may have many coexisting forms (written, spoken, reconstructed, etc.) (Principle 9)." .
 
 # --- 6a. formType is an ObjectProperty (MUST) ---------------------------------
@@ -68,8 +68,8 @@ ex:saFormTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:formType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:formType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:formType MUST NOT be functional — a single form may be classified as both spoken and written under different standpoints (Principle 9)." .
 
 # --- 7. UsageAttestation is an owl:Class, subclass of Observation and logic:Relator (MUST) ---
@@ -116,8 +116,8 @@ ex:saDerivationKindNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:derivationKind a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:derivationKind ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:derivationKind MUST NOT be functional — a single derivation may be classified under multiple kinds by different analytical standpoints (Principle 9)." .
 
 # --- 12a. LexicalFormType is a value-vocabulary subclass of logic:QualityValue (MUST) ---

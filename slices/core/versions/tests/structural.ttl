@@ -87,9 +87,10 @@ ex:saVersionRoleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionRole a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:versionRole ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:versionRole MUST NOT be functional — competing authority roles coexist without privilege (Principle 9); standpoint-indexed coexistence requires non-functionality." .
 
@@ -109,9 +110,10 @@ ex:saVersionScaleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionScale a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:versionScale ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:versionScale MUST NOT be functional — rival scheme classifications coexist; standpoint-indexed coexistence requires non-functionality (Principle 9)." .
 

@@ -60,7 +60,8 @@ ex:saAuthorityLinkNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:authorityLink a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:authorityLink ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:authorityLink MUST NOT be owl:FunctionalProperty -- an entity may link to many external authorities (Wikidata, VIAF, GeoNames etc.) simultaneously." .
 
 # --- 5. authorityLink is NOT equivalentProperty of owl:sameAs (MUST-NOT) -----
@@ -147,7 +148,8 @@ ex:saSupersedesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:supersedes a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:supersedes ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:supersedes MUST NOT be owl:FunctionalProperty -- one successor may consolidate several predecessors (non-functional by design)." .
 
 # --- 16. versionOf has domain gmeow:Entity (MUST) ----------------------------
@@ -182,5 +184,6 @@ ex:saCorefDenotationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:corefDenotation a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:corefDenotation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:corefDenotation MUST NOT be owl:FunctionalProperty -- one entity may be resolved by several context-scoped lang:Denotations (many forms denote it), so the reference-resolution seam is non-functional by design." .

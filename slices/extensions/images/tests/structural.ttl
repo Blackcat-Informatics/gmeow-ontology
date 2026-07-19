@@ -149,13 +149,14 @@ ex:saDepictionUsageNonFunctionalRolesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p {
         gmeow:depictionAudience
         gmeow:depictionInterval
         gmeow:depictionAuthority
     }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:depictionAudience, depictionInterval, and depictionAuthority MUST NOT be owl:FunctionalProperty -- multiple audiences, periods, and authorities coexist without a privileged claimant (Principle 9)." .
 

@@ -133,9 +133,9 @@ ex:saConflictProneKeyDataNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?prop { gmeow:fingerprint gmeow:keyId gmeow:keyAlgorithm gmeow:keyMaterial }
-    ?prop a owl:FunctionalProperty .
+    ?rec logic:characterizes ?prop ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:fingerprint, gmeow:keyId, gmeow:keyAlgorithm, and gmeow:keyMaterial MUST NOT be owl:FunctionalProperty — multi-source values must coexist without forcing a merge or inconsistency (evidence-centric design)." .

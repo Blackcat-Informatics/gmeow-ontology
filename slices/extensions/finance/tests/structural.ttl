@@ -93,8 +93,8 @@ ex:saAccountCurrencyNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:accountCurrency a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:accountCurrency ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:accountCurrency MUST NOT be owl:FunctionalProperty -- a single account may hold balances in several currencies; the functional constraint moves to Posting/Holding relators." .
 
 # --- 5. FinancialTransaction is a logic:Event subclass of Event (MUST) -----
@@ -380,8 +380,8 @@ ex:saWalletAddressNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:walletAddress a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:walletAddress ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:walletAddress MUST NOT be owl:FunctionalProperty -- a single HD wallet may have multiple addresses (derivation paths)." .
 
 # --- 28. walletScheme is an ObjectProperty (MUST) -----------------------------

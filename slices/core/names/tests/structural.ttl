@@ -91,10 +91,11 @@ ex:saNameUsagePerspectivalRolesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:usageNamer gmeow:usageAudience }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:usageNamer and gmeow:usageAudience MUST NOT be owl:FunctionalProperty -- namer and audience are shared/perspectival; a usage may have several namers or be broadcast to several audiences (Principle 9)." .
 
@@ -157,8 +158,9 @@ ex:saUsageAuthorityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:usageAuthority a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:usageAuthority ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:usageAuthority MUST NOT be owl:FunctionalProperty -- joint or competing naming authorities coexist with no privileged claimant (anti-colonial, Principle 9)." .
 
 # --- 12. nameLanguage is an ObjectProperty to Language (MUST) ----------------
@@ -419,8 +421,9 @@ ex:saDisplayableNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:displayable a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:displayable ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:displayable MUST NOT be owl:FunctionalProperty -- multi-source true/false claims must coexist rather than force a global OWL inconsistency (conflicts-coexist stance)." .
 
 # --- 34. claimedMediaType and detectedMediaType are non-functional (MUST) -----
@@ -443,10 +446,11 @@ ex:saMediaTypePropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:claimedMediaType gmeow:detectedMediaType }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:claimedMediaType and gmeow:detectedMediaType MUST NOT be owl:FunctionalProperty -- a mismatch is coexisting claims, not an inconsistency." .
 

@@ -49,19 +49,30 @@ ex:saTypedRelationsAssertNoCharacteristics a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    ?r a ?c .
-    FILTER (?r IN (
-        logic:epistemicallyPossible, logic:doxasticallyAccessible,
-        logic:deonticallyIdeal, logic:temporallySucceeds,
-        logic:counterfactuallyCloser
-    ))
-    FILTER (?c IN (
-        owl:TransitiveProperty, owl:SymmetricProperty, owl:ReflexiveProperty,
-        owl:IrreflexiveProperty, owl:FunctionalProperty,
-        owl:InverseFunctionalProperty, owl:AsymmetricProperty
-    ))
+    {
+        ?r a ?c .
+        FILTER (?r IN (
+            logic:epistemicallyPossible, logic:doxasticallyAccessible,
+            logic:deonticallyIdeal, logic:temporallySucceeds,
+            logic:counterfactuallyCloser
+        ))
+        FILTER (?c IN (
+            owl:TransitiveProperty, owl:SymmetricProperty, owl:ReflexiveProperty,
+            owl:IrreflexiveProperty, owl:FunctionalProperty,
+            owl:InverseFunctionalProperty, owl:AsymmetricProperty
+        ))
+    }
+    UNION
+    {
+        ?rec logic:characterizes ?r ; logic:characteristicSort logic:functionalProperty .
+        FILTER (?r IN (
+            logic:epistemicallyPossible, logic:doxasticallyAccessible,
+            logic:deonticallyIdeal, logic:temporallySucceeds,
+            logic:counterfactuallyCloser
+        ))
+    }
 }""" ;
-    gmeow:saRationale "No logic: kernel accessibility relation MUST assert an OWL property characteristic -- the kernel documents logical character (strict order, non-reflexivity) in prose, matching logic:accessibleFrom which asserts none. The gmeow:sharpens characteristic (owl:TransitiveProperty) lives in the standpoint slice, an intentional asymmetry." .
+    gmeow:saRationale "No logic: kernel accessibility relation MUST assert an OWL property characteristic -- the kernel documents logical character (strict order, non-reflexivity) in prose, matching logic:accessibleFrom which asserts none. The gmeow:sharpens characteristic (owl:TransitiveProperty) lives in the standpoint slice, an intentional asymmetry. Functionality is now carried on the logic: PropertyCharacteristicAssertion carrier, so the second UNION arm forbids a functional carrier over these accessibility relations (the deprecated owl:FunctionalProperty marker stays forbidden in the first arm as defence in depth)." .
 
 # --- 4. PossibleWorld and Path are TBox classes (MUST) ------------------------
 ex:saTypedContextKernelClasses a gmeow:StructuralAssertion ;

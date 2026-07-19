@@ -126,8 +126,8 @@ ex:saCarrierInscriptionNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:carrierInscription a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:carrierInscription ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:carrierInscription MUST NOT be owl:FunctionalProperty — a carrier may bear multiple inscriptions (e.g. tablet with text on both sides, or a wall with successive graffiti layers)." .
 
 # --- 10. carrierType is an owl:ObjectProperty (MUST) ---------------------------
@@ -144,8 +144,8 @@ ex:saCarrierTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:carrierType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:carrierType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:carrierType MUST NOT be owl:FunctionalProperty — a carrier may be classified plurally by different standpoints (Principle 9)." .
 
 # --- 13. readingResult is an owl:ObjectProperty (MUST) -------------------------
@@ -162,8 +162,8 @@ ex:saReadingResultNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:readingResult a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:readingResult ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:readingResult MUST NOT be owl:FunctionalProperty — a single reading may yield multiple coexisting forms (e.g. ambiguous signs), and competing result claims from different readings coexist (Principle 9)." .
 
 # --- 16. transliterationResult is an owl:ObjectProperty (MUST) -----------------
@@ -180,8 +180,8 @@ ex:saTransliterationResultNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:transliterationResult a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:transliterationResult ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:transliterationResult MUST NOT be owl:FunctionalProperty — competing transliteration schemes may produce different forms for the same inscription and those claims coexist (Principle 9)." .
 
 # --- 19. translationResult is an owl:ObjectProperty (MUST) ---------------------
@@ -198,8 +198,8 @@ ex:saTranslationResultNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:translationResult a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:translationResult ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:translationResult MUST NOT be owl:FunctionalProperty — competing translations of the same inscription coexist without privilege (Principle 9)." .
 
 # --- 22. attributedLanguage is an owl:ObjectProperty (MUST) -------------------
@@ -216,8 +216,8 @@ ex:saAttributedLanguageNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:attributedLanguage a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:attributedLanguage ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:attributedLanguage MUST NOT be owl:FunctionalProperty — competing language assignments from different standpoints coexist, and a bilingual inscription may carry multiple languages (Principle 9)." .
 
 # --- 24. attributedScript is an owl:ObjectProperty (MUST) ---------------------
@@ -234,8 +234,8 @@ ex:saAttributedScriptNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:attributedScript a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:attributedScript ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:attributedScript MUST NOT be owl:FunctionalProperty — competing script assignments coexist (Principle 9)." .
 
 # --- 26. attributedNotation is an owl:ObjectProperty (MUST) -------------------
@@ -252,8 +252,8 @@ ex:saAttributedNotationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:attributedNotation a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:attributedNotation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:attributedNotation MUST NOT be owl:FunctionalProperty — used when the inscription is not yet linked to a known language or writing system; multiple notation claims may coexist." .
 
 # --- 29. findContextPlace is an owl:ObjectProperty (MUST) ---------------------
@@ -270,8 +270,8 @@ ex:saFindContextPlaceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:findContextPlace a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:findContextPlace ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:findContextPlace MUST NOT be owl:FunctionalProperty — a carrier may be associated with multiple place claims (ancient find-spot vs modern museum location) and competing place attributions coexist (Principle 9)." .
 
 # --- 31. findContextStratigraphy is an owl:ObjectProperty (MUST) --------------
@@ -288,8 +288,8 @@ ex:saFindContextStratigraphyNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:findContextStratigraphy a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:findContextStratigraphy ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:findContextStratigraphy MUST NOT be owl:FunctionalProperty — competing stratigraphic interpretations coexist (Principle 9)." .
 
 # --- 33. findContextDating is an owl:ObjectProperty (MUST) --------------------
@@ -306,8 +306,8 @@ ex:saFindContextDatingNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:findContextDating a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:findContextDating ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:findContextDating MUST NOT be owl:FunctionalProperty — multiple dating methods and competing date claims coexist (Principle 9)." .
 
 # --- 35. findContextEvent is an owl:ObjectProperty (MUST) ---------------------
@@ -324,8 +324,8 @@ ex:saFindContextEventNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:findContextEvent a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:findContextEvent ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:findContextEvent MUST NOT be owl:FunctionalProperty — a carrier may be rediscovered or re-documented multiple times." .
 
 # --- 37. readingOf is subPropertyOf observedFeature (MUST) --------------------

@@ -208,9 +208,9 @@ ex:saArcEvidenceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:arcEvidence a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:arcEvidence ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9)." .
 
@@ -292,8 +292,8 @@ ex:saPositionLabelNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:positionLabel a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:positionLabel ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:positionLabel MUST NOT be functional; co-equal position labels coexist." .
 
 # --- 20. NarrationUsage is a reified logic:Relator with open subject range (MUST) ---
@@ -322,8 +322,8 @@ ex:saNarrationModeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:narrationMode a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:narrationMode ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:narrationMode MUST NOT be functional; a flashback can also be a dream, and rival readings coexist." .
 
 # --- 21. Myth is a logic:Kind SocialObject (MUST) ----------------------------

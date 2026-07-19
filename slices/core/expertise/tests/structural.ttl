@@ -63,8 +63,8 @@ ex:saSkillProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:skillProficiencyInterval a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:skillProficiencyInterval ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:skillProficiencyInterval MUST NOT be functional — proficiency may be temporally unbounded, and successive intervals coexist on a proficiency history." .
 
 # --- 3. Dreyfus scale and levels are defined in the expertise slice (MUST) ----

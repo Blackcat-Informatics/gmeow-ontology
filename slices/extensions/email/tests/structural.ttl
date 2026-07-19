@@ -65,13 +65,14 @@ ex:saHasMessageKindProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasMessageKind a owl:ObjectProperty ;
         rdfs:domain gmeow:Message ;
         rdfs:range gmeow:MessageKind .
-    FILTER NOT EXISTS { gmeow:hasMessageKind a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:hasMessageKind ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:hasMessageKind MUST be an ObjectProperty linking Message to MessageKind and MUST NOT be functional because message categories can overlap (Principle 9).""" .
 
@@ -144,6 +145,7 @@ ex:saReadReceiptRequestedBooleanNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -151,7 +153,7 @@ ASK {
     gmeow:readReceiptRequested a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range xsd:boolean .
-    FILTER NOT EXISTS { gmeow:readReceiptRequested a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:readReceiptRequested ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:readReceiptRequested MUST be a DatatypeProperty on EmailMessage ranging over xsd:boolean and MUST NOT be functional.""" .
 
@@ -185,13 +187,14 @@ ex:saDescribesEventObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:describesEvent a owl:ObjectProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range gmeow:Event .
-    FILTER NOT EXISTS { gmeow:describesEvent a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:describesEvent ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:describesEvent MUST be an ObjectProperty from EmailMessage to Event and MUST NOT be functional because one email may describe multiple events.""" .
 
@@ -227,13 +230,14 @@ ex:saCalendarUidDatatypeProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:calendarUid a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range rdfs:Literal .
-    FILTER NOT EXISTS { gmeow:calendarUid a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:calendarUid ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:calendarUid MUST be a DatatypeProperty on EmailMessage ranging over Literal and MUST NOT be functional because competing or multiple UIDs may coexist.""" .
 
@@ -257,13 +261,14 @@ ex:saHasCalendarMethodProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasCalendarMethod a owl:ObjectProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range gmeow:CalendarMethod .
-    FILTER NOT EXISTS { gmeow:hasCalendarMethod a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:hasCalendarMethod ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:hasCalendarMethod MUST be an ObjectProperty from EmailMessage to CalendarMethod and MUST NOT be functional.""" .
 
@@ -370,6 +375,7 @@ ex:saMailboxSortOrderIntegerNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -377,7 +383,7 @@ ASK {
     gmeow:mailboxSortOrder a owl:DatatypeProperty ;
         rdfs:domain gmeow:Mailbox ;
         rdfs:range xsd:integer .
-    FILTER NOT EXISTS { gmeow:mailboxSortOrder a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:mailboxSortOrder ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:mailboxSortOrder MUST be a DatatypeProperty on Mailbox ranging over xsd:integer and MUST NOT be functional.""" .
 
@@ -466,13 +472,14 @@ ex:saHasMailingListProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasMailingList a owl:ObjectProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range gmeow:MailingList .
-    FILTER NOT EXISTS { gmeow:hasMailingList a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:hasMailingList ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:hasMailingList MUST be an ObjectProperty from EmailMessage to MailingList and MUST NOT be functional because cross-posting is possible.""" .
 
@@ -480,6 +487,7 @@ ex:saMailingListUriHeaderProperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -495,10 +503,10 @@ ASK {
     gmeow:listArchive a owl:ObjectProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range owl:Thing .
-    FILTER NOT EXISTS { gmeow:listSubscribe a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:listUnsubscribe a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:listHelp a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:listArchive a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?fpRecSubscribe logic:characterizes gmeow:listSubscribe ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?fpRecUnsubscribe logic:characterizes gmeow:listUnsubscribe ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?fpRecHelp logic:characterizes gmeow:listHelp ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?fpRecArchive logic:characterizes gmeow:listArchive ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:listSubscribe, listUnsubscribe, listHelp, and listArchive MUST be ObjectProperties from EmailMessage to owl:Thing and MUST NOT be functional because multiple URIs may be listed.""" .
 
@@ -519,13 +527,14 @@ ex:saListOwnerObjectPropertyToEmailAddress a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:listOwner a owl:ObjectProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range gmeow:EmailAddress .
-    FILTER NOT EXISTS { gmeow:listOwner a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:listOwner ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:listOwner MUST be an ObjectProperty from EmailMessage to EmailAddress and MUST NOT be functional.""" .
 
@@ -698,6 +707,7 @@ ex:saResentDateProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -705,7 +715,7 @@ ASK {
     gmeow:resentDate a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range xsd:dateTime .
-    FILTER NOT EXISTS { gmeow:resentDate a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:resentDate ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:resentDate MUST be a DatatypeProperty on EmailMessage ranging over xsd:dateTime and MUST NOT be functional because multiple resent blocks are possible.""" .
 
@@ -713,13 +723,14 @@ ex:saResentMessageIdProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:resentMessageId a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range rdfs:Literal .
-    FILTER NOT EXISTS { gmeow:resentMessageId a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:resentMessageId ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:resentMessageId MUST be a DatatypeProperty on EmailMessage ranging over Literal and MUST NOT be functional because multiple resent blocks are possible.""" .
 
@@ -740,13 +751,14 @@ ex:saSubjectPrefixDatatypePropertyOnEmailMessage a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:subjectPrefix a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range rdfs:Literal .
-    FILTER NOT EXISTS { gmeow:subjectPrefix a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:subjectPrefix ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:subjectPrefix MUST be a DatatypeProperty on EmailMessage ranging over Literal and MUST NOT be functional because nested prefixes may coexist.""" .
 
@@ -766,6 +778,7 @@ ex:saHasPatchDiffObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -773,7 +786,7 @@ ASK {
         rdfs:subPropertyOf gmeow:hasBodyPart ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range gmeow:EmailPatchDiff .
-    FILTER NOT EXISTS { gmeow:hasPatchDiff a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:hasPatchDiff ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale """gmeow:hasPatchDiff MUST be an ObjectProperty, subproperty of gmeow:hasBodyPart, from EmailMessage to EmailPatchDiff, and MUST NOT be functional.""" .
 

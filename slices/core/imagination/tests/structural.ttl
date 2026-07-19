@@ -60,13 +60,13 @@ ex:saSpineOpenRangeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     VALUES ?p { gmeow:imagines gmeow:supposes }
     { ?p rdfs:range ?r . }
     UNION
-    { ?p a owl:FunctionalProperty . }
+    { ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty . }
 }""" ;
     gmeow:saRationale "OPEN-RANGE (Principle 13): neither gmeow:imagines nor gmeow:supposes MUST assert an rdfs:range, and neither MUST be functional — an agent imagines and supposes many things at once." .
 
@@ -147,12 +147,12 @@ ex:saContentOriginPropertyOpenDomain a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     { gmeow:contentOrigin rdfs:domain ?d . }
     UNION
-    { gmeow:contentOrigin a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:contentOrigin ; logic:characteristicSort logic:functionalProperty . }
 }""" ;
     gmeow:saRationale "OPEN-DOMAIN (Principle 9 / Principle 13): gmeow:contentOrigin MUST assert NO rdfs:domain (content may be a claim, a proposition, or anything) and MUST NOT be functional (vantage-indexed)." .
 
@@ -170,14 +170,14 @@ ex:saImaginedWorldOpenDomainAndRange a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     { gmeow:imaginedWorld rdfs:domain ?d . }
     UNION
     { gmeow:imaginedWorld rdfs:range ?r . }
     UNION
-    { gmeow:imaginedWorld a owl:FunctionalProperty . }
+    { ?rec logic:characterizes gmeow:imaginedWorld ; logic:characteristicSort logic:functionalProperty . }
 }""" ;
     gmeow:saRationale "BOTH ends OPEN (Principle 5): gmeow:imaginedWorld MUST assert no rdfs:domain and no rdfs:range (the logic:World target is carried by reference) and MUST NOT be functional — one rehearsal may branch into several worlds." .
 

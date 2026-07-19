@@ -187,9 +187,10 @@ ex:saNonFunctionalProperties a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:commitmentBeneficiary gmeow:satisfiedBy gmeow:motivates gmeow:hasGoal }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:commitmentBeneficiary, satisfiedBy, motivates, and hasGoal MUST NOT be owl:FunctionalProperty — coexistence of beneficiaries, satisfaction verdicts, attributed motives, and held goals is the point (Principle 9)." .
 

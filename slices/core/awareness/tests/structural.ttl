@@ -176,13 +176,13 @@ ex:saAwarenessEdgesOpenDomain a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     VALUES ?p { gmeow:awarenessMode gmeow:awarenessLevel gmeow:awarenessScalar }
     { ?p rdfs:domain ?d . }
     UNION
-    { ?p a owl:FunctionalProperty . }
+    { ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty . }
 }""" ;
     gmeow:saRationale "OPEN-DOMAIN (Principle 13): gmeow:awarenessMode / gmeow:awarenessLevel / gmeow:awarenessScalar MUST assert NO rdfs:domain (the edge applies to a tenure OR directly to a process / agent) and MUST NOT be functional (vantage-indexed)." .
 

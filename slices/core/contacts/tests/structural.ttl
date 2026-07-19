@@ -73,13 +73,13 @@ ex:saPostalAddressComponentsNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p {
         gmeow:streetAddress gmeow:extendedAddress gmeow:postOfficeBox
         gmeow:addressLocality gmeow:addressRegion gmeow:postalCode gmeow:countryCode
     }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "The seven postal-address component properties MUST NOT be owl:FunctionalProperty -- source variants coexist (Principle 9)." .
 

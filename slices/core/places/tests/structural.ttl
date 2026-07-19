@@ -92,8 +92,8 @@ ex:saPlaceTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:placeType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:placeType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:placeType MUST NOT be owl:FunctionalProperty -- a place may have multiple co-equal type claims (Principle 9)." .
 
 # --- 6. PlaceType seed individuals exist (MUST) --------------------------------
@@ -214,10 +214,10 @@ ex:saCoordinatePropsNonfunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:latitude gmeow:longitude gmeow:elevation gmeow:timezone }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:latitude, longitude, elevation, and timezone MUST NOT be owl:FunctionalProperty -- competing observation-indexed coordinate claims coexist (Principle 9)." .
 
@@ -683,8 +683,8 @@ ex:saHasTrajectorySampleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasTrajectorySample a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasTrajectorySample ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasTrajectorySample MUST NOT be owl:FunctionalProperty -- a trajectory may have many samples." .
 
 # --- 52. hasTrajectorySample is an ObjectProperty (MUST) ----------------------
@@ -843,8 +843,8 @@ ex:saVirtualLocationTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:virtualLocationType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:virtualLocationType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:virtualLocationType MUST NOT be owl:FunctionalProperty -- a virtual location may have multiple co-equal type claims (Principle 9)." .
 
 # --- 68. VirtualLocationType seed individuals exist (MUST) --------------------
@@ -1026,8 +1026,8 @@ ex:saCelestialObjectTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:celestialObjectType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:celestialObjectType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:celestialObjectType MUST NOT be owl:FunctionalProperty -- co-equal type claims coexist (Principle 9)." .
 
 # --- 82. CelestialObjectType seed individuals exist (MUST) -------------------
@@ -1280,16 +1280,16 @@ ex:saHasSequenceCoordinatesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasSequenceCoordinates a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasSequenceCoordinates ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasSequenceCoordinates MUST NOT be owl:FunctionalProperty -- co-equal coordinate claims coexist (Principle 9)." .
 
 ex:saSequenceFeatureTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:sequenceFeatureType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:sequenceFeatureType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:sequenceFeatureType MUST NOT be owl:FunctionalProperty -- co-equal feature-type classifications coexist (Principle 9)." .
 
 # --- 98. SequenceFeature exists as owl:Class (MUST) ---------------------------
@@ -1466,8 +1466,8 @@ ex:saHasCoordinateObservationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasCoordinateObservation a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasCoordinateObservation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasCoordinateObservation MUST NOT be owl:FunctionalProperty -- co-equal observations coexist (Principle 9)." .
 
 # --- 109. coordinateObservationOf subproperty of spatialMeasurementOf (MUST) --

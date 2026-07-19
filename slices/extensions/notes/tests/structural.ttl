@@ -144,7 +144,8 @@ ex:saAnnotationTargetSpanNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:annotationTargetSpan a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:annotationTargetSpan ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:annotationTargetSpan MUST NOT be owl:FunctionalProperty -- an annotation may reference multiple disjoint spans in the same document." .
 
 # --- 11. commentParent is an ObjectProperty (MUST) ---------------------------
@@ -162,7 +163,8 @@ ex:saCommentParentNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:commentParent a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:commentParent ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:commentParent MUST NOT be owl:FunctionalProperty -- hasReply is transitive, and in OWL 2 DL a transitive property and its inverse are non-simple and cannot be functional; the one-parent constraint is enforced by SHACL sh:maxCount 1." .
 
 # --- 13. hasDirectReply is inverse of commentParent (MUST) -------------------

@@ -39,9 +39,9 @@ ex:saSourcePropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:contentDigest gmeow:sourceLocation gmeow:sourceModifiedAt }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "None of the three carrier properties MUST be functional: an artifact may carry digests under several algorithms, and copies/syncs of identical bytes may report different locations and mtimes — all must coexist rather than force an inconsistency. VALUES ranges over the closed set of three properties the slice declares." .

@@ -145,8 +145,8 @@ ex:saRouteViaNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:routeVia a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:routeVia ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:routeVia MUST NOT be functional — multiple via points are possible on a route." .
 
 # --- 9. hasRouteSegment ⊑ hasPart, transitive (MUST) -------------------------

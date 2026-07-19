@@ -122,8 +122,8 @@ ex:saHasAccessibilityFeatureNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasAccessibilityFeature a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasAccessibilityFeature ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasAccessibilityFeature MUST NOT be functional — a location may support many facets simultaneously (Principle 9)." .
 
 # --- 7a. hasBarrier is an ObjectProperty with range AccessibilityFacet (MUST) --
@@ -144,8 +144,8 @@ ex:saHasBarrierNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasBarrier a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasBarrier ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasBarrier MUST NOT be functional — a location may have multiple barriers simultaneously (Principle 9)." .
 
 # --- 8a. hasAccessibilityNeed is an ObjectProperty with range AccessibilityFacet (MUST) ---
@@ -166,8 +166,8 @@ ex:saHasAccessibilityNeedNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasAccessibilityNeed a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasAccessibilityNeed ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasAccessibilityNeed MUST NOT be functional — needs are co-equal facets with no primary need (Principle 9)." .
 
 # --- 9. assertionSubject, assertionFacet, assertionPolarity are ObjectProperty (MUST) ---
