@@ -96,7 +96,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:DoxasticStandpointClaim rdfs:subClassOf gmeow:StandpointClaim . }""" ;
     gmeow:saRationale "A doxastic standpoint claim is a kind of standpoint claim." .
 
-# --- 8. claimOfBelief is a functional object property (MUST hold) -------------
+# --- 8. claimOfBelief is an object property (MUST hold) -----------------------
 ex:saClaimOfBeliefFunctionalObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -104,11 +104,11 @@ ex:saClaimOfBeliefFunctionalObjectProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:claimOfBelief a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:claimOfBelief a owl:ObjectProperty ;
         rdfs:domain gmeow:DoxasticStandpointClaim ;
         rdfs:range gmeow:DoxasticState .
 }""" ;
-    gmeow:saRationale "gmeow:claimOfBelief is a functional object property from DoxasticStandpointClaim to DoxasticState." .
+    gmeow:saRationale "gmeow:claimOfBelief is an object property from DoxasticStandpointClaim to DoxasticState." .
 
 # --- 9. Five-way justification split: named domains/ranges (MUST/-NOT) --------
 # (The single former justification hook is replaced by five independent edges
@@ -352,11 +352,11 @@ ASK {
     gmeow:KnowledgeAttribution a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .
     gmeow:knownInWorld a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicContext .
     gmeow:underStandard a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:EpistemicStandard .
-    gmeow:knowerAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Agent .
-    gmeow:knownProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Proposition .
-    gmeow:attributingAgent a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
-    gmeow:attributedKnower a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
-    gmeow:attributedProposition a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Proposition .
+    gmeow:knowerAgent a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Agent .
+    gmeow:knownProposition a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeClaim ; rdfs:range gmeow:Proposition .
+    gmeow:attributingAgent a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedKnower a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Agent .
+    gmeow:attributedProposition a owl:ObjectProperty ; rdfs:domain gmeow:KnowledgeAttribution ; rdfs:range gmeow:Proposition .
 }""" ;
     gmeow:saRationale "The locally-factive knowing relation is reified as gmeow:KnowledgeClaim (logic:Kind subClassOf logic:Relator) carrying gmeow:knownInWorld -> gmeow:EpistemicContext and gmeow:underStandard -> gmeow:EpistemicStandard, with the non-factive gmeow:KnowledgeAttribution alongside it — both CLAIM relators, deliberately NOT mental moments." .
 
@@ -416,18 +416,18 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:epistemicAgent a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:epistemicAgent a owl:ObjectProperty ;
         rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:Agent .
-    gmeow:doxasticContent a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:doxasticContent a owl:ObjectProperty ;
         rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:Proposition .
-    gmeow:doxasticClaim a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:doxasticClaim a owl:ObjectProperty ;
         rdfs:domain gmeow:DoxasticState ; rdfs:range gmeow:StandpointClaim .
     gmeow:credence a owl:DatatypeProperty ;
         rdfs:domain gmeow:DoxasticState ; rdfs:range xsd:decimal .
-    gmeow:tenureOfDoxasticState a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:tenureOfDoxasticState a owl:ObjectProperty ;
         rdfs:domain gmeow:DoxasticTenure ; rdfs:range gmeow:DoxasticState .
 }""" ;
-    gmeow:saRationale "The reified doxastic state and its tenure MUST carry the expected domain/range declarations and functional-property tagging: epistemicAgent, doxasticContent, doxasticClaim and tenureOfDoxasticState are functional object properties; credence is a non-functional datatype property ranging over xsd:decimal." .
+    gmeow:saRationale "The reified doxastic state and its tenure MUST carry the expected domain/range declarations: epistemicAgent, doxasticContent, doxasticClaim and tenureOfDoxasticState are object properties over gmeow:DoxasticState; credence is a datatype property ranging over xsd:decimal." .
 
 ex:saCredenceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

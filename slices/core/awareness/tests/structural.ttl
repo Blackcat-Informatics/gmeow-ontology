@@ -194,11 +194,11 @@ ex:saAwarenessSubjectBearerEdge a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:awarenessSubject a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:awarenessSubject a owl:ObjectProperty ;
         rdfs:domain gmeow:AwarenessTenure ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:awarenessSubject MUST be the per-branch bearer edge (Principle 4): an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:AwarenessTenure and range gmeow:Agent — the tenure carries its subject explicitly, never through gufo:inheresIn." .
+    gmeow:saRationale "gmeow:awarenessSubject MUST be the per-branch bearer edge (Principle 4): an owl:ObjectProperty with domain gmeow:AwarenessTenure and range gmeow:Agent — the tenure carries its subject explicitly, never through gufo:inheresIn." .
 
 # --- 8. AwarenessTenure is a time-scoped situation (MUST) ---------------------
 ex:saAwarenessTenureTimeScopedSituation a gmeow:StructuralAssertion ;

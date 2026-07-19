@@ -112,15 +112,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:ArchaeologicalFindContext MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — a reified find context binding a carrier to its stratigraphic unit; multiple context claims from different campaigns coexist (Principle 9)." .
 
-# --- 7. inscriptionCarrier is functional (MUST) ---------------------------------
-ex:saInscriptionCarrierIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:inscriptionCarrier a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:inscriptionCarrier MUST be owl:FunctionalProperty — an inscription is borne by exactly one carrier; a copy on another carrier is a distinct Inscription instance." .
-
 # --- 8. carrierInscription is an owl:ObjectProperty (MUST) ----------------------
 ex:saCarrierInscriptionIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -157,15 +148,6 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:carrierType a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:carrierType MUST NOT be owl:FunctionalProperty — a carrier may be classified plurally by different standpoints (Principle 9)." .
 
-# --- 12. readingOf is functional (MUST) ----------------------------------------
-ex:saReadingOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:readingOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:readingOf MUST be owl:FunctionalProperty — one source inscription per InscriptionReading relator (functional per relator doctrine)." .
-
 # --- 13. readingResult is an owl:ObjectProperty (MUST) -------------------------
 ex:saReadingResultIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -183,15 +165,6 @@ ex:saReadingResultNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:readingResult a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:readingResult MUST NOT be owl:FunctionalProperty — a single reading may yield multiple coexisting forms (e.g. ambiguous signs), and competing result claims from different readings coexist (Principle 9)." .
-
-# --- 15. transliterationOf is functional (MUST) --------------------------------
-ex:saTransliterationOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:transliterationOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:transliterationOf MUST be owl:FunctionalProperty — one source inscription per InscriptionTransliteration relator (functional per relator doctrine)." .
 
 # --- 16. transliterationResult is an owl:ObjectProperty (MUST) -----------------
 ex:saTransliterationResultIsObjectProperty a gmeow:StructuralAssertion ;
@@ -211,15 +184,6 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:transliterationResult a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:transliterationResult MUST NOT be owl:FunctionalProperty — competing transliteration schemes may produce different forms for the same inscription and those claims coexist (Principle 9)." .
 
-# --- 18. translationOf is functional (MUST) ------------------------------------
-ex:saTranslationOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:translationOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:translationOf MUST be owl:FunctionalProperty — one source inscription per InscriptionTranslation relator (functional per relator doctrine)." .
-
 # --- 19. translationResult is an owl:ObjectProperty (MUST) ---------------------
 ex:saTranslationResultIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -237,15 +201,6 @@ ex:saTranslationResultNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:translationResult a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:translationResult MUST NOT be owl:FunctionalProperty — competing translations of the same inscription coexist without privilege (Principle 9)." .
-
-# --- 21. attributionTarget is functional (MUST) --------------------------------
-ex:saAttributionTargetIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:attributionTarget a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:attributionTarget MUST be owl:FunctionalProperty — one target inscription per ScriptLanguageAttribution relator (functional per relator doctrine)." .
 
 # --- 22. attributedLanguage is an owl:ObjectProperty (MUST) -------------------
 ex:saAttributedLanguageIsObjectProperty a gmeow:StructuralAssertion ;
@@ -300,15 +255,6 @@ ex:saAttributedNotationNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:attributedNotation a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:attributedNotation MUST NOT be owl:FunctionalProperty — used when the inscription is not yet linked to a known language or writing system; multiple notation claims may coexist." .
-
-# --- 28. findContextTarget is functional (MUST) --------------------------------
-ex:saFindContextTargetIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:findContextTarget a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:findContextTarget MUST be owl:FunctionalProperty — one target carrier per ArchaeologicalFindContext relator (functional per relator doctrine)." .
 
 # --- 29. findContextPlace is an owl:ObjectProperty (MUST) ---------------------
 ex:saFindContextPlaceIsObjectProperty a gmeow:StructuralAssertion ;

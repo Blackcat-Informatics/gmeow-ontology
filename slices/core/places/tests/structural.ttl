@@ -122,7 +122,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Country, City, Building, Room, and Site MUST NOT exist as owl:Class -- the per-kind-subclass pattern was permanently refactored to PlaceType value individuals." .
 
-# --- 8. storageMedium is a functional ObjectProperty (MUST) -------------------
+# --- 8. storageMedium is an ObjectProperty (MUST) -----------------------------
 ex:saStorageMediumIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -130,9 +130,8 @@ ex:saStorageMediumIsFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:storageMedium a owl:ObjectProperty .
-    gmeow:storageMedium a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:storageMedium MUST be a functional owl:ObjectProperty -- the medium is constitutive of the storage location (like keyScheme), not a descriptive co-equal." .
+    gmeow:saRationale "gmeow:storageMedium MUST be an owl:ObjectProperty -- the medium is constitutive of the storage location (like keyScheme), not a descriptive co-equal; its functionality is now carried by a logic:PropertyCharacteristicAssertion (DL-enforced)." .
 
 # --- 9. StorageMedium seed individuals exist (MUST) ---------------------------
 ex:saStorageMediumSeeds a gmeow:StructuralAssertion ;
@@ -257,7 +256,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The seven core MetricKind seed individuals MUST exist as gmeow:MetricKind values." .
 
-# --- 22. hasMetricKind is a functional ObjectProperty on ReferenceFrame (MUST) -
+# --- 22. hasMetricKind is an ObjectProperty on ReferenceFrame (MUST) ----------
 ex:saHasMetricKindShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -266,11 +265,10 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasMetricKind a owl:ObjectProperty .
-    gmeow:hasMetricKind a owl:FunctionalProperty .
     gmeow:hasMetricKind rdfs:domain gmeow:ReferenceFrame .
     gmeow:hasMetricKind rdfs:range  gmeow:MetricKind .
 }""" ;
-    gmeow:saRationale "gmeow:hasMetricKind MUST be a functional owl:ObjectProperty with domain ReferenceFrame and range MetricKind." .
+    gmeow:saRationale "gmeow:hasMetricKind MUST be an owl:ObjectProperty with domain ReferenceFrame and range MetricKind (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
 # --- 23. ProximityMeasurement subclasses Measurement (MUST) -------------------
 ex:saProximityMeasurementSubclass a gmeow:StructuralAssertion ;
@@ -295,7 +293,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:proximity MUST be an owl:ObjectProperty with domain Entity and range ProximityMeasurement." .
 
-# --- 25. proximityTo is functional with domain/range (MUST) -------------------
+# --- 25. proximityTo is an ObjectProperty with domain/range (MUST) ------------
 ex:saProximityToShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -304,11 +302,10 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:proximityTo a owl:ObjectProperty .
-    gmeow:proximityTo a owl:FunctionalProperty .
     gmeow:proximityTo rdfs:domain gmeow:ProximityMeasurement .
     gmeow:proximityTo rdfs:range  gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:proximityTo MUST be a functional owl:ObjectProperty with domain ProximityMeasurement and range Entity." .
+    gmeow:saRationale "gmeow:proximityTo MUST be an owl:ObjectProperty with domain ProximityMeasurement and range Entity (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
 # --- 26. Spatial frames declare hasMetricKind seeds (MUST) --------------------
 ex:saSpatialFrameMetricKinds a gmeow:StructuralAssertion ;
@@ -369,13 +366,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:JurisdictionTenure rdfs:subClassOf gmeow:TimeScopedRelation .
     gmeow:jurisdictionPlace  rdfs:domain gmeow:JurisdictionTenure ;
-                             rdfs:range  gmeow:Place ;
-                             a owl:FunctionalProperty .
+                             rdfs:range  gmeow:Place .
     gmeow:jurisdictionPolity rdfs:domain gmeow:JurisdictionTenure ;
-                             rdfs:range  gmeow:Agent ;
-                             a owl:FunctionalProperty .
+                             rdfs:range  gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:JurisdictionTenure MUST be rdfs:subClassOf TimeScopedRelation; jurisdictionPlace and jurisdictionPolity MUST be functional with correct domain/range." .
+    gmeow:saRationale "gmeow:JurisdictionTenure MUST be rdfs:subClassOf TimeScopedRelation; jurisdictionPlace and jurisdictionPolity MUST have correct domain/range (their functionality is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 30. ContainmentTenure subclasses TimeScopedRelation (MUST) ---------------
 ex:saContainmentTenureGrounding a gmeow:StructuralAssertion ;
@@ -387,13 +382,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:ContainmentTenure  rdfs:subClassOf gmeow:TimeScopedRelation .
     gmeow:containmentChild   rdfs:domain gmeow:ContainmentTenure ;
-                             rdfs:range  gmeow:Place ;
-                             a owl:FunctionalProperty .
+                             rdfs:range  gmeow:Place .
     gmeow:containmentParent  rdfs:domain gmeow:ContainmentTenure ;
-                             rdfs:range  gmeow:Place ;
-                             a owl:FunctionalProperty .
+                             rdfs:range  gmeow:Place .
 }""" ;
-    gmeow:saRationale "gmeow:ContainmentTenure MUST be rdfs:subClassOf TimeScopedRelation; containmentChild and containmentParent MUST be functional with correct domain/range." .
+    gmeow:saRationale "gmeow:ContainmentTenure MUST be rdfs:subClassOf TimeScopedRelation; containmentChild and containmentParent MUST have correct domain/range (their functionality is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 31. GeometryType subclasses logic:QualityValue; seed individuals exist (MUST) --
 ex:saGeometryTypeIsQualityValue a gmeow:StructuralAssertion ;
@@ -489,17 +482,15 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:RegulatoryOverlay rdfs:subClassOf gmeow:TimeScopedRelation .
     gmeow:overlayPlace      rdfs:domain gmeow:RegulatoryOverlay ;
-                            rdfs:range  gmeow:Place ;
-                            a owl:FunctionalProperty .
+                            rdfs:range  gmeow:Place .
     gmeow:overlayAuthority  rdfs:domain gmeow:RegulatoryOverlay ;
-                            rdfs:range  gmeow:Agent ;
-                            a owl:FunctionalProperty .
+                            rdfs:range  gmeow:Agent .
     gmeow:overlayType       rdfs:domain gmeow:RegulatoryOverlay ;
                             rdfs:range  gmeow:RegulatoryOverlayType .
     gmeow:overlayRegulation rdfs:domain gmeow:RegulatoryOverlay ;
                             rdfs:range  gmeow:RightsStatement .
 }""" ;
-    gmeow:saRationale "gmeow:RegulatoryOverlay MUST be rdfs:subClassOf TimeScopedRelation; overlayPlace/overlayAuthority MUST be functional; overlayType/overlayRegulation MUST have correct ranges." .
+    gmeow:saRationale "gmeow:RegulatoryOverlay MUST be rdfs:subClassOf TimeScopedRelation; overlayPlace/overlayAuthority MUST have correct domain/range (their functionality is now carried by logic:PropertyCharacteristicAssertions, DL-enforced); overlayType/overlayRegulation MUST have correct ranges." .
 
 # --- 37. overlayDeterminacy is a determinacy subproperty on RegulatoryOverlay (MUST) --
 ex:saOverlayDeterminacySubproperty a gmeow:StructuralAssertion ;
@@ -613,7 +604,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The five vertical reference frames MUST be declared as ReferenceFrame individuals with frameRealmTerrestrial." .
 
-# --- 45. overlayDesignator is a functional DatatypeProperty on RegulatoryOverlay (MUST) --
+# --- 45. overlayDesignator is a DatatypeProperty on RegulatoryOverlay (MUST) --
 ex:saOverlayDesignatorGrounding a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -622,11 +613,10 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:overlayDesignator a owl:DatatypeProperty .
-    gmeow:overlayDesignator a owl:FunctionalProperty .
     gmeow:overlayDesignator rdfs:domain gmeow:RegulatoryOverlay .
     gmeow:overlayDesignator rdfs:range  rdfs:Literal .
 }""" ;
-    gmeow:saRationale "gmeow:overlayDesignator MUST be a functional owl:DatatypeProperty with domain RegulatoryOverlay and range rdfs:Literal." .
+    gmeow:saRationale "gmeow:overlayDesignator MUST be an owl:DatatypeProperty with domain RegulatoryOverlay and range rdfs:Literal (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
 # --- 46. LocationState is a subclass of Entity (MUST) -------------------------
 ex:saLocationStateIsEntity a gmeow:StructuralAssertion ;
@@ -706,42 +696,6 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasTrajectorySample a owl:ObjectProperty . }""" ;
     gmeow:saRationale "gmeow:hasTrajectorySample MUST be an owl:ObjectProperty." .
 
-# --- 53. stateReferenceFrame is functional (MUST) -----------------------------
-ex:saStateReferenceFrameIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:stateReferenceFrame a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:stateReferenceFrame MUST be owl:FunctionalProperty." .
-
-# --- 54. trajectoryReferenceFrame is functional (MUST) ------------------------
-ex:saTrajectoryReferenceFrameIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:trajectoryReferenceFrame a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:trajectoryReferenceFrame MUST be owl:FunctionalProperty." .
-
-# --- 55. stateOf is functional (MUST) -----------------------------------------
-ex:saStateOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:stateOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:stateOf MUST be owl:FunctionalProperty." .
-
-# --- 56. trajectoryOf is functional (MUST) ------------------------------------
-ex:saTrajectoryOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:trajectoryOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:trajectoryOf MUST be owl:FunctionalProperty." .
-
 # --- 57. No preferred/primary stream terms (MUST-NOT) -------------------------
 ex:saNoPreferredPrimaryStreamTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -775,7 +729,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Capacity, Occupancy, and Utilization MUST be owl:Class and rdfs:subClassOf gmeow:Measurement." .
 
-# --- 59. capacityOf is functional with domain/range/subPropertyOf (MUST) ------
+# --- 59. capacityOf with domain/range/subPropertyOf (MUST) --------------------
 ex:saCapacityOfShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -783,14 +737,13 @@ ex:saCapacityOfShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:capacityOf a owl:FunctionalProperty ;
-        rdfs:domain gmeow:Capacity ;
+    gmeow:capacityOf rdfs:domain gmeow:Capacity ;
         rdfs:range  gmeow:Location ;
         rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:capacityOf MUST be functional with domain Capacity, range Location, and rdfs:subPropertyOf observedFeature." .
+    gmeow:saRationale "gmeow:capacityOf MUST have domain Capacity, range Location, and rdfs:subPropertyOf observedFeature (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
-# --- 60. occupancyOf is functional with domain/range/subPropertyOf (MUST) -----
+# --- 60. occupancyOf with domain/range/subPropertyOf (MUST) -------------------
 ex:saOccupancyOfShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -798,14 +751,13 @@ ex:saOccupancyOfShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:occupancyOf a owl:FunctionalProperty ;
-        rdfs:domain gmeow:Occupancy ;
+    gmeow:occupancyOf rdfs:domain gmeow:Occupancy ;
         rdfs:range  gmeow:Location ;
         rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:occupancyOf MUST be functional with domain Occupancy, range Location, and rdfs:subPropertyOf observedFeature." .
+    gmeow:saRationale "gmeow:occupancyOf MUST have domain Occupancy, range Location, and rdfs:subPropertyOf observedFeature (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
-# --- 61. utilizationOf is functional with domain/range/subPropertyOf (MUST) ---
+# --- 61. utilizationOf with domain/range/subPropertyOf (MUST) -----------------
 ex:saUtilizationOfShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -813,12 +765,11 @@ ex:saUtilizationOfShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:utilizationOf a owl:FunctionalProperty ;
-        rdfs:domain gmeow:Utilization ;
+    gmeow:utilizationOf rdfs:domain gmeow:Utilization ;
         rdfs:range  gmeow:Location ;
         rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:utilizationOf MUST be functional with domain Utilization, range Location, and rdfs:subPropertyOf observedFeature." .
+    gmeow:saRationale "gmeow:utilizationOf MUST have domain Utilization, range Location, and rdfs:subPropertyOf observedFeature (its functionality is now carried by a logic:PropertyCharacteristicAssertion, DL-enforced)." .
 
 # --- 62. hasCapacity domain Location, range Capacity (MUST) -------------------
 ex:saHasCapacityShape a gmeow:StructuralAssertion ;
@@ -939,7 +890,6 @@ ASK {
     gmeow:networkAddressValue  rdfs:domain gmeow:NetworkAddress .
     gmeow:networkAddressFrame  rdfs:domain gmeow:NetworkAddress ;
                                rdfs:range  gmeow:ReferenceFrame ;
-                               a owl:FunctionalProperty ;
                                rdfs:subPropertyOf gmeow:hasReferenceFrame .
 }""" ;
     gmeow:saRationale "NetworkAddress class and all core properties MUST be grounded as specified." .
@@ -1174,19 +1124,17 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:hasCelestialCoordinates MUST be an owl:ObjectProperty with domain CelestialLocation and range CelestialCoordinates." .
 
-# --- 88. hasReferencePosition and hasTimeScale are functional (MUST) ----------
+# --- 88. ICRS binds hasReferencePosition and hasTimeScale (MUST) --------------
 ex:saRefposAndTimescaleFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:hasReferencePosition a owl:FunctionalProperty .
-    gmeow:hasTimeScale         a owl:FunctionalProperty .
     gmeow:referenceFrameICRS gmeow:hasReferencePosition gmeow:refOriginBarycentric .
     gmeow:referenceFrameICRS gmeow:hasTimeScale         gmeow:timeScaleTDB .
 }""" ;
-    gmeow:saRationale "hasReferencePosition and hasTimeScale MUST be functional; ICRS MUST be bound to Barycentric+TDB." .
+    gmeow:saRationale "gmeow:referenceFrameICRS MUST be bound to refOriginBarycentric via hasReferencePosition and to timeScaleTDB via hasTimeScale (the functionality of hasReferencePosition/hasTimeScale is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 89. isHostedBy domain ReferenceFrame, range Entity (MUST) ----------------
 ex:saIsHostedByShape a gmeow:StructuralAssertion ;
@@ -1292,21 +1240,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sequenceStart a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:sequenceStart a owl:DatatypeProperty ;
         rdfs:domain gmeow:SequenceCoordinates ;
         rdfs:range  xsd:positiveInteger .
-    gmeow:sequenceEnd   a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:sequenceEnd   a owl:DatatypeProperty ;
         rdfs:domain gmeow:SequenceCoordinates ;
         rdfs:range  xsd:positiveInteger .
-    gmeow:sequenceStrand a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:sequenceStrand a owl:ObjectProperty ;
         rdfs:domain gmeow:SequenceCoordinates ;
         rdfs:range  gmeow:StrandOrientation .
-    gmeow:inReferenceAssembly a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:inReferenceAssembly a owl:ObjectProperty ;
         rdfs:domain gmeow:SequenceCoordinates ;
         rdfs:range  gmeow:ReferenceFrame ;
         rdfs:subPropertyOf gmeow:hasReferenceFrame .
 }""" ;
-    gmeow:saRationale "Core SequenceCoordinates properties MUST have the correct types, functional-property status, domain/range." .
+    gmeow:saRationale "Core SequenceCoordinates properties MUST have the correct types, domain/range (their functional-property status is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 97. hasSequenceCoordinates and sequenceFeatureType shapes (MUST + MUST-NOT) --
 ex:saSequenceFeaturePropertyShapes a gmeow:StructuralAssertion ;
@@ -1411,13 +1359,13 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasGeocode  a owl:ObjectProperty ;
         rdfs:domain gmeow:Place ; rdfs:range gmeow:Geocode .
-    gmeow:geocodeFrame a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:geocodeFrame a owl:ObjectProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range gmeow:ReferenceFrame ;
         rdfs:subPropertyOf gmeow:hasReferenceFrame .
 }""" ;
     gmeow:saRationale "gmeow:hasGeocode and geocodeFrame MUST be correctly shaped." .
 
-# --- 103. Geocode datatype properties are all functional on Geocode (MUST) ----
+# --- 103. Geocode datatype properties on Geocode (MUST) -----------------------
 ex:saGeocodeDatatypeProperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -1426,22 +1374,22 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:geocodeValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:geocodeValue a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode .
-    gmeow:plusCode     a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:plusCode     a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
-    gmeow:what3words   a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:what3words   a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
-    gmeow:geohash      a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:geohash      a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
-    gmeow:mgrs         a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:mgrs         a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
-    gmeow:unLocode     a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:unLocode     a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
-    gmeow:mileMarker   a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:mileMarker   a owl:DatatypeProperty ;
         rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
 }""" ;
-    gmeow:saRationale "All seven Geocode datatype properties MUST be functional DatatypeProperties on gmeow:Geocode with xsd:string range (except geocodeValue which is range-open)." .
+    gmeow:saRationale "All seven Geocode datatype properties MUST be DatatypeProperties on gmeow:Geocode with xsd:string range (except geocodeValue which is range-open); their functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced)." .
 
 # --- 104. Geocode reference frames declared (MUST) ----------------------------
 ex:saGeocodeFramesDeclared a gmeow:StructuralAssertion ;
@@ -1584,10 +1532,8 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:LandTenure rdfs:subClassOf gmeow:TimeScopedRelation .
-    gmeow:tenurePlace  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Place ;
-        a owl:FunctionalProperty .
-    gmeow:tenureParty  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Agent ;
-        a owl:FunctionalProperty .
+    gmeow:tenurePlace  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Place .
+    gmeow:tenureParty  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Agent .
     gmeow:tenureRights rdfs:domain gmeow:LandTenure ;
         rdfs:range gmeow:RightsStatement .
     gmeow:tenureType   rdfs:domain gmeow:LandTenure ;
@@ -1595,7 +1541,7 @@ ASK {
     gmeow:tenureDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy ;
         rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Determinacy .
 }""" ;
-    gmeow:saRationale "gmeow:LandTenure MUST be rdfs:subClassOf TimeScopedRelation; tenurePlace/tenureParty MUST be functional; full property grounding required." .
+    gmeow:saRationale "gmeow:LandTenure MUST be rdfs:subClassOf TimeScopedRelation; full property grounding required (tenurePlace/tenureParty functionality is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 114. LandTenureType subclasses logic:QualityValue + seeds (MUST) ---------
 ex:saLandTenureTypeGrounding a gmeow:StructuralAssertion ;
@@ -1646,11 +1592,9 @@ ASK {
     gmeow:referenceType  rdfs:domain gmeow:CadastralReference ;
         rdfs:range gmeow:CadastralReferenceType .
     gmeow:referenceAuthority rdfs:domain gmeow:CadastralReference ;
-        rdfs:range gmeow:Agent ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:Agent .
     gmeow:referenceJurisdiction rdfs:domain gmeow:CadastralReference ;
-        rdfs:range gmeow:Place ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:Place .
 }""" ;
     gmeow:saRationale "gmeow:CadastralReference MUST be rdfs:subClassOf InformationObject; all core properties MUST be grounded." .
 
@@ -1700,7 +1644,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:referenceFramePostalAddress MUST be a gmeow:ReferenceFrame of frameKindTopological with dimensionCount 7 and exactly the seven postal hasAxis edges (street/extended/poBox/locality/region/postalCode/countryCode). The frame individual is places-home (module.ttl)." .
 
-# --- N. determinacyModel is a functional ObjectProperty on ReferenceFrame (MUST) -
+# --- N. determinacyModel is an ObjectProperty on ReferenceFrame (MUST) --------
 #     This term is declared in the places slice, so the cell lives here rather
 #     than in kernel/tests/structural.ttl. Migrated from tests/test_determinacy.py.
 ex:saDeterminacyModelProperty a gmeow:StructuralAssertion ;
@@ -1710,11 +1654,11 @@ ex:saDeterminacyModelProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:determinacyModel a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:determinacyModel a owl:ObjectProperty ;
         rdfs:domain gmeow:ReferenceFrame ;
         rdfs:range gmeow:Determinacy .
 }""" ;
-    gmeow:saRationale "gmeow:determinacyModel MUST be an owl:ObjectProperty that is also owl:FunctionalProperty, with rdfs:domain gmeow:ReferenceFrame and rdfs:range gmeow:Determinacy — the frame-level default determinacy model (Principle 11). The property is declared in the places slice, so its structural cell lives here." .
+    gmeow:saRationale "gmeow:determinacyModel MUST be an owl:ObjectProperty with rdfs:domain gmeow:ReferenceFrame and rdfs:range gmeow:Determinacy — the frame-level default determinacy model (Principle 11); its functionality is now carried by a logic:PropertyCharacteristicAssertion (DL-enforced). The property is declared in the places slice, so its structural cell lives here." .
 
 # --- 119. spatiallyConnectsTo is a symmetric subproperty of connectsTo (MUST) --
 ex:saSpatiallyConnectsToSymmetricSubproperty a gmeow:StructuralAssertion ;

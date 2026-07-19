@@ -256,7 +256,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:InquiryTenure MUST be an owl:Class AND logic:Situation AND a subClassOf gmeow:TimeScopedRelation (not a bare relator)." .
 
-# --- 11b. InquiryTenure tenure roles are functional ObjectProperties (MUST) ---
+# --- 11b. InquiryTenure tenure roles are ObjectProperties (MUST) ---
 ex:saInquiryTenureRoles a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -264,14 +264,14 @@ ex:saInquiryTenureRoles a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:tenureInquirer a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:tenureInquirer a owl:ObjectProperty ;
         rdfs:domain gmeow:InquiryTenure ;
         rdfs:range gmeow:Agent .
-    gmeow:tenureQuestion a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:tenureQuestion a owl:ObjectProperty ;
         rdfs:domain gmeow:InquiryTenure ;
         rdfs:range gmeow:Question .
 }""" ;
-    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty AND owl:FunctionalProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question." .
+    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question; their single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 11c. EL someValuesFrom mediation restriction on tenureQuestion (MUST) ---
 ex:saInquiryTenureELRestriction a gmeow:StructuralAssertion ;

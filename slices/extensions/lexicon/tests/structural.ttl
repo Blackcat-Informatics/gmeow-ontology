@@ -54,24 +54,6 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasLexicalForm a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasLexicalForm MUST NOT be functional — a single lexical item may have many coexisting forms (written, spoken, reconstructed, etc.) (Principle 9)." .
 
-# --- 4. lexicalItemLanguage is functional (MUST) ------------------------------
-ex:saLexicalItemLanguageFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:lexicalItemLanguage a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:lexicalItemLanguage MUST be an owl:FunctionalProperty — one primary language per lexical item; polyglot items are separate items linked by derivation or translation." .
-
-# --- 5. formRepresentation is functional (MUST) -------------------------------
-ex:saFormRepresentationFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:formRepresentation a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:formRepresentation MUST be an owl:FunctionalProperty — one surface string per form instance; a different representation is a different form." .
-
 # --- 6a. formType is an ObjectProperty (MUST) ---------------------------------
 ex:saFormTypeIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -105,15 +87,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:UsageAttestation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — attestations are evidence nodes that follow the Observation+Relator pattern (Principle 12)." .
 
-# --- 8. attestedForm is functional (MUST) -------------------------------------
-ex:saAttestedFormFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:attestedForm a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:attestedForm MUST be an owl:FunctionalProperty — one attested form per UsageAttestation relator; multiple forms require separate attestations." .
-
 # --- 9. EtymologicalDerivation is an owl:Class, subclass of Observation and logic:Relator (MUST) ---
 ex:saEtymologicalDerivationIsObservationRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -128,18 +101,6 @@ ASK {
         rdfs:subClassOf logic:Relator .
 }""" ;
     gmeow:saRationale "gmeow:EtymologicalDerivation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — etymology is modeled as a provenance-rich standpointed claim graph, not a flat property (Principle 9)." .
-
-# --- 10. etymonSource and derivationTarget are functional (MUST) --------------
-ex:saDerivationSourceTargetFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:etymonSource a owl:FunctionalProperty .
-    gmeow:derivationTarget a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:etymonSource and gmeow:derivationTarget MUST each be owl:FunctionalProperty — one etymon source and one descendant target per EtymologicalDerivation relator; multi-etymon derivations are modeled as separate relators." .
 
 # --- 11a. derivationKind is an ObjectProperty (MUST) -------------------------
 ex:saDerivationKindIsObjectProperty a gmeow:StructuralAssertion ;

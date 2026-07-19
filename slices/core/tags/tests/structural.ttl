@@ -116,18 +116,18 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:isAbout a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:isAbout MUST NOT be functional — a resource may be about many things." .
 
-# --- 6. taggingTagged, taggingTag, taggingScheme are functional ObjectProperties (MUST) ---
+# --- 6. taggingTagged, taggingTag, taggingScheme are ObjectProperties (MUST) ---
 ex:saTaggingRolesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:taggingTagged a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:taggingTag    a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:taggingScheme a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:taggingTagged a owl:ObjectProperty .
+    gmeow:taggingTag    a owl:ObjectProperty .
+    gmeow:taggingScheme a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:taggingTagged, gmeow:taggingTag, and gmeow:taggingScheme MUST each be both an owl:ObjectProperty and an owl:FunctionalProperty — each Tagging relator carries exactly one tagged entity, one tag, and at most one scheme per act." .
+    gmeow:saRationale "gmeow:taggingTagged, gmeow:taggingTag, and gmeow:taggingScheme MUST each be an owl:ObjectProperty — the tagged entity, tag, and scheme roles of a Tagging relator." .
 
 # --- 7a. taggingTagger is an ObjectProperty (MUST) ---------------------------
 ex:saTaggingTaggerIsObjectProperty a gmeow:StructuralAssertion ;

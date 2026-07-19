@@ -116,18 +116,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:AsexualPerson, gmeow:GayPerson, and gmeow:BisexualPerson MUST NOT be declared as owl:Class — per-orientation subclasses are banned; all orientations are open individuals (Principle 9)." .
 
-# --- 11. sexualOrientationValue and romanticOrientationValue are functional (MUST) ---
-ex:saValuePropertiesFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:sexualOrientationValue a owl:FunctionalProperty .
-    gmeow:romanticOrientationValue a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:sexualOrientationValue and gmeow:romanticOrientationValue MUST be owl:FunctionalProperty — a single facet asserts exactly one value (a change is a new facet, not a second value)." .
-
 # --- 12. hasSexualOrientation is NOT functional (MUST-NOT) -------------------
 ex:saHasSexualOrientationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

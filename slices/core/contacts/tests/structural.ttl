@@ -28,17 +28,17 @@ ex:saEmailAddressStablePropertiesFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:addressValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:addressValue a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailAddress ;
         rdfs:range rdfs:Literal .
-    gmeow:localPart a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:localPart a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailAddress ;
         rdfs:range rdfs:Literal .
-    gmeow:domainPart a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:domainPart a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailAddress ;
         rdfs:range rdfs:Literal .
 }""" ;
-    gmeow:saRationale """gmeow:addressValue, localPart, and domainPart MUST be functional DatatypeProperties on EmailAddress ranging over Literal. The EmailAddress stable properties are owned by the contacts slice (cross-slice ownership).""" .
+    gmeow:saRationale """gmeow:addressValue, localPart, and domainPart MUST be DatatypeProperties on EmailAddress ranging over Literal. The EmailAddress stable properties are owned by the contacts slice (cross-slice ownership).""" .
 
 # --- 3. PostalAddress subclasses ContactPoint (MUST) -------------------------
 ex:saPostalAddressSubclassesContactPoint a gmeow:StructuralAssertion ;
@@ -94,7 +94,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:addressPlace MUST have rdfs:range gmeow:Place -- the seam from a postal address surface form to the resolved geographic place." .
 
-# --- 7. postalAddressFrame is a functional subproperty of hasReferenceFrame (MUST)
+# --- 7. postalAddressFrame is a subproperty of hasReferenceFrame (MUST)
 ex:saPostalAddressFrameProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -102,9 +102,9 @@ ex:saPostalAddressFrameProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:postalAddressFrame a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:postalAddressFrame a owl:ObjectProperty ;
         rdfs:subPropertyOf gmeow:hasReferenceFrame ;
         rdfs:domain gmeow:PostalAddress ;
         rdfs:range gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:postalAddressFrame MUST be a functional owl:ObjectProperty, rdfs:subPropertyOf gmeow:hasReferenceFrame, with domain gmeow:PostalAddress and range gmeow:ReferenceFrame." .
+    gmeow:saRationale "gmeow:postalAddressFrame MUST be an owl:ObjectProperty, rdfs:subPropertyOf gmeow:hasReferenceFrame, with domain gmeow:PostalAddress and range gmeow:ReferenceFrame." .

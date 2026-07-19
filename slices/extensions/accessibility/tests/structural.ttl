@@ -170,18 +170,18 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasAccessibilityNeed a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasAccessibilityNeed MUST NOT be functional — needs are co-equal facets with no primary need (Principle 9)." .
 
-# --- 9. assertionSubject, assertionFacet, assertionPolarity are ObjectProperty+FunctionalProperty (MUST) ---
+# --- 9. assertionSubject, assertionFacet, assertionPolarity are ObjectProperty (MUST) ---
 ex:saAssertionRolesAreFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:assertionSubject  a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:assertionFacet    a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:assertionPolarity a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:assertionSubject  a owl:ObjectProperty .
+    gmeow:assertionFacet    a owl:ObjectProperty .
+    gmeow:assertionPolarity a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:assertionSubject, gmeow:assertionFacet, and gmeow:assertionPolarity MUST all be owl:ObjectProperty and owl:FunctionalProperty — each AccessibilityAssertion relator has exactly one subject, one facet, and one polarity." .
+    gmeow:saRationale "gmeow:assertionSubject, gmeow:assertionFacet, and gmeow:assertionPolarity MUST all be owl:ObjectProperty — each AccessibilityAssertion relator has exactly one subject, one facet, and one polarity; that single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module." .
 
 # --- 10a. hasAccessibilityFeature is NOT a subPropertyOf hasBarrier (MUST-NOT) ---
 ex:saFeatureNotSubPropBarrier a gmeow:StructuralAssertion ;

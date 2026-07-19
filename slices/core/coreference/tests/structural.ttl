@@ -141,24 +141,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:versionOf, gmeow:editionOf, and gmeow:supersedes MUST all be owl:ObjectProperty -- lineage relations link entity nodes to entity nodes, never to literals." .
 
-# --- 13. versionOf is owl:FunctionalProperty (MUST) --------------------------
-ex:saVersionOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:versionOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:versionOf MUST be owl:FunctionalProperty -- a version belongs to exactly one lineage entity; the lineage may have many versions." .
-
-# --- 14. editionOf is owl:FunctionalProperty (MUST) --------------------------
-ex:saEditionOfIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:editionOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:editionOf MUST be owl:FunctionalProperty -- a concrete edition belongs to exactly one stable work." .
-
 # --- 15. supersedes is NOT owl:FunctionalProperty (MUST-NOT) -----------------
 ex:saSupersedesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

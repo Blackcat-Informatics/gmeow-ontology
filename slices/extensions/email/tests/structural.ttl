@@ -296,11 +296,11 @@ ex:saBodyStructureFunctionalDatatypeProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:bodyStructure a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:bodyStructure a owl:DatatypeProperty ;
         rdfs:domain gmeow:EmailMessage ;
         rdfs:range rdfs:Literal .
 }""" ;
-    gmeow:saRationale """gmeow:bodyStructure MUST be a functional DatatypeProperty on EmailMessage ranging over Literal.""" .
+    gmeow:saRationale """gmeow:bodyStructure MUST be a DatatypeProperty on EmailMessage ranging over Literal; its functionality is now carried by a logic:PropertyCharacteristicAssertion (DL-enforced).""" .
 
 ex:saBodyValueClassExists a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -612,20 +612,20 @@ ex:saParticipantPropertiesDeclared a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:participantMessage a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:participantMessage a owl:ObjectProperty ;
         rdfs:domain gmeow:MessageParticipant ;
         rdfs:range gmeow:EmailMessage .
-    gmeow:participantAddress a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:participantAddress a owl:ObjectProperty ;
         rdfs:domain gmeow:MessageParticipant ;
         rdfs:range gmeow:EmailAddress .
-    gmeow:participantRole a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:participantRole a owl:ObjectProperty ;
         rdfs:domain gmeow:MessageParticipant ;
         rdfs:range gmeow:MessageParticipantRole .
-    gmeow:participantHeader a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:participantHeader a owl:ObjectProperty ;
         rdfs:domain gmeow:MessageParticipant ;
         rdfs:range gmeow:MessageHeader .
 }""" ;
-    gmeow:saRationale """participantMessage, participantAddress, participantRole, and participantHeader MUST be functional ObjectProperties with domain MessageParticipant and their respective ranges.""" .
+    gmeow:saRationale """participantMessage, participantAddress, participantRole, and participantHeader MUST be ObjectProperties with domain MessageParticipant and their respective ranges; their functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced).""" .
 
 ex:saHasMessageParticipantInverse a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -649,11 +649,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:participantOrdinal a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:participantOrdinal a owl:DatatypeProperty ;
         rdfs:domain gmeow:MessageParticipant ;
         rdfs:range xsd:nonNegativeInteger .
 }""" ;
-    gmeow:saRationale """gmeow:participantOrdinal MUST be a functional DatatypeProperty on MessageParticipant ranging over xsd:nonNegativeInteger.""" .
+    gmeow:saRationale """gmeow:participantOrdinal MUST be a DatatypeProperty on MessageParticipant ranging over xsd:nonNegativeInteger; its functionality is now carried by a logic:PropertyCharacteristicAssertion (DL-enforced).""" .
 
 ex:saDisplayNameScopedToParticipant a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

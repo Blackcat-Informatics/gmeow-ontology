@@ -18,10 +18,9 @@ ASK {
     gmeow:Emotion a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:AffectiveMoment .
     gmeow:AffectiveMoment rdfs:subClassOf gmeow:MentalMoment .
-    gmeow:emotionBearer a owl:FunctionalProperty ;
-        rdfs:range gmeow:Agent .
+    gmeow:emotionBearer rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Emotion MUST be a logic:Kind grafted under gmeow:AffectiveMoment (an affective member of the kernel gmeow:MentalMoment family), with one bearer. Mode-ness is inherited via MentalMoment (logic:Mode); the reparent joins emotions to the agent-mental-life family." .
+    gmeow:saRationale "gmeow:Emotion MUST be a logic:Kind grafted under gmeow:AffectiveMoment (an affective member of the kernel gmeow:MentalMoment family), with gmeow:emotionBearer ranging over gmeow:Agent. Mode-ness is inherited via MentalMoment (logic:Mode); the reparent joins emotions to the agent-mental-life family." .
 
 ex:saEmotionTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -144,12 +143,12 @@ ex:saAppraisalValueRequiresProfile a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:appraisalScaleProfile a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:appraisalScaleProfile a owl:ObjectProperty ;
         rdfs:domain gmeow:Appraisal ;
         rdfs:range gmeow:AffectScaleProfile .
     gmeow:AffectScaleProfile a owl:Class .
 }""" ;
-    gmeow:saRationale "The reshape MUST provide the framing property: gmeow:appraisalScaleProfile (functional, Appraisal → gmeow:AffectScaleProfile) is how a dimensional reading declares the scale it is read against, replacing the removed bare-decimal floor (Principle 6/11). The SHACL AppraisalShape enforces its presence whenever gmeow:appraisalValue is asserted." .
+    gmeow:saRationale "The reshape MUST provide the framing property: gmeow:appraisalScaleProfile (Appraisal → gmeow:AffectScaleProfile) is how a dimensional reading declares the scale it is read against, replacing the removed bare-decimal floor (Principle 6/11). The SHACL AppraisalShape enforces its presence whenever gmeow:appraisalValue is asserted." .
 
 ex:saVectorObservationGroupsCells a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -163,10 +162,9 @@ ASK {
     gmeow:vectorComponent a owl:ObjectProperty ;
         rdfs:domain gmeow:AffectVectorObservation ;
         rdfs:range gmeow:Appraisal .
-    gmeow:vectorProfile a owl:FunctionalProperty ;
-        rdfs:range gmeow:AffectScaleProfile .
+    gmeow:vectorProfile rdfs:range gmeow:AffectScaleProfile .
 }""" ;
-    gmeow:saRationale "gmeow:AffectVectorObservation (⊑ gmeow:Observation, the reified-factored idiom) MUST group per-axis gmeow:Appraisal cells via gmeow:vectorComponent and name its basis via functional gmeow:vectorProfile — the queryable identity for a vector reading, one cell per axis preserved." .
+    gmeow:saRationale "gmeow:AffectVectorObservation (⊑ gmeow:Observation, the reified-factored idiom) MUST group per-axis gmeow:Appraisal cells via gmeow:vectorComponent and name its basis via gmeow:vectorProfile — the queryable identity for a vector reading, one cell per axis preserved." .
 
 ex:saCompositeConstituentNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -199,10 +197,8 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:DerivedAffectIntensityObservation a owl:Class ;
         rdfs:subClassOf gmeow:Observation .
-    gmeow:intensityBasis a owl:FunctionalProperty ;
-        rdfs:range gmeow:AffectVectorObservation .
-    gmeow:metricProfile a owl:FunctionalProperty ;
-        rdfs:range gmeow:AffectScaleProfile .
+    gmeow:intensityBasis rdfs:range gmeow:AffectVectorObservation .
+    gmeow:metricProfile rdfs:range gmeow:AffectScaleProfile .
     gmeow:fnAffectiveIntensity a gmeow:AffectFunction .
 }""" ;
     gmeow:saRationale "Overall intensity is a DERIVED gmeow:Observation (⊑ gmeow:Observation) over a declared gmeow:intensityBasis under a declared gmeow:metricProfile, exposed via the named gmeow:fnAffectiveIntensity function — a computed view under a named metric (Principle 12), never a stored ground fact. The SHACL shape enforces the full basis/scale/weighting/norm declaration." .

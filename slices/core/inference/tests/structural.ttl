@@ -80,7 +80,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:InferenceMode, gmeow:AttackKind, and gmeow:AcceptanceStatus MUST be QualityValue vocabularies; the Peircean tetrad seeds (modeDeduction/modeInduction/modeAbduction/modeAnalogical), the three typed-attack kinds (undermine/undercut/rebut — subsuming the older Pollock two-way rebutting/undercutting distinction), and the Dung labelling seeds (in/out/undecided) MUST be present. These are open value vocabularies (no closure asserted)." .
 
-# --- 4. Functional argument properties (MUST hold) ---------------------------
+# --- 4. Argument edge properties (MUST hold) ---------------------------------
 ex:saInferenceFunctionalProperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -88,16 +88,16 @@ ex:saInferenceFunctionalProperties a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:conclusion a owl:FunctionalProperty , owl:ObjectProperty ;
+    gmeow:conclusion a owl:ObjectProperty ;
         rdfs:domain gmeow:InferenceCommitment ; rdfs:range gmeow:StandpointClaim .
-    gmeow:inferenceModeOf a owl:FunctionalProperty , owl:ObjectProperty ;
+    gmeow:inferenceModeOf a owl:ObjectProperty ;
         rdfs:domain gmeow:InferenceCommitment ; rdfs:range gmeow:InferenceMode .
-    gmeow:correspondingSource a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
-    gmeow:correspondingTarget a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
-    gmeow:tenureOf a owl:FunctionalProperty , owl:ObjectProperty ;
+    gmeow:correspondingSource a owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
+    gmeow:correspondingTarget a owl:ObjectProperty ; rdfs:domain gmeow:Correspondence .
+    gmeow:tenureOf a owl:ObjectProperty ;
         rdfs:domain gmeow:InferenceTenure ; rdfs:range gmeow:InferenceCommitment .
 }""" ;
-    gmeow:saRationale "The single-valued argument edges MUST be functional: gmeow:conclusion (one commitment, one conclusion), gmeow:inferenceModeOf (one mode per commitment), gmeow:correspondingSource/Target (one mapped pair), gmeow:tenureOf (one tracked commitment)." .
+    gmeow:saRationale "The single-valued argument edges MUST be owl:ObjectProperty with their declared domain/range: gmeow:conclusion (InferenceCommitment → StandpointClaim), gmeow:inferenceModeOf (InferenceCommitment → InferenceMode), gmeow:correspondingSource/Target (domain gmeow:Correspondence), gmeow:tenureOf (InferenceTenure → InferenceCommitment)." .
 
 # --- 5. competesWith is a symmetric StandpointClaim relation (MUST hold) ------
 ex:saCompetesWithSymmetric a gmeow:StructuralAssertion ;

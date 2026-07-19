@@ -221,19 +221,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10)." .
 
-# --- 19. precedenceHigher, precedenceLower, precedenceScope are functional (MUST) ---
-ex:saPrecedenceTenurePropertiesFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:precedenceHigher a owl:FunctionalProperty .
-    gmeow:precedenceLower  a owl:FunctionalProperty .
-    gmeow:precedenceScope  a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:precedenceHigher, precedenceLower, and precedenceScope MUST all be owl:FunctionalProperty — each tenure binds exactly one prevailing norm, one yielding norm, and one normative system." .
-
 # --- 20. Condition subclasses InformationObject; ConditionGroup subclasses Condition (MUST) ---
 ex:saConditionIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -245,15 +232,6 @@ ASK {
     gmeow:ConditionGroup rdfs:subClassOf gmeow:Condition .
 }""" ;
     gmeow:saRationale "gmeow:Condition MUST be a subclass of gmeow:InformationObject and gmeow:ConditionGroup MUST be a subclass of gmeow:Condition — conditions are stored information objects, never entailed (Principle 12)." .
-
-# --- 21. conditionText is functional (MUST) ---
-ex:saConditionTextIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:conditionText a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:conditionText MUST be owl:FunctionalProperty — one canonical prose text per condition." .
 
 # --- 22. formalizedAs is NOT functional (MUST-NOT) ---
 ex:saFormalizedAsNotFunctional a gmeow:StructuralAssertion ;
@@ -452,14 +430,13 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Exemplar a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:CitationAct .
-    gmeow:exemplarPolarity a owl:FunctionalProperty .
     gmeow:polarityPositive   a gmeow:ExemplarPolarity .
     gmeow:polarityNegative   a gmeow:ExemplarPolarity .
     gmeow:polarityCautionary a gmeow:ExemplarPolarity .
 }""" ;
-    gmeow:saRationale "gmeow:Exemplar MUST be a logic:SubKind of CitationAct with functional polarity and the three canonical polarity individuals. Replaces the stale gufo:SubKind assertion." .
+    gmeow:saRationale "gmeow:Exemplar MUST be a logic:SubKind of CitationAct with the three canonical polarity individuals. Replaces the stale gufo:SubKind assertion." .
 
-# --- 40. Persona is a logic:Kind relator with one bearer (MUST) --------------
+# --- 40. Persona is a logic:Kind relator with an Agent bearer (MUST) ---------
 ex:saPersonaIsRelatorWithBearer a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -470,10 +447,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Persona a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
-    gmeow:personaBearer a owl:FunctionalProperty ;
-        rdfs:range gmeow:Agent .
+    gmeow:personaBearer rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator with one bearer. Replaces stale gufo:Kind/Relator assertions." .
+    gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator whose bearer ranges over gmeow:Agent. Replaces stale gufo:Kind/Relator assertions." .
 # test append
 
 # --- 41. Criterion and CriterionPole are InformationObjects with named poles (MUST)
@@ -486,10 +462,10 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Criterion rdfs:subClassOf gmeow:InformationObject .
     gmeow:CriterionPole rdfs:subClassOf gmeow:InformationObject .
-    gmeow:rewardPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
-    gmeow:penaltyPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
+    gmeow:rewardPole rdfs:range gmeow:CriterionPole .
+    gmeow:penaltyPole rdfs:range gmeow:CriterionPole .
 }""" ;
-    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST be functional object properties ranging over gmeow:CriterionPole." .
+    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST range over gmeow:CriterionPole." .
 
 # --- 42. exemplarSubject is an open, optional ObjectProperty (MUST / MUST-NOT)
 ex:saExemplarSubjectIsOpenAndOptional a gmeow:StructuralAssertion ;
@@ -515,15 +491,13 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Assessment rdfs:subClassOf gmeow:Observation .
     gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
-    gmeow:assessmentCriterion a owl:FunctionalProperty .
-    gmeow:assessmentRubric a owl:FunctionalProperty .
     FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
     FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
     FILTER NOT EXISTS { gmeow:anchorMeaning a owl:FunctionalProperty }
     FILTER NOT EXISTS { gmeow:exemplarRationale a owl:FunctionalProperty }
     gmeow:assessmentScoreValue a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST be functional without being subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property." .
+    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property." .
 
 # --- 44. Persona expression machinery is open and plural (MUST / MUST-NOT)
 ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;

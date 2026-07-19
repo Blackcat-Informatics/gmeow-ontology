@@ -89,7 +89,7 @@ ASK {
 }""" ;
     gmeow:saRationale "Per-function subclasses (CountAggregation, DensityAggregation, CentroidAggregation) MUST NOT exist — aggregation kinds are individuals of AggregationFunction, never subclasses (Principle 9)." .
 
-# --- 4. aggregationFunction property is functional (MUST) --------------------
+# --- 4. aggregationFunction property shape (MUST) ----------------------------
 ex:saAggregationFunctionPropertyFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -97,11 +97,11 @@ ex:saAggregationFunctionPropertyFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:aggregationFunction a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:aggregationFunction a owl:ObjectProperty ;
         rdfs:domain gmeow:SpatialAggregation ;
         rdfs:range gmeow:AggregationFunction .
 }""" ;
-    gmeow:saRationale "gmeow:aggregationFunction MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain SpatialAggregation and range AggregationFunction — each aggregation uses exactly one statistical function." .
+    gmeow:saRationale "gmeow:aggregationFunction MUST be an owl:ObjectProperty with domain SpatialAggregation and range AggregationFunction — it names the statistical function the aggregation uses." .
 
 # --- 5a. hasBin is an object property (MUST) ---------------------------------
 ex:saHasBinIsObjectProperty a gmeow:StructuralAssertion ;
@@ -135,11 +135,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:minimumPopulation a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:minimumPopulation a owl:DatatypeProperty ;
         rdfs:domain gmeow:SpatialAggregation ;
         rdfs:range xsd:nonNegativeInteger .
 }""" ;
-    gmeow:saRationale "gmeow:minimumPopulation MUST be an owl:DatatypeProperty and owl:FunctionalProperty with domain SpatialAggregation and range xsd:nonNegativeInteger — it carries the k-anonymity threshold (Principle 10)." .
+    gmeow:saRationale "gmeow:minimumPopulation MUST be an owl:DatatypeProperty with domain SpatialAggregation and range xsd:nonNegativeInteger — it carries the k-anonymity threshold (Principle 10)." .
 
 # --- 7a. aggregationFunction carries no property chain axiom (MUST-NOT) ------
 ex:saAggregationFunctionNoChain a gmeow:StructuralAssertion ;

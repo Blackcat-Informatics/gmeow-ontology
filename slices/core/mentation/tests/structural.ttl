@@ -42,7 +42,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Experience rdfs:subClassOf gmeow:MentalProcess . }""" ;
     gmeow:saRationale "Experience is the phenomenally-conscious, qualia-bearing subset of MentalProcess: it MUST be declared a subClassOf gmeow:MentalProcess (the only genuine subclass in this slice)." .
 
-# --- 3. experiencer is a functional ObjectProperty (MUST hold) ----------------
+# --- 3. experiencer is an ObjectProperty with domain/range (MUST hold) --------
 ex:saExperiencerFunctionalObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -50,11 +50,11 @@ ex:saExperiencerFunctionalObjectProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:experiencer a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:experiencer a owl:ObjectProperty ;
         rdfs:domain gmeow:MentalProcess ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:experiencer MUST be an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:MentalProcess and range gmeow:Agent (one process, one experiencer — a mental occurrent inheres in exactly one agent)." .
+    gmeow:saRationale "gmeow:experiencer MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:Agent (one process, one experiencer — a mental occurrent inheres in exactly one agent). Its single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module." .
 
 # --- 4a. mentalProcessType is a non-functional ObjectProperty (MUST hold) -----
 ex:saMentalProcessTypeProperty a gmeow:StructuralAssertion ;

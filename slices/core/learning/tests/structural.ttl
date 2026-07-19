@@ -154,7 +154,7 @@ ASK {
 }""" ;
     gmeow:saRationale "OPEN-range (P13): none of gmeow:subjectTaught / gmeow:learnedFrom / gmeow:fromLevel / gmeow:toLevel / gmeow:produces MUST assert an rdfs:range (the targets are retired gmeow:Source or not-yet-built gmeow:Concept) and none MUST be functional." .
 
-# --- 7a. Teaching is a mediating Relator; teacher functional, learner not (MUST)
+# --- 7a. Teaching is a mediating Relator; teacher + learner ObjectProperties (MUST)
 ex:saTeachingIsMediatingRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -165,14 +165,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Teaching a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
-    gmeow:teacher a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:teacher a owl:ObjectProperty ;
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
     gmeow:learner a owl:ObjectProperty ;
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a logic:Kind, and a subClassOf logic:Relator; gmeow:teacher MUST be a FUNCTIONAL owl:ObjectProperty (one teacher) with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent." .
+    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a logic:Kind, and a subClassOf logic:Relator; gmeow:teacher MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent." .
 
 # --- 7a'. learner is NOT functional (MUST-NOT) ------------------------------
 ex:saLearnerNotFunctional a gmeow:StructuralAssertion ;

@@ -113,7 +113,7 @@ ASK {
     gmeow:saRationale "gmeow:SceneGraphEdge MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a scene-graph edge reifies a spatial or semantic relation between two image regions; its identity is the triple (subject, object, relation type)." .
 
 # --- 5. DepictionUsage role properties are ObjectProperties with correct
-#        domains, ranges, and functionality (MUST) -------------------------
+#        domains and ranges (MUST) -----------------------------------------
 ex:saDepictionUsageRolePropertiesExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -121,13 +121,13 @@ ex:saDepictionUsageRolePropertiesExist a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:depictionSubject a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:depictionSubject a owl:ObjectProperty ;
         rdfs:domain gmeow:DepictionUsage ;
         rdfs:range gmeow:Entity .
-    gmeow:depictionImage a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:depictionImage a owl:ObjectProperty ;
         rdfs:domain gmeow:DepictionUsage ;
         rdfs:range gmeow:MediaObject .
-    gmeow:depictionContext a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:depictionContext a owl:ObjectProperty ;
         rdfs:domain gmeow:DepictionUsage ;
         rdfs:range gmeow:DepictionContext .
     gmeow:depictionAudience a owl:ObjectProperty ;
@@ -140,7 +140,7 @@ ASK {
         rdfs:domain gmeow:DepictionUsage ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "The six DepictionUsage role properties MUST all be owl:ObjectProperty with domain gmeow:DepictionUsage and correct ranges; depictionSubject, depictionImage, depictionContext MUST be owl:FunctionalProperty (one per relator); depictionAudience, depictionInterval, depictionAuthority MUST NOT be functional (multiple audiences, periods, and authorities coexist, P9)." .
+    gmeow:saRationale "The six DepictionUsage role properties MUST all be owl:ObjectProperty with domain gmeow:DepictionUsage and correct ranges. The single-valued character of depictionSubject, depictionImage, depictionContext (one per relator) now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration; depictionAudience, depictionInterval, depictionAuthority remain non-functional (multiple audiences, periods, and authorities coexist, P9)." .
 
 # --- 6. Non-functional DepictionUsage role properties are NOT functional
 #        (MUST-NOT) -------------------------------------------------------
@@ -160,7 +160,7 @@ ASK {
     gmeow:saRationale "gmeow:depictionAudience, depictionInterval, and depictionAuthority MUST NOT be owl:FunctionalProperty -- multiple audiences, periods, and authorities coexist without a privileged claimant (Principle 9)." .
 
 # --- 7. ImageRegion and RegionSelector properties have correct
-#        domains, ranges, and functionality (MUST) -------------------------
+#        domains and ranges (MUST) -----------------------------------------
 ex:saImageRegionPropertiesExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -171,13 +171,13 @@ ASK {
     gmeow:hasRegion a owl:ObjectProperty ;
         rdfs:domain gmeow:MediaObject ;
         rdfs:range gmeow:ImageRegion .
-    gmeow:regionOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:regionOf a owl:ObjectProperty ;
         rdfs:domain gmeow:ImageRegion ;
         rdfs:range gmeow:MediaObject .
-    gmeow:regionSelector a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:regionSelector a owl:ObjectProperty ;
         rdfs:domain gmeow:ImageRegion ;
         rdfs:range gmeow:RegionSelector .
-    gmeow:selectorType a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:selectorType a owl:ObjectProperty ;
         rdfs:domain gmeow:RegionSelector ;
         rdfs:range gmeow:SelectorType .
     gmeow:selectorValue a owl:DatatypeProperty ;
@@ -185,10 +185,10 @@ ASK {
     gmeow:regionLabel a owl:DatatypeProperty ;
         rdfs:domain gmeow:ImageRegion .
 }""" ;
-    gmeow:saRationale "hasRegion, regionOf, regionSelector, selectorType, selectorValue, and regionLabel MUST all carry the correct type, domain, and range; regionOf, regionSelector, and selectorType MUST be owl:FunctionalProperty (each region has exactly one parent image, one selector, and one selector kind)." .
+    gmeow:saRationale "hasRegion, regionOf, regionSelector, selectorType, selectorValue, and regionLabel MUST all carry the correct type, domain, and range. The single-valued character of regionOf, regionSelector, and selectorType (each region has exactly one parent image, one selector, and one selector kind) now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
-# --- 8. SceneGraphEdge properties have correct domains, ranges, and
-#        functionality (MUST) ---------------------------------------------
+# --- 8. SceneGraphEdge properties have correct domains and
+#        ranges (MUST) ----------------------------------------------------
 ex:saSceneGraphEdgePropertiesExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -196,19 +196,19 @@ ex:saSceneGraphEdgePropertiesExist a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sceneSubject a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:sceneSubject a owl:ObjectProperty ;
         rdfs:domain gmeow:SceneGraphEdge ;
         rdfs:range gmeow:ImageRegion .
-    gmeow:sceneObject a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:sceneObject a owl:ObjectProperty ;
         rdfs:domain gmeow:SceneGraphEdge ;
         rdfs:range gmeow:ImageRegion .
-    gmeow:sceneRelation a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:sceneRelation a owl:ObjectProperty ;
         rdfs:domain gmeow:SceneGraphEdge ;
         rdfs:range gmeow:SceneRelationType .
-    gmeow:sceneConfidence a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:sceneConfidence a owl:DatatypeProperty ;
         rdfs:domain gmeow:SceneGraphEdge .
 }""" ;
-    gmeow:saRationale "sceneSubject, sceneObject, sceneRelation, and sceneConfidence MUST all be present as owl:FunctionalProperty with domain gmeow:SceneGraphEdge and correct ranges -- a reified edge binds exactly one subject region, one object region, one relation type, and one confidence value." .
+    gmeow:saRationale "sceneSubject, sceneObject, sceneRelation, and sceneConfidence MUST all be present with domain gmeow:SceneGraphEdge and correct ranges -- a reified edge binds exactly one subject region, one object region, one relation type, and one confidence value. That single-valued (one-per-edge) character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 9. SelectorType is a logic:QualityValue and its nine seeds exist (MUST) -
 ex:saSelectorTypeValueVocab a gmeow:StructuralAssertion ;

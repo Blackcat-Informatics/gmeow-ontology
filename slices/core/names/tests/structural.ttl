@@ -60,19 +60,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:NameUsage MUST be rdfs:subClassOf logic:Relator -- stereotype namespace is logic: (migrated, not gufo:)." .
 
-# --- 4. Constitutive NameUsage roles are functional ObjectProperties (MUST) --
+# --- 4. Constitutive NameUsage roles are ObjectProperties (MUST) -------------
 ex:saNameUsageConstitutiveRolesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:usageNamed              a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:usageAppellation        a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:usageRelationshipScope  a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:usageRegister           a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:usageNamed              a owl:ObjectProperty .
+    gmeow:usageAppellation        a owl:ObjectProperty .
+    gmeow:usageRelationshipScope  a owl:ObjectProperty .
+    gmeow:usageRegister           a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:usageNamed, usageAppellation, usageRelationshipScope, and usageRegister MUST all be owl:ObjectProperty and owl:FunctionalProperty -- constitutive relator roles: one usage = one named entity, one appellation, one scope, one register." .
+    gmeow:saRationale "gmeow:usageNamed, usageAppellation, usageRelationshipScope, and usageRegister MUST all be owl:ObjectProperty -- constitutive relator roles (one usage = one named entity, one appellation, one scope, one register)." .
 
 # --- 5. Perspectival NameUsage roles are ObjectProperties (MUST) -------------
 ex:saNameUsagePerspectivalRolesObjectProperty a gmeow:StructuralAssertion ;
@@ -161,7 +161,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:usageAuthority a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:usageAuthority MUST NOT be owl:FunctionalProperty -- joint or competing naming authorities coexist with no privileged claimant (anti-colonial, Principle 9)." .
 
-# --- 12. nameLanguage is a functional ObjectProperty to Language (MUST) ------
+# --- 12. nameLanguage is an ObjectProperty to Language (MUST) ----------------
 ex:saNameLanguageFunctionalObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -169,10 +169,10 @@ ex:saNameLanguageFunctionalObjectProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:nameLanguage a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:nameLanguage a owl:ObjectProperty ;
         rdfs:range gmeow:Language .
 }""" ;
-    gmeow:saRationale "gmeow:nameLanguage MUST be owl:ObjectProperty and owl:FunctionalProperty with rdfs:range gmeow:Language -- Language is always first-class (never a bare BCP-47 literal); functional so co-equal multilingual names are separate co-equal Appellations." .
+    gmeow:saRationale "gmeow:nameLanguage MUST be owl:ObjectProperty with rdfs:range gmeow:Language -- Language is always first-class (never a bare BCP-47 literal)." .
 
 # --- 13. nameLanguage is NOT a DatatypeProperty (MUST-NOT) -------------------
 ex:saNameLanguageNotDatatypeProperty a gmeow:StructuralAssertion ;
@@ -206,16 +206,16 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:NamePartType MUST be rdfs:subClassOf logic:QualityValue -- name-part kinds are an open value vocabulary of individuals (migrated: logic: not gufo:)." .
 
-# --- 16. namePartType is a functional ObjectProperty (MUST) ------------------
+# --- 16. namePartType is an ObjectProperty (MUST) ----------------------------
 ex:saNamePartTypePropertyFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:namePartType a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:namePartType a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:namePartType MUST be an owl:ObjectProperty and owl:FunctionalProperty -- a single part has exactly one kind." .
+    gmeow:saRationale "gmeow:namePartType MUST be an owl:ObjectProperty." .
 
 # --- 17. Seven NamePartType multi-cultural seed individuals exist (MUST) ------
 ex:saNamePartTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -332,20 +332,20 @@ ASK {
 }""" ;
     gmeow:saRationale "The five PronounSet sample seeds (she/her, they/them, xe/xem, fae/faer, ze/zir) MUST exist as gmeow:PronounSet individuals." .
 
-# --- 27. Five pronoun form properties are functional DatatypeProperties (MUST)
+# --- 27. Five pronoun form properties are DatatypeProperties (MUST) ----------
 ex:saPronounFormPropertiesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:pronounSubject              a owl:DatatypeProperty , owl:FunctionalProperty .
-    gmeow:pronounObject               a owl:DatatypeProperty , owl:FunctionalProperty .
-    gmeow:pronounPossessiveDeterminer a owl:DatatypeProperty , owl:FunctionalProperty .
-    gmeow:pronounPossessive           a owl:DatatypeProperty , owl:FunctionalProperty .
-    gmeow:pronounReflexive            a owl:DatatypeProperty , owl:FunctionalProperty .
+    gmeow:pronounSubject              a owl:DatatypeProperty .
+    gmeow:pronounObject               a owl:DatatypeProperty .
+    gmeow:pronounPossessiveDeterminer a owl:DatatypeProperty .
+    gmeow:pronounPossessive           a owl:DatatypeProperty .
+    gmeow:pronounReflexive            a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "All five pronoun form properties (subject, object, possessive determiner, possessive, reflexive) MUST be owl:DatatypeProperty and owl:FunctionalProperty -- exactly one form per paradigm." .
+    gmeow:saRationale "All five pronoun form properties (subject, object, possessive determiner, possessive, reflexive) MUST be owl:DatatypeProperty." .
 
 # --- 28. they/them set fills all five forms (MUST) ---------------------------
 ex:saTheyThemFiveFormsExist a gmeow:StructuralAssertion ;

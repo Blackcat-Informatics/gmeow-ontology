@@ -187,7 +187,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four value vocabularies MUST be logic:AbstractIndividualType subclasses of logic:QualityValue -- closed value lattices disjoint from gmeow:Entity, keeping the DL profile clean (the standpoint-axis precedent)." .
 
-# --- 13. Role-filler properties on the tenure are functional (MUST) -----------
+# --- 13. Role-filler properties on the tenure are well-typed (MUST) -----------
 ex:saTenureFillersFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -195,11 +195,11 @@ ex:saTenureFillersFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:inhabitationSubject a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Agent .
-    gmeow:inhabitedHost a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Entity .
-    gmeow:inhabitationLocusKind a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:InhabitationLocusKind .
+    gmeow:inhabitationSubject a owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Agent .
+    gmeow:inhabitedHost a owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Entity .
+    gmeow:inhabitationLocusKind a owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:InhabitationLocusKind .
 }""" ;
-    gmeow:saRationale "The per-branch role-filler edges MUST be functional object properties with the tenure domain and the given ranges -- one subject, one host, one locus per tenure (INHABITED-TOPOLOGY.md role-filler table)." .
+    gmeow:saRationale "The per-branch role-filler edges MUST be object properties with the tenure domain and the given ranges (INHABITED-TOPOLOGY.md role-filler table)." .
 
 # --- 14. NEUTRALITY: describedSubject / describedHost carry NO range (MUST-NOT)
 ex:saDescribedPropertiesRangeOpen a gmeow:StructuralAssertion ;

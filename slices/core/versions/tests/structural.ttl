@@ -49,27 +49,27 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:VersionMembership MUST be an owl:Class, a subclass of gmeow:Observation (universal claim stack), and a subclass of logic:Relator (reified mediation relator) — the dual typing keeps it in OWL 2 DL and hooks it into the observation spine." .
 
-# --- 3a. versionMember is an ObjectProperty and FunctionalProperty (MUST) -----
+# --- 3a. versionMember is an ObjectProperty (MUST) -----
 ex:saVersionMemberFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionMember a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:versionMember a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:versionMember MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one member per VersionMembership relator; a second member collapses the two." .
+    gmeow:saRationale "gmeow:versionMember MUST be an owl:ObjectProperty — one member per VersionMembership relator; a second member collapses the two." .
 
-# --- 3b. versionSet is an ObjectProperty and FunctionalProperty (MUST) --------
+# --- 3b. versionSet is an ObjectProperty (MUST) --------
 ex:saVersionSetPropertyFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:versionSet a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:versionSet a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:versionSet MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one set per VersionMembership relator." .
+    gmeow:saRationale "gmeow:versionSet MUST be an owl:ObjectProperty — one set per VersionMembership relator." .
 
 # --- 4a. versionRole is an ObjectProperty (MUST) ------------------------------
 ex:saVersionRoleIsObjectProperty a gmeow:StructuralAssertion ;

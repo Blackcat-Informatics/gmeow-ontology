@@ -187,18 +187,18 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Contribution MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the universal credit/authorship relator binding contributor, target, and role." .
 
-# --- 11. Contribution core properties are functional ObjectProperties (MUST) -
+# --- 11. Contribution core properties are ObjectProperties (MUST) -----------
 ex:saContributionCorePropertiesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:contributor        a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:contributionTarget a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:contributionRole   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:contributor        a owl:ObjectProperty .
+    gmeow:contributionTarget a owl:ObjectProperty .
+    gmeow:contributionRole   a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:contributor, contributionTarget, and contributionRole MUST each be both owl:ObjectProperty and owl:FunctionalProperty -- one agent, one target, one role per relator instance (SHACL-mandatory triples)." .
+    gmeow:saRationale "gmeow:contributor, contributionTarget, and contributionRole MUST each be an owl:ObjectProperty -- one agent, one target, one role per relator instance (SHACL-mandatory triples). Their functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 12. contributionDegree is an ObjectProperty (MUST) ---------------------
 ex:saContributionDegreeIsObjectProperty a gmeow:StructuralAssertion ;
@@ -411,7 +411,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The four CarrierMedium seed individuals MUST exist as gmeow:CarrierMedium instances (open vocabulary -- superset check)." .
 
-# --- 26. hasManifestationFormat is a functional ObjectProperty with
+# --- 26. hasManifestationFormat is an ObjectProperty with
 #         domain Manifestation and range ManifestationFormat (MUST) ----------
 ex:saHasManifestationFormatShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -420,11 +420,11 @@ ex:saHasManifestationFormatShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:hasManifestationFormat a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:hasManifestationFormat a owl:ObjectProperty ;
         rdfs:domain gmeow:Manifestation ;
         rdfs:range gmeow:ManifestationFormat .
 }""" ;
-    gmeow:saRationale "gmeow:hasManifestationFormat MUST be both owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:Manifestation and range gmeow:ManifestationFormat -- one format per Manifestation per asserter (SHACL-mandatory)." .
+    gmeow:saRationale "gmeow:hasManifestationFormat MUST be an owl:ObjectProperty with domain gmeow:Manifestation and range gmeow:ManifestationFormat -- one format per Manifestation per asserter (SHACL-mandatory). Its functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 27. New issue-156 ManifestationFormat seeds exist (MUST) ---------------
 ex:saManifestationFormatNewSeeds a gmeow:StructuralAssertion ;
