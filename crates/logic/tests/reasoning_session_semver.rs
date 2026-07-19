@@ -30,15 +30,19 @@ use session_common::*;
 /// `functionalProperty(?P,?P)` from the canonical `logic:PropertyCharacteristicAssertion`
 /// carrier (a new Datalog rule alongside the `owl:FunctionalProperty` marker rule), and
 /// `reason/dl.rs` unions the carrier into the functional-clash reader — both move the folded
-/// program/`reason/dl.rs` content digest.
+/// program/`reason/dl.rs` content digest. Re-blessed for the key carrier migration: `reason/dl.rs`
+/// now reads keys from the canonical `logic:KeyAssertion` carrier (`logic:keyClass` +
+/// `logic:keyProperty`) unioned into the key-agreement clash reader and coverage inventory
+/// alongside the `owl:hasKey` list, so the datatype/single-property key survives removal of the
+/// `owl:hasKey` slice declaration — moving the `reason/dl.rs` content digest folded here.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f55eaae2d9ced14806c02a0a9373c6073faa5b577bea9e82246fc2ffe522c651";
+    "8c7a89804b39f539bf0346c110c10a05d8c8f72adc9f36b4b33658f506531d05";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "0f0c011bf39af6fe81e3dde7ed5f047f88f73bd98b7cf72adc27400234b02372";
+    "f12b866430d083715b4c4f743225fd2429825bd97f6d87c066da246ff5cb8c4e";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

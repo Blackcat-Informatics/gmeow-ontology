@@ -2557,34 +2557,39 @@ fn derive_qualified_cardinality_emits_plain_class_when_a_closed_range_backs_it()
 
 #[test]
 fn derive_single_property_has_key_emits_inverse_functional_shape() {
-    // `K owl:hasKey ( P )` is the OWL 2 DL way to state a datatype/single-property key (an
+    // A `logic:KeyAssertion` (logic:keyClass C ; logic:keyProperty P) is the canonical carrier of a
+    // datatype/single-property key — the greenfield replacement for `C owl:hasKey ( P )` (an
     // owl:InverseFunctionalProperty on a datatype property would be OWL 2 Full). Its closed-world
     // reading is the same inverse sh:maxCount 1 the InverseFunctionalProperty arm emits.
     let ds = shape_dataset(
-        "g:GTSSegment a owl:Class ; owl:hasKey ( g:gtsHeadId ) . \
-         g:gtsHeadId a owl:DatatypeProperty ; rdfs:domain g:GTSSegment ; rdfs:range xsd:string .",
+        "g:GTSSegment a owl:Class . \
+         g:gtsHeadId a owl:DatatypeProperty ; rdfs:domain g:GTSSegment ; rdfs:range xsd:string . \
+         logic:gtsSegmentHeadKey a logic:KeyAssertion ; \
+             logic:keyClass g:GTSSegment ; logic:keyProperty g:gtsHeadId .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let shape = shapes
         .iter()
         .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("gtsHeadId")))
-        .expect("an ObjectsOf(gtsHeadId) shape from owl:hasKey");
+        .expect("an ObjectsOf(gtsHeadId) shape from the logic:KeyAssertion carrier");
     let prop = &shape.properties[0];
-    assert!(prop.inverse, "hasKey must derive an inverse-path shape");
+    assert!(prop.inverse, "a single-property key must derive an inverse-path shape");
     assert_eq!(
         prop.max_count,
         Some(1),
-        "hasKey → each key value has ≤1 subject"
+        "key → each key value has ≤1 subject"
     );
 }
 
 #[test]
 fn derive_composite_has_key_derives_no_single_path_shape() {
-    // A COMPOSITE key (owl:hasKey ( P1 P2 )) asserts the TUPLE is unique, not each part — it has
-    // no single-path SHACL form, so no per-part uniqueness shape may be derived.
+    // A COMPOSITE key (a logic:KeyAssertion naming several logic:keyProperty values) asserts the
+    // TUPLE is unique, not each part — it has no single-path SHACL form, so no per-part uniqueness
+    // shape may be derived.
     let ds = shape_dataset(
-        "g:C a owl:Class ; owl:hasKey ( g:p1 g:p2 ) . \
-         g:p1 a owl:DatatypeProperty . g:p2 a owl:DatatypeProperty .",
+        "g:C a owl:Class . g:p1 a owl:DatatypeProperty . g:p2 a owl:DatatypeProperty . \
+         logic:cCompositeKey a logic:KeyAssertion ; \
+             logic:keyClass g:C ; logic:keyProperty g:p1 , g:p2 .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     assert!(

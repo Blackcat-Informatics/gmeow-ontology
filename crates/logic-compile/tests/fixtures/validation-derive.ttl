@@ -45,9 +45,14 @@ g:primaryId rdfs:domain g:Doc .
     logic:characterizes g:primaryId ;
     logic:characteristicSort logic:functionalProperty .
 
-# Single-property key → an inverse-path uniqueness shape (sh:inversePath ; sh:maxCount 1).
-g:GTSSegment a owl:Class ;
-    owl:hasKey ( g:gtsHeadId ) .
+# Single-property key, sourced from the canonical logic: carrier (a logic:KeyAssertion joining
+# logic:keyClass + logic:keyProperty) — the deprecated owl:hasKey axiom is no longer a projection
+# source. A single key property derives an inverse-path uniqueness shape (sh:inversePath ;
+# sh:maxCount 1) on the key value.
+g:GTSSegment a owl:Class .
+logic:gtsSegmentHeadKey a logic:KeyAssertion ;
+    logic:keyClass g:GTSSegment ;
+    logic:keyProperty g:gtsHeadId .
 
 # Faceted-datatype allValuesFrom → sh:minLength / sh:maxLength / sh:pattern; the regex
 # carries XPath-dialect residue (lossy) so the derived set exercises the loss ledger.
