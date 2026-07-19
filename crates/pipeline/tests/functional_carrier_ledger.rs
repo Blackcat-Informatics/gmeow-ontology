@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Non-vacuity gate for the functional-characteristic carrier completeness invariant (issue #1579).
+//! Non-vacuity gate for the functional-characteristic carrier completeness invariant (issue 1579).
 //!
 //! `gmeow_logic_compile::frontend::functional_carrier_integrity` is the migration-surviving
 //! successor to the (now vacuous) `functional_properties_missing_logic_carrier` check. These tests

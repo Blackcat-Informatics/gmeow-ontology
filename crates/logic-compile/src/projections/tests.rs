@@ -1649,7 +1649,7 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
 /// `logic:characteristicSort logic:functionalProperty`). The existing synthetic
 /// test proves this for a 3-triple program; this test proves it for the WHOLE
 /// shipped corpus so a future refactor that silently drops the re-emission — the
-/// exact failure the #1579 audit wrongly believed already existed — hard-fails
+/// exact failure the issue-1579 audit wrongly believed already existed — hard-fails
 /// here instead of shipping an OWL-DL view with zero `owl:FunctionalProperty`.
 ///
 /// The guard is a SET equality (not just a count): every functional carrier
