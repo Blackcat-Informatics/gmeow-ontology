@@ -147,7 +147,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// The #1428 bilinear-form distance builtin declined (a malformed vantage form or
+    /// The native bilinear-form distance builtin declined (a malformed vantage form or
     /// an exact-arithmetic overflow) — never a wrong answer. `detail` carries the fault.
     pub struct BilinearDistanceFailed { detail: String }
     code = "affect.classify.distance-failed";

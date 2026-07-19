@@ -36,9 +36,9 @@ use gmeow_math::{
     MAX_BASIS_DIM, TripleIndex, all_iris, bounded_index, first_i128, first_iri, first_literal,
     has_type, index_graph, load_gram, sqrt_rational_decimal, subjects,
 };
-// The #1428 bilinear-form distance authority: Q9 classification computes its exact-ℚ
+// The native bilinear-form distance authority: Q9 classification computes its exact-ℚ
 // squared distances THROUGH this governed moded-builtin family, never a private path
-// (issue #1385). `compare_sqdist` is the overflow-safe ordering the ranking rides.
+// (the affect classifier). `compare_sqdist` is the overflow-safe ordering the ranking rides.
 use gmeow_logic::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 
 use gmeow_errors::Diag;
@@ -437,7 +437,7 @@ pub fn distance_and_cosine(
 
 // ---------------------------------------------------------------------------
 // Nearest-prototype classification (competency Q9) — a vantage-relative ranked
-// judgment under an EXPLICIT vantage Gram, dispatched through the #1428 family.
+// judgment under an EXPLICIT vantage Gram, dispatched through the native builtin family.
 // ---------------------------------------------------------------------------
 
 /// The metric lens a classification ranks prototypes under.
@@ -470,7 +470,7 @@ pub struct RankedPrototype {
     /// The prototype observation IRI.
     pub prototype: String,
     /// The EXACT squared G-distance `(x − p)ᵀG(x − p)` as a printable ratio — the value
-    /// the G-distance ranking decides on, computed through the #1428 bilinear builtin.
+    /// the G-distance ranking decides on, computed through the native bilinear builtin.
     pub squared_distance: String,
     /// `√(squared_distance)` as a fixed-precision decimal — the display seam, never
     /// used for selection.
@@ -519,7 +519,7 @@ fn rsign(r: Rational) -> i32 {
     }
 }
 
-/// Map a #1428 [`BilinearFormError`] to a typed affect diagnostic.
+/// Map a native [`BilinearFormError`] to a typed affect diagnostic.
 fn map_bilinear(e: BilinearFormError) -> Diag {
     match e {
         BilinearFormError::DimensionMismatch => Diag::of_kind(error::CoordinateDimensionMismatch {
@@ -589,7 +589,7 @@ struct Candidate {
 }
 
 /// True when `a` ranks strictly before `b` under `metric` (best-first), with a
-/// deterministic lexicographically-least-IRI tie-break. Ordering rides the #1428
+/// deterministic lexicographically-least-IRI tie-break. Ordering rides the the native builtin
 /// family's overflow-safe exact compare, never `Rational` ordering (which panics on
 /// overflow); the only bare comparisons are on axis signs (`i32`) and IRIs.
 fn ranks_before(a: &Candidate, b: &Candidate, metric: MetricLens) -> gmeow_errors::Result<bool> {
@@ -631,8 +631,8 @@ fn ranks_before(a: &Candidate, b: &Candidate, metric: MetricLens) -> gmeow_error
 
 /// Classify a state affect vector to its nearest named-emotion prototype(s) under an
 /// EXPLICIT vantage metric, dispatching every exact-ℚ squared distance THROUGH the
-/// #1428 bilinear-form builtin family ([`gmeow_logic::bilinear_sqdist`]) — never a
-/// private numeric path (issue #1385 routing mandate). Answers competency Q9
+/// native bilinear-form builtin family ([`gmeow_logic::bilinear_sqdist`]) — never a
+/// private numeric path (the maintainer routing mandate). Answers competency Q9
 /// ("is this vector a schadenfreude?").
 ///
 /// # Explicit vantage-Gram (the decoupled metric)
@@ -646,7 +646,7 @@ fn ranks_before(a: &Candidate, b: &Candidate, metric: MetricLens) -> gmeow_error
 ///
 /// The squared distance `(x − p)ᵀG(x − p)` and (cosine lens) the inner product via the
 /// polarization identity `⟨x,p⟩ = (‖x‖² + ‖p‖² − ‖x−p‖²)/2` are ALL computed through the
-/// #1428 builtin; ordering rides [`gmeow_logic::compare_sqdist`] (overflow-safe). The
+/// native builtin; ordering rides [`gmeow_logic::compare_sqdist`] (overflow-safe). The
 /// `√` decimals and the cosine display string cross the solver seam for DISPLAY only,
 /// never selection. Ties break to the lexicographically-least prototype IRI.
 ///
@@ -740,7 +740,7 @@ pub fn classify(
         MetricLens::GDistance => None,
     };
 
-    // ── Load + measure every prototype THROUGH the #1428 bilinear builtin ───────
+    // ── Load + measure every prototype THROUGH the native bilinear builtin ───────
     let two = Rational::from_i128(2)?;
     let mut candidates: Vec<Candidate> = Vec::with_capacity(prototype_iris.len());
     for proto_iri in prototype_iris {
@@ -758,7 +758,7 @@ pub fn classify(
                         ),
                     }));
                 }
-                // ⟨x,p⟩_G = (‖x‖² + ‖p‖² − ‖x−p‖²) / 2 — polarization, all via #1428.
+                // ⟨x,p⟩_G = (‖x‖² + ‖p‖² − ‖x−p‖²) / 2 — polarization, all via the native builtin.
                 let inner = x_norm_sq
                     .checked_add(p_norm_sq)?
                     .checked_sub(squared_distance)?
@@ -1244,7 +1244,7 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
     //
     // The classifier reads AffectVectorObservation coordinate vectors and imposes an
     // EXPLICIT vantage Gram (the chosen profile's metricGram) on all of them, routing
-    // every squared distance through the #1428 bilinear builtin.
+    // every squared distance through the native bilinear builtin.
 
     const CLS_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/affect/classify/";
     const VANT_PROFILE: &str =

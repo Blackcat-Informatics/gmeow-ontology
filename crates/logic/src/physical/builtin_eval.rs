@@ -1238,10 +1238,10 @@ pub(crate) fn eval<'a>(
     }
 }
 
-// ── Public production API: the #1428 bilinear-form distance authority ──────────
+// ── Public production API: the native bilinear-form distance authority ──────────
 //
 // External crates (notably `gmeow-affect`'s nearest-prototype classifier, issue
-// #1385) compute Q9 metric-space distances THROUGH this governed moded-builtin
+// ) compute Q9 metric-space distances THROUGH this governed moded-builtin
 // family — `eval` of a [`QBuiltin::BilinearSqDist`] — rather than a private exact-ℚ
 // path, so the builtin dispatch is the SINGLE production distance authority (the
 // maintainer routing mandate). The Gram is supplied EXPLICITLY per call, so the
@@ -1285,8 +1285,8 @@ impl From<BuiltinError> for BilinearFormError {
 }
 
 /// The exact-ℚ bilinear-form squared distance `(x − y)ᵀ G (x − y)`, computed THROUGH
-/// the #1428 moded-builtin dispatch (`eval` of a [`QBuiltin::BilinearSqDist`]) — the
-/// single production distance authority for metric-space classification (issue #1385).
+/// the native moded-builtin dispatch (`eval` of a [`QBuiltin::BilinearSqDist`]) — the
+/// single production distance authority for metric-space classification (the affect classifier).
 ///
 /// `gram_cells` are the declared-symmetric `(row, col, value)` entries of the metric
 /// Gram `G` (each authored cell is mirrored across the diagonal exactly as the builtin
@@ -1344,7 +1344,7 @@ pub fn bilinear_sqdist(
     }
 }
 
-/// Exact-ℚ total ordering of two squared distances, routed through the #1428 family's
+/// Exact-ℚ total ordering of two squared distances, routed through the native builtin family's
 /// overflow-SAFE comparison (`apply_compare_q`) — never `Rational::cmp`, which panics
 /// on i128 overflow. The single ordering primitive nearest-prototype ranking is built on.
 pub fn compare_sqdist(

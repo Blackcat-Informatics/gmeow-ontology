@@ -831,7 +831,7 @@ pub enum AffectCommands {
     /// an EXPLICIT vantage metric (competency Q9: "is this vector a schadenfreude?").
     /// Ranks by exact G-distance (`--metric distance`, incl. intensity) or G-cosine
     /// (`--metric cosine`, direction/quality); every squared distance is computed
-    /// THROUGH the #1428 exact-ℚ bilinear builtin, and the reported √ decimals + cosine
+    /// THROUGH the native exact-ℚ bilinear builtin, and the reported √ decimals + cosine
     /// are display-only, never selection. Defaults to the full canonical
     /// `gmeow:AffectPrototype` set; the empty set / a non-PD vantage / coincident
     /// prototypes / a zero-norm cosine vector are hard fails. Classification is a
