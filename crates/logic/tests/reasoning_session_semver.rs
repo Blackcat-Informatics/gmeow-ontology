@@ -25,15 +25,19 @@ use session_common::*;
 /// digest folded into this descriptor. Re-blessed once more for the round-3 certifier
 /// hardening: the reordered soundness differential, the atomic authored-rule reader
 /// (non-resource ref / duplicate slot hard-fails), and the MSA critical-instance size cap
-/// all move the `physical/chase.rs` / `reason/dl.rs` content digest.
+/// all move the `physical/chase.rs` / `reason/dl.rs` content digest. Re-blessed again for
+/// the public bilinear-form distance API (`bilinear_sqdist` / `compare_sqdist` /
+/// `BilinearFormError`) exposed on the runtime engine surface (`physical/builtin_eval.rs`,
+/// `physical/mod.rs`) so external crates drive the moded bilinear builtin through the
+/// governed family — both files are folded into the runtime engine-source content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "53f769341556ef2df634a391c33ccd4f2ac144dea1b1f241a19a9e2bc58bcee1";
+    "8ff063da4d6c3bf23e1203431ab7f03d526cfdeabf616342d8a33119d3181b35";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8610b18a7133b52ec73d8183ceb13212b4e9278bece10d8c5d7b857b74971237";
+    "8d180b1df2f2663b1325e054a41feebb1a95bdbf8ff90376907795e13f003849";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
