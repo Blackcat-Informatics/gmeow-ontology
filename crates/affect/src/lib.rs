@@ -22,7 +22,7 @@
 //! digits, round-half-up at the seventh digit, via an integer floor-sqrt — never
 //! `f64::sqrt`. Given the same inputs the output strings are byte-identical.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::gts::model::Graph;
 
@@ -129,6 +129,7 @@ fn load_cells(
         }));
     }
     let mut cells = Vec::new();
+    let mut seen_axes = BTreeSet::new();
     for cell in component_iris {
         let dimension = first_iri(index, &cell, &gm("appraisalDimension")).ok_or_else(|| {
             Diag::of_kind(error::MissingAffectProperty {
@@ -143,6 +144,16 @@ fn load_cells(
             })
         })?;
         let axis = bounded_index(axis, "core axis")?;
+        // One cell per core axis: a second cell on the same axis would silently
+        // overwrite the first (an order-dependent, wrong vector) — hard-fail instead.
+        if !seen_axes.insert(axis) {
+            return Err(Diag::of_kind(error::DuplicateCoordinateAxis {
+                detail: format!(
+                    "{vector_iri} declares more than one gmeow:vectorComponent cell on core \
+                     axis {axis} ({dimension}); exactly one cell per axis is required"
+                ),
+            }));
+        }
         let value = Rational::parse_decimal(
             &first_literal(index, &cell, &gm("appraisalValue")).ok_or_else(|| {
                 Diag::of_kind(error::MissingAffectProperty {
@@ -976,6 +987,28 @@ mod tests {
         );
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
         assert!(err.message().contains("core axis"), "{err}");
+    }
+
+    // Two vectorComponent cells on the SAME core axis is a hard fail, not a
+    // silent last-writer-wins overwrite (no-optionality; reviewer r3611415426).
+    #[test]
+    fn duplicate_core_axis_cell_hard_fails() {
+        let turtle = observation_turtle(
+            "gmeow:affectMetricTensorNorm",
+            "gmeow:weightingValenceDominant",
+        )
+        .replace(
+            "gmeow:vectorComponent ex:valenceCell , ex:arousalCell .",
+            "gmeow:vectorComponent ex:valenceCell , ex:arousalCell , ex:valenceCellDup .\n\
+             ex:valenceCellDup a gmeow:Appraisal ;\n    \
+             gmeow:appraisalDimension gmeow:dimensionValence ;\n    \
+             gmeow:appraisalValue \"0.2\"^^xsd:decimal .",
+        );
+        let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
+        assert!(
+            err.message().contains("more than one") && err.message().contains("core axis 0"),
+            "{err}"
+        );
     }
 
     // Graph-parse path is load-bearing: intensity + dominant axis from turtle.

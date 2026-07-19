@@ -117,6 +117,17 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A coordinate vector observation declares more than one `gmeow:vectorComponent`
+    /// cell on the SAME core axis. The duplicates would silently collapse to whichever
+    /// cell loaded last — an order-dependent, wrong vector — so one cell per axis is
+    /// required. `detail` names the observation, the duplicated axis, and its dimension.
+    pub struct DuplicateCoordinateAxis { detail: String }
+    code = "affect.classify.duplicate-axis";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// Two prototype signatures are COINCIDENT under the vantage metric (zero
     /// G-distance apart) — an authoring error that makes the nearest-prototype margin
     /// bisector undefined. `detail` names the coincident pair.
@@ -168,6 +179,7 @@ pub const AFFECT_DIAG_CODES: &[&str] = &[
     EmptyPrototypeSet::CODE,
     NonPositiveDefiniteVantage::CODE,
     CoordinateDimensionMismatch::CODE,
+    DuplicateCoordinateAxis::CODE,
     CoincidentPrototypes::CODE,
     ZeroNormCosine::CODE,
     ValueOutOfRange::CODE,
@@ -188,6 +200,7 @@ pub fn register_all() -> Vec<Code> {
         EmptyPrototypeSet::register(),
         NonPositiveDefiniteVantage::register(),
         CoordinateDimensionMismatch::register(),
+        DuplicateCoordinateAxis::register(),
         CoincidentPrototypes::register(),
         ZeroNormCosine::register(),
         ValueOutOfRange::register(),
