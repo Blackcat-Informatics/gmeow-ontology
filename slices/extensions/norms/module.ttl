@@ -40,7 +40,7 @@ gmeow:ComplianceAssessment
     rdfs:label "Compliance Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
     skos:definition "An observation that an event complied with or violated a norm — vantage = the assessor. The reified form of gmeow:violates / gmeow:complies, for when who-judged, on-what-evidence, and how-confidently must be first-class. Two assessors disagreeing are two coexisting cells; no global compliance verdict exists (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:ca1 a gmeow:ComplianceAssessment ; gmeow:assessedEvent ex:leakEvent ; gmeow:assessedNorm ex:n1 ; gmeow:complianceVerdict gmeow:verdictNotHeld ."@x-gmeow-english ;
+    skos:example "ex:ca1 a gmeow:ComplianceAssessment ; gmeow:assessedEvent ex:leakEvent ; gmeow:assessedNorm ex:n1 ; gmeow:complianceVerdict gmeow:verdictNotHeld ; gmeow:vantage ex:auditor ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the ordinary case (flat gmeow:violates / gmeow:complies carry it more cheaply) and avoid expecting a single global verdict — disagreeing assessors coexist (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the assessment, name the event with gmeow:assessedEvent, the norm with gmeow:assessedNorm, the verdict with gmeow:complianceVerdict, and carry the assessor as the observation vantage."@x-gmeow-english ;
@@ -1328,6 +1328,20 @@ gmeow:verdictUndetermined
     skos:definition "The evaluator could not determine whether the condition held."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# The generated best-practice recommendation catalog: the gmeow:NormativeSystem that
+# gathers every gmeow:deonticRecommendation gmeow:Rule the validator materialises from an
+# advisory finding (each recommendation norm attaches via gmeow:partOf). Issued by the
+# gmeow:gmeowBestPractice standpoint (gmeow:systemIssuer ⊑ gmeow:normIssuer), so the whole
+# catalog names its issuer — no anonymous oughts. Competing style-guide systems coexist
+# (Principles 1, 9).
+gmeow:gmeowBestPracticeRecommendations
+    a gmeow:NormativeSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "GMEOW best-practice recommendations"@x-gmeow-english ;
+    skos:definition "The body of GMEOW's own best-practice recommendation norms — the deonticRecommendation gmeow:Rule the validator issues from the gmeow:gmeowBestPractice standpoint, gathered by gmeow:partOf. A vantage-indexed advisory system that coexists with any domain style guide; GMEOW records what it recommends and adjudicates nothing (Principle 9)."@x-gmeow-english ;
+    gmeow:systemIssuer gmeow:gmeowBestPractice ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:violates
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
@@ -1395,6 +1409,19 @@ gmeow:ConditionEvaluation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:evaluatedCondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:evaluationVerdict ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# A gmeow:ComplianceAssessment is the reified, assessor-scoped compliance observation:
+# it MUST name its assessor (gmeow:vantage — no global verdict, Principle 9), the event
+# and norm it binds, and the verdict it records. The three assessment properties are
+# owl:FunctionalProperty (max 1); these min-qualified siblings restore the exactly-one /
+# at-least-one floor the "mandatory (SHACL)" contract in their definitions promises but
+# the closure entries alone (which only opt the properties into closed-world validation)
+# do not assert. Mirrors the gmeow:Assessment / gmeow:ConditionEvaluation pattern above.
+gmeow:ComplianceAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:complianceVerdict ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:EvaluationVerdict ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessedEvent ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Event ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessedNorm ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Norm ] .
 
 gmeow:ConditionGroup rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
