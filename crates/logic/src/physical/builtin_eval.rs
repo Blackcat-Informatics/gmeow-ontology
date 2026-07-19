@@ -699,6 +699,26 @@ fn compute_compare(lv: &Value, rv: &Value, op: CmpOp) -> CompareResult {
     }
 }
 
+/// Numeric equality of an `is`-target against a computed value, across the whole
+/// tower.
+///
+/// `Value` derives *structural* `PartialEq`, under which `Value::Int(3)` and
+/// `Value::Rat(3/1)` are distinct even though they denote the same rational — so a
+/// raw `target == value` filter silently rejects `3 is 6 / 2` (the exact-ℚ kernel
+/// commits `Value::Rat(3/1)` for any `/` result and never collapses a unit
+/// denominator back to `Int`). That is a wrong boolean answer, not a gap. Route the
+/// target-equality decision through [`compute_compare`] with [`CmpOp::Eq`], which is
+/// the same ℚ-correct cross-type equality the `=:=` operator uses: a match is exactly
+/// `CompareResult::Filter(true)`; a type/dimension mismatch (e.g. a metre target
+/// against a second result) is a definite non-match — the target simply is not equal
+/// to the value — so it is `false`, never an error propagated out of a filter.
+fn numeric_eq(target: &Value, value: &Value) -> bool {
+    matches!(
+        compute_compare(target, value, CmpOp::Eq),
+        CompareResult::Filter(true)
+    )
+}
+
 /// Evaluate `builtin` against the current substitution, resolving variables via
 /// `lookup` (variable name → bound surface, or `None` when unbound).
 pub(crate) fn eval<'a>(
@@ -739,13 +759,13 @@ pub(crate) fn eval<'a>(
                         value,
                     },
                     Some(surface) => match parse_value_surface(&surface) {
-                        Some(t) => BuiltinOutcome::Filter(t == value),
+                        Some(t) => BuiltinOutcome::Filter(numeric_eq(&t, &value)),
                         None => BuiltinOutcome::Filter(false),
                     },
                 },
-                QTerm::Num(t) => BuiltinOutcome::Filter(Value::Int(*t) == value),
+                QTerm::Num(t) => BuiltinOutcome::Filter(numeric_eq(&Value::Int(*t), &value)),
                 QTerm::Const(c) => match parse_value_surface(c) {
-                    Some(t) => BuiltinOutcome::Filter(t == value),
+                    Some(t) => BuiltinOutcome::Filter(numeric_eq(&t, &value)),
                     None => BuiltinOutcome::Filter(false),
                 },
                 // A structured target can never equal a computed value: filter false.
@@ -899,6 +919,49 @@ mod tests {
             ),
             BuiltinOutcome::Filter(false)
         );
+    }
+
+    #[test]
+    fn is_filter_cross_type_int_vs_exact_rational_is_equal() {
+        // Regression: exact `/` commits `Value::Rat(3/1)`; a structural `==` against a
+        // `Value::Int(3)` target would (wrongly) reject it. `3 is 6 / 2` MUST filter true
+        // — an integer target equals the mathematically-equal exact-ℚ result.
+        let lookup = env(&[]);
+        assert_eq!(
+            eval(
+                &is(QTerm::Num(3), QTerm::Num(6), ArithOp::ExactDiv, QTerm::Num(2)),
+                &lookup
+            ),
+            BuiltinOutcome::Filter(true),
+            "3 is 6 / 2 must be true across the Int/Rat type boundary"
+        );
+        // Negative control: a genuinely-different integer target still filters false.
+        assert_eq!(
+            eval(
+                &is(QTerm::Num(4), QTerm::Num(6), ArithOp::ExactDiv, QTerm::Num(2)),
+                &lookup
+            ),
+            BuiltinOutcome::Filter(false),
+            "4 is 6 / 2 must be false"
+        );
+        // A non-integral exact result is not equal to any integer target.
+        assert_eq!(
+            eval(
+                &is(QTerm::Num(1), QTerm::Num(1), ArithOp::ExactDiv, QTerm::Num(2)),
+                &lookup
+            ),
+            BuiltinOutcome::Filter(false),
+            "1 is 1 / 2 must be false (1 ≠ 1/2)"
+        );
+    }
+
+    #[test]
+    fn is_filter_bound_var_surface_matches_exact_rational() {
+        // `X is 6 / 2` with X bound to the integer surface "3" — the bound-variable
+        // target path (parse_value_surface) must also see cross-type equality.
+        let lookup = env(&[("X", "3")]);
+        let b = is(var("X"), QTerm::Num(6), ArithOp::ExactDiv, QTerm::Num(2));
+        assert_eq!(eval(&b, &lookup), BuiltinOutcome::Filter(true));
     }
 
     // ── unbound operand → declared gap ──────────────────────────────────────
