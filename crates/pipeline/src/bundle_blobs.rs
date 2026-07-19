@@ -5,13 +5,22 @@
 //! transforms — the native port of the Python `gmeow_tools.bundle` consumer.
 //!
 //! The `gmeow` deliverable ships ONE artifact — `generated/dist/gmeow.gts` — that
-//! folds the complete useful ontology surface AND its transforms: the SSSOM lift
-//! maps, the compiled projection queries, the equivalence/projection cells, the
-//! test-DSL specs, the reasoning reports, the OKF export, the ontology-docs site,
-//! the SHACL shape surface, the compiled logic/DL axioms, the JSON/OpenAPI
-//! schemas, and the JSON-LD-star / YAML-LD-star serializations. Each rides as a
-//! deterministic tar blob keyed by a representation label (the fold `rep`); the
-//! `transform:denied` blob is a raw JSON payload rather than a tar.
+//! folds the complete useful ontology surface AND its functional transforms: the
+//! SSSOM lift maps, the compiled projection queries, the equivalence/projection
+//! cells, the test-DSL specs, the reasoning reports, the SHACL shape surface, the
+//! compiled logic/DL axioms, the JSON/OpenAPI schemas, and the Pydantic model
+//! package. Each rides as a deterministic tar blob keyed by a representation label
+//! (the fold `rep`); the `transform:denied` blob is a raw JSON payload rather than
+//! a tar.
+//!
+//! Derived DOCUMENTATION projections — the ontology-docs site, the mdbook, the
+//! print PDF, the prompt snippets, the OKF export, and the JSON-LD-star /
+//! YAML-LD-star serializations — are deliberately NOT folded here: they are
+//! external, content-addressed distributions rendered by
+//! `make sync SYNC_OUTPUTS=docs` and published as release assets (re-embedding them
+//! in `gmeow.gts` is forbidden; see
+//! `docs/design/1491-external-docs-distribution.md`). Their absence from the
+//! committed bundle is gated by the `documentation_projections_are_absent` test.
 //!
 //! This module reads those blobs back **from the snapshot bytes alone, with no
 //! repo checkout** — the CLI razor: `gmeow` does not need a repo, `gmeow-dev`
