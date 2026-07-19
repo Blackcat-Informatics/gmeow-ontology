@@ -39,7 +39,6 @@ const RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPrope
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 
 fn gm(local: &str) -> String {
@@ -90,19 +89,14 @@ fn appraisal_is_a_vantage_indexed_observation() {
         Some(RDFS_SUBPROPERTY_OF),
         Some(&gm("observedFeature"))
     ));
-    assert!(g.has(
-        Some(&gm("appraisalOf")),
-        Some(RDF_TYPE),
-        Some(OWL_FUNCTIONAL_PROPERTY)
-    ));
+    assert!(
+        g.is_functional_carrier(&gm("appraisalOf")),
+        "gmeow:appraisalOf must carry a logic: functionalProperty characteristic"
+    );
     for prop in ["appraisalDimension", "appraisalValue", "appraisalQuality"] {
         assert!(
-            !g.has(
-                Some(&gm(prop)),
-                Some(RDF_TYPE),
-                Some(OWL_FUNCTIONAL_PROPERTY)
-            ),
-            "gmeow:{prop} must NOT be an OWL FunctionalProperty (P9)"
+            !g.is_functional_carrier(&gm(prop)),
+            "gmeow:{prop} must NOT carry a logic: functionalProperty characteristic (P9)"
         );
     }
 }
@@ -134,12 +128,8 @@ fn arc_sample_constituents() {
     ));
     for prop in ["sampleSubject", "samplePosition", "sampleState"] {
         assert!(
-            g.has(
-                Some(&gm(prop)),
-                Some(RDF_TYPE),
-                Some(OWL_FUNCTIONAL_PROPERTY)
-            ),
-            "gmeow:{prop} must be an OWL FunctionalProperty"
+            g.is_functional_carrier(&gm(prop)),
+            "gmeow:{prop} must carry a logic: functionalProperty characteristic"
         );
     }
     assert!(g.has(
@@ -149,11 +139,7 @@ fn arc_sample_constituents() {
     ));
     // sampleState is range-open by design (soft cross-slice reference).
     assert!(g.objects(&gm("sampleState"), RDFS_RANGE).is_empty());
-    assert!(!g.has(
-        Some(&gm("developmentSignalText")),
-        Some(RDF_TYPE),
-        Some(OWL_FUNCTIONAL_PROPERTY)
-    ));
+    assert!(!g.is_functional_carrier(&gm("developmentSignalText")));
     assert!(g.has(
         Some(&gm("developmentSignalEvent")),
         Some(RDFS_RANGE),
@@ -225,11 +211,7 @@ fn motif_rides_the_seam() {
         Some(RDFS_RANGE),
         Some(&gm("ContentSegment"))
     ));
-    assert!(!g.has(
-        Some(&gm("motifKind")),
-        Some(RDF_TYPE),
-        Some(OWL_FUNCTIONAL_PROPERTY)
-    ));
+    assert!(!g.is_functional_carrier(&gm("motifKind")));
 }
 
 /// Twin of `test_trajectory_query_orders_and_surfaces_disagreement`: the

@@ -916,6 +916,26 @@ impl GraphStore {
         self.subjects(RDF_TYPE, type_iri)
     }
 
+    /// True iff some record `R` in the store carries BOTH
+    /// `R logic:characterizes <prop_iri>` AND
+    /// `R logic:characteristicSort logic:functionalProperty` — the canonical
+    /// `logic:` carrier of a property's functional characteristic.
+    ///
+    /// Since issue 1579 deprecated the source `owl:FunctionalProperty` marker,
+    /// functionality on the merged source/bundle is carried EXCLUSIVELY by these
+    /// `logic:PropertyCharacteristicAssertion` records (the `owl:FunctionalProperty`
+    /// type triple now lives only in the generated OWL view). Conformance tests
+    /// assert this carrier instead of the deprecated source marker.
+    pub fn is_functional_carrier(&self, prop_iri: &str) -> bool {
+        self.subjects(LOGIC_CHARACTERIZES, prop_iri).iter().any(|rec| {
+            self.has(
+                Some(rec),
+                Some(LOGIC_CHARACTERISTIC_SORT),
+                Some(LOGIC_FUNCTIONAL_PROPERTY),
+            )
+        })
+    }
+
     /// The reflexive-transitive closure over `rdfs:subClassOf` edges from `start`
     /// (`start` plus all its ancestor classes). One shared walk so the domain
     /// conformance twins assert over the same closure instead of hand-rolled copies.
@@ -1222,6 +1242,17 @@ impl GraphStore {
 }
 
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `logic:characterizes` — links a `logic:PropertyCharacteristicAssertion` to the
+/// property it characterises. Half of the pair [`GraphStore::is_functional_carrier`] joins.
+pub const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+/// `logic:characteristicSort` — names the characteristic-sort marker a
+/// `logic:PropertyCharacteristicAssertion` asserts.
+pub const LOGIC_CHARACTERISTIC_SORT: &str =
+    "https://blackcatinformatics.ca/logic/characteristicSort";
+/// `logic:functionalProperty` — the functional characteristic-sort marker, the
+/// canonical `logic:` carrier of `owl:FunctionalProperty` (deprecated at source, issue 1579).
+pub const LOGIC_FUNCTIONAL_PROPERTY: &str =
+    "https://blackcatinformatics.ca/logic/functionalProperty";
 /// `rdfs:subClassOf` — the closure edge for [`GraphStore::subclass_closure`].
 pub const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The `gmeow:` namespace base — for local-name sweeps like
