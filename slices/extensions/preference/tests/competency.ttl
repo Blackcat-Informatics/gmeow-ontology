@@ -129,20 +129,24 @@ ex:cqGlobalWinnerRequiresConsensusRow a gmeow:ExpectedRow ;
 # --- CQ / cq-projection-winner-requires-consensus (F1) ---------------------- #
 ex:cqProjectionWinnerRequiresConsensus a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-projection-winner-requires-consensus.rq" ;
-    gmeow:cqDataFile "examples/comparison-worked.ttl" ;
+    gmeow:cqDataFile "tests/data/multi-context-winner.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqProjectionWinnerRequiresConsensusShape ;
-    gmeow:cqRationale "GMEOW must answer 'is a projection's selected candidate backed by a discharged winner claim?' (F1). The comparison-worked scene binds a gmeow:selectedCandidate on a receipt backed by the discharged claim; the asserted answer is exactly that one row, closing the argmax-winner bypass." ;
-    gmeow:cqExpectRow ex:cqProjectionWinnerRequiresConsensusRow .
+    gmeow:cqRationale "GMEOW must answer 'is a projection's selected candidate backed by a discharged winner claim for THAT candidate?' (F1). The multi-context-winner fixture holds two independent contexts, each with a receipt selecting its own winner backed by its own discharged claim; the asserted answer is exactly two rows — each receipt paired with ITS OWN claim (receipt₁→claim₁, receipt₂→claim₂). A Cartesian-product query (the pre-fix bug) would return four rows, cross-pairing receipt₁ with claim₂; RowsExact=2 is therefore probative, not vacuous." ;
+    gmeow:cqExpectRow ex:cqProjectionWinnerRequiresConsensusRow1 , ex:cqProjectionWinnerRequiresConsensusRow2 .
 ex:cqProjectionWinnerRequiresConsensusShape a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "receipt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "selected" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
-ex:cqProjectionWinnerRequiresConsensusRow a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:receipt ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selected" ; gmeow:cellValueIri exd:candA ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim ] .
+ex:cqProjectionWinnerRequiresConsensusRow1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:receipt1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selected" ; gmeow:cellValueIri exd:candA1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim1 ] .
+ex:cqProjectionWinnerRequiresConsensusRow2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:receipt2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selected" ; gmeow:cellValueIri exd:candA2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claim2 ] .
 
 # --- CQ / cq-deterministic-digest (F4) -------------------------------------- #
 ex:cqDeterministicDigest a gmeow:CompetencyQuestion ;
@@ -400,19 +404,24 @@ ex:cqCrossSliceComposeEvidenceRow a gmeow:ExpectedRow ;
 # --- CQ / cq-cross-slice-compose-semantic-topology -------------------------- #
 ex:cqCrossSliceComposeSemanticTopology a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-semantic-topology.rq" ;
-    gmeow:cqDataFile "examples/comparison-worked.ttl" ;
+    gmeow:cqDataFile "tests/data/multi-context-winner.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeSemanticTopologyShape ;
-    gmeow:cqRationale "GMEOW must answer 'does the preference slice reuse the semantic-topology H0/H1 gluing picture by reference?' (Principle 16, the gmeow:DisagreementObstruction ~ gmeow:TopologyClaim twin). The comparison-worked scene wraps a math:GlobalSection (H0) in a gmeow:ConsensusSection and a math:GluingObstruction (H1) in a gmeow:DisagreementObstruction — the same math: sheaf-cohomology substrate the semantic-topology claim governs. The asserted answer is exactly that one row." ;
-    gmeow:cqExpectRow ex:cqCrossSliceComposeSemanticTopologyRow .
+    gmeow:cqRationale "GMEOW must answer 'does the preference slice reuse the semantic-topology H0/H1 gluing picture by reference?' (Principle 16, the gmeow:DisagreementObstruction ~ gmeow:TopologyClaim twin). The multi-context-winner fixture holds two independent claims, each binding its own gmeow:ConsensusSection wrapping a math:GlobalSection (H0) and its own gmeow:DisagreementObstruction wrapping a math:GluingObstruction (H1). Joined through the shared claim, the asserted answer is exactly two rows (consensus₁/obstruction₁, consensus₂/obstruction₂). A Cartesian-product query (the pre-fix bug) would cross-pair consensus₁ with obstruction₂ and return four rows; RowsExact=2 is therefore probative." ;
+    gmeow:cqExpectRow ex:cqCrossSliceComposeSemanticTopologyRow1 , ex:cqCrossSliceComposeSemanticTopologyRow2 .
 ex:cqCrossSliceComposeSemanticTopologyShape a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "consensus" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "globalSection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "obstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:declaresColumn [ logic:columnVariable "gluingObstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
-ex:cqCrossSliceComposeSemanticTopologyRow a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "consensus" ; gmeow:cellValueIri exd:consensus ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:h0lift ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gluingObstruction" ; gmeow:cellValueIri exd:h1class ] .
+ex:cqCrossSliceComposeSemanticTopologyRow1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "consensus" ; gmeow:cellValueIri exd:consensus1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:h0a ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gluingObstruction" ; gmeow:cellValueIri exd:h1a ] .
+ex:cqCrossSliceComposeSemanticTopologyRow2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "consensus" ; gmeow:cellValueIri exd:consensus2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "globalSection" ; gmeow:cellValueIri exd:h0b ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exd:obstruction2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gluingObstruction" ; gmeow:cellValueIri exd:h1b ] .

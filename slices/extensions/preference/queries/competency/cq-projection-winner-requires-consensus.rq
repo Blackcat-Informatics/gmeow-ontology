@@ -2,16 +2,23 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Competency (F1): a gmeow:ProjectionReceipt that binds a gmeow:selectedCandidate is legal only
-# when a TYPED gmeow:PreferenceClaim asserts a global winner, extends to a consensus section, and
-# discharges an obstruction — closing the argmax-winner bypass. Over the comparison-worked pass
-# scene this returns exactly one row (the selection backed by the discharged claim).
+# when a TYPED gmeow:PreferenceClaim asserts a global winner, extends to a consensus section that
+# reconciles an observation whose winner IS that selected candidate, and discharges an obstruction
+# — closing the argmax-winner bypass AND the cross-candidate leak. The ?claim is JOINED to
+# ?selected through the section's reconciled observation (?section gmeow:reconcilesObservation ?obs
+# . ?obs gmeow:observationPrefers ?selected); without that join ?receipt and ?claim were a
+# Cartesian product that only accidentally returned one row on a single-context scene. Over the
+# multi-context-winner fixture (two independent contexts) this returns exactly two rows — each
+# receipt paired with ITS OWN backing claim, never the cross-product's four.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-SELECT ?receipt ?selected ?claim WHERE {
+SELECT DISTINCT ?receipt ?selected ?claim WHERE {
     ?receipt a gmeow:ProjectionReceipt ;
         gmeow:selectedCandidate ?selected .
     ?claim a gmeow:PreferenceClaim ;
         gmeow:assertsGlobalWinner true ;
         gmeow:extendsToConsensusSection ?section ;
         gmeow:dischargesDisagreement ?obstruction .
+    ?section gmeow:reconcilesObservation ?obs .
+    ?obs gmeow:observationPrefers ?selected .
 }
 ORDER BY ?receipt

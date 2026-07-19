@@ -3,14 +3,19 @@
 #
 # Competency (cross-slice compose — semantic-topology): the preference H0/H1 apparatus reuses the
 # same math: sheaf-cohomology substrate the semantic-topology slice's gmeow:TopologyClaim governs
-# (Principle 16, the DisagreementObstruction ~ TopologyClaim by-reference twin). Over the
-# comparison-worked pass scene this returns exactly one row — the gmeow:ConsensusSection wrapping
-# a math:GlobalSection (H0) and the gmeow:DisagreementObstruction wrapping a math:GluingObstruction
-# (H1) — proving the preference slice composes the shared H0/H1 gluing picture at the instance
-# level.
+# (Principle 16, the DisagreementObstruction ~ TopologyClaim by-reference twin). The H0 consensus
+# and the H1 obstruction are JOINED through the single gmeow:PreferenceClaim that both extends to
+# the section and discharges the obstruction; without that shared ?claim the ?consensus and
+# ?obstruction were a Cartesian product that only accidentally returned one row on a single-context
+# scene. Over the multi-context-winner fixture (two independent claims) this returns exactly two
+# rows — each claim's OWN H0 section wrapping a math:GlobalSection and H1 obstruction wrapping a
+# math:GluingObstruction — never the cross-product's four.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX math:  <https://blackcatinformatics.ca/math/>
 SELECT ?consensus ?globalSection ?obstruction ?gluingObstruction WHERE {
+    ?claim a gmeow:PreferenceClaim ;
+        gmeow:extendsToConsensusSection ?consensus ;
+        gmeow:dischargesDisagreement ?obstruction .
     ?consensus a gmeow:ConsensusSection ;
         gmeow:consensusGlobalSection ?globalSection .
     ?globalSection a math:GlobalSection .
