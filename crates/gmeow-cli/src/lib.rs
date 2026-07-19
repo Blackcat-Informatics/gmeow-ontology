@@ -33,10 +33,17 @@ use gmeow_cli_core::ConsoleMode;
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
 /// generator inputs, and no network. Every command that defaults to "the bundle"
 /// reads these bytes unless the user supplies a file / `--gts`.
-pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../generated/dist/gmeow.gts"
-));
+///
+/// The bundle is a git-ignored staged product materialized by `make sync` (or
+/// `make install`), never a committed input. `build.rs` resolves it to an
+/// absolute path, guards against it being absent or empty, and exposes that
+/// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
+/// reads — so the build fails closed with a bootstrap pointer (naming
+/// `make sync`) rather than a bare "file not found" when the bundle hasn't
+/// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
+/// override the staged path for release/package flows; the same hard fail on
+/// absence still applies.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";

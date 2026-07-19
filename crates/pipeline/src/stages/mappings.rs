@@ -129,6 +129,12 @@ pub struct CompiledMappings {
     /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_docs_rendering_corpus: Vec<u8>,
+    /// The per-slice terminology-glossary N-Triples graph (`graph/lang-glossary-corpus`):
+    /// every reviewed `.po` pair folded into a `gmeow:Glossary` of `gmeow:GlossaryEntry`
+    /// records (term, source, rendering, sense anchor, and the `gmeow:glossaryUnit` join to
+    /// its `lang:TranslationUnit`). Carried as a named graph by [`MappingsStage::run`],
+    /// excluded from the reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_glossary_corpus: Vec<u8>,
     /// The correspondence-laws N-Triples graph (`graph/correspondence-laws`): every authored
     /// `logic:Correspondence` re-projected with the EXECUTED lens-law discharge verdicts
     /// attached. Each per-`gmeow:ProjectionMapping` binding correspondence whose
@@ -287,10 +293,22 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
     ledger.extend(projection_corpus.ledger);
     loss.union(&projection_corpus.loss);
-    let lang_projection_corpus = projection_corpus.ntriples;
+    let mut lang_projection_corpus = projection_corpus.ntriples;
     for (path, bytes) in projection_corpus.artifacts {
         artifacts.insert(path, bytes);
     }
+
+    // Glossary interop lowerings (Principle 17): the OntoLex vartrans:translation + TBX
+    // (ISO-30042) lowerings of the reviewed glossary crossings. The rendered byte artifacts
+    // ride stage-export-glossary (REP_GENERATED); HERE we fold each target's honest
+    // `lang:ProjectionEmission` record into graph/lang-projection-corpus (alongside the
+    // sibling `lang:` emissions) and its lossy `SoundUnderApproximation` row into the loss
+    // ledger. Both are lossy — every dropped construct is enumerated, so honest-lossy passes
+    // the overclaim floor and silent-lossy reds the build.
+    let glossary_lowering = crate::stages::lang_glossary::build_lowering_corpus(root)?;
+    ledger.extend(glossary_lowering.ledger);
+    loss.union(&glossary_lowering.loss);
+    lang_projection_corpus.extend_from_slice(&glossary_lowering.emission_ntriples);
 
     // Compositional-lowering corpus (the "a sentence to a formula, compositionally" flagship):
     // lower the authored flagship quantified-SVO sentence to its first-order formula through the
@@ -313,6 +331,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     ledger.extend(docs_rendering_corpus.ledger);
     loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
+
+    // The per-slice terminology glossary (term-grain of the translation corpus): every
+    // reviewed `.po` pair folded into a `gmeow:Glossary`. Rides as a named graph by the
+    // stage `run` below (never a `generated/` file). A pure derivation of the catalogs.
+    let lang_glossary_corpus = crate::stages::lang_glossary::build_corpus(root)?.ntriples;
 
     // Docs-format grounding loss (A9/F2): fold the four documentation output formats'
     // (site / mdbook / print PDF / snippets) dropped-capability rows into the single loss
@@ -401,6 +424,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         lang_projection_corpus,
         lang_lowering_corpus,
         lang_docs_rendering_corpus,
+        lang_glossary_corpus,
         correspondence_laws_corpus,
     })
 }
@@ -1175,6 +1199,15 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
         )?;
+        // graph/lang-glossary-corpus — the per-slice terminology glossary derived from the
+        // reviewed `.po` pairs. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
+        // EDB (`gts_compose` folds only the default graph).
+        let lang_glossary_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_glossary_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_GLOSSARY_CORPUS,
+        )?;
         // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
         // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
         // the presenter reads it via `producer_graph`; like the other corpus graphs it stays
@@ -1195,6 +1228,7 @@ impl Stage for MappingsStage {
             lang_projection_graph.as_ref(),
             lang_lowering_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
+            lang_glossary_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
         ]));
         Ok(StageOutput::new(StageProduct::from_artifacts_over(

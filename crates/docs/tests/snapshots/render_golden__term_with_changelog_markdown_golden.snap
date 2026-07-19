@@ -1,34 +1,30 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 261
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Accessibility Assertion
+# Changelog Entry
 
-`gmeow:AccessibilityAssertion` · Class
+`gmeow:ChangelogEntry` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AccessibilityAssertion` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AccessibilityAssertion` |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
 | Category | Class |
-| Slice | [GMEOW Accessibility Module](../../slices/accessibility/index.md) |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 8/17](../../badges/completeness/8.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: CBox](../../badges/box/boxcbox.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A reified claim that a location or connection has a positive accessibility feature, a barrier, or a limited status for a given facet\. Bears provenance \(vantage, confidence, temporal scope\) and suppression \(displayable false — Principle 10\)\. The flat shortcuts are gmeow:hasAccessibilityFeature and gmeow:hasBarrier; promote to AccessibilityAssertion when the claim itself must be a node\.
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AccessibilityAssertion ;
-    gmeow:assertionFacet <...> ;  # gmeow:AccessibilityFacet
-    gmeow:assertionPolarity <...> ;  # gmeow:AccessibilityPolarity
-    gmeow:assertionSubject <...> .  # gmeow:Entity
+<subject> a gmeow:ChangelogEntry .
 ```
 
 ## Example in multiple syntaxes
@@ -36,10 +32,7 @@ A reified claim that a location or connection has a positive accessibility featu
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AccessibilityAssertion ;
-    gmeow:assertionFacet <...> ;  # gmeow:AccessibilityFacet
-    gmeow:assertionPolarity <...> ;  # gmeow:AccessibilityPolarity
-    gmeow:assertionSubject <...> .  # gmeow:Entity
+<subject> a gmeow:ChangelogEntry .
 ```
 
 **JSON\-LD**
@@ -52,18 +45,9 @@ A reified claim that a location or connection has a positive accessibility featu
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"
+          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
         }
-      ],
-      "https://blackcatinformatics.ca/gmeow/assertionFacet": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/assertionPolarity": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/assertionSubject": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      }
+      ]
     }
   ]
 }
@@ -71,33 +55,30 @@ A reified claim that a location or connection has a positive accessibility featu
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/accessibilityassertion.svg)
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
 
 ## Super\-classes
 
-- [`logic:Relator`](../relator/index.md)
+- [`gmeow:InformationObject`](../informationobject/index.md)
 
-## Examples using this term
+## Usage Advice
 
-- [Location Access](../../slices/accessibility/index.md) — `examples/location-access.ttl`
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
 
 ## Profiles
 
-- `full`
+- `full` · `music` · `purremb`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:AccessibilityAssertion ⊑ logic:Relator
+gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 ```
-
-## Alignments
-
-- `closeMatch` → [http://www\.w3\.org/ns/sosa/Observation](http://www\.w3\.org/ns/sosa/Observation) — *approximate match (close) — not an exact equivalence.*
-- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
-- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
@@ -105,11 +86,11 @@ gmeow:AccessibilityAssertion ⊑ logic:Relator
 
 ## Box role
 
-[CBox (`gmeow:boxCBox`)](../../four-boxes/index.md)
+[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
 ## Documentation coverage
 
-- **8 of 17 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✗ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
@@ -119,12 +100,12 @@ gmeow:AccessibilityAssertion ⊑ logic:Relator
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
+- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AccessibilityAssertion@blake3:4b4591c5cfeb38f7f8e4baa4854c084d606c9056d2eb340736fee60796d41fa0`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---
