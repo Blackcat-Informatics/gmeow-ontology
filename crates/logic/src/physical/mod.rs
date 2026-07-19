@@ -28,6 +28,10 @@ mod binding_pattern;
 // reuses the SAME `DenseBitset` for its own row-index delta (one definition, greenfield).
 pub(crate) mod bitset;
 mod builtin_eval;
+// The #1428 bilinear-form distance authority, re-exported for external crates
+// (gmeow-affect's nearest-prototype classifier, issue #1385) so Q9 distances route
+// THROUGH the governed moded-builtin family, never a private exact-ℚ path.
+pub use builtin_eval::{bilinear_sqdist, compare_sqdist, BilinearFormError};
 mod chase;
 // The arrangement's native galloping lending cursor: a sealed GAT `LendingIterator`
 // that concatenates each sorted batch's galloped bound-run with a tail scan, replacing

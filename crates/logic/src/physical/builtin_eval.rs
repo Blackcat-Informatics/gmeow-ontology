@@ -1238,6 +1238,129 @@ pub(crate) fn eval<'a>(
     }
 }
 
+// ── Public production API: the #1428 bilinear-form distance authority ──────────
+//
+// External crates (notably `gmeow-affect`'s nearest-prototype classifier, issue
+// #1385) compute Q9 metric-space distances THROUGH this governed moded-builtin
+// family — `eval` of a [`QBuiltin::BilinearSqDist`] — rather than a private exact-ℚ
+// path, so the builtin dispatch is the SINGLE production distance authority (the
+// maintainer routing mandate). The Gram is supplied EXPLICITLY per call, so the
+// classification vantage metric is a first-class parameter, not baked into any one
+// observation's declared profile.
+
+/// A typed failure of the public bilinear-form distance API: a malformed/absent Gram
+/// or coordinate vector, a dimension mismatch between the two vectors (or a vector
+/// wider than the form), or an exact-rational arithmetic overflow. Never a wrong
+/// answer or a panic.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BilinearFormError {
+    /// The Gram or a coordinate vector was absent, empty, non-square, or malformed.
+    MetricForm,
+    /// The two coordinate vectors differ in length, or a vector exceeds the form's order.
+    DimensionMismatch,
+    /// Exact-rational arithmetic overflowed the machine integer.
+    Overflow,
+}
+
+impl core::fmt::Display for BilinearFormError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            BilinearFormError::MetricForm => "malformed or absent metric form (Gram/vector)",
+            BilinearFormError::DimensionMismatch => "coordinate-vector dimension mismatch",
+            BilinearFormError::Overflow => "exact-rational arithmetic overflow",
+        })
+    }
+}
+
+impl std::error::Error for BilinearFormError {}
+
+impl From<BuiltinError> for BilinearFormError {
+    fn from(e: BuiltinError) -> Self {
+        match e {
+            BuiltinError::DimensionMismatch => BilinearFormError::DimensionMismatch,
+            BuiltinError::Overflow => BilinearFormError::Overflow,
+            _ => BilinearFormError::MetricForm,
+        }
+    }
+}
+
+/// The exact-ℚ bilinear-form squared distance `(x − y)ᵀ G (x − y)`, computed THROUGH
+/// the #1428 moded-builtin dispatch (`eval` of a [`QBuiltin::BilinearSqDist`]) — the
+/// single production distance authority for metric-space classification (issue #1385).
+///
+/// `gram_cells` are the declared-symmetric `(row, col, value)` entries of the metric
+/// Gram `G` (each authored cell is mirrored across the diagonal exactly as the builtin
+/// does); `x` and `y` are dense exact-ℚ coordinate vectors in the SAME basis (a shorter
+/// vector is exact zero-completed; a vector wider than the form is a
+/// [`BilinearFormError::DimensionMismatch`], never a silent truncation). The result is
+/// the EXACT squared distance — √ stays a downstream display seam, and squared order is
+/// distance order since √ is monotone. Positive-definiteness of `G` is the CALLER's
+/// certificate (the runtime builtin trusts it): a non-PD `G` can yield a negative form
+/// value, so a caller that needs a metric MUST PD-certify `G` first.
+pub fn bilinear_sqdist(
+    gram_cells: &[(usize, usize, Rational)],
+    x: &[Rational],
+    y: &[Rational],
+) -> Result<Rational, BilinearFormError> {
+    struct MemCells<'a> {
+        gram: &'a [(usize, usize, Rational)],
+        x: &'a [Rational],
+        y: &'a [Rational],
+    }
+    impl CellResolver for MemCells<'_> {
+        fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, Rational)>> {
+            (iri == "urn:gmeow:bilinear:gram").then(|| self.gram.to_vec())
+        }
+        fn vector(&self, iri: &str) -> Option<Vec<Rational>> {
+            match iri {
+                "urn:gmeow:bilinear:x" => Some(self.x.to_vec()),
+                "urn:gmeow:bilinear:y" => Some(self.y.to_vec()),
+                _ => None,
+            }
+        }
+    }
+
+    let resolver = MemCells {
+        gram: gram_cells,
+        x,
+        y,
+    };
+    let builtin = QBuiltin::BilinearSqDist {
+        target: QTerm::Var("D".to_owned()),
+        gram: QTerm::Const("<urn:gmeow:bilinear:gram>".to_owned()),
+        x: QTerm::Const("<urn:gmeow:bilinear:x>".to_owned()),
+        y: QTerm::Const("<urn:gmeow:bilinear:y>".to_owned()),
+    };
+    let lookup = |_: &str| -> Option<Cow<'static, str>> { None };
+    match eval(&builtin, &lookup, &resolver) {
+        BuiltinOutcome::Generate {
+            value: Value::Rat(r),
+            ..
+        } => Ok(r),
+        BuiltinOutcome::Error(e) => Err(e.into()),
+        // A ground BilinearSqDist with an unbound target always generates a Rat or
+        // errors; any other outcome means a malformed form.
+        _ => Err(BilinearFormError::MetricForm),
+    }
+}
+
+/// Exact-ℚ total ordering of two squared distances, routed through the #1428 family's
+/// overflow-SAFE comparison (`apply_compare_q`) — never `Rational::cmp`, which panics
+/// on i128 overflow. The single ordering primitive nearest-prototype ranking is built on.
+pub fn compare_sqdist(
+    a: &Rational,
+    b: &Rational,
+) -> Result<core::cmp::Ordering, BilinearFormError> {
+    use core::cmp::Ordering;
+    if apply_compare_q(a, CmpOp::Lt, b)? {
+        Ok(Ordering::Less)
+    } else if apply_compare_q(a, CmpOp::Gt, b)? {
+        Ok(Ordering::Greater)
+    } else {
+        Ok(Ordering::Equal)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2184,6 +2307,46 @@ mod tests {
             apply_compare_q(&d_elation, CmpOp::Lt, &d_contentment),
             Ok(true),
             "elation is the metric-nearest prototype (38/100 < 43/100)"
+        );
+    }
+
+    /// The PUBLIC production API reproduces the worked-example distances through the
+    /// same governed dispatch, and its overflow-safe ordering ranks elation nearest.
+    #[test]
+    fn public_bilinear_sqdist_reproduces_worked_example() {
+        // G = diag(2, 1); state (1/2, 0); contentment (1/5, 1/2); elation (3/5, 3/5).
+        let gram = vec![(0, 0, rat(2, 1)), (1, 1, rat(1, 1))];
+        let state = vec![rat(1, 2), rat(0, 1)];
+        let contentment = vec![rat(1, 5), rat(1, 2)];
+        let elation = vec![rat(3, 5), rat(3, 5)];
+
+        let d_c = super::bilinear_sqdist(&gram, &state, &contentment);
+        let d_e = super::bilinear_sqdist(&gram, &state, &elation);
+        assert_eq!(d_c, Ok(rat(43, 100)), "state → contentment is exactly 43/100");
+        assert_eq!(d_e, Ok(rat(38, 100)), "state → elation is exactly 38/100");
+
+        // Ordering rides the governed overflow-safe compare, not Rational::cmp.
+        assert_eq!(
+            super::compare_sqdist(&d_e.unwrap(), &d_c.unwrap()),
+            Ok(core::cmp::Ordering::Less),
+            "elation is the metric-nearest prototype (38/100 < 43/100)"
+        );
+    }
+
+    /// Malformed input is a TYPED error, never a panic or a wrong answer.
+    #[test]
+    fn public_bilinear_sqdist_dimension_mismatch_is_typed_error() {
+        let gram = vec![(0, 0, rat(1, 1)), (1, 1, rat(1, 1))];
+        let x = vec![rat(1, 1), rat(0, 1)];
+        let y = vec![rat(1, 1)]; // shorter than x → mismatch, not a silent zero-complete
+        assert_eq!(
+            super::bilinear_sqdist(&gram, &x, &y),
+            Err(super::BilinearFormError::DimensionMismatch)
+        );
+        // An absent form (no gram cells) is the metric-form fault.
+        assert_eq!(
+            super::bilinear_sqdist(&[], &x, &x),
+            Err(super::BilinearFormError::MetricForm)
         );
     }
 

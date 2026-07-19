@@ -68,6 +68,11 @@ pub mod obligations;
 // Native physical execution core: columnar RelationStore + the semi-naive / magic-sets
 // engine that the materialize and dispatch routers invoke native-first. Crate-internal.
 mod physical;
+/// The #1428 bilinear-form distance authority: the exact-ℚ squared-distance builtin
+/// `(x−y)ᵀG(x−y)` and its overflow-safe ordering, exposed so external crates
+/// (gmeow-affect's nearest-prototype classifier, issue #1385) compute Q9 metric
+/// distances THROUGH the governed moded-builtin family rather than a private path.
+pub use physical::{bilinear_sqdist, compare_sqdist, BilinearFormError};
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;
