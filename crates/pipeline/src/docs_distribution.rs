@@ -309,8 +309,9 @@ fn release_instance_ntriples(entries: &[DistributionEntry]) -> String {
 /// via the single projection authority ([`project_graph`]). Returns the projected
 /// N-Triples.
 ///
-/// No-optionality: a `gts_bytes` snapshot with no bundled `dcat.rq` (any key ending in
-/// `dcat.rq`) is a HARD FAIL — never a silently empty or partial manifest.
+/// No-optionality: a `gts_bytes` snapshot with no bundled `dcat.rq` (the key
+/// `dcat.rq`, or any `…/dcat.rq`) is a HARD FAIL — never a silently empty or partial
+/// manifest.
 pub fn build_docs_distribution_manifest(
     entries: &[DistributionEntry],
     gts_bytes: &[u8],
@@ -321,7 +322,7 @@ pub fn build_docs_distribution_manifest(
         .map_err(|e| err(format!("load the bundled projection queries: {e}")))?;
     let dcat_rq_bytes = queries
         .iter()
-        .find(|(key, _)| key.ends_with("dcat.rq"))
+        .find(|(key, _)| key.as_str() == "dcat.rq" || key.ends_with("/dcat.rq"))
         .map(|(_, bytes)| bytes)
         .ok_or_else(|| {
             err(
@@ -392,14 +393,24 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
             .and_then(|t| t.value.clone())
             .unwrap_or_default()
     };
-    let catalog: Vec<(String, String, String)> = graph
-        .quads
+    // Resolve the catalog graph-name to its term-ID ONCE, then filter quads by a
+    // cheap `usize` id compare — never a per-quad string clone/compare.
+    let catalog_gid = graph
+        .terms
         .iter()
-        .filter_map(|&(s, p, o, gname)| {
-            let gid = gname?;
-            (term(gid) == GRAPH_DISTRIBUTION_CATALOG).then(|| (term(s), term(p), term(o)))
+        .position(|t| t.value.as_deref() == Some(GRAPH_DISTRIBUTION_CATALOG));
+    let catalog: Vec<(String, String, String)> = catalog_gid
+        .map(|cgid| {
+            graph
+                .quads
+                .iter()
+                .filter_map(|&(s, p, o, gname)| {
+                    let gid = gname?;
+                    (gid == cgid).then(|| (term(s), term(p), term(o)))
+                })
+                .collect()
         })
-        .collect();
+        .unwrap_or_default();
     if catalog.is_empty() {
         return Err(err(format!(
             "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
