@@ -15,6 +15,8 @@
 
 mod dev_build;
 mod dev_common;
+mod dev_docs_measure;
+mod dev_docs_package;
 mod dev_feedback;
 mod dev_gates;
 mod dev_i18n;
@@ -124,6 +126,18 @@ pub enum Commands {
         jobs: Option<usize>,
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
+    },
+    /// Measure real, deterministic per-format documentation byte sizes and the
+    /// three external-distribution design totals.
+    #[command(name = "docs-measure")]
+    DocsMeasure,
+    /// Package the materialized `dist/gmeow-docs/` external documentation
+    /// distribution into one deterministic content-addressed release asset,
+    /// alongside a `.blake3` sidecar for the DCAT release manifest.
+    #[command(name = "docs-package")]
+    DocsPackage {
+        #[arg(long = "out", default_value = "dist/gmeow-docs.tar")]
+        out: PathBuf,
     },
     /// Fold check/conformance/SARIF evidence into a SIGNED gmeow.gts.
     #[command(name = "release-bundle")]
@@ -755,6 +769,8 @@ pub fn run() -> i32 {
         Commands::Fanout { jobs, timings_json } => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
+        Commands::DocsMeasure => dev_docs_measure::docs_measure(),
+        Commands::DocsPackage { out } => dev_docs_package::docs_package(&out),
         Commands::ReleaseBundle {
             out,
             sign_key,

@@ -20,6 +20,8 @@
 //! * [`scheduler`] — level-parallel execution + per-resource serialization (P2).
 //! * [`provenance`] — per-stage `OriginKind` / `UnitId` stamping (P2).
 //! * [`stages`] — the concrete production stages (P3–P5).
+//! * [`docs_measure`] — measured, deterministic per-format documentation byte
+//!   sizes and the three external-distribution design totals.
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
@@ -33,7 +35,9 @@ pub mod cache;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod diagnostics_reader;
+pub mod docs_distribution;
 pub mod docs_loss_lattice;
+pub mod docs_measure;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
