@@ -81,7 +81,7 @@ a global truth," built over the **same** shared `math:`/`logic:` grounding.
    → `gmeow:PromotionNotActivationConstraint` + `gmeow:ActivationAuthorityConstraint`;
    fail witness `promotion-grants-activation.ttl`.
 10. **Compose, never duplicate.** No term owned by norms, learning, AI, model-serving,
-    provenance, evidence, or semantic-topology is re-declared here; each is reused by
+    provenance, evidence, or semantic-topology is redeclared here; each is reused by
     reference (`gmeow:TermEquivalence`) and at the instance level.
     → `tests/structural.ttl` `mustNot` bans + one `duplicate-<slice>-term.ttl` fail
     witness per named slice.
@@ -101,12 +101,18 @@ The manifest `gmeow:sliceDependsOn` set is exactly `{core… , logic, math}`.
 
 ## Cell-scoped strict order (design decision, not a weakness)
 
-`gmeow:preferredOver` is irreflexive + asymmetric + transitive (the `logic:properPartOf`
-strict-partial-order template, via three `logic:PropertyCharacteristicAssertion`
-records) **within one `gmeow:PreferenceProjection` cell only**. It is *not* enforced
-globally: two evaluators legitimately assert `preferredOver(A,B)` and
-`preferredOver(B,A)` (Principle 9 coexistence), and human/aggregate judgments are
-legitimately cyclic across vantages — that is the H¹ obstruction, not an error. The
+`gmeow:preferredOver` is a strict partial order (irreflexive + asymmetric + transitive)
+**within one `gmeow:PreferenceProjection` cell only**. Only its **irreflexivity** is a
+global characteristic (`gmeow:preferredOverIrreflexivity`, a `logic:PropertyCharacteristicAssertion`
+— safe, since nothing is strictly preferred to itself under any vantage); its **asymmetry
+and transitivity** are enforced **cell-scoped** by `gmeow:VantageScopedStrictOrderConstraint`
+(G3), **never** as global characteristics. It is *not* enforced globally: two evaluators
+legitimately assert `preferredOver(A,B)` and `preferredOver(B,A)` (Principle 9 coexistence),
+and human/aggregate judgments are legitimately cyclic across vantages — that is the H¹
+obstruction, not an error. A global asymmetry marker would reject that legal conflict, and
+a global transitivity marker would *conflate* vantages (composing one evaluator's `A≻B` with
+another's `B≻C` into a spurious `A≻C`); cross-vantage judgments ride the reified,
+vantage-indexed `gmeow:observationPrefers`, not bare edges. The
 reified `gmeow:PreferenceObservation`/`gmeow:PreferenceClaim` is the cross-cell
 coexistence carrier. Enforcing the strict-order characteristics globally would falsely
 reject the required conflicts. Tie (`gmeow:preferentiallyEquivalentWith`) is symmetric
@@ -116,16 +122,16 @@ relation, distinct from "not yet compared" and from a tie.
 
 ## Honest boundaries (Principle 12 / Principle 17)
 
-- General k-criterion Pareto dominance and general acyclicity of a *projected* order
++ General k-criterion Pareto dominance and general acyclicity of a *projected* order
   are **second-order** (∀ over an open criterion set / a finiteness appeal); they are
   carried as `logic:expressivenessBoundary logic:SecondOrder ; logic:preservationKind
   logic:Unsupported`, never a faked first-order `logic:Formula`. Concrete, fixed-arity
   frontiers are enforced by bounded per-fixture Formulas.
-- Selection queries are stored, never executed (Principle 12); reproducibility of a
++ Selection queries are stored, never executed (Principle 12); reproducibility of a
   projection is a digest-bound, disclosed claim. Fixture digest-consistency is the
   ontology's job (`DeterministicDigestConstraint`); bit-reproducibility of the
   recomputation is the consumer's.
-- A first-class `math:CliffordBundle`/`AssociatedBundle`/`SpinorBundle` object does
++ A first-class `math:CliffordBundle`/`AssociatedBundle`/`SpinorBundle` object does
   **not** exist in `math:` grounding (only the prose "secondary reading" of
   `math:Connection`). An extension may not author grounding, so this slice expresses the
   Cl(12)-bundle-over-E8 structure **compositionally** (`math:CellularSheaf` with

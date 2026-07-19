@@ -11,7 +11,7 @@
 # "winner-slot" term (Principle 9). And it is a BY-REFERENCE consumer extension: it
 # re-mints NONE of the seven named sibling slices' terms (AC7, no-duplication —
 # Principle 16); the reuse rides mappings/equivalences.ttl at the instance level,
-# never a re-declared owl:Class / owl:*Property in THIS module.
+# never a redeclared owl:Class / owl:*Property in THIS module.
 #
 # The manifest-level dependency discipline (preference depends ONLY on core +
 # logic/math grounding; norms / model-serving / ai / learning / provenance /
@@ -58,7 +58,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The norms-extension terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition, ComplianceAssessment) MUST NOT be rdfs:isDefinedBy the preference slice — they are reused ONLY by-reference at the instance level (mappings/equivalences.ttl), never re-declared/re-minted in this module (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The norms-extension terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition, ComplianceAssessment) MUST NOT be rdfs:isDefinedBy the preference slice — they are reused ONLY by-reference at the instance level (mappings/equivalences.ttl), never redeclared/re-minted in this module (AC7 no-duplication, Principle 16)." .
 
 # --- (b.2) model-serving terms are not re-minted here (MUST-NOT) --------------
 ex:saNoRemintModelServingTerms a gmeow:StructuralAssertion ;
@@ -100,7 +100,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The learning-extension terms (LearningEvent, Teaching) MUST NOT be rdfs:isDefinedBy the preference slice — gmeow:PreferenceLearningEvent specializes gmeow:LearningEvent by reference, but the parent term itself is never re-declared/re-minted here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The learning-extension terms (LearningEvent, Teaching) MUST NOT be rdfs:isDefinedBy the preference slice — gmeow:PreferenceLearningEvent specializes gmeow:LearningEvent by reference, but the parent term itself is never redeclared/re-minted here (AC7 no-duplication, Principle 16)." .
 
 # --- (b.5) provenance terms are not re-minted here (MUST-NOT) -----------------
 ex:saNoRemintProvenanceTerms a gmeow:StructuralAssertion ;

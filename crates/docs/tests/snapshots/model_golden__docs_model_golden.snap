@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
-  "slice_count": 84,
-  "term_count": 5549,
-  "dependency_edge_count": 1243,
+  "slice_count": 85,
+  "term_count": 5676,
+  "dependency_edge_count": 1292,
   "term_count_by_category": {
-    "Class": 1756,
+    "Class": 1796,
     "Datatype": 1,
-    "Individual": 808,
-    "Property": 2984
+    "Individual": 829,
+    "Property": 3050
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -80,6 +80,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/organization",
     "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/preference",
     "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
     "https://blackcatinformatics.ca/gmeow/slices/provenance",
@@ -308,9 +309,9 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 99,
-  "linkage_count": 2114,
-  "example_count": 178,
+  "mapping_set_count": 100,
+  "linkage_count": 2125,
+  "example_count": 187,
   "concern_count": 7,
   "external_term_count": 1800,
   "sample_mapping_set": {
@@ -428,7 +429,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 270,
+  "competency_count": 291,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

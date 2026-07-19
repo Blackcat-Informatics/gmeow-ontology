@@ -193,7 +193,8 @@ gmeow:preferredOver
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:preferentiallyEquivalentWith
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:SymmetricProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "preferentially equivalent with"@x-gmeow-english ;
@@ -202,7 +203,8 @@ gmeow:preferentiallyEquivalentWith
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:incomparableWith
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:SymmetricProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "incomparable with"@x-gmeow-english ;
@@ -228,7 +230,7 @@ gmeow:observationPrefers
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "observation prefers"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
+    logic:subPropertyOf gmeow:observedFeature ;
     skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY PREFERRED — the winner of the directed comparison this vantage records. It is the reified, vantage-indexed carrier of a strict preference (⊑ gmeow:observedFeature): the observation, not a bare edge, holds the direction, so two vantages that disagree are two coexisting observations (Principle 9) and their cross-vantage cycle is the legal H1 gmeow:DisagreementObstruction. Distinct from the candidate→candidate gmeow:preferredOver (the within-cell order edge): an observation is a logic:Relator and cannot be a gmeow:preferredOver subject. The dispreferred side rides gmeow:observationDisprefers; the compared pair rides gmeow:observedFeature."@x-gmeow-english ;
     skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:vantage ex:eval1 ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using gmeow:preferredOver from an observation (a logic:Relator cannot be its InformationObject subject); avoid it for a tie (gmeow:preferentiallyEquivalentWith) or a positive incomparability (gmeow:incomparableWith), which name no winner."@x-gmeow-english ;
@@ -242,7 +244,7 @@ gmeow:observationDisprefers
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "observation disprefers"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
+    logic:subPropertyOf gmeow:observedFeature ;
     skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY DISPREFERRED — the loser of the directed comparison this vantage records, the counterpart of gmeow:observationPrefers (⊑ gmeow:observedFeature). Together the two name the ordered pair the observation reifies, so 'A ≻ B per this vantage' is a single coexisting cell, never a bare candidate→candidate edge."@x-gmeow-english ;
     skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a dispreferred side for a tie or a positive incomparability (neither has a loser); avoid gmeow:preferredOver from the observation (a logic:Relator subject is ill-typed)."@x-gmeow-english ;
@@ -652,39 +654,57 @@ gmeow:NoGlobalWinnerWithoutConsensusConstraint
     logic:message "A gmeow:PreferenceClaim asserting a global winner (gmeow:assertsGlobalWinner true) must gmeow:extendsToConsensusSection a resource typed gmeow:ConsensusSection that reconciles every gmeow:PreferenceObservation its gmeow:ComparisonContext registers (whole vantage base, F2) and must gmeow:dischargesDisagreement a resource typed gmeow:DisagreementObstruction; a winner without a typed whole-base discharged consensus is the forbidden context-free winner (gmeow:GlobalWinnerWithoutConsensus)." ;
     logic:integrity gmeow:ngwForall .
 gmeow:ngwForall a logic:Formula ;
+    rdfs:label "ngwForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:ngwImpl .
-gmeow:ngwImpl a logic:Formula ; logic:antecedent gmeow:ngwGuard ; logic:consequent gmeow:ngwDischarged .
-gmeow:ngwGuard a logic:Formula ; logic:and gmeow:ngwType , gmeow:ngwAsserts .
-gmeow:ngwType a logic:Formula ; logic:relation rdf:type ;
+gmeow:ngwImpl a logic:Formula ;
+    rdfs:label "ngwImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:ngwGuard ; logic:consequent gmeow:ngwDischarged .
+gmeow:ngwGuard a logic:Formula ;
+    rdfs:label "ngwGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:ngwType , gmeow:ngwAsserts .
+gmeow:ngwType a logic:Formula ;
+    rdfs:label "ngwType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceClaim ] .
-gmeow:ngwAsserts a logic:Formula ; logic:relation gmeow:assertsGlobalWinner ;
+gmeow:ngwAsserts a logic:Formula ;
+    rdfs:label "ngwAsserts (formula AST node)"@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
 gmeow:ngwDischarged a logic:Formula ;
+    rdfs:label "ngwDischarged (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "ctx" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] ;
     logic:exists gmeow:ngwBody .
 gmeow:ngwBody a logic:Formula ;
+    rdfs:label "ngwBody (formula AST node)"@x-gmeow-english ;
     logic:and gmeow:ngwExtends , gmeow:ngwSecType , gmeow:ngwSecCtx , gmeow:ngwDischarge , gmeow:ngwObsType , gmeow:ngwWholeBase .
-gmeow:ngwExtends a logic:Formula ; logic:relation gmeow:extendsToConsensusSection ;
+gmeow:ngwExtends a logic:Formula ;
+    rdfs:label "ngwExtends (formula AST node)"@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
-gmeow:ngwSecType a logic:Formula ; logic:relation rdf:type ;
+gmeow:ngwSecType a logic:Formula ;
+    rdfs:label "ngwSecType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ConsensusSection ] .
-gmeow:ngwSecCtx a logic:Formula ; logic:relation gmeow:sectionContext ;
+gmeow:ngwSecCtx a logic:Formula ;
+    rdfs:label "ngwSecCtx (formula AST node)"@x-gmeow-english ; logic:relation gmeow:sectionContext ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "ctx" ] .
-gmeow:ngwDischarge a logic:Formula ; logic:relation gmeow:dischargesDisagreement ;
+gmeow:ngwDischarge a logic:Formula ;
+    rdfs:label "ngwDischarge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
-gmeow:ngwObsType a logic:Formula ; logic:relation rdf:type ;
+gmeow:ngwObsType a logic:Formula ;
+    rdfs:label "ngwObsType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DisagreementObstruction ] .
 # F2: no registered observation is left unreconciled by the section.
-gmeow:ngwWholeBase a logic:Formula ; logic:not gmeow:ngwHole .
+gmeow:ngwWholeBase a logic:Formula ;
+    rdfs:label "ngwWholeBase (formula AST node)"@x-gmeow-english ; logic:not gmeow:ngwHole .
 gmeow:ngwHole a logic:Formula ;
+    rdfs:label "ngwHole (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "obs" ] ;
     logic:exists gmeow:ngwHoleBody .
-gmeow:ngwHoleBody a logic:Formula ; logic:and gmeow:ngwRegisters , gmeow:ngwUnreconciled .
-gmeow:ngwRegisters a logic:Formula ; logic:relation gmeow:registersObservation ;
+gmeow:ngwHoleBody a logic:Formula ;
+    rdfs:label "ngwHoleBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:ngwRegisters , gmeow:ngwUnreconciled .
+gmeow:ngwRegisters a logic:Formula ;
+    rdfs:label "ngwRegisters (formula AST node)"@x-gmeow-english ; logic:relation gmeow:registersObservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ctx" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
-gmeow:ngwUnreconciled a logic:Formula ; logic:not gmeow:ngwReconciled .
-gmeow:ngwReconciled a logic:Formula ; logic:relation gmeow:reconcilesObservation ;
+gmeow:ngwUnreconciled a logic:Formula ;
+    rdfs:label "ngwUnreconciled (formula AST node)"@x-gmeow-english ; logic:not gmeow:ngwReconciled .
+gmeow:ngwReconciled a logic:Formula ;
+    rdfs:label "ngwReconciled (formula AST node)"@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
 
 # --- G3: strict-order coherence is enforced WITHIN one vantage only ---------- #
@@ -702,19 +722,27 @@ gmeow:VantageScopedStrictOrderConstraint
     logic:message "Within a single gmeow:PreferenceProjection cell, gmeow:preferredOver must be irreflexive and asymmetric; a reflexive or two-way strictly-preferred pair inside one cell is incoherent (cross-vantage cycles remain the legal obstruction)." ;
     logic:integrity gmeow:vssForall .
 gmeow:vssForall a logic:Formula ;
+    rdfs:label "vssForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:vssImpl .
-gmeow:vssImpl a logic:Formula ; logic:antecedent gmeow:vssGuard ; logic:consequent gmeow:vssNoCycle .
-gmeow:vssGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:vssImpl a logic:Formula ;
+    rdfs:label "vssImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:vssGuard ; logic:consequent gmeow:vssNoCycle .
+gmeow:vssGuard a logic:Formula ;
+    rdfs:label "vssGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceProjection ] .
-gmeow:vssNoCycle a logic:Formula ; logic:not gmeow:vssBad .
+gmeow:vssNoCycle a logic:Formula ;
+    rdfs:label "vssNoCycle (formula AST node)"@x-gmeow-english ; logic:not gmeow:vssBad .
 gmeow:vssBad a logic:Formula ;
+    rdfs:label "vssBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] ;
     logic:exists gmeow:vssBadBody .
-gmeow:vssBadBody a logic:Formula ; logic:and gmeow:vssAB , gmeow:vssBA .
-gmeow:vssAB a logic:Formula ; logic:relation gmeow:preferredOver ;
+gmeow:vssBadBody a logic:Formula ;
+    rdfs:label "vssBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:vssAB , gmeow:vssBA .
+gmeow:vssAB a logic:Formula ;
+    rdfs:label "vssAB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-gmeow:vssBA a logic:Formula ; logic:relation gmeow:preferredOver ;
+gmeow:vssBA a logic:Formula ;
+    rdfs:label "vssBA (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 
 # --- G2: a sharper standpoint's order restricts, never contradicts ----------- #
@@ -729,32 +757,46 @@ gmeow:RestrictionCoherenceConstraint
     logic:message "A gmeow:PreferenceProjection that sharpens another must restrict, not contradict, its order: a reversed gmeow:preferredOver pair along gmeow:sharpens with no gmeow:DisagreementObstruction is incoherent refinement." ;
     logic:integrity gmeow:rccForall .
 gmeow:rccForall a logic:Formula ;
+    rdfs:label "rccForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:rccImpl .
-gmeow:rccImpl a logic:Formula ; logic:antecedent gmeow:rccGuard ; logic:consequent gmeow:rccNoContra .
-gmeow:rccGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:rccImpl a logic:Formula ;
+    rdfs:label "rccImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:rccGuard ; logic:consequent gmeow:rccNoContra .
+gmeow:rccGuard a logic:Formula ;
+    rdfs:label "rccGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceProjection ] .
-gmeow:rccNoContra a logic:Formula ; logic:not gmeow:rccBad .
+gmeow:rccNoContra a logic:Formula ;
+    rdfs:label "rccNoContra (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccBad .
 gmeow:rccBad a logic:Formula ;
+    rdfs:label "rccBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] , [ logic:termIndex 2 ; logic:termVariable "vc" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] ;
     logic:exists gmeow:rccBadBody .
 gmeow:rccBadBody a logic:Formula ;
+    rdfs:label "rccBadBody (formula AST node)"@x-gmeow-english ;
     logic:and gmeow:rccSharpVantage , gmeow:rccCoarseVantage , gmeow:rccSharpens , gmeow:rccSharpEdge , gmeow:rccCoarseEdge , gmeow:rccNoObstruction .
-gmeow:rccSharpVantage a logic:Formula ; logic:relation gmeow:vantage ;
+gmeow:rccSharpVantage a logic:Formula ;
+    rdfs:label "rccSharpVantage (formula AST node)"@x-gmeow-english ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
-gmeow:rccCoarseVantage a logic:Formula ; logic:relation gmeow:vantage ;
+gmeow:rccCoarseVantage a logic:Formula ;
+    rdfs:label "rccCoarseVantage (formula AST node)"@x-gmeow-english ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vc" ] .
-gmeow:rccSharpens a logic:Formula ; logic:relation gmeow:sharpens ;
+gmeow:rccSharpens a logic:Formula ;
+    rdfs:label "rccSharpens (formula AST node)"@x-gmeow-english ; logic:relation gmeow:sharpens ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vc" ] .
-gmeow:rccSharpEdge a logic:Formula ; logic:relation gmeow:preferredOver ;
+gmeow:rccSharpEdge a logic:Formula ;
+    rdfs:label "rccSharpEdge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
-gmeow:rccCoarseEdge a logic:Formula ; logic:relation gmeow:preferredOver ;
+gmeow:rccCoarseEdge a logic:Formula ;
+    rdfs:label "rccCoarseEdge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-gmeow:rccNoObstruction a logic:Formula ; logic:not gmeow:rccObstrEx .
+gmeow:rccNoObstruction a logic:Formula ;
+    rdfs:label "rccNoObstruction (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccObstrEx .
 gmeow:rccObstrEx a logic:Formula ;
+    rdfs:label "rccObstrEx (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ] ;
     logic:exists gmeow:rccObstrAtom .
-gmeow:rccObstrAtom a logic:Formula ; logic:relation rdf:type ;
+gmeow:rccObstrAtom a logic:Formula ;
+    rdfs:label "rccObstrAtom (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DisagreementObstruction ] .
 
 # --- G1: tie, incomparability, and uncompared are pairwise distinct ---------- #
@@ -769,19 +811,27 @@ gmeow:TieIncomparabilityDistinctnessConstraint
     logic:message "A candidate pair must not be both gmeow:preferentiallyEquivalentWith and gmeow:incomparableWith; a tie and a positive incomparability are distinct verdicts (G1)." ;
     logic:integrity gmeow:tidForall .
 gmeow:tidForall a logic:Formula ;
+    rdfs:label "tidForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
     logic:forall gmeow:tidImpl .
-gmeow:tidImpl a logic:Formula ; logic:antecedent gmeow:tidGuard ; logic:consequent gmeow:tidNoBoth .
-gmeow:tidGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:tidImpl a logic:Formula ;
+    rdfs:label "tidImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:tidGuard ; logic:consequent gmeow:tidNoBoth .
+gmeow:tidGuard a logic:Formula ;
+    rdfs:label "tidGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
-gmeow:tidNoBoth a logic:Formula ; logic:not gmeow:tidBad .
+gmeow:tidNoBoth a logic:Formula ;
+    rdfs:label "tidNoBoth (formula AST node)"@x-gmeow-english ; logic:not gmeow:tidBad .
 gmeow:tidBad a logic:Formula ;
+    rdfs:label "tidBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
     logic:exists gmeow:tidBadBody .
-gmeow:tidBadBody a logic:Formula ; logic:and gmeow:tidTie , gmeow:tidIncomp .
-gmeow:tidTie a logic:Formula ; logic:relation gmeow:preferentiallyEquivalentWith ;
+gmeow:tidBadBody a logic:Formula ;
+    rdfs:label "tidBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:tidTie , gmeow:tidIncomp .
+gmeow:tidTie a logic:Formula ;
+    rdfs:label "tidTie (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferentiallyEquivalentWith ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-gmeow:tidIncomp a logic:Formula ; logic:relation gmeow:incomparableWith ;
+gmeow:tidIncomp a logic:Formula ;
+    rdfs:label "tidIncomp (formula AST node)"@x-gmeow-english ; logic:relation gmeow:incomparableWith ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # --- The order wrapper must not be conflated with its raw math:Relation ------ #
@@ -797,19 +847,27 @@ gmeow:ProjectionObjectConflationConstraint
     logic:message "A gmeow:PreferenceOrder must not itself be typed in the math: namespace; it must reference a raw math:Relation through gmeow:orderRelation (gmeow:ProjectionObjectConflation)." ;
     logic:integrity gmeow:pocForall .
 gmeow:pocForall a logic:Formula ;
+    rdfs:label "pocForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pocImpl .
-gmeow:pocImpl a logic:Formula ; logic:antecedent gmeow:pocGuard ; logic:consequent gmeow:pocNot .
-gmeow:pocGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:pocImpl a logic:Formula ;
+    rdfs:label "pocImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pocGuard ; logic:consequent gmeow:pocNot .
+gmeow:pocGuard a logic:Formula ;
+    rdfs:label "pocGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceOrder ] .
-gmeow:pocNot a logic:Formula ; logic:not gmeow:pocEx .
+gmeow:pocNot a logic:Formula ;
+    rdfs:label "pocNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:pocEx .
 gmeow:pocEx a logic:Formula ;
+    rdfs:label "pocEx (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:pocBody .
-gmeow:pocBody a logic:Formula ; logic:and gmeow:pocType , gmeow:pocMathNs .
-gmeow:pocType a logic:Formula ; logic:relation rdf:type ;
+gmeow:pocBody a logic:Formula ;
+    rdfs:label "pocBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pocType , gmeow:pocMathNs .
+gmeow:pocType a logic:Formula ;
+    rdfs:label "pocType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
-gmeow:pocMathNs a logic:Formula ; logic:relation logic:termStrStarts ;
+gmeow:pocMathNs a logic:Formula ;
+    rdfs:label "pocMathNs (formula AST node)"@x-gmeow-english ; logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/math/" ] .
 
 # =========================================================================== #
@@ -920,24 +978,34 @@ gmeow:HardFailureNotOverriddenConstraint
     logic:message "A candidate with a hard gmeow:VerifierVerdict of gmeow:verdictNotHeld must not be a gmeow:selectedCandidate of any gmeow:ProjectionReceipt; a hard failure is never overridden by a soft score (gmeow:HardFailureOverridden)." ;
     logic:integrity gmeow:hfoForall .
 gmeow:hfoForall a logic:Formula ;
+    rdfs:label "hfoForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:hfoImpl .
-gmeow:hfoImpl a logic:Formula ; logic:antecedent gmeow:hfoGuard ; logic:consequent gmeow:hfoNoOverride .
-gmeow:hfoGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:hfoImpl a logic:Formula ;
+    rdfs:label "hfoImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:hfoGuard ; logic:consequent gmeow:hfoNoOverride .
+gmeow:hfoGuard a logic:Formula ;
+    rdfs:label "hfoGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:hfoNoOverride a logic:Formula ; logic:not gmeow:hfoBad .
+gmeow:hfoNoOverride a logic:Formula ;
+    rdfs:label "hfoNoOverride (formula AST node)"@x-gmeow-english ; logic:not gmeow:hfoBad .
 gmeow:hfoBad a logic:Formula ;
+    rdfs:label "hfoBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cand" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] ;
     logic:exists gmeow:hfoBadBody .
 gmeow:hfoBadBody a logic:Formula ;
+    rdfs:label "hfoBadBody (formula AST node)"@x-gmeow-english ;
     logic:and gmeow:hfoSelected , gmeow:hfoVerifies , gmeow:hfoHard , gmeow:hfoNotHeld .
-gmeow:hfoSelected a logic:Formula ; logic:relation gmeow:selectedCandidate ;
+gmeow:hfoSelected a logic:Formula ;
+    rdfs:label "hfoSelected (formula AST node)"@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
-gmeow:hfoVerifies a logic:Formula ; logic:relation gmeow:verifiesCandidate ;
+gmeow:hfoVerifies a logic:Formula ;
+    rdfs:label "hfoVerifies (formula AST node)"@x-gmeow-english ; logic:relation gmeow:verifiesCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
-gmeow:hfoHard a logic:Formula ; logic:relation gmeow:hardConstraintClass ;
+gmeow:hfoHard a logic:Formula ;
+    rdfs:label "hfoHard (formula AST node)"@x-gmeow-english ; logic:relation gmeow:hardConstraintClass ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termIri gmeow:constraintHardnessHard ] .
-gmeow:hfoNotHeld a logic:Formula ; logic:relation gmeow:verifierOutcome ;
+gmeow:hfoNotHeld a logic:Formula ;
+    rdfs:label "hfoNotHeld (formula AST node)"@x-gmeow-english ; logic:relation gmeow:verifierOutcome ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termIri gmeow:verdictNotHeld ] .
 
 gmeow:HardFailureOverridden
@@ -1202,24 +1270,34 @@ gmeow:CompleteLossDisclosureConstraint
     logic:message "A gmeow:ProjectionReceipt with a non-exact logic:preservationKind must disclose at least one gmeow:DisclosedLossEntry through gmeow:disclosesLoss; a lossy projection that discloses no dropped relation is a hollow disclosure." ;
     logic:integrity gmeow:cldForall .
 gmeow:cldForall a logic:Formula ;
+    rdfs:label "cldForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cldImpl .
-gmeow:cldImpl a logic:Formula ; logic:antecedent gmeow:cldGuard ; logic:consequent gmeow:cldExists .
-gmeow:cldGuard a logic:Formula ; logic:and gmeow:cldType , gmeow:cldLossy .
-gmeow:cldType a logic:Formula ; logic:relation rdf:type ;
+gmeow:cldImpl a logic:Formula ;
+    rdfs:label "cldImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:cldGuard ; logic:consequent gmeow:cldExists .
+gmeow:cldGuard a logic:Formula ;
+    rdfs:label "cldGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:cldType , gmeow:cldLossy .
+gmeow:cldType a logic:Formula ;
+    rdfs:label "cldType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:cldLossy a logic:Formula ;
+    rdfs:label "cldLossy (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:cldLossyBody .
-gmeow:cldLossyBody a logic:Formula ; logic:and gmeow:cldKind , gmeow:cldNotExact .
-gmeow:cldKind a logic:Formula ; logic:relation logic:preservationKind ;
+gmeow:cldLossyBody a logic:Formula ;
+    rdfs:label "cldLossyBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:cldKind , gmeow:cldNotExact .
+gmeow:cldKind a logic:Formula ;
+    rdfs:label "cldKind (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
-gmeow:cldNotExact a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:cldNotExact a logic:Formula ;
+    rdfs:label "cldNotExact (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 gmeow:cldExists a logic:Formula ;
+    rdfs:label "cldExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
     logic:exists gmeow:cldAtom .
-gmeow:cldAtom a logic:Formula ; logic:relation gmeow:disclosesLoss ;
+gmeow:cldAtom a logic:Formula ;
+    rdfs:label "cldAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 
 # Preservation consistency: a receipt disclosing a dropped relation may not
@@ -1235,21 +1313,30 @@ gmeow:PreservationConsistencyConstraint
     logic:message "A gmeow:ProjectionReceipt disclosing a dropped relation must not claim logic:ExactPreservation; a dropped edge is not exact preservation." ;
     logic:integrity gmeow:pccForall .
 gmeow:pccForall a logic:Formula ;
+    rdfs:label "pccForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pccImpl .
-gmeow:pccImpl a logic:Formula ; logic:antecedent gmeow:pccGuard ; logic:consequent gmeow:pccNot .
-gmeow:pccGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:pccImpl a logic:Formula ;
+    rdfs:label "pccImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pccGuard ; logic:consequent gmeow:pccNot .
+gmeow:pccGuard a logic:Formula ;
+    rdfs:label "pccGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:pccNot a logic:Formula ; logic:not gmeow:pccBad .
+gmeow:pccNot a logic:Formula ;
+    rdfs:label "pccNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:pccBad .
 gmeow:pccBad a logic:Formula ;
+    rdfs:label "pccBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] ;
     logic:exists gmeow:pccBadBody .
-gmeow:pccBadBody a logic:Formula ; logic:and gmeow:pccDiscloses , gmeow:pccDropped , gmeow:pccExact .
-gmeow:pccDiscloses a logic:Formula ; logic:relation gmeow:disclosesLoss ;
+gmeow:pccBadBody a logic:Formula ;
+    rdfs:label "pccBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pccDiscloses , gmeow:pccDropped , gmeow:pccExact .
+gmeow:pccDiscloses a logic:Formula ;
+    rdfs:label "pccDiscloses (formula AST node)"@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
-gmeow:pccDropped a logic:Formula ; logic:relation gmeow:droppedRelation ;
+gmeow:pccDropped a logic:Formula ;
+    rdfs:label "pccDropped (formula AST node)"@x-gmeow-english ; logic:relation gmeow:droppedRelation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
-gmeow:pccExact a logic:Formula ; logic:relation logic:preservationKind ;
+gmeow:pccExact a logic:Formula ;
+    rdfs:label "pccExact (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 
 # Determinism: a deterministic receipt must carry a tie-break rule.
@@ -1264,18 +1351,25 @@ gmeow:DeterministicProjectionConstraint
     logic:message "A gmeow:ProjectionReceipt declared gmeow:determinismDeterministic must carry a gmeow:tieBreakRule." ;
     logic:integrity gmeow:dpcForall .
 gmeow:dpcForall a logic:Formula ;
+    rdfs:label "dpcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:dpcImpl .
-gmeow:dpcImpl a logic:Formula ; logic:antecedent gmeow:dpcGuard ; logic:consequent gmeow:dpcExists .
-gmeow:dpcGuard a logic:Formula ; logic:and gmeow:dpcType , gmeow:dpcDet .
-gmeow:dpcType a logic:Formula ; logic:relation rdf:type ;
+gmeow:dpcImpl a logic:Formula ;
+    rdfs:label "dpcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:dpcGuard ; logic:consequent gmeow:dpcExists .
+gmeow:dpcGuard a logic:Formula ;
+    rdfs:label "dpcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:dpcType , gmeow:dpcDet .
+gmeow:dpcType a logic:Formula ;
+    rdfs:label "dpcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:dpcDet a logic:Formula ; logic:relation gmeow:projectionDeterminism ;
+gmeow:dpcDet a logic:Formula ;
+    rdfs:label "dpcDet (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionDeterminism ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:determinismDeterministic ] .
 gmeow:dpcExists a logic:Formula ;
+    rdfs:label "dpcExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
     logic:exists gmeow:dpcAtom .
-gmeow:dpcAtom a logic:Formula ; logic:relation gmeow:tieBreakRule ;
+gmeow:dpcAtom a logic:Formula ;
+    rdfs:label "dpcAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
 
 # Scalarization disclosure: a scalarized receipt must carry weights.
@@ -1290,18 +1384,25 @@ gmeow:ScalarizationDisclosureConstraint
     logic:message "A gmeow:ProjectionReceipt of kind gmeow:projectionScalarized must carry gmeow:scalarizationWeights disclosing how it collapsed the criteria." ;
     logic:integrity gmeow:sdcForall .
 gmeow:sdcForall a logic:Formula ;
+    rdfs:label "sdcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:sdcImpl .
-gmeow:sdcImpl a logic:Formula ; logic:antecedent gmeow:sdcGuard ; logic:consequent gmeow:sdcExists .
-gmeow:sdcGuard a logic:Formula ; logic:and gmeow:sdcType , gmeow:sdcScal .
-gmeow:sdcType a logic:Formula ; logic:relation rdf:type ;
+gmeow:sdcImpl a logic:Formula ;
+    rdfs:label "sdcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:sdcGuard ; logic:consequent gmeow:sdcExists .
+gmeow:sdcGuard a logic:Formula ;
+    rdfs:label "sdcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:sdcType , gmeow:sdcScal .
+gmeow:sdcType a logic:Formula ;
+    rdfs:label "sdcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:sdcScal a logic:Formula ; logic:relation gmeow:projectionKind ;
+gmeow:sdcScal a logic:Formula ;
+    rdfs:label "sdcScal (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:projectionScalarized ] .
 gmeow:sdcExists a logic:Formula ;
+    rdfs:label "sdcExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
     logic:exists gmeow:sdcAtom .
-gmeow:sdcAtom a logic:Formula ; logic:relation gmeow:scalarizationWeights ;
+gmeow:sdcAtom a logic:Formula ;
+    rdfs:label "sdcAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:scalarizationWeights ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
 
 # Content-addressing: every projection receipt carries a content digest.
@@ -1316,15 +1417,20 @@ gmeow:ProjectionMustBeContentAddressed
     logic:message "A gmeow:ProjectionReceipt must carry a gmeow:contentDigest identity." ;
     logic:integrity gmeow:pcaForall .
 gmeow:pcaForall a logic:Formula ;
+    rdfs:label "pcaForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pcaImpl .
-gmeow:pcaImpl a logic:Formula ; logic:antecedent gmeow:pcaGuard ; logic:consequent gmeow:pcaExists .
-gmeow:pcaGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:pcaImpl a logic:Formula ;
+    rdfs:label "pcaImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pcaGuard ; logic:consequent gmeow:pcaExists .
+gmeow:pcaGuard a logic:Formula ;
+    rdfs:label "pcaGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:pcaExists a logic:Formula ;
+    rdfs:label "pcaExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
     logic:exists gmeow:pcaAtom .
-gmeow:pcaAtom a logic:Formula ; logic:relation gmeow:contentDigest ;
+gmeow:pcaAtom a logic:Formula ;
+    rdfs:label "pcaAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
 
 # F4 — same inputs ⇒ same digest: two receipts sharing source-set, kind, and
@@ -1340,36 +1446,52 @@ gmeow:DeterministicDigestConstraint
     logic:message "Two gmeow:ProjectionReceipts sharing gmeow:projectionSourceSet, gmeow:projectionKind, and gmeow:tieBreakRule must carry the same gmeow:contentDigest (same inputs ⇒ same digest, F4)." ;
     logic:integrity gmeow:ddcForall .
 gmeow:ddcForall a logic:Formula ;
+    rdfs:label "ddcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:ddcImpl .
-gmeow:ddcImpl a logic:Formula ; logic:antecedent gmeow:ddcGuard ; logic:consequent gmeow:ddcNot .
-gmeow:ddcGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:ddcImpl a logic:Formula ;
+    rdfs:label "ddcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:ddcGuard ; logic:consequent gmeow:ddcNot .
+gmeow:ddcGuard a logic:Formula ;
+    rdfs:label "ddcGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:ddcNot a logic:Formula ; logic:not gmeow:ddcBad .
+gmeow:ddcNot a logic:Formula ;
+    rdfs:label "ddcNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:ddcBad .
 gmeow:ddcBad a logic:Formula ;
+    rdfs:label "ddcBad (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] , [ logic:termIndex 2 ; logic:termVariable "pk" ] , [ logic:termIndex 3 ; logic:termVariable "tb" ] , [ logic:termIndex 4 ; logic:termVariable "d1" ] , [ logic:termIndex 5 ; logic:termVariable "d2" ] ;
     logic:exists gmeow:ddcBadBody .
 gmeow:ddcBadBody a logic:Formula ;
+    rdfs:label "ddcBadBody (formula AST node)"@x-gmeow-english ;
     logic:and gmeow:ddcOtherType , gmeow:ddcSS1 , gmeow:ddcSS2 , gmeow:ddcPK1 , gmeow:ddcPK2 , gmeow:ddcTB1 , gmeow:ddcTB2 , gmeow:ddcD1 , gmeow:ddcD2 , gmeow:ddcDigestDiffer .
-gmeow:ddcOtherType a logic:Formula ; logic:relation rdf:type ;
+gmeow:ddcOtherType a logic:Formula ;
+    rdfs:label "ddcOtherType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
-gmeow:ddcSS1 a logic:Formula ; logic:relation gmeow:projectionSourceSet ;
+gmeow:ddcSS1 a logic:Formula ;
+    rdfs:label "ddcSS1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] .
-gmeow:ddcSS2 a logic:Formula ; logic:relation gmeow:projectionSourceSet ;
+gmeow:ddcSS2 a logic:Formula ;
+    rdfs:label "ddcSS2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] .
-gmeow:ddcPK1 a logic:Formula ; logic:relation gmeow:projectionKind ;
+gmeow:ddcPK1 a logic:Formula ;
+    rdfs:label "ddcPK1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pk" ] .
-gmeow:ddcPK2 a logic:Formula ; logic:relation gmeow:projectionKind ;
+gmeow:ddcPK2 a logic:Formula ;
+    rdfs:label "ddcPK2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "pk" ] .
-gmeow:ddcTB1 a logic:Formula ; logic:relation gmeow:tieBreakRule ;
+gmeow:ddcTB1 a logic:Formula ;
+    rdfs:label "ddcTB1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "tb" ] .
-gmeow:ddcTB2 a logic:Formula ; logic:relation gmeow:tieBreakRule ;
+gmeow:ddcTB2 a logic:Formula ;
+    rdfs:label "ddcTB2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "tb" ] .
-gmeow:ddcD1 a logic:Formula ; logic:relation gmeow:contentDigest ;
+gmeow:ddcD1 a logic:Formula ;
+    rdfs:label "ddcD1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d1" ] .
-gmeow:ddcD2 a logic:Formula ; logic:relation gmeow:contentDigest ;
+gmeow:ddcD2 a logic:Formula ;
+    rdfs:label "ddcD2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
-gmeow:ddcDigestDiffer a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:ddcDigestDiffer a logic:Formula ;
+    rdfs:label "ddcDigestDiffer (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "d1" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
 
 # F1 — a selected candidate at whole-set scope requires a discharged winner claim.
@@ -1384,28 +1506,40 @@ gmeow:SelectedCandidateRequiresConsensusConstraint
     logic:message "A gmeow:ProjectionReceipt binding a gmeow:selectedCandidate must be backed by a typed gmeow:PreferenceClaim that asserts a global winner, extends to a gmeow:ConsensusSection, and discharges a gmeow:DisagreementObstruction (F1)." ;
     logic:integrity gmeow:srcForall .
 gmeow:srcForall a logic:Formula ;
+    rdfs:label "srcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:srcImpl .
-gmeow:srcImpl a logic:Formula ; logic:antecedent gmeow:srcGuard ; logic:consequent gmeow:srcExists .
-gmeow:srcGuard a logic:Formula ; logic:and gmeow:srcType , gmeow:srcSelects .
-gmeow:srcType a logic:Formula ; logic:relation rdf:type ;
+gmeow:srcImpl a logic:Formula ;
+    rdfs:label "srcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:srcGuard ; logic:consequent gmeow:srcExists .
+gmeow:srcGuard a logic:Formula ;
+    rdfs:label "srcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcType , gmeow:srcSelects .
+gmeow:srcType a logic:Formula ;
+    rdfs:label "srcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:srcSelects a logic:Formula ;
+    rdfs:label "srcSelects (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cand" ] ;
     logic:exists gmeow:srcSelectsAtom .
-gmeow:srcSelectsAtom a logic:Formula ; logic:relation gmeow:selectedCandidate ;
+gmeow:srcSelectsAtom a logic:Formula ;
+    rdfs:label "srcSelectsAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:srcExists a logic:Formula ;
+    rdfs:label "srcExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] ;
     logic:exists gmeow:srcBody .
-gmeow:srcBody a logic:Formula ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge .
-gmeow:srcClaimType a logic:Formula ; logic:relation rdf:type ;
+gmeow:srcBody a logic:Formula ;
+    rdfs:label "srcBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge .
+gmeow:srcClaimType a logic:Formula ;
+    rdfs:label "srcClaimType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceClaim ] .
-gmeow:srcAsserts a logic:Formula ; logic:relation gmeow:assertsGlobalWinner ;
+gmeow:srcAsserts a logic:Formula ;
+    rdfs:label "srcAsserts (formula AST node)"@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
-gmeow:srcExtends a logic:Formula ; logic:relation gmeow:extendsToConsensusSection ;
+gmeow:srcExtends a logic:Formula ;
+    rdfs:label "srcExtends (formula AST node)"@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
-gmeow:srcDischarge a logic:Formula ; logic:relation gmeow:dischargesDisagreement ;
+gmeow:srcDischarge a logic:Formula ;
+    rdfs:label "srcDischarge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
 
 # DPO is derived-only: a canonical observation may not be derived from a DPO view.
@@ -1602,37 +1736,53 @@ gmeow:ModelConfigDeltaCompletenessConstraint
     logic:message "A gmeow:ModelConfigDelta must bind all eleven identity legs (base artifact, tokenizer, codebook, dataset projection, selection query, prompt, rubric, engine, optimizer, seed, evaluation evidence); a partial delta is not a reproducible identity (AC5)." ;
     logic:integrity gmeow:mcdForall .
 gmeow:mcdForall a logic:Formula ;
+    rdfs:label "mcdForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:mcdImpl .
-gmeow:mcdImpl a logic:Formula ; logic:antecedent gmeow:mcdGuard ; logic:consequent gmeow:mcdExists .
-gmeow:mcdGuard a logic:Formula ; logic:relation rdf:type ;
+gmeow:mcdImpl a logic:Formula ;
+    rdfs:label "mcdImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:mcdGuard ; logic:consequent gmeow:mcdExists .
+gmeow:mcdGuard a logic:Formula ;
+    rdfs:label "mcdGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelConfigDelta ] .
 gmeow:mcdExists a logic:Formula ;
+    rdfs:label "mcdExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ba" ] , [ logic:termIndex 1 ; logic:termVariable "tk" ] , [ logic:termIndex 2 ; logic:termVariable "cb" ] , [ logic:termIndex 3 ; logic:termVariable "dp" ] , [ logic:termIndex 4 ; logic:termVariable "sq" ] , [ logic:termIndex 5 ; logic:termVariable "pr" ] , [ logic:termIndex 6 ; logic:termVariable "rb" ] , [ logic:termIndex 7 ; logic:termVariable "en" ] , [ logic:termIndex 8 ; logic:termVariable "op" ] , [ logic:termIndex 9 ; logic:termVariable "sd" ] , [ logic:termIndex 10 ; logic:termVariable "ev" ] ;
     logic:exists gmeow:mcdBody .
 gmeow:mcdBody a logic:Formula ;
+    rdfs:label "mcdBody (formula AST node)"@x-gmeow-english ;
     logic:and gmeow:mcdBA , gmeow:mcdTK , gmeow:mcdCB , gmeow:mcdDP , gmeow:mcdSQ , gmeow:mcdPR , gmeow:mcdRB , gmeow:mcdEN , gmeow:mcdOP , gmeow:mcdSD , gmeow:mcdEV .
-gmeow:mcdBA a logic:Formula ; logic:relation gmeow:deltaBaseArtifact ;
+gmeow:mcdBA a logic:Formula ;
+    rdfs:label "mcdBA (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaBaseArtifact ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ba" ] .
-gmeow:mcdTK a logic:Formula ; logic:relation gmeow:deltaTokenizer ;
+gmeow:mcdTK a logic:Formula ;
+    rdfs:label "mcdTK (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaTokenizer ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "tk" ] .
-gmeow:mcdCB a logic:Formula ; logic:relation gmeow:deltaCodebook ;
+gmeow:mcdCB a logic:Formula ;
+    rdfs:label "mcdCB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaCodebook ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cb" ] .
-gmeow:mcdDP a logic:Formula ; logic:relation gmeow:deltaDatasetProjection ;
+gmeow:mcdDP a logic:Formula ;
+    rdfs:label "mcdDP (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaDatasetProjection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dp" ] .
-gmeow:mcdSQ a logic:Formula ; logic:relation gmeow:deltaSelectionQuery ;
+gmeow:mcdSQ a logic:Formula ;
+    rdfs:label "mcdSQ (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaSelectionQuery ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sq" ] .
-gmeow:mcdPR a logic:Formula ; logic:relation gmeow:deltaPromptIdentity ;
+gmeow:mcdPR a logic:Formula ;
+    rdfs:label "mcdPR (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaPromptIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
-gmeow:mcdRB a logic:Formula ; logic:relation gmeow:deltaRubricIdentity ;
+gmeow:mcdRB a logic:Formula ;
+    rdfs:label "mcdRB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaRubricIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rb" ] .
-gmeow:mcdEN a logic:Formula ; logic:relation gmeow:deltaEngine ;
+gmeow:mcdEN a logic:Formula ;
+    rdfs:label "mcdEN (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaEngine ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "en" ] .
-gmeow:mcdOP a logic:Formula ; logic:relation gmeow:deltaOptimizer ;
+gmeow:mcdOP a logic:Formula ;
+    rdfs:label "mcdOP (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaOptimizer ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "op" ] .
-gmeow:mcdSD a logic:Formula ; logic:relation gmeow:deltaSeed ;
+gmeow:mcdSD a logic:Formula ;
+    rdfs:label "mcdSD (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaSeed ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
-gmeow:mcdEV a logic:Formula ; logic:relation gmeow:deltaEvaluationEvidence ;
+gmeow:mcdEV a logic:Formula ;
+    rdfs:label "mcdEV (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaEvaluationEvidence ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ev" ] .
 
 # Closed-world roster of the delta's mandatory legs (F2-style closure).
@@ -1683,41 +1833,60 @@ gmeow:GeometricBindingConstraint
     logic:message "A candidate's gmeow:candidateGeometry math:CliffordAlgebra must carry math:signaturePositive + math:signatureNegative = 12 and math:spaceDimension = 4096 (Cl(12) over 4096-d); a mismatch is gmeow:GeometryDimensionMismatch." ;
     logic:integrity gmeow:gbcForall .
 gmeow:gbcForall a logic:Formula ;
+    rdfs:label "gbcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mv" ] ;
     logic:forall gmeow:gbcImpl .
-gmeow:gbcImpl a logic:Formula ; logic:antecedent gmeow:gbcGuard ; logic:consequent gmeow:gbcOk .
-gmeow:gbcGuard a logic:Formula ; logic:relation gmeow:candidateGeometry ;
+gmeow:gbcImpl a logic:Formula ;
+    rdfs:label "gbcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:gbcGuard ; logic:consequent gmeow:gbcOk .
+gmeow:gbcGuard a logic:Formula ;
+    rdfs:label "gbcGuard (formula AST node)"@x-gmeow-english ; logic:relation gmeow:candidateGeometry ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mv" ] .
-gmeow:gbcOk a logic:Formula ; logic:and gmeow:gbcNoSigBad , gmeow:gbcNoDimBad .
+gmeow:gbcOk a logic:Formula ;
+    rdfs:label "gbcOk (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcNoSigBad , gmeow:gbcNoDimBad .
 # ¬∃ signature mismatch: p + q ≠ 12
-gmeow:gbcNoSigBad a logic:Formula ; logic:not gmeow:gbcSigEx .
+gmeow:gbcNoSigBad a logic:Formula ;
+    rdfs:label "gbcNoSigBad (formula AST node)"@x-gmeow-english ; logic:not gmeow:gbcSigEx .
 gmeow:gbcSigEx a logic:Formula ;
+    rdfs:label "gbcSigEx (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "alg" ] , [ logic:termIndex 1 ; logic:termVariable "sig" ] , [ logic:termIndex 2 ; logic:termVariable "p" ] , [ logic:termIndex 3 ; logic:termVariable "q" ] , [ logic:termIndex 4 ; logic:termVariable "s" ] ;
     logic:exists gmeow:gbcSigBody .
-gmeow:gbcSigBody a logic:Formula ; logic:and gmeow:gbcSigAlg , gmeow:gbcSigSig , gmeow:gbcSigP , gmeow:gbcSigQ , gmeow:gbcSigSum , gmeow:gbcSigNot12 .
-gmeow:gbcSigAlg a logic:Formula ; logic:relation gmeow:geometryAlgebra ;
+gmeow:gbcSigBody a logic:Formula ;
+    rdfs:label "gbcSigBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcSigAlg , gmeow:gbcSigSig , gmeow:gbcSigP , gmeow:gbcSigQ , gmeow:gbcSigSum , gmeow:gbcSigNot12 .
+gmeow:gbcSigAlg a logic:Formula ;
+    rdfs:label "gbcSigAlg (formula AST node)"@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mv" ] , [ logic:termIndex 1 ; logic:termVariable "alg" ] .
-gmeow:gbcSigSig a logic:Formula ; logic:relation math:metricSignature ;
+gmeow:gbcSigSig a logic:Formula ;
+    rdfs:label "gbcSigSig (formula AST node)"@x-gmeow-english ; logic:relation math:metricSignature ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "alg" ] , [ logic:termIndex 1 ; logic:termVariable "sig" ] .
-gmeow:gbcSigP a logic:Formula ; logic:relation math:signaturePositive ;
+gmeow:gbcSigP a logic:Formula ;
+    rdfs:label "gbcSigP (formula AST node)"@x-gmeow-english ; logic:relation math:signaturePositive ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sig" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
-gmeow:gbcSigQ a logic:Formula ; logic:relation math:signatureNegative ;
+gmeow:gbcSigQ a logic:Formula ;
+    rdfs:label "gbcSigQ (formula AST node)"@x-gmeow-english ; logic:relation math:signatureNegative ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sig" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
-gmeow:gbcSigSum a logic:Formula ; logic:relation logic:termSum ;
+gmeow:gbcSigSum a logic:Formula ;
+    rdfs:label "gbcSigSum (formula AST node)"@x-gmeow-english ; logic:relation logic:termSum ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "q" ] .
-gmeow:gbcSigNot12 a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:gbcSigNot12 a logic:Formula ;
+    rdfs:label "gbcSigNot12 (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termLiteral "12" ; logic:termLiteralDatatype xsd:integer ] .
 # ¬∃ carrier-dimension mismatch: spaceDimension ≠ 4096
-gmeow:gbcNoDimBad a logic:Formula ; logic:not gmeow:gbcDimEx .
+gmeow:gbcNoDimBad a logic:Formula ;
+    rdfs:label "gbcNoDimBad (formula AST node)"@x-gmeow-english ; logic:not gmeow:gbcDimEx .
 gmeow:gbcDimEx a logic:Formula ;
+    rdfs:label "gbcDimEx (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "alg2" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] ;
     logic:exists gmeow:gbcDimBody .
-gmeow:gbcDimBody a logic:Formula ; logic:and gmeow:gbcDimAlg , gmeow:gbcDimSD , gmeow:gbcDimNot4096 .
-gmeow:gbcDimAlg a logic:Formula ; logic:relation gmeow:geometryAlgebra ;
+gmeow:gbcDimBody a logic:Formula ;
+    rdfs:label "gbcDimBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcDimAlg , gmeow:gbcDimSD , gmeow:gbcDimNot4096 .
+gmeow:gbcDimAlg a logic:Formula ;
+    rdfs:label "gbcDimAlg (formula AST node)"@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mv" ] , [ logic:termIndex 1 ; logic:termVariable "alg2" ] .
-gmeow:gbcDimSD a logic:Formula ; logic:relation math:spaceDimension ;
+gmeow:gbcDimSD a logic:Formula ;
+    rdfs:label "gbcDimSD (formula AST node)"@x-gmeow-english ; logic:relation math:spaceDimension ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "alg2" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
-gmeow:gbcDimNot4096 a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:gbcDimNot4096 a logic:Formula ;
+    rdfs:label "gbcDimNot4096 (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ] , [ logic:termIndex 1 ; logic:termLiteral "4096" ; logic:termLiteralDatatype xsd:integer ] .
 
 gmeow:GeometryDimensionMismatch
@@ -1883,23 +2052,32 @@ gmeow:ActivationAuthorityConstraint
     logic:message "Any gmeow:grantsActivation must be gmeow:activationAuthorizedBy a gmeow:ConsumerImprovementGate whose gmeow:gateVerdict is gmeow:verdictHeld; a promotion alone cannot authorize activation (AC6)." ;
     logic:integrity gmeow:aacForall .
 gmeow:aacForall a logic:Formula ;
+    rdfs:label "aacForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:aacImpl .
-gmeow:aacImpl a logic:Formula ; logic:antecedent gmeow:aacGuard ; logic:consequent gmeow:aacExists .
+gmeow:aacImpl a logic:Formula ;
+    rdfs:label "aacImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:aacGuard ; logic:consequent gmeow:aacExists .
 gmeow:aacGuard a logic:Formula ;
+    rdfs:label "aacGuard (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dep" ] ;
     logic:exists gmeow:aacGrants .
-gmeow:aacGrants a logic:Formula ; logic:relation gmeow:grantsActivation ;
+gmeow:aacGrants a logic:Formula ;
+    rdfs:label "aacGrants (formula AST node)"@x-gmeow-english ; logic:relation gmeow:grantsActivation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dep" ] .
 gmeow:aacExists a logic:Formula ;
+    rdfs:label "aacExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gate" ] ;
     logic:exists gmeow:aacBody .
-gmeow:aacBody a logic:Formula ; logic:and gmeow:aacAuth , gmeow:aacGateType , gmeow:aacHeld .
-gmeow:aacAuth a logic:Formula ; logic:relation gmeow:activationAuthorizedBy ;
+gmeow:aacBody a logic:Formula ;
+    rdfs:label "aacBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:aacAuth , gmeow:aacGateType , gmeow:aacHeld .
+gmeow:aacAuth a logic:Formula ;
+    rdfs:label "aacAuth (formula AST node)"@x-gmeow-english ; logic:relation gmeow:activationAuthorizedBy ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gate" ] .
-gmeow:aacGateType a logic:Formula ; logic:relation rdf:type ;
+gmeow:aacGateType a logic:Formula ;
+    rdfs:label "aacGateType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gate" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ConsumerImprovementGate ] .
-gmeow:aacHeld a logic:Formula ; logic:relation gmeow:gateVerdict ;
+gmeow:aacHeld a logic:Formula ;
+    rdfs:label "aacHeld (formula AST node)"@x-gmeow-english ; logic:relation gmeow:gateVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gate" ] , [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] .
 
 # =========================================================================== #
@@ -1941,24 +2119,34 @@ gmeow:PreservationBoundaryConstraint
     logic:message "A gmeow:ProjectionPreservationRecord whose logic:preservationKind is not logic:ExactPreservation must name a logic:ExpressivenessBoundary through logic:expressivenessBoundary." ;
     logic:integrity gmeow:pbcForall .
 gmeow:pbcForall a logic:Formula ;
+    rdfs:label "pbcForall (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pbcImpl .
-gmeow:pbcImpl a logic:Formula ; logic:antecedent gmeow:pbcGuard ; logic:consequent gmeow:pbcExists .
-gmeow:pbcGuard a logic:Formula ; logic:and gmeow:pbcType , gmeow:pbcLossy .
-gmeow:pbcType a logic:Formula ; logic:relation rdf:type ;
+gmeow:pbcImpl a logic:Formula ;
+    rdfs:label "pbcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pbcGuard ; logic:consequent gmeow:pbcExists .
+gmeow:pbcGuard a logic:Formula ;
+    rdfs:label "pbcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:pbcType , gmeow:pbcLossy .
+gmeow:pbcType a logic:Formula ;
+    rdfs:label "pbcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionPreservationRecord ] .
 gmeow:pbcLossy a logic:Formula ;
+    rdfs:label "pbcLossy (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:pbcLossyBody .
-gmeow:pbcLossyBody a logic:Formula ; logic:and gmeow:pbcKind , gmeow:pbcNotExact .
-gmeow:pbcKind a logic:Formula ; logic:relation logic:preservationKind ;
+gmeow:pbcLossyBody a logic:Formula ;
+    rdfs:label "pbcLossyBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pbcKind , gmeow:pbcNotExact .
+gmeow:pbcKind a logic:Formula ;
+    rdfs:label "pbcKind (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
-gmeow:pbcNotExact a logic:Formula ; logic:relation logic:termDistinct ;
+gmeow:pbcNotExact a logic:Formula ;
+    rdfs:label "pbcNotExact (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 gmeow:pbcExists a logic:Formula ;
+    rdfs:label "pbcExists (formula AST node)"@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
     logic:exists gmeow:pbcAtom .
-gmeow:pbcAtom a logic:Formula ; logic:relation logic:expressivenessBoundary ;
+gmeow:pbcAtom a logic:Formula ;
+    rdfs:label "pbcAtom (formula AST node)"@x-gmeow-english ; logic:relation logic:expressivenessBoundary ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # The governing anti-context-free-winner gate is the whole-base consensus gate;

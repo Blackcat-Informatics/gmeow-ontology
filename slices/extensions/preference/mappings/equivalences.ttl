@@ -21,7 +21,7 @@ gmeow:mapsetPreference a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/preference" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "By-reference composition bridges from the preference extension to the seven named sibling slices (norms, model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a re-declaration: the preference slice composes the sibling term, it does not re-mint it." .
+    gmeow:setComment "By-reference composition bridges from the preference extension to the seven named sibling slices (norms, model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a redeclaration: the preference slice composes the sibling term, it does not re-mint it." .
 
 # ── norms: rubric / criterion / verdict / contract, reused by-reference ────────
 gmeow:eqPreference001 a gmeow:TermEquivalence ;
@@ -30,7 +30,7 @@ gmeow:eqPreference001 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:Rubric ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the norms gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a re-declared range axiom." ;
+    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the norms gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a redeclared range axiom." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
 
 gmeow:eqPreference002 a gmeow:TermEquivalence ;
@@ -39,7 +39,7 @@ gmeow:eqPreference002 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:Criterion ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the norms gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a re-declared range axiom." ;
+    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the norms gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a redeclared range axiom." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
 
 gmeow:eqPreference003 a gmeow:TermEquivalence ;
@@ -57,7 +57,7 @@ gmeow:eqPreference004 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:Condition ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the norms gmeow:Condition (via gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a re-declared range axiom." ;
+    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the norms gmeow:Condition (via gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a redeclared range axiom." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
 
 # ── model-serving: the base model artifact, reused by-reference ────────────────
@@ -67,7 +67,7 @@ gmeow:eqPreference005 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:ModelArtifact ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:deltaBaseArtifact ranges over the core gmeow:InformationObject and reuses the model-serving gmeow:ModelArtifact by reference at the instance level (Principle 16) — the checkpoint a config delta is a change FROM, never a re-declared range axiom against the model-serving extension." ;
+    gmeow:comment "gmeow:deltaBaseArtifact ranges over the core gmeow:InformationObject and reuses the model-serving gmeow:ModelArtifact by reference at the instance level (Principle 16) — the checkpoint a config delta is a change FROM, never a redeclared range axiom against the model-serving extension." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
 
 # ── ai: model invocation and prompt, reused by-reference ──────────────────────
@@ -126,5 +126,5 @@ gmeow:eqPreference011 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:TopologyClaim ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "gmeow:DisagreementObstruction is the preference-side H1 twin of the semantic-topology sheaf apparatus: both wrap a math: object (here math:GluingObstruction) under the same H0/H1 gluing picture that gmeow:TopologyClaim governs. Related by reference (Principle 16) — the preference slice reuses the sibling's obstruction/consensus pattern at the instance level, never re-declaring gmeow:TopologyClaim." ;
+    gmeow:comment "gmeow:DisagreementObstruction is the preference-side H1 twin of the semantic-topology sheaf apparatus: both wrap a math: object (here math:GluingObstruction) under the same H0/H1 gluing picture that gmeow:TopologyClaim governs. Related by reference (Principle 16) — the preference slice reuses the sibling's obstruction/consensus pattern at the instance level, never redeclaring gmeow:TopologyClaim." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
