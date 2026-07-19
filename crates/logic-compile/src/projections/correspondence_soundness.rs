@@ -177,9 +177,25 @@ const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjoin
 const OWL_ALL_DISJOINT_PROPERTIES: &str = "http://www.w3.org/2002/07/owl#AllDisjointProperties";
 const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+// ── logic: property-characteristic carrier ────────────────────────────────────
+// GMEOW (authoring-namespace) properties no longer carry `rdf:type
+// owl:FunctionalProperty` in source: functionality lives on the canonical
+// `logic:PropertyCharacteristicAssertion` carrier (`logic:characterizes ?P` joined with
+// `logic:characteristicSort logic:functionalProperty`). The GMEOW-side character read
+// below joins this carrier so a functional GMEOW property is still recognized; the
+// TARGET/external side continues to read `rdf:type owl:FunctionalProperty` directly, as
+// those vocabularies legitimately declare the OWL characteristic.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
+const LOGIC_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "https://blackcatinformatics.ca/logic/inverseFunctionalProperty";
 
 const SCHEMA_INVERSE_OF: &str = "https://schema.org/inverseOf";
 const SCHEMA_DOMAIN_INCLUDES: &str = "https://schema.org/domainIncludes";
@@ -1020,9 +1036,15 @@ fn check_property_character(
     for (prop, prop_mappings) in gmeow_props {
         let g_is_object = has_type(onto, prop, OWL_OBJECT_PROPERTY);
         let g_is_data = has_type(onto, prop, OWL_DATATYPE_PROPERTY);
+        // The functional / inverse-functional characteristics of a GMEOW property now live
+        // on the canonical `logic:PropertyCharacteristicAssertion` carrier, not on an
+        // `rdf:type owl:FunctionalProperty` triple; the remaining characteristics
+        // (Transitive/Symmetric) are still authored as OWL types. Read owl-typed
+        // characteristics via `rdf:type` AND the functional pair from the carrier.
+        let carrier_chars = gmeow_carrier_characteristics(onto, prop);
         let mut g_chars: Vec<String> = Vec::new();
         for char_iri in CHARACTER_TYPES {
-            if has_type(onto, prop, char_iri) {
+            if has_type(onto, prop, char_iri) || carrier_chars.contains(*char_iri) {
                 g_chars.push((*char_iri).to_owned());
             }
         }
@@ -1094,6 +1116,31 @@ fn check_property_character(
         }
     }
     findings
+}
+
+/// The OWL property-character IRIs a GMEOW property bears via its canonical
+/// `logic:PropertyCharacteristicAssertion` carrier(s). Each carrier record joins
+/// `logic:characterizes <prop>` with a `logic:characteristicSort` marker; the functional
+/// markers map back to their OWL projections so a functional GMEOW property compares
+/// equal to a target that declares `owl:FunctionalProperty`. Only the functional
+/// characteristics migrated to the carrier; Transitive/Symmetric stay OWL-typed and are
+/// read via `rdf:type` at the call site.
+fn gmeow_carrier_characteristics(onto: &DslView<'_>, prop: &str) -> BTreeSet<&'static str> {
+    let mut out: BTreeSet<&'static str> = BTreeSet::new();
+    for record in onto.subjects_with_object_iri(LOGIC_CHARACTERIZES, prop) {
+        for sort in onto.object_iris(&record, LOGIC_CHARACTERISTIC_SORT) {
+            match sort.as_str() {
+                LOGIC_FUNCTIONAL_PROPERTY => {
+                    out.insert(OWL_FUNCTIONAL_PROPERTY);
+                }
+                LOGIC_INVERSE_FUNCTIONAL_PROPERTY => {
+                    out.insert(OWL_INVERSE_FUNCTIONAL_PROPERTY);
+                }
+                _ => {}
+            }
+        }
+    }
+    out
 }
 
 fn character_finding(
