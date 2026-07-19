@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 318
 expression: "to_markdown(&model, &Page::Slice(slug))"
 ---
 # GMEOW Accessibility Module
@@ -42,13 +43,13 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `06d16d51d480` |
+| `module.ttl` | `text/turtle` | `f16507ba3529` |
 
 ### Tests
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `tests/structural.ttl` | `text/turtle` | `6b4491bb3bb1` |
+| `tests/structural.ttl` | `text/turtle` | `7024bdab47ba` |
 
 ## Terms \(9\)
 
