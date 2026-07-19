@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the no-duplicate ban on EVIDENCE (charter Hard Rule 10,
+# ex:saNoRemintEvidenceTerms): a fixture that RE-MINTS gmeow:EvidenceSpan as rdfs:isDefinedBy the
+# preference slice — the AC7 no-duplication violation (Principle 16). The slice reuses evidence
+# terms by-reference only (e.g. gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). Unioned with
+# the module by the gmeow:saFailWitness teeth check, it makes the ∃-redeclared-term ASK HOLD,
+# proving the mustNot ban has teeth. The module must never carry this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:EvidenceSpan rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .

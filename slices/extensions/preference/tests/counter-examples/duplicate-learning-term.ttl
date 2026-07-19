@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the no-duplicate ban on LEARNING (charter Hard Rule 10,
+# ex:saNoRemintLearningTerms): a fixture that RE-MINTS gmeow:LearningEvent as rdfs:isDefinedBy the
+# preference slice — the AC7 no-duplication violation (Principle 16). gmeow:PreferenceLearningEvent
+# specializes gmeow:LearningEvent BY REFERENCE, but the parent term is never redeclared here.
+# Unioned with the module by the gmeow:saFailWitness teeth check, it makes the ∃-redeclared-term
+# ASK HOLD, proving the mustNot ban has teeth. The module must never carry this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:LearningEvent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .

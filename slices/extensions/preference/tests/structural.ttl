@@ -27,6 +27,7 @@
 ex:saNoWinnerSlotTerm a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/preferred-rank-reused.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
@@ -49,6 +50,7 @@ ASK {
 ex:saNoRemintNormsTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-norms-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -64,6 +66,7 @@ ASK {
 ex:saNoRemintModelServingTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-model-serving-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -78,6 +81,7 @@ ASK {
 ex:saNoRemintAiTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-ai-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -92,6 +96,7 @@ ASK {
 ex:saNoRemintLearningTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-learning-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -106,6 +111,7 @@ ASK {
 ex:saNoRemintProvenanceTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-provenance-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -120,6 +126,7 @@ ASK {
 ex:saNoRemintEvidenceTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-evidence-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
@@ -134,6 +141,7 @@ ASK {
 ex:saNoRemintSemanticTopologyTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/duplicate-semantic-topology-term.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
