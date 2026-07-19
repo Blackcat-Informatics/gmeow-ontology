@@ -1418,8 +1418,10 @@ gmeow:ConditionEvaluation rdfs:subClassOf
 # level gmeow:ObservationVantageConstraint pattern, but guard on logic:directType
 # gmeow:ComplianceAssessment so the derived shape targets ComplianceAssessment nodes directly
 # (a ComplianceAssessment is not asserted rdf:type gmeow:Observation, so the Observation-level
-# constraint does not reach it under non-reasoned SHACL). assessedEvent / assessedNorm stay
-# owl:FunctionalProperty (max one) with a range; the emitter always supplies them.
+# constraint does not reach it under non-reasoned SHACL). assessedEvent / assessedNorm carry a
+# matching min-1 logic: integrity constraint (below): a ComplianceAssessment assesses exactly one
+# event against exactly one norm (the owl:FunctionalProperty range axioms cap the max at one), so
+# the shipped graph is self-validating for their presence, not merely emitter-guaranteed.
 gmeow:ComplianceAssessmentVantageConstraint
     a logic:Constraint ;
     rdfs:label "Compliance-assessment vantage constraint"@x-gmeow-english ;
@@ -1463,6 +1465,50 @@ logic:caVdHas a logic:Formula ;
     logic:exists logic:caVdAtom .
 logic:caVdAtom a logic:Formula ; logic:relation gmeow:complianceVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vd" ] .
+
+gmeow:ComplianceAssessmentAssessedEventConstraint
+    a logic:Constraint ;
+    rdfs:label "Compliance-assessment assessed-event constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedEvent it rules on — the conduct whose compliance with the assessed norm this observation records; exactly one (the owl:FunctionalProperty range axiom caps the max), paired with gmeow:assessedNorm (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:ComplianceAssessmentShape ;
+    logic:severity "Violation" ;
+    logic:message "A ComplianceAssessment must name its assessed event (gmeow:assessedEvent)." ;
+    logic:integrity logic:caEForall .
+logic:caEForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:caEImpl .
+logic:caEImpl a logic:Formula ; logic:antecedent logic:caEGuard ; logic:consequent logic:caEHas .
+logic:caEGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ComplianceAssessment ] .
+logic:caEHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:caEAtom .
+logic:caEAtom a logic:Formula ; logic:relation gmeow:assessedEvent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+gmeow:ComplianceAssessmentAssessedNormConstraint
+    a logic:Constraint ;
+    rdfs:label "Compliance-assessment assessed-norm constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedNorm it rules against — the prescription the assessed event is judged to comply with or violate; exactly one (the owl:FunctionalProperty range axiom caps the max), paired with gmeow:assessedEvent (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:ComplianceAssessmentShape ;
+    logic:severity "Violation" ;
+    logic:message "A ComplianceAssessment must name its assessed norm (gmeow:assessedNorm)." ;
+    logic:integrity logic:caNForall .
+logic:caNForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:caNImpl .
+logic:caNImpl a logic:Formula ; logic:antecedent logic:caNGuard ; logic:consequent logic:caNHas .
+logic:caNGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ComplianceAssessment ] .
+logic:caNHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "n" ] ;
+    logic:exists logic:caNAtom .
+logic:caNAtom a logic:Formula ; logic:relation gmeow:assessedNorm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "n" ] .
 
 gmeow:ConditionGroup rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
