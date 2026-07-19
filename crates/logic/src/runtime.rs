@@ -496,6 +496,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "native canonical-process teleology evaluator — forward evaluator/classifier, not backward dispatch",
     ),
     (
+        "termination_demonstrators.rs",
+        "static chase-termination-ladder demonstrator RDF constants shipped into gmeow.gts — data, not backward dispatch decision logic",
+    ),
+    (
         "transaction.rs",
         "Transaction Logic combinator interpreter — forward transaction-program executor, not backward dispatch",
     ),
