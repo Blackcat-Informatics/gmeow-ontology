@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — semantic-topology): the preference H0/H1 apparatus reuses the
+# same math: sheaf-cohomology substrate the semantic-topology slice's gmeow:TopologyClaim governs
+# (Principle 16, the DisagreementObstruction ~ TopologyClaim by-reference twin). Over the
+# comparison-worked pass scene this returns exactly one row — the gmeow:ConsensusSection wrapping
+# a math:GlobalSection (H0) and the gmeow:DisagreementObstruction wrapping a math:GluingObstruction
+# (H1) — proving the preference slice composes the shared H0/H1 gluing picture at the instance
+# level.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+SELECT ?consensus ?globalSection ?obstruction ?gluingObstruction WHERE {
+    ?consensus a gmeow:ConsensusSection ;
+        gmeow:consensusGlobalSection ?globalSection .
+    ?globalSection a math:GlobalSection .
+    ?obstruction a gmeow:DisagreementObstruction ;
+        gmeow:obstructionClass ?gluingObstruction .
+    ?gluingObstruction a math:GluingObstruction .
+}
+ORDER BY ?consensus

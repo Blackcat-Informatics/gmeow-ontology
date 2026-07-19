@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (AC4): the optimizer's training view is a lossy gmeow:ProjectionReceipt (a
+# gmeow:DpoView), never the canonical preference. Over the model-delta-worked pass scene this
+# returns exactly one row — the delta's dataset-projection leg is a gmeow:DpoView carrying a
+# gmeow:projectionKind, bound alongside its gmeow:OptimizerContract, proving DPO is a derived
+# projection consumed by the optimizer, not the canon.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?datasetProjection ?projectionKind ?optimizer WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:deltaDatasetProjection ?datasetProjection ;
+        gmeow:deltaOptimizer ?optimizer .
+    ?datasetProjection a gmeow:DpoView ;
+        gmeow:projectionKind ?projectionKind .
+}
+ORDER BY ?delta

@@ -1,0 +1,193 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the preference extension slice. Each cell unions the module
+# with the named fixture and validates it against the canonical GENERATED projections
+# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl) under the
+# native Rust conformance harness — the slice hand-authors NO shapes.ttl; the pipeline DERIVES
+# the SHACL from the module's logic:Constraint / logic:ForbiddenPatternConstraint /
+# logic:DisjunctiveRequirednessConstraint gates. gmeow:exampleFile is SLICE-RELATIVE;
+# gmeow:expectedViolationCode is the COARSE native finding code finding_from_shacl builds as
+# "shacl.<ConstraintComponentLocalName>". EVERY instance-level preference gate — the ∀→∃ / ∀→¬∃
+# logic:Constraint gates AND the forbidden-pattern / disjunctive-requiredness sugar gates — is
+# projected to a sh:SPARQLConstraint, so each counter-example rejects with
+# shacl.SPARQLConstraintComponent. The SPECIFIC slice failure class is named in
+# gmeow:conformanceRationale, and each counter-example isolates exactly ONE gate (AND-NO-OTHER).
+# The schema-level bans (the preferredRank re-mint ban and the seven no-duplicate sibling bans)
+# are covered by tests/structural.ttl over the module, not as example-conformance cells.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+
+# === GOVERNING: no global winner without a whole-base discharged consensus ==== #
+ex:ecGlobalWinnerNoConsensus a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-winner-no-consensus.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A typed gmeow:PreferenceClaim asserts gmeow:assertsGlobalWinner true but neither gmeow:extendsToConsensusSection nor gmeow:dischargesDisagreement, so the ∀→∃(∧…∧¬∃) SPARQL constraint of gmeow:NoGlobalWinnerWithoutConsensusConstraint (gmeow:GlobalWinnerWithoutConsensus) MUST emit shacl.SPARQLConstraintComponent and NO other finding. The claim is well-formed and attributed, isolating the missing whole-base discharged consensus — exactly one violation, AND no other." .
+
+ex:ecGlobalWinnerDischargeNotTyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-winner-discharge-not-typed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:PreferenceClaim asserting a global winner carries every discharge edge correctly (consensus section bound to a context that reconciles the whole registered base, and a TYPED gmeow:DisagreementObstruction) but its consensus witness is typed gmeow:InformationObject, never gmeow:ConsensusSection. Because gmeow:NoGlobalWinnerWithoutConsensusConstraint requires the witness be a resource TYPED gmeow:ConsensusSection, its SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — exactly one violation, AND no other." .
+
+ex:ecSingleEvaluatorClaimsUniversal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/single-evaluator-claims-universal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The gmeow:ComparisonContext registers TWO co-equal observations but the gmeow:ConsensusSection reconciles only one evaluator's, leaving a registered observation unreconciled (F2). The claim is otherwise perfect (typed section, typed discharged obstruction), so the whole-base ¬∃-hole clause of gmeow:NoGlobalWinnerWithoutConsensusConstraint's SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — a lone evaluator's section is not a whole-base H0 lift. Exactly one violation, AND no other." .
+
+ex:ecCherryPickedConsensusOmitsDissenter a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cherry-picked-consensus-omits-dissenter.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Three observations are registered — two agreeing, one dissenting — and the gmeow:ConsensusSection reconciles only the two agreeing, cherry-picking away the registered dissenter (F2). The claim is otherwise perfect, so the whole-base ¬∃-hole clause of gmeow:NoGlobalWinnerWithoutConsensusConstraint's SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — a consensus that hides a dissenter does not cover the whole base. Exactly one violation, AND no other." .
+
+# === F1 — an argmax selected candidate requires a discharged winner claim ===== #
+ex:ecProjectionArgmaxWinnerNoConsensus a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-argmax-winner-no-consensus.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt binds a gmeow:selectedCandidate at whole-set scope with no backing gmeow:PreferenceClaim that asserts a global winner, extends to a consensus section, and discharges an obstruction — the argmax-winner bypass. The receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation), so the ∀→∃ SPARQL constraint of gmeow:SelectedCandidateRequiresConsensusConstraint (F1) MUST emit shacl.SPARQLConstraintComponent and NO other finding — exactly one violation, AND no other." .
+
+# === F4 — same inputs must yield the same digest ============================== #
+ex:ecProjectionSameInputsDivergentDigest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-same-inputs-divergent-digest.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two gmeow:ProjectionReceipts share an identical gmeow:projectionSourceSet, gmeow:projectionKind, and gmeow:tieBreakRule but carry DIFFERENT gmeow:contentDigest values. Both are otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation, no selected candidate), so the ∀→¬∃ SPARQL constraint of gmeow:DeterministicDigestConstraint (F4) MUST emit shacl.SPARQLConstraintComponent and NO other GATE — the symmetric formula flags each same-input receipt against the other, so the sole gate that fires is F4. Exactly one gate, AND no other." .
+
+# === AC3 — a hard failure is never overridden by a soft score ================= #
+ex:ecSoftOverridesHard a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/soft-overrides-hard.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A candidate carrying a HARD gmeow:VerifierVerdict of gmeow:verdictNotHeld is bound as a gmeow:selectedCandidate. A genuine whole-base discharged gmeow:PreferenceClaim backs the selection, so gmeow:SelectedCandidateRequiresConsensusConstraint (F1) and gmeow:NoGlobalWinnerWithoutConsensusConstraint are SATISFIED and not the violation under test; the sole defect is the hard-failing selection, so the ∀→¬∃ SPARQL constraint of gmeow:HardFailureNotOverriddenConstraint (gmeow:HardFailureOverridden) MUST emit shacl.SPARQLConstraintComponent and NO other finding. Exactly one violation, AND no other." .
+
+# === G1 — a tie and a positive incomparability are distinct verdicts ========== #
+ex:ecIncomparabilityCollapsedToTie a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incomparability-collapsed-to-tie.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A single candidate pair is asserted BOTH gmeow:preferentiallyEquivalentWith and gmeow:incomparableWith, collapsing a positive incomparability into a comparable tie. The ∀→¬∃ SPARQL constraint of gmeow:TieIncomparabilityDistinctnessConstraint (G1) MUST emit shacl.SPARQLConstraintComponent and NO other finding — the pair is otherwise a plain, well-formed candidate field. Exactly one violation, AND no other." .
+
+# === AC4 — every dropped relation is disclosed, consistently ================== #
+ex:ecProjectionDropsRelationUndisclosed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-drops-relation-undisclosed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt carries a lossy logic:preservationKind (logic:SoundUnderApproximation) but discloses NO gmeow:DisclosedLossEntry — a hollow disclosure. The ∀→∃ SPARQL constraint of gmeow:CompleteLossDisclosureConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding; disclosing no dropped relation, gmeow:PreservationConsistencyConstraint's guard never fires. Exactly one violation, AND no other." .
+
+ex:ecProjectionLossyNoBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-lossy-no-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt discloses a gmeow:DisclosedLossEntry naming a gmeow:droppedRelation yet claims logic:preservationKind logic:ExactPreservation — dropping an edge is not exact preservation. The module authors this as gmeow:PreservationConsistencyConstraint; its ∀→¬∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding. Because a loss entry IS disclosed and the kind is exactly Exact, gmeow:CompleteLossDisclosureConstraint's lossy guard never fires — the exact-vs-dropped inconsistency is the sole violation. Exactly one violation, AND no other." .
+
+ex:ecScalarizationNoChoice a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/scalarization-no-choice.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt of gmeow:projectionKind gmeow:projectionScalarized carries NO gmeow:scalarizationWeights, hiding how it collapsed the criteria. The ∀→∃ SPARQL constraint of gmeow:ScalarizationDisclosureConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — the receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation so no loss owed). Exactly one violation, AND no other." .
+
+ex:ecNondeterministicNoDeclare a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/nondeterministic-no-declare.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt declared gmeow:determinismDeterministic carries NO gmeow:tieBreakRule — a deterministic ranking cannot in fact be deterministic over ties without one. The ∀→∃ SPARQL constraint of gmeow:DeterministicProjectionConstraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — the receipt is otherwise well-formed (content-addressed, exact preservation, not scalarized). Exactly one violation, AND no other." .
+
+# === the order wrapper must not be conflated with its raw math:Relation ======= #
+ex:ecProjectionConflatedWithMathObject a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-conflated-with-math-object.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:PreferenceOrder is typed BOTH gmeow:PreferenceOrder AND math:Relation — the auditable wrapper conflated with the raw mathematical referent. (The module authors gmeow:ProjectionObjectConflationConstraint on gmeow:PreferenceOrder, the order wrapper, not on gmeow:ProjectionReceipt.) The ∀→¬∃ SPARQL constraint, matching the order's own rdf:type in the math: namespace, MUST emit shacl.SPARQLConstraintComponent and NO other finding (gmeow:ProjectionObjectConflation); the order correctly references a distinct raw math:Relation via gmeow:orderRelation, isolating the self-conflation. Exactly one violation, AND no other." .
+
+# === AC5 — a model-config delta binds all eleven identity legs ================ #
+ex:ecModelDeltaNoBaseArtifact a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-baseArtifact.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaBaseArtifact, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — every other leg is present, isolating the missing base artifact. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoTokenizer a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-tokenizer.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaTokenizer, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing tokenizer. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoCodebook a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-codebook.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaCodebook, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing codebook. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoDatasetProjection a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-datasetProjection.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaDatasetProjection (the gmeow:DpoView leg is absent entirely), so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing dataset projection. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoSelectionQuery a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-selectionQuery.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaSelectionQuery, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing selection query. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoPrompt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-prompt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaPromptIdentity, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing prompt identity. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoRubric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-rubric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaRubricIdentity, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing rubric identity. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoEngine a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-engine.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaEngine, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing engine. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoOptimizer a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-optimizer.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaOptimizer, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing optimizer. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoSeed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-seed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaSeed, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing seed. Exactly one violation, AND no other." .
+
+ex:ecModelDeltaNoEvaluationEvidence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-delta-no-evaluationEvidence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ModelConfigDelta binds ten of its eleven legs but omits gmeow:deltaEvaluationEvidence, so the ∀→∃(∧×11) SPARQL constraint of gmeow:ModelConfigDeltaCompletenessConstraint (AC5) MUST emit shacl.SPARQLConstraintComponent and NO other finding — isolating the missing evaluation evidence. Exactly one violation, AND no other." .
+
+# === geometry — candidates bind the Cl(12)/E8/4096-d substrate ================ #
+ex:ecGeometryWrongCarrierDim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/geometry-wrong-carrier-dim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A candidate's gmeow:candidateGeometry math:CliffordAlgebra has math:spaceDimension 2048 instead of 4096 = 2^12; the signature is a valid (11, 1) so the p + q = 12 arm holds, isolating the carrier-dimension arm. The ∀→(¬∃ signature-mismatch ∧ ¬∃ dimension-mismatch) SPARQL constraint of gmeow:GeometricBindingConstraint (gmeow:GeometryDimensionMismatch) MUST emit shacl.SPARQLConstraintComponent and NO other finding. The math:MetricSignature carries no metric-tensor / manifold chain, so the grounding math:MetricSignatureDimensionConstraint's guard never fires — the preference Cl(12)/4096-d gate is the sole violation. Exactly one violation, AND no other." .
+
+# === AC6 — promotion grants no activation; activation needs a held gate ======= #
+ex:ecPromotionGrantsActivation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/promotion-grants-activation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:PromotionReceipt carries a gmeow:grantsActivation edge — forbidden, because promotion recommends and never activates. The activation is properly gmeow:activationAuthorizedBy a held gmeow:ConsumerImprovementGate, so gmeow:ActivationAuthorityConstraint is SATISFIED and not the violation under test; the sole defect is the grant on a promotion receipt, so the forbidden-pattern SPARQL constraint of gmeow:PromotionNotActivationConstraint (AC6) MUST emit shacl.SPARQLConstraintComponent and NO other finding. Exactly one violation, AND no other." .
+
+# === AC4 — DPO is a derived-only consumer, never the canonical source ========= #
+ex:ecDpoAsCanonical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dpo-as-canonical.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:DpoView carries the forbidden gmeow:derivesCanonicalObservation edge, sourcing a canonical gmeow:PreferenceObservation from the training view and inverting the canonical→projection direction. The DpoView is otherwise a well-formed projection receipt and the observation carries its mandatory gmeow:comparisonContext and observed feature, so the forbidden-pattern SPARQL constraint of gmeow:DpoNotCanonicalConstraint (AC4) MUST emit shacl.SPARQLConstraintComponent and NO other finding. Exactly one violation, AND no other." .

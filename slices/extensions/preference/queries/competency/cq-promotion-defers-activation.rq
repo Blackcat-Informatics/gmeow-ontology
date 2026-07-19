@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (AC6): activation authority rests ONLY with a held gmeow:ConsumerImprovementGate,
+# never with a promotion. Over the promotion-worked pass scene this returns exactly one row —
+# the activation act, the held gate that authorizes it, and the deployment it activates —
+# proving activation is authorized by the held gate, while the promotion receipt grants nothing.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?activation ?gate ?deployment WHERE {
+    ?activation gmeow:grantsActivation ?deployment ;
+        gmeow:activationAuthorizedBy ?gate .
+    ?gate a gmeow:ConsumerImprovementGate ;
+        gmeow:gateVerdict gmeow:verdictHeld .
+}
+ORDER BY ?activation

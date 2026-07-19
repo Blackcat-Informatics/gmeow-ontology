@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the GOVERNING gmeow:NoGlobalWinnerWithoutConsensusConstraint
+# (gmeow:GlobalWinnerWithoutConsensus): a typed gmeow:PreferenceClaim asserts a global
+# winner (gmeow:assertsGlobalWinner true) but neither gmeow:extendsToConsensusSection nor
+# gmeow:dischargesDisagreement — the forbidden context-free winner. The ∀→∃(∧…∧¬∃) SPARQL
+# constraint's existential consequent has no witness (no consensus section, no discharged
+# obstruction), so it MUST reject the claim with shacl.SPARQLConstraintComponent and NO
+# other finding. The claim is otherwise well-formed (attributed by gmeow:vantage /
+# gmeow:accordingTo), isolating the missing whole-base discharged consensus.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:panel a gmeow:Standpoint ; rdfs:label "the editorial panel standpoint"@en .
+
+# The forbidden context-free winner: asserts a global winner with NO consensus section
+# and NO discharged obstruction.
+ex:claim a gmeow:PreferenceClaim ;
+    rdfs:label "an illegal global-winner claim with no discharged whole-base consensus"@en ;
+    gmeow:vantage ex:panel ;
+    gmeow:accordingTo ex:panel ;
+    gmeow:assertsGlobalWinner true .

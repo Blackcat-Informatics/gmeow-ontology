@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (F1): a gmeow:ProjectionReceipt that binds a gmeow:selectedCandidate is legal only
+# when a TYPED gmeow:PreferenceClaim asserts a global winner, extends to a consensus section, and
+# discharges an obstruction — closing the argmax-winner bypass. Over the comparison-worked pass
+# scene this returns exactly one row (the selection backed by the discharged claim).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?receipt ?selected ?claim WHERE {
+    ?receipt a gmeow:ProjectionReceipt ;
+        gmeow:selectedCandidate ?selected .
+    ?claim a gmeow:PreferenceClaim ;
+        gmeow:assertsGlobalWinner true ;
+        gmeow:extendsToConsensusSection ?section ;
+        gmeow:dischargesDisagreement ?obstruction .
+}
+ORDER BY ?receipt

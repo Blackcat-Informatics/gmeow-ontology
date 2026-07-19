@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:PromotionNotActivationConstraint (AC6): a gmeow:PromotionReceipt
+# carries a gmeow:grantsActivation edge — a promotion recommends, it never activates. The
+# forbidden-pattern SPARQL constraint (the PRESENCE of gmeow:grantsActivation on a
+# gmeow:PromotionReceipt) MUST reject it with shacl.SPARQLConstraintComponent and NO other
+# finding. To isolate that gate, the activation is properly gmeow:activationAuthorizedBy a
+# held gmeow:ConsumerImprovementGate, so gmeow:ActivationAuthorityConstraint is SATISFIED and
+# NOT the violation under test — the sole defect is that the grant hangs off a promotion
+# receipt at all.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:deployment a gmeow:InformationObject ; rdfs:label "the serving deployment"@en .
+
+# The AUTHORITATIVE held gate that legitimately authorizes activation (so the
+# activation-authority gate is satisfied and is NOT the violation under test).
+ex:consumerTelemetry a gmeow:Standpoint ; rdfs:label "the consumer-telemetry vantage"@en .
+ex:gate a gmeow:ConsumerImprovementGate ;
+    gmeow:vantage ex:consumerTelemetry ;
+    gmeow:gateVerdict gmeow:verdictHeld .
+
+# The DEFECT: a PROMOTION receipt carries the activation-granting edge.
+ex:promotion a gmeow:PromotionReceipt ;
+    rdfs:label "a promotion receipt that illegally grants activation"@en ;
+    gmeow:receiptKind gmeow:receiptKindPromotion ;
+    gmeow:grantsActivation ex:deployment ;             # <-- forbidden on a promotion receipt
+    gmeow:activationAuthorizedBy ex:gate .

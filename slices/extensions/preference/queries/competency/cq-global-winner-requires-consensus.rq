@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (GOVERNING): a global winner is legal ONLY as a gmeow:PreferenceClaim that asserts
+# it AND extends to a TYPED gmeow:ConsensusSection AND discharges a TYPED
+# gmeow:DisagreementObstruction. Over the comparison-worked pass scene this returns exactly one
+# row (the discharged claim); over an undischarged scene such as condorcet-cycle it returns zero,
+# which is the point — a preference is never automatically a global winner.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?claim ?section ?obstruction WHERE {
+    ?claim a gmeow:PreferenceClaim ;
+        gmeow:assertsGlobalWinner true ;
+        gmeow:extendsToConsensusSection ?section ;
+        gmeow:dischargesDisagreement ?obstruction .
+    ?section a gmeow:ConsensusSection .
+    ?obstruction a gmeow:DisagreementObstruction .
+}
+ORDER BY ?claim

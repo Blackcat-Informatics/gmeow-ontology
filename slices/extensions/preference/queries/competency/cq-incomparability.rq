@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: which candidate pairs are POSITIVELY incomparable (a Pareto void)? Over the
+# pareto-incomparable pass scene this returns exactly the one gmeow:incomparableWith pair,
+# proving a Pareto void is a queryable, disclosed fact rather than silent missing data.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?a ?b WHERE {
+    ?a gmeow:incomparableWith ?b .
+}
+ORDER BY ?a ?b

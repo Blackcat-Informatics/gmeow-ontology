@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (AC5): a model/config change is traceable to the run that produced it and the
+# projected preference data it consumed. Over the model-delta-worked pass scene this returns
+# exactly one row — the gmeow:ModelConfigDelta, the gmeow:PreferenceLearningEvent that generated
+# it, and the gmeow:DpoView dataset projection it trained on.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?learningEvent ?datasetProjection WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:wasGeneratedBy ?learningEvent ;
+        gmeow:deltaDatasetProjection ?datasetProjection .
+}
+ORDER BY ?delta

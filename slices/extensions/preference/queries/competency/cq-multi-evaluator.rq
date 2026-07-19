@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: which co-equal evaluator vantages registered observations under the comparison?
+# Over the multi-evaluator-no-winner pass scene this returns exactly the three vantages
+# (E1, E2, E3), proving conflicting evaluators coexist as co-equal cells (Principle 9), none
+# privileged.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT DISTINCT ?vantage WHERE {
+    ?observation a gmeow:PreferenceObservation ;
+        gmeow:comparisonContext ?ctx ;
+        gmeow:vantage ?vantage .
+}
+ORDER BY ?vantage

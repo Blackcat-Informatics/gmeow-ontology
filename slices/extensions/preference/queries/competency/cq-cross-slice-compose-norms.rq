@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — norms): the preference gmeow:onCriterion property composes a
+# gmeow:PreferenceObservation with the norms gmeow:Criterion reused by reference (Principle 16),
+# never a re-declared range axiom. Over the pareto-incomparable pass scene this returns exactly
+# the two criterion-indexed observations joined to their norms gmeow:Criterion.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?observation ?criterion WHERE {
+    ?observation a gmeow:PreferenceObservation ;
+        gmeow:onCriterion ?criterion .
+    ?criterion a gmeow:Criterion .
+}
+ORDER BY ?observation
