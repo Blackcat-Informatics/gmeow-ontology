@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: promotion RECOMMENDS, but grants NO activation authority (AC6).
+# A gmeow:PromotionReceipt recommends a learned gmeow:ModelConfigDelta advance and
+# cites its evidence — but it carries NO gmeow:grantsActivation edge
+# (gmeow:PromotionNotActivationConstraint). Activation is deferred to the AUTHORITATIVE
+# gmeow:ConsumerImprovementGate, whose gmeow:gateVerdict is gmeow:verdictHeld. The only
+# resource that actually grants activation is a separate activation record, and it is
+# gmeow:activationAuthorizedBy the held gate (gmeow:ActivationAuthorityConstraint) — the
+# promotion alone could never authorize it. Promotion ≠ activation authority.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The learned change under decision, and the evidence cited ---------------- #
+ex:delta1 a gmeow:ModelConfigDelta ;
+    rdfs:label "the learned model/config delta being decided about"@en ;
+    gmeow:contentDigest "blake3:93a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607182" .
+
+ex:evalSpan a gmeow:EvidenceSpan ;
+    rdfs:label "evaluation evidence: the delta improves the held-out preference win-rate"@en .
+
+# --- The PROMOTION RECEIPT: recommends + cites, grants NOTHING ----------------- #
+# It carries receiptKind + provenance + evidence, and — critically — NO
+# gmeow:grantsActivation edge. It is a recommendation the consumer weighs.
+ex:promotion a gmeow:PromotionReceipt ;
+    rdfs:label "promotion: recommend the delta advance (recommendation only)"@en ;
+    gmeow:receiptKind gmeow:receiptKindPromotion ;
+    gmeow:wasDerivedFrom ex:delta1 ;
+    gmeow:groundedIn ex:evalSpan .
+
+# --- The AUTHORITATIVE consumer improvement gate (a held verdict) -------------- #
+ex:consumerTelemetry a gmeow:Standpoint ; rdfs:label "the consumer-telemetry vantage"@en .
+ex:gate a gmeow:ConsumerImprovementGate ;
+    rdfs:label "the authoritative consumer improvement gate — verdict HELD"@en ;
+    gmeow:vantage ex:consumerTelemetry ;
+    gmeow:gateVerdict gmeow:verdictHeld .
+
+# --- Activation is a SEPARATE act, authorized ONLY by the held gate ------------ #
+# The deployment (model-serving gmeow:ModelDeployment) is referenced at the instance
+# level only, typed as a core gmeow:InformationObject (Principle 16). The activation
+# record carries gmeow:grantsActivation and MUST be gmeow:activationAuthorizedBy the
+# held gate — never by the promotion receipt.
+ex:deployment a gmeow:InformationObject ;
+    rdfs:label "the serving deployment the delta would activate into"@en .
+
+ex:activation a gmeow:InformationObject ;
+    rdfs:label "the activation act — authorized by the held gate, not by the promotion"@en ;
+    gmeow:grantsActivation ex:deployment ;
+    gmeow:activationAuthorizedBy ex:gate .

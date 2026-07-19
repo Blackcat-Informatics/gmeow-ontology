@@ -210,6 +210,46 @@ gmeow:incomparableWith
     skos:definition "The POSITIVE incomparability relation: two candidates are asserted genuinely incomparable — e.g. Pareto-incomparable, each better on a different criterion — NOT merely 'not yet compared' (an absent edge) and NOT tied (gmeow:preferentiallyEquivalentWith, a comparable indifference). Making incomparability first-class is what lets a Pareto void be a queryable, disclosed fact rather than silent missing data (gmeow:TieIncomparabilityDistinctnessConstraint, G1). It is symmetric and irreflexive via the native logic:symmetricProperty / logic:irreflexiveProperty markers, never owl:SymmetricProperty."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- The reified observation's DIRECTED judgment (vantage-scoped carrier) ------ #
+# A gmeow:PreferenceObservation is a logic:Relator (⊑ gmeow:Observation), NOT an
+# gmeow:InformationObject, so it cannot be the subject of gmeow:preferredOver (a
+# candidate→candidate InformationObject edge). The observation names its DIRECTED
+# judgment with gmeow:observationPrefers (→ the winning candidate) and, optionally,
+# gmeow:observationDisprefers (→ the dispreferred candidate); the compared pair itself
+# rides gmeow:observedFeature. This is the FLAG-1 cross-vantage coexistence carrier: a
+# cross-vantage cycle is a cycle over observationPrefers judgments (the legal H1
+# obstruction), never a global-strict-order violation. The bare candidate→candidate
+# gmeow:preferredOver edge is reserved for the coherent WITHIN-cell order of one
+# gmeow:PreferenceProjection, where gmeow:VantageScopedStrictOrderConstraint (G3) applies.
+
+gmeow:observationPrefers
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PreferenceObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "observation prefers"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY PREFERRED — the winner of the directed comparison this vantage records. It is the reified, vantage-indexed carrier of a strict preference (⊑ gmeow:observedFeature): the observation, not a bare edge, holds the direction, so two vantages that disagree are two coexisting observations (Principle 9) and their cross-vantage cycle is the legal H1 gmeow:DisagreementObstruction. Distinct from the candidate→candidate gmeow:preferredOver (the within-cell order edge): an observation is a logic:Relator and cannot be a gmeow:preferredOver subject. The dispreferred side rides gmeow:observationDisprefers; the compared pair rides gmeow:observedFeature."@x-gmeow-english ;
+    skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:vantage ex:eval1 ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using gmeow:preferredOver from an observation (a logic:Relator cannot be its InformationObject subject); avoid it for a tie (gmeow:preferentiallyEquivalentWith) or a positive incomparability (gmeow:incomparableWith), which name no winner."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On each gmeow:PreferenceObservation that records a strict preference, point gmeow:observationPrefers at the winning candidate and gmeow:observationDisprefers at the loser; carry the pair on gmeow:observedFeature and the frame on gmeow:vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which candidate a single vantage's strict-preference observation judges the winner, as the coexisting, vantage-indexed carrier that keeps cross-vantage cycles legal."@x-gmeow-english .
+
+gmeow:observationDisprefers
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PreferenceObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "observation disprefers"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the candidate it judges STRICTLY DISPREFERRED — the loser of the directed comparison this vantage records, the counterpart of gmeow:observationPrefers (⊑ gmeow:observedFeature). Together the two name the ordered pair the observation reifies, so 'A ≻ B per this vantage' is a single coexisting cell, never a bare candidate→candidate edge."@x-gmeow-english ;
+    skos:example "ex:obsAB a gmeow:PreferenceObservation ; gmeow:observationPrefers ex:candA ; gmeow:observationDisprefers ex:candB ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a dispreferred side for a tie or a positive incomparability (neither has a loser); avoid gmeow:preferredOver from the observation (a logic:Relator subject is ill-typed)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:observationDisprefers at the losing candidate of a strict-preference observation, paired with gmeow:observationPrefers on the winner."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the losing candidate of a single vantage's strict-preference observation."@x-gmeow-english .
+
 gmeow:usesRubric
     a owl:ObjectProperty ;
     rdfs:domain gmeow:PreferenceObservation ;
