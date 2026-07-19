@@ -1664,10 +1664,12 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   This is the author's own re-scoping (design comment 2026-07-08: guardedness and
   stickiness are a different decidability paradigm — bounded treewidth / FO-rewritability
   — "not the near-term ladder") plus the user's explicit planning choice of "JA + SWA +
-  MSA". FORWARD PATH: guardedness and stickiness are addable as incomparable sibling
-  certifiers alongside JA/SWA on the same `ChaseAdmission` surface (a new `rank` slot +
-  a structural check); the `admits_native`/`to_finding`/`combine` machinery already
-  generalizes to more classes.
+  MSA". FORWARD PATH: guardedness and stickiness are NOT chase-termination certificates
+  and must NOT be added as `ChaseAdmission` rungs routed through `admits_native` — a
+  guarded or sticky TGD program can still have an infinite chase, so admitting it to the
+  native terminating chase would be unsound. Their support requires a SEPARATE evaluation
+  strategy (a bounded-treewidth chase for guardedness; FO-rewriting / backward chase for
+  stickiness), decided on its own surface, not another element of the acyclicity lattice.
 
 - WEAKER-PROXY (conservative super-weak acyclicity): the shipped SWA certifier is a
   SOUND but conservative rendering of Marnette's super-weak acyclicity — a static
