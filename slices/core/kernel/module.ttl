@@ -494,18 +494,18 @@ gmeow:consumerOfflineBook
     skos:definition "The consumer is a reader of the offline, downloadable mdbook documentation tree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:consumerPublicSite
-    a gmeow:ProjectionContext ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
-    rdfs:label "public site"@x-gmeow-english ;
-    skos:definition "The consumer is a public-facing website or application."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:consumerPrintArchive
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "print archive"@x-gmeow-english ;
     skos:definition "The consumer is a print/PDF archival reader of the typeset documentation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:consumerPublicSite
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "public site"@x-gmeow-english ;
+    skos:definition "The consumer is a public-facing website or application."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerResearchQueue

@@ -301,7 +301,7 @@ ASK {
     gmeow:consumerResearchQueue           a gmeow:ProjectionContext .
     gmeow:consumerAdviceCatalog           a gmeow:ProjectionContext .
 }""" ;
-    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the nine declared gmeow:ProjectionContext individuals." .
+    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the original nine declared gmeow:ProjectionContext individuals — the founding members of what is now a closed fourteen-member enumeration (Principle 9): the nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client)." .
 
 # --- 7.8 No unlisted ProjectionContext member in the kernel module (MUST-NOT) ---
 ex:saProjectionContextNoTenthMember a gmeow:StructuralAssertion ;
