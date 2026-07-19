@@ -32,6 +32,7 @@
 //! silently empty manifest.
 
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use gmeow_errors::Diag;
 use purrdf::RdfDataset;
@@ -123,6 +124,86 @@ pub fn distribution_blake3(tree: &BTreeMap<String, Vec<u8>>) -> Result<String, D
     let archive = purrdf::ustar::write_archive(&members)
         .map_err(|e| err(format!("tar a distribution tree for content-addressing: {e}")))?;
     Ok(format!("blake3:{}", blake3::hash(&archive).to_hex()))
+}
+
+/// `blake3:<hex>` of a bare byte slice — the same content-addressing idiom
+/// [`distribution_blake3`] applies to a tarred tree, exposed standalone for callers
+/// that need to digest one already-materialized file (e.g. the release-time DCAT
+/// manifest sidecar) rather than a whole tree.
+pub fn blake3_of(bytes: &[u8]) -> String {
+    format!("blake3:{}", blake3::hash(bytes).to_hex())
+}
+
+// ── release publication packaging ───────────────────────────────────────────────────
+
+/// Recursively read every file under `dir` into a member map keyed by its path
+/// RELATIVE to `dir` (forward-slash separated, naturally sorted — the map is a
+/// `BTreeMap`), pack the tree into one deterministic USTAR archive via
+/// [`purrdf::ustar::write_archive`] (the exact packing convention
+/// [`distribution_blake3`] uses, so the digest stays directly comparable), and
+/// `blake3` the resulting archive bytes.
+///
+/// This is the release-publication counterpart to [`distribution_blake3`]: where
+/// that function digests an in-memory tree already held by the pipeline,
+/// `package_docs_dir` digests a tree the caller has already materialized to disk
+/// (the `dist/gmeow-docs/` external documentation distribution the release
+/// publish path attaches as a content-addressed asset).
+///
+/// No-optionality: a missing `dir` or an empty tree is a HARD FAIL — the caller
+/// must materialize the docs distribution first (`make sync SYNC_OUTPUTS=docs`);
+/// this function never silently produces an empty archive.
+pub fn package_docs_dir(dir: &Path) -> Result<(Vec<u8>, String), Diag> {
+    if !dir.is_dir() {
+        return Err(err(format!(
+            "docs distribution directory {} is missing — materialize it first with \
+             `make sync SYNC_MODE=update SYNC_OUTPUTS=docs`",
+            dir.display()
+        )));
+    }
+    let mut tree = BTreeMap::new();
+    collect_docs_files(dir, dir, &mut tree)?;
+    if tree.is_empty() {
+        return Err(err(format!(
+            "docs distribution directory {} is empty — refusing to package an empty archive",
+            dir.display()
+        )));
+    }
+    let members: Vec<(String, Vec<u8>)> = tree.into_iter().collect();
+    let archive = purrdf::ustar::write_archive(&members)
+        .map_err(|e| err(format!("tar the docs distribution tree: {e}")))?;
+    let digest = blake3_of(&archive);
+    Ok((archive, digest))
+}
+
+/// Recursively walk `dir` (relative to `root`), inserting every regular file's
+/// bytes into `out` keyed by its `root`-relative, forward-slash path.
+fn collect_docs_files(
+    root: &Path,
+    dir: &Path,
+    out: &mut BTreeMap<String, Vec<u8>>,
+) -> Result<(), Diag> {
+    let entries = std::fs::read_dir(dir)
+        .map_err(|e| err(format!("read directory {}: {e}", dir.display())))?;
+    for entry in entries {
+        let entry = entry
+            .map_err(|e| err(format!("read a directory entry under {}: {e}", dir.display())))?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_docs_files(root, &path, out)?;
+            continue;
+        }
+        let rel = path
+            .strip_prefix(root)
+            .map_err(|e| err(format!("compute the relative path of {}: {e}", path.display())))?;
+        let rel_str: String = rel
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned())
+            .collect::<Vec<_>>()
+            .join("/");
+        let bytes = std::fs::read(&path).map_err(|e| err(format!("read {}: {e}", path.display())))?;
+        out.insert(rel_str, bytes);
+    }
+    Ok(())
 }
 
 // ── release-time DCAT manifest ──────────────────────────────────────────────────────
@@ -292,6 +373,50 @@ mod tests {
         tree.insert("a.txt".to_string(), b"HELLO".to_vec());
         let d3 = distribution_blake3(&tree).expect("digest 3");
         assert_ne!(d1, d3, "changing content must change the digest");
+    }
+
+    #[test]
+    fn package_docs_dir_is_deterministic_and_content_sensitive() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let sub = tmp.path().join("sub");
+        std::fs::create_dir_all(&sub).expect("create subdir");
+        std::fs::write(tmp.path().join("a.txt"), b"hello").expect("write a.txt");
+        std::fs::write(sub.join("b.txt"), b"world").expect("write sub/b.txt");
+
+        let (archive1, digest1) = package_docs_dir(tmp.path()).expect("package 1");
+        let (archive2, digest2) = package_docs_dir(tmp.path()).expect("package 2");
+        assert_eq!(archive1, archive2, "package_docs_dir must be byte-reproducible");
+        assert_eq!(digest1, digest2, "package_docs_dir digest must be deterministic");
+        assert!(
+            digest1.starts_with("blake3:"),
+            "digest must carry the blake3: prefix: {digest1}"
+        );
+
+        std::fs::write(sub.join("b.txt"), b"WORLD").expect("mutate sub/b.txt");
+        let (archive3, digest3) = package_docs_dir(tmp.path()).expect("package 3");
+        assert_ne!(archive1, archive3, "changing content must change the archive bytes");
+        assert_ne!(digest1, digest3, "changing content must change the digest");
+    }
+
+    #[test]
+    fn package_docs_dir_fails_closed_on_missing_directory() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let missing = tmp.path().join("does-not-exist");
+        let err = package_docs_dir(&missing).expect_err("a missing directory must hard-fail");
+        assert!(
+            format!("{err}").contains("missing"),
+            "failure must name the missing directory: {err}"
+        );
+    }
+
+    #[test]
+    fn package_docs_dir_fails_closed_on_empty_directory() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let err = package_docs_dir(tmp.path()).expect_err("an empty directory must hard-fail");
+        assert!(
+            format!("{err}").contains("empty"),
+            "failure must name the empty directory: {err}"
+        );
     }
 
     #[test]
