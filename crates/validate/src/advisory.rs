@@ -266,8 +266,11 @@ impl Advisory {
     }
 
     /// Override the advisor's stated confidence (builder-style; chainable).
-    /// Must land in `[0.0, 1.0]`; [`Advisory::project`] hard-fails (panics)
-    /// on an out-of-range value rather than silently clamp it.
+    /// Must land in `[0.0, 1.0]`; the RDF emitter
+    /// [`project_compliance_assessment`] hard-fails (panics) on an out-of-range
+    /// value rather than silently clamp it. [`Advisory::project`] itself only
+    /// carries the value onto the [`AdvisoryClaim`]; the range is enforced when
+    /// the claim is projected to N-Quads.
     #[must_use]
     pub fn with_confidence(mut self, confidence: f64) -> Self {
         self.confidence = confidence;
@@ -429,11 +432,18 @@ const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 ///
 /// # Panics
 ///
-/// Panics if any claim's `confidence` falls outside `[0.0, 1.0]` — an
-/// advisory confidence is a STATED value, never silently clamped; an
-/// out-of-range value is a producer bug and must hard-fail rather than ship a
-/// meaningless literal (mirrors the `class_coverage` range assert in
-/// `crates/validate/src/coverage.rs`).
+/// Every hard-fail below guards a producer bug — advisory-claim fields are
+/// minted by this crate, never accepted from external input, so a violation is
+/// a defect to surface, not data to tolerate (no silent degradation):
+///
+/// * a claim's `confidence` falls outside `[0.0, 1.0]` — a STATED value is
+///   never silently clamped (mirrors the `class_coverage` range assert in
+///   `crates/validate/src/coverage.rs`);
+/// * a claim's `code` is not IRI-safe (outside `[A-Za-z0-9._-]+`) — it is
+///   interpolated verbatim into the content-addressed IRIs and would otherwise
+///   mint a malformed IRI / invalid N-Quad;
+/// * two claims share a `code` — the code keys all three per-claim IRIs, so a
+///   collision would emit conflicting triples on functional properties.
 pub fn project_compliance_assessment(claims: &[AdvisoryClaim], graph_iri: &str) -> String {
     let graph = format!("<{graph_iri}>");
     let mut lines: Vec<String> = Vec::new();
@@ -445,12 +455,35 @@ pub fn project_compliance_assessment(claims: &[AdvisoryClaim], graph_iri: &str) 
     let mut sorted_claims: Vec<&AdvisoryClaim> = claims.iter().collect();
     sorted_claims.sort_by(|a, b| a.code.cmp(&b.code));
 
+    // Codes key all three per-claim IRIs; two claims sharing a code would collide onto
+    // the same subjects and emit conflicting triples on functional properties. Codes are
+    // sorted, so a duplicate is adjacent — a producer bug, hard-fail deterministically.
+    if let Some(dup) = sorted_claims.windows(2).find_map(|w| {
+        (w[0].code == w[1].code).then_some(&w[0].code)
+    }) {
+        panic!(
+            "advisory claims contain a duplicate code {dup:?} — each code must be unique \
+             (it keys the ComplianceAssessment / norm / event IRIs)"
+        );
+    }
+
     for claim in sorted_claims {
         assert!(
             (0.0..=1.0).contains(&claim.confidence),
             "advisory claim {:?} confidence out of range [0.0, 1.0]: {}",
             claim.code,
             claim.confidence
+        );
+        assert!(
+            !claim.code.is_empty()
+                && claim
+                    .code
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-')),
+            "advisory claim code {:?} is not IRI-safe (allowed: ASCII alphanumerics, '.', '_', '-') \
+             — the code is interpolated verbatim into content-addressed IRIs and must not mint a \
+             malformed IRI / invalid N-Quad",
+            claim.code
         );
 
         let norm_iri = format!("{NORM_CLAIMS_BASE_IRI}{}/norm", claim.code);
@@ -907,5 +940,32 @@ mod tests {
             .project()
             .claim;
         let _ = project_compliance_assessment(&[claim], DEMO_GRAPH);
+    }
+
+    /// A code carrying an IRI-unsafe character is a HARD FAIL: it would be
+    /// interpolated verbatim into the content-addressed IRIs and mint an
+    /// invalid N-Quad, so the emitter rejects it rather than ship malformed RDF.
+    #[test]
+    #[should_panic(expected = "is not IRI-safe")]
+    fn non_iri_safe_code_hard_fails() {
+        let claim = Advisory::note("advice tier active", "a code with a space")
+            .project()
+            .claim;
+        let _ = project_compliance_assessment(&[claim], DEMO_GRAPH);
+    }
+
+    /// Two claims sharing a code is a HARD FAIL: the code keys all three IRIs,
+    /// so a collision would emit conflicting triples on functional properties.
+    #[test]
+    #[should_panic(expected = "duplicate code")]
+    fn duplicate_code_hard_fails() {
+        let a = Advisory::note("advice.tier.active", "first ruling")
+            .project()
+            .claim;
+        let b = Advisory::note("advice.tier.active", "second, conflicting ruling")
+            .with_confidence(0.25)
+            .project()
+            .claim;
+        let _ = project_compliance_assessment(&[a, b], DEMO_GRAPH);
     }
 }
