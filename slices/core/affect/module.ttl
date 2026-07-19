@@ -1379,10 +1379,12 @@ gmeow-labelset:SST2
 # idealized landmarks held from the naming TRADITION (gmeow:prototypeAuthority), open
 # and contested (Principle 9), never ground truth. Nearest-prototype classification is a
 # DERIVED, vantage-relative view computed OUTSIDE the logic over exact rationals through
-# the #1428 bilinear-form builtin (Principle 12), never a stored label. Signatures are
-# principled from the axis semantics of AFFECT-DESIGN.md (e.g. unpredictability separates
-# fear from anger at equal valence/arousal; pride/joy differ on self-agency); the
-# schadenfreude prototype reuses the shipped schadenfreudeComposite core vector.
+# the #1428 bilinear-form builtin (Principle 12), never a stored label. Each cell reads
+# (gmeow:appraisalOf) its named gmeow:EmotionType — the emotion the prototype typifies.
+# Signatures are principled from the axis semantics of AFFECT-DESIGN.md (e.g.
+# unpredictability separates fear from anger at equal valence/arousal; pride/joy differ
+# on self-agency); the schadenfreude prototype reuses the shipped schadenfreudeComposite
+# core vector.
 
 gmeow:prototypeAuthority
     a gmeow:Standpoint ;
@@ -1397,6 +1399,7 @@ gmeow:joyPrototypeValenceCell
     rdfs:label "the joy prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the joy prototype signature (0.8 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.8 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1408,6 +1411,7 @@ gmeow:joyPrototypeArousalCell
     rdfs:label "the joy prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the joy prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.4 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1419,6 +1423,7 @@ gmeow:joyPrototypeDominanceCell
     rdfs:label "the joy prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the joy prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue 0.4 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1430,6 +1435,7 @@ gmeow:joyPrototypeUnpredictabilityCell
     rdfs:label "the joy prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the joy prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue -0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1456,6 +1462,7 @@ gmeow:trustPrototypeValenceCell
     rdfs:label "the trust prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the trust prototype signature (0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.5 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1467,6 +1474,7 @@ gmeow:trustPrototypeArousalCell
     rdfs:label "the trust prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the trust prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue -0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1478,6 +1486,7 @@ gmeow:trustPrototypeDominanceCell
     rdfs:label "the trust prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the trust prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue 0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1489,6 +1498,7 @@ gmeow:trustPrototypeUnpredictabilityCell
     rdfs:label "the trust prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the trust prototype signature (-0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue -0.3 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1515,6 +1525,7 @@ gmeow:fearPrototypeValenceCell
     rdfs:label "the fear prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the fear prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue -0.6 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1526,6 +1537,7 @@ gmeow:fearPrototypeArousalCell
     rdfs:label "the fear prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the fear prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1537,6 +1549,7 @@ gmeow:fearPrototypeDominanceCell
     rdfs:label "the fear prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the fear prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue -0.6 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1548,6 +1561,7 @@ gmeow:fearPrototypeUnpredictabilityCell
     rdfs:label "the fear prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the fear prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1574,6 +1588,7 @@ gmeow:surprisePrototypeValenceCell
     rdfs:label "the surprise prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the surprise prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1585,6 +1600,7 @@ gmeow:surprisePrototypeArousalCell
     rdfs:label "the surprise prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the surprise prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1596,6 +1612,7 @@ gmeow:surprisePrototypeDominanceCell
     rdfs:label "the surprise prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the surprise prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue -0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1607,6 +1624,7 @@ gmeow:surprisePrototypeUnpredictabilityCell
     rdfs:label "the surprise prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the surprise prototype signature (0.9 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue 0.9 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1633,6 +1651,7 @@ gmeow:sadnessPrototypeValenceCell
     rdfs:label "the sadness prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the sadness prototype signature (-0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue -0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1644,6 +1663,7 @@ gmeow:sadnessPrototypeArousalCell
     rdfs:label "the sadness prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the sadness prototype signature (-0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue -0.4 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1655,6 +1675,7 @@ gmeow:sadnessPrototypeDominanceCell
     rdfs:label "the sadness prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the sadness prototype signature (-0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue -0.5 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1666,6 +1687,7 @@ gmeow:sadnessPrototypeUnpredictabilityCell
     rdfs:label "the sadness prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the sadness prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue -0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1692,6 +1714,7 @@ gmeow:disgustPrototypeValenceCell
     rdfs:label "the disgust prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the disgust prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue -0.6 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1703,6 +1726,7 @@ gmeow:disgustPrototypeArousalCell
     rdfs:label "the disgust prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the disgust prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1714,6 +1738,7 @@ gmeow:disgustPrototypeDominanceCell
     rdfs:label "the disgust prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the disgust prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue 0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1725,6 +1750,7 @@ gmeow:disgustPrototypeUnpredictabilityCell
     rdfs:label "the disgust prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the disgust prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue -0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1751,6 +1777,7 @@ gmeow:angerPrototypeValenceCell
     rdfs:label "the anger prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the anger prototype signature (-0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue -0.5 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1762,6 +1789,7 @@ gmeow:angerPrototypeArousalCell
     rdfs:label "the anger prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the anger prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1773,6 +1801,7 @@ gmeow:angerPrototypeDominanceCell
     rdfs:label "the anger prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the anger prototype signature (0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue 0.6 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1784,6 +1813,7 @@ gmeow:angerPrototypeUnpredictabilityCell
     rdfs:label "the anger prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the anger prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue 0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1810,6 +1840,7 @@ gmeow:anticipationPrototypeValenceCell
     rdfs:label "the anticipation prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the anticipation prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1821,6 +1852,7 @@ gmeow:anticipationPrototypeArousalCell
     rdfs:label "the anticipation prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the anticipation prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.4 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1832,6 +1864,7 @@ gmeow:anticipationPrototypeDominanceCell
     rdfs:label "the anticipation prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the anticipation prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue 0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1843,6 +1876,7 @@ gmeow:anticipationPrototypeUnpredictabilityCell
     rdfs:label "the anticipation prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the anticipation prototype signature (0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue 0.3 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1869,6 +1903,7 @@ gmeow:saudadePrototypeValenceCell
     rdfs:label "the saudade prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the saudade prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue -0.1 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1880,6 +1915,7 @@ gmeow:saudadePrototypeArousalCell
     rdfs:label "the saudade prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the saudade prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1891,6 +1927,7 @@ gmeow:saudadePrototypeDominanceCell
     rdfs:label "the saudade prototype dominance reading"@x-gmeow-english ;
     skos:definition "The typical dominance core-affect magnitude of the saudade prototype signature (-0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
     gmeow:appraisalDimension gmeow:dimensionDominance ;
     gmeow:appraisalValue -0.3 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1902,6 +1939,7 @@ gmeow:saudadePrototypeUnpredictabilityCell
     rdfs:label "the saudade prototype unpredictability reading"@x-gmeow-english ;
     skos:definition "The typical unpredictability core-affect magnitude of the saudade prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
     gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
     gmeow:appraisalValue -0.2 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1928,6 +1966,7 @@ gmeow:schadenfreudePrototypeValenceCell
     rdfs:label "the schadenfreude prototype valence reading"@x-gmeow-english ;
     skos:definition "The typical valence core-affect magnitude of the schadenfreude prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSchadenfreude ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
@@ -1939,6 +1978,7 @@ gmeow:schadenfreudePrototypeArousalCell
     rdfs:label "the schadenfreude prototype arousal reading"@x-gmeow-english ;
     skos:definition "The typical arousal core-affect magnitude of the schadenfreude prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
     gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSchadenfreude ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.4 ;
     gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
