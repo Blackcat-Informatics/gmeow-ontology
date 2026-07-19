@@ -35,6 +35,10 @@ pub mod correspondence_lower;
 pub mod constraint_shapes;
 pub mod correspondence_soundness;
 pub mod diag_render;
+// The canonical distribution catalog (issue #1491 AC2/AC6): the meta-level named graph
+// declaring which documentation distributions exist, their family, their consumer
+// class, and their declared capability loss — folded at carrier time.
+pub mod distribution_catalog;
 pub mod docs_format_rendering;
 pub mod docs_render;
 pub mod evals;

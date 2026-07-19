@@ -483,10 +483,21 @@ fn serialize_carrier_snapshot_without_docs(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    // The opaque-fanout manifest rides as a meta-level named graph alongside the assembled
-    // carrier, so the shipped bundle DECLARES its opaque byte lane as data (read back by the
-    // superset gate) without entering object-level reasoning closure.
-    serialize_snapshot(carrier, &[opaque_manifest], blobs, report_blobs)
+    // The canonical distribution catalog (issue #1491 AC2/AC6): a carrier-time,
+    // clock-free, byte-stable meta-level graph declaring which documentation
+    // distributions exist, their family, their consumer class, and their declared
+    // capability loss — folded alongside the opaque-fanout manifest.
+    let distribution_catalog = crate::stages::distribution_catalog::build_distribution_catalog()?;
+    // The opaque-fanout manifest and the distribution catalog both ride as meta-level
+    // named graphs alongside the assembled carrier, so the shipped bundle DECLARES its
+    // opaque byte lane and its distribution catalog as data (read back by the superset
+    // gate / catalog consumers) without entering object-level reasoning closure.
+    serialize_snapshot(
+        carrier,
+        &[opaque_manifest, distribution_catalog],
+        blobs,
+        report_blobs,
+    )
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -2502,6 +2513,15 @@ fn collect_fanout_opaque_members(
 /// reconstruction graph.
 pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
     "https://blackcatinformatics.ca/gmeow/graph/fanout-opaque-manifest";
+
+/// The meta-level named graph carrying the canonical distribution catalog (issue
+/// #1491 AC2/AC6): WHICH documentation distributions exist, their FAMILY, their
+/// CONSUMER class, and (for the doc-render family) their declared capability LOSS. See
+/// [`crate::stages::distribution_catalog`]. NOT in
+/// `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`, so — like
+/// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] — it stays out of the object-level reasoning EDB.
+pub(crate) const GRAPH_DISTRIBUTION_CATALOG: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/distribution-catalog";
 
 /// The subject-IRI namespace of an emitted opaque fanout row: `…/fanout-opaque/<path>`.
 /// The committed path is already unique, so the identity mapping is collision-free by
