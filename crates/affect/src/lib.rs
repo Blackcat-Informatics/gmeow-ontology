@@ -655,7 +655,7 @@ fn ranks_before(a: &Candidate, b: &Candidate, metric: MetricLens) -> gmeow_error
 /// HARD fails on: an EMPTY prototype set; a missing vantage `metricGram`/range; a
 /// NON-positive-definite vantage Gram (the builtin trusts PD, so an indefinite form
 /// would make distances negative and the argmin garbage); a coordinate axis wider than
-/// the form (`DimensionMismatch`); an out-of-[range] magnitude; COINCIDENT prototype
+/// the form (`DimensionMismatch`); an out-of-range magnitude; COINCIDENT prototype
 /// signatures under `G`; and a zero-G-norm state or prototype under the cosine lens.
 pub fn classify(
     graph: &Graph,
