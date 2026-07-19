@@ -151,6 +151,12 @@ pub enum Commands {
         #[arg(long = "evidence")]
         evidence: Vec<String>,
     },
+    /// Audit the mandatory zstd-rsyncable frame profile of a GTS bundle.
+    #[command(name = "gts-frame-profile")]
+    GtsFrameProfile {
+        #[arg(default_value = "generated/dist/gmeow.gts")]
+        gts: PathBuf,
+    },
     /// Validate Turtle syntax, term annotations, and SHACL conformance.
     Validate {
         #[arg(long = "timings")]
@@ -768,6 +774,7 @@ pub fn run() -> i32 {
             &release_subject,
             &evidence,
         ),
+        Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
         Commands::Validate {
             timings,
             timings_json,
