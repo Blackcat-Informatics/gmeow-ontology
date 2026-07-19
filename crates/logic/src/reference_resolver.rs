@@ -134,6 +134,54 @@ pub fn resolve(
     Ok(answer_set)
 }
 
+// ── Metric-form cell resolver ─────────────────────────────────────────────────
+
+/// A [`crate::physical::CellResolver`] reading the exact-rational `math:` Gram/vector
+/// cells directly out of the materialized world via [`WorldFactSource::in_world`] — the
+/// declarative oracle's substrate for the same cell walk the columnar engine performs
+/// over its store. IRIs are bare (no angle brackets); the shared loaders build the form
+/// identically to the forward/backward legs.
+struct WorldFactCellResolver<'a> {
+    foreign: &'a dyn WorldFactSource,
+    world: &'a str,
+}
+
+impl crate::physical::MathTriples for WorldFactCellResolver<'_> {
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|dq| match dq.object {
+                TermValue::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .ok()?
+            .into_iter()
+            .find_map(|dq| match dq.object {
+                TermValue::Literal { lexical_form, .. } => lexical_form.trim().parse().ok(),
+                _ => None,
+            })
+    }
+}
+
+impl crate::physical::CellResolver for WorldFactCellResolver<'_> {
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, gmeow_math::Rational)>> {
+        crate::physical::load_gram_cells(self, iri)
+    }
+    fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
+        crate::physical::load_vector_dense(self, iri)
+    }
+}
+
 // ── Internal state ────────────────────────────────────────────────────────────
 
 struct ResolveState<'a> {
@@ -259,7 +307,14 @@ impl<'a> ResolveState<'a> {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
             QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
-        match crate::physical::eval_builtin(builtin, &lookup) {
+        // A metric-form builtin reads its exact-rational Gram/vector cells directly out
+        // of the materialized world via `WorldFactSource::in_world`; scalar builtins
+        // ignore the resolver.
+        let resolver = WorldFactCellResolver {
+            foreign: self.foreign,
+            world: self.world,
+        };
+        match crate::physical::eval_builtin(builtin, &lookup, &resolver) {
             crate::physical::BuiltinOutcome::Filter(true) => {
                 self.resolve_conjunct(rest, subst, seen)
             }
@@ -596,6 +651,17 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 lhs: rename_term(lhs, suffix),
                 op: *op,
                 rhs: rename_term(rhs, suffix),
+            },
+            QBuiltin::BilinearSqDist {
+                target,
+                gram,
+                x,
+                y,
+            } => QBuiltin::BilinearSqDist {
+                target: rename_term(target, suffix),
+                gram: rename_term(gram, suffix),
+                x: rename_term(x, suffix),
+                y: rename_term(y, suffix),
             },
         }
     }

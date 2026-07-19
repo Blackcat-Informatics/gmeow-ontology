@@ -43,9 +43,46 @@
 //! ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
-use gmeow_math::Rational;
 use gmeow_math::dimension::{BASE_DIMENSION_COUNT, DimVector};
+use gmeow_math::{InnerProductSpace, Rational, bounded_index};
 use std::borrow::Cow;
+
+/// Namespace root of the `math:` measure-and-form vocabulary — the owner of the
+/// Gram/vector cell predicates the bilinear builtin reads (never re-authored here).
+const MATH: &str = "https://blackcatinformatics.ca/math/";
+
+/// The `math:` cell predicates walked to load a `math:GramMatrix` and its
+/// `math:RationalValue` entries: `hasEntry` → (`atRow`, `atColumn`, `entryValue`) →
+/// (`numerator`, `denominator`).
+const MATH_HAS_ENTRY: &str = "https://blackcatinformatics.ca/math/hasEntry";
+const MATH_AT_ROW: &str = "https://blackcatinformatics.ca/math/atRow";
+const MATH_AT_COLUMN: &str = "https://blackcatinformatics.ca/math/atColumn";
+const MATH_ENTRY_VALUE: &str = "https://blackcatinformatics.ca/math/entryValue";
+/// The `math:` cell predicates walked to load a `math:` vector: `hasComponent` →
+/// (`atIndex`, `componentValue`) → (`numerator`, `denominator`).
+const MATH_HAS_COMPONENT: &str = "https://blackcatinformatics.ca/math/hasComponent";
+const MATH_AT_INDEX: &str = "https://blackcatinformatics.ca/math/atIndex";
+const MATH_COMPONENT_VALUE: &str = "https://blackcatinformatics.ca/math/componentValue";
+const MATH_NUMERATOR: &str = "https://blackcatinformatics.ca/math/numerator";
+const MATH_DENOMINATOR: &str = "https://blackcatinformatics.ca/math/denominator";
+
+/// Every `math:` cell predicate a bilinear-form squared-distance evaluation reads.
+///
+/// The demand/magic backward leg builds its selective world probe from body atoms;
+/// the Gram/vector cell predicates appear in no body atom, so the magic source plan
+/// probes exactly these predicates when a `BilinearSqDist` builtin is present, so the
+/// cell facts reach the columnar store the moded evaluator's resolver reads.
+pub(crate) const MATH_CELL_PREDICATES: &[&str] = &[
+    MATH_HAS_ENTRY,
+    MATH_AT_ROW,
+    MATH_AT_COLUMN,
+    MATH_ENTRY_VALUE,
+    MATH_HAS_COMPONENT,
+    MATH_AT_INDEX,
+    MATH_COMPONENT_VALUE,
+    MATH_NUMERATOR,
+    MATH_DENOMINATOR,
+];
 
 /// Re-badge a `gmeow_math` overflow / domain [`gmeow_errors::Diag`] as the tower's
 /// [`BuiltinError::Overflow`] class.
@@ -167,6 +204,15 @@ pub(crate) enum BuiltinError {
     /// A dimension-vector transport was not well-formed (wrong arity or an
     /// unparsable exponent). Anchors `math:MalformedDimension`.
     MalformedDimension,
+    /// A metric-form (bilinear squared distance) evaluation failed on the form
+    /// itself: a Gram matrix or coordinate vector that is absent, has no cells, is
+    /// malformed (missing / non-integer index or rational component), is non-square,
+    /// or an overflow in the exact inner product. Anchors
+    /// `math:NonPositiveDefiniteNorm` / a malformed-metric class. (Positive-
+    /// definiteness itself is certified once, off-gate, by the `math:` reasoned-graph
+    /// gate; the runtime builtin trusts that certificate and only reports a structural
+    /// or arithmetic failure of the form.)
+    MetricForm,
 }
 
 /// The outcome of moded builtin evaluation against a partial substitution.
@@ -719,11 +765,199 @@ fn numeric_eq(target: &Value, value: &Value) -> bool {
     )
 }
 
+// ── Metric-form (bilinear squared distance) evaluation ───────────────────────────
+
+/// Store-agnostic access to the exact-rational `math:` Gram/vector cells a metric-form
+/// builtin reads. The moded evaluator carries NO graph/store handle, so each native
+/// engine supplies its own resolver over its own substrate (the forward/backward
+/// columnar `RelationStore`, the reference oracle's `WorldFactSource`), and the shared
+/// evaluator stays substrate-neutral.
+///
+/// Both methods return the fully-built form: a `None` means the operand IRI names no
+/// well-formed cell set (absent, no cells, or a malformed/out-of-range index or
+/// component), which the evaluator routes to [`BuiltinError::MetricForm`] — never a
+/// wrong answer.
+pub(crate) trait CellResolver {
+    /// The exact-rational cells `(row, col, value)` of the `math:GramMatrix` named
+    /// `iri` (bare IRI, no angle brackets), or `None` when it names no well-formed
+    /// matrix.
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, Rational)>>;
+    /// The dense, zero-completed exact-rational coordinate vector of the `math:`
+    /// vector named `iri` (bare IRI), or `None` when it names no well-formed vector.
+    fn vector(&self, iri: &str) -> Option<Vec<Rational>>;
+}
+
+/// The zero-capability resolver: names no cells. Scalar-only (`Is`/`Compare`) callers
+/// and unit tests that never exercise a metric-form builtin pass this, so `eval`'s
+/// resolver parameter is always present (never an `Option` a caller must special-case).
+pub(crate) struct NoCellResolver;
+
+impl CellResolver for NoCellResolver {
+    fn gram(&self, _iri: &str) -> Option<Vec<(usize, usize, Rational)>> {
+        None
+    }
+    fn vector(&self, _iri: &str) -> Option<Vec<Rational>> {
+        None
+    }
+}
+
+/// Store-agnostic read of the `math:` cell triples, the substrate a [`CellResolver`]
+/// implementation walks. Each engine implements this over its own store; the shared
+/// [`load_gram_cells`] / [`load_vector_dense`] loaders below then build the form from
+/// it, so the cell-walk chain lives in ONE place regardless of substrate.
+pub(crate) trait MathTriples {
+    /// The bare IRIs (no angle brackets) that are objects of `(subject, predicate)`.
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String>;
+    /// The first literal object of `(subject, predicate)` parsed as an `i128`, if any.
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128>;
+}
+
+/// Read one `math:RationalValue`'s `numerator`/`denominator` into a [`Rational`].
+///
+/// A missing property or an invalid (zero-denominator / overflowing) construction
+/// declines to `None` — mapped by the caller to [`BuiltinError::MetricForm`].
+fn load_rational_value(src: &dyn MathTriples, value_iri: &str) -> Option<Rational> {
+    let num = src.math_literal_i128(value_iri, MATH_NUMERATOR)?;
+    let den = src.math_literal_i128(value_iri, MATH_DENOMINATOR)?;
+    Rational::new(num, den).ok()
+}
+
+/// Load the exact-rational cells of a `math:GramMatrix` — the store-native mirror of
+/// `gmeow_math::load_gram`, over the substrate-neutral [`MathTriples`]. Every
+/// `math:atRow`/`math:atColumn` is bounded to `[0, MAX_BASIS_DIM)` (via
+/// [`gmeow_math::bounded_index`]), so an out-of-range index declines rather than sizing
+/// a huge matrix. `None` on any absent/malformed cell.
+pub(crate) fn load_gram_cells(
+    src: &dyn MathTriples,
+    gram_iri: &str,
+) -> Option<Vec<(usize, usize, Rational)>> {
+    let entries = src.math_iri_objects(gram_iri, MATH_HAS_ENTRY);
+    if entries.is_empty() {
+        return None;
+    }
+    let mut cells = Vec::with_capacity(entries.len());
+    for entry in entries {
+        let row = bounded_index(src.math_literal_i128(&entry, MATH_AT_ROW)?, "matrix row").ok()?;
+        let col =
+            bounded_index(src.math_literal_i128(&entry, MATH_AT_COLUMN)?, "matrix column").ok()?;
+        let value_iri = src.math_iri_objects(&entry, MATH_ENTRY_VALUE).into_iter().next()?;
+        cells.push((row, col, load_rational_value(src, &value_iri)?));
+    }
+    Some(cells)
+}
+
+/// Load a dense, zero-completed exact-rational coordinate vector — the store-native
+/// mirror of `gmeow_math::load_vector`, over [`MathTriples`]. Sized to the maximum
+/// declared `math:atIndex` + 1; each index bounded like the Gram loader. `None` on any
+/// absent/malformed component.
+pub(crate) fn load_vector_dense(src: &dyn MathTriples, vector_iri: &str) -> Option<Vec<Rational>> {
+    let components = src.math_iri_objects(vector_iri, MATH_HAS_COMPONENT);
+    if components.is_empty() {
+        return None;
+    }
+    let mut cells: Vec<(usize, Rational)> = Vec::with_capacity(components.len());
+    for component in components {
+        let idx =
+            bounded_index(src.math_literal_i128(&component, MATH_AT_INDEX)?, "vector index").ok()?;
+        let value_iri = src
+            .math_iri_objects(&component, MATH_COMPONENT_VALUE)
+            .into_iter()
+            .next()?;
+        cells.push((idx, load_rational_value(src, &value_iri)?));
+    }
+    let dim = cells.iter().map(|(i, _)| *i).max().map(|m| m + 1)?;
+    let mut vector = vec![Rational::zero(); dim];
+    for (idx, value) in cells {
+        vector[idx] = value;
+    }
+    Some(vector)
+}
+
+/// Compute the exact bilinear-form squared distance `(x − y)ᵀ G (x − y)` in exact ℚ.
+///
+/// Builds the declared-symmetric dense Gram matrix from `cells` (mirroring the
+/// `math_dimension` symmetric fill), forms the exact `x − y` difference, and evaluates
+/// the quadratic form via the shared [`InnerProductSpace`]. Every failure — an absent
+/// form, a length mismatch between `x` and `y`, a vector wider than the form, a
+/// non-square Gram, or an exact-arithmetic overflow — is a typed
+/// [`BuiltinError::MetricForm`] / [`BuiltinError::DimensionMismatch`], never a wrong
+/// answer or panic. The result is the EXACT `Value::Rat` squared distance (√ stays a
+/// downstream seam; squared order = distance order since √ is monotone).
+fn compute_bilinear_sqdist(
+    gram_iri: &str,
+    x_iri: &str,
+    y_iri: &str,
+    resolver: &dyn CellResolver,
+) -> Result<Value, BuiltinError> {
+    let cells = resolver.gram(gram_iri).ok_or(BuiltinError::MetricForm)?;
+    let x = resolver.vector(x_iri).ok_or(BuiltinError::MetricForm)?;
+    let y = resolver.vector(y_iri).ok_or(BuiltinError::MetricForm)?;
+
+    // The declared-symmetric dense fill: `dim` = max authored index + 1, each authored
+    // cell mirrored across the diagonal (the `math:` reasoned gate certifies symmetry
+    // and positive-definiteness once, off-gate; the runtime builtin trusts it).
+    let dim = cells
+        .iter()
+        .flat_map(|(r, c, _)| [*r, *c])
+        .max()
+        .map(|m| m + 1)
+        .ok_or(BuiltinError::MetricForm)?;
+    let mut matrix = vec![vec![Rational::zero(); dim]; dim];
+    for (row, col, value) in cells {
+        matrix[row][col] = value;
+        matrix[col][row] = value;
+    }
+
+    // `x` and `y` must denote coordinates of the SAME space to be subtracted, and
+    // neither may exceed the form's order (the quadratic form would silently truncate
+    // wider coordinates — a wrong answer). Both shorter-than-`dim` vectors are exact
+    // zero-completed by the inner-product engine.
+    if x.len() != y.len() || x.len() > dim {
+        return Err(BuiltinError::DimensionMismatch);
+    }
+    let diff = x
+        .iter()
+        .zip(y.iter())
+        .map(|(xi, yi)| xi.checked_sub(*yi))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(overflow)?;
+
+    let space = InnerProductSpace::new(matrix).map_err(|_| BuiltinError::MetricForm)?;
+    let sqdist = space.quadratic_form(&diff).map_err(|_| BuiltinError::MetricForm)?;
+    Ok(Value::Rat(sqdist))
+}
+
+/// Resolve a bilinear-builtin operand term to its bare IRI (no angle brackets).
+///
+/// A `Const` carries the canonical `<iri>` surface directly; a `Var` chases its bound
+/// surface via `lookup`. Returns `None` when the operand is unbound or is not an IRI
+/// constant (a declared mode gap — the caller declines rather than guessing).
+fn resolve_iri_operand<'a>(
+    term: &QTerm,
+    lookup: &impl Fn(&str) -> Option<Cow<'a, str>>,
+) -> Option<String> {
+    let surface: Cow<'a, str> = match term {
+        QTerm::Const(c) => Cow::Owned(c.clone()),
+        QTerm::Var(v) => lookup(v)?,
+        QTerm::Num(_) | QTerm::Struct(_) => return None,
+    };
+    surface
+        .as_ref()
+        .strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .map(str::to_owned)
+}
+
 /// Evaluate `builtin` against the current substitution, resolving variables via
 /// `lookup` (variable name → bound surface, or `None` when unbound).
+///
+/// `resolver` supplies the exact-rational `math:` Gram/vector cells a metric-form
+/// builtin ([`QBuiltin::BilinearSqDist`]) reads; scalar builtins (`Is`/`Compare`)
+/// ignore it (pass [`NoCellResolver`]).
 pub(crate) fn eval<'a>(
     builtin: &QBuiltin,
     lookup: &impl Fn(&str) -> Option<Cow<'a, str>>,
+    resolver: &dyn CellResolver,
 ) -> BuiltinOutcome {
     match builtin {
         QBuiltin::Is {
@@ -788,12 +1022,103 @@ pub(crate) fn eval<'a>(
                 CompareResult::Gap => BuiltinOutcome::Unbound,
             }
         }
+        QBuiltin::BilinearSqDist {
+            target,
+            gram,
+            x,
+            y,
+        } => {
+            // All three operand IRIs must be bound/ground to compute; an unbound or
+            // non-IRI operand is a declared mode gap (decline, never guess).
+            let (Some(gram_iri), Some(x_iri), Some(y_iri)) = (
+                resolve_iri_operand(gram, lookup),
+                resolve_iri_operand(x, lookup),
+                resolve_iri_operand(y, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            // The exact squared distance over exact ℚ; a missing/malformed form or a
+            // length mismatch is a typed error, never a wrong answer.
+            let value = match compute_bilinear_sqdist(&gram_iri, &x_iri, &y_iri, resolver) {
+                Ok(value) => value,
+                Err(e) => return BuiltinOutcome::Error(e),
+            };
+            // Target role mirrors `Is`: an unbound target generates; a bound numeric
+            // target filters on ℚ-correct value equality; a bound non-numeric target
+            // is a filter-false, never a gap.
+            match target {
+                QTerm::Var(v) => match lookup(v) {
+                    None => BuiltinOutcome::Generate {
+                        var: v.clone(),
+                        value,
+                    },
+                    Some(surface) => match parse_value_surface(&surface) {
+                        Some(t) => BuiltinOutcome::Filter(numeric_eq(&t, &value)),
+                        None => BuiltinOutcome::Filter(false),
+                    },
+                },
+                QTerm::Num(t) => BuiltinOutcome::Filter(numeric_eq(&Value::Int(*t), &value)),
+                QTerm::Const(c) => match parse_value_surface(c) {
+                    Some(t) => BuiltinOutcome::Filter(numeric_eq(&t, &value)),
+                    None => BuiltinOutcome::Filter(false),
+                },
+                QTerm::Struct(_) => BuiltinOutcome::Filter(false),
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Scalar-only test shim: the arithmetic/comparison unit tests never exercise a
+    /// metric-form builtin, so they route through the zero-capability resolver. This
+    /// two-argument `eval` shadows [`super::eval`] inside the test module only, so the
+    /// existing scalar tests read unchanged; the metric-form tests call
+    /// [`super::eval`] with an explicit resolver.
+    fn eval<'a>(
+        builtin: &QBuiltin,
+        lookup: &impl Fn(&str) -> Option<Cow<'a, str>>,
+    ) -> BuiltinOutcome {
+        super::eval(builtin, lookup, &NoCellResolver)
+    }
+
+    /// A canonical `<iri>`-surface constant operand from a bare IRI.
+    fn iri_const(iri: &str) -> QTerm {
+        QTerm::Const(format!("<{iri}>"))
+    }
+
+    /// A `BilinearSqDist` builtin over the given operand terms.
+    fn bilinear(target: QTerm, gram: QTerm, x: QTerm, y: QTerm) -> QBuiltin {
+        QBuiltin::BilinearSqDist {
+            target,
+            gram,
+            x,
+            y,
+        }
+    }
+
+    /// A metric-form [`CellResolver`] test double: canned Gram cells and named
+    /// coordinate vectors, keyed by bare IRI. Returns `None` for any unknown operand,
+    /// exactly as a store-backed resolver does for an absent form.
+    struct FakeCells {
+        gram_iri: String,
+        gram: Vec<(usize, usize, Rational)>,
+        vectors: Vec<(String, Vec<Rational>)>,
+    }
+
+    impl CellResolver for FakeCells {
+        fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, Rational)>> {
+            (iri == self.gram_iri).then(|| self.gram.clone())
+        }
+        fn vector(&self, iri: &str) -> Option<Vec<Rational>> {
+            self.vectors
+                .iter()
+                .find(|(name, _)| name == iri)
+                .map(|(_, v)| v.clone())
+        }
+    }
 
     /// Build a `lookup` from a small set of (var, surface) pairs.
     fn env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Option<Cow<'static, str>> + use<> {
@@ -1617,6 +1942,170 @@ mod tests {
                 &non_numeric
             ),
             BuiltinOutcome::Filter(false)
+        );
+    }
+
+    // ── Bilinear-form squared distance (the metric-form moded builtin) ───────────
+
+    /// The valence-dominant worked example (G = diag(2, 1)): the exact squared
+    /// distance from the state (1/2, 0) to two named prototypes, and the metric-nearest
+    /// verdict. Reproduces `slices/core/affect/examples/nearest-prototype-metric.ttl`:
+    /// contentment → 43/100, elation → 38/100, and 38/100 < 43/100 (elation is nearest
+    /// under the valence-dominant metric even though contentment is raw-L² nearest).
+    #[test]
+    fn bilinear_sqdist_reproduces_nearest_prototype_worked_example() {
+        let g = "urn:gmeow:test:gram";
+        let state = "urn:gmeow:test:state";
+        let contentment = "urn:gmeow:test:contentment";
+        let elation = "urn:gmeow:test:elation";
+        let resolver = FakeCells {
+            gram_iri: g.to_owned(),
+            gram: vec![(0, 0, rat(2, 1)), (1, 1, rat(1, 1))],
+            vectors: vec![
+                (state.to_owned(), vec![rat(1, 2), rat(0, 1)]),
+                (contentment.to_owned(), vec![rat(1, 5), rat(1, 2)]),
+                (elation.to_owned(), vec![rat(3, 5), rat(3, 5)]),
+            ],
+        };
+        let lookup = env(&[]);
+
+        // Δ = (3/10, −1/2) → 2·(3/10)² + 1·(1/2)² = 18/100 + 25/100 = 43/100.
+        let to_contentment = bilinear(
+            var("D"),
+            iri_const(g),
+            iri_const(state),
+            iri_const(contentment),
+        );
+        assert_eq!(
+            super::eval(&to_contentment, &lookup, &resolver),
+            gen_rat("D", 43, 100),
+            "state → contentment squared distance is exactly 43/100"
+        );
+
+        // Δ = (−1/10, −3/5) → 2·(1/10)² + 1·(3/5)² = 2/100 + 36/100 = 38/100.
+        let to_elation = bilinear(var("D"), iri_const(g), iri_const(state), iri_const(elation));
+        assert_eq!(
+            super::eval(&to_elation, &lookup, &resolver),
+            gen_rat("D", 38, 100),
+            "state → elation squared distance is exactly 38/100"
+        );
+
+        // Nearest-prototype decides on the EXACT squared distance: 38/100 < 43/100.
+        let dist = |b: &QBuiltin| match super::eval(b, &lookup, &resolver) {
+            BuiltinOutcome::Generate {
+                value: Value::Rat(r),
+                ..
+            } => r,
+            other => panic!("expected a rational generate, got {other:?}"),
+        };
+        let d_elation = dist(&to_elation);
+        let d_contentment = dist(&to_contentment);
+        assert_eq!(
+            apply_compare_q(&d_elation, CmpOp::Lt, &d_contentment),
+            Ok(true),
+            "elation is the metric-nearest prototype (38/100 < 43/100)"
+        );
+    }
+
+    /// A bound target filters on ℚ-correct value equality (mirrors `Is`).
+    #[test]
+    fn bilinear_sqdist_bound_target_filters() {
+        let g = "urn:gmeow:test:gram";
+        let x = "urn:gmeow:test:x";
+        let y = "urn:gmeow:test:y";
+        let resolver = FakeCells {
+            gram_iri: g.to_owned(),
+            gram: vec![(0, 0, rat(2, 1)), (1, 1, rat(1, 1))],
+            vectors: vec![
+                (x.to_owned(), vec![rat(1, 2), rat(0, 1)]),
+                (y.to_owned(), vec![rat(1, 5), rat(1, 2)]),
+            ],
+        };
+        // Target bound to the matching 43/100 → keep; a different value → prune.
+        let pass = env(&[("D", &rat_surface(43, 100))]);
+        let b = bilinear(var("D"), iri_const(g), iri_const(x), iri_const(y));
+        assert_eq!(
+            super::eval(&b, &pass, &resolver),
+            BuiltinOutcome::Filter(true)
+        );
+        let fail = env(&[("D", &rat_surface(1, 2))]);
+        assert_eq!(
+            super::eval(&b, &fail, &resolver),
+            BuiltinOutcome::Filter(false)
+        );
+    }
+
+    /// Mismatched coordinate-vector lengths are a typed [`BuiltinError::DimensionMismatch`],
+    /// never a silently truncated (wrong) squared distance.
+    #[test]
+    fn bilinear_sqdist_mismatched_vector_lengths_is_error() {
+        let g = "urn:gmeow:test:gram";
+        let x = "urn:gmeow:test:x";
+        let y = "urn:gmeow:test:y";
+        let resolver = FakeCells {
+            gram_iri: g.to_owned(),
+            gram: vec![(0, 0, rat(2, 1)), (1, 1, rat(1, 1))],
+            vectors: vec![
+                (x.to_owned(), vec![rat(1, 2)]),
+                (y.to_owned(), vec![rat(1, 5), rat(1, 2)]),
+            ],
+        };
+        let b = bilinear(var("D"), iri_const(g), iri_const(x), iri_const(y));
+        assert_eq!(
+            super::eval(&b, &env(&[]), &resolver),
+            BuiltinOutcome::Error(BuiltinError::DimensionMismatch)
+        );
+    }
+
+    /// A well-formed 1×1 form is exact (control that dense fill + the kernel agree on a
+    /// degenerate order): (1/2 − 1/5)² · 1 = (3/10)² = 9/100.
+    #[test]
+    fn bilinear_sqdist_one_by_one_form_is_exact() {
+        let g = "urn:gmeow:test:gram";
+        let x = "urn:gmeow:test:x";
+        let y = "urn:gmeow:test:y";
+        let resolver = FakeCells {
+            gram_iri: g.to_owned(),
+            gram: vec![(0, 0, rat(1, 1))],
+            vectors: vec![
+                (x.to_owned(), vec![rat(1, 2)]),
+                (y.to_owned(), vec![rat(1, 5)]),
+            ],
+        };
+        let b = bilinear(var("D"), iri_const(g), iri_const(x), iri_const(y));
+        assert_eq!(super::eval(&b, &env(&[]), &resolver), gen_rat("D", 9, 100));
+    }
+
+    /// An absent Gram / vector (no cells) is a typed [`BuiltinError::MetricForm`], not a
+    /// gap or a wrong answer — with [`NoCellResolver`] every operand is absent.
+    #[test]
+    fn bilinear_sqdist_absent_form_is_metric_form_error() {
+        let b = bilinear(
+            var("D"),
+            iri_const("urn:gmeow:test:g"),
+            iri_const("urn:gmeow:test:x"),
+            iri_const("urn:gmeow:test:y"),
+        );
+        assert_eq!(
+            super::eval(&b, &env(&[]), &NoCellResolver),
+            BuiltinOutcome::Error(BuiltinError::MetricForm)
+        );
+    }
+
+    /// An unbound operand variable is a declared mode gap (Unbound), never a guess.
+    #[test]
+    fn bilinear_sqdist_unbound_operand_is_gap() {
+        let g = "urn:gmeow:test:gram";
+        let resolver = FakeCells {
+            gram_iri: g.to_owned(),
+            gram: vec![(0, 0, rat(1, 1))],
+            vectors: vec![("urn:gmeow:test:x".to_owned(), vec![rat(1, 1)])],
+        };
+        // The `y` operand is an unbound variable → gap.
+        let b = bilinear(var("D"), iri_const(g), iri_const("urn:gmeow:test:x"), var("Y"));
+        assert_eq!(
+            super::eval(&b, &env(&[]), &resolver),
+            BuiltinOutcome::Unbound
         );
     }
 }

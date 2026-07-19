@@ -62,7 +62,10 @@ use std::collections::{BTreeSet, HashMap};
 use hashbrown::HashTable;
 use rayon::prelude::*;
 
-use crate::physical::builtin_eval::{BuiltinOutcome, emit_surface, eval as eval_builtin};
+use crate::physical::builtin_eval::{
+    BuiltinOutcome, CellResolver, MathTriples, emit_surface, eval as eval_builtin, load_gram_cells,
+    load_vector_dense,
+};
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::{RowId, TermId};
 use crate::physical::plan::{
@@ -1311,7 +1314,8 @@ fn join_body_leapfrog(
         .collect();
 
     if !rule.builtins.is_empty() {
-        solutions = apply_builtins(&rule.builtins, solutions, gap);
+        let resolver = RelationCellResolver { store: accumulated };
+        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
     }
     if !plan.negated().is_empty() {
         solutions.retain(|solution| {
@@ -1410,7 +1414,8 @@ fn join_body_binary(
     // prunes the solution.  This runs BEFORE the NAF retain so a negated atom over
     // a generator-bound variable sees the binding.
     if !rule.builtins.is_empty() {
-        solutions = apply_builtins(&rule.builtins, solutions, gap);
+        let resolver = RelationCellResolver { store: accumulated };
+        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
     }
 
     if !negated.is_empty() {
@@ -1424,6 +1429,57 @@ fn join_body_binary(
     solutions
 }
 
+/// A [`CellResolver`] reading the exact-rational `math:` Gram/vector cells out of the
+/// accumulated columnar [`RelationStore`] the semi-naive fixpoint has built (the same
+/// store the forward and demand/magic legs both accumulate into). IRIs are addressed in
+/// the store's display surface (`<iri>`); the cell walk mirrors `gmeow_math`'s graph
+/// loaders over the store's `(subject, predicate) → objects` index, so the shared
+/// loaders build the form identically regardless of substrate.
+struct RelationCellResolver<'a> {
+    store: &'a RelationStore,
+}
+
+impl MathTriples for RelationCellResolver<'_> {
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+        let display = format!("<{subject}>");
+        let Some(sid) = self.store.term_id(&display) else {
+            return Vec::new();
+        };
+        let mut out = Vec::new();
+        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row)) = cursor.next() {
+            if let purrdf::TermValue::Iri(iri) = self.store.interner().resolve(object) {
+                out.push(iri.clone());
+            }
+        }
+        out
+    }
+
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+        let display = format!("<{subject}>");
+        let sid = self.store.term_id(&display)?;
+        let mut cursor = self.store.select(predicate, Bound::Subject(sid));
+        while let Some((_s, object, _row)) = cursor.next() {
+            if let purrdf::TermValue::Literal { lexical_form, .. } =
+                self.store.interner().resolve(object)
+                && let Ok(n) = lexical_form.trim().parse::<i128>()
+            {
+                return Some(n);
+            }
+        }
+        None
+    }
+}
+
+impl CellResolver for RelationCellResolver<'_> {
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, gmeow_math::Rational)>> {
+        load_gram_cells(self, iri)
+    }
+    fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
+        load_vector_dense(self, iri)
+    }
+}
+
 /// Evaluate a rule's arithmetic/comparison builtins against each candidate
 /// solution, in body order, via the shared moded evaluator.
 ///
@@ -1433,7 +1489,12 @@ fn join_body_binary(
 /// sets `gap` and drops the solution — the caller then surfaces a typed refusal for
 /// the WHOLE program rather than present an incomplete native answer, so a dropped
 /// solution is never a wrong answer.
-fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) -> Vec<Solution> {
+fn apply_builtins(
+    builtins: &[QBuiltin],
+    sols: Vec<Solution>,
+    gap: &mut bool,
+    resolver: &dyn CellResolver,
+) -> Vec<Solution> {
     let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
     'next_sol: for mut sol in sols {
         for b in builtins {
@@ -1442,7 +1503,7 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
             // bound surface directly (no per-lookup allocation).
             let outcome = {
                 let lookup = |name: &str| sol.get(name).map(Cow::Borrowed);
-                eval_builtin(b, &lookup)
+                eval_builtin(b, &lookup, resolver)
             };
             match outcome {
                 BuiltinOutcome::Filter(true) => {}

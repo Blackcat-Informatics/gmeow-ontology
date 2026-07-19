@@ -193,6 +193,20 @@ fn builtin_of(b: &QBuiltin) -> QBuiltin {
             op: *op,
             rhs: prefix_builtin_term(rhs),
         },
+        // Only the TARGET is a value the constraint stage may generate/bind; the
+        // gram/x/y operands are IRI inputs (a `Var` bound to an IRI is `?`-prefixed so
+        // the solution lookup resolves it, a `Const` IRI is carried unchanged).
+        QBuiltin::BilinearSqDist {
+            target,
+            gram,
+            x,
+            y,
+        } => QBuiltin::BilinearSqDist {
+            target: prefix_builtin_term(target),
+            gram: prefix_builtin_term(gram),
+            x: prefix_builtin_term(x),
+            y: prefix_builtin_term(y),
+        },
     }
 }
 
@@ -250,6 +264,28 @@ fn binary_source_patterns(rules: &[EvalRule], goal: &EvalAtom) -> Vec<WorldFactP
     }
     patterns.sort();
     patterns
+}
+
+/// The additional selective world probes a bilinear-form squared-distance builtin
+/// needs: its exact-rational `math:` Gram/vector cells appear in NO body atom, so the
+/// atom-derived `binary_source_patterns` never probes them. When any lowered rule
+/// carries a `BilinearSqDist` builtin, probe every `math:` cell predicate
+/// ([`MATH_CELL_PREDICATES`]) predicate-only, so the cell facts reach the columnar EDB
+/// the seminaive constraint stage's resolver reads. An empty result when no such
+/// builtin is present keeps every other program's probe plan byte-identical.
+fn math_cell_source_patterns(rules: &[EvalRule]) -> Vec<WorldFactPattern> {
+    let needs_cells = rules.iter().any(|rule| {
+        rule.builtins
+            .iter()
+            .any(|b| matches!(b, QBuiltin::BilinearSqDist { .. }))
+    });
+    if !needs_cells {
+        return Vec::new();
+    }
+    crate::physical::MATH_CELL_PREDICATES
+        .iter()
+        .map(|pred| WorldFactPattern::new(None, Some((*pred).to_owned()), None))
+        .collect()
 }
 
 /// Predicate-only source plan for a reusable incremental session.
@@ -414,14 +450,21 @@ fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
         }
     }
     // An `is` generator binds its target variable, so a negated atom over it is range-
-    // restricted; a comparison binds nothing.
+    // restricted; a comparison binds nothing. A bilinear-form squared-distance builtin
+    // likewise binds its target (the exact squared distance).
     for b in builtins {
-        if let QBuiltin::Is {
-            target: QTerm::Var(v),
-            ..
-        } = b
-        {
-            bound.insert(v.clone());
+        match b {
+            QBuiltin::Is {
+                target: QTerm::Var(v),
+                ..
+            }
+            | QBuiltin::BilinearSqDist {
+                target: QTerm::Var(v),
+                ..
+            } => {
+                bound.insert(v.clone());
+            }
+            QBuiltin::Is { .. } | QBuiltin::Compare { .. } | QBuiltin::BilinearSqDist { .. } => {}
         }
     }
     body.iter().filter(|a| a.negated).any(|neg| {
@@ -1488,7 +1531,10 @@ fn evaluate_binary_under(
         control_predicates.insert(seed.predicate.clone());
     }
 
-    let source_patterns = binary_source_patterns(&rules, &goal_atom);
+    let mut source_patterns = binary_source_patterns(&rules, &goal_atom);
+    // A metric-form builtin's Gram/vector cells ride in no body atom, so probe the
+    // `math:` cell predicates explicitly when one is present (a no-op otherwise).
+    source_patterns.extend(math_cell_source_patterns(&rules));
     let mut edb = extract_edb_patterns(foreign, world, &source_patterns)?;
     let base_edb_facts = edb.facts_sorted();
     for seed in &transformed.seeds {
@@ -4233,6 +4279,164 @@ mod tests {
             "a ground-NAF-only body must decline incremental preparation, not panic: \
              {:?}",
             session.is_some()
+        );
+    }
+
+    // ── Bilinear-form squared-distance builtin: three-path parity + reachability ──
+
+    /// Author a world carrying the exact-rational `math:` cells of the Gram matrix
+    /// G = diag(2, 1) and two coordinate vectors: state = (1/2, 0) and contentment =
+    /// (1/5, 1/2). These are REAL authored graph facts (not test-injected transport
+    /// literals), so an end-to-end evaluation proves the builtin reaches production
+    /// authored data rather than only a fabricated resolver.
+    fn metric_world() -> (WorldStore, String) {
+        let store = WorldStore::new();
+        let m = |l: &str| format!("https://blackcatinformatics.ca/math/{l}");
+        let t = |l: &str| format!("urn:gmeow:test:metric:{l}");
+        let iri_q = |s: String, p: String, o: String| {
+            store
+                .insert_quad_terms(W, TermValue::iri(s), TermValue::iri(p), TermValue::iri(o))
+                .unwrap();
+        };
+        let lit_q = |s: String, p: String, lex: &str| {
+            store
+                .insert_quad_terms(
+                    W,
+                    TermValue::iri(s),
+                    TermValue::iri(p),
+                    TermValue::typed_literal(lex, crate::physical::XSD_INTEGER),
+                )
+                .unwrap();
+        };
+        // Gram G = diag(2, 1).
+        iri_q(t("g"), m("hasEntry"), t("e00"));
+        iri_q(t("g"), m("hasEntry"), t("e11"));
+        lit_q(t("e00"), m("atRow"), "0");
+        lit_q(t("e00"), m("atColumn"), "0");
+        iri_q(t("e00"), m("entryValue"), t("rat2"));
+        lit_q(t("e11"), m("atRow"), "1");
+        lit_q(t("e11"), m("atColumn"), "1");
+        iri_q(t("e11"), m("entryValue"), t("rat1"));
+        lit_q(t("rat2"), m("numerator"), "2");
+        lit_q(t("rat2"), m("denominator"), "1");
+        lit_q(t("rat1"), m("numerator"), "1");
+        lit_q(t("rat1"), m("denominator"), "1");
+        // state = (1/2, 0).
+        iri_q(t("state"), m("hasComponent"), t("sc0"));
+        iri_q(t("state"), m("hasComponent"), t("sc1"));
+        lit_q(t("sc0"), m("atIndex"), "0");
+        iri_q(t("sc0"), m("componentValue"), t("half"));
+        lit_q(t("sc1"), m("atIndex"), "1");
+        iri_q(t("sc1"), m("componentValue"), t("zero"));
+        lit_q(t("half"), m("numerator"), "1");
+        lit_q(t("half"), m("denominator"), "2");
+        lit_q(t("zero"), m("numerator"), "0");
+        lit_q(t("zero"), m("denominator"), "1");
+        // contentment = (1/5, 1/2).
+        iri_q(t("contentment"), m("hasComponent"), t("cc0"));
+        iri_q(t("contentment"), m("hasComponent"), t("cc1"));
+        lit_q(t("cc0"), m("atIndex"), "0");
+        iri_q(t("cc0"), m("componentValue"), t("fifth"));
+        lit_q(t("cc1"), m("atIndex"), "1");
+        iri_q(t("cc1"), m("componentValue"), t("half"));
+        lit_q(t("fifth"), m("numerator"), "1");
+        lit_q(t("fifth"), m("denominator"), "5");
+        (store, W.to_owned())
+    }
+
+    /// Lower a parsed program to the forward-executable base [`EvalRule`]s — the same
+    /// lowering the magic backward leg's base fallback uses.
+    fn lower_base_rules(program: &QProgram) -> Vec<EvalRule> {
+        let mut rules = Vec::new();
+        for source_rule in &program.rules {
+            let head = atom_of(&source_rule.head).expect("binary head");
+            let mut body = Vec::new();
+            let mut builtins = Vec::new();
+            for literal in &source_rule.body {
+                match literal {
+                    QBodyLit::Atom(atom) => body.push(atom_of(atom).expect("binary body atom")),
+                    QBodyLit::Neg(atom) => body.push(EvalAtom {
+                        negated: true,
+                        ..atom_of(atom).expect("binary negated atom")
+                    }),
+                    QBodyLit::Builtin(builtin) => builtins.push(builtin_of(builtin)),
+                    QBodyLit::Cut => unreachable!("no cut in this program"),
+                }
+            }
+            let rule_iri = format!("{}::rule", head.predicate.as_str());
+            rules.push(EvalRule {
+                head,
+                body,
+                rule_iri,
+                distinct_pairs: Vec::new(),
+                builtins,
+            });
+        }
+        rules
+    }
+
+    /// The SAME one-rule metric program evaluated through all THREE native engines —
+    /// forward `materialize_native`, backward demand/magic `resolve_native`, and the
+    /// declarative reference oracle — must bind `D` to the byte-identical exact squared
+    /// distance 43/100. This pins that the shared moded evaluator (and its per-engine
+    /// cell resolver) is consistent across every path, and that the builtin is reachable
+    /// from real authored `math:` graph data (not only a test-injected transport
+    /// literal), so it is not DARK.
+    #[test]
+    fn bilinear_sqdist_three_engine_parity_over_authored_cells() {
+        let (store, world_nn) = metric_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = "\
+             :- prefix(m, 'https://blackcatinformatics.ca/math/').\n\
+             :- prefix(t, 'urn:gmeow:test:metric:').\n\
+             t:res(t:episode, D) :- D is bilinearSqDist(t:g, t:state, t:contentment).\n\
+             ?- t:res(t:episode, D).\n";
+        let prog = parse_query_program(src).unwrap();
+        let budget = Budget::default();
+
+        // Exact squared distance: Δ = (3/10, −1/2) → 2·(3/10)² + 1·(1/2)² = 43/100.
+        let expected = "\"43/100\"^^<urn:gmeow:transport:rational>";
+
+        // (a) Forward semi-naive materialization.
+        let rules = lower_base_rules(&prog);
+        let exe = Parsed::uncached(&rules)
+            .stratify()
+            .expect("stratifiable")
+            .plan()
+            .into_executable();
+        let forward = match crate::physical::materialize_native(&store, &exe, None).unwrap() {
+            NativeOutcome::Decided(budgeted) => budgeted,
+            NativeOutcome::Unsupported(kind) => panic!("forward path unsupported: {kind:?}"),
+        };
+        let res_pred = "urn:gmeow:test:metric:res";
+        let forward_d = forward
+            .rows
+            .iter()
+            .find(|row| row.predicate == res_pred)
+            .map(|row| term_display(&row.object))
+            .expect("forward materialization derives the res fact");
+        assert_eq!(forward_d, expected, "forward semi-naive squared distance");
+
+        // (b) Backward demand/magic.
+        let native = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        // (c) Declarative reference oracle.
+        let reference = reference_resolver::resolve(&foreign, &world_nn, &prog, &budget).unwrap();
+
+        assert_eq!(native.bindings.len(), 1, "magic binds exactly one D");
+        assert_eq!(reference.bindings.len(), 1, "reference binds exactly one D");
+        assert_eq!(native.bindings[0]["D"], expected, "magic squared distance");
+        assert_eq!(
+            reference.bindings[0]["D"], expected,
+            "reference squared distance"
+        );
+        // Byte-identical across all three engines.
+        assert_eq!(
+            native.bindings, reference.bindings,
+            "magic == reference: {native:?} vs {reference:?}"
+        );
+        assert_eq!(
+            forward_d, native.bindings[0]["D"],
+            "forward == magic == reference on the exact squared distance"
         );
     }
 }

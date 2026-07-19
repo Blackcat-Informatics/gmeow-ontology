@@ -184,6 +184,25 @@ pub enum QBuiltin {
         /// Right comparison operand.
         rhs: QTerm,
     },
+    /// `target is bilinearSqDist(gram, x, y)` — the exact bilinear-form squared
+    /// distance `(x − y)ᵀ G (x − y)` over exact ℚ (no √; √ stays a seam).
+    ///
+    /// A named 3-ary math builtin. `gram` is an IRI to an authored `math:GramMatrix`,
+    /// and `x`/`y` are IRIs to authored `math:` vectors (each operand is a `Const` IRI,
+    /// or a `Var` bound to an IRI). The moded evaluator loads the exact-rational Gram
+    /// cells and coordinate vectors from the graph and binds `target` to the exact
+    /// `Value::Rat` squared distance (or filters when `target` is already bound). This
+    /// is the first entry of a table-driven family of `math:` moded builtins.
+    BilinearSqDist {
+        /// The variable (or operand) that receives the exact squared distance.
+        target: QTerm,
+        /// The `math:GramMatrix` IRI operand (the symmetric bilinear form).
+        gram: QTerm,
+        /// The first `math:` vector IRI operand.
+        x: QTerm,
+        /// The second `math:` vector IRI operand.
+        y: QTerm,
+    },
 }
 
 /// Arithmetic operators recognized in `X is Expr` builtins.
@@ -1110,6 +1129,16 @@ fn try_parse_builtin(
         let target_str = tok[..is_pos].trim();
         let rhs_str = tok[is_pos + 4..].trim();
         let target = parse_term(target_str, prefixes)?;
+        // A named n-ary math function on the RHS (e.g. `bilinearSqDist(G, X, Y)`) is a
+        // moded math builtin, detected BEFORE the arithmetic split so its parenthesized
+        // argument list (which may contain `/` inside `<iri>`s) is never mistaken for a
+        // binary arithmetic operator. The table is greenfield-extensible: more math
+        // builtins register a name here.
+        if let Some((name, args)) = parse_named_function(rhs_str)
+            && let Some(builtin) = try_parse_math_function(name, &args, &target, prefixes)?
+        {
+            return Ok(Some(builtin));
+        }
         // Split a binary RHS on its arithmetic operator (multi-char `//` checked
         // first). A single operand is the arithmetic-expression base case; lower it
         // canonically to `operand + 0` so parsing, hashing, mode analysis, and execution
@@ -1138,6 +1167,65 @@ fn try_parse_builtin(
     }
 
     Ok(None)
+}
+
+/// Detect an RHS shaped as a named n-ary function call `name(arg0, arg1, ...)`.
+///
+/// Returns `(name, arg_tokens)` when `s` is `name(...)` with a bare alphanumeric
+/// name and a `)`-terminated argument list, splitting the arguments at top-level
+/// commas (parens/quotes respected, exactly like [`split_comma_top`]). Returns
+/// `None` for any non-function shape (a bare operand, an arithmetic expression), so
+/// the caller falls through to the arithmetic split.
+fn parse_named_function(s: &str) -> Option<(&str, Vec<&str>)> {
+    let s = s.trim();
+    if !s.ends_with(')') {
+        return None;
+    }
+    let open = s.find('(')?;
+    let name = s[..open].trim();
+    if name.is_empty()
+        || !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    {
+        return None;
+    }
+    let inner = &s[open + 1..s.len() - 1];
+    Some((name, split_comma_top(inner)))
+}
+
+/// Table-driven parse of a named math builtin from its `name(args)` surface.
+///
+/// `Ok(Some(_))` for a recognized math function (currently only `bilinearSqDist/3`),
+/// `Ok(None)` for an unrecognized name (the caller falls through to arithmetic), or
+/// `Err` for a recognized name with the wrong arity — a malformed builtin, never a
+/// silent fallthrough.
+fn try_parse_math_function(
+    name: &str,
+    args: &[&str],
+    target: &QTerm,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Option<QBuiltin>> {
+    match name {
+        "bilinearSqDist" => {
+            if args.len() != 3 {
+                return Err(query_err(format!(
+                    "bilinearSqDist(...) takes exactly 3 arguments (gram, x, y); got {}",
+                    args.len()
+                )));
+            }
+            let gram = parse_term(args[0].trim(), prefixes)?;
+            let x = parse_term(args[1].trim(), prefixes)?;
+            let y = parse_term(args[2].trim(), prefixes)?;
+            Ok(Some(QBuiltin::BilinearSqDist {
+                target: target.clone(),
+                gram,
+                x,
+                y,
+            }))
+        }
+        _ => Ok(None),
+    }
 }
 
 /// Find a top-level (not inside parens/quotes) occurrence of `needle` in `s`.
