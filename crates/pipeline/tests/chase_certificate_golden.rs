@@ -34,14 +34,28 @@ fn shipped_bundle_carries_a_non_vacuous_certificate_and_explainable_witnesses() 
     // AC1 — a production existential program surfaces its certificate as a gmeow:Finding
     // in the shipped bundle.
     let findings = read_findings(&dataset).expect("read graph/diagnostics findings");
+    let has_certificate = |code: &str| findings.findings.values().any(|f| f.code == code);
     assert!(
-        findings
-            .findings
-            .values()
-            .any(|f| f.code == "chase.certificate.weakly-acyclic"),
+        has_certificate("chase.certificate.weakly-acyclic"),
         "the shipped bundle carries NO weakly-acyclic chase certificate — the production \
          existential chase did not fire (the fold is vacuous)"
     );
+
+    // The full termination-class ladder is visible in the shipped deliverable: the
+    // demonstrator worlds ship a certificate for every broader class the reasoner can
+    // establish (the engine dogfooding its full termination-certification power into
+    // gmeow.gts, not just the weakly-acyclic class its own restrictions need).
+    for code in [
+        "chase.certificate.jointly-acyclic",
+        "chase.certificate.super-weakly-acyclic",
+        "chase.certificate.model-summarizing-acyclic",
+    ] {
+        assert!(
+            has_certificate(code),
+            "the shipped bundle is missing the `{code}` demonstrator certificate — the \
+             termination-ladder demonstrator world did not fold into gmeow.gts"
+        );
+    }
 
     // AC3 non-vacuity — the chase actually MINTED invented nulls into the shipped bundle
     // (not a structurally present, empty certificate). This is the structured, non-free-

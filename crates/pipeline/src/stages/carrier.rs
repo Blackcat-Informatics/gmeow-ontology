@@ -1234,6 +1234,15 @@ pub(crate) fn assemble_object_level_edb(
         source_load_graph(upstream, GRAPH_IMPORTS)?,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
+    // The termination-class ladder demonstrators: one general existential program per
+    // broader chase-termination class, each rooted into its own reasoning world so its
+    // per-world certificate ships into `gmeow.gts` (the reasoner dogfooding its full
+    // termination-certification power into the deliverable).
+    for (graph, turtle) in
+        gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
+    {
+        datasets.push(parse_into_graph(turtle.as_bytes(), "text/turtle", graph)?);
+    }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
 }
@@ -1579,7 +1588,8 @@ mod reasoning_edb_projection_tests {
         assert_eq!(
             edb.quad_count(),
             5,
-            "default plus four admitted reasoning worlds"
+            "default plus the four admitted reasoning worlds present in this fixture \
+             (the three demonstrator worlds are admitted too but carry no quad here)"
         );
         let graph_iris: std::collections::BTreeSet<String> = edb
             .owned_quads()
