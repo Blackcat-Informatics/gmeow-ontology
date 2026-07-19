@@ -134,6 +134,54 @@ pub fn resolve(
     Ok(answer_set)
 }
 
+// ── Metric-form cell resolver ─────────────────────────────────────────────────
+
+/// A [`crate::physical::CellResolver`] reading the exact-rational `math:` Gram/vector
+/// cells directly out of the materialized world via [`WorldFactSource::in_world`] — the
+/// declarative oracle's substrate for the same cell walk the columnar engine performs
+/// over its store. IRIs are bare (no angle brackets); the shared loaders build the form
+/// identically to the forward/backward legs.
+struct WorldFactCellResolver<'a> {
+    foreign: &'a dyn WorldFactSource,
+    world: &'a str,
+}
+
+impl crate::physical::MathTriples for WorldFactCellResolver<'_> {
+    fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|dq| match dq.object {
+                TermValue::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+        let subj = TermValue::iri(subject);
+        self.foreign
+            .in_world(self.world, Some(&subj), Some(predicate), None)
+            .ok()?
+            .into_iter()
+            .find_map(|dq| match dq.object {
+                TermValue::Literal { lexical_form, .. } => lexical_form.trim().parse().ok(),
+                _ => None,
+            })
+    }
+}
+
+impl crate::physical::CellResolver for WorldFactCellResolver<'_> {
+    fn gram(&self, iri: &str) -> Option<Vec<(usize, usize, gmeow_math::Rational)>> {
+        crate::physical::load_gram_cells(self, iri)
+    }
+    fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
+        crate::physical::load_vector_dense(self, iri)
+    }
+}
+
 // ── Internal state ────────────────────────────────────────────────────────────
 
 struct ResolveState<'a> {
@@ -259,7 +307,14 @@ impl<'a> ResolveState<'a> {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
             QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
-        match crate::physical::eval_builtin(builtin, &lookup) {
+        // A metric-form builtin reads its exact-rational Gram/vector cells directly out
+        // of the materialized world via `WorldFactSource::in_world`; scalar builtins
+        // ignore the resolver.
+        let resolver = WorldFactCellResolver {
+            foreign: self.foreign,
+            world: self.world,
+        };
+        match crate::physical::eval_builtin(builtin, &lookup, &resolver) {
             crate::physical::BuiltinOutcome::Filter(true) => {
                 self.resolve_conjunct(rest, subst, seen)
             }
@@ -273,15 +328,27 @@ impl<'a> ResolveState<'a> {
                     QTerm::Var(root) => root,
                     QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => var,
                 };
-                new_subst.insert(root, crate::physical::emit_integer_surface(value));
+                new_subst.insert(root, crate::physical::emit_surface(&value));
                 self.resolve_conjunct(rest, &new_subst, seen)
             }
-            crate::physical::BuiltinOutcome::Unbound
-            | crate::physical::BuiltinOutcome::Error(_) => Err(reference_err(
-                "arithmetic/comparison builtin has an unbound operand or domain error in \
+            // A pure mode gap (an operand still unbound) stays the plain reference-oracle
+            // refusal — the top-down SLD oracle declines rather than guess.
+            crate::physical::BuiltinOutcome::Unbound => Err(reference_err(
+                "arithmetic/comparison builtin has an unbound operand in \
                  the declarative reference oracle"
                     .to_owned(),
             )),
+            // A typed domain fault (÷0, overflow, incommensurable dimensions) is minted
+            // into a ledgered builtin-gap finding naming its `math:` conformance class,
+            // the operation, and the antecedent operands — never an anonymous "domain
+            // error" — through the single shared helper.
+            outcome @ crate::physical::BuiltinOutcome::Error(_) => {
+                let bindings: Vec<(String, String)> =
+                    subst.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+                let gap = crate::physical::BuiltinGap::from_outcome(builtin, &outcome, bindings)
+                    .expect("an Error outcome always yields a ledgerable gap");
+                Err(crate::reason::builtin_gap::builtin_gap_diag(&gap))
+            }
         }
     }
 
@@ -596,6 +663,12 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 lhs: rename_term(lhs, suffix),
                 op: *op,
                 rhs: rename_term(rhs, suffix),
+            },
+            QBuiltin::BilinearSqDist { target, gram, x, y } => QBuiltin::BilinearSqDist {
+                target: rename_term(target, suffix),
+                gram: rename_term(gram, suffix),
+                x: rename_term(x, suffix),
+                y: rename_term(y, suffix),
             },
         }
     }
@@ -984,6 +1057,80 @@ mod tests {
         )
         .unwrap();
         assert_eq!(fail.bindings.len(), 0, "2 > 5 prunes the branch: {fail:?}");
+    }
+
+    #[test]
+    fn exact_rational_builtin_resolves_in_body_order() {
+        // The reference oracle evaluates the exact-`/` generator in body order: the
+        // scalar-ℚ family flows through the ONE shared evaluator on the demand path,
+        // committing the normalized rational transport surface (6/4 → 3/2).
+        let base = "https://example.org/";
+        let (store, world_nn) = make_world(&[(
+            &format!("{base}a"),
+            &format!("{base}kind"),
+            &format!("{base}item"),
+        )]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:half(X, H) :- ex:kind(X, ex:item), H is 6 / 4.\n\
+             ?- ex:half(X, H).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one exact-rational answer: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["H"],
+            "\"3/2\"^^<urn:gmeow:transport:rational>"
+        );
+    }
+
+    #[test]
+    fn dimension_composition_resolves_in_body_order() {
+        // A dimension-composition generator (`D is A * B` over two SI dimension
+        // vectors fed from EDB facts) evaluates in body order through the ONE shared
+        // evaluator: length (L) ⊗ time (T) = the L·T exponent vector, committed on the
+        // dimension transport surface.
+        let base = "https://example.org/";
+        let dim_dt = "urn:gmeow:transport:dimension";
+        let store = WorldStore::new();
+        // length = L¹ (index 0), time = T¹ (index 2), fixed SI order.
+        let length = TermValue::typed_literal("1/1,0/1,0/1,0/1,0/1,0/1,0/1", dim_dt);
+        let time = TermValue::typed_literal("0/1,0/1,1/1,0/1,0/1,0/1,0/1", dim_dt);
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimLen")),
+                length,
+            )
+            .unwrap();
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{base}a")),
+                TermValue::iri(format!("{base}dimTime")),
+                time,
+            )
+            .unwrap();
+        let world_nn = W.to_owned();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:compose(X, D) :- ex:dimLen(X, A), ex:dimTime(X, B), D is A * B.\n\
+             ?- ex:compose(X, D).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans = resolve(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "one composed dimension: {ans:?}");
+        assert_eq!(ans.bindings[0]["X"], format!("<{base}a>"));
+        assert_eq!(
+            ans.bindings[0]["D"],
+            "\"1/1,0/1,1/1,0/1,0/1,0/1,0/1\"^^<urn:gmeow:transport:dimension>"
+        );
     }
 
     // ── G14: a Struct argument to the reference oracle hard-fails ────────────

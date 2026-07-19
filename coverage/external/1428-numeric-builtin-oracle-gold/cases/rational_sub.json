@@ -1,0 +1,14 @@
+{
+  "op": "rational_sub",
+  "mode": "value",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:ans(X, D) :- X is 0, A is 3/4, B is 1/6, D is A - B.\n?- ex:ans(X, D).\n",
+  "checks": [
+    { "var": "D", "value_kind": "rational", "expected": "7/12" }
+  ],
+  "provenance": {
+    "generator": "hand-derived exact-ℚ reference",
+    "derivation": "3/4 - 1/6: common denominator 12 -> 9/12 - 2/12 = 7/12 (gcd(7,12)=1, already lowest terms). `X` is an unused dummy arg (`X is 0`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

@@ -6,12 +6,12 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 84,
-  "term_count": 5546,
+  "term_count": 5549,
   "dependency_edge_count": 1243,
   "term_count_by_category": {
-    "Class": 1754,
+    "Class": 1756,
     "Datatype": 1,
-    "Individual": 807,
+    "Individual": 808,
     "Property": 2984
   },
   "slice_iris": [
@@ -310,7 +310,7 @@ expression: summary
   ],
   "mapping_set_count": 99,
   "linkage_count": 2114,
-  "example_count": 177,
+  "example_count": 178,
   "concern_count": 7,
   "external_term_count": 1800,
   "sample_mapping_set": {

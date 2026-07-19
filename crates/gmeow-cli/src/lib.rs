@@ -845,6 +845,22 @@ pub enum AffectCommands {
         #[arg(long, requires = "observation")]
         to: Option<String>,
     },
+    /// Classify a state observation to its nearest named-emotion prototype by argmin
+    /// over the EXACT squared metric distance ‖x − pᵢ‖²_G = (x − pᵢ)ᵀG(x − pᵢ). The
+    /// selection is decided entirely on the exact rational squared distance (√ is
+    /// monotonic, so squared order = distance order); the reported `distance` decimal
+    /// crosses the solver seam and is for display only, never selection. Every
+    /// prototype must share the state's metric basis; the empty set is a hard fail.
+    Nearest {
+        /// Source `.gts` snapshot carrying the state + prototype observations.
+        source: PathBuf,
+        /// The state `gmeow:DerivedAffectIntensityObservation` IRI to classify.
+        #[arg(long)]
+        observation: String,
+        /// A candidate prototype observation IRI (repeatable; at least one required).
+        #[arg(long = "prototype", required = true)]
+        prototype: Vec<String>,
+    },
     /// Ingest a captured classifier output (JSON) into attributed GMEOW evidence
     /// Turtle: a gmeow:ModelInferenceRun + one gmeow:AffectClassifierOutput per
     /// label (+ supported gmeow:AffectiveClaim / gmeow:AffectEvaluationConcluded).

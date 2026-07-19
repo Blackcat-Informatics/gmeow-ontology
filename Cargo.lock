@@ -1608,6 +1608,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-lang-form",
  "gmeow-logic-compile",
+ "gmeow-math",
  "hashbrown 0.15.5",
  "iai-callgrind",
  "insta",

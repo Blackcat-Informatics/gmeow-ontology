@@ -228,6 +228,36 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                 }
             }
         }
+        AffectCommands::Nearest {
+            source,
+            observation,
+            prototype,
+        } => {
+            let bytes = match std::fs::read(source) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.io.read",
+                        format!("Error: cannot read {}: {e}", source.display()),
+                    );
+                }
+            };
+            let graph = purrdf::gts::reader::read(&bytes, false, None);
+            match gmeow_affect::nearest_prototype(&graph, observation, prototype) {
+                Ok(nearest) => {
+                    println!("nearest {}", nearest.prototype);
+                    println!("squared-distance {}", nearest.squared_distance);
+                    println!("distance {}", nearest.distance);
+                    0
+                }
+                Err(message) => fail(
+                    reporter,
+                    "gmeow-cli.affect.nearest",
+                    format!("Error: {message}"),
+                ),
+            }
+        }
         AffectCommands::Ingest { source, out } => {
             let json = match read_source(source) {
                 Ok(json) => json,
