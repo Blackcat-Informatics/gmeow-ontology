@@ -25,8 +25,8 @@
 //!   declaration on their own graphs, never fabricated here).
 //!
 //! Every subject this module emits (distribution nodes, family nodes, loss nodes)
-//! carries the proven generated-aBox skeleton (mirroring
-//! [`crate::stages::carrier::build_fanout_opaque_manifest`]): `rdf:type` +
+//! carries the proven generated-aBox skeleton (mirroring the carrier's
+//! `build_fanout_opaque_manifest`): `rdf:type` +
 //! `rdfs:isDefinedBy <graph/distribution-catalog>` + `gmeow:graphBoxRole
 //! gmeow:boxABox` + `rdfs:label`, which the whole-bundle structural lint accepts as an
 //! assertional individual without a `skos:definition`.
