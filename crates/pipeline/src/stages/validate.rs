@@ -212,6 +212,10 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v5: emit BOTH wings of the advisory dual-projection unconditionally — the
+        // flat Note finding folded into `report` (→ `graph/diagnostics`) AND the
+        // materialised `gmeow:ComplianceAssessment` claim in the new `graph/norm-claims`
+        // carrier named graph (D4), unioned into this stage's product dataset.
         // v4: the shape union's generated/shapes/*.ttl members are product-sourced
         // from the consumed producer stages (shape_union_fresh) instead of read off
         // disk, so a shape-source edit is ENFORCED (and its diagnostics rendered) in
@@ -223,7 +227,7 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v4-fresh-shape-union"
+        "validate.v5-norm-claims"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -311,6 +315,38 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             source_dataset.as_ref(),
         );
+        // Advisory tier (D1/D4): route BOTH wings of the dual-projection onto this
+        // UNCONDITIONAL path (no early-return between the report build above and
+        // here), so the advisory fires even on a non-conforming corpus. The
+        // demonstrator is single-sourced via `advisory_demonstrator()` — the SAME
+        // builder the CLI path (`gmeow_validate::validate_all::run`) calls — so the
+        // two consumer surfaces can never drift apart (D4).
+        let advisory = gmeow_validate::advisory::advisory_demonstrator();
+        let projection = advisory.project();
+        // Flat wing: fold the graded Note finding into `report` (→ rendered into
+        // `graph/diagnostics` below), routed through a `DiagLedger` exactly as
+        // `gmeow_validate::advisory`'s own test helper does, so the finding carries
+        // genuine ledger identity (finding_iri/anchor), not a hand-built stand-in.
+        let mut advisory_ledger = DiagLedger::new();
+        advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+        let advisory_finding = advisory_ledger
+            .findings("validate")
+            .pop()
+            .expect("exactly one advisory finding");
+        report.add_finding(advisory_finding);
+        report.add_rule(advisory.rule());
+        // Claim wing: materialise the ComplianceAssessment as N-Quads into ITS OWN
+        // carrier named graph (`graph/norm-claims`), parsed the same way the SHACL
+        // diagnostics RDF is parsed into `graph/diagnostics` below.
+        let claim_nq = gmeow_validate::advisory::project_compliance_assessment(
+            &[projection.claim],
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        );
+        let claim_dataset = crate::stages::carrier::parse_into_graph(
+            claim_nq.as_bytes(),
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        )?;
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
@@ -342,11 +378,19 @@ impl Stage for ValidateStage {
                 message: format!("render_artifacts omitted {SHACL_RDF_PATH}"),
             })
         })?;
-        let dataset = crate::stages::carrier::parse_into_graph(
+        let diagnostics_dataset = crate::stages::carrier::parse_into_graph(
             shacl_rdf,
             "application/n-quads",
             crate::stages::carrier::GRAPH_DIAGNOSTICS,
         )?;
+        // UNION the two named-graph datasets so this stage's product bundle carries
+        // BOTH `graph/diagnostics` (the flat advisory Note + SHACL findings) AND
+        // `graph/norm-claims` (the materialised ComplianceAssessment claim, D4) —
+        // one stage product, two carrier destinations from the same advisory event.
+        let dataset = Arc::new(purrdf::RdfDataset::union(&[
+            diagnostics_dataset.as_ref(),
+            claim_dataset.as_ref(),
+        ]));
         // FORWARD diagnostics fold: the producer's report findings are the SINGLE source
         // of both the shipped `graph/diagnostics` RDF (above) AND the run-level
         // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on

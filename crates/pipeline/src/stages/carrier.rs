@@ -98,6 +98,15 @@ const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The advisory dual-projection's second wing (D4): the materialised
+/// `gmeow:ComplianceAssessment` / `deonticRecommendation` claim graph
+/// `stage-validate` emits alongside `graph/diagnostics`'s flat Note finding —
+/// ONE `Advisory::project()` call, two carrier destinations. Single-producer
+/// (only `stage-validate` writes it) and bundle-internal like the
+/// `MATH_PRODUCER_GRAPHS`: no committed `generated/` byte artifact, so it
+/// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
+/// (`gts_compose` folds only the default graph).
+pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 /// The by-reference blob `representation` under which a diagnostics producer
 /// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
@@ -887,6 +896,10 @@ fn assemble_carrier(
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         documentation,
         std::sync::Arc::new(diagnostics),
+        // graph/norm-claims — the advisory dual-projection's materialised
+        // ComplianceAssessment claim graph (D4), read off stage-validate's attached
+        // graph the same way graph/diagnostics is (a pure keyed fold).
+        producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,

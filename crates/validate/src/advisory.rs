@@ -361,6 +361,27 @@ impl Advisory {
     }
 }
 
+/// The single fixed demonstrator advisory (D1/D3/D4): emits a Note finding
+/// distinct from compliance errors on every normal-completion run, so `gmeow
+/// validate` surfaces the advisory tier before harvested advisory rules land
+/// (D3 replaces this demonstrator; find it via the `"advisory-demonstrator"`
+/// tag).
+///
+/// SINGLE-SOURCED (D4): the CLI path
+/// ([`crate::validate_all`]) and the pipeline path
+/// (`crates/pipeline/src/stages/validate.rs::ValidateStage::run`) both call
+/// this function rather than each inlining their own `Advisory::note(...)`
+/// builder, so the two consumer surfaces can never drift apart.
+pub fn advisory_demonstrator() -> Advisory {
+    Advisory::note(
+        crate::codes::ADVICE_TIER_ACTIVE,
+        "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
+    )
+    .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
+    .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
+    .with_tag("advisory-demonstrator")
+}
+
 // ── ComplianceAssessment RDF emitter (D4) ───────────────────────────────────
 
 /// The GMEOW namespace IRI prefix (mirrors `crates/errors/src/render.rs`'s
