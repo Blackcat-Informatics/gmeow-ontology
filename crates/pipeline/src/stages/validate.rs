@@ -707,9 +707,10 @@ ex:RequiredShape a sh:NodeShape ;
         ValidateStage::new().run(input).expect("validate stage run")
     }
 
-    /// The GMEOW namespace prefix (mirrors `crates/validate/src/advisory.rs`'s
-    /// crate-private `GMEOW` constant — duplicated here since this crate has no
-    /// dependency edge that would let it be reused directly).
+    /// The GMEOW namespace prefix. `crates/validate/src/advisory.rs`'s `GMEOW`
+    /// constant is crate-private, so this trivial namespace string is re-declared
+    /// here — the same per-module local-const idiom used across the workspace
+    /// (`crates/docs`, `crates/conformance`, …) rather than a shared export.
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
     const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 

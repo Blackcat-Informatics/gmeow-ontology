@@ -31,6 +31,7 @@
 //! D4 reconciles the string IRI with a real `gmeow:Standpoint` individual
 //! when it materialises the RDF claim.
 
+use gmeow_errors::render::nq_escape;
 use gmeow_errors::{
     Advice, Diag, FindingCategory, Grade, Location, Rule, Severity, Standpoint, register_code,
 };
@@ -397,28 +398,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
-
-/// Escape a string literal for N-Triples/N-Quads.  Copied verbatim (same
-/// escaping rules, same control-character handling) from
-/// `crates/errors/src/render.rs::nq_escape` — that function is crate-private
-/// to `gmeow-errors` and this crate has no dependency edge that would let it
-/// be reused directly, so the idiom is duplicated exactly rather than
-/// hand-rolled differently.
-fn nq_escape(value: &str) -> String {
-    let mut out = String::with_capacity(value.len() + 2);
-    for ch in value.chars() {
-        match ch {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
 
 /// Project (D4) `ComplianceAssessment` claims into `gmeow:` RDF as N-Quads, all
 /// in the named graph `graph_iri`.
