@@ -1,0 +1,40 @@
+{
+  "schema": "gmeow-history-rewrite-verification-v1",
+  "verified_at": "2026-07-18T18:08:47-06:00",
+  "publication": {
+    "transport": "atomic push",
+    "leased_existing_refs": 715,
+    "new_refs": 1,
+    "result": "pass"
+  },
+  "remote": {
+    "main": "1361ab1dfcaba673c64b5a47b49c195524344291",
+    "non_pull_refs_exact": 716,
+    "closed_pull_refs_unchanged": 850,
+    "open_pull_dynamic_refs_updated_by_github": 10,
+    "open_pr_heads_exact": 6,
+    "open_pr_count": 6,
+    "ruleset_restored_exactly": true,
+    "ruleset_enforcement": "active",
+    "github_repository_size_kib_immediately_after": 18612162
+  },
+  "preserved_open_pr_heads": {
+    "1562": "0450ae0fdc159826f4b573b7d93709645b285dda",
+    "1565": "a2ca2d01fa9b0a666e36c166697624c9289a61af",
+    "1566": "00b3229a821e18fed2da8bf50fcb0b06859441e2",
+    "1602": "f14c40e73345c60c22c137be0ba434db7f07d192",
+    "1603": "dc76a07b9e0fc19499ad5a842fa9a7265d511c99",
+    "1605": "7b32a53977826971366a9d98c76de88e82a8975a"
+  },
+  "notes": [
+    "GitHub automatically rewrote the six open PR head refs and four corresponding merge refs after the branch transaction.",
+    "The other 850 read-only pull refs remained unchanged; GitHub controls those refs.",
+    "The repository size API is not expected to fall until unreachable objects and cached pull-request views are garbage-collected by GitHub."
+  ],
+  "sha256": {
+    "verification/remote-after.refs": "174348ec006a5c6df4397c8b582b6a4bf6a49860b7f65000841bd3194213e178",
+    "verification/ruleset-after.json": "82121e3729d36084d41b80f101218f8d20252f793b47ad44c75c10fcad4094fb",
+    "verification/open-prs-after.json": "054722588243ded4205ba584d12c40e1a2f3ebe7df9e56ffc82cb9f23ecdc256",
+    "verification/repository-after.json": "39c4947156ee4a4000871a192bb3d96a91b16db6f77a4fe1e99521332619a998"
+  }
+}
