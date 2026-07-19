@@ -512,6 +512,82 @@ fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
     std::fs::remove_dir_all(&root).ok();
 }
 
+/// Write a mini-repo whose projected surface carries a `Foo` class shape (with the given
+/// `projected_bar` facets on `bar`) AND a SEPARATE property-scoped functional shape
+/// (`sh:targetSubjectsOf bar` with `sh:maxCount 1`). The legacy `Foo` shape caps `bar` at exactly
+/// one. The functional shape must never rescue a class shape that DROPPED the cap: the projected
+/// CLASS surface itself must carry the cap for the block to clear.
+fn write_functional_credit_fixture(root: &std::path::Path, projected_bar: &str) {
+    let shapes_dir = root.join("generated").join("shapes");
+    std::fs::create_dir_all(&shapes_dir).expect("mk generated/shapes");
+    std::fs::write(
+        shapes_dir.join("validation-shapes.ttl"),
+        format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://blackcatinformatics.ca/gmeow/Foo-shape> a sh:NodeShape ;\n\
+                 sh:targetClass <https://blackcatinformatics.ca/gmeow/Foo> ;\n\
+                 sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bar> ; {projected_bar} ] .\n\
+             <https://blackcatinformatics.ca/gmeow/bar-functional> a sh:NodeShape ;\n\
+                 sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/bar> ;\n\
+                 sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bar> ; sh:maxCount 1 ] .\n"
+        ),
+    )
+    .expect("write projected shapes");
+    for member in ["constraint-shapes.ttl", "procedural-constraints.ttl"] {
+        std::fs::write(
+            shapes_dir.join(member),
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n",
+        )
+        .expect("write empty projected shape-union member");
+    }
+    let slice_dir = root.join("slices").join("demo");
+    std::fs::create_dir_all(&slice_dir).expect("mk slices/demo");
+    std::fs::write(
+        slice_dir.join("shapes.ttl"),
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+         gmeow:FooShape a sh:NodeShape ;\n\
+             sh:targetClass gmeow:Foo ;\n\
+             sh:property [ sh:path gmeow:bar ; sh:minCount 1 ; sh:maxCount 1 ] .\n",
+    )
+    .expect("write legacy shapes");
+}
+
+/// FAITHFUL: the projected CLASS shape carries `sh:maxCount 1` on `bar` itself. The block clears
+/// `EQUIV` (exit 0) — legitimate functional-cap equivalence is preserved.
+#[test]
+fn shape_equivalence_equiv_when_class_shape_carries_the_functional_cap() {
+    let root = tempdir();
+    write_functional_credit_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-equivalence", "--path", "slices/demo"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("[EQUIV]").and(predicate::str::contains("gmeow:FooShape")),
+        );
+    std::fs::remove_dir_all(&root).ok();
+}
+
+/// LOSS (the R3 regression): the projected CLASS shape DROPPED the `sh:maxCount` on `bar` even
+/// though the property-scoped functional shape still carries `sh:maxCount 1`. The functional
+/// credit must NOT rescue it — the block is `NOT-EQUIV` and reds the gate (exit non-zero).
+#[test]
+fn shape_equivalence_not_equiv_when_class_shape_drops_the_functional_cap() {
+    let root = tempdir();
+    write_functional_credit_fixture(&root, "sh:minCount 1");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-equivalence", "--path", "slices/demo"])
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("[NOT-EQUIV"));
+    std::fs::remove_dir_all(&root).ok();
+}
+
 /// `shape-migrate`'s namespace guard must accept every authoring namespace
 /// (`gmeow_logic_compile::frontend::AUTHORING_NAMESPACES`), not just `gmeow:`: a legacy shape
 /// targeting a `math:` class is eligible for injection and must NOT be skipped as
