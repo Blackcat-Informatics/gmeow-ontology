@@ -287,9 +287,9 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
 		dist/gmeow-docs.tar dist/gmeow-docs.tar.blake3 \
-		dist/gmeow-docs/manifest/docs-manifest.ttl dist/gmeow-docs/manifest/docs-manifest.ttl.blake3 \
+		dist/gmeow-docs/manifest/docs-manifest.ttl dist/gmeow-docs.manifest.ttl.blake3 \
 		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
-		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design). The attached dist/gmeow-docs.tar is the external documentation distribution (site/mdbook/pdf/snippets/pydantic/okf/jsonld/yamlld), content-addressed by its .blake3 sidecar; dist/gmeow-docs/manifest/docs-manifest.ttl is the DCAT release manifest for those distributions, content-addressed by its own .blake3 sidecar."
+		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design). The attached dist/gmeow-docs.tar is the external documentation distribution (site/mdbook/pdf/snippets/pydantic/okf/jsonld/yamlld), content-addressed by its .blake3 sidecar; dist/gmeow-docs/manifest/docs-manifest.ttl is the DCAT release manifest for those distributions, content-addressed by its own dist/gmeow-docs.manifest.ttl.blake3 sidecar (kept OUTSIDE the archived tree so re-packaging stays idempotent)."
 	@if [ -n "$(CROSSREF_USER)" ] && [ -n "$(CROSSREF_PASS)" ]; then \
 		echo "submitting Crossref deposit as $(CROSSREF_USER) ..."; \
 		curl -fsS -F 'operation=doMDUpload' -F 'login_id=$(CROSSREF_USER)' \

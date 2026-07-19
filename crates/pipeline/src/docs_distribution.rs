@@ -202,6 +202,15 @@ fn collect_docs_files(
             collect_docs_files(root, &path, out)?;
             continue;
         }
+        // Belt-and-suspenders: a `.blake3` digest sidecar must never itself become an
+        // archive member. The one sidecar this module's own callers used to write
+        // under this tree (the release manifest's digest) has moved OUTSIDE it
+        // (`gmeow-dev-cli`'s `docs_package`); skipping any stray `.blake3` file here
+        // too means a future regression that re-introduces an in-tree sidecar still
+        // cannot silently break packaging idempotency.
+        if path.extension().and_then(|ext| ext.to_str()) == Some("blake3") {
+            continue;
+        }
         let rel = path.strip_prefix(root).map_err(|e| {
             err(format!(
                 "compute the relative path of {}: {e}",

@@ -525,6 +525,83 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
     );
 }
 
+// ── Idempotent release packaging — no stray sidecar inside the archived tree ──────
+
+/// A `gmeow-dev docs-package` invocation anchored at `root` via `GMEOW_ROOT`,
+/// exactly mirroring the `dev_cmd()` helper in `tests/cli_parity.rs` — this drives
+/// the REAL production binary end-to-end, never a reimplementation of its
+/// packaging/sidecar logic.
+fn docs_package_cmd(root: &Path) -> assert_cmd::Command {
+    let mut cmd = assert_cmd::Command::cargo_bin("gmeow-dev").expect("gmeow-dev binary");
+    cmd.env("GMEOW_ROOT", root);
+    cmd.args(["docs-package", "--out", "dist/gmeow-docs.tar"]);
+    cmd
+}
+
+#[test]
+fn docs_package_repackaging_with_no_intervening_sync_is_byte_idempotent() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let root = tmp.path();
+    let docs_dir = root.join("dist").join("gmeow-docs");
+    let site_dir = docs_dir.join("site");
+    std::fs::create_dir_all(&site_dir).expect("mkdir site");
+    std::fs::write(site_dir.join("index.html"), b"<html>hello</html>").expect("write index.html");
+    let manifest_dir = docs_dir.join("manifest");
+    std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
+    std::fs::write(
+        manifest_dir.join("docs-manifest.ttl"),
+        b"<urn:x> <urn:y> <urn:z> .\n",
+    )
+    .expect("write docs-manifest.ttl");
+
+    let out_path = root.join("dist").join("gmeow-docs.tar");
+    let archive_sidecar_path = root.join("dist").join("gmeow-docs.tar.blake3");
+    let manifest_sidecar_path = root.join("dist").join("gmeow-docs.manifest.ttl.blake3");
+
+    // Run 1.
+    docs_package_cmd(root).assert().success();
+    let archive1 = std::fs::read(&out_path).expect("read archive after run 1");
+    let archive_digest1 =
+        std::fs::read_to_string(&archive_sidecar_path).expect("read archive sidecar after run 1");
+    let manifest_digest1 = std::fs::read_to_string(&manifest_sidecar_path).expect(
+        "the manifest digest sidecar must land BESIDE the tar (dist/gmeow-docs.manifest.ttl.blake3), \
+         outside the archived dist/gmeow-docs/ tree",
+    );
+
+    // Run 2, with NO intervening mutation (no `sync` between runs — the exact
+    // real-world `make release-publish` cadence when re-running `docs-package`
+    // alone). Before the fix, run 1's manifest digest sidecar landed INSIDE
+    // `dist/gmeow-docs/manifest/`, so run 2's own packaging pass would archive that
+    // stray file too, changing the tar bytes and both digests with no
+    // documentation change whatsoever.
+    docs_package_cmd(root).assert().success();
+    let archive2 = std::fs::read(&out_path).expect("read archive after run 2");
+    let archive_digest2 =
+        std::fs::read_to_string(&archive_sidecar_path).expect("read archive sidecar after run 2");
+    let manifest_digest2 =
+        std::fs::read_to_string(&manifest_sidecar_path).expect("read manifest sidecar after run 2");
+
+    assert_eq!(
+        archive1, archive2,
+        "docs-package run twice with no intervening sync must produce a BYTE-IDENTICAL tar — a \
+         sidecar written inside the archived tree would change the tar bytes on the very next run"
+    );
+    assert_eq!(
+        archive_digest1, archive_digest2,
+        "the archive BLAKE3 sidecar must stay stable across a repeated docs-package run"
+    );
+    assert_eq!(
+        manifest_digest1, manifest_digest2,
+        "the manifest BLAKE3 sidecar must stay stable across a repeated docs-package run"
+    );
+
+    assert!(
+        !manifest_dir.join("docs-manifest.ttl.blake3").exists(),
+        "the manifest digest sidecar must NEVER land under the archived dist/gmeow-docs/ tree — \
+         that is the exact non-idempotency defect this test guards against"
+    );
+}
+
 // ── Determinism — PDF cross-environment ─────────────────────────────────────────────
 
 #[test]

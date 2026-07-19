@@ -15,6 +15,14 @@
 //! release-publish` runs `make sync SYNC_OUTPUTS=docs` immediately before this
 //! command so the tree it packages is always freshly materialized.
 //!
+//! The manifest digest sidecar is written NEXT TO the output tar
+//! ([`manifest_sidecar_path`]), never under the archived `dist/gmeow-docs/` tree:
+//! `package_docs_dir` archives every file under that tree, so a sidecar written
+//! inside it would be swept into the NEXT `docs-package` run's own archive,
+//! changing the tar bytes and the BLAKE3 digest with no documentation change. That
+//! would defeat the whole point of a content-addressed release asset — packaging
+//! must stay idempotent when run twice with no intervening `sync`.
+//!
 //! No-optionality: a missing `dist/gmeow-docs/` tree or a missing
 //! `dist/gmeow-docs/manifest/docs-manifest.ttl` file is a HARD FAIL — never a
 //! silently skipped asset.
@@ -75,7 +83,7 @@ pub fn docs_package(out: &std::path::Path) -> i32 {
         }
     };
     let manifest_digest = gmeow_pipeline::docs_distribution::blake3_of(&manifest_bytes);
-    let manifest_digest_path = sidecar_path(&manifest_path);
+    let manifest_digest_path = manifest_sidecar_path(&out_path);
     if let Err(e) = std::fs::write(&manifest_digest_path, format!("{manifest_digest}\n")) {
         return fail(format!(
             "cannot write {}: {e}",
@@ -104,5 +112,19 @@ pub fn docs_package(out: &std::path::Path) -> i32 {
 fn sidecar_path(path: &std::path::Path) -> PathBuf {
     let mut name = path.as_os_str().to_os_string();
     name.push(".blake3");
+    PathBuf::from(name)
+}
+
+/// The manifest digest sidecar path for an output tar at `out_path`
+/// (`dist/gmeow-docs.tar` -> `dist/gmeow-docs.manifest.ttl.blake3`): the archive's
+/// OWN extension is stripped and `.manifest.ttl.blake3` appended, so the sidecar
+/// lands BESIDE the tar, never under the `dist/gmeow-docs/` tree the tar archives.
+/// This is deliberately distinct from [`sidecar_path`] (which appends rather than
+/// replacing an extension) — see the module doc comment for why the manifest
+/// sidecar must never land inside the archived tree.
+fn manifest_sidecar_path(out_path: &std::path::Path) -> PathBuf {
+    let stem = out_path.with_extension("");
+    let mut name = stem.into_os_string();
+    name.push(".manifest.ttl.blake3");
     PathBuf::from(name)
 }
