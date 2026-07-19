@@ -1,0 +1,15 @@
+# Competency question (native gmeow:reasoningLogic lane): the coboundary dual of the
+# boundary square-zero question. Firing math:coboundarySquareZeroLaw over the pre-reified
+# coface atoms of the triangle DERIVES the binary consequent
+# math:coCancellingPairRel(edgeAB, edgeAC) — the two intermediate cofaces of the upward
+# co-diamond over (vertexA, faceABC) with opposite sign products. That triple exists in
+# the reasoned closure ONLY because the law fired; nothing asserts it. VALUES pins the
+# query to edgeAB so the answer is exactly one row {edgeAB, edgeAC}. Removing the law
+# formula makes the answer empty.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX excc: <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/>
+
+SELECT ?b ?bp WHERE {
+    VALUES ?b { excc:edgeAB }
+    ?b math:coCancellingPairRel ?bp .
+}

@@ -388,3 +388,111 @@ ex:rowRingWithinTrustedRestricted a gmeow:ExpectedRow ;
 ex:rowRingWithinCoreRestricted a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "x" ; gmeow:cellValueIri gmeow:gmnRingCore ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "y" ; gmeow:cellValueIri gmeow:gmnRingRestricted ] .
+
+# === Q — a term's agreed per-language glossary rendering ==================== #
+
+ex:cqGlossaryRendering a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/glossary-term-rendering.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/glossary-term-consistent.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The derived gmeow:Glossary answers 'how is term X rendered in the target language?': over the consistent fixture the class lang:ComposedForm and its property twin lang:composedForm both render as \"forme composée\" — a slice's agreed terminology, queryable directly from gmeow.gts." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGlossaryRenderingShape ;
+    gmeow:cqExpectRow ex:rowGlossComposedFormClass , ex:rowGlossComposedFormProp .
+
+ex:cqGlossaryRenderingShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "rendering" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGlossComposedFormClass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri lang:ComposedForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rendering" ; gmeow:cellValueLiteral "forme composée" ] .
+
+ex:rowGlossComposedFormProp a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri lang:composedForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rendering" ; gmeow:cellValueLiteral "forme composée" ] .
+
+# === Q — what each glossary interop lowering drops, per target (the loss ledger) ==== #
+# The sibling of the term-rendering question above: the glossary is not only a queryable
+# terminology resource, its two external lowerings (OntoLex vartrans, TBX/ISO-30042) carry
+# their semiotic loss as first-class, queryable data. Both are lossy
+# sound-under-approximations, so each ships a lang:ProjectionEmission declaring its
+# logic:SoundUnderApproximation preservation kind and enumerating — as
+# lang:unsupportedConstruct — every construct it drops. This question reads that per-target
+# loss ledger off the corpus; the expected rows are the drop lists the G4 producer
+# (crates/pipeline/src/stages/lang_glossary.rs `build_lowering_corpus`) actually emits.
+
+ex:cqGlossaryProjectionLoss a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/glossary-projection-loss.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/glossary-projection-loss.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Every glossary lowering out of the canonical gmeow:Glossary carries its loss honestly as a lang:ProjectionEmission, never in generator prose: this question reads what each drops, per target. Over the glossary-projection-loss fixture the answer is exactly the two shipped lowerings' declared drops — the OntoLex-vartrans emission dropping its four constructs (the crossing law-spine, the preservation-kind judgment, the annotation-predicate provenance, and the homograph declaration) and the TBX emission dropping those plus the whole Frege-triangle sense structure and the term IRI grounding — every row at logic:SoundUnderApproximation. An Exact lowering (nothing dropped) would not answer." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGlossaryProjectionLossShape ;
+    gmeow:cqExpectRow
+        ex:rowGlossLossVartransLawSpine , ex:rowGlossLossVartransPreservation ,
+        ex:rowGlossLossVartransPredicate , ex:rowGlossLossVartransHomograph ,
+        ex:rowGlossLossTbxFrege , ex:rowGlossLossTbxLawSpine ,
+        ex:rowGlossLossTbxPreservation , ex:rowGlossLossTbxPredicate ,
+        ex:rowGlossLossTbxHomograph , ex:rowGlossLossTbxTermIri .
+
+ex:cqGlossaryProjectionLossShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dropped" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+# The four OntoLex-vartrans drops.
+ex:rowGlossLossVartransLawSpine a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OntoLex vartrans" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)" ] .
+
+ex:rowGlossLossVartransPreservation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OntoLex vartrans" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the crossing's logic:preservationKind judgment" ] .
+
+ex:rowGlossLossVartransPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OntoLex vartrans" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the gmeow:glossaryPredicate annotation-predicate provenance" ] .
+
+ex:rowGlossLossVartransHomograph a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OntoLex vartrans" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the lang:DeclaredTerminologyHomograph declaration that split the concept" ] .
+
+# The six TBX (ISO 30042) drops.
+ex:rowGlossLossTbxFrege a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the OntoLex Frege-triangle sense structure (lang:Sense / lang:evokes / lang:LexicalConcept)" ] .
+
+ex:rowGlossLossTbxLawSpine a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)" ] .
+
+ex:rowGlossLossTbxPreservation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the crossing's logic:preservationKind judgment" ] .
+
+ex:rowGlossLossTbxPredicate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the gmeow:glossaryPredicate annotation-predicate provenance" ] .
+
+ex:rowGlossLossTbxHomograph a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the lang:DeclaredTerminologyHomograph declaration that split the concept" ] .
+
+ex:rowGlossLossTbxTermIri a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "TBX (ISO 30042)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueLiteral "the gmeow:glossaryTerm IRI grounding (TBX terms are plain strings)" ] .

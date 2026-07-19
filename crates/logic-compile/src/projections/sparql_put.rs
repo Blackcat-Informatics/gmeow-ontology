@@ -431,6 +431,7 @@ mod tests {
             label: String::new(),
             pattern,
             bindings: vec![binding],
+            grounding: None,
         }
     }
 

@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-slice-quality"
 description = "Per-slice quality report + opinionated uplift advisor: reads the ontology-resident slice-quality rubric and scores a slice across the quality axes"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

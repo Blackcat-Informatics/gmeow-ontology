@@ -57,7 +57,7 @@ expression: "to_html(&model, &Page::Slice(slug))"
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>42a00e09c34a</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>06d16d51d480</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
@@ -128,7 +128,7 @@ ex:assertion a gmeow:AccessibilityAssertion ;
     gmeow:assertionPolarity gmeow:polarityFeature .
 </code></pre>
 <hr />
-<p><strong>Provenance:</strong> this page ← <code>stage-docs-render</code> ← <code>stage-compile-logic</code>
+<p><strong>Provenance:</strong> this page ← <code>stage-docs-render</code> ← <code>stage-compile-logic</code> ← <code>stage-source-load</code>
 Rendered from <code>gmeow.gts</code> by the dogfooded build pipeline.</p>
 
     </main>

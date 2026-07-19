@@ -49,7 +49,39 @@ mod incremental_grounding;
 // module's `Id<Term>` alias (one definition, not two — greenfield).
 pub(crate) mod id;
 mod magic;
+// The persistent hash-consed structured-term DAG: content-addressed, binder-aware
+// (locally-nameless de-Bruijn) function-symbol / proof-object nodes. It grows the
+// `facts::TermInterner` seam that `id::TermRef` documents; distinct from the per-round
+// `arena::RowArena`. The DAG (`term_dag`) and its content-key fold (`term_key`) land
+// ahead of the unification / proof-object consumers on the next rungs.
 mod magic_generic;
+pub(crate) mod term_dag;
+pub(crate) mod term_key;
+// The three-consumer lowering into the shared `term_dag::TermDag`: `logic:`
+// (`gmeow_logic_compile::ir::Formula`/`Term`), `math:` (the RDF-authored
+// application/binding expression vocab), and `lang:` (a form + its one-way
+// `lang:`→`logic:` denotation) all lower into ONE arena, so alpha-equivalent
+// inputs authored in any surface intern to the SAME `NodeId` and content key.
+// Consumed by the unification / proof-object rungs to come.
+pub(crate) mod lower;
+// Robinson unification with occurs-check over the `term_dag::TermDag`: a union-find
+// `Subst` over `MetaId`, the single `resolve` identity primitive, and capture-avoiding
+// `apply`/`shift` (locally-nameless de-Bruijn, so the shift IS the capture-avoidance).
+// Consumed by the proof-object / backward-FOL rungs to come.
+pub(crate) mod unify;
+// First-class CHECKABLE proof objects: a proof IS a `term_dag::TermDag` node
+// (`by_rule`/`assert` constructors), and `check` re-derives it bottom-up via `unify`/`apply`
+// (the de-Bruijn/Curry-Howard criterion), rejecting any proof that does not prove its stated
+// goal. `derivation_iri`/`reify` project a proof/term node to the SAME content-addressed
+// provenance IRI a `RuleApplication` mints. Consumed by the backward-FOL rung to come.
+pub(crate) mod proof;
+// The structured (full-FOL) backward resolver: SLG tabling over compound (function-symbol)
+// terms with three-valued SLG-WFS well-founded negation. It stands on `term_dag` (the
+// hash-consed arena), `unify` (order-sorted occurs-checked unification), and `proof`
+// (checkable proof objects), and every answer it yields is proof-carrying. `dispatch::
+// dispatch_query`'s physical entry (`magic::resolve_native_under`) routes a program carrying
+// any `QTerm::Struct` argument here; flat programs stay on the byte-identical binary path.
+pub(crate) mod resolve_fol;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
@@ -73,8 +105,9 @@ pub(crate) use generic::{GenericAtom, GenericRule, materialize_generic};
 
 #[allow(unused_imports)]
 pub(crate) use incremental::{
-    BudgetedIncrementalDelta, IncrementalDelta, IncrementalDerivation, IncrementalIdentity,
-    IncrementalSession, SignedFact,
+    BudgetedIncrementalDelta, FragmentRefusal, IncrementalDelta, IncrementalDerivation,
+    IncrementalIdentity, IncrementalSession, SignedFact, UnsupportedFragmentReason,
+    classify_incremental_fragment,
 };
 #[allow(unused_imports)]
 pub(crate) use incremental_grounding::{
@@ -85,7 +118,9 @@ pub(crate) use incremental_grounding::{
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{Bound, RelationStore, SkolemRegistry, extract_edb};
+pub(crate) use store::{
+    Bound, RelationStore, SkolemRegistry, extract_edb, extract_edb_patterns, visit_edb_patterns,
+};
 
 // The decomposable derivation of one chase-invented null (firing rule, existential
 // ordinal, frontier binding). Public so the pipeline can project it into the shipped
@@ -139,8 +174,11 @@ pub use chase::ChaseAdmission;
 // backward path consumed by `dispatch::dispatch_query`.
 #[cfg(test)]
 pub(crate) use magic::resolve_native;
-pub(crate) use magic::resolve_native_annotated_under;
 pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native_under};
+pub(crate) use magic::{
+    resolve_native_annotated_under, resolve_native_annotated_with_relations_under,
+};
+pub(crate) use magic_generic::ExternalRelationEvaluationError;
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical

@@ -1777,7 +1777,7 @@ gmeow:AppraisalFramedValueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalValue declares a gmeow:appraisalScaleProfile."@x-gmeow-english ;
-    logic:formalizes gmeow:Appraisal ;
+    logic:formalizes gmeow:Appraisal , gmeow:AppraisalShape ;
     logic:message "A dimensional appraisal reading is unframed: gmeow:appraisalValue requires a gmeow:appraisalScaleProfile (the greenfield reshape removed the bare-decimal floor — an unframed magnitude is ill-formed, Principle 6/11)." ;
     logic:integrity logic:afvForall .
 logic:afvForall a logic:Formula ;
@@ -1803,7 +1803,7 @@ gmeow:AppraisalReadsSomethingConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:Appraisal reads at least one gmeow:appraisalQuality, or a gmeow:appraisalDimension together with a gmeow:appraisalValue."@x-gmeow-english ;
-    logic:formalizes gmeow:Appraisal ;
+    logic:formalizes gmeow:Appraisal , gmeow:AppraisalShape ;
     logic:message "An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at least one aesthetic quality." ;
     logic:integrity logic:arsForall .
 logic:arsForall a logic:Formula ;
@@ -1839,7 +1839,7 @@ gmeow:ModelInferenceRunIdentifierPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a gmeow:modelIdentifier."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
     logic:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
     logic:integrity logic:mipForall .
 logic:mipForall a logic:Formula ;
@@ -1860,7 +1860,7 @@ gmeow:ModelInferenceRunRevisionPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a pinned gmeow:modelRevision."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
     logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
     logic:integrity logic:mrpForall .
 logic:mrpForall a logic:Formula ;
@@ -1881,7 +1881,7 @@ gmeow:AffectClassifierOutputProducedByPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput is gmeow:producedBy a run."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "An AffectClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
     logic:integrity logic:opForall .
 logic:opForall a logic:Formula ;
@@ -1902,7 +1902,7 @@ gmeow:AffectClassifierOutputTargetPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput names a gmeow:classifiedTarget."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "An AffectClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
     logic:integrity logic:octForall .
 logic:octForall a logic:Formula ;
@@ -1923,7 +1923,7 @@ gmeow:AffectClassifierOutputLabelPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:emittedLabel."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "An AffectClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:AffectClassifierLabel IRI)." ;
     logic:integrity logic:oelForall .
 logic:oelForall a logic:Formula ;
@@ -1944,7 +1944,7 @@ gmeow:AffectClassifierOutputScorePresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:classifierScore."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "An AffectClassifierOutput must carry a raw gmeow:classifierScore." ;
     logic:integrity logic:oscForall .
 logic:oscForall a logic:Formula ;
@@ -1965,7 +1965,7 @@ gmeow:AffectClassifierOutputSemanticsPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput declares a gmeow:scoreSemantics."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
     logic:integrity logic:ossForall .
 logic:ossForall a logic:Formula ;
@@ -1986,7 +1986,7 @@ gmeow:AffectClassifierLabelRegisteredConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierLabel is a gmeow:memberOfLabelSet of a label set."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierLabel ;
+    logic:formalizes gmeow:AffectClassifierLabel , gmeow:AffectClassifierLabelShape ;
     logic:message "An AffectClassifierLabel must be registered in a gmeow:AffectLabelSet via gmeow:memberOfLabelSet — an unregistered label fails canonical projection." ;
     logic:integrity logic:lmrForall .
 logic:lmrForall a logic:Formula ;
@@ -2007,7 +2007,7 @@ gmeow:DerivedAffectIntensityBasisPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:intensityBasis."@x-gmeow-english ;
-    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation , gmeow:DerivedAffectIntensityObservationShape ;
     logic:message "A derived affect intensity must declare its gmeow:intensityBasis (the AffectVectorObservation it is the norm of) — a floating intensity with no basis is a hard fail (Principle 12)." ;
     logic:integrity logic:dibForall .
 logic:dibForall a logic:Formula ;
@@ -2028,7 +2028,7 @@ gmeow:DerivedAffectIntensityMetricPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:metricProfile."@x-gmeow-english ;
-    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation , gmeow:DerivedAffectIntensityObservationShape ;
     logic:message "A derived affect intensity must declare its gmeow:metricProfile (scale normalization) — an intensity with no declared scale is a hard fail." ;
     logic:integrity logic:dmpForall .
 logic:dmpForall a logic:Formula ;
@@ -2049,7 +2049,7 @@ gmeow:DerivedAffectIntensityNormPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:normFunction."@x-gmeow-english ;
-    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation , gmeow:DerivedAffectIntensityObservationShape ;
     logic:message "A derived affect intensity must declare its gmeow:normFunction (the math:Norm) — a raw L² over the non-orthogonal affect basis is not a default; the metric is an explicit, grounded math:Norm IRI or it is a hard fail." ;
     logic:integrity logic:dnfForall .
 logic:dnfForall a logic:Formula ;
@@ -2070,7 +2070,7 @@ gmeow:AffectCompositeConstituentPresentConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectComposite declares at least one gmeow:affectiveConstituent."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectComposite ;
+    logic:formalizes gmeow:AffectComposite , gmeow:AffectCompositeShape ;
     logic:message "An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive (model up from axes, or add the missing axis)." ;
     logic:integrity logic:accForall .
 logic:accForall a logic:Formula ;
@@ -2092,7 +2092,7 @@ gmeow:ModelInferenceRunRevisionUniqueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun pins at most one gmeow:modelRevision."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
     logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
     logic:integrity logic:mruForall .
 logic:mruForall a logic:Formula ;
@@ -2116,7 +2116,7 @@ gmeow:DerivedAffectIntensityWeightingIriConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares its gmeow:weightingPolicy as an IRI-valued gmeow:WeightingPolicy."@x-gmeow-english ;
-    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation , gmeow:DerivedAffectIntensityObservationShape ;
     logic:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is an explicit, machine-readable gmeow:WeightingPolicy IRI, never assumed and never a free-text string." ;
     logic:integrity logic:dwpForall .
 logic:dwpForall a logic:Formula ;
@@ -2141,7 +2141,7 @@ gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation carries no stored gmeow:appraisalValue magnitude."@x-gmeow-english ;
-    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation , gmeow:DerivedAffectIntensityObservationShape ;
     logic:message "A derived affect intensity must NOT carry a stored magnitude (gmeow:appraisalValue) — the norm is a recomputable derived view, never a stored ground fact (Principle 12); a stored intensity value is a hard fail." ;
     logic:integrity logic:dnmForall .
 logic:dnmForall a logic:Formula ;
@@ -2164,7 +2164,7 @@ gmeow:AffectClassifierLabelNotEmotionTypeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierLabel is not also a gmeow:EmotionType."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierLabel ;
+    logic:formalizes gmeow:AffectClassifierLabel , gmeow:AffectClassifierLabelShape ;
     logic:message "A classifier label must not be modeled as a gmeow:EmotionType — 'neutral' (or any no-detected-affect label) as an EmotionType is a hard fail; labels are external identities, never canonical emotion vocabulary." ;
     logic:integrity logic:lneForall .
 logic:lneForall a logic:Formula ;
@@ -2184,7 +2184,7 @@ gmeow:AffectClassifierOutputCalibrationConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput whose gmeow:scoreSemantics is gmeow:scoreCalibratedProbability declares a gmeow:scoreCalibration."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "A score claimed as a calibrated probability requires a gmeow:scoreCalibration profile — a raw sigmoid/softmax score stored as a confidence without calibration metadata is a hard fail (confidence is not a probability without a declared mapping)." ;
     logic:integrity logic:occForall .
 logic:occForall a logic:Formula ;
@@ -2209,7 +2209,7 @@ gmeow:AffectClassifierOutputNoInnerAffectConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput asserts neither gmeow:emotionType nor gmeow:emotionBearer directly."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
     logic:message "A classifier output must not directly assert inner affect (gmeow:emotionType / gmeow:emotionBearer) — it supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (evidence, never entailment); asserting inner affect without the claim boundary is a hard fail." ;
     logic:integrity logic:oiaForall .
 logic:oiaForall a logic:Formula ;
@@ -2238,7 +2238,7 @@ gmeow:AppraisalScaleProfileIsProfileConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:appraisalScaleProfile value of a gmeow:Appraisal is a gmeow:AffectScaleProfile."@x-gmeow-english ;
-    logic:formalizes gmeow:Appraisal ;
+    logic:formalizes gmeow:Appraisal , gmeow:AppraisalShape ;
     logic:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal, a blank node, or a non-profile IRI (the reshape's frame must actually be a frame, Principle 6)." ;
     logic:integrity logic:aspForall .
 logic:aspForall a logic:Formula ;
@@ -2260,7 +2260,7 @@ gmeow:AffectScaleProfileRangeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectScaleProfile has gmeow:profileRangeMax strictly greater than gmeow:profileRangeMin."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectScaleProfile ;
+    logic:formalizes gmeow:AffectScaleProfile , gmeow:AffectScaleProfileShape ;
     logic:message "An AffectScaleProfile is degenerate: gmeow:profileRangeMax must strictly exceed gmeow:profileRangeMin — an inverted or empty range frames nothing (Principle 11)." ;
     logic:integrity logic:prxForall .
 logic:prxForall a logic:Formula ;
@@ -2284,7 +2284,7 @@ gmeow:AffectDecisionSingleLabelConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world relational integrity constraint: a gmeow:AffectDecision's decided label belongs to a label set whose gmeow:labelSetDecision is gmeow:decisionArgmax."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectDecision ;
+    logic:formalizes gmeow:AffectDecision , gmeow:AffectDecisionShape ;
     logic:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
     logic:integrity logic:dslForall .
 logic:dslForall a logic:Formula ;
@@ -2310,7 +2310,7 @@ gmeow:AffectDecisionRuleConsistencyConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world relational integrity constraint: a gmeow:AffectClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectDecisionRuleConsistencyShape ;
     logic:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
     logic:integrity logic:drcForall .
 logic:drcForall a logic:Formula ;
@@ -2340,7 +2340,7 @@ gmeow:ExclusiveAffectiveClaimConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world relational integrity constraint: no two distinct gmeow:AffectiveClaims over the same target are supported by outputs of one classifier run whose emitted labels share a single-label (gmeow:decisionArgmax) set."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectiveClaim ;
+    logic:formalizes gmeow:AffectiveClaim , gmeow:ExclusiveClaimShape ;
     logic:message "At most one gmeow:AffectiveClaim may be routed over one target from a single-label (gmeow:decisionArgmax) classifier run — a threshold policy admitting two mutually-exclusive claims over an exclusive label set is a hard fail." ;
     logic:integrity logic:eccForall .
 logic:eccForall a logic:Formula ;
@@ -2383,45 +2383,35 @@ logic:eccEmitted2 a logic:Formula ; logic:relation gmeow:emittedLabel ;
 logic:eccMember2 a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "l2" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
 
-# A dimensional value needs its dimension (and a dimension its value).
-gmeow:AppraisalDimensionValuePairConstraint
-    a logic:Constraint ;
-    rdfs:label "Appraisal dimension-value pair constraint"@x-gmeow-english ;
+# A dimensional value needs its dimension (and a dimension its value): the co-occurrence obligation
+# over the (gmeow:appraisalValue, gmeow:appraisalDimension) pair, authored as the two projectable
+# guarded-implication halves (value → dimension, dimension → value). The equivalent nested-universal
+# raw form has no bounded SPARQL BGP image (it would be carried as unsupported residue and lose SHACL
+# enforcement), and the cross-node co-occur sugar's positive lowering mis-nests FILTER NOT EXISTS
+# under UNION; two guarded implications lower faithfully to a guarded FILTER NOT EXISTS each.
+gmeow:AppraisalDimensionRequiresValueConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Appraisal dimension-requires-value constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalValue also carries a gmeow:appraisalDimension, and vice versa."@x-gmeow-english ;
-    logic:formalizes gmeow:Appraisal ;
-    logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
-    logic:integrity logic:advForall .
-logic:advForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:advImpl .
-logic:advImpl a logic:Formula ; logic:antecedent logic:advGuard ; logic:consequent logic:advAnd .
-logic:advGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Appraisal ] .
-logic:advAnd a logic:Formula ; logic:and logic:advValImpl , logic:advDimImpl .
-logic:advValImpl a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
-    logic:forall logic:advValInner .
-logic:advValInner a logic:Formula ; logic:antecedent logic:advValAtom ; logic:consequent logic:advDimExists .
-logic:advValAtom a logic:Formula ; logic:relation gmeow:appraisalValue ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
-logic:advDimExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
-    logic:exists logic:advDimAtom .
-logic:advDimAtom a logic:Formula ; logic:relation gmeow:appraisalDimension ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
-logic:advDimImpl a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d2" ] ;
-    logic:forall logic:advDimInner .
-logic:advDimInner a logic:Formula ; logic:antecedent logic:advDimAtom2 ; logic:consequent logic:advValExists .
-logic:advDimAtom2 a logic:Formula ; logic:relation gmeow:appraisalDimension ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
-logic:advValExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v2" ] ;
-    logic:exists logic:advValAtom2 .
-logic:advValAtom2 a logic:Formula ; logic:relation gmeow:appraisalValue ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v2" ] .
+    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalDimension also carries a gmeow:appraisalValue."@x-gmeow-english ;
+    logic:onClass gmeow:Appraisal ;
+    logic:trigger gmeow:appraisalDimension ;
+    logic:requires gmeow:appraisalValue ;
+    logic:formalizes gmeow:Appraisal , gmeow:AppraisalShape ;
+    logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." .
+
+gmeow:AppraisalValueRequiresDimensionConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Appraisal value-requires-dimension constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalValue also carries a gmeow:appraisalDimension."@x-gmeow-english ;
+    logic:onClass gmeow:Appraisal ;
+    logic:trigger gmeow:appraisalValue ;
+    logic:requires gmeow:appraisalDimension ;
+    logic:formalizes gmeow:Appraisal , gmeow:AppraisalShape ;
+    logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." .
 
 # =========================================================================== #
 # Migrated procedural constraints (#1194): the closed-world Emotion              #
@@ -2449,3 +2439,72 @@ gmeow:EmotionBearerConstraint
     logic:anyOf gmeow:emotionBearer ;
     logic:formalizes gmeow:Emotion ;
     logic:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectComposite> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorComponent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/experiencer> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/feltAffect> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intensityBasis> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/emittedLabel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/producedBy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scoreSemantics" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectComposite> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/affectiveConstituent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/profileRangeMax" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/profileRangeMin" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectVectorObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vectorComponent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectVectorObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vectorProfile" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectiveExperience> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/experiencer" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectiveExperience> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/feltAffect" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Appraisal> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/appraisalOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Appraisal> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/intensityBasis" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/metricProfile" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/normFunction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/weightingPolicy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# gmeow:AppraisalShape at-most-one restorations: gmeow:appraisalDimension and gmeow:appraisalValue
+# are Appraisal-scoped at-most-one facets whose paths are NOT globally owl:FunctionalProperty (a PAD
+# triple is three Appraisals sharing a vantage; the magnitude is per-cell), so the sh:maxCount 1
+# rides a class-scoped max-qualified antecedent (logic:onClass owl:Thing degrades to the plain
+# sh:maxCount 1 the oracle compares; the decimal magnitude rides logic:onDataRange).
+gmeow:Appraisal logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+
+# gmeow:ModelInferenceRunShape — a ModelInferenceRun declares exactly one gmeow:modelIdentifier and
+# one pinned gmeow:modelRevision. Both are literal-valued (a repo id, a revision string), so the
+# existence axiom ranges over rdfs:Literal (logic:allValuesFrom owl:Thing would reject the literal);
+# the closure entries project sh:minCount 1 and the owl:FunctionalProperty contract the sh:maxCount 1.
+gmeow:ModelInferenceRun logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:modelIdentifier ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:modelRevision ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:DerivedAffectIntensityObservationShape — a DerivedAffectIntensityObservation must NOT carry a
+# stored gmeow:appraisalValue magnitude (the norm is a recomputable derived view, Principle 12): the
+# forbidden-property obligation (sh:maxCount 0) is the reasoner-safe logic:maxQualifiedCardinality 0.
+# The gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint carries the same law in the logic: canon.
+gmeow:DerivedAffectIntensityObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onClass owl:Thing ] .

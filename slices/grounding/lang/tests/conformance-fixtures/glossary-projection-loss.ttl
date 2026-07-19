@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conformance twin of the two shipped glossary interop lowerings' honest loss ledger
+# (crates/pipeline/src/stages/lang_glossary.rs `build_lowering_corpus`). The G4 producer
+# folds one lang:ProjectionEmission per glossary lowering target into
+# graph/lang-projection-corpus of gmeow.gts; both are LOSSY sound-under-approximations, so
+# each carries logic:SoundUnderApproximation (NOT logic:ExactPreservation) and enumerates —
+# as lang:unsupportedConstruct — every construct the target cannot carry. The drop lists here
+# are byte-faithful to the producer's LOWERING_TARGETS table so the fixture exercises the
+# loss ledger the shipped bundle emits, never a second source of truth.
+#
+# The competency query glossary-projection-loss.rq runs over this fixture: its answer is
+# exactly the two emissions' declared drops — the four OntoLex-vartrans drops and the six
+# TBX drops — each at logic:SoundUnderApproximation.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+# ── The two carried glossary source senses the lowerings project FROM ──────────────
+# (the lang:Sense range lang:projectsSource names; present for faithfulness — the query
+#  reads only the target + preservation + drop columns).
+ex:glossarySenseComposedForm a lang:Sense .
+ex:glossarySenseEntityExistence a lang:Sense .
+
+# ── Emission 1: OntoLex vartrans (RDF-native; keeps the sense/concept structure) ────
+ex:glossaryEmissionVartrans a lang:ProjectionEmission ;
+    lang:projectionTargetName "OntoLex vartrans" ;
+    lang:projectsSource ex:glossarySenseComposedForm , ex:glossarySenseEntityExistence ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    lang:unsupportedConstruct
+        "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)" ,
+        "the crossing's logic:preservationKind judgment" ,
+        "the gmeow:glossaryPredicate annotation-predicate provenance" ,
+        "the lang:DeclaredTerminologyHomograph declaration that split the concept" .
+
+# ── Emission 2: TBX (ISO 30042) (flat concept/langSet/term termbase) ────────────────
+ex:glossaryEmissionTbx a lang:ProjectionEmission ;
+    lang:projectionTargetName "TBX (ISO 30042)" ;
+    lang:projectsSource ex:glossarySenseComposedForm , ex:glossarySenseEntityExistence ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    lang:unsupportedConstruct
+        "the OntoLex Frege-triangle sense structure (lang:Sense / lang:evokes / lang:LexicalConcept)" ,
+        "the lang:TranslationUnit crossing's logic:Correspondence law-spine (gmeow:glossaryUnit)" ,
+        "the crossing's logic:preservationKind judgment" ,
+        "the gmeow:glossaryPredicate annotation-predicate provenance" ,
+        "the lang:DeclaredTerminologyHomograph declaration that split the concept" ,
+        "the gmeow:glossaryTerm IRI grounding (TBX terms are plain strings)" .

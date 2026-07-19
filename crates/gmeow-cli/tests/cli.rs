@@ -312,7 +312,13 @@ fn validate_unknown_extension_hard_fails() {
 
 #[test]
 fn export_respects_language_selector() {
-    // test_export_respects_language_selector: --lang fr yields a label_fr column.
+    // test_export_respects_language_selector: --lang fr yields fr-keyed labels /
+    // definitions in the JSONL term records. purrdf's CSVW package (dist/csvw/*, see
+    // stages::export's module doc) is now a generic lossless RDF-1.2-in-CSV encoding
+    // with no per-language columns, so the selector's effect is asserted against
+    // gmeow-terms.jsonl (the flattened Term surface still carries a
+    // language-tag-keyed `labels`/`definitions` map) instead of the retired
+    // gmeow-classes.csv.
     let out = scratch("export");
     gmeow()
         .arg("export")
@@ -321,11 +327,17 @@ fn export_respects_language_selector() {
         .args(["--lang", "fr"])
         .assert()
         .success();
-    let csv = out.join("gmeow-classes.csv");
-    assert!(csv.exists(), "gmeow-classes.csv written");
-    let text = std::fs::read_to_string(&csv).unwrap();
-    assert!(text.contains("label_fr"), "french label column present");
-    assert!(text.contains("label_fallback"), "fallback column present");
+    let jsonl = out.join("gmeow-terms.jsonl");
+    assert!(jsonl.exists(), "gmeow-terms.jsonl written");
+    let text = std::fs::read_to_string(&jsonl).unwrap();
+    assert!(
+        text.contains("\"fr\":"),
+        "french label/definition key present"
+    );
+    assert!(
+        text.contains("labelFallback") || text.contains("definitionFallback"),
+        "fallback flag present"
+    );
 }
 
 #[test]
@@ -784,5 +796,376 @@ fn conjecture_test_max_steps_bound_forces_open() {
                 .and(predicate::str::contains("evaluation budget-exhausted"))
                 .and(predicate::str::contains("discharge ObligationUnknown")),
         );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+// ── hybrid-query (Gap E2/E3: external-relation provider on the shipped CLI) ──
+
+/// Ordinary asserted RDF facts: two documents, one active and one inactive.
+/// The hard RDF constraint `ex:status(D, ex:active)` filters the provider's
+/// candidate join down to exactly `doc/one`.
+fn hybrid_query_facts_ttl() -> String {
+    "<https://example.org/doc/one> <https://example.org/status> <https://example.org/active> .\n\
+     <https://example.org/doc/two> <https://example.org/status> <https://example.org/inactive> .\n"
+        .to_owned()
+}
+
+/// A provider/RDF join program: `eligible(Q, D)` holds when the lexical
+/// provider relation returns `D` for `Q` AND `D` is asserted `ex:active` —
+/// the same join shape as `crates/logic/tests/external_relations.rs`'s
+/// `bound_lexical_candidates_join_hard_rdf_constraints_in_one_fixpoint`.
+fn hybrid_query_program() -> String {
+    ":- prefix(ex, 'https://example.org/').\n\
+     ex:eligible(Q, D) :- ex:relation/lexical(Q, D), ex:status(D, ex:active).\n\
+     ?- ex:eligible(ex:cat, D).\n"
+        .to_owned()
+}
+
+/// Three lexical candidate tuples: two for `cat` (one active, one inactive
+/// document) and one for `dog` (irrelevant to the goal). Comments and blank
+/// lines are deliberately included to exercise the candidate-file grammar.
+fn hybrid_query_candidates_txt() -> String {
+    "# query        document                        annotation order-key\n\
+     \n\
+     <https://example.org/cat> <https://example.org/doc/one> 7 001\n\
+     <https://example.org/cat> <https://example.org/doc/two> 5 002\n\
+     <https://example.org/dog> <https://example.org/doc/three> 3 003\n"
+        .to_owned()
+}
+
+const HYBRID_QUERY_RELATION: &str = "https://example.org/relation/lexical";
+const HYBRID_QUERY_PROVIDER_IRI: &str = "https://example.org/hybrid-query-test/provider";
+
+/// The headline E3 acceptance test: `gmeow hybrid-query` registers a real
+/// `TableRelationProvider` and drives the query end-to-end on the SHIPPED
+/// binary, printing both the resolved answer binding (the RDF-constrained
+/// join keeps only the active document) and the query receipt naming the
+/// contributing provider — the observable proof this capability is reachable
+/// outside `crates/logic`'s own test binary.
+#[test]
+fn hybrid_query_prints_answer_binding_and_provider_lineage_receipt() {
+    let dir = scratch("hybrid-query");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(&program, hybrid_query_program()).expect("write program");
+    std::fs::write(&candidates, hybrid_query_candidates_txt()).expect("write candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .args(["--provider-iri", HYBRID_QUERY_PROVIDER_IRI])
+        .assert()
+        .success()
+        .stdout(
+            // The RDF join admits ONLY the active document, with the provider's
+            // ZWeight annotation (7) composed against the asserted-fact identity
+            // (the CLI supplies no asserted-RDF scoring function).
+            predicate::str::contains("answer D=<https://example.org/doc/one> annotation=7")
+                // The excluded, inactive candidate must never appear as an answer.
+                .and(predicate::str::contains("doc/two").not())
+                .and(predicate::str::contains("status Ok"))
+                // The receipt must name the contributing provider by IRI — the
+                // acceptance criterion that provider lineage is observable.
+                .and(predicate::str::contains(format!(
+                    "receipt contributing-provider {HYBRID_QUERY_PROVIDER_IRI}"
+                )))
+                .and(predicate::str::contains(format!(
+                    "relation={HYBRID_QUERY_RELATION}"
+                )))
+                .and(predicate::str::contains(format!(
+                    "provider={HYBRID_QUERY_PROVIDER_IRI}"
+                )))
+                .and(predicate::str::contains("status=Complete"))
+                .and(predicate::str::contains("contributed=true")),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// A malformed `--candidates` line (only 3 fields, missing the order-key) is a
+/// specific, honest parse failure — never a silently empty/degraded provider.
+#[test]
+fn hybrid_query_malformed_candidates_line_fails_with_a_specific_diagnostic() {
+    let dir = scratch("hybrid-query-bad-candidates");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(&program, hybrid_query_program()).expect("write program");
+    std::fs::write(
+        &candidates,
+        "<https://example.org/cat> <https://example.org/doc/one> 7\n",
+    )
+    .expect("write malformed candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("line 1").and(predicate::str::contains(
+                "expected 4 whitespace-separated fields",
+            )),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// A provider that is registered but never referenced by the program is
+/// legitimate (mirrors the `unused_vector` fixture in
+/// `crates/logic/tests/external_relations.rs`): the query still completes
+/// normally, simply without touching the unused provider — a syntactically
+/// valid, disjoint program is NOT an error path, and every asserted-RDF-only
+/// answer carries the multiplicative identity annotation (`1`).
+#[test]
+fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
+    let dir = scratch("hybrid-query-unused-provider");
+    let facts = dir.join("facts.ttl");
+    let program = dir.join("query.logic");
+    let candidates = dir.join("candidates.txt");
+    std::fs::write(&facts, hybrid_query_facts_ttl()).expect("write facts");
+    std::fs::write(
+        &program,
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:status(S, D).\n",
+    )
+    .expect("write program");
+    std::fs::write(&candidates, hybrid_query_candidates_txt()).expect("write candidates");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--candidates")
+        .arg(&candidates)
+        .args(["--relation", HYBRID_QUERY_RELATION])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains(
+                "answer D=<https://example.org/active>, S=<https://example.org/doc/one> \
+                 annotation=1",
+            )
+            .and(predicate::str::contains(
+                "answer D=<https://example.org/inactive>, S=<https://example.org/doc/two> \
+                 annotation=1",
+            ))
+            .and(predicate::str::contains("status Ok")),
+        );
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+// ── logic backward (Task 8: interactive backward-engine CLI surface) ────────
+
+/// The repo-committed goal-directed demonstrator corpus — the SAME
+/// `logic:ReasoningProgram` cell `stage-goal-directed` compiles into
+/// `gmeow.gts`'s `graph/goal-directed`.
+fn reasoning_programs_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/logic/examples/reasoning-programs.ttl")
+}
+
+/// The repo-committed `math:` grounding module, whose told `rdfs:subClassOf`
+/// chain (`math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …`) seeds
+/// the order-sorted `ex:mathSubsort` demonstrator's unification lattice.
+fn math_module_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/math/module.ttl")
+}
+
+/// The example corpus's namespace (`@prefix ex:` in `reasoning-programs.ttl`).
+const LOGIC_BACKWARD_EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
+
+/// `gmeow logic backward` over the full shipped demonstrator corpus (no
+/// `--program-iri`, no `--subsort-source`) drives the SAME
+/// `evaluate_reasoning_programs` production path `stage-goal-directed` folds
+/// into `gmeow.gts`, and prints the Peano-addition proof-checked answer, the
+/// reachability answers, and the three-valued WFS verdicts. The order-sorted
+/// `mathSubsort`/`mathSubsortControl` pair correctly yields zero answers here —
+/// no subsort edges are supplied, which is an honest gap, never a silent
+/// fallback to a hardcoded math tower.
+#[test]
+fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program peanoAdd")
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),\
+                     {EX}s({EX}s({EX}s({EX}zero))))"
+                )))
+                .and(predicate::str::contains(format!(
+                    "binding R = {EX}s({EX}s({EX}s({EX}zero)))"
+                )))
+                .and(predicate::str::contains("proof-checked=true"))
+                .and(predicate::str::contains("program reachability"))
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}reach({EX}a,{EX}b)"
+                )))
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}reach({EX}a,{EX}c)"
+                )))
+                .and(predicate::str::contains("program memberCons"))
+                .and(predicate::str::contains(format!("binding M = {EX}a")))
+                .and(predicate::str::contains(format!("binding M = {EX}b")))
+                .and(predicate::str::contains(format!("binding M = {EX}c")))
+                .and(predicate::str::contains("program winWfs"))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}a) verdict=undefined"
+                )))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}c) verdict=true"
+                )))
+                .and(predicate::str::contains(format!(
+                    "verdict atom={EX}win({EX}d) verdict=false"
+                )))
+                .and(predicate::str::contains("program mathSubsort"))
+                .and(predicate::str::contains("program mathSubsortControl")),
+        );
+
+    // Narrowed to just `mathSubsort`, with no `--subsort-source` supplied,
+    // the order-sorted lattice is empty and the demonstrator honestly
+    // produces zero answers — proving the positive case exercised elsewhere
+    // (`logic_backward_subsort_source_seeds_the_order_sorted_lattice`) is
+    // reasoned-closure-driven from the told `math:` subsort chain, never a
+    // hardcoded math tower baked into the engine.
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsort")
+                .and(predicate::str::contains("answer atom=").not()),
+        );
+}
+
+/// `--program-iri` narrows evaluation to exactly the named program: the output
+/// carries only `peanoAdd` and neither `reachability` nor `winWfs` appears.
+#[test]
+fn logic_backward_program_iri_narrows_to_one_program() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}peanoAdd")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program peanoAdd")
+                .and(predicate::str::contains("program reachability").not())
+                .and(predicate::str::contains("program winWfs").not()),
+        );
+}
+
+/// `--subsort-source` seeds the order-sorted unification lattice from the
+/// `math:` module's TOLD `rdfs:subClassOf` chain: the engine composes its own
+/// reflexive-transitive closure, so `ex:mathSubsort` (whose query variable
+/// carries `logic:variableSort math:RealNumber`) accepts the `math:Integer`
+/// constant `ex:one` (ℤ ⊑ ℝ), while the negative control `ex:mathSubsortControl`
+/// (an incomparable `math:Set` sort) still correctly refuses it.
+#[test]
+fn logic_backward_subsort_source_seeds_the_order_sorted_lattice() {
+    const EX: &str = LOGIC_BACKWARD_EX;
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsort")])
+        .arg("--subsort-source")
+        .arg(math_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsort")
+                .and(predicate::str::contains(format!(
+                    "answer atom={EX}p({EX}one)"
+                )))
+                .and(predicate::str::contains(format!("binding X = {EX}one"))),
+        );
+
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", &format!("{EX}mathSubsortControl")])
+        .arg("--subsort-source")
+        .arg(math_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("program mathSubsortControl")
+                .and(predicate::str::contains("answer atom=").not()),
+        );
+}
+
+/// A missing `--program-file` is a hard fail (exit 1), never a silent empty
+/// success.
+#[test]
+fn logic_backward_missing_program_file_hard_fails() {
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg("/nonexistent-reasoning-programs.ttl")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"));
+}
+
+/// An unknown `--program-iri` is a hard fail listing the known program IRIs —
+/// never a silently empty result set.
+#[test]
+fn logic_backward_unknown_program_iri_hard_fails() {
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(reasoning_programs_fixture())
+        .args(["--program-iri", "https://example.org/nope"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("names no logic:ReasoningProgram")
+                .and(predicate::str::contains("known:")),
+        );
+}
+
+/// A cell carrying zero `logic:ReasoningProgram` individuals is a hard fail,
+/// never a silent empty success.
+#[test]
+fn logic_backward_program_free_cell_hard_fails() {
+    let dir = scratch("logic-backward-empty");
+    let empty = dir.join("empty.ttl");
+    std::fs::write(&empty, "@prefix ex: <http://ex/> .\nex:a ex:knows ex:b .\n")
+        .expect("write program-free cell");
+
+    gmeow()
+        .args(["logic", "backward"])
+        .arg("--program-file")
+        .arg(&empty)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("zero logic:ReasoningProgram"));
     std::fs::remove_dir_all(&dir).ok();
 }

@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CT1 counter-example (Don't): a projection whose RECORDED source digest disagrees
+# with the live gmeow:contentDigest of its resolved source — built over different
+# bytes than it now points at. Valid in every other respect; the ONLY defect is the
+# digest drift. Triggers source-digest-mismatch.rq (→ ce:driftProj).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:driftPack a gmeow:InformationObject ;
+    gmeow:contentDigest "blake3:aaaa000011112222333344445555666677778888999900001111222233334444" .
+
+ce:driftProj a gmeow:EmbeddingProjection ;
+    gmeow:projectionSource       ce:driftPack ;
+    gmeow:projectionSourceDigest "blake3:bbbb000011112222333344445555666677778888999900001111222233335555" ;
+    gmeow:hasVectorSpaceContract ce:driftVsc ;
+    gmeow:hasSensitivity         gmeow:sensitivityInternal .

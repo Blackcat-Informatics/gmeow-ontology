@@ -19,3 +19,4 @@ ex:forecastSpace a math:ProbabilitySpace ;
 ex:weatherOutcomes a math:SampleSpace .
 ex:weatherAlg a math:PowerSetSigmaAlgebra .
 ex:forecastMeasure a math:ProbabilityMeasure .
+<http://example.org/math/rainProb> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

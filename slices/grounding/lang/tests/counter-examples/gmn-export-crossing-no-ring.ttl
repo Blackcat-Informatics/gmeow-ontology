@@ -37,9 +37,10 @@ ex:corrExportEnvelope a logic:Correspondence ;
 # no admission class checked.
 ex:envelopeExportUnbound a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
     gmeow:contentDigest "blake3:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

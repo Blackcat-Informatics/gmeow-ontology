@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-music"
 description = "GMEOW music-package toolchain: GTS package I/O, notation renderers, and MusicXML import"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

@@ -15,7 +15,7 @@
 > [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md).
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
-> realization implements X, established by the slice's `shapes.ttl`, competency queries, and the
+> realization implements X, established by the slice's canonical `module.ttl` axioms and `logic:Constraint` records, competency queries, and the
 > projection loss ledger.
 
 ## Purpose
@@ -119,16 +119,129 @@ Homotopy and homology give the algebraic-topology bridge (a
 Little external ontology exists — the content is in prover libraries (mathlib, Isabelle/AFP), so the
 depth is **authored** and **cited**.
 
+### Graded cells and incidence
+
+Beneath every complex, filtration, and cellular sheaf sits the graded cell. A `math:Cell` is one
+building block of a `math:CellComplex` — a 0-cell vertex, a 1-cell edge, a 2-cell face — and it carries
+its grade *n* through the single canonical `math:cellDimension` (a `math:NaturalNumber`; "grade" is a
+label synonym, never a second `math:grade` property). A cell whose dimension is left implicit is
+ill-formed (`math:IncompleteCell`), because an undimensioned cell cannot sit in the graded boundary
+chain. Cells relate through two distinct surfaces. `math:incidentTo` is the **unsigned** codimension-1
+face relation (Cell → Cell) that the boundary operator runs over; it is the load-bearing relation for the
+boundary-square-zero law (∂∘∂ = 0), which a downstream constraint predicates over it. The
+**signed** boundary coefficient is reified as a `math:CellIncidence`, which names its coface
+(`math:incidenceCoface`), its codimension-1 face (`math:incidenceFace`), and the exact orientation sign
+±1 (`math:incidenceSign`, an `xsd:integer`, never a decimal) — one inspectable entry of the signed
+incidence matrix. A `math:CellIncidence` missing any of the three is ill-formed
+(`math:UnorientedIncidence`). Orientation itself is the open `math:CellOrientation` vocabulary
+(`math:positivelyOriented`, `math:negativelyOriented`), attached to a cell through `math:orientation`
+exactly as `math:MonotonicityKind` attaches to a function — an open `owl:NamedIndividual` set, never an
+`owl:oneOf` enumeration; the cell's orientation is qualitative and distinct from the numeric
+`math:incidenceSign`. This surface covers the **presence** of the boundary signs; their **coherence**
+— that composing incidences makes the twice-applied boundary vanish — is a separate law, not this frame.
+The worked triangle in `examples/graded-cell-complex.ttl` demonstrates the whole surface as the oriented
+2-simplex whose boundary is ∂(faceABC) = +edgeAB + edgeBC − edgeAC.
+
+### Chain and cochain complexes — the square-zero laws and their adjunction
+
+The signed incidence surface carries the boundary *data*; on top of it sit the boundary *elements* and
+the ∂∘∂ = 0 / δ∘δ = 0 *coherence* laws. A `math:Chain` is a graded signed combination of same-dimension
+cells (naming its `math:ChainComplex` through `math:chainOf`); a `math:Cycle` (⊑ `math:Chain`) is a chain
+in the kernel of ∂, a `math:Boundary` (⊑ `math:Chain`) a chain in its image. Because ∂∘∂ = 0 every
+boundary is a cycle, and the `math:HomologyGroup` is the quotient **H = Z/B** — the cycles modulo the
+boundaries. The dual, degree-raising side mints `math:Cochain` / `math:Cocycle` / `math:Coboundary` and a
+`math:CochainComplex` (naming its `math:cochainCoboundary`, else `math:IncompleteCochainComplex`).
+
+**The square-zero law is enforced in two genuinely distinct layers, and the split is an honest
+mathematical distinction, not a scope dodge.**
+
+- **The regular/simplicial reasoning-form law.** `math:boundarySquareZeroLaw` is a first-order
+  `logic:Formula` (a sibling of `math:filtrationMonotonicityLaw`) stating the **combinatorial diamond with
+  a fixed-point-free involution**: for every codimension-2 pair (coface *c*, far-face *a*) reached through
+  two intermediate faces *b*, *b′* whose incidence-sign products are opposite (`math:oppositeIncidenceProductRel`),
+  those faces are a **cancelling pair** (`math:cancellingPairRel`). This is a *theorem only on
+  regular/simplicial complexes*, where a codimension-2 pair has **exactly two** intermediate faces (the
+  diamond lemma); the law is scoped there deliberately, and `math:coboundarySquareZeroLaw` is its
+  degree-raising transpose (over `math:cofaceRel`, deriving `math:coCancellingPairRel`). Both are
+  Horn-derivable, so the native `gmeow:reasoningLogic` competency lane *fires* them over the worked triangle
+  in `examples/chain-complex.ttl` and reads back the derived cancelling pair — the law is a live entailment
+  consumer, not prose. The regular/simplicial enforcement is the cross-node ∀→∃ constraint
+  `math:BoundarySquareZeroConstraint` (scoped to `math:SimplicialComplex`) /
+  `math:CoboundarySquareZeroConstraint` (scoped to `math:CochainComplex`): every codim-2 composition path
+  must have a distinct partner face, else `math:BrokenBoundarySquareZero` / `math:BrokenCoboundarySquareZero`.
+  This constraint is the **combinatorial** completeness check over the unsigned `math:incidentTo` relation
+  and deliberately does **not** read `math:incidenceSign`: a plain `logic:Constraint` lowers to a
+  triple-pattern `sh:SPARQLConstraint` that cannot compute a sign product, so an `oppositeProduct` atom here
+  would be a vacuous always-satisfied pattern. Under the induced orientation the diamond lemma makes the two
+  faces' ±1 coefficients cancel automatically, so partner-completeness **is** ∂∘∂ = 0 there; the explicit
+  signed arithmetic (required the moment a complex carries reified `math:CellIncidence` records, simplicial or
+  not) is owned entirely by `math:GeneralBoundarySquareZeroConstraint` below, whose `onClass math:Cell` scope
+  also covers signed simplicial complexes. The two layers compose: a signed simplicial diamond that is
+  combinatorially complete yet sign-non-cancelling passes this constraint but is caught by the general SUM = 0
+  constraint (`tests/counter-examples/simplicial-signed-noncancelling-diamond.ttl`).
+
+- **The general-CW per-instance conformance constraint.** On a *general* CW complex the two-intermediate
+  diamond is **not** a theorem — the exact statement is the finite signed sum Σ_b [c:b]·[b:a] = 0 over all
+  intermediate cells, and a per-element "has an opposite partner" test is genuinely unsound (the multiset
+  {+1, +1, −1} passes it yet sums to +1). So the correct general conformance check is
+  `math:GeneralBoundarySquareZeroConstraint`, authored as the sanctioned `logic:JoinAggregateConstraint`
+  (P9): a two-leg `math:CellIncidence` join (c → b → a) whose two integer `math:incidenceSign` leaves are
+  multiplied, summed with SUM **grouped by (coface, far-face)**, and required = 0. It aggregates
+  `xsd:integer` signs exactly (never a decimal) and lowers to a `SELECT $this ?far … GROUP BY $this ?far
+  HAVING(SUM ≠ 0)` `sh:SPARQLConstraint`. This is the executable form that covers general CW complexes.
+
+- **What stays a boundary.** `math:cellBoundarySumBoundary` records — as an honest
+  `logic:expressivenessBoundary` (`logic:SecondOrder`, `logic:preservationKind logic:Unsupported`) — that
+  the **universal class law** "Σ_b [c:b]·[b:a] = 0 for *every* codim-2 pair of *every* complex" is
+  genuinely higher-order (it quantifies over the unbounded family of complexes and aggregates a group SUM
+  the first-order fragment cannot express). This boundary covers **only** the universal class law; the
+  regular/simplicial diamond law *is* first-order, and the general per-instance sum *is* executable — so the
+  boundary is the honest residue, not a scope dodge. The homology quotient is treated the same way: the
+  homologous-cycle equivalence (z₁ ~ z₂ ⟺ z₁ − z₂ ∈ B) is the first-order `math:homologyQuotientLaw`,
+  while the quotient-**group** construction (forming Z/B with well-defined coset operations) is the honest
+  `math:homologyQuotientBoundary`.
+
+**The adjunction.** `math:boundaryCoboundaryAdjunctionLaw` states δ = ∂\* — the coboundary matrix is the
+transpose of the boundary matrix, so a boundary `math:CellIncidence` and its `math:adjointIncidence`
+transpose carry **equal** signs; `math:BoundaryCoboundaryAdjunctionConstraint` fires
+`math:BrokenBoundaryCoboundaryAdjunction` when they disagree. This adjunction is exactly what the
+already-grounded `math:HodgeLaplacian` (L = δδ\* + δ\*δ) and `math:HodgeDecomposition` depend on — nothing in
+the Hodge/Laplacian surface is re-minted here. Finally, `math:constantSheafRecoversHomologyLaw` ties the
+sheaf machinery back to ordinary homology, stated at the CORRECT (co)homology degree and variance: a
+`math:ConstantSheaf` (constant-field stalks, identity restriction maps) has, at each degree k, a
+sheaf-Laplacian harmonic space computing the degree-k sheaf COHOMOLOGY H^k(X;F) — a CONTRAVARIANT
+cochain-complex (δ) construction. Over a field F this is naturally identified, dimension-for-dimension
+via the universal coefficient theorem, with the SAME-degree cellular HOMOLOGY group H_k(X;F) = Zₖ/Bₖ (a
+COVARIANT chain-complex (∂) construction, `math:homologyQuotientLaw`) — the two are formally different
+constructions the law relates at one shared degree, never a literal identity, and never the first
+sheaf-cohomology H¹ that `math:GluingObstruction` measures (a structurally different obstruction-to-
+gluing role, unrelated to Betti-number recovery even when it happens to sit at degree 1). So
+`math:CellularSheaf` / `math:SheafLaplacian` is a conservative extension of plain homology, not a
+replacement, and `math:recoversHomology`'s relation is deliberately degree-generic rather than
+hard-coding "H₁" or "H¹". The worked triangle in
+`tests/conformance-fixtures/chain-complex-square-zero-complete.ttl` demonstrates the degree-1 case
+specifically: H₁ = Z/B (the 1-cycle that bounds the filled face, so its class is zero) and the constant
+sheaf's degree-1 cohomology corresponding to it.
+
 ### Persistent homology — filtrations, lifetimes, and stability
 
-Core classes: `math:Filtration`, `math:FiltrationStage`, and `math:PersistenceLifetime`.
+Core classes: `math:CellComplex`, `math:SimplicialComplex`, `math:VietorisRipsComplex`,
+`math:CechComplex`, `math:AlphaComplex`, `math:Filtration`, `math:FiltrationStage`,
+`math:PersistentHomology`, `math:PersistenceDiagram`, `math:PersistenceBarcode`,
+`math:PersistenceLandscape`, `math:BettiSummary`, `math:MapperConstruction`,
+`math:MultiparameterPersistence`, `math:ZigzagPersistence`, and `math:PersistenceLifetime`. The
+persistence **objects** (distinct from the activities above) are `math:MultiparameterFiltration`,
+`math:PersistenceModule`, `math:PersistenceMorphism`, `math:ZigzagDiagram`, and the open
+`math:ArrowDirection` vocabulary.
 
 Core properties: `math:hasFiltrationStage`, `math:filtrationThreshold`, `math:stageStructure`,
 `math:filtrationIndexKind`, `math:filtrationAmbient`, `math:overFiltration`, `math:persistenceFeature`,
-`math:bornAt`, and `math:diesAt`.
+`math:bornAt`, and `math:diesAt`; for the persistence objects, `math:filtrationIndexPoset`,
+`math:multiIndex`, `math:moduleIndex`, `math:structureMap`, `math:morphismSource`,
+`math:morphismTarget`, `math:zigzagArrow`, and `math:arrowDirection`.
 
 A `math:Filtration` is a monotone family of substructures of an ambient object indexed by a real-valued
-threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `gmeow:Quantity`) with
+threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `math:Quantity`) with
 the `math:stageStructure` present at it (a `math:TopologicalSpace`), and for thresholds ε₁ ≤ ε₂ the
 stage at ε₁ is contained in the stage at ε₂. The containment is the **existing** transitive
 `math:subsetOf`, not a new order relation; the nesting law that ε₁ ≤ ε₂ *entails* containment is
@@ -140,7 +253,7 @@ and a structure) — monotonicity is a law, not a shape, exactly as for the sepa
 A `math:PersistenceLifetime` is the birth–death interval of one topological feature — a
 `math:HomologyGroup` generator, a hole of some dimension — across a filtration: it names the filtration
 (`math:overFiltration`), the feature (`math:persistenceFeature`), the threshold the feature appears at
-(`math:bornAt`, a `gmeow:Quantity`), and the threshold it disappears at (`math:diesAt`). Its persistence
+(`math:bornAt`, a `math:Quantity`), and the threshold it disappears at (`math:diesAt`). Its persistence
 is death − birth: a long-lived feature is signal, a short-lived one is noise. An **essential** feature
 never dies within the filtration, so its `math:diesAt` is the individual `math:PositiveInfinity` rather
 than a finite threshold — the same extended-real range `math:totalMass` carries, which is why
@@ -160,6 +273,206 @@ theorem is what turns the persistence of a feature into a *warranted* credence
 persistence-calibration surface that lands as `logic:confidence` on a latent-meaning claim. Like the
 rest of the topology depth, the content is authored and cited (mathlib/AFP; Edelsbrunner–Harer,
 *Computational Topology*).
+
+The analysis process itself is `math:PersistentHomology`, not the filtration and not a project-local
+TDA umbrella. It names its input, exactly one filtration, and one or more persistence-diagram
+outputs. Barcodes, landscapes, Betti summaries, Mapper constructions, and multi-parameter or zigzag
+specializations remain distinct mathematical result or method classes, so a consumer can state
+exactly which summary it calculated.
+
+#### Multiparameter and zigzag persistence — the OBJECTS, distinct from the ACTIVITIES
+
+`math:MultiparameterPersistence` and `math:ZigzagPersistence` are analysis **activities**
+(`⊑ math:PersistentHomology ⊑ gmeow:Activity`) — they are *methods*, not the things they range over.
+The mathematical **objects** those methods operate on are minted separately, distinctly named, and
+cross-linked to their activities through `rdfs:seeAlso`:
+
+- **`math:MultiparameterFiltration`** (`⊑ math:MathematicalObject`) — a filtration indexed by a
+  **poset of dimension ≥ 2** (`math:filtrationIndexPoset`), not a single real line. It reuses the
+  existing `math:FiltrationStage` / `math:hasFiltrationStage`, but each stage carries a
+  `math:multiIndex` — a `math:Vector` of coordinates in the parameter poset — **rather than** the
+  single real `math:filtrationThreshold` a one-parameter stage carries.
+- **`math:PersistenceModule`** (`⊑ math:MathematicalObject , math:Functor`) — the **algebraic**
+  object: the functor *P*: (index poset as a category) → Vect, naming its index through
+  `math:moduleIndex` and its comparable-pair transition maps through `math:structureMap`. It reuses
+  the shipped `math:Functor` grounding (**L1 reuse** — a persistence module *is* a functor on its
+  index poset), so no parallel category-theory structure is minted. It is held
+  `owl:disjointWith math:PersistenceLifetime`: the whole functor versus one feature's decorated bar.
+- **`math:PersistenceMorphism`** (`⊑ math:Morphism`) — a map of persistence modules,
+  naming both endpoints through `math:morphismSource` / `math:morphismTarget`.
+- **`math:ZigzagDiagram`** (`⊑ math:MathematicalObject`) — a sequence whose structure maps
+  (`math:zigzagArrow`) may point forward or backward, each declaring its `math:arrowDirection` over
+  the open `math:ArrowDirection` vocabulary (`math:forwardArrow` / `math:backwardArrow`), minted like
+  `math:CellOrientation`.
+
+**Non-collapse is the whole point, and it is executable.** A genuinely multi-parameter or
+bidirectional construction must never silently degrade to the one-parameter, forward-only case. Three
+failure classes make this a hard fail rather than a hope: `math:CollapsedMultiparameterFiltration`
+(stages carrying only a real `math:filtrationThreshold` and no `math:multiIndex` — a cross-node
+existence `logic:Constraint`), `math:DiagonalDegenerateFiltration` (coordinates that are FUNCTIONALLY
+DEPENDENT — one index a function of the other, not merely literally equal), and
+`math:DegenerateZigzagDiagram` (a diagram declaring no `math:backwardArrow` — a guarded-existence
+`logic:Constraint`). Each lowers to a `sh:SPARQLConstraint`.
+
+`math:DiagonalDegenerateFiltration` is enforced by TWO constraints, because literal equality is not the
+only way a nominally two-parameter filtration is secretly one-parametric: `(t, 2t)` and `(t, t+1)` are
+just as one-parametric as the literal diagonal `(t, t)`, yet never share a literal coordinate value. But
+general functional dependence `t₂ = f(t₁)` for an arbitrary `f` is **not decidable from finitely many
+stage samples** — any finite set of index points lies on some curve — so it is not faked as an unsound
+first-order predicate; the undecidable residue is the honest boundary `math:multiparameterDependenceBoundary`
+(`logic:SecondOrder`, `logic:preservationKind logic:Unsupported`), a sibling of
+`math:cellBoundarySumBoundary`. What the two constraints DO enforce are the decidable cases.
+`math:DiagonalDegenerateFiltrationConstraint` catches the LITERAL diagonal — two components of ONE
+stage's `math:multiIndex` at distinct positions sharing the same `math:componentValue` node, checkable
+from a single stage in isolation. `math:MultiparameterFunctionalDependenceConstraint` is a
+**declaration-completeness** check: whenever a filtration has at least two distinct stages, its declared
+stages must DEMONSTRATE independence through a fix-one-vary-another witness — two stages sharing the same
+`math:componentValue` node at one `math:atIndex` position (a coordinate held fixed) while carrying
+distinct value nodes at another (a coordinate varied), proving at least one coordinate moves free of the
+other. A degenerate family sampled only along `t₂ = f(t₁)` never holds one coordinate fixed while moving
+the other, so it cannot exhibit the witness and its absence among ≥ 2 stages fires the failure; a genuine
+grid such as `(1,2), (1,3), (2,3)` exhibits it (the conformant fixture
+`examples/multiparameter-filtration-grid-complete.ttl`). The witness compares `math:componentValue` by
+NODE identity, so equal coordinates across stages must reuse the same value node — the convention the
+multiparameter fixtures follow. A filtration with fewer than two stages cannot be tested this way and
+stays inert under this second guard (the single-stage literal-diagonal guard is unaffected). The missing-frame cases
+(`math:IncompleteMultiparameterFiltration`, `math:IncompletePersistenceModule`,
+`math:IncompletePersistenceMorphism`) are declarative `owl:minQualifiedCardinality` frames, and the
+module/lifetime conflation (`math:PersistenceModuleLifetimeConflation`) is the direct
+`owl:disjointWith` axiom's derived `sh:not`, wired exactly like `math:ProbabilityScaleConflation`.
+
+**The principled reason, stronger than the guards.** Carlsson–Zomorodian (*The Theory of
+Multidimensional Persistence*, Discrete & Computational Geometry 42(1), 2009) proved that
+multiparameter persistence admits **no complete discrete invariant**: unlike the one-parameter case,
+whose barcode is a complete discrete invariant, no finite discrete summary classifies a multiparameter
+module up to isomorphism. This is *why* a multiparameter filtration cannot be reduced to a family of
+one-parameter runs, and it is genuinely second-order (it ∀-quantifies over the family of all candidate
+discrete invariants and asserts none is complete). It is recorded honestly as
+`math:multiparameterInvariantBoundary` (`logic:expressivenessBoundary logic:SecondOrder`,
+`logic:preservationKind logic:Unsupported`), mirroring `math:compactnessBoundary` and
+`math:smoothnessBoundary` — never faked as a first-order `logic:Formula`.
+
+### Cellular sheaves and Hodge structure
+
+A `math:CellularSheaf` declares its base `math:CellComplex`, its `math:SheafStalk`s, and the
+`math:SheafRestrictionMap`s transporting data along incidences; sections, cohomology, sheaf
+Laplacians, and Hodge decomposition are separate reusable structures. `math:HodgeDecomposition`
+names harmonic, exact, and coexact components rather than treating those readings as intrinsic
+labels on a vector. A sheaf without a base, stalk, or restriction map is structurally incomplete.
+
+Three distinct Laplacian classes now sit side by side, and the ontology is deliberately explicit
+about which one is which. `math:CombinatorialLaplacian` is the degree-k discrete construction
+`L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k`, built purely from a `math:CellComplex`'s own signed boundary
+operators — no metric, smooth structure, or sheaf stalk is assumed. It names its carrier complex
+(`math:combinatorialLaplacianComplex`), its degree (`math:laplacianDegree`), and both constitutive
+operators (`math:upperBoundaryOperator` for the degree-(k+1) up term, `math:lowerBoundaryOperator`
+for the degree-k down term) as a full, checkable frame; a Laplacian missing any of the four is
+ill-formed (`math:IncompleteCombinatorialLaplacian`). This is **not** the general `math:HodgeLaplacian`
+(L = δδ\* + δ\*δ), the continuum operator formed from a differential-form Hodge star and exterior
+derivative over a smooth or Riemannian structure — `math:CombinatorialLaplacian` is that operator's
+finite-dimensional, purely combinatorial specialisation over a bare cell complex. Nor is it the
+`math:SheafLaplacian`, which generalises the same L_k construction to a `math:CellularSheaf`'s
+NON-CONSTANT stalks and restriction maps: `math:CombinatorialLaplacian` is exactly the
+`math:SheafLaplacian`'s specialisation to the `math:ConstantSheaf` case, the operator-level companion
+of `math:constantSheafRecoversHomologyLaw`. Its kernel dimension at degree k is the k-th
+`math:BettiNumber` of the complex — the discrete Hodge theorem — so the class sits at the meeting
+point of the boundary/incidence surface above and the persistent-homology surface below, without
+re-minting either.
+
+#### Global versus local sections — the H¹ gluing obstruction
+
+Sections carry a scope. A `math:GlobalSection` is a section over the **entire** base
+(`math:sectionRegion` = the sheaf's `math:sheafBaseComplex`) whose stalk values restrict
+**consistently** along every `math:SheafRestrictionMap` — it is an element of the degree-zero
+sheaf cohomology H⁰(X; F). A `math:LocalSection` is a section over a **proper subcomplex** only;
+it is the local datum whose compatibility with its neighbours gluing must reconcile. Both name
+their carrier through `math:overSheaf` and their region through `math:sectionRegion`, so
+global-versus-local scope is inspectable rather than implied.
+
+The core sheaf statement — **a computed feature is never automatically global truth** — is exactly
+the cohomological reading H¹ = obstruction-to-gluing. A family of local sections lifts to one global
+section precisely when their pairwise disagreements vanish; the residual disagreement is the
+first-cohomology class H¹(X; F), carried here as `math:GluingObstruction` (`rdfs:seeAlso`
+`math:SheafCohomology`, anchored to its sheaf through `math:obstructionOf`). A non-vanishing
+obstruction certifies that consistent-looking local data does **not** assemble into a global
+feature. This makes the obstruction **executable** rather than declarative:
+
+- `math:MisscopedSectionConstraint` (a cross-node equality, lowered to a SHACL `sh:sparql`
+  constraint) forbids conflating the two scopes — a section typed `math:GlobalSection` whose
+  `math:sectionRegion` is a proper subcomplex rather than the whole base is misscoped
+  (`math:MisscopedSection`).
+- `math:SectionGluingConsistencyConstraint` (a **per-restriction-map** equality in the style of
+  `math:BoundaryCoboundaryAdjunctionConstraint`, never an aggregation) makes the H¹ obstruction
+  bite at the correct cellular-sheaf semantics — **restriction(sourceValue) = targetValue**, not raw
+  equality of the two endpoint stalk values. A `math:SheafRestrictionMap`'s transport ACTION is
+  reified per declared value through `math:RestrictionImage` (`math:imageSourceValue` /
+  `math:imageTargetValue`, named from the map through `math:restrictionImage`), exactly as
+  `math:CellIncidence` reifies one signed boundary coefficient. The constraint applies the map to the
+  exact integer `math:stalkValue` at its `math:sourceObject` stalk — by joining against the matching
+  `math:RestrictionImage` — and requires the resulting transported value to agree with the
+  `math:stalkValue` at its `math:targetObject` stalk. Raw source/target agreement is only the
+  IDENTITY-map special case (a `math:ConstantSheaf`'s restriction maps); a non-identity map (a scale,
+  a sign flip, a projection) legitimately sends its source to a different value, and the corrected
+  check verifies that transported value against the target rather than the untransported source. A
+  single map whose transported value disagrees with the declared target witnesses that the local data
+  fail to glue (`math:SectionGluingInconsistency`) — presence of a section is not global truth. A
+  section declaring no stalk values, or a map declaring no `math:RestrictionImage` matching the exact
+  source value assigned, glues vacuously.
+
+The frame gates keep the surface honest: a global section must name its `math:overSheaf` and
+`math:sectionRegion` (`math:IncompleteGlobalSection`), a local section must anchor to a sheaf that
+declares actual stalk/restriction semantics (`math:IncompleteSheafSection`) so bare "the sections
+disagree" claims are unauthorable, and an obstruction must name the sheaf it obstructs
+(`math:UnanchoredGluingObstruction`). This global/local surface is the enforcement mechanism for
+the topology-claim governing invariant (a computed feature is never automatically global truth): a downstream extension slice
+that computes a feature over a cover states it as local data, and only a discharged
+`math:GluingObstruction` promotes it to a global claim.
+
+### Connections and holonomy
+
+The **primary reading of a connection here is DISCRETE**: the `math:SheafRestrictionMap`s of a
+`math:CellularSheaf` **are** a connection. A `math:Connection` names what it is a connection **on**
+through `math:connectionOn`; for the discrete reading that is the sheaf itself
+(`math:connectionOfSheaf`, a refinement of `math:connectionOn`), whose restriction maps transport
+stalk data along each incidence. `math:ParallelTransport` is the **composition** of those restriction
+maps along a declared path — it names its rule through `math:transportConnection` and its path
+through `math:transportAlong`, reusing the object-layer `math:Morphism` parent rather than minting a
+fresh map algebra. `math:Holonomy` is that transport composite around a **closed loop**: it names the
+loop through `math:holonomyLoop` and the connection through `math:holonomyOf`, and its deviation from
+the identity is the curvature witness.
+
+**Flatness is closedness.** A `math:FlatConnection` is a `math:Connection` whose `math:transportCochain`
+is a `math:Cocycle` — flat ⇔ closed. This is an **EL-safe, checkable** subclass restriction (a min-1
+qualified + `allValuesFrom` restriction onto `math:Cocycle`), tying the connection surface directly to
+the landed chain/cochain machinery: the transport cochain lives in the same cochain complex whose
+`math:SheafLaplacian` and `math:HodgeDecomposition` measure incompatibility of local data, so a flat
+connection is exactly one whose transport class is a δ-kernel element (a cocycle from
+[the square-zero section](#chain-and-cochain-complexes--the-square-zero-laws-and-their-adjunction)).
+
+The **secondary geometric reading** is the manifold one: a `math:Atlas` of `math:Chart`s with
+`math:transitionMap`s, and a `math:Connection` whose `math:connectionOn` is that atlas (or a bundle),
+with a `math:Holonomy` around a closed coordinate loop. Both readings share one term surface; the
+frame gates keep them honest — a connection must name what it is **on** (`math:IncompleteConnection`),
+a parallel transport must name **rule and path** (`math:IncompleteParallelTransport`), and a holonomy
+must name **loop and connection** (`math:IncompleteHolonomy`).
+
+This is deliberately a **minimal realization, not a full curvature calculus**. The universal
+path-ordered curvature F = dA + A∧A — the infinitesimal holonomy accumulated around **every** loop —
+is genuinely second-order (it quantifies over the unbounded family of all loops and, in the continuum,
+over a path-ordered exponential), so it is **not** faked as a first-order law but recorded as the
+honest higher-order gap `math:holonomyCurvatureBoundary` (`logic:expressivenessBoundary`
+`logic:SecondOrder`, `logic:preservationKind` `logic:Unsupported`), referenced by `math:Connection`
+through `math:definingLaw` and mirroring `math:smoothnessBoundary` and `math:compactnessBoundary`. The
+discrete surface stays first-order and checkable — flat ⇔ closed is a restriction, and holonomy around
+a **named** loop is a concrete composite of restriction maps — while the universal statement over all
+loops is disclosed in the loss ledger rather than as silent prose.
+
+### Hamiltonian systems
+
+A `math:HamiltonianSystem` is framed by exactly one smooth state space, symplectic form,
+Hamiltonian function, and generated flow. These roles are explicit because a scalar field or flow
+alone does not determine the symplectic dynamical system. The frame is mathematical; a physical
+interpretation of the Hamiltonian remains a downstream, vantage-bearing claim.
 
 ## Differential geometry and manifolds
 

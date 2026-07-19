@@ -1,0 +1,19 @@
+# CT7 — security monotonicity (violation finder). A gmeow:EmbeddingProjection whose
+# disclosure sensitivity RANK is strictly BELOW its gmeow:projectionSource's, with
+# NO gmeow:DeclassificationAct that gmeow:declassifies it. Sensitivity never drops
+# silently (P15). The ranks are the additive gmeow:sensitivityRank total order over
+# the reused kernel gmeow:SensitivityLevel individuals. Independent SPARQL twin of
+# gmeow:SecurityMonotonicityConstraint (C3), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:hasSensitivity ?ps ;
+        gmeow:projectionSource ?src .
+  ?ps gmeow:sensitivityRank ?pr .
+  ?src gmeow:hasSensitivity ?ss .
+  ?ss gmeow:sensitivityRank ?sr .
+  FILTER(?pr < ?sr)
+  FILTER NOT EXISTS { ?act a gmeow:DeclassificationAct ; gmeow:declassifies ?proj }
+}
+ORDER BY ?proj

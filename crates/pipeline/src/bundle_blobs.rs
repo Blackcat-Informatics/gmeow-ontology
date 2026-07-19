@@ -891,7 +891,7 @@ mod tests {
     // nothing.)
 
     /// Presentation projections are a hard negative contract for the committed
-    /// logical bundle: they are regenerated externally by `make docs`.
+    /// logical bundle: they are regenerated externally by `make sync SYNC_OUTPUTS=docs`.
     #[test]
     fn documentation_projections_are_absent() {
         let snapshot = committed_snapshot();

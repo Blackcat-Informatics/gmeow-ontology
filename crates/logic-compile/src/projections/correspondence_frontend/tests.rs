@@ -135,6 +135,25 @@ fn fixture_dsl() -> std::sync::Arc<purrdf::RdfDataset> {
     triple(
         &mut b,
         &eq2,
+        &format!("{GMEOW}justification"),
+        Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
+        None,
+    );
+    for (property, value) in [
+        ("sourceEndpoint", format!("{GMEOW}Baz")),
+        ("targetEndpoint", format!("{GMEOW}Qux")),
+    ] {
+        triple(
+            &mut b,
+            &eq2,
+            &format!("{LOGIC}{property}"),
+            Some(&value),
+            None,
+        );
+    }
+    triple(
+        &mut b,
+        &eq2,
         &format!("{LOGIC}morphismClass"),
         Some(&format!("{LOGIC}AffineCorrespondence")),
         None,
@@ -264,6 +283,28 @@ fn term_grounding_dsl(predicate: &str, metadata: bool) -> std::sync::Arc<purrdf:
         Some("grounding.sssom.tsv"),
     );
     if metadata {
+        triple(
+            &mut b,
+            &cell,
+            &format!("{GMEOW}justification"),
+            Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
+            None,
+        );
+        for (property, value) in [
+            ("sourceEndpoint", format!("{LOGIC}Object")),
+            (
+                "targetEndpoint",
+                "http://purl.obolibrary.org/obo/BFO_0000040".to_owned(),
+            ),
+        ] {
+            triple(
+                &mut b,
+                &cell,
+                &format!("{LOGIC}{property}"),
+                Some(&value),
+                None,
+            );
+        }
         for (property, value) in [
             ("morphismClass", "BridgeView"),
             ("morphismKind", "CommitmentShiftingBridge"),
@@ -279,6 +320,175 @@ fn term_grounding_dsl(predicate: &str, metadata: bool) -> std::sync::Arc<purrdf:
         }
     }
     b.freeze().expect("freeze term grounding fixture")
+}
+
+/// An executable grounding correspondence. `binding_count=1` is the accepted frontend;
+/// any larger value is ambiguous and must fail before materializing an IR node.
+fn projection_grounding_dsl(
+    binding_count: usize,
+    metadata: bool,
+    target_matches: bool,
+    bridge_pair: bool,
+) -> std::sync::Arc<purrdf::RdfDataset> {
+    projection_grounding_dsl_with_binding(
+        binding_count,
+        metadata,
+        target_matches,
+        bridge_pair,
+        None,
+        1,
+    )
+}
+
+/// The configurable grounding-projection fixture used by the fail-closed binding-envelope
+/// tests. `relation` overrides the honest default for a bridge/non-bridge pair, while
+/// `target_count` controls how many of the three mutually-exclusive target properties are
+/// authored on each binding.
+fn projection_grounding_dsl_with_binding(
+    binding_count: usize,
+    metadata: bool,
+    target_matches: bool,
+    bridge_pair: bool,
+    relation: Option<&str>,
+    target_count: usize,
+) -> std::sync::Arc<purrdf::RdfDataset> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
+
+    assert!(target_count <= 3, "the fixture has three target properties");
+
+    let mut b = RdfDatasetBuilder::new();
+    let triple =
+        |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
+            let s = b.intern_iri(s);
+            let p = b.intern_iri(p);
+            let o = match (o_iri, o_lit) {
+                (Some(o), _) => b.intern_iri(o),
+                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
+                _ => unreachable!(),
+            };
+            b.push_quad(s, p, o, None);
+        };
+
+    let cell = format!("{GMEOW}projectionGrounding");
+    let pattern = format!("{cell}/pattern");
+    for ty in [
+        format!("{GMEOW}ProjectionMapping"),
+        format!("{LOGIC}GroundingCorrespondence"),
+    ] {
+        triple(&mut b, &cell, RDF_TYPE, Some(&ty), None);
+    }
+    triple(
+        &mut b,
+        &cell,
+        &format!("{GMEOW}hasMappingPattern"),
+        Some(&pattern),
+        None,
+    );
+    triple(&mut b, &pattern, &format!("{GMEOW}anchor"), None, Some("s"));
+    if metadata {
+        triple(
+            &mut b,
+            &cell,
+            &format!("{GMEOW}justification"),
+            Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
+            None,
+        );
+        for (property, value) in [
+            ("sourceEndpoint", format!("{GMEOW}name")),
+            (
+                "targetEndpoint",
+                if target_matches {
+                    "https://schema.org/name".to_owned()
+                } else {
+                    "https://schema.org/alternateName".to_owned()
+                },
+            ),
+            (
+                "morphismClass",
+                if bridge_pair {
+                    format!("{LOGIC}BridgeView")
+                } else {
+                    format!("{LOGIC}WellBehavedLens")
+                },
+            ),
+            (
+                "morphismKind",
+                if bridge_pair {
+                    format!("{LOGIC}CommitmentShiftingBridge")
+                } else {
+                    format!("{LOGIC}InstitutionMorphism")
+                },
+            ),
+            (
+                "preservationKind",
+                format!("{LOGIC}SoundUnderApproximation"),
+            ),
+        ] {
+            triple(
+                &mut b,
+                &cell,
+                &format!("{LOGIC}{property}"),
+                Some(&value),
+                None,
+            );
+        }
+    }
+    for index in 0..binding_count {
+        let binding = format!("{cell}/binding/{index}");
+        triple(
+            &mut b,
+            &cell,
+            &format!("{GMEOW}hasBinding"),
+            Some(&binding),
+            None,
+        );
+        triple(
+            &mut b,
+            &binding,
+            &format!("{GMEOW}profile"),
+            None,
+            Some(if index == 0 { "schema-org" } else { "foaf" }),
+        );
+        triple(
+            &mut b,
+            &binding,
+            &format!("{GMEOW}relation"),
+            None,
+            Some(relation.unwrap_or(if bridge_pair { "~" } else { "=" })),
+        );
+        if target_count >= 1 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}toPredicate"),
+                Some(if index == 0 {
+                    "https://schema.org/name"
+                } else {
+                    "http://xmlns.com/foaf/0.1/name"
+                }),
+                None,
+            );
+        }
+        if target_count >= 2 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}toClass"),
+                Some("https://schema.org/Thing"),
+                None,
+            );
+        }
+        if target_count >= 3 {
+            triple(
+                &mut b,
+                &binding,
+                &format!("{GMEOW}edoalTarget"),
+                Some("https://schema.org/PropertyValue"),
+                None,
+            );
+        }
+    }
+    b.freeze().expect("freeze projection grounding fixture")
 }
 
 /// The transpiler materializes one typed node per cell, and the projected program
@@ -434,6 +644,94 @@ fn grounding_term_bridge_cannot_surface_exact_match() {
     };
     assert!(err.message().contains("bridge"), "{err}");
     assert!(err.message().contains("Principle 5"), "{err}");
+}
+
+#[test]
+fn grounding_projection_lowers_to_the_same_typed_ir() {
+    let dsl = projection_grounding_dsl(1, true, true, false);
+    let empty = parse_nt("");
+    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect("transpile executable grounding correspondence");
+    let [grounding] = program.correspondences.as_slice() else {
+        panic!("one grounding ProjectionMapping binding must produce one correspondence")
+    };
+    assert!(grounding.grounding);
+    assert_eq!(grounding.morphism_class, MorphismClass::WellBehavedLens);
+    assert_eq!(grounding.morphism_kind, MorphismKind::InstitutionMorphism);
+    assert_eq!(grounding.preservation, Some(PreservationKind::SoundUnder));
+    assert_eq!(
+        grounding.source_endpoint.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/name")
+    );
+    assert_eq!(
+        grounding.target_endpoint.as_deref(),
+        Some("https://schema.org/name")
+    );
+    assert_eq!(grounding.evidence_strength, Some(0.5));
+}
+
+#[test]
+fn grounding_projection_rejects_multiple_bindings() {
+    let dsl = projection_grounding_dsl(2, true, true, false);
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a grounding ProjectionMapping cannot have an ambiguous target");
+    assert!(err.message().contains("exactly one"), "{err}");
+}
+
+#[test]
+fn grounding_projection_rejects_missing_metadata_and_target_drift() {
+    let empty = parse_nt("");
+    let missing = projection_grounding_dsl(1, false, true, false);
+    let err = transpile_correspondences(&DslView::new(&missing), &DslView::new(&empty))
+        .expect_err("an implicit executable grounding mapping must fail closed");
+    assert!(err.message().contains("must explicitly author"), "{err}");
+
+    let drifted = projection_grounding_dsl(1, true, false, false);
+    let err = transpile_correspondences(&DslView::new(&drifted), &DslView::new(&empty))
+        .expect_err("the explicit target endpoint must match the binding target");
+    assert!(err.message().contains("targetEndpoint must equal"), "{err}");
+}
+
+#[test]
+fn grounding_projection_accepts_an_honest_commitment_shift() {
+    let dsl = projection_grounding_dsl(1, true, true, true);
+    let empty = parse_nt("");
+    let program = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect("a non-equivalence bridge pair is an honest grounding correspondence");
+    let [bridge] = program.correspondences.as_slice() else {
+        panic!("one binding must produce one correspondence")
+    };
+    assert_eq!(bridge.morphism_class, MorphismClass::BridgeView);
+    assert_eq!(bridge.morphism_kind, MorphismKind::CommitmentShiftingBridge);
+    assert_ne!(bridge.relation, CorrespondenceRelation::Equiv);
+}
+
+#[test]
+fn grounding_projection_rejects_a_commitment_shift_with_equivalence_relation() {
+    let dsl = projection_grounding_dsl_with_binding(1, true, true, true, Some("="), 1);
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a commitment-shifting bridge may not materialize as equivalence");
+    assert!(
+        err.message().contains("must not declare an equivalence"),
+        "{err}"
+    );
+}
+
+#[test]
+fn grounding_projection_requires_exactly_one_binding_target_form() {
+    let empty = parse_nt("");
+    for target_count in [0, 2] {
+        let dsl = projection_grounding_dsl_with_binding(1, true, true, false, None, target_count);
+        let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+            .expect_err("a grounding binding target must be unambiguous and present");
+        assert!(err.message().contains("exactly one of"), "{err}");
+        assert!(
+            err.message().contains(&format!("found {target_count}")),
+            "{err}"
+        );
+    }
 }
 
 /// A `dsl/mappings/` fixture with ONE `gmeow:ProjectionMapping` whose single per-profile

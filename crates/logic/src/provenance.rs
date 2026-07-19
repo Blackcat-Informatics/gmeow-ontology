@@ -38,7 +38,7 @@
 //! under `{NAMESPACE}derivation/`.
 //! Sources are sorted for order-independence.
 
-use purrdf::TermValue;
+use purrdf::{RdfTextDirection, TermValue};
 use sha1::{Digest, Sha1};
 use std::num::NonZeroU32;
 
@@ -86,6 +86,12 @@ pub trait ProvenanceSemiring {
     /// One annotation value.
     type Element: Copy + Eq + std::fmt::Debug;
 
+    /// Stable semantic identity used by annotated query/provider contracts.
+    fn identity(self) -> &'static str;
+
+    /// Canonical element encoding used by deterministic operational receipts.
+    fn canonical_element(self, element: Self::Element) -> String;
+
     /// Additive identity: no derivation.
     fn zero(self) -> Self::Element;
     /// Multiplicative identity: asserted/unit evidence.
@@ -105,6 +111,14 @@ where
     S: ProvenanceSemiring + Copy,
 {
     type Element = S::Element;
+
+    fn identity(&self) -> &str {
+        ProvenanceSemiring::identity(*self)
+    }
+
+    fn canonical_element(&self, element: &Self::Element) -> String {
+        ProvenanceSemiring::canonical_element(*self, *element)
+    }
 
     fn zero(&self) -> Self::Element {
         ProvenanceSemiring::zero(*self)
@@ -202,6 +216,17 @@ pub struct MinProofHeightSemiring;
 impl ProvenanceSemiring for MinProofHeightSemiring {
     type Element = MinProofHeight;
 
+    fn identity(self) -> &'static str {
+        "https://blackcatinformatics.ca/logic/algebra/min-proof-height-v1"
+    }
+
+    fn canonical_element(self, element: Self::Element) -> String {
+        match element {
+            MinProofHeight::Finite(height) => format!("finite:{}", height.get()),
+            MinProofHeight::Infinity => "infinity".to_owned(),
+        }
+    }
+
     fn zero(self) -> Self::Element {
         MinProofHeight::Infinity
     }
@@ -278,6 +303,14 @@ pub struct ZWeightSemiring;
 
 impl ProvenanceSemiring for ZWeightSemiring {
     type Element = i64;
+
+    fn identity(self) -> &'static str {
+        "https://blackcatinformatics.ca/logic/algebra/z-weight-v1"
+    }
+
+    fn canonical_element(self, element: Self::Element) -> String {
+        element.to_string()
+    }
 
     fn zero(self) -> Self::Element {
         0
@@ -365,13 +398,22 @@ fn escape_lexical(s: &str) -> String {
 /// rdflib lowercases the BCP-47 language subtag.  The native IR lowercases the
 /// language tag for the identity key, but a `TermValue` constructed directly may
 /// carry an un-lowercased tag, so we lowercase here to stay in sync regardless.
-fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
+fn literal_n3_parts(
+    lexical_form: &str,
+    datatype: &str,
+    language: Option<&str>,
+    direction: Option<RdfTextDirection>,
+) -> String {
     let lex = escape_lexical(lexical_form);
 
     if let Some(lang) = language {
         // Language-tagged literal — rdflib elides the rdf:langString datatype.
         // rdflib lowercases the language tag; mirror that.
-        return format!("\"{}\"@{}", lex, lang.to_lowercase());
+        let language = lang.to_lowercase();
+        return match direction {
+            Some(direction) => format!("\"{lex}\"@{language}--{}", direction.as_str()),
+            None => format!("\"{lex}\"@{language}"),
+        };
     }
 
     if datatype == XSD_STRING {
@@ -388,38 +430,123 @@ fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) 
     format!("\"{}\"^^<{}>", lex, datatype)
 }
 
+#[derive(Clone, Copy)]
+enum TermRenderStyle {
+    N3,
+    Display,
+}
+
+enum TermRenderTask<'term> {
+    Term(&'term TermValue),
+    Text(&'static str),
+}
+
+fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
+    let mut rendered = String::new();
+    let mut tasks = vec![TermRenderTask::Term(term)];
+    while let Some(task) = tasks.pop() {
+        let term = match task {
+            TermRenderTask::Term(term) => term,
+            TermRenderTask::Text(text) => {
+                rendered.push_str(text);
+                continue;
+            }
+        };
+        match term {
+            TermValue::Iri(iri) => {
+                rendered.push('<');
+                rendered.push_str(iri);
+                rendered.push('>');
+            }
+            TermValue::Blank { label, scope } => {
+                rendered.push_str("_:");
+                rendered.push_str(&scope.qualify_label(label));
+            }
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                direction,
+            } => match style {
+                TermRenderStyle::N3 => rendered.push_str(&literal_n3_parts(
+                    lexical_form,
+                    datatype,
+                    language.as_deref(),
+                    *direction,
+                )),
+                TermRenderStyle::Display => {
+                    let lex = escape_lexical(lexical_form);
+                    if let Some(lang) = language {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push_str("\"@");
+                        rendered.push_str(lang);
+                        if let Some(direction) = direction {
+                            rendered.push_str("--");
+                            rendered.push_str(direction.as_str());
+                        }
+                    } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push('"');
+                    } else {
+                        rendered.push('"');
+                        rendered.push_str(&lex);
+                        rendered.push_str("\"^^<");
+                        rendered.push_str(datatype);
+                        rendered.push('>');
+                    }
+                }
+            },
+            TermValue::Triple { s, p, o } => {
+                tasks.push(TermRenderTask::Text(" )>>"));
+                tasks.push(TermRenderTask::Term(o));
+                tasks.push(TermRenderTask::Text(" "));
+                tasks.push(TermRenderTask::Term(p));
+                tasks.push(TermRenderTask::Text(" "));
+                tasks.push(TermRenderTask::Term(s));
+                tasks.push(TermRenderTask::Text("<<( "));
+            }
+        }
+    }
+    rendered
+}
+
+fn validate_triple_term_predicates(term: &TermValue) -> gmeow_errors::Result<()> {
+    let mut pending = vec![term];
+    while let Some(term) = pending.pop() {
+        if let TermValue::Triple { s, p, o } = term {
+            if !matches!(p.as_ref(), TermValue::Iri(_)) {
+                let predicate_kind = match p.as_ref() {
+                    TermValue::Iri(_) => unreachable!("IRI predicates pass the validation guard"),
+                    TermValue::Blank { .. } => "blank node",
+                    TermValue::Literal { .. } => "literal",
+                    TermValue::Triple { .. } => "triple term",
+                };
+                return Err(provenance_err(format!(
+                    "RDF 1.2 triple-term predicate must be an IRI, got {predicate_kind}"
+                )));
+            }
+            pending.push(o);
+            pending.push(s);
+        }
+    }
+    Ok(())
+}
+
 /// Serialize a native [`TermValue`] to rdflib `.n3()` form.
 ///
 /// - `Iri(iri)` → `<iri>`
 /// - `Blank` → not expected after Skolemization; serialized as `_:label`
 /// - `Literal` → delegated to [`literal_n3_parts`]
-/// - `Triple` → hard error: RDF-star quoted-triple terms are out of scope for
-///   gmeow-logic v1.  An empty hash would cause silent ID collisions; failing
-///   closed is the correct behavior.
+/// - `Triple` → RDF 1.2 non-asserting triple term `<<( s p o )>>`, recursively.
 ///
 /// # Errors
 ///
-/// Returns an error string if `term` is a `TermValue::Triple`.
+/// Returns an error when any nested triple term carries a non-IRI predicate.
 pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
-    match term {
-        TermValue::Iri(iri) => Ok(format!("<{}>", iri)),
-        TermValue::Blank { label, scope } => Ok(format!("_:{}", scope.qualify_label(label))),
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            ..
-        } => Ok(literal_n3_parts(
-            lexical_form,
-            datatype,
-            language.as_deref(),
-        )),
-        TermValue::Triple { .. } => Err(provenance_err(
-            "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
-             (TermValue::Triple cannot be hashed without risking ID collisions)"
-                .to_owned(),
-        )),
-    }
+    validate_triple_term_predicates(term)?;
+    Ok(render_term(term, TermRenderStyle::N3))
 }
 
 /// Serialize an IRI string to rdflib `.n3()` form: `<iri>`.
@@ -434,39 +561,15 @@ pub fn named_node_n3(iri: &str) -> String {
 ///
 /// Unlike [`term_n3`] this does **not** lowercase the language tag (oxigraph's
 /// Display preserves the stored tag verbatim) and renders a triple term in the
-/// RDF-1.2 quoted form `<< s p o >>`.
+/// RDF 1.2 non-asserting triple-term form `<<( s p o )>>`.
 ///
 /// - `Iri` → `<iri>`
 /// - `Blank` → `_:label`
 /// - `Literal` xsd:string / rdf:langString → `"lex"` ; lang → `"lex"@lang` ;
 ///   typed → `"lex"^^<dt>`
-/// - `Triple` → `<< s p o >>` (recursive)
+/// - `Triple` → `<<( s p o )>>` (iteratively traversed, including nested triples)
 pub fn term_display(term: &TermValue) -> String {
-    match term {
-        TermValue::Iri(iri) => format!("<{iri}>"),
-        TermValue::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            ..
-        } => {
-            let lex = escape_lexical(lexical_form);
-            if let Some(lang) = language {
-                format!("\"{lex}\"@{lang}")
-            } else if datatype == XSD_STRING || datatype == RDF_LANG_STRING {
-                format!("\"{lex}\"")
-            } else {
-                format!("\"{lex}\"^^<{datatype}>")
-            }
-        }
-        TermValue::Triple { s, p, o } => format!(
-            "<< {} {} {} >>",
-            term_display(s),
-            term_display(p),
-            term_display(o)
-        ),
-    }
+    render_term(term, TermRenderStyle::Display)
 }
 
 // ── mint_reifier ─────────────────────────────────────────────────────────────
@@ -488,8 +591,8 @@ pub fn term_display(term: &TermValue) -> String {
 ///
 /// # Errors
 ///
-/// Returns an error string if either `s` or `o` is a `TermValue::Triple`
-/// (RDF-star quoted triples are out of scope for gmeow-logic v1).
+/// Triple terms are serialized recursively in RDF 1.2 non-asserting form before
+/// hashing, so distinct nested statements retain distinct content identities.
 ///
 /// # Returns
 ///
@@ -557,8 +660,8 @@ pub const NARY_REIFIER_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/reif
 ///
 /// # Errors
 ///
-/// Returns an error string if any argument is a `TermValue::Triple` (RDF-star
-/// quoted triples are out of scope for gmeow-logic v1, per [`term_n3`]).
+/// Triple-term arguments are serialized recursively through [`term_n3`], so native
+/// RDF 1.2 tuple arguments retain their complete content identity.
 pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> gmeow_errors::Result<String> {
     let mut payload = String::from("nary\n");
     let rel = named_node_n3(relation);
@@ -796,6 +899,100 @@ mod tests {
     fn term_n3_literal_string() {
         let term = TermValue::simple_literal("hello");
         assert_eq!(term_n3(&term).unwrap(), "\"hello\"");
+    }
+
+    #[test]
+    fn term_n3_and_reifier_preserve_recursive_rdf12_triple_terms() {
+        let triple = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/s")),
+            p: Box::new(TermValue::iri("http://example.org/p")),
+            o: Box::new(TermValue::iri("http://example.org/o")),
+        };
+        assert_eq!(
+            term_n3(&triple).unwrap(),
+            "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>>"
+        );
+        let nested = mint_reifier(
+            &TermValue::iri("http://example.org/holder"),
+            "http://example.org/mentions",
+            &triple,
+        )
+        .expect("RDF 1.2 triple-term reifier");
+        let flat = mint_reifier(
+            &TermValue::iri("http://example.org/holder"),
+            "http://example.org/mentions",
+            &TermValue::iri("http://example.org/o"),
+        )
+        .expect("flat reifier");
+        assert_ne!(nested, flat);
+    }
+
+    #[test]
+    fn deeply_nested_rdf12_triple_terms_render_without_call_stack_recursion() {
+        const DEPTH: usize = 4_096;
+        let mut nested = TermValue::iri("http://example.org/leaf");
+        for _ in 0..DEPTH {
+            nested = TermValue::Triple {
+                s: Box::new(TermValue::iri("http://example.org/s")),
+                p: Box::new(TermValue::iri("http://example.org/p")),
+                o: Box::new(nested),
+            };
+        }
+
+        let n3 = term_n3(&nested).expect("iterative N3 renderer");
+        let display = term_display(&nested);
+        assert_eq!(n3, display);
+        assert_eq!(n3.matches("<<( ").count(), DEPTH);
+        assert!(n3.contains("<http://example.org/leaf>"));
+
+        // Box's recursive destructor is outside the renderer contract under test.
+        std::mem::forget(nested);
+    }
+
+    #[test]
+    fn term_n3_rejects_non_iri_predicates_at_every_nesting_depth() {
+        let invalid = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/s")),
+            p: Box::new(TermValue::simple_literal("not-an-iri")),
+            o: Box::new(TermValue::iri("http://example.org/o")),
+        };
+        assert!(
+            term_n3(&invalid).is_err(),
+            "direct non-IRI predicate must fail closed"
+        );
+        let nested = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/outer-s")),
+            p: Box::new(TermValue::iri("http://example.org/outer-p")),
+            o: Box::new(invalid),
+        };
+
+        let error = term_n3(&nested).expect_err("nested non-IRI predicate must fail closed");
+        assert!(
+            error
+                .to_string()
+                .contains("RDF 1.2 triple-term predicate must be an IRI")
+        );
+        assert!(
+            mint_reifier(
+                &TermValue::iri("http://example.org/holder"),
+                "http://example.org/mentions",
+                &nested,
+            )
+            .is_err(),
+            "invalid triple terms must not mint provenance identities"
+        );
+    }
+
+    #[test]
+    fn directional_language_is_part_of_the_provenance_surface() {
+        let literal = TermValue::Literal {
+            lexical_form: "مرحبا".to_owned(),
+            datatype: RDF_LANG_STRING.to_owned(),
+            language: Some("AR".to_owned()),
+            direction: Some(RdfTextDirection::Rtl),
+        };
+        assert_eq!(term_n3(&literal).unwrap(), "\"مرحبا\"@ar--rtl");
+        assert_eq!(term_display(&literal), "\"مرحبا\"@AR--rtl");
     }
 
     // ── mint_reifier goldens ─────────────────────────────────────────────────

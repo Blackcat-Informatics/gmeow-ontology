@@ -15,14 +15,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::LazyLock;
 
-use gmeow_lang_bridge::{Gmn0Model, GmnDictionary, measure_coverage};
+use gmeow_lang_bridge::{
+    Gmn0Model, GmnDictionary, GmnGlyphRegistry, gmn_glyph_token_cost, measure_coverage,
+};
 use gmeow_logic_compile::projections::correspondence::extract_correspondences;
 use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
 use crate::counting;
-use crate::graph::{self, all_lits, g, id, instances_of, one_iri, one_lit};
+use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_iri, one_lit};
 use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
@@ -46,6 +48,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
+        "gmn_glyph_optimality_axis" => Some(gmn_glyph_optimality_axis),
         "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
@@ -67,6 +70,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "reasoner_axis",
     "flagship_counterexample_depth_axis",
     "gmn1_coverage_axis",
+    "gmn_glyph_optimality_axis",
     "DocMaturity",
 ];
 
@@ -597,8 +601,18 @@ fn binding_is_mnemomorphic(ds: &RdfDataset, binding: purrdf::TermId) -> bool {
 /// never enter the population. Sorted (cell IRI order).
 fn mnemomorphic_projection_cells(ds: &RdfDataset) -> BTreeSet<String> {
     let has_binding = id(ds, &g("hasBinding"));
+    let marked_grounding: BTreeSet<String> =
+        instances_of(ds, &format!("{LOGIC_NS}GroundingCorrespondence"))
+            .into_iter()
+            .collect();
+    let valid_grounding = crate::grounding::validated_grounding_cells(ds);
     let mut out = BTreeSet::new();
     for cell in instances_of(ds, &g("ProjectionMapping")) {
+        // A grounding marker strengthens the authoring contract. It cannot fall back to
+        // the permissive ordinary ProjectionMapping path when its envelope is malformed.
+        if marked_grounding.contains(&cell) && !valid_grounding.contains(&cell) {
+            continue;
+        }
         let Some(sid) = id(ds, &cell) else { continue };
         let routed = has_binding.is_some_and(|hb| {
             ds.quads_for_pattern(Some(sid), Some(hb), None, GraphMatch::Any)
@@ -618,12 +632,9 @@ struct LegacyRecord {
     detail: String,
 }
 
-/// The slice's hand-authored `gmeow:TermEquivalence` rows at identity strength — the
-/// records that assert a lawful rename (`skos:exactMatch` / `owl:equivalentClass` /
-/// `owl:equivalentProperty`) but were curated by hand rather than routed through the
-/// correspondence calculus. Each is a real migration target: lift it to a
-/// `gmeow:ProjectionMapping` mnemomorphic `=` cell so the section-law discharge proves the
-/// rename lawful. Sorted by record IRI.
+/// The slice's `gmeow:TermEquivalence` rows at identity strength. A complete
+/// `logic:GroundingCorrespondence` envelope is removed from this legacy set after it is
+/// credited to the calculus; an ordinary row remains a real migration target.
 fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
     let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
     let mut out = Vec::new();
@@ -644,7 +655,7 @@ fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
         out.push(LegacyRecord {
             record_iri: record.clone(),
             detail: format!(
-                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
+                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — either author a complete logic:GroundingCorrespondence envelope for a shipped grounding law or lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
             ),
         });
     }
@@ -722,8 +733,10 @@ fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
 ///   adoption = |calculus-routed| / |calculus-routed ∪ hand-authored identity records|
 ///
 /// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
-///   ([`extract_correspondences`]) plus the `gmeow:ProjectionMapping` cells whose binding is a
-///   lawful FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
+///   ([`extract_correspondences`]); complete identity-strength
+///   `logic:GroundingCorrespondence` frontend cells admitted by the shared fail-closed
+///   grounding validator; and the `gmeow:ProjectionMapping` cells whose binding is a lawful
+///   FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
 ///   `logic:SectionLaw`).
 /// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
 ///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
@@ -754,6 +767,20 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
         .map(|c| c.iri)
         .collect();
     calculus.extend(mnemomorphic_projection_cells(ds));
+    let term_cells: BTreeSet<String> = instances_of(ds, &g("TermEquivalence"))
+        .into_iter()
+        .collect();
+    let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    calculus.extend(
+        crate::grounding::validated_grounding_cells(ds)
+            .into_iter()
+            .filter(|cell| term_cells.contains(cell))
+            .filter(|cell| {
+                id(ds, cell)
+                    .and_then(|sid| id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)))
+                    .is_some_and(|predicate| identity.contains(predicate.as_str()))
+            }),
+    );
 
     // Legacy: the hand-authored identity-strength records — the migration targets.
     let mut legacy: BTreeMap<String, String> = BTreeMap::new();
@@ -763,7 +790,8 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
     for rec in dc_hand_authored(ds) {
         legacy.entry(rec.record_iri).or_insert(rec.detail);
     }
-    // A record cannot be both calculus-routed and legacy (disjoint types), but guard anyway.
+    // A valid identity GroundingCorrespondence deliberately appears in both frontend sets;
+    // calculus ownership wins, while an incomplete marker remains legacy debt.
     for iri in &calculus {
         legacy.remove(iri);
     }
@@ -1136,8 +1164,10 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     use std::collections::HashSet;
 
-    use gmeow_docs::i18n::{expand_predicate, parse_po, translation_has_integrity};
-    use gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES;
+    use gmeow_docs::i18n_compile::{
+        LOCALIZABLE_PREDICATES, counts_as_reviewed_coverage, expand_predicate, language_from_po,
+        parse_po,
+    };
 
     let ds = ctx.graph;
 
@@ -1162,36 +1192,101 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
     for (tag, stem) in TRANSLATION_LANGS {
         let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
-        // Covered (term, full-predicate) pairs: catalog entries with a real
-        // (non-empty) msgstr, keyed by the same full predicate IRI as the graph.
+        // Covered (term, full-predicate) pairs: catalog entries that count as
+        // REVIEWED coverage under the single shared policy
+        // (`counts_as_reviewed_coverage`) — a real (non-empty) msgstr that is NOT
+        // flagged `#, fuzzy` and passes the integrity guard — keyed by the same full
+        // predicate IRI as the graph. Machine-seeded (`#, fuzzy`) entries are counted
+        // separately as `seeded` (awaiting review, not yet coverage); non-empty
+        // non-fuzzy entries that fail integrity are `rejected` (copied English).
         let mut rejected = 0usize;
-        let covered: HashSet<(String, String)> = std::fs::read_to_string(&po)
-            .map(|text| {
-                let catalog = parse_po(&text);
-                let language = if catalog.language.is_empty() {
-                    *tag
-                } else {
-                    &catalog.language
-                };
-                catalog
-                    .entries
-                    .iter()
-                    .filter(|entry| !entry.msgctxt.is_empty() && !entry.msgstr.is_empty())
-                    .filter(|entry| {
-                        let valid =
-                            translation_has_integrity(language, &entry.msgid, &entry.msgstr);
-                        if !valid {
-                            rejected += 1;
+        let mut seeded = 0usize;
+        let covered: HashSet<(String, String)> = match std::fs::read_to_string(&po) {
+            // A genuinely-absent catalog legitimately means no coverage for this language.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => HashSet::new(),
+            // Any OTHER read error (permission, transient I/O) is a broken input, not honest
+            // absence: surface it as a finding and force zero coverage for this language,
+            // never a silent empty set that would fake a clean score.
+            Err(e) => {
+                findings.push(advisory(
+                    "slice-quality.translation.read-error",
+                    format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
+                ));
+                lang_cov.push(0.0);
+                continue;
+            }
+            Ok(text) => {
+                // A PRESENT catalog is required input: a malformed one is surfaced as a
+                // finding with zero coverage for this language, never a silent skip that
+                // would fake a score.
+                //
+                // The coverage/integrity language is the CONFIGURED TARGET (`tag`), never the
+                // catalog's self-reported `Language:` header: a mislabeled `fr.po` claiming
+                // `Language: en` must not be integrity-checked as English, which would credit
+                // copied English as French coverage. The header is still parsed to VALIDATE the
+                // catalog — a present header whose primary subtag matches neither the target
+                // `tag` (e.g. `cmn`) nor the file stem (e.g. `zh`) is a real authoring bug,
+                // surfaced as an advisory (never silently trusted or ignored) — and a malformed
+                // catalog remains a hard parse-error with zero coverage for this language.
+                let language = (*tag).to_string();
+                match language_from_po(&text) {
+                    Ok(Some(header)) => {
+                        let primary = header
+                            .split(['_', '-'])
+                            .next()
+                            .unwrap_or_default()
+                            .to_ascii_lowercase();
+                        if !primary.is_empty()
+                            && !primary.eq_ignore_ascii_case(tag)
+                            && !primary.eq_ignore_ascii_case(stem)
+                        {
+                            findings.push(advisory(
+                                "slice-quality.translation.mislabeled-catalog",
+                                format!(
+                                    "{tag} catalog i18n/{stem}.po declares `Language: {header}`, which matches neither the target `{tag}` nor the file stem `{stem}`; coverage is evaluated against `{tag}` regardless."
+                                ),
+                            ));
                         }
-                        valid
-                    })
-                    .filter_map(|entry| {
-                        let (term, pred) = entry.msgctxt.split_once('|')?;
-                        Some((term.to_string(), expand_predicate(pred)))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        findings.push(advisory(
+                            "slice-quality.translation.parse-error",
+                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                        ));
+                        lang_cov.push(0.0);
+                        continue;
+                    }
+                }
+                let entries = match parse_po(&text, false) {
+                    Ok(entries) => entries,
+                    Err(e) => {
+                        findings.push(advisory(
+                            "slice-quality.translation.parse-error",
+                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                        ));
+                        lang_cov.push(0.0);
+                        continue;
+                    }
+                };
+                let mut set = HashSet::new();
+                for entry in &entries {
+                    if entry.msgctxt.is_empty() {
+                        continue;
+                    }
+                    if counts_as_reviewed_coverage(entry, &language) {
+                        if let Some((term, pred)) = entry.msgctxt.split_once('|') {
+                            set.insert((term.to_string(), expand_predicate(pred)));
+                        }
+                    } else if entry.fuzzy && !entry.msgstr.is_empty() {
+                        seeded += 1;
+                    } else if !entry.msgstr.is_empty() {
+                        rejected += 1;
+                    }
+                }
+                set
+            }
+        };
         if rejected > 0 {
             findings.push(advisory(
                 "slice-quality.translation.integrity-rejected",
@@ -1207,10 +1302,17 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         #[allow(clippy::cast_precision_loss)]
         let cov = hits as f64 / expected as f64;
         if cov < 1.0 {
+            let seeded_note = if seeded > 0 {
+                format!(
+                    " ({seeded} further catalog value(s) are machine-seeded (fuzzy) and awaiting human review — removing the `#, fuzzy` flag on a verified entry raises coverage)"
+                )
+            } else {
+                String::new()
+            };
             findings.push(advisory(
                 "slice-quality.translation.incomplete",
                 format!(
-                    "{tag} covers {hits}/{expected} localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal."
+                    "{tag} covers {hits}/{expected} localizable literals{seeded_note}; the top tier requires 100% en+fr+cmn on every localizable literal."
                 ),
             ));
         }
@@ -1309,7 +1411,7 @@ pub(crate) fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
     None
 }
 
-/// Load the shared `gmeow:gmnDictV1` dictionary from the canonical
+/// Load the shared `gmeow:gmnDictV3` dictionary from the canonical
 /// `slices/grounding/lang/module.ttl` — the SAME dictionary the Task-6 round-trip
 /// gate (`crates/pipeline/src/stages/gmn1_gate.rs`) loads, so this axis's coverage
 /// measurement never diverges against a second, locally-improvised dictionary.
@@ -1373,7 +1475,7 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                     score: 1.0,
                     findings: vec![advisory(
                         "slice-quality.gmn1-coverage.no-dictionary",
-                        "the shared gmeow:gmnDictV1 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+                        "the shared gmeow:gmnDictV3 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
                     )],
                 };
             };
@@ -1415,6 +1517,346 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         Vec::new()
     };
     AxisScore { score, findings }
+}
+
+// ── Axis: GMN glyph disposition / optimality (independent of round-trip coverage) ─
+
+const GROUNDING_SLICE_IRIS: &[&str] = &[
+    "https://blackcatinformatics.ca/gmeow/slices/lang",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/math",
+];
+
+/// Measure whether every explicitly audited symbol candidate owned by this slice has a
+/// complete, evidence-backed disposition, whether every executable glyph target has such
+/// a candidate, and whether adopted/named-key decisions agree with the executable registry
+/// and pinned BPE cost. This axis is intentionally disjoint from [`gmn1_coverage_axis`]:
+/// semantic quad round-trip can remain 1.0 while a symbol candidate is missing its
+/// accessibility/fallback/evidence coat, chose a suboptimal rendering, or an executable
+/// denotation was added without entering the audit population, and this axis will fall.
+fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
+    // Candidate/Denotation authority is centralized in the lang grounding slice even
+    // when the audited target belongs to logic: or math:. Honour this axis's declared
+    // merged-closure scope in repo mode by composing that authority with the scored
+    // slice graph. Without this join, logic/math would falsely report "no candidates"
+    // despite their audited dispositions living exactly where the grounding contract
+    // requires them to live. Repo scoring MUST fail closed when that authority cannot
+    // be assembled: falling back to the slice-local graph would turn a missing/invalid
+    // lang authority into a false "fully audited" score. Bundle scoring is different:
+    // its supplied graph already carries the assembled audit closure.
+    let repo_graph;
+    let ds = match &ctx.env {
+        ScoringEnv::Repo => {
+            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+                return gmn_audit_graph_unavailable(
+                    "the slice directory has no resolvable slices/ path prefix",
+                );
+            };
+            let lang_module = root.join("slices/grounding/lang/module.ttl");
+            if !lang_module.is_file() {
+                return gmn_audit_graph_unavailable(format!(
+                    "the shared symbol-audit authority {} is missing",
+                    lang_module.display()
+                ));
+            }
+            let mut paths = crate::report::slice_ttl_paths(&ctx.slice_dir);
+            if !paths.contains(&lang_module) {
+                paths.push(lang_module);
+            }
+            paths.sort();
+            let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
+            let Ok(graph) = crate::dataset_from_paths(&refs) else {
+                return gmn_audit_graph_unavailable(
+                    "the slice plus shared lang symbol-audit authority could not be parsed",
+                );
+            };
+            repo_graph = graph;
+            repo_graph.as_ref()
+        }
+        ScoringEnv::Bundle(_) => ctx.graph,
+    };
+    let candidates = instances_of(ds, &g("GmnSymbolCandidate"));
+    let target_p = id(ds, &g("gmnCandidateTarget"));
+
+    // A candidate belongs to the scored slice when its target is one of that slice's
+    // owned terms. The candidate records themselves live in the lang-owned gmeow: plane,
+    // so merged-closure scope is required and the target join is the ownership seam.
+    let mut relevant = Vec::new();
+    let is_lang_authority = ctx.slice_iri == "https://blackcatinformatics.ca/gmeow/slices/lang";
+    for candidate in candidates {
+        let Some(cid) = id(ds, &candidate) else {
+            continue;
+        };
+        let targets = target_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        // A targetless row cannot be attributed through the ownership join. Retain
+        // it while scoring the lang authority itself so the cardinality check below
+        // reports the malformed row instead of filtering it into silence.
+        if (targets.is_empty() && is_lang_authority)
+            || targets.iter().any(|target| ctx.terms.contains(target))
+        {
+            relevant.push((candidate, targets));
+        }
+    }
+
+    let disposition_p = id(ds, &g("gmnSymbolDisposition"));
+    let basis_p = id(ds, &g("gmnDispositionBasis"));
+    let glyph_p = id(ds, &g("gmnCandidateGlyph"));
+    let fallback_p = id(ds, &g("gmnAsciiFallback"));
+    let spoken_p = id(ds, &g("gmnSpokenLabel"));
+    let rationale_p = id(ds, &g("gmnDispositionRationale"));
+    let denotation_p = id(ds, &g("gmnCandidateDenotation"));
+    let cites_p = id(ds, &g("cites"));
+    let den_target_p = id(ds, "https://blackcatinformatics.ca/lang/denotationTarget");
+    let den_grapheme_p = id(ds, &g("gmnDenotationGrapheme"));
+
+    let adopted = g("gmnDispositionAdoptedGlyph");
+    let named = g("gmnDispositionNamedKey");
+    let structured = g("gmnDispositionStructuredConstructor");
+    let rejected = g("gmnDispositionSemanticRejection");
+    let token_basis = g("gmnBasisTokenCost");
+    let ambiguity_basis = g("gmnBasisAmbiguity");
+    let confusable_basis = g("gmnBasisConfusability");
+    let mismatch_basis = g("gmnBasisSemanticMismatch");
+
+    let registry = GmnGlyphRegistry::from_dataset(ds);
+    let audited_targets: BTreeSet<&str> = relevant
+        .iter()
+        .flat_map(|(_, targets)| targets.iter().map(String::as_str))
+        .collect();
+    // The executable registry correctly refuses a Denotation -> Grapheme chain that lacks
+    // an adopted candidate, so asking only the *successful* registry for its targets would
+    // make that exact omission invisible. Derive the candidate obligations one step earlier:
+    // every denotation that names a grapheme in the current gmnScript repertoire and a target
+    // is intended executable inventory. This is a graph join, not a hand-listed glyph table.
+    let intended_executable_targets: BTreeSet<String> = match (
+        den_target_p,
+        den_grapheme_p,
+        id(ds, "https://blackcatinformatics.ca/lang/hasGrapheme"),
+        id(ds, &g("gmnScript")),
+    ) {
+        (Some(target_p), Some(grapheme_p), Some(has_grapheme_p), Some(script)) => {
+            let repertoire: BTreeSet<_> = ds
+                .quads_for_pattern(Some(script), Some(has_grapheme_p), None, GraphMatch::Any)
+                .map(|quad| quad.o)
+                .collect();
+            ds.quads_for_pattern(None, Some(grapheme_p), None, GraphMatch::Any)
+                .filter(|quad| repertoire.contains(&quad.o))
+                .flat_map(|quad| all_iris(ds, quad.s, target_p))
+                .filter(|target| ctx.terms.contains(target))
+                .collect()
+        }
+        _ => BTreeSet::new(),
+    };
+    let missing_executable_targets: Vec<&str> = intended_executable_targets
+        .iter()
+        .map(String::as_str)
+        .filter(|target| !audited_targets.contains(target))
+        .collect();
+    if relevant.is_empty() && missing_executable_targets.is_empty() {
+        return no_gmn_candidates(ctx);
+    }
+
+    let mut complete = 0usize;
+    let mut findings = Vec::new();
+
+    for target in &missing_executable_targets {
+        findings.push(advisory(
+            "slice-quality.gmn-glyph-optimality.unaudited-executable-target",
+            format!(
+                "{target} has an executable graph-derived GMN glyph binding but no \
+                 gmeow:GmnSymbolCandidate — add the evidence-backed disposition row so the \
+                 registry cannot grow outside the audited symbol inventory"
+            ),
+        ));
+    }
+
+    for (candidate, targets) in &relevant {
+        let cid = id(ds, candidate).expect("candidate came from the same graph");
+        let mut defects = Vec::<String>::new();
+        if targets.len() != 1 {
+            defects.push(format!(
+                "expected exactly one target, found {}",
+                targets.len()
+            ));
+        }
+        let target = targets.first().map(String::as_str).unwrap_or("");
+
+        let dispositions = disposition_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if dispositions.len() != 1 {
+            defects.push(format!(
+                "expected exactly one symbol disposition, found {}",
+                dispositions.len()
+            ));
+        }
+        let disposition = dispositions.first().map(String::as_str).unwrap_or("");
+        if ![
+            adopted.as_str(),
+            named.as_str(),
+            structured.as_str(),
+            rejected.as_str(),
+        ]
+        .contains(&disposition)
+        {
+            defects.push("disposition is outside the closed four-value vocabulary".to_owned());
+        }
+
+        let bases = basis_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if bases.len() != 1 {
+            defects.push(format!(
+                "expected exactly one decision basis, found {}",
+                bases.len()
+            ));
+        }
+        let basis = bases.first().map(String::as_str).unwrap_or("");
+        if ![
+            token_basis.as_str(),
+            ambiguity_basis.as_str(),
+            confusable_basis.as_str(),
+            mismatch_basis.as_str(),
+        ]
+        .contains(&basis)
+        {
+            defects.push("decision basis is outside the closed evidence vocabulary".to_owned());
+        }
+
+        let mut exact_literal = |pred: Option<purrdf::TermId>, name: &str| -> Option<String> {
+            let values = pred.map_or_else(Vec::new, |p| all_lits(ds, cid, p));
+            if values.len() != 1 || values[0].trim().is_empty() {
+                defects.push(format!("{name} must be exactly one non-empty literal"));
+                None
+            } else {
+                Some(values[0].clone())
+            }
+        };
+        let glyph = exact_literal(glyph_p, "candidate glyph");
+        let fallback = exact_literal(fallback_p, "ASCII fallback");
+        let _spoken = exact_literal(spoken_p, "spoken label");
+        let _rationale = exact_literal(rationale_p, "disposition rationale");
+        if cites_p.is_none_or(|p| all_iris(ds, cid, p).is_empty()) {
+            defects.push("candidate has no gmeow:cites evidence anchor".to_owned());
+        }
+        if fallback.as_deref().is_some_and(|value| !value.is_ascii()) {
+            defects.push("ASCII fallback contains a non-ASCII codepoint".to_owned());
+        }
+
+        let denotations = denotation_p.map_or_else(Vec::new, |p| all_iris(ds, cid, p));
+        if disposition == adopted || disposition == named {
+            if denotations.len() != 1 {
+                defects.push(format!(
+                    "adopted/named sign must point at exactly one denotation, found {}",
+                    denotations.len()
+                ));
+            } else if let Some(did) = id(ds, &denotations[0]) {
+                let den_targets = den_target_p.map_or_else(Vec::new, |p| all_iris(ds, did, p));
+                if den_targets.len() != 1 || den_targets[0] != target {
+                    defects.push(
+                        "candidate denotation does not resolve exactly to its target".to_owned(),
+                    );
+                }
+                let graphemes = den_grapheme_p.map_or_else(Vec::new, |p| all_iris(ds, did, p));
+                if disposition == adopted && graphemes.len() != 1 {
+                    defects.push(
+                        "adopted glyph denotation does not name exactly one grapheme".to_owned(),
+                    );
+                }
+                if disposition == named && !graphemes.is_empty() {
+                    defects.push(
+                        "named-key disposition unexpectedly enters the glyph registry".to_owned(),
+                    );
+                }
+            }
+        } else if !denotations.is_empty() {
+            defects.push(
+                "structured/rejected candidate unexpectedly carries a sign denotation".to_owned(),
+            );
+        }
+
+        match (disposition, basis, glyph.as_deref(), fallback.as_deref()) {
+            (d, b, Some(glyph), Some(fallback)) if d == adopted => {
+                if b != token_basis {
+                    defects.push("adopted glyph is not backed by the token-cost basis".to_owned());
+                }
+                if gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback) {
+                    defects.push(format!(
+                        "adopted glyph {glyph:?} costs more than fallback {fallback:?}"
+                    ));
+                }
+                match &registry {
+                    Ok(registry)
+                        if registry
+                            .bindings_for_term(target)
+                            .iter()
+                            .any(|(_, registered)| *registered == glyph) => {}
+                    Ok(_) => defects.push(
+                        "adopted candidate has no matching executable scoped registry binding"
+                            .to_owned(),
+                    ),
+                    Err(error) => {
+                        defects.push(format!("executable glyph registry is invalid: {}", error.0))
+                    }
+                }
+            }
+            (d, b, Some(glyph), Some(fallback)) if d == named => {
+                let measured_win = b == token_basis
+                    && gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback);
+                let safety_win = b == ambiguity_basis || b == confusable_basis;
+                if !measured_win && !safety_win {
+                    defects.push(
+                        "named-key disposition is backed by neither a measured token win nor a safety basis"
+                            .to_owned(),
+                    );
+                }
+            }
+            (d, b, _, _) if d == structured && b != ambiguity_basis => defects.push(
+                "structured-constructor disposition must be backed by ambiguity/arity evidence"
+                    .to_owned(),
+            ),
+            (d, b, _, _) if d == rejected && b != mismatch_basis => defects
+                .push("semantic rejection must be backed by semantic-mismatch evidence".to_owned()),
+            _ => {}
+        }
+
+        if defects.is_empty() {
+            complete += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.gmn-glyph-optimality.incomplete",
+                format!("{candidate}: {}", defects.join("; ")),
+            ));
+        }
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    let denominator = relevant.len() + missing_executable_targets.len();
+    let score = complete as f64 / denominator as f64;
+    AxisScore { score, findings }
+}
+
+fn gmn_audit_graph_unavailable(detail: impl std::fmt::Display) -> AxisScore {
+    AxisScore {
+        score: 0.0,
+        findings: vec![advisory(
+            "slice-quality.gmn-glyph-optimality.audit-graph-unavailable",
+            format!(
+                "GMN glyph optimality cannot be audited because {detail}; scoring fails closed at 0.0 until the canonical grounding authority is available"
+            ),
+        )],
+    }
+}
+
+fn no_gmn_candidates(ctx: &ScoreContext) -> AxisScore {
+    if GROUNDING_SLICE_IRIS.contains(&ctx.slice_iri.as_str()) {
+        AxisScore {
+            score: 0.0,
+            findings: vec![advisory(
+                "slice-quality.gmn-glyph-optimality.no-candidates",
+                "grounding slice has no explicit gmeow:GmnSymbolCandidate audit population"
+                    .to_owned(),
+            )],
+        }
+    } else {
+        AxisScore::clean(1.0)
+    }
 }
 
 #[cfg(test)]

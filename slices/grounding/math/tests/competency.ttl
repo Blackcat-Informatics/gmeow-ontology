@@ -23,6 +23,23 @@
 # The two flagship signed-radial-field scenes (examples/signed-radial-field-*.ttl).
 @prefix rqf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/> .
 @prefix rcf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/> .
+@prefix cov:   <https://blackcatinformatics.ca/gmeow/examples/math/coverage/> .
+@prefix covf:  <http://example.org/math/coverage/> .
+# The worked graded cell complex (examples/graded-cell-complex.ttl).
+@prefix exg:   <https://blackcatinformatics.ca/gmeow/examples/math/graded-cell/> .
+# The worked combinatorial Laplacian (examples/combinatorial-laplacian.ttl).
+@prefix exl:   <https://blackcatinformatics.ca/gmeow/examples/math/combinatorial-laplacian/> .
+@prefix exgs:  <https://blackcatinformatics.ca/gmeow/examples/math/global-section/> .
+# The multiparameter / zigzag persistence positive fixtures.
+@prefix exmf:  <https://blackcatinformatics.ca/gmeow/examples/math/multiparameter-filtration/> .
+@prefix expm:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-module/> .
+@prefix expx:  <https://blackcatinformatics.ca/gmeow/examples/math/persistence-morphism/> .
+# The connection / holonomy bundle demonstrator (examples/holonomy.ttl).
+@prefix exh:   <https://blackcatinformatics.ca/gmeow/examples/math/holonomy/> .
+# The worked chain complex (examples/chain-complex.ttl).
+@prefix excc:  <https://blackcatinformatics.ca/gmeow/examples/math/chain-complex/> .
+# The conforming chain-complex fixture (tests/conformance-fixtures/chain-complex-square-zero-complete.ttl).
+@prefix exccf: <http://example.org/math/chain-complex/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -2150,7 +2167,7 @@ ex:rowAnalysisPlanVersion a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:analysisPlanVersion ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "2.1" ] .
 
-# === Task 7 — piecewise pieces and analytic-property backing ================ #
+# === Piecewise pieces and analytic-property backing ========================= #
 
 ex:cqPiecewisePieces a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/piecewise-pieces.rq" ;
@@ -2213,7 +2230,7 @@ ex:rowAnalyticSmoothness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:smoothness ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:smoothnessBoundary ] .
 
-# === Task 8 — the two flagship signed-radial-field scenes =================== #
+# === The two flagship signed-radial-field scenes ============================ #
 # The qualitative scene: the whole target recovered with NO closed form. The seven
 # rows are the two divergent poles, the plateau bound, and the four ring masses.
 ex:cqRadialFieldQualitative a gmeow:CompetencyQuestion ;
@@ -2321,3 +2338,544 @@ ex:rowCFOneMinusX a gmeow:ExpectedRow ;
 ex:rowCFNegQ a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfNegQ ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Negation ] .
+
+# === External-corpus reusable grounding frames ============================= #
+
+ex:cqCoveragePersistentHomology a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistent-homology-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Persistent homology remains an analysis activity with an explicit input, filtration, and persistence-diagram result; it is not flattened into a project-local TDA label." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoveragePersistentHomologyShape ;
+    gmeow:cqExpectRow ex:rowCoveragePersistentHomology .
+
+ex:cqCoveragePersistentHomologyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "analysis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "input" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "filtration" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoveragePersistentHomology a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "analysis" ; gmeow:cellValueIri cov:persistentAnalysis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "input" ; gmeow:cellValueIri cov:pointCloud ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri cov:ripsFiltration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri cov:persistenceDiagram ] .
+
+ex:cqCoverageDimensionalReduction a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/dimensional-reduction-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A named reduction method reuses the general dimensional-reduction frame and exposes its input, target dimension, and embedding result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageDimensionalReductionShape ;
+    gmeow:cqExpectRow ex:rowCoverageDimensionalReduction .
+
+ex:cqCoverageDimensionalReductionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "analysis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "input" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "targetDimension" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageDimensionalReduction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "analysis" ; gmeow:cellValueIri cov:reduction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "input" ; gmeow:cellValueIri cov:pointCloud ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "targetDimension" ; gmeow:cellValueLiteral "2" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri cov:embedding ] .
+
+ex:cqCoverageHamiltonianSystem a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/hamiltonian-system-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A Hamiltonian system is recoverable from its symplectic state space, Hamiltonian function, and generated flow without a project-specific dynamical-system surrogate." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageHamiltonianSystemShape ;
+    gmeow:cqExpectRow ex:rowCoverageHamiltonianSystem .
+
+ex:cqCoverageHamiltonianSystemShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "system" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "stateSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "hamiltonian" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "flow" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageHamiltonianSystem a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri cov:hamiltonianSystem ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stateSpace" ; gmeow:cellValueIri cov:phaseSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri cov:omega ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hamiltonian" ; gmeow:cellValueIri cov:hamiltonian ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "flow" ; gmeow:cellValueIri cov:hamiltonianFlow ] .
+
+ex:cqCoverageCellularSheaf a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/cellular-sheaf-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A cellular sheaf exposes its base complex, stalks, and restriction map as separate reusable mathematical objects." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageCellularSheafShape ;
+    gmeow:cqExpectRow ex:rowCoverageVertexStalk , ex:rowCoverageEdgeStalk ,
+        ex:rowCoverageHodgeStalk .
+
+ex:cqCoverageCellularSheafShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "base" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "stalk" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "restriction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageVertexStalk a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri cov:cellularSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:baseComplex ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:vertexStalk ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:vertexToEdge ] .
+
+ex:rowCoverageEdgeStalk a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri cov:cellularSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:baseComplex ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:edgeStalk ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:vertexToEdge ] .
+
+# The Hodge-decomposition coverage individual carries its own fully-framed
+# cellular sheaf (cov:hodgeSheaf), which the reusable frame query legitimately
+# finds alongside cov:cellularSheaf; its row is part of the exact expected set.
+ex:rowCoverageHodgeStalk a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri cov:hodgeSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri cov:hodgeComplex ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stalk" ; gmeow:cellValueIri cov:hodgeStalk ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "restriction" ; gmeow:cellValueIri cov:hodgeRestriction ] .
+
+ex:cqGlobalSectionFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/global-section-frame.rq" ;
+    gmeow:cqDataFile "examples/global-section.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A global section exposes its carrier sheaf (math:overSheaf) and the whole base complex it globalises over (math:sectionRegion) as separate reusable data — the H⁰ frame that makes global-versus-local scope inspectable." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGlobalSectionFrameShape ;
+    gmeow:cqExpectRow ex:rowGlobalSectionFrame .
+
+ex:cqGlobalSectionFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "section" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "region" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGlobalSectionFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "section" ; gmeow:cellValueIri exgs:global ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exgs:sheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "region" ; gmeow:cellValueIri exgs:base ] .
+
+ex:cqGluingObstructionFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/gluing-obstruction-frame.rq" ;
+    gmeow:cqDataFile "examples/global-section.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An H¹ gluing obstruction exposes the sheaf whose local-to-global lifting it obstructs (math:obstructionOf) as reusable data — the anchor that keeps the obstruction class from floating free of the sheaf it reasons about." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGluingObstructionFrameShape ;
+    gmeow:cqExpectRow ex:rowGluingObstructionFrame .
+
+ex:cqGluingObstructionFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "obstruction" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGluingObstructionFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obstruction" ; gmeow:cellValueIri exgs:obstruction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exgs:sheaf ] .
+
+ex:cqCoverageGradedCell a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/graded-cell-frame.rq" ;
+    gmeow:cqDataFile "examples/graded-cell-complex.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A graded cell complex exposes each cell's grade (math:cellDimension) and the exact ±1 sign of each reified boundary math:CellIncidence as separate reusable data. Over the worked triangle the coface of every signed incidence is the 2-cell faceABC (grade exg:dim2), and the answer is exactly the three signed boundary coefficients of ∂(faceABC) = +edgeAB + edgeBC − edgeAC." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageGradedCellShape ;
+    gmeow:cqExpectRow ex:rowGradedCellAB , ex:rowGradedCellAC , ex:rowGradedCellBC .
+
+ex:cqCoverageGradedCellShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "cell" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "incidence" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sign" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGradedCellAB a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "1" ] .
+
+ex:rowGradedCellAC a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceAC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "-1" ] .
+
+ex:rowGradedCellBC a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cell" ; gmeow:cellValueIri exg:faceABC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri exg:dim2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "incidence" ; gmeow:cellValueIri exg:incFaceBC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sign" ; gmeow:cellValueLiteral "1" ] .
+
+ex:cqCombinatorialLaplacianFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/combinatorial-laplacian-frame.rq" ;
+    gmeow:cqDataFile "examples/combinatorial-laplacian.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A degree-k combinatorial Laplacian exposes the cell complex it is built over, its degree, and the two boundary operators (up and down) whose adjoint compositions L_k = ∂_{k+1}∘∂_{k+1}* + ∂_k*∘∂_k assemble it as separate reusable data — the purely combinatorial frame distinct from the continuum math:HodgeLaplacian and the stalk-weighted math:SheafLaplacian." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCombinatorialLaplacianFrameShape ;
+    gmeow:cqExpectRow ex:rowCombinatorialLaplacianFrame .
+
+ex:cqCombinatorialLaplacianFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "laplacian" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "complex" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "degree" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "upper" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "lower" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCombinatorialLaplacianFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "laplacian" ; gmeow:cellValueIri exl:laplacian1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "complex" ; gmeow:cellValueIri exl:triangle ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "degree" ; gmeow:cellValueIri exl:dim1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upper" ; gmeow:cellValueIri exl:boundaryUp ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lower" ; gmeow:cellValueIri exl:boundaryDown ] .
+
+ex:cqCoverageCliffordExtension a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/clifford-extension-frame.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/clifford-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The conformance witness records an exact generator-bearing Clifford extension and verified base-plus-new-generator module split. The native producer separately discharges the exact Cl(12,0) to Cl(13,0) kernel-scale case; neither witness makes an E8 representation claim." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageCliffordExtensionShape ;
+    gmeow:cqExpectRow ex:rowCoverageCliffordExtension .
+
+ex:cqCoverageCliffordExtensionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "extension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "base" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "extended" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "generator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "baseSummand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "extensionSummand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageCliffordExtension a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "extension" ; gmeow:cellValueIri covf:extension ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri covf:cl11 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "extended" ; gmeow:cellValueIri covf:cl20 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "generator" ; gmeow:cellValueIri covf:cl20e1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "baseSummand" ; gmeow:cellValueIri covf:cl11 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "extensionSummand" ; gmeow:cellValueIri covf:newSummand ] .
+
+ex:cqCoverageInformationMeasure a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/information-measure-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "An information measure is recoverable from its probability distribution, logarithm base, and information unit as separate reusable mathematical objects, without a project-specific scoring surrogate that hard-codes the base and unit." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageInformationMeasureShape ;
+    gmeow:cqExpectRow ex:rowCoverageInformationMeasure .
+
+ex:cqCoverageInformationMeasureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "measure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "distribution" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "base" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageInformationMeasure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri cov:coverageEntropy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "distribution" ; gmeow:cellValueIri cov:uniformTwo ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "base" ; gmeow:cellValueIri math:logBaseTwo ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri math:bit ] .
+
+ex:cqCoverageHodgeDecomposition a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/hodge-decomposition-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A Hodge decomposition is recoverable from its signal, its exact, coexact, and harmonic components, and its boundary operator as separate reusable mathematical objects, without a project-specific flow-splitting surrogate that flattens the exact/coexact/harmonic distinction." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageHodgeDecompositionShape ;
+    gmeow:cqExpectRow ex:rowCoverageHodgeDecomposition .
+
+ex:cqCoverageHodgeDecompositionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "decomposition" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "signal" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "exact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "coexact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "harmonic" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageHodgeDecomposition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "decomposition" ; gmeow:cellValueIri cov:hodgeDecomposition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "signal" ; gmeow:cellValueIri cov:hodgeSignal ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exact" ; gmeow:cellValueIri cov:hodgeExact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coexact" ; gmeow:cellValueIri cov:hodgeCoexact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "harmonic" ; gmeow:cellValueIri cov:hodgeHarmonic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri cov:hodgeBoundary ] .
+
+ex:cqCoverageMapperConstruction a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/mapper-construction-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A Mapper construction is recoverable from its source metric space, its filter (lens) function, its cover, its clustering rule, and its output nerve complex as separate reusable mathematical objects, without a project-specific graph surrogate that flattens the filter/cover/clustering frame into a bare set of nodes and edges." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageMapperConstructionShape ;
+    gmeow:cqExpectRow ex:rowCoverageMapperConstruction .
+
+ex:cqCoverageMapperConstructionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "mapper" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "filter" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cover" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "clustering" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nerve" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageMapperConstruction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mapper" ; gmeow:cellValueIri cov:mapperConstruction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri cov:mapperSource ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filter" ; gmeow:cellValueIri cov:mapperFilter ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cover" ; gmeow:cellValueIri cov:mapperCover ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clustering" ; gmeow:cellValueIri cov:mapperClustering ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nerve" ; gmeow:cellValueIri cov:mapperNerve ] .
+
+ex:cqCoverageVectorSymbolic a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/vector-symbolic-frame.rq" ;
+    gmeow:cqDataFile "examples/external-concept-coverage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A vector-symbolic binding is recoverable from its vector space, its basis, its capacity descriptor, and its recovery-loss (fidelity) contract as separate reusable mathematical objects, without a project-specific similarity-score surrogate that flattens the capacity/recovery frame — recovery being approximate unless an exact algebra proves otherwise." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoverageVectorSymbolicShape ;
+    gmeow:cqExpectRow ex:rowCoverageVectorSymbolic .
+
+ex:cqCoverageVectorSymbolicShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "binding" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "space" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "basis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "capacity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "contract" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageVectorSymbolic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "binding" ; gmeow:cellValueIri cov:vsaBinding ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri cov:vsaSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "basis" ; gmeow:cellValueIri cov:vsaBasis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "capacity" ; gmeow:cellValueIri cov:vsaCapacity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "contract" ; gmeow:cellValueIri cov:vsaContract ] .
+
+# === Q — ∂∘∂ = 0: the boundary square-zero law derives the cancelling pair === #
+
+ex:cqBoundarySquareZero a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/boundary-square-zero.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The boundary square-zero law ∂∘∂ = 0 made a LIVE entailment consumer: authored as a real first-order logic:Formula over the reified incidence signature and evaluated by the native logic: reasoner over the concrete simplicial triangle, it DERIVES the binary consequent math:cancellingPairRel(edgeAB, edgeAC) — the two intermediate edges composing faceABC to vertexA with opposite sign products, the fixed-point-free involution of the codimension-2 diamond. Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqBoundarySquareZeroShape ;
+    gmeow:cqExpectRow ex:rowBoundarySquareZero .
+
+ex:cqBoundarySquareZeroShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "bp" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowBoundarySquareZero a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri excc:edgeAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bp" ; gmeow:cellValueIri excc:edgeAC ] .
+
+# === Q — δ∘δ = 0: the coboundary square-zero law derives the co-cancelling pair #
+
+ex:cqCoboundarySquareZero a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/coboundary-square-zero.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The coboundary square-zero law δ∘δ = 0 made a LIVE entailment consumer: authored as a distinct first-order logic:Formula over the transposed coface traversal and evaluated by the native logic: reasoner over the concrete triangle, it DERIVES the binary consequent math:coCancellingPairRel(edgeAB, edgeAC) — the two intermediate cofaces of the upward co-diamond over (vertexA, faceABC). Nothing asserts that tuple; only the law derives it. Over the reasoned closure, pinned by VALUES to edgeAB, the answer is exactly {edgeAB, edgeAC}. Removing the law formula makes the answer empty." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCoboundarySquareZeroShape ;
+    gmeow:cqExpectRow ex:rowCoboundarySquareZero .
+
+ex:cqCoboundarySquareZeroShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "bp" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoboundarySquareZero a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri excc:edgeAB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bp" ; gmeow:cellValueIri excc:edgeAC ] .
+
+# === Q — the homology quotient frame H = Z/B =============================== #
+
+ex:cqHomologyQuotientFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/homology-quotient-frame.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:HomologyGroup reports the math:Cycle (the numerator Z) and the bounding math:Boundary (the denominator B) that generate it as the quotient H = Z/B; over the filled triangle the answer is exactly {homologyH1 → cycleZ / boundaryB}, the 1-cycle that bounds faceABC so its homology class is zero." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHomologyQuotientShape ;
+    gmeow:cqExpectRow ex:rowHomologyQuotient .
+
+ex:cqHomologyQuotientShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "homology" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cycle" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "boundary" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHomologyQuotient a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cycle" ; gmeow:cellValueIri exccf:cycleZ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "boundary" ; gmeow:cellValueIri exccf:boundaryB ] .
+
+# === Q — the constant sheaf recovers cellular homology ==================== #
+
+ex:cqConstantSheafRecoversHomology a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/constant-sheaf-recovers-homology.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/chain-complex-square-zero-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:ConstantSheaf reports, through math:recoversHomology, the cellular math:HomologyGroup its sheaf cohomology recovers; over the filled triangle the answer is exactly {constantSheaf → homologyH1}, confirming the sheaf-Laplacian machinery generalises plain homology rather than replacing it." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConstantSheafShape ;
+    gmeow:cqExpectRow ex:rowConstantSheaf .
+
+ex:cqConstantSheafShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "homology" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConstantSheaf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exccf:constantSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "homology" ; gmeow:cellValueIri exccf:homologyH1 ] .
+
+# === Multiparameter / zigzag persistence OBJECT frames =========================== #
+
+ex:cqMultiparameterFiltrationFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/multiparameter-filtration-frame.rq" ;
+    gmeow:cqDataFile "examples/multiparameter-filtration-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:MultiparameterFiltration exposes its parameter poset (math:filtrationIndexPoset) and its stages, each carrying a math:multiIndex tuple rather than a single real threshold — the frame that keeps the multi-parameter index inspectable and the object distinct from the math:MultiparameterPersistence activity." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMultiparameterFiltrationFrameShape ;
+    gmeow:cqExpectRow ex:rowMultiparameterFiltrationFrame .
+
+ex:cqMultiparameterFiltrationFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "filtration" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "poset" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "stage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "index" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMultiparameterFiltrationFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri exmf:filtration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "poset" ; gmeow:cellValueIri exmf:grid ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri exmf:stage ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "index" ; gmeow:cellValueIri exmf:index ] .
+
+ex:cqPersistenceModuleFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistence-module-frame.rq" ;
+    gmeow:cqDataFile "examples/persistence-module-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PersistenceModule exposes the index poset it is a functor over (math:moduleIndex) and its comparable-pair transition maps (math:structureMap) — the functor frame that keeps the algebraic object distinct from a single feature's math:PersistenceLifetime." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPersistenceModuleFrameShape ;
+    gmeow:cqExpectRow ex:rowPersistenceModuleFrame .
+
+ex:cqPersistenceModuleFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "module" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "index" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "map" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPersistenceModuleFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "module" ; gmeow:cellValueIri expm:module ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "index" ; gmeow:cellValueIri expm:indexPoset ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri expm:transition01 ] .
+
+ex:cqPersistenceMorphismFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/persistence-morphism-frame.rq" ;
+    gmeow:cqDataFile "examples/persistence-morphism-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PersistenceMorphism exposes both endpoints — its domain math:morphismSource and its codomain math:morphismTarget, each a math:PersistenceModule — the map-of-modules frame that keeps a map between modules from floating free of the modules it relates." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqPersistenceMorphismFrameShape ;
+    gmeow:cqExpectRow ex:rowPersistenceMorphismFrame .
+
+ex:cqPersistenceMorphismFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "morphism" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPersistenceMorphismFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "morphism" ; gmeow:cellValueIri expx:morphism ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri expx:sourceModule ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri expx:targetModule ] .
+
+# === Connections / holonomy / parallel transport ============================ #
+
+ex:cqHolonomyLoopFrame a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/holonomy-loop-frame.rq" ;
+    gmeow:cqDataFile "examples/holonomy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Holonomy exposes BOTH its closed loop (math:holonomyLoop) and the math:Connection whose parallel transport it composes (math:holonomyOf) — the transport-around-a-loop frame. The bundle demonstrator carries two holonomies: the discrete sheaf-connection holonomy around the 3-cell loop and the manifold holonomy around a coordinate loop, so the answer is exactly those two {holonomy → loop / connection} rows." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHolonomyLoopFrameShape ;
+    gmeow:cqExpectRow ex:rowHolonomyLoopDiscrete , ex:rowHolonomyLoopManifold .
+
+ex:cqHolonomyLoopFrameShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "holonomy" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "loop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "connection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHolonomyLoopDiscrete a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "holonomy" ; gmeow:cellValueIri exh:discreteHolonomy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loop" ; gmeow:cellValueIri exh:loop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] .
+
+ex:rowHolonomyLoopManifold a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "holonomy" ; gmeow:cellValueIri exh:manifoldHolonomy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loop" ; gmeow:cellValueIri exh:manifoldLoop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:manifoldConnection ] .
+
+ex:cqDiscreteConnectionFlatness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/discrete-connection-flatness.rq" ;
+    gmeow:cqDataFile "examples/holonomy.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:FlatConnection is the discrete sheaf connection (math:connectionOfSheaf) whose transport cochain (math:transportCochain) is a math:Cocycle — flat ⇔ closed. Over the bundle demonstrator's sheaf data the answer is exactly {discreteConnection → loopSheaf / transportCocycle}, the checkable discrete witness of flatness (the universal path-ordered curvature stays the honest math:holonomyCurvatureBoundary)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDiscreteConnectionFlatnessShape ;
+    gmeow:cqExpectRow ex:rowDiscreteConnectionFlatness .
+
+ex:cqDiscreteConnectionFlatnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "connection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sheaf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "cochain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowDiscreteConnectionFlatness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exh:loopSheaf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cochain" ; gmeow:cellValueIri exh:transportCocycle ] .

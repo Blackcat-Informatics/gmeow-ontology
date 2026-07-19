@@ -225,8 +225,8 @@ msgid "Estimate"
 msgstr "Estimation"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "Une estimation : une valeur produite qui estime un estimande (math:estimatesEstimand) et, le cas échéant, un paramètre de modèle (math:estimatedParameter), portant sa valeur (math:estimateValue) et l'estimateur qui l'a produite (math:estimator). Une sous-classe de math:MathematicalObject et l'objet résultat structuré de la séparation processus / résultat / affirmation — ni l'activité d'analyse ni l'affirmation tenue. Le triplet tidy de broom en R remonte les coefficients de modèle sur ces objets."
+msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
+msgstr "Une estimation : une valeur produite qui estime un estimande (math:estimatesEstimand) et, le cas échéant, un paramètre de modèle (math:estimatedParameter), portant sa valeur (math:estimateValue) et l'estimateur qui l'a produite (math:estimator). Une sous-classe de math:MathematicalObject et l'objet résultat structuré de la séparation processus / résultat / affirmation — ni l'activité d'analyse ni l'affirmation tenue, et jamais un nombre nu : elle fixe à la fois CE QU'elle estime (son estimande et/ou son paramètre estimé) et COMMENT (l'estimateur qui l'a produite) ; une estimation qui ne nomme ni sa quantité cible ni un paramètre de modèle, ou qui ne nomme aucun estimateur, est sous-spécifiée (math:UnderspecifiedEstimate). Le triplet tidy de broom en R remonte les coefficients de modèle sur ces objets."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
@@ -1461,3 +1461,1427 @@ msgstr "Propriété analytique non étayée"
 msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
 msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
 msgstr "L'échec levé lorsqu'une math:AnalyticProperty ne se résout en aucune loi définitoire — elle ne porte aucun arc math:definingLaw vers une véritable logic:Formula du premier ordre (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) ni vers un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothnessBoundary). Une revendication de monotonie ou de propriété analytique DOIT être étayée par une véritable loi ou une frontière enregistrée, jamais un drapeau nu ; un jeton de propriété analytique nu est inauthorable par construction. Appliqué par la logic:Constraint d'existence gardée math:AnalyticPropertyBackedConstraint (toute math:AnalyticProperty requiert un math:definingLaw), abaissée en une contrainte SHACL sh:sparql."
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|rdfs:label"
+msgid "Cell Complex"
+msgstr "Complexe cellulaire"
+
+msgctxt "https://blackcatinformatics.ca/math/CellComplex|skos:definition"
+msgid "A topological space assembled from cells by attaching each cell boundary to lower-dimensional cells. It is not merely a partition or mesh: cell dimensions and attaching maps are constitutive."
+msgstr "Un espace topologique assemblé à partir de cellules en attachant leur bord à des cellules de dimension inférieure. Ce n’est pas simplement une partition ou un maillage : les dimensions des cellules et les applications d’attachement sont constitutives."
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|rdfs:label"
+msgid "Simplicial Complex"
+msgstr "Complexe simplicial"
+
+msgctxt "https://blackcatinformatics.ca/math/SimplicialComplex|skos:definition"
+msgid "A cell complex whose cells are simplices and which is closed under taking faces, with intersections occurring along common faces. It is not an arbitrary cell complex: simplex cells and face closure are required."
+msgstr "Un complexe cellulaire formé de simplexes, fermé par prise des faces et dont les intersections sont des faces communes. Ce n’est pas un complexe cellulaire arbitraire : les cellules simpliciales et la fermeture par faces sont requises."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|rdfs:label"
+msgid "Chain Complex"
+msgstr "Complexe de chaînes"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
+msgstr "Une suite graduée de modules reliés par des applications bord dont toute composée consécutive est nulle. Ce n’est pas seulement une collection graduée : la loi de bord de carré nul est constitutive."
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
+msgid "Boundary Operator"
+msgstr "Opérateur bord"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
+msgstr "L'opération de degré moins un d'un complexe de chaînes, de carré nul, dont l'homologie décrit les cycles modulo les bords. Ce n’est ni une dérivée générique ni une opération de bord géométrique non typée."
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
+msgid "Coboundary Operator"
+msgstr "Opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
+msgstr "L'opération de degré plus un d'un complexe de cochaînes, duale de l'opérateur bord et de carré nul. Ce n’est pas un opérateur delta arbitraire : la graduation des cochaînes et la loi de carré nul sont requises."
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
+msgid "Vietoris–Rips Complex"
+msgstr "Complexe de Vietoris–Rips"
+
+msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|skos:definition"
+msgid "The simplicial complex at a scale whose simplices are finite point sets with all pairwise distances at most that scale. It is not a Čech complex: pairwise distance bounds do not require one common ball intersection."
+msgstr "Le complexe simplicial à une échelle donnée dont les simplexes sont les ensembles finis de points dont toutes les distances deux à deux sont au plus cette échelle. Ce n’est pas un complexe de Čech : les bornes de distance par paires n’exigent pas une intersection commune des boules."
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|rdfs:label"
+msgid "Čech Complex"
+msgstr "Complexe de Čech"
+
+msgctxt "https://blackcatinformatics.ca/math/CechComplex|skos:definition"
+msgid "The nerve simplicial complex of a family of equal-radius balls, with a simplex for each subfamily having nonempty total intersection. It is not a Vietoris–Rips complex: a common intersection, not merely pairwise proximity, licenses a simplex."
+msgstr "Le complexe simplicial nerf d'une famille de boules de même rayon, avec un simplexe pour chaque sous-famille d'intersection totale non vide. Ce n’est pas un complexe de Vietoris–Rips : une intersection commune, et non une simple proximité par paires, autorise un simplexe."
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|rdfs:label"
+msgid "Alpha Complex"
+msgstr "Complexe alpha"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaComplex|skos:definition"
+msgid "A scale-indexed subcomplex of a Delaunay complex that captures the homotopy type of the union of restricted balls. It is not the full Delaunay complex or an arbitrary proximity complex."
+msgstr "Un sous-complexe indexé par l'échelle d'un complexe de Delaunay qui capture le type d'homotopie de l'union des boules restreintes. Ce n’est ni le complexe de Delaunay complet ni un complexe de proximité arbitraire."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|rdfs:label"
+msgid "Persistent Homology"
+msgstr "Homologie persistante"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistentHomology|skos:definition"
+msgid "A topological-data-analysis activity that computes homology across a declared filtration and emits persistence summaries; it is the method, not the filtration itself."
+msgstr "Une activité d'analyse topologique qui calcule l'homologie le long d'une filtration déclarée et produit des résumés de persistance ; c'est la méthode, non la filtration."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|rdfs:label"
+msgid "Persistence Diagram"
+msgstr "Diagramme de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceDiagram|skos:definition"
+msgid "A multiset of birth–death points summarizing the lifetimes of homological features in a filtration. It is not the filtration or the persistent-homology activity that produced it."
+msgstr "Un multiensemble de points naissance–mort résumant les durées de vie des caractéristiques homologiques d'une filtration. Ce n’est ni la filtration ni l’activité d’homologie persistante qui l’a produit."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|rdfs:label"
+msgid "Persistence Barcode"
+msgstr "Code-barres de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceBarcode|skos:definition"
+msgid "A family of intervals representing the same persistent-module decomposition encoded by feature birth and death lifetimes. It is not a persistence diagram, although the two may encode equivalent interval data."
+msgstr "Une famille d'intervalles représentant la même décomposition en module persistant codée par les naissances et morts des caractéristiques. Ce n’est pas un diagramme de persistance, bien que les deux puissent encoder des données d’intervalles équivalentes."
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|rdfs:label"
+msgid "Persistence Landscape"
+msgstr "Paysage de persistance"
+
+msgctxt "https://blackcatinformatics.ca/math/PersistenceLandscape|skos:definition"
+msgid "A sequence of real-valued functions derived from persistence intervals that places persistent-homology summaries in a statistical function space. It is not a raw barcode or diagram: it is their function-valued transform."
+msgstr "Une suite de fonctions réelles dérivées d'intervalles de persistance, plaçant les résumés d'homologie persistante dans un espace fonctionnel statistique. Ce n’est pas un code-barres ni un diagramme brut : c’est leur transformation à valeurs fonctionnelles."
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|rdfs:label"
+msgid "Betti Summary"
+msgstr "Résumé de Betti"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiSummary|skos:definition"
+msgid "A degree-indexed collection of Betti numbers for a declared complex, space, filtration stage, or persistence result. It is not one unscoped Betti number."
+msgstr "Une collection indexée par le degré de nombres de Betti pour un complexe, espace, stade de filtration ou résultat de persistance déclaré. Ce n’est pas un unique nombre de Betti sans contexte."
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|rdfs:label"
+msgid "Betti Number"
+msgstr "Nombre de Betti"
+
+msgctxt "https://blackcatinformatics.ca/math/BettiNumber|skos:definition"
+msgid "The rank of a homology group in a specified degree, counting independent topological features of that degree. It is not a simplex count or an Euler characteristic."
+msgstr "Le rang d'un groupe d'homologie à un degré donné, comptant les caractéristiques topologiques indépendantes de ce degré. Ce n’est ni un nombre de simplexes ni une caractéristique d’Euler."
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|rdfs:label"
+msgid "Mapper Construction"
+msgstr "Construction Mapper"
+
+msgctxt "https://blackcatinformatics.ca/math/MapperConstruction|skos:definition"
+msgid "A topological-data-analysis activity that covers the range of a filter function, clusters inverse images, and forms their nerve graph or complex. It is not clustering or dimensional reduction alone: the cover and nerve construction are required."
+msgstr "Une activité d'analyse topologique qui couvre l'image d'une fonction filtre, regroupe les images réciproques et forme leur graphe ou complexe nerf. Ce n’est pas seulement un regroupement ou une réduction dimensionnelle : le recouvrement et la construction du nerf sont requis."
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|rdfs:label"
+msgid "Multiparameter Persistence"
+msgstr "Persistance multiparamétrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MultiparameterPersistence|skos:definition"
+msgid "Persistent-homology analysis over a filtration indexed by a partially ordered parameter space of dimension greater than one. It is not a collection of unrelated one-parameter persistence runs."
+msgstr "Une analyse d'homologie persistante sur une filtration indexée par un espace de paramètres partiellement ordonné de dimension supérieure à un. Ce n’est pas une collection d’exécutions de persistance à un paramètre sans relation."
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|rdfs:label"
+msgid "Zigzag Persistence"
+msgstr "Persistance en zigzag"
+
+msgctxt "https://blackcatinformatics.ca/math/ZigzagPersistence|skos:definition"
+msgid "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence."
+msgstr "Une analyse d'homologie persistante sur une suite dont les applications structurelles peuvent pointer vers l'avant ou l'arrière, autorisant ajouts et retraits. Ce n’est pas une persistance ordinaire uniquement orientée vers l’avant."
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|rdfs:label"
+msgid "Scalar Field"
+msgstr "Champ scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/ScalarField|skos:definition"
+msgid "A function assigning a scalar to each point of its declared domain."
+msgstr "Une fonction qui attribue un scalaire à chaque point de son domaine déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|rdfs:label"
+msgid "Vector Field"
+msgstr "Champ vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorField|skos:definition"
+msgid "A function assigning to each point of a manifold a vector in the tangent space at that point."
+msgstr "Une fonction qui attribue à chaque point d'une variété un vecteur de l'espace tangent en ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|rdfs:label"
+msgid "Flow"
+msgstr "Flot"
+
+msgctxt "https://blackcatinformatics.ca/math/Flow|skos:definition"
+msgid "A parameterized family of transformations describing the evolution generated by a vector field or dynamical system."
+msgstr "Une famille paramétrée de transformations décrivant l'évolution engendrée par un champ vectoriel ou un système dynamique."
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|rdfs:label"
+msgid "Symplectic Form"
+msgstr "Forme symplectique"
+
+msgctxt "https://blackcatinformatics.ca/math/SymplecticForm|skos:definition"
+msgid "A closed nondegenerate differential two-form on a smooth even-dimensional manifold."
+msgstr "Une 2-forme différentielle fermée et non dégénérée sur une variété lisse de dimension paire."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|rdfs:label"
+msgid "Hamiltonian Function"
+msgstr "Fonction hamiltonienne"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFunction|skos:definition"
+msgid "A scalar function on a symplectic state space whose symplectic gradient generates the Hamiltonian flow."
+msgstr "Une fonction scalaire sur un espace d'états symplectique dont le gradient symplectique engendre le flot hamiltonien."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|rdfs:label"
+msgid "Hamiltonian Flow"
+msgstr "Flot hamiltonien"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianFlow|skos:definition"
+msgid "The flow generated by a Hamiltonian function through a declared symplectic form."
+msgstr "Le flot engendré par une fonction hamiltonienne au moyen d'une forme symplectique déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|rdfs:label"
+msgid "Hamiltonian System"
+msgstr "Système hamiltonien"
+
+msgctxt "https://blackcatinformatics.ca/math/HamiltonianSystem|skos:definition"
+msgid "A dynamical system framed by a symplectic state space and a Hamiltonian function that generates its flow."
+msgstr "Un système dynamique cadré par un espace d'états symplectique et une fonction hamiltonienne qui engendre son flot."
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|rdfs:label"
+msgid "Cellular Sheaf"
+msgstr "Faisceau cellulaire"
+
+msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
+msgstr "Un faisceau sur un complexe cellulaire qui attribue un germe à chaque cellule et une application de restriction compatible à chaque relation de face."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
+msgid "Sheaf Stalk"
+msgstr "Germe de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafStalk|skos:definition"
+msgid "The local value object assigned by a sheaf to a point or cell of its base space."
+msgstr "L'objet de valeur locale attribué par un faisceau à un point ou une cellule de son espace de base."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|rdfs:label"
+msgid "Restriction Map"
+msgstr "Application de restriction"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
+msgstr "Un morphisme de faisceaux transportant les données locales entre germes le long d'une inclusion ou incidence, soumis aux lois d'identité et de composition."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
+msgid "Sheaf Section"
+msgstr "Section de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafSection|skos:definition"
+msgid "A compatible assignment of local stalk values over a region of a sheaf's base space."
+msgstr "Une attribution compatible de valeurs locales de germes sur une région de l'espace de base d'un faisceau."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|rdfs:label"
+msgid "Sheaf Cohomology"
+msgstr "Cohomologie de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|skos:definition"
+msgid "The cohomological invariants measuring obstructions to gluing local sheaf data into global sections."
+msgstr "Les invariants cohomologiques mesurant les obstacles au recollement de données locales de faisceau en sections globales."
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|rdfs:label"
+msgid "Sheaf Laplacian"
+msgstr "Laplacien de faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
+msgstr "Un laplacien construit à partir des applications de cobord d'un faisceau cellulaire et de produits scalaires, mesurant l'incompatibilité des données locales."
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
+msgid "Hodge Laplacian"
+msgstr "Laplacien de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|skos:definition"
+msgid "The degree-wise operator formed from a boundary or coboundary and its adjoint, whose kernel is the harmonic component."
+msgstr "L'opérateur par degré formé d'un bord ou cobord et de son adjoint, dont le noyau est la composante harmonique."
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|rdfs:label"
+msgid "Hodge Decomposition"
+msgstr "Décomposition de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
+msgstr "Une décomposition orthogonale d'une chaîne, cochaîne ou d'un flot en composantes exacte, coexacte et harmonique sous des produits scalaires déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
+msgid "Harmonic Component"
+msgstr "Composante harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the kernel of the applicable Hodge Laplacian."
+msgstr "La composante d'une décomposition de Hodge située dans le noyau du laplacien de Hodge applicable."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|rdfs:label"
+msgid "Exact Component"
+msgstr "Composante exacte"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the applicable boundary or coboundary operator."
+msgstr "La composante d'une décomposition de Hodge située dans l'image de l'opérateur bord ou cobord applicable."
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|rdfs:label"
+msgid "Coexact Component"
+msgstr "Composante coexacte"
+
+msgctxt "https://blackcatinformatics.ca/math/CoexactComponent|skos:definition"
+msgid "The component of a Hodge decomposition lying in the image of the adjoint boundary or coboundary operator."
+msgstr "La composante d'une décomposition de Hodge située dans l'image de l'adjoint de l'opérateur bord ou cobord."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|rdfs:label"
+msgid "Dimensional Reduction"
+msgstr "Réduction dimensionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalReduction|skos:definition"
+msgid "An analysis activity that maps data to a declared lower-dimensional representation and records its input, target dimension, and output embedding."
+msgstr "Une activité d'analyse qui projette des données vers une représentation déclarée de dimension inférieure et enregistre entrée, dimension cible et plongement de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|rdfs:label"
+msgid "UMAP Reduction"
+msgstr "Réduction UMAP"
+
+msgctxt "https://blackcatinformatics.ca/math/UMAPReduction|skos:definition"
+msgid "A dimensionality-reduction analysis using the Uniform Manifold Approximation and Projection method with its metric and neighborhood parameters declared."
+msgstr "Une réduction dimensionnelle par UMAP dont la métrique et les paramètres de voisinage sont déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|rdfs:label"
+msgid "Isomap Reduction"
+msgstr "Réduction Isomap"
+
+msgctxt "https://blackcatinformatics.ca/math/IsomapReduction|skos:definition"
+msgid "A dimensionality-reduction analysis that approximates geodesic distances on a neighborhood graph before embedding them in a lower-dimensional space."
+msgstr "Une réduction dimensionnelle qui approxime les distances géodésiques sur un graphe de voisinage avant le plongement."
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|rdfs:label"
+msgid "Spectral Initialization"
+msgstr "Initialisation spectrale"
+
+msgctxt "https://blackcatinformatics.ca/math/SpectralInitialization|skos:definition"
+msgid "An initialization obtained from eigenvectors of a declared graph, kernel, covariance, or Laplacian operator."
+msgstr "Une initialisation obtenue à partir de vecteurs propres d'un graphe, noyau, opérateur de covariance ou laplacien déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|rdfs:label"
+msgid "Reduction Path"
+msgstr "Chemin de réduction"
+
+msgctxt "https://blackcatinformatics.ca/math/ReductionPath|skos:definition"
+msgid "An ordered record of intermediate representations and transformations in a staged dimensionality-reduction procedure."
+msgstr "Un enregistrement ordonné des représentations et transformations intermédiaires d'une procédure de réduction dimensionnelle par étapes."
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|rdfs:label"
+msgid "Reconstruction Map"
+msgstr "Application de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/math/ReconstructionMap|skos:definition"
+msgid "A map from a reduced or embedded representation toward a source-space reconstruction, with exactness, approximation, and round-trip loss declared rather than assumed."
+msgstr "Une application d'une représentation réduite vers une reconstruction source, avec exactitude, approximation et perte d'aller-retour déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|rdfs:label"
+msgid "Intrinsic Dimension"
+msgstr "Dimension intrinsèque"
+
+msgctxt "https://blackcatinformatics.ca/math/IntrinsicDimension|skos:definition"
+msgid "The estimated minimum number of coordinates needed to describe a dataset or manifold at a declared scale and under a declared estimator."
+msgstr "Le nombre minimal estimé de coordonnées nécessaires pour décrire un jeu de données ou une variété à une échelle et avec un estimateur déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|rdfs:label"
+msgid "Information Measure"
+msgstr "Mesure d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationMeasure|skos:definition"
+msgid "A mathematically framed quantity measuring uncertainty, dependence, divergence, or information relative to declared distributions, logarithm base, and units."
+msgstr "Une quantité cadrée mesurant incertitude, dépendance, divergence ou information relativement à des distributions, une base logarithmique et des unités déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|rdfs:label"
+msgid "Information Entropy"
+msgstr "Entropie informationnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
+msgstr "Une mesure de l'incertitude d'une distribution déclarée, dont la base logarithmique et les unités font partie du cadre."
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
+msgid "Mutual Information"
+msgstr "Information mutuelle"
+
+msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
+msgstr "La divergence entre une distribution jointe et le produit de ses marginales, mesurant la dépendance statistique."
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
+msgid "Kullback–Leibler Divergence"
+msgstr "Divergence de Kullback–Leibler"
+
+msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|skos:definition"
+msgid "The directed expected log-density ratio from one declared probability distribution to another, not a symmetric distance."
+msgstr "L'espérance dirigée du logarithme du rapport de densités d'une distribution à une autre ; ce n'est pas une distance symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|rdfs:label"
+msgid "Cross Entropy"
+msgstr "Entropie croisée"
+
+msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
+msgstr "L'espérance de la log-vraisemblance négative attribuée par une distribution aux résultats tirés d'une autre."
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
+msgid "Fisher Information"
+msgstr "Information de Fisher"
+
+msgctxt "https://blackcatinformatics.ca/math/FisherInformation|skos:definition"
+msgid "The expected curvature or score variance of a parametric likelihood with respect to a declared parameter."
+msgstr "La courbure attendue ou variance du score d'une vraisemblance paramétrique par rapport à un paramètre déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|rdfs:label"
+msgid "Surprisal"
+msgstr "Surprise informationnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/Surprisal|skos:definition"
+msgid "The negative logarithm of the declared probability of an outcome, with logarithm base and units recorded."
+msgstr "Le logarithme négatif de la probabilité déclarée d'un résultat, avec base et unités enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|rdfs:label"
+msgid "Logarithm Base"
+msgstr "Base logarithmique"
+
+msgctxt "https://blackcatinformatics.ca/math/LogarithmBase|skos:definition"
+msgid "The declared logarithm base that fixes the scale of an information measure — base 2 (bits), base e (nats), or base 10 (hartleys). The base is a frame component of every information measure, never an implicit default; the three canonical bases are the named individuals math:logBaseTwo, math:logBaseE, and math:logBaseTen."
+msgstr "La base logarithmique déclarée qui fixe l'échelle d'une mesure d'information — base 2 (bits), base e (nats) ou base 10 (hartleys). La base est une composante du cadre de toute mesure d'information, jamais une valeur par défaut implicite ; les trois bases canoniques sont les individus nommés math:logBaseTwo, math:logBaseE et math:logBaseTen."
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|rdfs:label"
+msgid "Information Unit"
+msgstr "Unité d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/InformationUnit|skos:definition"
+msgid "The unit in which an information measure's magnitude is expressed, paired with its logarithm base — the bit (base 2), the nat (base e), or the hartley (base 10). The three canonical units are the named individuals math:bit, math:nat, and math:hartley."
+msgstr "L'unité dans laquelle la magnitude d'une mesure d'information est exprimée, appariée à sa base logarithmique — le bit (base 2), le nat (base e) ou le hartley (base 10). Les trois unités canoniques sont les individus nommés math:bit, math:nat et math:hartley."
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|rdfs:label"
+msgid "Joint Distribution"
+msgstr "Distribution jointe"
+
+msgctxt "https://blackcatinformatics.ca/math/JointDistribution|skos:definition"
+msgid "A joint probability distribution over two or more random variables, from which each marginal is recoverable. A subclass of math:Distribution; a mutual information is taken over a joint distribution, whose divergence from the product of its marginals it measures."
+msgstr "Une distribution de probabilité jointe sur deux variables aléatoires ou plus, dont chaque marginale est récupérable. Une sous-classe de math:Distribution ; une information mutuelle est prise sur une distribution jointe, dont elle mesure la divergence par rapport au produit de ses marginales."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|rdfs:label"
+msgid "Incomplete Information Measure"
+msgstr "Mesure d'information incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteInformationMeasure|skos:definition"
+msgid "The failure raised when an information measure lacks a required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome. An information measure is defined only relative to a complete, declared frame; a bare uncertainty, divergence, or information token with an implicit distribution, base, or unit is ill-formed."
+msgstr "L'échec soulevé lorsqu'une mesure d'information manque d'une composante de cadre requise — sa distribution de probabilité, sa base logarithmique, son unité d'information, la distribution de référence d'une divergence, le modèle de vraisemblance ou le paramètre de score d'une information de Fisher, ou le résultat d'une surprise informationnelle. Une mesure d'information n'est définie que relativement à un cadre complet et déclaré ; un simple jeton d'incertitude, de divergence ou d'information avec une distribution, une base ou une unité implicite est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|rdfs:label"
+msgid "over distribution"
+msgstr "sur distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/overDistribution|skos:definition"
+msgid "Relates an information measure to the probability distribution it is taken over — the P of an entropy, surprisal, cross entropy, or divergence, or the joint distribution of a mutual information. Domain math:InformationMeasure, range math:Distribution (stated in prose)."
+msgstr "Relie une mesure d'information à la distribution de probabilité sur laquelle elle est prise — le P d'une entropie, d'une surprise informationnelle, d'une entropie croisée ou d'une divergence, ou la distribution jointe d'une information mutuelle. Domaine math:InformationMeasure, portée math:Distribution (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|rdfs:label"
+msgid "reference distribution"
+msgstr "distribution de référence"
+
+msgctxt "https://blackcatinformatics.ca/math/referenceDistribution|skos:definition"
+msgid "Relates a divergence or cross entropy to its reference (second) distribution Q — the model distribution against which the primary distribution P is scored. Domain math:InformationMeasure, range math:Distribution (stated in prose). The direction P→Q is fixed, so a Kullback–Leibler divergence is not symmetric."
+msgstr "Relie une divergence ou une entropie croisée à sa distribution de référence (seconde) Q — la distribution modèle par rapport à laquelle la distribution primaire P est évaluée. Domaine math:InformationMeasure, portée math:Distribution (énoncé en prose). La direction P→Q est fixée, donc une divergence de Kullback–Leibler n'est pas symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|rdfs:label"
+msgid "information base"
+msgstr "base d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/informationBase|skos:definition"
+msgid "Relates an information measure to the logarithm base fixing its scale — base 2, base e, or base 10. Domain math:InformationMeasure, range math:LogarithmBase (stated in prose). The base is part of the measure's frame, never an implicit default; a measure missing it is ill-formed (math:IncompleteInformationMeasure)."
+msgstr "Relie une mesure d'information à la base logarithmique fixant son échelle — base 2, base e ou base 10. Domaine math:InformationMeasure, portée math:LogarithmBase (énoncé en prose). La base fait partie du cadre de la mesure, jamais une valeur par défaut implicite ; une mesure qui en manque est mal formée (math:IncompleteInformationMeasure)."
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|rdfs:label"
+msgid "information unit"
+msgstr "unité d'information"
+
+msgctxt "https://blackcatinformatics.ca/math/informationUnit|skos:definition"
+msgid "Relates an information measure to the unit its magnitude is expressed in — the bit (base 2), the nat (base e), or the hartley (base 10) — paired with the declared logarithm base. Domain math:InformationMeasure, range math:InformationUnit (stated in prose)."
+msgstr "Relie une mesure d'information à l'unité dans laquelle sa magnitude est exprimée — le bit (base 2), le nat (base e) ou le hartley (base 10) — appariée à la base logarithmique déclarée. Domaine math:InformationMeasure, portée math:InformationUnit (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|rdfs:label"
+msgid "likelihood model"
+msgstr "modèle de vraisemblance"
+
+msgctxt "https://blackcatinformatics.ca/math/likelihoodModel|skos:definition"
+msgid "Relates a Fisher information to the parametric likelihood model whose score-function curvature it measures. Domain math:FisherInformation, range math:Distribution (stated in prose)."
+msgstr "Relie une information de Fisher au modèle de vraisemblance paramétrique dont elle mesure la courbure de la fonction de score. Domaine math:FisherInformation, portée math:Distribution (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|rdfs:label"
+msgid "score parameter"
+msgstr "paramètre de score"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreParameter|skos:definition"
+msgid "Relates a Fisher information to the model parameter with respect to which the log-likelihood score and its expected curvature are taken. Domain math:FisherInformation, range math:DistributionParameter (stated in prose)."
+msgstr "Relie une information de Fisher au paramètre du modèle par rapport auquel le score de la log-vraisemblance et sa courbure attendue sont pris. Domaine math:FisherInformation, portée math:DistributionParameter (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|rdfs:label"
+msgid "of outcome"
+msgstr "du résultat"
+
+msgctxt "https://blackcatinformatics.ca/math/ofOutcome|skos:definition"
+msgid "Relates a surprisal to the single outcome whose declared probability under its distribution it takes the negative logarithm of. Domain math:Surprisal, range math:MathematicalObject (stated in prose)."
+msgstr "Relie une surprise informationnelle au résultat unique dont elle prend le logarithme négatif de la probabilité déclarée sous sa distribution. Domaine math:Surprisal, portée math:MathematicalObject (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|rdfs:label"
+msgid "measure value"
+msgstr "valeur de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/measureValue|skos:definition"
+msgid "Relates an information measure to the exact math:RationalValue of its computed magnitude in its declared unit — carried as an exact numerator/denominator pair, never a decimal, so a reference calculation such as the Shannon entropy of a uniform two-outcome distribution is recorded as exactly 1/1 bit. Domain math:InformationMeasure, range math:RationalValue (stated in prose)."
+msgstr "Relie une mesure d'information à la valeur math:RationalValue exacte de sa magnitude calculée dans son unité déclarée — portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte qu'un calcul de référence tel que l'entropie de Shannon d'une distribution uniforme à deux résultats est enregistré comme exactement 1/1 bit. Domaine math:InformationMeasure, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|rdfs:label"
+msgid "over sheaf"
+msgstr "sur faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
+msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "Relie une décomposition de Hodge au faisceau cellulaire dont le laplacien de faisceau et les applications de cobord définissent ses sous-espaces exact, coexact et harmonique. Domaine math:HodgeDecomposition, portée math:CellularSheaf (énoncé en prose). Le support fait partie du cadre de la décomposition, jamais implicite ; une décomposition qui en manque est mal formée (math:IncompleteHodgeDecomposition)."
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
+msgid "Hodge boundary operator"
+msgstr "opérateur de bord de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
+msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
+msgstr "Relie une décomposition de Hodge à l'opérateur de bord dont l'image est la composante exacte et dont l'image de l'adjoint est la composante coexacte. Domaine math:HodgeDecomposition, portée math:BoundaryOperator (énoncé en prose). L'opérateur est constitutif de la décomposition — la séparation exact/coexact est définie relativement à lui ; une décomposition dont l'opérateur de bord est omis ou mal typé est mal formée (math:IncompleteHodgeDecomposition)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
+msgid "exact component"
+msgstr "composante exacte"
+
+msgctxt "https://blackcatinformatics.ca/math/exactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its exact component — the part lying in the image of the applicable boundary or coboundary operator. Domain math:HodgeDecomposition, range math:ExactComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante exacte — la partie située dans l'image de l'opérateur de bord ou de cobord applicable. Domaine math:HodgeDecomposition, portée math:ExactComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|rdfs:label"
+msgid "coexact component"
+msgstr "composante coexacte"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante coexacte — la partie située dans l'image de l'opérateur de bord ou de cobord adjoint. Domaine math:HodgeDecomposition, portée math:CoexactComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
+msgid "harmonic component"
+msgstr "composante harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
+msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
+msgstr "Relie une décomposition de Hodge à sa composante harmonique — la partie située dans le noyau du laplacien de Hodge applicable, orthogonale à la fois aux parties exacte et coexacte. Domaine math:HodgeDecomposition, portée math:HarmonicComponent (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
+msgid "reconstruction residual"
+msgstr "résidu de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte de la norme résiduelle de sa reconstruction — le signal moins la somme de ses composantes exacte, coexacte et harmonique. Le théorème de décomposition de Hodge rend ce résidu exactement nul, porté comme la paire exacte 0/1, jamais un décimal ; un résidu non nul témoignerait d'une reconstruction échouée. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
+msgid "exact–coexact inner product"
+msgstr "produit scalaire exact–coexact"
+
+msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨exact, coexact⟩ de ses composantes exacte et coexacte. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
+msgid "exact–harmonic inner product"
+msgstr "produit scalaire exact–harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, harmonic⟩ of its exact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨exact, harmonique⟩ de ses composantes exacte et harmonique. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
+msgid "coexact–harmonic inner product"
+msgstr "produit scalaire coexact–harmonique"
+
+msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
+msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
+msgstr "Relie une décomposition de Hodge à la valeur math:RationalValue exacte du produit scalaire ⟨coexact, harmonique⟩ de ses composantes coexacte et harmonique. L'orthogonalité des deux composantes rend cette valeur exactement nulle, portée comme la paire exacte 0/1. Domaine math:HodgeDecomposition, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
+msgid "Incomplete Hodge Decomposition"
+msgstr "Décomposition de Hodge incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
+msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
+msgstr "L'échec soulevé lorsqu'une décomposition de Hodge manque d'une composante de cadre requise — le signal qu'elle décompose, sa composante exacte, coexacte ou harmonique, son opérateur de bord, son faisceau support, le résidu exact témoignant de la reconstruction, ou l'un des trois produits scalaires exacts d'orthogonalité par paires. Une décomposition de Hodge n'est définie que relativement à un cadre complet et déclaré ; une simple séparation dont l'opérateur de bord, le résidu de reconstruction ou l'orthogonalité des composantes est implicite est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
+msgid "Metric Space"
+msgstr "Espace métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSpace|skos:definition"
+msgid "A metric space (X, d): a set X together with a distance function d that is non-negative, zero exactly on the diagonal, symmetric, and satisfies the triangle inequality. Every metric space induces a topology (the metric balls form a basis), so it is a subclass of math:TopologicalSpace, but the distance function is constitutive and not recoverable from the topology alone. It is the source over which a Mapper construction's filter function and clustering rule are defined; a point cloud sampled with a declared metric is a metric space."
+msgstr "Un espace métrique (X, d) : un ensemble X muni d'une fonction distance d qui est non négative, nulle exactement sur la diagonale, symétrique et vérifie l'inégalité triangulaire. Tout espace métrique induit une topologie (les boules métriques forment une base), c'est donc une sous-classe de math:TopologicalSpace, mais la fonction distance est constitutive et non récupérable à partir de la seule topologie. C'est la source sur laquelle sont définies la fonction filtre et la règle de regroupement d'une construction Mapper ; un nuage de points échantillonné avec une métrique déclarée est un espace métrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|rdfs:label"
+msgid "Cover"
+msgstr "Recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/Cover|skos:definition"
+msgid "A cover of a space: a finite family of overlapping sets (its math:CoverElement members, named through math:hasCoverElement) whose union contains the covered space. In a Mapper construction the cover is taken of the filter function's codomain, and the overlaps between adjacent cover elements are what create the edges of the output nerve. The cover is declared and finitely enumerated, never an implicit resolution parameter; a Mapper construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Un recouvrement d'un espace : une famille finie d'ensembles qui se chevauchent (ses membres math:CoverElement, nommés via math:hasCoverElement) dont l'union contient l'espace recouvert. Dans une construction Mapper, le recouvrement est pris du codomaine de la fonction filtre, et les chevauchements entre éléments de recouvrement adjacents sont ce qui crée les arêtes du nerf de sortie. Le recouvrement est déclaré et énuméré de façon finie, jamais un paramètre de résolution implicite ; une construction Mapper qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|rdfs:label"
+msgid "Cover Element"
+msgstr "Élément de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/CoverElement|skos:definition"
+msgid "A single element of a math:Cover: one of the overlapping sets (typically an open set or interval) whose family covers the space. A subclass of math:Set. Two cover elements that overlap induce an edge between the clusters found in their inverse images; a cover element carries the concrete extent (for a real filter, an interval with its endpoints and inclusions) that makes the cover deterministic rather than a free resolution choice."
+msgstr "Un élément unique d'un math:Cover : l'un des ensembles qui se chevauchent (typiquement un ensemble ouvert ou un intervalle) dont la famille recouvre l'espace. Une sous-classe de math:Set. Deux éléments de recouvrement qui se chevauchent induisent une arête entre les groupes trouvés dans leurs images réciproques ; un élément de recouvrement porte l'étendue concrète (pour un filtre réel, un intervalle avec ses bornes et ses inclusions) qui rend le recouvrement déterministe plutôt qu'un choix de résolution libre."
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|rdfs:label"
+msgid "Clustering Rule"
+msgstr "Règle de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/ClusteringRule|skos:definition"
+msgid "The declared, deterministic rule applied to the inverse image of each cover element to partition it into clusters — for example single-linkage clustering at a fixed distance threshold (math:clusteringThreshold). A subclass of math:MathematicalObject naming the rule as a first-class object so a Mapper's node set is reproducible, never the output of an unspecified clustering step. A Mapper construction whose clustering rule is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "La règle déclarée et déterministe appliquée à l'image réciproque de chaque élément de recouvrement pour la partitionner en groupes — par exemple un regroupement à liaison simple à un seuil de distance fixé (math:clusteringThreshold). Une sous-classe de math:MathematicalObject nommant la règle comme un objet de première classe afin que l'ensemble des nœuds d'un Mapper soit reproductible, jamais le résultat d'une étape de regroupement non spécifiée. Une construction Mapper dont la règle de regroupement est omise ou laissée à la convention est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|rdfs:label"
+msgid "Nerve Complex"
+msgstr "Complexe nerf"
+
+msgctxt "https://blackcatinformatics.ca/math/NerveComplex|skos:definition"
+msgid "The nerve of a covered, clustered space: the simplicial complex whose vertices are the clusters found in each cover element's inverse image and whose k-simplices record the non-empty intersections of k+1 clusters. It is a subclass of math:SimplicialComplex; a Mapper construction's output nerve is its one-skeleton graph together with any higher simplices from multi-way cluster overlaps. It is the output of the Mapper construction, not the source complex it is computed from."
+msgstr "Le nerf d'un espace recouvert et regroupé : le complexe simplicial dont les sommets sont les groupes trouvés dans l'image réciproque de chaque élément de recouvrement et dont les k-simplexes enregistrent les intersections non vides de k+1 groupes. C'est une sous-classe de math:SimplicialComplex ; le nerf de sortie d'une construction Mapper est son graphe à un squelette ainsi que tout simplexe supérieur issu de chevauchements de groupes à plusieurs voies. C'est la sortie de la construction Mapper, non le complexe source à partir duquel il est calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|rdfs:label"
+msgid "Incomplete Mapper Construction"
+msgstr "Construction Mapper incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMapperConstruction|skos:definition"
+msgid "The failure raised when a Mapper construction lacks a required frame component — its source metric space, its filter (lens) function, the cover of the filter codomain, the clustering rule applied inside each cover element's inverse image, or the output nerve complex. A Mapper construction is defined only relative to a complete, declared frame; a bare graph whose filter, cover, or clustering rule is implicit is ill-formed, because without them the node set and edge set are not reproducible."
+msgstr "L'échec soulevé lorsqu'une construction Mapper manque d'une composante de cadre requise — son espace métrique source, sa fonction filtre (lentille), le recouvrement du codomaine du filtre, la règle de regroupement appliquée à l'intérieur de l'image réciproque de chaque élément de recouvrement, ou le complexe nerf de sortie. Une construction Mapper n'est définie que relativement à un cadre complet et déclaré ; un simple graphe dont le filtre, le recouvrement ou la règle de regroupement est implicite est mal formé, car sans eux l'ensemble des nœuds et l'ensemble des arêtes ne sont pas reproductibles."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|rdfs:label"
+msgid "source metric space"
+msgstr "espace métrique source"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceMetricSpace|skos:definition"
+msgid "Relates a Mapper construction to the source metric space it samples — the point cloud (or space) with a declared distance function over which the filter function and the clustering rule are defined. Domain math:MapperConstruction, range math:MetricSpace (stated in prose). The source is part of the construction's frame, never implicit; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à l'espace métrique source qu'elle échantillonne — le nuage de points (ou l'espace) avec une fonction distance déclarée sur laquelle sont définies la fonction filtre et la règle de regroupement. Domaine math:MapperConstruction, portée math:MetricSpace (énoncé en prose). La source fait partie du cadre de la construction, jamais implicite ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|rdfs:label"
+msgid "filter function"
+msgstr "fonction filtre"
+
+msgctxt "https://blackcatinformatics.ca/math/filterFunction|skos:definition"
+msgid "Relates a Mapper construction to the filter (lens) function that maps its source metric space to a codomain the cover is taken of — a real-valued height, an eccentricity, or a density estimate. Domain math:MapperConstruction, range math:Function (stated in prose). The filter is constitutive: the whole cover/clustering pipeline is pulled back through it, so a construction whose filter function is omitted has no cover to pull back and is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à la fonction filtre (lentille) qui applique son espace métrique source à un codomaine dont le recouvrement est pris — une hauteur à valeurs réelles, une excentricité ou une estimation de densité. Domaine math:MapperConstruction, portée math:Function (énoncé en prose). Le filtre est constitutif : tout le pipeline recouvrement/regroupement est tiré en arrière à travers lui, de sorte qu'une construction dont la fonction filtre est omise n'a aucun recouvrement à tirer en arrière et est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|rdfs:label"
+msgid "cover scheme"
+msgstr "schéma de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/coverScheme|skos:definition"
+msgid "Relates a Mapper construction to the math:Cover of its filter function's codomain — the finite, overlapping family of cover elements whose inverse images are clustered and whose overlaps create the nerve's edges. Domain math:MapperConstruction, range math:Cover (stated in prose). The cover is declared and finitely enumerated, never an implicit resolution/gain parameter; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper au math:Cover du codomaine de sa fonction filtre — la famille finie d'éléments de recouvrement qui se chevauchent, dont les images réciproques sont regroupées et dont les chevauchements créent les arêtes du nerf. Domaine math:MapperConstruction, portée math:Cover (énoncé en prose). Le recouvrement est déclaré et énuméré de façon finie, jamais un paramètre implicite de résolution/gain ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|rdfs:label"
+msgid "clustering rule"
+msgstr "règle de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringRule|skos:definition"
+msgid "Relates a Mapper construction to the deterministic math:ClusteringRule applied to the inverse image of each cover element to produce the nerve's vertices — for example single-linkage clustering at a fixed distance threshold. Domain math:MapperConstruction, range math:ClusteringRule (stated in prose). The rule is part of the frame so the node set is reproducible; a construction whose clustering is omitted or left to convention is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper à la math:ClusteringRule déterministe appliquée à l'image réciproque de chaque élément de recouvrement pour produire les sommets du nerf — par exemple un regroupement à liaison simple à un seuil de distance fixé. Domaine math:MapperConstruction, portée math:ClusteringRule (énoncé en prose). La règle fait partie du cadre afin que l'ensemble des nœuds soit reproductible ; une construction dont le regroupement est omis ou laissé à la convention est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|rdfs:label"
+msgid "output nerve"
+msgstr "nerf de sortie"
+
+msgctxt "https://blackcatinformatics.ca/math/outputNerve|skos:definition"
+msgid "Relates a Mapper construction to the math:NerveComplex it produces — the simplicial complex (its one-skeleton graph plus any higher simplices) whose vertices are the per-cover-element clusters and whose simplices record cluster overlaps. Domain math:MapperConstruction, range math:NerveComplex (stated in prose). The nerve is the declared output of the construction; a construction missing it is ill-formed (math:IncompleteMapperConstruction)."
+msgstr "Relie une construction Mapper au math:NerveComplex qu'elle produit — le complexe simplicial (son graphe à un squelette plus tout simplexe supérieur) dont les sommets sont les groupes par élément de recouvrement et dont les simplexes enregistrent les chevauchements de groupes. Domaine math:MapperConstruction, portée math:NerveComplex (énoncé en prose). Le nerf est la sortie déclarée de la construction ; une construction qui en manque est mal formée (math:IncompleteMapperConstruction)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|rdfs:label"
+msgid "has cover element"
+msgstr "a pour élément de recouvrement"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCoverElement|skos:definition"
+msgid "Relates a math:Cover to one of its math:CoverElement members — a single overlapping set of the covering family. Domain math:Cover, range math:CoverElement (stated in prose). Enumerating the cover elements is what makes a cover deterministic: the family is listed explicitly, not summarized by a resolution and gain."
+msgstr "Relie un math:Cover à l'un de ses membres math:CoverElement — un unique ensemble qui se chevauche de la famille recouvrante. Domaine math:Cover, portée math:CoverElement (énoncé en prose). Énumérer les éléments de recouvrement est ce qui rend un recouvrement déterministe : la famille est listée explicitement, non résumée par une résolution et un gain."
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|rdfs:label"
+msgid "clustering threshold"
+msgstr "seuil de regroupement"
+
+msgctxt "https://blackcatinformatics.ca/math/clusteringThreshold|skos:definition"
+msgid "Relates a math:ClusteringRule to the exact math:RationalValue of the distance threshold at which it merges points — the single-linkage cut-off carried as an exact numerator/denominator pair, never a decimal, so the clustering is reproducible. Domain math:ClusteringRule, range math:RationalValue (stated in prose)."
+msgstr "Relie une math:ClusteringRule à la math:RationalValue exacte du seuil de distance auquel elle fusionne les points — la coupure à liaison simple portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte que le regroupement est reproductible. Domaine math:ClusteringRule, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|rdfs:label"
+msgid "Vector-Symbolic Operation"
+msgstr "Opération vectorielle-symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicOperation|skos:definition"
+msgid "An operation in a declared vector-symbolic architecture that composes or retrieves distributed representations."
+msgstr "Une opération d'une architecture vectorielle-symbolique déclarée qui compose ou retrouve des représentations distribuées."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|rdfs:label"
+msgid "Vector Binding"
+msgstr "Liaison vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
+msgid "A vector-symbolic operation combining two representations into a representation of their association."
+msgstr "Une opération vectorielle-symbolique qui combine deux représentations en une représentation de leur association."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
+msgid "Vector Bundling"
+msgstr "Agrégation vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
+msgstr "Une opération vectorielle-symbolique qui superpose plusieurs représentations en un agrégat préservant la similarité."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
+msgid "Vector Unbinding"
+msgstr "Déliaison vectorielle"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
+msgstr "Une opération vectorielle-symbolique qui récupère un facteur lié lorsque l'autre facteur et une loi de liaison sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
+msgid "Quadratic Space"
+msgstr "Espace quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|skos:definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "Un espace vectoriel muni d'une forme quadratique déclarée, avec son corps scalaire et ses propriétés de dégénérescence. Ce n’est pas un espace vectoriel nu dépourvu de cette forme."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|rdfs:label"
+msgid "Quadratic Form"
+msgstr "Forme quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
+msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
+msgstr "Une fonction scalaire homogène de degré deux sur un espace vectoriel, avec sa forme bilinéaire associée lorsque la caractéristique le permet. Ce n’est pas sa forme bilinéaire associée."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
+msgid "Graded Algebra"
+msgstr "Algèbre graduée"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|skos:definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "Une algèbre décomposée en composantes indexées par le degré dont la multiplication respecte la loi de graduation. Ce n’est pas une décomposition en somme directe arbitraire : la multiplication doit respecter les degrés."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|rdfs:label"
+msgid "Grading"
+msgstr "Graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|skos:definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "Une décomposition d'une algèbre ou d'un module en composantes homogènes indexées, avec la loi combinant les degrés. Ce n’est pas une simple partition ou un simple étiquetage des éléments."
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|rdfs:label"
+msgid "Exterior Algebra"
+msgstr "Algèbre extérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorAlgebra|skos:definition"
+msgid "The graded alternating algebra generated by a vector space under the exterior product. It is not a Clifford algebra: repeated generators vanish and no quadratic-form contribution is retained."
+msgstr "L'algèbre alternée graduée engendrée par un espace vectoriel sous le produit extérieur. Ce n’est pas une algèbre de Clifford : les générateurs répétés s’annulent et aucune contribution de la forme quadratique n’est conservée."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|rdfs:label"
+msgid "Clifford Algebra"
+msgstr "Algèbre de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAlgebra|skos:definition"
+msgid "The unital associative algebra generated by a quadratic space under the relation v² equals its quadratic form; its field, signature, basis, grading, and product convention must be explicit. It is not an exterior algebra because its product retains the quadratic-form contribution."
+msgstr "L'algèbre associative unitaire engendrée par un espace quadratique sous la relation v² égale à sa forme quadratique ; corps, signature, base, graduation et produit sont explicites. Ce n’est pas une algèbre extérieure, car son produit conserve la contribution de la forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|rdfs:label"
+msgid "Basis Blade"
+msgstr "Lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
+msgid "A homogeneous Clifford or exterior basis element formed as an ordered product of distinct basis generators. It is not an arbitrary multivector or a sum of blades."
+msgstr "Un élément de base homogène formé comme produit ordonné de générateurs de base distincts. Ce n’est ni un multivecteur arbitraire ni une somme de lames."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
+msgid "Clifford Anticommutation Witness"
+msgstr "Témoin d'anticommutation de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|skos:definition"
+msgid "A calculated record that names two distinct Clifford generators and verifies that reversing their geometric-product order negates the result."
+msgstr "Un enregistrement calculé qui nomme deux générateurs distincts et vérifie que l'inversion de leur produit géométrique en change le signe."
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|rdfs:label"
+msgid "Multivector"
+msgstr "Multivecteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Multivector|skos:definition"
+msgid "An element of a Clifford algebra expressed as a sum of homogeneous blade components across one or more grades. It is not necessarily a vector or a grade-one element."
+msgstr "Un élément d'une algèbre de Clifford exprimé comme somme de composantes homogènes d'un ou plusieurs degrés. Ce n’est pas nécessairement un vecteur ou un élément de degré un."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|rdfs:label"
+msgid "Clifford Product"
+msgstr "Produit de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordProduct|skos:definition"
+msgid "A bilinear product operation defined within a declared Clifford algebra and governed by its quadratic form."
+msgstr "Une opération bilinéaire définie dans une algèbre de Clifford et régie par sa forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|rdfs:label"
+msgid "Geometric Product"
+msgstr "Produit géométrique"
+
+msgctxt "https://blackcatinformatics.ca/math/GeometricProduct|skos:definition"
+msgid "The associative Clifford product combining inner and exterior contributions according to the declared quadratic form. It is not the scalar product or exterior product alone."
+msgstr "Le produit associatif de Clifford combinant contributions intérieure et extérieure selon la forme quadratique. Ce n’est ni le produit scalaire seul ni le produit extérieur seul."
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|rdfs:label"
+msgid "Exterior Product"
+msgstr "Produit extérieur"
+
+msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|skos:definition"
+msgid "The alternating graded product, conventionally written with a wedge, that vanishes when a generator is repeated. It is not logical conjunction or the full geometric product."
+msgstr "Le produit alterné gradué, noté par un coin, qui s'annule lorsqu'un générateur est répété. Ce n’est ni la conjonction logique ni le produit géométrique complet."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|rdfs:label"
+msgid "Left Contraction"
+msgstr "Contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
+msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
+msgstr "Le produit abaissant le degré qui sélectionne la composante de différence des degrés d'un produit de Clifford. Ce n’est pas un produit intérieur symétrique : l’ordre des opérandes et la convention de contraction comptent."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
+msgid "Grade Projection"
+msgstr "Projection de degré"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|skos:definition"
+msgid "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."
+msgstr "L'opération qui sélectionne la composante homogène d'un multivecteur au degré déclaré. Ce n’est ni une sélection de coordonnées ni l’extraction d’un seul coefficient de base."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|rdfs:label"
+msgid "Clifford Involution"
+msgstr "Involution de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
+msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
+msgstr "Une opération d'ordre deux sur une algèbre de Clifford, dont l'action sur les degrés et l'ordre du produit est déclarée. Ce n’est pas un endomorphisme algébrique arbitraire : l’appliquer deux fois doit restituer l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
+msgid "Clifford Reversion"
+msgstr "Réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
+msgstr "L'anti-involution qui inverse l'ordre des générateurs de base dans chaque lame. Ce n’est pas l’involution de degré ; ses signes dépendant du degré proviennent de l’inversion de l’ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
+msgid "Grade Involution"
+msgstr "Involution de degré"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|skos:definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "L'involution qui nie les composantes de degré impair et préserve celles de degré pair."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|rdfs:label"
+msgid "Clifford Conjugation"
+msgstr "Conjugaison de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
+msgstr "La composition de l'involution de degré et de la réversion. Ce n’est ni la réversion seule ni l’involution de degré seule."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
+msgid "Rotor"
+msgstr "Roteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|skos:definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "Un multivecteur pair inversible dont l'action sandwich réalise une transformation orthogonale. Ce n’est pas n’importe quel multivecteur pair : l’inversibilité et l’action en sandwich sont constitutives."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|rdfs:label"
+msgid "Spinor"
+msgstr "Spineur"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|skos:definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "Un élément d'une représentation spinorielle ou d'un module de spineurs associé à un espace quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|rdfs:label"
+msgid "Dirac Operator"
+msgstr "Opérateur de Dirac"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|skos:definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "Un opérateur différentiel du premier ordre construit par multiplication de Clifford et connexion compatible sur un fibré de spineurs."
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|rdfs:label"
+msgid "Direct-Sum Decomposition"
+msgstr "Décomposition en somme directe"
+
+msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
+msgstr "Une décomposition en facteurs nommés, d'intersection deux à deux nulle et d'enveloppe conjointe exhaustive dans la catégorie déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
+msgid "Clifford Module Decomposition"
+msgstr "Décomposition de module de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|skos:definition"
+msgid "The vector-space or module decomposition of an extended Clifford algebra into an embedded base-algebra summand and the new-generator multiple of that summand; it is not an algebra direct sum."
+msgstr "La décomposition vectorielle ou modulaire d'une algèbre étendue en algèbre de base plongée et son multiple par le nouveau générateur ; ce n'est pas une somme d'algèbres."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|rdfs:label"
+msgid "Clifford Extension"
+msgstr "Extension de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordExtension|skos:definition"
+msgid "A declared extension from a base Clifford algebra to one with an additional generator, recording both signatures and the embedding convention."
+msgstr "Une extension d'une algèbre de base par un générateur supplémentaire, enregistrant signatures et convention de plongement."
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|rdfs:label"
+msgid "Faithful Representation"
+msgstr "Représentation fidèle"
+
+msgctxt "https://blackcatinformatics.ca/math/FaithfulRepresentation|skos:definition"
+msgid "A group representation whose kernel is trivial, so distinct represented group elements induce distinct transformations."
+msgstr "Une représentation de groupe de noyau trivial, où des éléments distincts induisent des transformations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|rdfs:label"
+msgid "Equivariant Map"
+msgstr "Application équivariante"
+
+msgctxt "https://blackcatinformatics.ca/math/EquivariantMap|skos:definition"
+msgid "A morphism between spaces carrying group actions that commutes with the declared actions."
+msgstr "Un morphisme entre espaces munis d'actions de groupe qui commute avec les actions déclarées."
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|rdfs:label"
+msgid "analysis output"
+msgstr "sortie d'analyse"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisOutput|skos:definition"
+msgid "Relates a mathematical analysis activity to an explicit result object it produced; interpretation of that result remains a separate standpoint-indexed claim."
+msgstr "Relie une activité d'analyse à l'objet résultat produit ; son interprétation reste une revendication séparée indexée par le point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|rdfs:label"
+msgid "target dimension"
+msgstr "dimension cible"
+
+msgctxt "https://blackcatinformatics.ca/math/targetDimension|skos:definition"
+msgid "The non-negative integer dimension requested as the output dimension of a dimensionality-reduction analysis."
+msgstr "La dimension entière non négative demandée comme sortie d'une réduction dimensionnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|rdfs:label"
+msgid "uses initialization"
+msgstr "utilise l'initialisation"
+
+msgctxt "https://blackcatinformatics.ca/math/usesInitialization|skos:definition"
+msgid "Relates an iterative mathematical analysis to the explicit initialization from which its optimization or iteration begins."
+msgstr "Relie une analyse itérative à l'initialisation explicite de son optimisation ou itération."
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|rdfs:label"
+msgid "reconstruction of"
+msgstr "reconstruction de"
+
+msgctxt "https://blackcatinformatics.ca/math/reconstructionOf|skos:definition"
+msgid "Relates a reconstructed mathematical object to the representation, projection, or source object it attempts to recover."
+msgstr "Relie un objet reconstruit à la représentation, projection ou source qu'il tente de retrouver."
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|rdfs:label"
+msgid "symplectic form"
+msgstr "forme symplectique"
+
+msgctxt "https://blackcatinformatics.ca/math/symplecticForm|skos:definition"
+msgid "Relates a Hamiltonian system or smooth state space to the closed nondegenerate two-form that frames its Hamiltonian dynamics."
+msgstr "Relie un système hamiltonien ou espace lisse à la 2-forme fermée non dégénérée qui cadre sa dynamique."
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|rdfs:label"
+msgid "state space"
+msgstr "espace d'états"
+
+msgctxt "https://blackcatinformatics.ca/math/stateSpace|skos:definition"
+msgid "Relates a dynamical or Hamiltonian system to the mathematical space containing its states."
+msgstr "Relie un système dynamique ou hamiltonien à l'espace mathématique contenant ses états."
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|rdfs:label"
+msgid "Hamiltonian function"
+msgstr "fonction hamiltonienne"
+
+msgctxt "https://blackcatinformatics.ca/math/hamiltonianFunction|skos:definition"
+msgid "Relates a Hamiltonian system to the scalar function whose symplectic gradient generates its evolution."
+msgstr "Relie un système à la fonction scalaire dont le gradient symplectique engendre son évolution."
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|rdfs:label"
+msgid "generates flow"
+msgstr "engendre le flot"
+
+msgctxt "https://blackcatinformatics.ca/math/generatesFlow|skos:definition"
+msgid "Relates a vector field, Hamiltonian function, or dynamical system to the flow it generates."
+msgstr "Relie un champ, une fonction hamiltonienne ou un système au flot qu'il engendre."
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|rdfs:label"
+msgid "sheaf base complex"
+msgstr "complexe de base du faisceau"
+
+msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|skos:definition"
+msgid "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."
+msgstr "Relie un faisceau cellulaire au complexe qui indexe ses germes et restrictions."
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|rdfs:label"
+msgid "has stalk"
+msgstr "a pour germe"
+
+msgctxt "https://blackcatinformatics.ca/math/hasStalk|skos:definition"
+msgid "Relates a sheaf to one of its local stalk objects."
+msgstr "Relie un faisceau à l'un de ses germes locaux."
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|rdfs:label"
+msgid "stalk over cell"
+msgstr "germe sur la cellule"
+
+msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|skos:definition"
+msgid "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."
+msgstr "Relie un germe à la cellule de base à laquelle il est attribué."
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|rdfs:label"
+msgid "restriction map"
+msgstr "application de restriction"
+
+msgctxt "https://blackcatinformatics.ca/math/restrictionMap|skos:definition"
+msgid "Relates a sheaf to one of its compatible restriction maps between stalks."
+msgstr "Relie un faisceau à l'une de ses applications de restriction compatibles."
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|rdfs:label"
+msgid "has section"
+msgstr "a pour section"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSection|skos:definition"
+msgid "Relates a sheaf to a local or global compatible section."
+msgstr "Relie un faisceau à une section compatible locale ou globale."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|rdfs:label"
+msgid "has Laplacian"
+msgstr "a pour laplacien"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLaplacian|skos:definition"
+msgid "Relates a complex, sheaf, or graded space to the Laplacian operator defined on it."
+msgstr "Relie un complexe, faisceau ou espace gradué au laplacien qui y est défini."
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|rdfs:label"
+msgid "decomposes flow"
+msgstr "décompose le flot"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposesFlow|skos:definition"
+msgid "Relates a Hodge decomposition to the flow, chain, or cochain it separates into exact, coexact, and harmonic components."
+msgstr "Relie une décomposition de Hodge à l'objet qu'elle sépare en composantes exacte, coexacte et harmonique."
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|rdfs:label"
+msgid "has quadratic form"
+msgstr "a pour forme quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/hasQuadraticForm|skos:definition"
+msgid "Relates a quadratic space or Clifford algebra to the quadratic form governing its metric relation."
+msgstr "Relie un espace quadratique ou une algèbre de Clifford à sa forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
+msgid "field of scalars"
+msgstr "corps des scalaires"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "Relie un espace, module ou algèbre au corps de scalaires déclaré pour ses opérations."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|rdfs:label"
+msgid "has grading"
+msgstr "a pour graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|skos:definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "Relie une algèbre ou un module gradué à sa décomposition en composantes homogènes."
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|rdfs:label"
+msgid "Clifford involution"
+msgstr "involution de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/cliffordInvolution|skos:definition"
+msgid "Relates a Clifford algebra to a supported involution such as reversion, grade involution, or Clifford conjugation."
+msgstr "Relie une algèbre de Clifford à une involution telle que réversion, involution de degré ou conjugaison."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|rdfs:label"
+msgid "has basis blade"
+msgstr "a pour lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|skos:definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "Relie une algèbre de Clifford à une lame homogène induite par sa base ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|rdfs:label"
+msgid "has anticommutation witness"
+msgstr "a pour témoin d'anticommutation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|skos:definition"
+msgid "Relates a Clifford algebra to a calculated witness for one distinct-generator anticommutation law."
+msgstr "Relie une algèbre à un témoin calculé d'une loi d'anticommutation."
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|rdfs:label"
+msgid "left generator"
+msgstr "générateur gauche"
+
+msgctxt "https://blackcatinformatics.ca/math/leftGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the generator occurring on the left in its forward product."
+msgstr "Relie un témoin au générateur placé à gauche dans son produit direct."
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|rdfs:label"
+msgid "right generator"
+msgstr "générateur droit"
+
+msgctxt "https://blackcatinformatics.ca/math/rightGenerator|skos:definition"
+msgid "Relates a Clifford anticommutation witness to the distinct generator occurring on the right in its forward product."
+msgstr "Relie un témoin au générateur distinct placé à droite."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|rdfs:label"
+msgid "blade grade"
+msgstr "degré de la lame"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|skos:definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "Le degré entier non négatif d'une lame de base homogène."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|rdfs:label"
+msgid "generator index"
+msgstr "indice du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|skos:definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "La position entière positive d'un générateur dans la base ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|rdfs:label"
+msgid "generator square"
+msgstr "carré du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "Le carré scalaire exact d'un générateur selon la signature déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
+msgid "pseudoscalar square"
+msgstr "carré du pseudo-scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|skos:definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "Le carré exact du pseudo-scalaire de degré maximal sous une convention déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|rdfs:label"
+msgid "anticommutation verified"
+msgstr "anticommutation vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|skos:definition"
+msgid "The boolean result of exactly checking the named distinct-generator anticommutation witness."
+msgstr "Le résultat booléen de la vérification exacte du témoin d'anticommutation."
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|rdfs:label"
+msgid "decomposed object"
+msgstr "objet décomposé"
+
+msgctxt "https://blackcatinformatics.ca/math/decomposedObject|skos:definition"
+msgid "Relates a decomposition record to the mathematical object decomposed."
+msgstr "Relie un enregistrement de décomposition à l'objet décomposé."
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|rdfs:label"
+msgid "direct summand"
+msgstr "facteur direct"
+
+msgctxt "https://blackcatinformatics.ca/math/directSummand|skos:definition"
+msgid "Relates a direct-sum decomposition to one of its explicitly identified summands."
+msgstr "Relie une somme directe à l'un de ses facteurs identifiés."
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|rdfs:label"
+msgid "module base summand"
+msgstr "facteur de base du module"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleBaseSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the embedded base-algebra summand."
+msgstr "Relie une décomposition de Clifford au facteur de l'algèbre de base plongée."
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|rdfs:label"
+msgid "module extension summand"
+msgstr "facteur d'extension du module"
+
+msgctxt "https://blackcatinformatics.ca/math/moduleExtensionSummand|skos:definition"
+msgid "Relates a Clifford module decomposition to the summand obtained by left multiplication with the new extension generator."
+msgstr "Relie une décomposition au facteur obtenu par multiplication par le nouveau générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|rdfs:label"
+msgid "split/join verified"
+msgstr "séparation/réunion vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/splitJoinVerified|skos:definition"
+msgid "The boolean result of an exact round trip through a declared Clifford extension split and join."
+msgstr "Le résultat booléen d'un aller-retour exact par séparation et réunion d'une extension."
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|rdfs:label"
+msgid "base algebra"
+msgstr "algèbre de base"
+
+msgctxt "https://blackcatinformatics.ca/math/baseAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the lower-generator Clifford algebra being embedded."
+msgstr "Relie une extension à l'algèbre de Clifford de moindre nombre de générateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|rdfs:label"
+msgid "extended algebra"
+msgstr "algèbre étendue"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedAlgebra|skos:definition"
+msgid "Relates a Clifford extension to the Clifford algebra obtained after adjoining the declared generator."
+msgstr "Relie une extension à l'algèbre obtenue après adjonction du générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|rdfs:label"
+msgid "extension generator"
+msgstr "générateur d'extension"
+
+msgctxt "https://blackcatinformatics.ca/math/extensionGenerator|skos:definition"
+msgid "Relates a Clifford extension to the additional basis generator, including its grade and exact square."
+msgstr "Relie une extension au générateur supplémentaire, avec son degré et son carré exact."
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|rdfs:label"
+msgid "represented object"
+msgstr "objet représenté"
+
+msgctxt "https://blackcatinformatics.ca/math/representedObject|skos:definition"
+msgid "Relates a mathematical representation to the group, algebra, or structured object it represents."
+msgstr "Relie une représentation au groupe, à l'algèbre ou à l'objet structuré représenté."
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|rdfs:label"
+msgid "representation map"
+msgstr "application de représentation"
+
+msgctxt "https://blackcatinformatics.ca/math/representationMap|skos:definition"
+msgid "Relates a representation record to the explicit morphism realizing the representation."
+msgstr "Relie une représentation au morphisme explicite qui la réalise."
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|rdfs:label"
+msgid "equivariant map"
+msgstr "application équivariante"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantMap|skos:definition"
+msgid "Relates a representation or structured comparison to the explicit map proved to commute with the declared group actions."
+msgstr "Relie une comparaison à l'application prouvée commutative avec les actions de groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|rdfs:label"
+msgid "equivariant under"
+msgstr "équivariant sous"
+
+msgctxt "https://blackcatinformatics.ca/math/equivariantUnder|skos:definition"
+msgid "Relates an equivariant map to the group action or symmetry with which it commutes."
+msgstr "Relie une application équivariante à l'action ou symétrie avec laquelle elle commute."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|rdfs:label"
+msgid "Incomplete Persistent-Homology Analysis"
+msgstr "Analyse d'homologie persistante incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompletePersistentHomologyAnalysis|skos:definition"
+msgid "The failure raised when a persistent-homology analysis lacks its input, filtration, or persistence-summary output."
+msgstr "L'échec levé quand une analyse manque son entrée, sa filtration ou sa sortie de persistance."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|rdfs:label"
+msgid "Incomplete Dimensionality-Reduction Analysis"
+msgstr "Analyse de réduction dimensionnelle incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDimensionalityReductionAnalysis|skos:definition"
+msgid "The failure raised when a dimensionality-reduction analysis lacks its input, target dimension, or output embedding."
+msgstr "L'échec levé quand une réduction manque son entrée, sa dimension cible ou son plongement de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|rdfs:label"
+msgid "Incomplete Hamiltonian System"
+msgstr "Système hamiltonien incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteHamiltonianSystem|skos:definition"
+msgid "The failure raised when a Hamiltonian system lacks its smooth state space, symplectic form, Hamiltonian function, or generated Hamiltonian flow."
+msgstr "L'échec levé quand un système manque son espace d'états, sa forme symplectique, sa fonction ou son flot hamiltonien."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|rdfs:label"
+msgid "Incomplete Cellular Sheaf"
+msgstr "Faisceau cellulaire incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|skos:definition"
+msgid "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."
+msgstr "L'échec levé quand un faisceau manque son complexe de base, ses germes ou ses restrictions."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|rdfs:label"
+msgid "Incomplete Clifford Algebra"
+msgstr "Algèbre de Clifford incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|skos:definition"
+msgid "The failure raised when a Clifford algebra lacks its scalar field, signature, basis blades, grading, product/involution frame, or exact vector-space dimension."
+msgstr "L'échec levé quand une algèbre manque corps, signature, lames, graduation, produits ou involutions, ou dimension exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|rdfs:label"
+msgid "Incomplete Clifford Extension"
+msgstr "Extension de Clifford incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordExtension|skos:definition"
+msgid "The failure raised when a Clifford extension lacks its base algebra, extended algebra, or additional generator."
+msgstr "L'échec levé quand une extension manque son algèbre de base, son algèbre étendue ou son générateur supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|rdfs:label"
+msgid "Metric Signature"
+msgstr "Signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
+msgstr "La signature (p, q) partagée d'un espace quadratique réel, tenseur métrique, forme quadratique ou algèbre de Clifford, portée par math:signaturePositive et math:signatureNegative. Elle est structurée ; p + q égale la dimension du support."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
+msgid "space dimension"
+msgstr "dimension de l'espace"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "La dimension vectorielle entière non négative d'un espace de coordonnées, espace tangent, support algébrique ou autre objet linéaire ; elle est distincte de la dimension physique math:hasDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
+msgid "metric signature"
+msgstr "signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "Relie un tenseur métrique, espace quadratique, forme quadratique ou algèbre de Clifford à sa math:MetricSignature (p, q) structurée et partagée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgid "has basis"
+msgstr "a pour base"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
+msgstr "Relie un espace vectoriel, espace quadratique ou algèbre de Clifford à une math:Basis de son support ; une base de Clifford fixe les générateurs ordonnés de ses produits exacts."
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
+msgid "analysis input"
+msgstr "entrée d'analyse"
+
+msgctxt "https://blackcatinformatics.ca/math/analysisInput|skos:definition"
+msgid "Relates a mathematical analysis activity to the explicit object it analyzes. PCA uses it for a data matrix or subspace; dimensional reduction and persistent homology reuse the same grounding relation for their source object. An analysis whose class requires an input is ill-formed when this edge is absent."
+msgstr "Relie une activité d'analyse mathématique à l'objet explicite qu'elle analyse ; l'absence de cette relation rend mal formée toute analyse qui exige une entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|rdfs:label"
+msgid "Vector-Symbolic Capacity"
+msgstr "Capacité vectorielle-symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSymbolicCapacity|skos:definition"
+msgid "The capacity descriptor of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue bound (through math:capacityBound) on how many representations may be bound or superposed into one vector before recovery degrades below the operation's recovery-loss contract. A subclass of math:MathematicalObject. Capacity is declared, never an implicit consequence of dimension; a vector-symbolic operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation), because the point at which superposition crosstalk overwhelms retrieval is then unstated."
+msgstr "Le descripteur de capacité d'une opération vectorielle-symbolique : un objet mathématique de première classe portant la borne math:RationalValue exacte (via math:capacityBound) sur le nombre de représentations qui peuvent être liées ou superposées en un seul vecteur avant que la récupération ne se dégrade en deçà du contrat de perte à la récupération de l'opération. Une sous-classe de math:MathematicalObject. La capacité est déclarée, jamais une conséquence implicite de la dimension ; une opération vectorielle-symbolique qui en manque est mal formée (math:IncompleteVectorSymbolicOperation), car le point où la diaphonie de superposition submerge la récupération reste alors non énoncé."
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|rdfs:label"
+msgid "Recovery-Loss Contract"
+msgstr "Contrat de perte à la récupération"
+
+msgctxt "https://blackcatinformatics.ca/math/RecoveryLossContract|skos:definition"
+msgid "The recovery-loss (fidelity) contract of a vector-symbolic operation: a first-class mathematical object carrying the exact math:RationalValue loss bound (through math:lossBound) on the discrepancy between a recovered operand and the original — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise. A subclass of math:MathematicalObject. Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive: an unbinding whose fidelity is left implicit cannot claim invertibility, and a vector-symbolic operation missing the contract is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Le contrat de perte à la récupération (fidélité) d'une opération vectorielle-symbolique : un objet mathématique de première classe portant la borne de perte math:RationalValue exacte (via math:lossBound) sur l'écart entre un opérande récupéré et l'original — exactement 0/1 lorsqu'une algèbre exacte rend l'opération inversible, et un rationnel positif énoncé sinon. Une sous-classe de math:MathematicalObject. La récupération est approximative sauf si une algèbre exacte prouve le contraire, donc le contrat est constitutif : un déliage dont la fidélité est laissée implicite ne peut prétendre à l'inversibilité, et une opération vectorielle-symbolique qui manque du contrat est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|rdfs:label"
+msgid "Incomplete Vector-Symbolic Operation"
+msgstr "Opération vectorielle-symbolique incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteVectorSymbolicOperation|skos:definition"
+msgid "The failure raised when a vector-symbolic operation lacks a required frame component — the math:VectorSpace it composes in, the math:Basis fixing its coordinates, its operand vectors (two or more for a binding or bundling; the bound vector, key, and recovered operand for an unbinding), its capacity descriptor, or its recovery-loss (fidelity) contract. A vector-symbolic operation is defined only relative to a complete, declared frame; a bare binding, bundle, or unbinding whose capacity or recovery-loss contract is implicit is ill-formed, because without the capacity the superposition-crosstalk limit is unstated and without the loss bound the operation cannot claim invertibility — recovery is approximate unless an exact algebra proves otherwise."
+msgstr "L'échec soulevé lorsqu'une opération vectorielle-symbolique manque d'une composante de cadre requise — le math:VectorSpace dans lequel elle compose, la math:Basis fixant ses coordonnées, ses vecteurs opérandes (deux ou plus pour un liage ou un groupage ; le vecteur lié, la clé et l'opérande récupéré pour un déliage), son descripteur de capacité, ou son contrat de perte à la récupération (fidélité). Une opération vectorielle-symbolique n'est définie que relativement à un cadre complet et déclaré ; un liage, un groupage ou un déliage nu dont la capacité ou le contrat de perte à la récupération est implicite est mal formé, car sans la capacité la limite de diaphonie de superposition n'est pas énoncée et sans la borne de perte l'opération ne peut prétendre à l'inversibilité — la récupération est approximative sauf si une algèbre exacte prouve le contraire."
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|rdfs:label"
+msgid "over vector space"
+msgstr "sur l'espace vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/overVectorSpace|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSpace it composes distributed representations in — the ambient space whose vectors are bound, bundled, or unbound. Domain math:VectorSymbolicOperation, range math:VectorSpace (stated in prose). The space is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au math:VectorSpace dans lequel elle compose des représentations distribuées — l'espace ambiant dont les vecteurs sont liés, groupés ou déliés. Domaine math:VectorSymbolicOperation, portée math:VectorSpace (énoncé en prose). L'espace fait partie du cadre de l'opération, jamais implicite ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|rdfs:label"
+msgid "over basis"
+msgstr "sur la base"
+
+msgctxt "https://blackcatinformatics.ca/math/overBasis|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:Basis fixing the coordinates of its vector space, so the operand and result vectors have unambiguous components and the binding law is reproducible. Domain math:VectorSymbolicOperation, range math:Basis (stated in prose). The basis is part of the operation's frame, never implicit; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique à la math:Basis fixant les coordonnées de son espace vectoriel, de sorte que les vecteurs opérandes et résultats aient des composantes non ambiguës et que la loi de liage soit reproductible. Domaine math:VectorSymbolicOperation, portée math:Basis (énoncé en prose). La base fait partie du cadre de l'opération, jamais implicite ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|rdfs:label"
+msgid "vsa operand"
+msgstr "opérande vsa"
+
+msgctxt "https://blackcatinformatics.ca/math/vsaOperand|skos:definition"
+msgid "Relates a math:VectorBinding or math:VectorBundling to one of the operand math:Vectors it composes — a factor of a binding or a summand of a bundle. Domain a math:VectorBinding or math:VectorBundling, range math:Vector (stated in prose). Binding and bundling each take two or more operands; an operation declaring fewer is ill-formed (math:IncompleteVectorSymbolicOperation), because a single operand is nothing to combine."
+msgstr "Relie un math:VectorBinding ou un math:VectorBundling à l'un des math:Vector opérandes qu'il compose — un facteur d'un liage ou un terme d'un groupage. Domaine un math:VectorBinding ou math:VectorBundling, portée math:Vector (énoncé en prose). Le liage et le groupage prennent chacun deux opérandes ou plus ; une opération en déclarant moins est mal formée (math:IncompleteVectorSymbolicOperation), car un opérande unique n'est rien à combiner."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|rdfs:label"
+msgid "bound vector"
+msgstr "vecteur lié"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVector|skos:definition"
+msgid "Relates a math:VectorUnbinding to the composite math:Vector it recovers an operand from — the previously bound representation the unbinding is applied to. Domain math:VectorUnbinding, range math:Vector (stated in prose). The bound vector is part of the unbinding's frame, never implicit; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector composite dont il récupère un opérande — la représentation précédemment liée à laquelle le déliage est appliqué. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). Le vecteur lié fait partie du cadre du déliage, jamais implicite ; un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|rdfs:label"
+msgid "unbinding key"
+msgstr "clé de déliage"
+
+msgctxt "https://blackcatinformatics.ca/math/unbindingKey|skos:definition"
+msgid "Relates a math:VectorUnbinding to the key (cue) math:Vector supplied to retrieve a bound factor — the other operand of the original binding, or its inverse under the declared binding law. Domain math:VectorUnbinding, range math:Vector (stated in prose). Without the key there is nothing to probe the bound vector with, so an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector clé (indice) fourni pour récupérer un facteur lié — l'autre opérande du liage d'origine, ou son inverse sous la loi de liage déclarée. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). Sans la clé, il n'y a rien avec quoi sonder le vecteur lié, de sorte qu'un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|rdfs:label"
+msgid "recovered operand"
+msgstr "opérande récupéré"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveredOperand|skos:definition"
+msgid "Relates a math:VectorUnbinding to the math:Vector it produces — the retrieved estimate of the bound operand, exact when an exact algebra makes the binding invertible and a noisy approximation otherwise. Domain math:VectorUnbinding, range math:Vector (stated in prose). The recovered operand is the declared output of the unbinding; an unbinding missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie un math:VectorUnbinding au math:Vector qu'il produit — l'estimation récupérée de l'opérande lié, exacte lorsqu'une algèbre exacte rend le liage inversible et une approximation bruitée sinon. Domaine math:VectorUnbinding, portée math:Vector (énoncé en prose). L'opérande récupéré est la sortie déclarée du déliage ; un déliage qui en manque est mal formé (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|rdfs:label"
+msgid "operation capacity"
+msgstr "capacité d'opération"
+
+msgctxt "https://blackcatinformatics.ca/math/operationCapacity|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:VectorSymbolicCapacity descriptor bounding how many representations may be bound or superposed before recovery degrades. Domain math:VectorSymbolicOperation, range math:VectorSymbolicCapacity (stated in prose). The capacity is declared, never an implicit consequence of dimension; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au descripteur math:VectorSymbolicCapacity bornant le nombre de représentations qui peuvent être liées ou superposées avant que la récupération ne se dégrade. Domaine math:VectorSymbolicOperation, portée math:VectorSymbolicCapacity (énoncé en prose). La capacité est déclarée, jamais une conséquence implicite de la dimension ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|rdfs:label"
+msgid "recovery-loss contract"
+msgstr "contrat de perte à la récupération"
+
+msgctxt "https://blackcatinformatics.ca/math/recoveryLossContract|skos:definition"
+msgid "Relates a vector-symbolic operation to the math:RecoveryLossContract stating the exact fidelity of retrieval — loss 0/1 when an exact algebra makes it invertible, a stated positive rational otherwise. Domain math:VectorSymbolicOperation, range math:RecoveryLossContract (stated in prose). Recovery is approximate unless an exact algebra proves otherwise, so the contract is constitutive; an operation missing it is ill-formed (math:IncompleteVectorSymbolicOperation)."
+msgstr "Relie une opération vectorielle-symbolique au math:RecoveryLossContract énonçant la fidélité exacte de la récupération — perte 0/1 lorsqu'une algèbre exacte la rend inversible, un rationnel positif énoncé sinon. Domaine math:VectorSymbolicOperation, portée math:RecoveryLossContract (énoncé en prose). La récupération est approximative sauf si une algèbre exacte prouve le contraire, donc le contrat est constitutif ; une opération qui en manque est mal formée (math:IncompleteVectorSymbolicOperation)."
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|rdfs:label"
+msgid "capacity bound"
+msgstr "borne de capacité"
+
+msgctxt "https://blackcatinformatics.ca/math/capacityBound|skos:definition"
+msgid "Relates a math:VectorSymbolicCapacity to the exact math:RationalValue of the maximum number of representations it may bind or superpose before recovery degrades — carried as an exact numerator/denominator pair, never a decimal, so the capacity is reproducible. Domain math:VectorSymbolicCapacity, range math:RationalValue (stated in prose)."
+msgstr "Relie une math:VectorSymbolicCapacity à la math:RationalValue exacte du nombre maximal de représentations qu'elle peut lier ou superposer avant que la récupération ne se dégrade — portée comme une paire numérateur/dénominateur exacte, jamais un décimal, de sorte que la capacité est reproductible. Domaine math:VectorSymbolicCapacity, portée math:RationalValue (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|rdfs:label"
+msgid "loss bound"
+msgstr "borne de perte"
+
+msgctxt "https://blackcatinformatics.ca/math/lossBound|skos:definition"
+msgid "Relates a math:RecoveryLossContract to the exact math:RationalValue of its recovery-loss bound — 0/1 exactly when an exact algebra makes the operation invertible, and a stated positive rational otherwise — carried as an exact numerator/denominator pair, never a decimal. Domain math:RecoveryLossContract, range math:RationalValue (stated in prose)."
+msgstr "Relie un math:RecoveryLossContract à la math:RationalValue exacte de sa borne de perte à la récupération — exactement 0/1 lorsqu'une algèbre exacte rend l'opération inversible, et un rationnel positif énoncé sinon — portée comme une paire numérateur/dénominateur exacte, jamais un décimal. Domaine math:RecoveryLossContract, portée math:RationalValue (énoncé en prose)."

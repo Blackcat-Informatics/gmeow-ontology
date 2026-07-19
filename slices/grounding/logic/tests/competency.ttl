@@ -825,6 +825,33 @@ ex:rowTypedIrMinimumReviewers a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:minimumReviewers ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "minimum-reviewer-count" ] .
 
+# ── Multi-hop-join product-aggregate (∂²=0) constraint record ────────────────
+# The query walks the ordered logic:joinPath list into its two logic:JoinLeg records,
+# joins the scalar aggregate parameters, and pins the list to terminate at rdf:nil right
+# after the second leg — confirming the frontend has a complete, chained EXACTLY-two-hop
+# join record (a bare class declaration, a one-leg list, or a longer three-plus-leg list
+# cannot answer it). This is the source-graph well-formedness twin of the Rust
+# projection tests, which prove the same record lowers to a GROUP BY/HAVING SELECT.
+ex:cqTypedIrJoinAggregate a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?constraint ?behavior WHERE { BIND(ir:boundarySquareZero AS ?constraint) ?constraint a logic:JoinAggregateConstraint ; logic:onClass ir:TopCell ; logic:aggFunction 'SUM' ; logic:aggComparator '=' ; logic:aggThreshold 0 ; logic:joinPath ?l1 . ?l1 rdf:first ?leg1 ; rdf:rest ?l2 . ?l2 rdf:first ?leg2 ; rdf:rest rdf:nil . ?leg1 logic:legSource ir:incidenceCoface ; logic:legTarget ir:incidenceFace ; logic:legValue ir:incidenceSign . ?leg2 logic:legSource ir:incidenceCoface ; logic:legTarget ir:incidenceFace ; logic:legValue ir:incidenceSign . BIND('boundary-square-zero' AS ?behavior) }" ;
+    gmeow:cqDataFile "examples/typed-ir.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The boundary-square-zero policy is a two-hop join record: an ordered joinPath whose first two JoinLeg cells each carry the incidence source/target/value predicates, plus the scalar SUM aggregate, '=' invariant, and 0 threshold. The query walks the rdf:List into both leg cells and joins their role predicates, so a bare sugar-class declaration, a missing scalar parameter, or a single-leg list empties the result. The Rust projection tests are the authority that then lowers this same record to a multi-hop-join GROUP BY/HAVING SELECT." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqTypedIrJoinAggregateShape ;
+    gmeow:cqExpectRow ex:rowTypedIrJoinAggregate .
+
+ex:cqTypedIrJoinAggregateShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "constraint" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "behavior" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowTypedIrJoinAggregate a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:boundarySquareZero ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "boundary-square-zero" ] .
+
 # ── Shipped grounding bridge surface ────────────────────────────────────────
 # The query walks the worked graph rather than a VALUES inventory: each pinned
 # term must occur as a class, relation, endpoint, guard, or restriction operator

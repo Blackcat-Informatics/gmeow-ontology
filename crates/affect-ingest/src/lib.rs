@@ -295,6 +295,10 @@ pub enum IngestError {
     MalformedGraph {
         detail: String,
     },
+    /// An SSSOM correspondence file could not be parsed by `purrdf::sssom`.
+    InvalidSssom {
+        detail: String,
+    },
     /// A statically-registered `gmeow:AffectLabelSet` declares no
     /// `gmeow:labelSetDecision` — its exclusivity is unknown, so the producer
     /// cannot judge whether more than one crossing is a violation (a hard fail).
@@ -394,6 +398,9 @@ impl fmt::Display for IngestError {
             ),
             IngestError::MalformedGraph { detail } => {
                 write!(f, "cannot recover capture from graph: {detail}")
+            }
+            IngestError::InvalidSssom { detail } => {
+                write!(f, "malformed SSSOM correspondence file: {detail}")
             }
             IngestError::MissingLabelSetDecision { label_set } => write!(
                 f,
@@ -602,7 +609,12 @@ impl IngestConfig {
         sssom_tsv: &str,
         index: &TripleIndex,
     ) -> Result<(), IngestError> {
-        let curie_map = parse_sssom_curie_map(sssom_tsv);
+        let curie_map = purrdf::sssom::parse_tsv(sssom_tsv)
+            .map_err(|d| IngestError::InvalidSssom {
+                detail: d.to_string(),
+            })?
+            .meta
+            .curie_map;
         let expand = |curie: &str| -> Option<String> {
             // Absolute IRIs are standard in SSSOM and pass through unexpanded.
             if curie.starts_with("http://") || curie.starts_with("https://") {
@@ -1275,29 +1287,6 @@ fn derive_registry_prefix(
     Ok(first.to_owned())
 }
 
-/// Parse the `# curie_map:` block of an SSSOM TSV into prefix → namespace IRI.
-/// Only `#`-comment lines whose value is an absolute `http(s)` IRI are taken, so
-/// the metadata lines (`mapping_tool:`, `mapping_date:`) are naturally skipped.
-fn parse_sssom_curie_map(sssom_tsv: &str) -> BTreeMap<String, String> {
-    let mut map = BTreeMap::new();
-    for line in sssom_tsv.lines() {
-        let Some(rest) = line.strip_prefix('#') else {
-            continue;
-        };
-        let Some((prefix, iri)) = rest.trim().split_once(':') else {
-            continue;
-        };
-        let iri = iri.trim();
-        if !prefix.is_empty()
-            && !prefix.contains(char::is_whitespace)
-            && (iri.starts_with("http://") || iri.starts_with("https://"))
-        {
-            map.insert(prefix.to_owned(), iri.to_owned());
-        }
-    }
-    map
-}
-
 /// Format an f64 as an `xsd:decimal` lexical (`0.84`, `1.0`) — NEVER exponent
 /// form, which `xsd:decimal` forbids. Rust's `f64` `Display` already emits the
 /// shortest round-trip decimal WITHOUT scientific notation (only the `{:e}`
@@ -1738,7 +1727,7 @@ mod tests {
     /// a curie_map header, a column header, and rows — including the broadMatch
     /// (grief) and closeMatch-to-non-EmotionType (desire) rows that must NOT route.
     const SSSOM: &str = concat!(
-        "# mapping_tool: gmeow regenerate (mappings)\n",
+        "# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)\n",
         "# curie_map:\n",
         "#   gmeow: https://blackcatinformatics.ca/gmeow/\n",
         "#   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/\n",

@@ -24,15 +24,15 @@
 //! 5. **LATTICE-DERIVATION** — each reified comparison's `comparisonLatticeRelation`
 //!    is the RDF image of its `DivergenceKind`: `VerdictEquivalent`⟺Agree,
 //!    `VerdictWeaker`⟺DlGap, `VerdictIncomparable`⟺CorpusOnly.
-//! 6. **FATAL-REGRESSION** — `CorpusOnly` / `DlGap` / `OracleOnly` still grade to a
-//!    BLOCKING category (`gate()` == Fatal) while `NativeOnly` + `Agree` do not, so
+//! 6. **FATAL-REGRESSION** — `CorpusOnly` / `DlGap` still grade to a
+//!    BLOCKING category (`gate()` == Fatal) while `Agree` does not, so
 //!    Task 4's every-comparison fold did not weaken the soundness gate.
 //!
 //! Gates 4/5/6 drive the real Rust emitter (`divergence_findings` /
 //! `emit_divergence_nq`) and the real gate morphism (`gmeow_errors::grade::gate`),
 //! so they PASS with no regeneration. Gates 1/2/3 read the SHIPPED generated
 //! artifacts (`gmeow.gts`, `functions.fno.ttl`, `gmeow-conformance-corpus.sssom.tsv`);
-//! until `make regenerate` re-mints those artifacts with the Task 1–4 individuals,
+//! until `make sync` re-mints those artifacts with the Task 1–4 individuals,
 //! they FAIL with a CLEAN drift / empty report (never a panic or parse crash) and
 //! pass post-regenerate.
 
@@ -46,8 +46,7 @@ use gmeow_conformance::paths::repo_root;
 use gmeow_conformance::serialize::VerdictStatus;
 use gmeow_errors::grade::{Blocking, GateVerdict, Grade, gate};
 use gmeow_logic::reason::{
-    ExternalComparison, build_ledger, compare_external_corpus, compare_subsumption,
-    divergence_findings, dl_gap_rows,
+    ExternalComparison, build_ledger, compare_external_corpus, divergence_findings, dl_gap_rows,
 };
 use purrdf::{RdfDataset, TermRef};
 
@@ -120,7 +119,7 @@ fn load_shipped_bundle() -> Arc<RdfDataset> {
     let path = shipped_gts_path();
     let bytes = std::fs::read(&path).unwrap_or_else(|e| {
         panic!(
-            "SHIPPED bundle {} could not be read: {e} — run `make regenerate`",
+            "SHIPPED bundle {} could not be read: {e} — run `make sync`",
             path.display()
         )
     });
@@ -190,7 +189,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
     let fno_path = functions_fno_path();
     let fno_text = std::fs::read_to_string(&fno_path).unwrap_or_else(|e| {
         panic!(
-            "shipped FnO catalog {} could not be read: {e} — run `make regenerate`",
+            "shipped FnO catalog {} could not be read: {e} — run `make sync`",
             fno_path.display()
         )
     });
@@ -233,7 +232,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
             panic!(
                 "shipped SZS individual {subj} carries logic:projectsToVerdict but no \
                  logic:rawStatusToken — cannot bind it to outcome_for_szs (stale gmeow.gts? \
-                 run `make regenerate`)"
+                 run `make sync`)"
             )
         });
         let shipped = conf_local_to_verdict_status(verdict_local).unwrap_or_else(|| {
@@ -263,7 +262,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
     assert_eq!(
         shipped_tokens, expected,
         "SZS DOMAIN DRIFT: gmeow.gts ships {shipped_tokens:?} but outcome_for_szs's domain \
-         is {expected:?} (stale gmeow.gts fails here until `make regenerate`)"
+         is {expected:?} (stale gmeow.gts fails here until `make sync`)"
     );
 }
 
@@ -277,7 +276,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "shipped SSSOM {} could not be read: {e} — the eqConfCorpus cells project here; \
-             run `make regenerate`",
+             run `make sync`",
             path.display()
         )
     });
@@ -346,7 +345,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     assert!(
         rows >= 4,
         "shipped SSSOM {} has {rows} data rows; the four eqConfCorpus cells must all project \
-         (stale/absent file fails here until `make regenerate`)",
+         (stale/absent file fails here until `make sync`)",
         path.display()
     );
     for kind in [
@@ -422,7 +421,7 @@ fn graph_isolation_conformance_never_imported_and_lives_in_its_own_graph() {
         comparison_or_tally_graphs.contains(CONFORMANCE_GRAPH),
         "no ConformanceComparison/CorpusAgreementTally individual found in the conformance graph \
          <{CONFORMANCE_GRAPH}> of the shipped bundle (stale gmeow.gts fails here until \
-         `make regenerate`; observed graphs: {comparison_or_tally_graphs:?})"
+         `make sync`; observed graphs: {comparison_or_tally_graphs:?})"
     );
 }
 
@@ -590,7 +589,7 @@ fn non_empty_conformance_graph_per_graded_corpus() {
                     "NON-EMPTY: verdict corpus {corpus:?} has ≥1 gradeable case but the shipped \
                      conformance graph carries no ConformanceComparison for it with a Conf* \
                      comparisonNativeVerdict AND a rawStatusToken (stale gmeow.gts fails here \
-                     until `make regenerate`)"
+                     until `make sync`)"
                 );
             }
             Gradeability::Ontouml => {
@@ -599,14 +598,14 @@ fn non_empty_conformance_graph_per_graded_corpus() {
                     corpus_has_comparison.contains(&corpus),
                     "NON-EMPTY: OntoUML corpus {corpus:?} has ≥1 gradeable case but the shipped \
                      conformance graph carries no ConformanceComparison for it (stale gmeow.gts \
-                     fails here until `make regenerate`)"
+                     fails here until `make sync`)"
                 );
             }
         }
         assert!(
             tally_corpora.contains(&corpus),
             "NON-EMPTY: corpus {corpus:?} grades cases but the shipped conformance graph carries \
-             no CorpusAgreementTally for it (stale gmeow.gts fails here until `make regenerate`)"
+             no CorpusAgreementTally for it (stale gmeow.gts fails here until `make sync`)"
         );
     }
 
@@ -638,7 +637,7 @@ fn corroboration_agreements_fold_non_blocking_corroboration_findings() {
         cmp("beyond/decided", "w", "consistent", "consistent"),
     ];
     let rows = compare_external_corpus("w3c-owl2-el", &comparisons);
-    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    let ledger = build_ledger(Vec::new(), Vec::new(), rows);
     let findings = divergence_findings(&ledger);
 
     assert_eq!(
@@ -756,15 +755,13 @@ fn lattice_relation_is_the_rdf_image_of_the_divergence_kind() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
+fn fatal_regression_blocking_kinds_still_gate_and_agree_does_not() {
     // Build one ledger holding one row of every kind, then drive the REAL emitter +
     // the REAL gate() morphism over the resulting grades.
-    //   native {A⊑B}, oracle {C⊑B}: A⊑B is NativeOnly, C⊑B is OracleOnly.
-    let subs = compare_subsumption(
-        &[tup("http://ex/A", "http://ex/B", "http://ex/w")],
-        &[tup("http://ex/C", "http://ex/B", "http://ex/w")],
-    );
-    let gaps = dl_gap_rows(&[purrdf::RdfLoss::new("reason.dl-gap.union", "beyond EL")]);
+    let gaps = dl_gap_rows(&[gmeow_logic::reason::DlGap::new(
+        "reason.dl-gap.union",
+        "beyond EL",
+    )]);
     let corpus = compare_external_corpus(
         "w3c-owl2-el",
         &[
@@ -772,7 +769,7 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
             cmp("wrong", "w", "consistent", "inconsistent"), // CorpusOnly
         ],
     );
-    let ledger = build_ledger(subs, Vec::new(), gaps, corpus);
+    let ledger = build_ledger(Vec::new(), gaps, corpus);
     let findings = divergence_findings(&ledger);
 
     // Every kind's code must be present, so the gate is genuinely exercised.
@@ -781,10 +778,8 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
         .map(|f| (f.code.as_str(), gate(grade_of(f))))
         .collect();
     for code in [
-        "reason.divergence.oracle-only",
         "reason.divergence.dl-gap",
         "reason.divergence.corpus-only",
-        "reason.divergence.native-only",
         "reason.divergence.agreement",
     ] {
         assert!(
@@ -794,29 +789,20 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_native_only_do_not() {
         );
     }
 
-    // The three soundness-failing kinds STILL gate Fatal (the Task-4 change is additive).
-    for code in [
-        "reason.divergence.oracle-only",
-        "reason.divergence.dl-gap",
-        "reason.divergence.corpus-only",
-    ] {
+    // The two soundness-failing kinds STILL gate Fatal (the Task-4 change is additive).
+    for code in ["reason.divergence.dl-gap", "reason.divergence.corpus-only"] {
         assert_eq!(
             by_code[code],
             GateVerdict::Fatal,
             "FATAL-REGRESSION: {code} must still gate Fatal (blocking soundness kind)"
         );
     }
-    // Agree + NativeOnly are non-blocking and must NOT gate.
-    for code in [
-        "reason.divergence.native-only",
-        "reason.divergence.agreement",
-    ] {
-        assert_eq!(
-            by_code[code],
-            GateVerdict::Collected,
-            "FATAL-REGRESSION: {code} must NOT gate (non-blocking corroboration/richness)"
-        );
-    }
+    // Agree is non-blocking and must NOT gate.
+    assert_eq!(
+        by_code["reason.divergence.agreement"],
+        GateVerdict::Collected,
+        "FATAL-REGRESSION: agreement must NOT gate (non-blocking corroboration)"
+    );
 }
 
 // ── shared test helpers ────────────────────────────────────────────────────────
@@ -828,10 +814,6 @@ fn cmp(case: &str, world: &str, native: &str, published: &str) -> ExternalCompar
         native: native.to_owned(),
         published: published.to_owned(),
     }
-}
-
-fn tup(s: &str, o: &str, w: &str) -> (String, String, String) {
-    (s.to_owned(), o.to_owned(), w.to_owned())
 }
 
 /// Reconstruct the diagnostic [`Grade`] a folded finding carries, so the real

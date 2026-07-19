@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/coverage/> .
+
+# A Hodge decomposition names a complete, declared frame: the signal it splits,
+# its exact, coexact, and harmonic components, the boundary operator whose image
+# and adjoint image give the exact and coexact parts, the cellular sheaf it is
+# carried over, an exact residual witnessing reconstruction, and the three exact
+# pairwise-orthogonality inner products. The decomposition conforms against the
+# derived frame shapes.
+#
+# RECONSTRUCTION (Hodge decomposition theorem): the signal equals the sum of its
+# exact, coexact, and harmonic components,
+#   signal = exact + coexact + harmonic,
+# so the residual norm ‖signal − (exact + coexact + harmonic)‖ is exactly zero.
+# It is recorded as the exact rational 0/1 (numerator 0, denominator 1) — never a
+# decimal — through math:reconstructionResidual.
+#
+# PAIRWISE ORTHOGONALITY: the three components are mutually orthogonal under the
+# sheaf's inner product, so each pairwise inner product is exactly zero:
+#   ⟨exact, coexact⟩ = ⟨exact, harmonic⟩ = ⟨coexact, harmonic⟩ = 0,
+# each recorded as the exact rational 0/1. The single ex:zero node carries every
+# exact-zero value.
+ex:decomposition a math:HodgeDecomposition ;
+    math:decomposesFlow ex:signal ;
+    math:exactComponent ex:exactPart ;
+    math:coexactComponent ex:coexactPart ;
+    math:harmonicComponent ex:harmonicPart ;
+    math:hodgeBoundaryOperator ex:boundary ;
+    math:overSheaf ex:sheaf ;
+    math:reconstructionResidual ex:zero ;
+    math:exactCoexactInnerProduct ex:zero ;
+    math:exactHarmonicInnerProduct ex:zero ;
+    math:coexactHarmonicInnerProduct ex:zero .
+
+# The whole signal (a cochain / sheaf section) reconstructed by the three parts.
+# A sheaf section IS a math:MathematicalObject (math:SheafSection ⊑
+# math:MathematicalObject); the object type is asserted explicitly because the
+# closed-world frame shape for math:decomposesFlow reads asserted types.
+ex:signal a math:SheafSection , math:MathematicalObject .
+
+# The exact, coexact, and harmonic summands.
+ex:exactPart a math:ExactComponent .
+ex:coexactPart a math:CoexactComponent .
+ex:harmonicPart a math:HarmonicComponent .
+
+# The boundary operator whose image is the exact part and whose adjoint's image
+# is the coexact part; the harmonic part is the kernel of the induced Laplacian.
+ex:boundary a math:BoundaryOperator .
+
+# The cellular-sheaf carrier, itself fully framed (base complex, stalk,
+# restriction map) and carrying the sheaf Laplacian of the decomposition.
+ex:sheaf a math:CellularSheaf ;
+    math:sheafBaseComplex ex:complex ;
+    math:hasStalk ex:stalk ;
+    math:restrictionMap ex:restriction ;
+    math:hasLaplacian ex:laplacian .
+ex:complex a math:CellComplex .
+ex:stalk a math:SheafStalk ;
+    math:stalkOverCell ex:cell .
+ex:cell a math:MathematicalObject .
+ex:restriction a math:SheafRestrictionMap .
+ex:laplacian a math:SheafLaplacian .
+
+# The exact-zero rational carried by the reconstruction residual and by every
+# pairwise-orthogonality inner product: 0/1, an exact numerator/denominator pair.
+ex:zero a math:RationalValue ;
+    math:numerator 0 ;
+    math:denominator 1 .

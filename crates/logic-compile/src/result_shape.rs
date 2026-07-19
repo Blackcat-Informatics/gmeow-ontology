@@ -51,6 +51,8 @@ pub enum TermKind {
     Literal,
     /// A blank node.
     BlankNode,
+    /// An RDF 1.2 triple term.
+    TripleTerm,
 }
 
 impl TermKind {
@@ -60,6 +62,7 @@ impl TermKind {
             Self::Iri => "iri",
             Self::Literal => "literal",
             Self::BlankNode => "blank-node",
+            Self::TripleTerm => "triple-term",
         }
     }
     /// The `module.ttl` named-individual local name.
@@ -68,6 +71,7 @@ impl TermKind {
             Self::Iri => "TermKindIri",
             Self::Literal => "TermKindLiteral",
             Self::BlankNode => "TermKindBlankNode",
+            Self::TripleTerm => "TermKindTripleTerm",
         }
     }
     /// The full IRI of the `module.ttl` individual.
@@ -80,6 +84,7 @@ impl TermKind {
             "iri" => Self::Iri,
             "literal" => Self::Literal,
             "blank-node" => Self::BlankNode,
+            "triple-term" => Self::TripleTerm,
             _ => return None,
         })
     }
@@ -89,11 +94,12 @@ impl TermKind {
             "TermKindIri" => Self::Iri,
             "TermKindLiteral" => Self::Literal,
             "TermKindBlankNode" => Self::BlankNode,
+            "TermKindTripleTerm" => Self::TripleTerm,
             _ => return None,
         })
     }
     /// Every variant, for the Rust↔TTL cross-check.
-    pub const ALL: &'static [Self] = &[Self::Iri, Self::Literal, Self::BlankNode];
+    pub const ALL: &'static [Self] = &[Self::Iri, Self::Literal, Self::BlankNode, Self::TripleTerm];
 }
 
 impl fmt::Display for TermKind {
@@ -232,6 +238,8 @@ pub enum ColumnKind {
         /// The required datatype IRI, or `None` for "any literal".
         datatype: Option<String>,
     },
+    /// The column binds RDF 1.2 triple terms.
+    TripleTerm,
 }
 
 impl ColumnKind {
@@ -241,6 +249,7 @@ impl ColumnKind {
             Self::Iri => TermKind::Iri,
             Self::BlankNode => TermKind::BlankNode,
             Self::Literal { .. } => TermKind::Literal,
+            Self::TripleTerm => TermKind::TripleTerm,
         }
     }
 }
@@ -291,6 +300,8 @@ pub enum ObservedTerm {
         /// The literal's datatype IRI.
         datatype: String,
     },
+    /// An RDF 1.2 triple-term value.
+    TripleTerm,
 }
 
 impl ObservedTerm {
@@ -299,6 +310,7 @@ impl ObservedTerm {
             Self::Iri => TermKind::Iri,
             Self::BlankNode => TermKind::BlankNode,
             Self::Literal { .. } => TermKind::Literal,
+            Self::TripleTerm => TermKind::TripleTerm,
         }
     }
 }
@@ -602,6 +614,7 @@ impl ResultShape {
                 Some(ObservedTerm::Literal { datatype }) => ColumnKind::Literal {
                     datatype: Some(datatype.clone()),
                 },
+                Some(ObservedTerm::TripleTerm) => ColumnKind::TripleTerm,
                 // A variable seen in `vars` always has at least one occurrence.
                 None => ColumnKind::Literal { datatype: None },
             };

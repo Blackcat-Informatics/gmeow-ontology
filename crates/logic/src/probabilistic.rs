@@ -657,6 +657,8 @@ fn try_match(
                     return None;
                 }
             }
+            // A structured term never appears in a probabilistic (flat) program.
+            QTerm::Struct(_) => return None,
         }
     }
     Some(b)
@@ -672,6 +674,7 @@ fn instantiate_head(head: &QAtom, binding: &BTreeMap<String, String>) -> Option<
             QTerm::Const(c) => comps.push(c.clone()),
             QTerm::Var(v) => comps.push(binding.get(v)?.clone()),
             QTerm::Num(n) => comps.push(n.to_string()),
+            QTerm::Struct(_) => return None,
         }
     }
     Some((head.pred.clone(), comps[0].clone(), comps[1].clone()))
@@ -711,6 +714,7 @@ fn ground_atom_to_fact(atom: &QAtom) -> Option<Fact> {
             // A ground probabilistic atom never carries a bare number; treat it as a
             // non-ground/invalid term for fact conversion.
             QTerm::Num(_) => return None,
+            QTerm::Struct(_) => return None,
         }
     }
     if comps.len() != 2 {

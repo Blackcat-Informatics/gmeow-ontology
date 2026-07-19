@@ -1,0 +1,678 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: lang, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/lang/ComposedForm|rdfs:label"
+msgid "Composed Form"
+msgstr "Forme composée"
+
+msgctxt "https://blackcatinformatics.ca/lang/ComposedForm|skos:definition"
+msgid "A composed form: a phrase, clause, sentence, paragraph, section, or text as a tree over indexed slots. Declares its level through lang:compositionLevel, its constituents through lang:formSlot, and its head where headedness is analyzed through lang:formHead. Constituent order is carried by lang:FormSlot individuals with integer lang:slotIndex, never by RDF list ordering — two encodings of one form must be one form. Code-switching is compositional: the composed form belongs to its matrix system while embedded constituents carry their own."
+msgstr "Une forme composée : une phrase, une proposition, un énoncé, un paragraphe, une section ou un texte représenté comme un arbre de positions indexées. Elle déclare son niveau par lang:compositionLevel, ses constituants par lang:formSlot et sa tête, lorsque la structure de tête est analysée, par lang:formHead. L’ordre des constituants est porté par des individus lang:FormSlot munis d’un lang:slotIndex entier, jamais par l’ordre d’une liste RDF — deux encodages d’une même forme doivent désigner une seule forme. L’alternance codique est compositionnelle : la forme composée appartient à son système matrice, tandis que les constituants enchâssés portent le leur."
+
+msgctxt "https://blackcatinformatics.ca/lang/Denotation|rdfs:label"
+msgid "Denotation"
+msgstr "Dénotation"
+
+msgctxt "https://blackcatinformatics.ca/lang/Denotation|skos:definition"
+msgid "A meaning assignment as a reified record — the Peircean triad made structural (sign, object, and the interpreting context that connects them), never a bare triple from form to target. Reification is what makes disagreement, revision, and ambiguity representable. Every denotation names its form (lang:denotedForm, a non-surface form), its kind (lang:denotationKind), its target (lang:denotationTarget), and its context (lang:denotationContext); lang:viaSense routes it through a sense where the head lexeme is ambiguous. Disjoint from lang:Form and lang:Sense — the reference corner of the Frege triangle is not a form and not a sense."
+msgstr "Une attribution de sens sous forme d’enregistrement réifié — la triade peircienne rendue structurelle (le signe, l’objet et le contexte d’interprétation qui les relie), jamais un simple triplet allant de la forme à la cible. La réification permet de représenter le désaccord, la révision et l’ambiguïté. Chaque dénotation nomme sa forme (lang:denotedForm, une forme non surfacique), son type (lang:denotationKind), sa cible (lang:denotationTarget) et son contexte (lang:denotationContext) ; lang:viaSense la fait passer par un sens lorsque le lexème tête est ambigu. Elle est disjointe de lang:Form et de lang:Sense — le sommet référentiel du triangle de Frege n’est ni une forme ni un sens."
+
+msgctxt "https://blackcatinformatics.ca/lang/Form|rdfs:label"
+msgid "Form"
+msgstr "Forme"
+
+msgctxt "https://blackcatinformatics.ca/lang/Form|skos:definition"
+msgid "The abstract root of the form AST: a form that is meant to be analyzed, denoted, translated, matched, or projected is a structured object, never an opaque string. Every lang:Form names exactly one sign system through lang:inSignSystem — an unsituated form is ill-formed. Its identity is computed over structural content alone (sign system, stratum, features, slot structure with constituent keys) and is independent of encoding, script, casing, and rendering. The strata that specialize it — surface forms, morphemes and morphs, lexemes and word forms, orthographic and syntactic words, composed forms, and covert forms — each have a distinct identity criterion."
+msgstr "La racine abstraite de l’arbre syntaxique des formes : toute forme destinée à être analysée, dénotée, traduite, appariée ou projetée est un objet structuré, jamais une chaîne opaque. Chaque lang:Form nomme exactement un système de signes par lang:inSignSystem — une forme non située est mal formée. Son identité se calcule uniquement sur son contenu structurel (système de signes, strate, traits, structure des positions et clés des constituants) et ne dépend ni de l’encodage, ni de l’écriture, ni de la casse, ni du rendu. Les strates qui la spécialisent — formes de surface, morphèmes et morphes, lexèmes et formes de mots, mots orthographiques et syntaxiques, formes composées et formes latentes — possèdent chacune un critère d’identité distinct."
+
+msgctxt "https://blackcatinformatics.ca/lang/Grapheme|rdfs:label"
+msgid "Grapheme"
+msgstr "Graphème"
+
+msgctxt "https://blackcatinformatics.ca/lang/Grapheme|skos:definition"
+msgid "A grapheme: a member character of a script's repertoire — a Latin letter, a Cyrillic letter, a Han character. Declares the script it belongs to through lang:inScript; the owning script lists it through lang:hasGrapheme. A grapheme not in its script's repertoire is ill-formed. Below the morph in the stratification; a repertoire element rather than a sign-system-scoped form."
+msgstr "Un graphème : un caractère membre du répertoire d’une écriture — une lettre latine, une lettre cyrillique ou un caractère han. Il déclare l’écriture à laquelle il appartient par lang:inScript ; l’écriture propriétaire l’énumère par lang:hasGrapheme. Un graphème absent du répertoire de son écriture est mal formé. Il se situe sous le morphe dans la stratification : c’est un élément de répertoire, non une forme définie dans la portée d’un système de signes."
+
+msgctxt "https://blackcatinformatics.ca/lang/InterpretationAct|rdfs:label"
+msgid "Interpretation Act"
+msgstr "Acte d’interprétation"
+
+msgctxt "https://blackcatinformatics.ca/lang/InterpretationAct|skos:definition"
+msgid "The act of assigning meaning to a form — a gmeow:Activity with an agent or method (a person, an NLP engine, a compositional rule run), inputs (the form through lang:interpretedForm, the context, an anchor through lang:anchorsIndexical where deixis needs resolving), and provenance. Its results are lang:Reading objects through lang:producedReading. This is the process of the observation spine's process/result/claim separation, and it is NEVER typed as a gmeow:Observation: the act is disjoint from the claim about its readings."
+msgstr "L’acte d’attribuer un sens à une forme — une gmeow:Activity dotée d’un agent ou d’une méthode (une personne, un moteur de traitement automatique des langues ou l’exécution d’une règle compositionnelle), d’entrées (la forme par lang:interpretedForm, le contexte et, lorsque la deixis doit être résolue, une ancre par lang:anchorsIndexical) et d’une provenance. Ses résultats sont des objets lang:Reading produits par lang:producedReading. Il s’agit du processus dans la séparation processus/résultat/affirmation de l’axe d’observation ; il n’est JAMAIS typé comme gmeow:Observation : l’acte est disjoint de l’affirmation portant sur ses lectures."
+
+msgctxt "https://blackcatinformatics.ca/lang/MorphFeature|rdfs:label"
+msgid "Morph Feature"
+msgstr "Trait morphologique"
+
+msgctxt "https://blackcatinformatics.ca/lang/MorphFeature|skos:definition"
+msgid "A typed morphological feature-value pair — Number=Plur, Tense=Past — carrying a key drawn from a feature inventory (lang:featureKey, a lang:FeatureKey individual), a value drawn from that inventory (lang:featureValue, a lang:FeatureValue individual), and optionally a layer (lang:featureLayer, as in the UD Number[psor] convention). Morphological content is carried this way, never as an unparsed feature string; the inventory aligns to Universal Dependencies' universal features and extends past them where a language demands it."
+msgstr "Une paire typée trait-valeur morphologique — Number=Plur, Tense=Past — portant une clé issue d’un inventaire de traits (lang:featureKey, un individu lang:FeatureKey), une valeur issue de cet inventaire (lang:featureValue, un individu lang:FeatureValue) et, facultativement, une couche (lang:featureLayer, comme dans la convention UD Number[psor]). Le contenu morphologique est porté de cette manière, jamais sous forme d’une chaîne de traits non analysée ; l’inventaire s’aligne sur les traits universels d’Universal Dependencies et les étend lorsqu’une langue l’exige."
+
+msgctxt "https://blackcatinformatics.ca/lang/Reading|rdfs:label"
+msgid "Reading"
+msgstr "Lecture"
+
+msgctxt "https://blackcatinformatics.ca/lang/Reading|skos:definition"
+msgid "A candidate interpretation of a form — the structured result object of an interpretation act, carrying a lang:Denotation through lang:denotation and naming the form it reads through lang:readingOf. An ambiguous form holds multiple co-resident readings, each with its own denotation and its own vantage-held support; the readings are first-class data and are never structurally collapsed. A reading is a result, not a claim: the claim that a reading is correct is a separate gmeow:Observation held from a vantage."
+msgstr "Une interprétation candidate d’une forme — l’objet résultat structuré d’un acte d’interprétation, portant une lang:Denotation par lang:denotation et nommant la forme qu’il lit par lang:readingOf. Une forme ambiguë conserve plusieurs lectures coexistantes, chacune avec sa propre dénotation et son propre appui tenu depuis un point de vue ; les lectures sont des données de premier ordre et ne sont jamais fusionnées structurellement. Une lecture est un résultat, non une affirmation : l’affirmation qu’une lecture est correcte constitue une gmeow:Observation distincte, tenue depuis un point de vue."
+
+msgctxt "https://blackcatinformatics.ca/lang/Rendering|rdfs:label"
+msgid "Rendering"
+msgstr "Rendu"
+
+msgctxt "https://blackcatinformatics.ca/lang/Rendering|skos:definition"
+msgid "A reified record of realizing content as a form: a content object (a lang:Form, a lang:Denotation, a composed form, a document node) rendered into a concrete lang:Form or lang:SurfaceForm under a declared kind and convention. Names the content it renders through lang:renderedContent, the form it produces through lang:renderingForm, its kind through lang:renderingKind (a lang:RenderingKind individual), the convention governing it through lang:renderingConvention, and — where the crossing is judged — a preservation kind through lang:renderingPreservation, which carries a logic:preservationKind rather than a lang: preservation enum. Rendering is the facet layer over a logic:Correspondence whose two sides are content and form; serializing the ontology to Turtle, lifting prose to a docs page, and transliterating a name are all renderings distinguished by kind, never a subclass ladder."
+msgstr "Un enregistrement réifié de la réalisation d’un contenu sous forme : un objet de contenu (une lang:Form, une lang:Denotation, une forme composée ou un nœud documentaire) rendu en lang:Form ou lang:SurfaceForm concrète selon un type et une convention déclarés. Il nomme le contenu rendu par lang:renderedContent, la forme produite par lang:renderingForm, son type par lang:renderingKind (un individu lang:RenderingKind), la convention qui le gouverne par lang:renderingConvention et — lorsque le passage est évalué — un type de préservation par lang:renderingPreservation, lequel porte un logic:preservationKind plutôt qu’une énumération propre à lang:. Le rendu est la couche de facette au-dessus d’une logic:Correspondence dont les deux côtés sont le contenu et la forme ; sérialiser l’ontologie en Turtle, transformer la prose en page documentaire et translittérer un nom sont tous des rendus distingués par leur type, jamais les degrés d’une hiérarchie de sous-classes."
+
+msgctxt "https://blackcatinformatics.ca/lang/SignSystem|rdfs:label"
+msgid "Sign System"
+msgstr "Système de signes"
+
+msgctxt "https://blackcatinformatics.ca/lang/SignSystem|skos:definition"
+msgid "A sign system: the system of signs a form belongs to — a natural language (English), a formal language (Turtle, GTS), a notation (IPA), a gestural language (a signed language), or a tactile system (Braille). A first-class individual, never a subclass ladder and never a bare tag: it is distinguished by a lang:SignSystemKind (through lang:signSystemKind) and a lang:Modality (through lang:modality), and it may align to a BCP-47 tag, an ISO 639 code, a Wikidata QID, or a MIME type — but the GMEOW term remains the local source of truth and external identifiers name alignments, not identity. Every lang:Form names exactly one through lang:inSignSystem."
+msgstr "Un système de signes : le système auquel appartient une forme — une langue naturelle (le français), un langage formel (Turtle, GTS), une notation (API), une langue gestuelle ou un système tactile (braille). C’est un individu de premier ordre, jamais une hiérarchie de sous-classes ni une simple étiquette : il se distingue par un lang:SignSystemKind (via lang:signSystemKind) et une lang:Modality (via lang:modality), et peut être aligné sur une étiquette BCP-47, un code ISO 639, un identifiant Wikidata ou un type MIME — mais le terme GMEOW demeure la source de vérité locale et les identifiants externes nomment des alignements, non l’identité. Chaque lang:Form en nomme exactement un par lang:inSignSystem."
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceAnchor|rdfs:label"
+msgid "Surface Anchor"
+msgstr "Ancre de surface"
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceAnchor|skos:definition"
+msgid "A stand-off anchor locating a surface form in a source: names the source through lang:anchorSource, the span through lang:anchorStart and lang:anchorEnd, and the offset space through lang:offsetSpace (byte, codepoint, or grapheme cluster). Surface-stratum material excluded from form identity but included in surface identity; the anchor is what makes the prose-hash discipline a lookup rather than a recomputation."
+msgstr "Une ancre externe qui localise une forme de surface dans une source : elle nomme la source par lang:anchorSource, l’étendue par lang:anchorStart et lang:anchorEnd, et l’espace de décalage par lang:offsetSpace (octet, point de code ou grappe de graphèmes). Le matériau de la strate surfacique est exclu de l’identité de la forme mais inclus dans l’identité de surface ; l’ancre fait de la discipline de hachage de la prose une recherche plutôt qu’un recalcul."
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceForm|rdfs:label"
+msgid "Surface Form"
+msgstr "Forme de surface"
+
+msgctxt "https://blackcatinformatics.ca/lang/SurfaceForm|skos:definition"
+msgid "A concrete realization of a form: text (through lang:surfaceText) with a declared script (lang:inScript), encoding (lang:encoding), Unicode normalization (lang:unicodeNormalization), and collation locale (lang:collationLocale). The only stratum where byte identity means anything: two surface forms with different normalization are different surface forms of possibly the same form. A surface either realizes an analyzed form through lang:realizes or is typed lang:UnanalyzedProse — never silently either — and declares how far it has been analyzed through lang:analysisLevel. It may carry a lang:SurfaceAnchor locating it in a source document. Re-encoding or re-normalizing a text creates new surface forms but no new forms."
+msgstr "Une réalisation concrète d’une forme : un texte (par lang:surfaceText) doté d’une écriture déclarée (lang:inScript), d’un encodage (lang:encoding), d’une normalisation Unicode (lang:unicodeNormalization) et d’une locale de collation (lang:collationLocale). C’est la seule strate où l’identité des octets a un sens : deux formes de surface normalisées différemment sont des formes de surface distinctes d’une forme possiblement identique. Une surface réalise soit une forme analysée par lang:realizes, soit elle est typée lang:UnanalyzedProse — jamais l’un ou l’autre implicitement — et déclare son degré d’analyse par lang:analysisLevel. Elle peut porter une lang:SurfaceAnchor qui la localise dans un document source. Réencoder ou renormaliser un texte crée de nouvelles formes de surface, mais aucune nouvelle forme."
+
+msgctxt "https://blackcatinformatics.ca/lang/TranslationUnit|rdfs:label"
+msgid "Translation Unit"
+msgstr "Unité de traduction"
+
+msgctxt "https://blackcatinformatics.ca/lang/TranslationUnit|skos:definition"
+msgid "A reified source-form-to-target-form pairing — the atom of a translation. Names its source form through lang:translationSource, its target form through lang:translationTarget, and the sibling unit it aligns with through lang:translationOf, and it carries the law-spine of the crossing by pointing — through lang:translationCorrespondence — at exactly one logic:Correspondence node. That Correspondence, not the unit, holds the logic:preservationKind, the logic:morphismClass, the logic:correspondenceRelation, the logic:mnemomorphic witness enumerating any untranslatable residue, the logic:hasDeterminacy, and any logic:hasLawClaim. A unit whose target is inadequate is marked through lang:translationGap; the enumerated residue itself lives on the carried Correspondence's mnemomorphic witness, never on the unit."
+msgstr "Un appariement réifié entre une forme source et une forme cible — l’atome d’une traduction. Il nomme sa forme source par lang:translationSource, sa forme cible par lang:translationTarget et l’unité sœur avec laquelle il s’aligne par lang:translationOf ; il porte l’ossature légale du passage en pointant, par lang:translationCorrespondence, vers exactement un nœud logic:Correspondence. Cette correspondance, et non l’unité, porte logic:preservationKind, logic:morphismClass, logic:correspondenceRelation, le témoin logic:mnemomorphic qui énumère tout résidu intraduisible, logic:hasDeterminacy et toute logic:hasLawClaim. Une unité dont la cible est inadéquate est marquée par lang:translationGap ; le résidu énuméré lui-même demeure sur le témoin mnémomorphique de la correspondance portée, jamais sur l’unité."
+
+msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|rdfs:label"
+msgid "paraphrase form"
+msgstr "forme de paraphrase"
+
+msgctxt "https://blackcatinformatics.ca/lang/paraphraseForm|skos:definition"
+msgid "Relates a lang:Paraphrase to the produced restatement form. Domain lang:Paraphrase, range lang:Form (stated in prose). The source side is lang:paraphraseOf; keeping both roles explicit makes the form-to-form crossing and its relator mediation queryable without treating the reified paraphrase record as a form."
+msgstr "Relie une lang:Paraphrase à la forme de reformulation produite. Le domaine est lang:Paraphrase et la portée lang:Form (énoncés en prose). Le côté source est lang:paraphraseOf ; conserver les deux rôles explicites rend interrogeables le passage de forme à forme et sa médiation de relateur sans traiter l’enregistrement de paraphrase réifié comme une forme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|rdfs:label"
+msgid "GMN candidate: boundary operator"
+msgstr "Candidat GMN : opérateur bord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathBoundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional partial-sign notation of math:BoundaryOperator."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation conventionnelle par signe de dérivée partielle de math:BoundaryOperator."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|rdfs:label"
+msgid "GMN candidate: coboundary operator"
+msgstr "Candidat GMN : opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathCoboundaryOperator|skos:definition"
+msgid "The audited named-key ruling for the conventional delta notation of math:CoboundaryOperator."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation delta conventionnelle de math:CoboundaryOperator."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|rdfs:label"
+msgid "GMN candidate: exterior product"
+msgstr "Candidat GMN : produit extérieur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExteriorProduct|skos:definition"
+msgid "The audited structured-constructor ruling for the wedge notation of math:ExteriorProduct."
+msgstr "La décision auditée d'utiliser un constructeur structuré pour la notation en coin de math:ExteriorProduct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|rdfs:label"
+msgid "GMN candidate: direct sum"
+msgstr "Candidat GMN : somme directe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathDirectSum|skos:definition"
+msgid "The audited named-key ruling for the circled-plus notation associated with math:DirectSumDecomposition."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation plus cerclé associée à math:DirectSumDecomposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|rdfs:label"
+msgid "GMN candidate: left contraction"
+msgstr "Candidat GMN : contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLeftContraction|skos:definition"
+msgid "The audited named-key ruling for the right-floor notation of math:LeftContraction."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation en crochet inférieur droit de math:LeftContraction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|rdfs:label"
+msgid "GMN candidate: grade projection"
+msgstr "Candidat GMN : projection de degré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGradeProjection|skos:definition"
+msgid "The audited structured-constructor ruling for the grade-indexed angle-bracket notation of math:GradeProjection."
+msgstr "La décision auditée d'utiliser un constructeur structuré pour la notation indexée entre chevrons de math:GradeProjection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|rdfs:label"
+msgid "GMN candidate: Clifford reversion"
+msgstr "Candidat GMN : réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathReversion|skos:definition"
+msgid "The audited named-key ruling for the tilde notation of math:Reversion."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation tilde de math:Reversion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|rdfs:label"
+msgid "GMN candidate: geometric-product dot"
+msgstr "Candidat GMN : point du produit géométrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGeometricProductDot|skos:definition"
+msgid "The explicit rejection of a centred dot as a flattened alias for math:GeometricProduct."
+msgstr "Le rejet explicite d'un point centré comme alias aplati de math:GeometricProduct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|rdfs:label"
+msgid "GMN candidate: Hodge Laplacian"
+msgstr "Candidat GMN : laplacien de Hodge"
+
+ msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathHodgeLaplacian|skos:definition"
+msgid "The audited named-key ruling for the capital-delta notation of math:HodgeLaplacian."
+msgstr "La décision auditée d'utiliser une clé nommée pour la notation delta majuscule de math:HodgeLaplacian."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|rdfs:label"
+msgid "GMN dictionary (version 3)"
+msgstr "dictionnaire GMN (version 3)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3|skos:definition"
+msgid "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries and adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys."
+msgstr "Version 3 du dictionnaire d’alias GMN : successeur immuable de la version 2, qui conserve les 24 associations antérieures dans des entrées propres à cette version et ajoute `boundary`, `coboundary`, `ds`, `lcon`, `rev` et `hlap` pour les clés mathématiques nommées auditées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnEnvelope to genv"
+msgstr "entrée dict-v3 : gmeow:GmnEnvelope vers genv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEnvelope|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnEnvelope: `genv`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:GmnEnvelope : `genv`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|rdfs:label"
+msgid "dict-v3 entry: gmeow:GmnCodebook to gcb"
+msgstr "entrée dict-v3 : gmeow:GmnCodebook vers gcb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryCodebook|skos:definition"
+msgid "The version-3 alias binding for gmeow:GmnCodebook: `gcb`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:GmnCodebook : `gcb`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|rdfs:label"
+msgid "dict-v3 entry: lang:Denotation to den"
+msgstr "entrée dict-v3 : lang:Denotation vers den"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDenotation|skos:definition"
+msgid "The version-3 alias binding for lang:Denotation: `den`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:Denotation : `den`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|rdfs:label"
+msgid "dict-v3 entry: lang:Translation to xl"
+msgstr "entrée dict-v3 : lang:Translation vers xl"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryTranslation|skos:definition"
+msgid "The version-3 alias binding for lang:Translation: `xl`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:Translation : `xl`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|rdfs:label"
+msgid "dict-v3 entry: lang:MorphemeBoundary to mb"
+msgstr "entrée dict-v3 : lang:MorphemeBoundary vers mb"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMorphemeBoundary|skos:definition"
+msgid "The version-3 alias binding for lang:MorphemeBoundary: `mb`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour lang:MorphemeBoundary : `mb`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|rdfs:label"
+msgid "dict-v3 entry: math:Division to div"
+msgstr "entrée dict-v3 : math:Division vers div"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDivision|skos:definition"
+msgid "The version-3 alias binding for math:Division: `div`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour math:Division : `div`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|rdfs:label"
+msgid "dict-v3 entry: logic:forall to fa"
+msgstr "entrée dict-v3 : logic:forall vers fa"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicForall|skos:definition"
+msgid "The version-3 alias binding for logic:forall: `fa`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:forall : `fa`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|rdfs:label"
+msgid "dict-v3 entry: logic:exists to ex"
+msgstr "entrée dict-v3 : logic:exists vers ex"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicExists|skos:definition"
+msgid "The version-3 alias binding for logic:exists: `ex`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:exists : `ex`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|rdfs:label"
+msgid "dict-v3 entry: logic:and to and"
+msgstr "entrée dict-v3 : logic:and vers and"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicAnd|skos:definition"
+msgid "The version-3 alias binding for logic:and: `and`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:and : `and`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|rdfs:label"
+msgid "dict-v3 entry: logic:or to or"
+msgstr "entrée dict-v3 : logic:or vers or"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicOr|skos:definition"
+msgid "The version-3 alias binding for logic:or: `or`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:or : `or`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|rdfs:label"
+msgid "dict-v3 entry: logic:iff to iff"
+msgstr "entrée dict-v3 : logic:iff vers iff"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryLogicIff|skos:definition"
+msgid "The version-3 alias binding for logic:iff: `iff`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:iff : `iff`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|rdfs:label"
+msgid "dict-v3 entry: necessary modal force to nec"
+msgstr "entrée dict-v3 : gmeow:modalForceNecessary vers nec"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalNecessary|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceNecessary: `nec`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceNecessary : `nec`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|rdfs:label"
+msgid "dict-v3 entry: actual modal force to act"
+msgstr "entrée dict-v3 : gmeow:modalForceActual vers act"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalActual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceActual: `act`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceActual : `act`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|rdfs:label"
+msgid "dict-v3 entry: possible modal force to poss"
+msgstr "entrée dict-v3 : gmeow:modalForcePossible vers poss"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalPossible|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForcePossible: `poss`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForcePossible : `poss`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|rdfs:label"
+msgid "dict-v3 entry: counterfactual modal force to cf"
+msgstr "entrée dict-v3 : gmeow:modalForceCounterfactual vers cf"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryModalCounterfactual|skos:definition"
+msgid "The version-3 alias binding for gmeow:modalForceCounterfactual: `cf`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:modalForceCounterfactual : `cf`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|rdfs:label"
+msgid "dict-v3 entry: direct observation to dir"
+msgstr "entrée dict-v3 : gmeow:methodDirectObservation vers dir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindDirect|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodDirectObservation: `dir`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodDirectObservation : `dir`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|rdfs:label"
+msgid "dict-v3 entry: instrumental reading to inst"
+msgstr "entrée dict-v3 : gmeow:methodInstrumentalReading vers inst"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindInstrumental|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodInstrumentalReading: `inst`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodInstrumentalReading : `inst`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|rdfs:label"
+msgid "dict-v3 entry: remote sensing to rmt"
+msgstr "entrée dict-v3 : gmeow:methodRemoteSensing vers rmt"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindRemote|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodRemoteSensing: `rmt`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodRemoteSensing : `rmt`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|rdfs:label"
+msgid "dict-v3 entry: computational model to cmp"
+msgstr "entrée dict-v3 : gmeow:methodComputationalModel vers cmp"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindComputational|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodComputationalModel: `cmp`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodComputationalModel : `cmp`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|rdfs:label"
+msgid "dict-v3 entry: expert judgement to exj"
+msgstr "entrée dict-v3 : gmeow:methodExpertJudgement vers exj"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindExpert|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodExpertJudgement: `exj`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodExpertJudgement : `exj`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|rdfs:label"
+msgid "dict-v3 entry: survey to srv"
+msgstr "entrée dict-v3 : gmeow:methodSurvey vers srv"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindSurvey|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodSurvey: `srv`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodSurvey : `srv`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|rdfs:label"
+msgid "dict-v3 entry: streaming observation to strm"
+msgstr "entrée dict-v3 : gmeow:methodStreaming vers strm"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvKindStreaming|skos:definition"
+msgid "The version-3 alias binding for gmeow:methodStreaming: `strm`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour gmeow:methodStreaming : `strm`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|rdfs:label"
+msgid "dict-v3 entry: logic:Open to open"
+msgstr "entrée dict-v3 : logic:Open vers open"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryOpen|skos:definition"
+msgid "The version-3 alias binding for logic:Open: `open`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:Open : `open`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|rdfs:label"
+msgid "dict-v3 entry: logic:Closed to closed"
+msgstr "entrée dict-v3 : logic:Closed vers closed"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryBoundaryClosed|skos:definition"
+msgid "The version-3 alias binding for logic:Closed: `closed`, retained unchanged from version 2."
+msgstr "L’association d’alias de version 3 pour logic:Closed : `closed`, conservée sans changement depuis la version 2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:BoundaryOperator to boundary"
+msgstr "entrée dict-v3 : math:BoundaryOperator vers boundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathBoundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:BoundaryOperator: `boundary`, which disambiguates chain boundaries from partial differentiation."
+msgstr "L’association de clé nommée de version 3 pour math:BoundaryOperator : `boundary`, qui distingue le bord de chaîne de la dérivation partielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|rdfs:label"
+msgid "dict-v3 entry: math:CoboundaryOperator to coboundary"
+msgstr "entrée dict-v3 : math:CoboundaryOperator vers coboundary"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathCoboundaryOperator|skos:definition"
+msgid "The version-3 named-key binding for math:CoboundaryOperator: `coboundary`, which disambiguates the cochain operator from other delta notations."
+msgstr "L’association de clé nommée de version 3 pour math:CoboundaryOperator : `coboundary`, qui distingue l’opérateur de cochaîne des autres notations delta."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|rdfs:label"
+msgid "dict-v3 entry: math:DirectSumDecomposition to ds"
+msgstr "entrée dict-v3 : math:DirectSumDecomposition vers ds"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathDirectSum|skos:definition"
+msgid "The version-3 named-key binding for math:DirectSumDecomposition: `ds`, cheaper than the fragmented circled-plus display sign."
+msgstr "L’association de clé nommée de version 3 pour math:DirectSumDecomposition : `ds`, moins coûteuse que le signe plus cerclé fragmenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|rdfs:label"
+msgid "dict-v3 entry: math:LeftContraction to lcon"
+msgstr "entrée dict-v3 : math:LeftContraction vers lcon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathLeftContraction|skos:definition"
+msgid "The version-3 named-key binding for math:LeftContraction: `lcon`, cheaper than the fragmented contraction display sign."
+msgstr "L’association de clé nommée de version 3 pour math:LeftContraction : `lcon`, moins coûteuse que le signe de contraction fragmenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|rdfs:label"
+msgid "dict-v3 entry: math:Reversion to rev"
+msgstr "entrée dict-v3 : math:Reversion vers rev"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathReversion|skos:definition"
+msgid "The version-3 named-key binding for math:Reversion: `rev`, which distinguishes the Clifford involution from other tilde operators."
+msgstr "L’association de clé nommée de version 3 pour math:Reversion : `rev`, qui distingue l’involution de Clifford des autres opérateurs tilde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|rdfs:label"
+msgid "dict-v3 entry: math:HodgeLaplacian to hlap"
+msgstr "entrée dict-v3 : math:HodgeLaplacian vers hlap"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryMathHodgeLaplacian|skos:definition"
+msgid "The version-3 named-key binding for math:HodgeLaplacian: `hlap`, which distinguishes the Hodge operator from other capital-delta conventions."
+msgstr "L’association de clé nommée de version 3 pour math:HodgeLaplacian : `hlap`, qui distingue l’opérateur de Hodge des autres conventions delta majuscule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|rdfs:label"
+msgid "the GMN boundary-operator key `boundary`"
+msgstr "la clé GMN d’opérateur de bord `boundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathBoundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `boundary` for math:BoundaryOperator; the partial sign remains non-executable display notation because it is ambiguous with partial differentiation."
+msgstr "La forme de clé nommée GMN préfixe unaire `boundary` pour math:BoundaryOperator ; le signe de dérivée partielle demeure une notation d’affichage non exécutable en raison de son ambiguïté avec la dérivation partielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|rdfs:label"
+msgid "denotation of the GMN boundary-operator key"
+msgstr "dénotation de la clé GMN d’opérateur de bord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathBoundaryOperator|skos:definition"
+msgid "The meaning assignment from `boundary` to the class math:BoundaryOperator; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `boundary` à la classe math:BoundaryOperator ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|rdfs:label"
+msgid "the GMN coboundary-operator key `coboundary`"
+msgstr "la clé GMN d’opérateur de cobord `coboundary`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathCoboundaryOperator|skos:definition"
+msgid "The unary prefix GMN named-key form `coboundary` for math:CoboundaryOperator; delta remains non-executable display notation because it is overloaded across mathematical domains."
+msgstr "La forme de clé nommée GMN préfixe unaire `coboundary` pour math:CoboundaryOperator ; delta demeure une notation d’affichage non exécutable car il est surchargé entre domaines mathématiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|rdfs:label"
+msgid "denotation of the GMN coboundary-operator key"
+msgstr "dénotation de la clé GMN d’opérateur de cobord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathCoboundaryOperator|skos:definition"
+msgid "The meaning assignment from `coboundary` to the class math:CoboundaryOperator; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `coboundary` à la classe math:CoboundaryOperator ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|rdfs:label"
+msgid "the GMN direct-sum key `ds`"
+msgstr "la clé GMN de somme directe `ds`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathDirectSumDecomposition|skos:definition"
+msgid "The binary infix GMN named-key form `ds` for math:DirectSumDecomposition; the circled-plus sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "La forme de clé nommée GMN infixe binaire `ds` pour math:DirectSumDecomposition ; le signe plus cerclé demeure une notation d’affichage car la clé nommée est moins coûteuse sous le BPE épinglé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|rdfs:label"
+msgid "denotation of the GMN direct-sum key"
+msgstr "dénotation de la clé GMN de somme directe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathDirectSumDecomposition|skos:definition"
+msgid "The meaning assignment from `ds` to the class math:DirectSumDecomposition; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `ds` à la classe math:DirectSumDecomposition ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|rdfs:label"
+msgid "the GMN left-contraction key `lcon`"
+msgstr "la clé GMN de contraction à gauche `lcon`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLeftContraction|skos:definition"
+msgid "The binary infix GMN named-key form `lcon` for math:LeftContraction; the contraction sign remains display notation because the named key is cheaper under the pinned BPE."
+msgstr "La forme de clé nommée GMN infixe binaire `lcon` pour math:LeftContraction ; le signe de contraction demeure une notation d’affichage car la clé nommée est moins coûteuse sous le BPE épinglé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|rdfs:label"
+msgid "denotation of the GMN left-contraction key"
+msgstr "dénotation de la clé GMN de contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathLeftContraction|skos:definition"
+msgid "The meaning assignment from `lcon` to the class math:LeftContraction; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `lcon` à la classe math:LeftContraction ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|rdfs:label"
+msgid "the GMN Clifford-reversion key `rev`"
+msgstr "la clé GMN de réversion de Clifford `rev`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathReversion|skos:definition"
+msgid "The unary prefix GMN named-key form `rev` for math:Reversion; tilde remains non-executable display notation because it is confusable with approximation, negation, and programming operators."
+msgstr "La forme de clé nommée GMN préfixe unaire `rev` pour math:Reversion ; le tilde demeure une notation d’affichage non exécutable car il se confond avec l’approximation, la négation et des opérateurs de programmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|rdfs:label"
+msgid "denotation of the GMN Clifford-reversion key"
+msgstr "dénotation de la clé GMN de réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathReversion|skos:definition"
+msgid "The meaning assignment from `rev` to the class math:Reversion; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `rev` à la classe math:Reversion ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|rdfs:label"
+msgid "the GMN Hodge-Laplacian key `hlap`"
+msgstr "la clé GMN de laplacien de Hodge `hlap`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathHodgeLaplacian|skos:definition"
+msgid "The unary prefix GMN named-key form `hlap` for math:HodgeLaplacian; capital delta remains non-executable display notation because it is overloaded across several operator families."
+msgstr "La forme de clé nommée GMN préfixe unaire `hlap` pour math:HodgeLaplacian ; le delta majuscule demeure une notation d’affichage non exécutable car il est surchargé entre plusieurs familles d’opérateurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|rdfs:label"
+msgid "denotation of the GMN Hodge-Laplacian key"
+msgstr "dénotation de la clé GMN du laplacien de Hodge"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenMathHodgeLaplacian|skos:definition"
+msgid "The meaning assignment from `hlap` to the class math:HodgeLaplacian; it deliberately carries no executable grapheme."
+msgstr "L’attribution de sens de `hlap` à la classe math:HodgeLaplacian ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|rdfs:label"
+msgid "Glossary"
+msgstr "Glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|skos:definition"
+msgid "One slice's terminology glossary for one target language: the term-grain view of that slice's translation catalog, gathering a gmeow:GlossaryEntry per localizable literal the slice authors. A glossary is scoped by exactly one gmeow:glossarySlice and exactly one gmeow:glossaryLanguage, and holds zero or more entries through gmeow:glossaryEntry. It is a DERIVED object — projected from the slice's i18n/*.po catalog, never hand-authored — so it can never drift from the catalog that is its one canonical source. Within one glossary the term↔translation relation is a single-valued function per sense: no gmeow:glossaryConcept reads back as two divergent gmeow:glossaryTranslation values (lang:GlossaryTermConsistencyConstraint, the functional-dependency dual of the GMN alias bijection)."
+msgstr "Le glossaire terminologique d'une slice pour une langue cible : la vue au grain du terme du catalogue de traduction de cette slice, rassemblant un gmeow:GlossaryEntry par littéral localisable que la slice rédige. Un glossaire est délimité par exactement un gmeow:glossarySlice et exactement un gmeow:glossaryLanguage, et contient zéro ou plusieurs entrées par gmeow:glossaryEntry. C'est un objet DÉRIVÉ — projeté depuis le catalogue i18n/*.po de la slice, jamais rédigé à la main — de sorte qu'il ne peut jamais diverger du catalogue qui en est l'unique source canonique. Au sein d'un glossaire, la relation terme↔traduction est une fonction univaluée par sens : aucun gmeow:glossaryConcept ne se relit comme deux valeurs gmeow:glossaryTranslation divergentes (lang:GlossaryTermConsistencyConstraint, le dual en dépendance fonctionnelle de la bijection d'alias GMN)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|rdfs:label"
+msgid "Glossary Entry"
+msgstr "Entrée de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|skos:definition"
+msgid "One term-grain binding in a glossary: relates one term's English source literal (gmeow:glossarySource) for one predicate (gmeow:glossaryPredicate) on one term (gmeow:glossaryTerm) to its target-language rendering (gmeow:glossaryTranslation), carrying the OntoLex Frege triangle — a lang:Sense (gmeow:glossarySense) that lang:evokes the entry's lang:LexicalConcept (gmeow:glossaryConcept) — and the crossing's law-spine through gmeow:glossaryUnit (a lang:TranslationUnit whose logic:Correspondence holds the honest logic:preservationKind). A gmeow:Glossary holds zero or more entries through gmeow:glossaryEntry. Two distinct terms the projection assigns one concept carry two distinct senses that both evoke that concept, so synonymy is DERIVED (two senses evoking one concept) rather than asserted flat. The consistency invariant is stated over gmeow:glossaryConcept, so two entries the projection assigns one concept must agree on their translation; a declared homograph (lang:DeclaredTerminologyHomograph) is projected onto DISTINCT concepts (its senses evoke distinct concepts) and legitimately renders each differently."
+msgstr "Une liaison au grain du terme dans un glossaire : elle relie le littéral source anglais d'un terme (gmeow:glossarySource) pour un prédicat (gmeow:glossaryPredicate) sur un terme (gmeow:glossaryTerm) à son rendu en langue cible (gmeow:glossaryTranslation), portant le triangle de Frege d'OntoLex — un lang:Sense (gmeow:glossarySense) que lang:evokes relie à la lang:LexicalConcept de l'entrée (gmeow:glossaryConcept) — et l'ossature légale du passage par gmeow:glossaryUnit (une lang:TranslationUnit dont la logic:Correspondence porte l'honnête logic:preservationKind). Un gmeow:Glossary contient zéro ou plusieurs entrées par gmeow:glossaryEntry. Deux termes distincts auxquels la projection assigne un même concept portent deux sens distincts qui évoquent tous deux ce concept, de sorte que la synonymie est DÉRIVÉE (deux sens évoquant un concept) plutôt qu'affirmée à plat. L'invariant de cohérence est énoncé sur gmeow:glossaryConcept, de sorte que deux entrées auxquelles la projection assigne un même concept doivent s'accorder sur leur traduction ; un homographe déclaré (lang:DeclaredTerminologyHomograph) est projeté sur des concepts DISTINCTS (ses sens évoquent des concepts distincts) et rend légitimement chacun différemment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|rdfs:label"
+msgid "glossary slice"
+msgstr "slice de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|skos:definition"
+msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's owl:Ontology IRI."
+msgstr "La slice dont un gmeow:Glossary rassemble la terminologie. Fonctionnel : exactement une slice par glossaire. Domaine gmeow:Glossary, portée l'IRI owl:Ontology de la slice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|rdfs:label"
+msgid "glossary language"
+msgstr "langue de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|skos:definition"
+msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."
+msgstr "L'étiquette de langue cible BCP-47 dans laquelle un gmeow:Glossary effectue son rendu (p. ex. \"fr\", \"zh\"). Fonctionnel : un glossaire correspond à une seule langue. Domaine gmeow:Glossary, portée xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|rdfs:label"
+msgid "glossary entry"
+msgstr "entrée de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|skos:definition"
+msgid "Relates a gmeow:Glossary to one of its term-grain renderings. Domain gmeow:Glossary, range gmeow:GlossaryEntry. Non-functional: a glossary holds zero or more entries."
+msgstr "Relie un gmeow:Glossary à l'un de ses rendus au grain du terme. Domaine gmeow:Glossary, portée gmeow:GlossaryEntry. Non fonctionnel : un glossaire contient zéro ou plusieurs entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTerm|rdfs:label"
+msgid "glossary term"
+msgstr "terme de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTerm|skos:definition"
+msgid "The GMEOW term (class, property, or individual IRI) whose localizable literal a glossary entry renders. Functional: exactly one term per entry. Domain gmeow:GlossaryEntry, range any GMEOW term (deliberately unconstrained — a glossary renders across the whole slice vocabulary, not one rdf:type)."
+msgstr "Le terme GMEOW (IRI de classe, de propriété ou d'individu) dont une entrée de glossaire rend le littéral localisable. Fonctionnel : exactement un terme par entrée. Domaine gmeow:GlossaryEntry, portée n'importe quel terme GMEOW (délibérément non contraint — un glossaire effectue son rendu sur tout le vocabulaire de la slice, non sur un seul rdf:type)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|rdfs:label"
+msgid "glossary predicate"
+msgstr "prédicat de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|skos:definition"
+msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."
+msgstr "Le prédicat d'annotation dont une entrée de glossaire rend le littéral (p. ex. \"rdfs:label\", \"skos:definition\"), sous forme de CURIE. Fonctionnel : un prédicat par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|rdfs:label"
+msgid "glossary source"
+msgstr "source de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
+msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+msgstr "Le littéral source anglais qu'une entrée de glossaire rend — la valeur @x-gmeow-english que porte le msgid du catalogue. Fonctionnel : une source par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. L'invariant de cohérence regroupe sur le gmeow:glossaryConcept de l'entrée (un sens que la projection frappe à partir de cette source), de sorte qu'une source correspond normalement à un concept et donc à une traduction, tandis qu'un homographe déclaré répartit une même source sur des concepts distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
+msgid "glossary translation"
+msgstr "traduction de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
+msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+msgstr "Le rendu en langue cible auquel une entrée de glossaire lie sa source anglaise — le msgstr non fuzzy que porte le catalogue. Fonctionnel : une traduction par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. Deux entrées partageant un gmeow:glossaryConcept doivent porter la même gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
+msgid "glossary concept"
+msgstr "concept de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|skos:definition"
+msgid "The lexical concept (sense) a glossary entry's source evokes — the sense-aware key the consistency invariant groups on. Functional: one concept per entry. Domain gmeow:GlossaryEntry, range lang:LexicalConcept. The projection mints one concept per source skeleton by default (so synonymous renderings of one term are caught), and DISTINCT concepts for a source declared a lang:DeclaredTerminologyHomograph (so a genuine homograph is not a false positive). Grouping on the concept rather than the raw string is what makes the check sense-aware, the OntoLex-Lemon ontolex:LexicalConcept peer."
+msgstr "Le concept lexical (sens) qu'évoque la source d'une entrée de glossaire — la clé sensible au sens sur laquelle l'invariant de cohérence regroupe. Fonctionnel : un concept par entrée. Domaine gmeow:GlossaryEntry, portée lang:LexicalConcept. La projection frappe par défaut un concept par squelette de source (afin de repérer les rendus synonymes d'un même terme) et des concepts DISTINCTS pour une source déclarée lang:DeclaredTerminologyHomograph (afin qu'un véritable homographe ne soit pas un faux positif). Regrouper sur le concept plutôt que sur la chaîne brute est ce qui rend le contrôle sensible au sens, le pendant ontolex:LexicalConcept d'OntoLex-Lemon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySense|rdfs:label"
+msgid "glossary sense"
+msgstr "sens de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySense|skos:definition"
+msgid "The lang:Sense a glossary entry carries — the middle corner of the OntoLex Frege triangle, the entry's lexeme's way of meaning. Functional: one sense per entry. Domain gmeow:GlossaryEntry, range lang:Sense. The sense lang:evokes the entry's gmeow:glossaryConcept, so synonymy is derived (two distinct senses evoking one concept), never a flat sense-to-sense edge. The projection mints the sense from the (gmeow:glossaryTerm, English-source-skeleton) pair and INDEPENDENTLY of target language: two distinct terms sharing one source skeleton (a class and its property twin) mint two distinct senses that both evoke the one concept, while the SAME term's renderings across languages (fr, zh) collapse onto one sense (one way of meaning, many language renderings). The consistency invariant still groups on gmeow:glossaryConcept, not on the sense."
+msgstr "Le lang:Sense que porte une entrée de glossaire — le sommet central du triangle de Frege d'OntoLex, la manière de signifier du lexème de l'entrée. Fonctionnel : un sens par entrée. Domaine gmeow:GlossaryEntry, portée lang:Sense. Le sens lang:evokes le gmeow:glossaryConcept de l'entrée, de sorte que la synonymie est dérivée (deux sens distincts évoquant un même concept), jamais une arête plate de sens à sens. La projection frappe le sens à partir du couple (gmeow:glossaryTerm, squelette-de-source-anglaise) et INDÉPENDAMMENT de la langue cible : deux termes distincts partageant un même squelette de source (une classe et son jumeau propriété) frappent deux sens distincts qui évoquent tous deux l'unique concept, tandis que les rendus d'un MÊME terme à travers les langues (fr, zh) se rejoignent sur un seul sens (une seule manière de signifier, de nombreux rendus linguistiques). L'invariant de cohérence regroupe toujours sur gmeow:glossaryConcept, non sur le sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryUnit|rdfs:label"
+msgid "glossary unit"
+msgstr "unité de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryUnit|skos:definition"
+msgid "The lang:TranslationUnit carrying the law-spine of a glossary entry's crossing — the attachment point of the entry's logic:Correspondence, its logic:preservationKind, and any lang:translationGap or logic:mnemomorphic residue. Functional: one unit per entry. Domain gmeow:GlossaryEntry, range lang:TranslationUnit. The glossary reuses the translation corpus's honest preservation judgment rather than minting a second grade."
+msgstr "La lang:TranslationUnit portant l'ossature légale du passage d'une entrée de glossaire — le point d'attache de la logic:Correspondence de l'entrée, de sa logic:preservationKind et de tout lang:translationGap ou résidu logic:mnemomorphic. Fonctionnel : une unité par entrée. Domaine gmeow:GlossaryEntry, portée lang:TranslationUnit. Le glossaire réutilise l'honnête jugement de préservation du corpus de traduction plutôt que de frapper une seconde note."
+
+msgctxt "https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph|rdfs:label"
+msgid "Declared Terminology Homograph"
+msgstr "Homographe terminologique déclaré"
+
+msgctxt "https://blackcatinformatics.ca/lang/DeclaredTerminologyHomograph|skos:definition"
+msgid "An explicit declaration that one English surface form (lang:homographSource) is a homograph in the terminology — it legitimately evokes two or more DISTINCT lang:LexicalConcepts (lang:homographConcept), each of which may take its own target-language rendering. It is the ontology-resident escape the glossary-consistency gate consults: a source so declared is exempted from the raw-source consistency check (its entries are projected onto distinct concepts), so a genuine homograph is never a false positive. A discrete modelled fact, never a calibrated knob: it costs naming two real concepts, and the exemption is granted only when two or more distinct lang:homographConcept senses are present — a declaration naming fewer than two grants no exemption (it is not a homograph) and the source stays under the consistency check."
+msgstr "Une déclaration explicite selon laquelle une forme de surface anglaise (lang:homographSource) est un homographe dans la terminologie — elle évoque légitimement deux lang:LexicalConcepts DISTINCTS ou plus (lang:homographConcept), dont chacun peut prendre son propre rendu en langue cible. C'est l'échappatoire résidant dans l'ontologie que consulte le contrôle de cohérence de glossaire : une source ainsi déclarée est exemptée du contrôle de cohérence sur source brute (ses entrées sont projetées sur des concepts distincts), de sorte qu'un véritable homographe n'est jamais un faux positif. Un fait modélisé discret, jamais un bouton calibré : il coûte de nommer deux concepts réels, et l'exemption n'est accordée que lorsque deux sens lang:homographConcept distincts ou plus sont présents — une déclaration en nommant moins de deux n'accorde aucune exemption (ce n'est pas un homographe) et la source reste soumise au contrôle de cohérence."
+
+msgctxt "https://blackcatinformatics.ca/lang/homographSource|rdfs:label"
+msgid "homograph source"
+msgstr "source d'homographe"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographSource|skos:definition"
+msgid "The English surface form a lang:DeclaredTerminologyHomograph marks as a homograph — the string the glossary-consistency gate exempts. At most one surface per declaration. Domain lang:DeclaredTerminologyHomograph, range xsd:string. Distinct from gmeow:glossarySource (which is entry-scoped and derived): this predicate is authored only on homograph declarations, so the gate's exempt-set read never picks up derived entry literals."
+msgstr "La forme de surface anglaise qu'une lang:DeclaredTerminologyHomograph marque comme homographe — la chaîne que le contrôle de cohérence de glossaire exempte. Au plus une surface par déclaration. Domaine lang:DeclaredTerminologyHomograph, portée xsd:string. Distinct de gmeow:glossarySource (qui est délimité à l'entrée et dérivé) : ce prédicat n'est rédigé que sur des déclarations d'homographe, de sorte que la lecture de l'ensemble d'exemption par le contrôle ne récupère jamais de littéraux d'entrée dérivés."
+
+msgctxt "https://blackcatinformatics.ca/lang/homographConcept|rdfs:label"
+msgid "homograph concept"
+msgstr "concept d'homographe"
+
+msgctxt "https://blackcatinformatics.ca/lang/homographConcept|skos:definition"
+msgid "One distinct sense a homograph surface evokes. Domain lang:DeclaredTerminologyHomograph, range lang:LexicalConcept. Non-functional and meaningful only in the plural: the exemption is granted only when two or more distinct lang:LexicalConcepts are named (fewer than two is not a homograph and grants no exemption). The glossary projection routes each occurrence of the declared source onto the matching concept, so divergent renderings across distinct senses are legitimate."
+msgstr "Un sens distinct qu'évoque une surface homographe. Domaine lang:DeclaredTerminologyHomograph, portée lang:LexicalConcept. Non fonctionnel et n'ayant de sens qu'au pluriel : l'exemption n'est accordée que lorsque deux lang:LexicalConcepts distincts ou plus sont nommés (moins de deux n'est pas un homographe et n'accorde aucune exemption). La projection de glossaire achemine chaque occurrence de la source déclarée vers le concept correspondant, de sorte que des rendus divergents à travers des sens distincts sont légitimes."
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermInconsistency|rdfs:label"
+msgid "Glossary Term Inconsistency"
+msgstr "Incohérence de terme de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermInconsistency|skos:definition"
+msgid "The failure raised when a gmeow:Glossary translates one term two different ways across batches: two gmeow:GlossaryEntry members sharing one gmeow:glossaryConcept carry two DIFFERENT gmeow:glossaryTranslation values. The terminology is then not consistent — one sense reads back as two divergent renderings — which the functional-dependency invariant (lang:GlossaryTermConsistencyConstraint) forbids. The structural dual of lang:GmnDictionaryAliasCollision: an alias reading back as two terms there, a sense reading back as two translations here. A genuine homograph is NOT this failure — it is projected onto distinct concepts through a lang:DeclaredTerminologyHomograph and so never shares a concept."
+msgstr "L'échec levé lorsqu'un gmeow:Glossary traduit un même terme de deux façons différentes d'un lot à l'autre : deux membres gmeow:GlossaryEntry partageant un même gmeow:glossaryConcept portent deux valeurs gmeow:glossaryTranslation DIFFÉRENTES. La terminologie n'est alors pas cohérente — un même sens se relit comme deux rendus divergents — ce que l'invariant de dépendance fonctionnelle (lang:GlossaryTermConsistencyConstraint) interdit. Le dual structurel de lang:GmnDictionaryAliasCollision : un alias s'y relit comme deux termes, un sens se relit ici comme deux traductions. Un véritable homographe n'est PAS cet échec — il est projeté sur des concepts distincts via une lang:DeclaredTerminologyHomograph et ne partage donc jamais de concept."
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermConsistencyConstraint|rdfs:label"
+msgid "Glossary term-consistency constraint"
+msgstr "Contrainte de cohérence de terme de glossaire"
+
+msgctxt "https://blackcatinformatics.ca/lang/GlossaryTermConsistencyConstraint|skos:definition"
+msgid "A closed-world integrity constraint requiring two gmeow:GlossaryEntry members of one gmeow:Glossary that share a gmeow:glossaryConcept to carry the same gmeow:glossaryTranslation; one sense never reads back as two divergent translations across batches. The structural dual of lang:GmnDictionaryAliasInjectivityConstraint: alias->term injectivity there, concept->translation functional-dependency here."
+msgstr "Une contrainte d'intégrité en monde clos exigeant que deux membres gmeow:GlossaryEntry d'un même gmeow:Glossary partageant un gmeow:glossaryConcept portent la même gmeow:glossaryTranslation ; un même sens ne se relit jamais comme deux traductions divergentes d'un lot à l'autre. Le dual structurel de lang:GmnDictionaryAliasInjectivityConstraint : injectivité alias->terme là-bas, dépendance fonctionnelle concept->traduction ici."
+
+msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|rdfs:label"
+msgid "GMN dictionary alias-injectivity constraint"
+msgstr "Contrainte d'injectivité d'alias du dictionnaire GMN"
+
+msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|skos:definition"
+msgid "A closed-world integrity constraint requiring entries in one gmeow:GmnDictionary that share a gmeow:gmnDictionaryEntryAlias to name the same gmeow:gmnDictionaryEntryTerm; one alias never reads back as two terms."
+msgstr "Une contrainte d'intégrité en monde clos exigeant que les entrées d'un même gmeow:GmnDictionary partageant un gmeow:gmnDictionaryEntryAlias nomment le même gmeow:gmnDictionaryEntryTerm ; un même alias ne se relit jamais comme deux termes."

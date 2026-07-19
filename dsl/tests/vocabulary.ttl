@@ -415,6 +415,17 @@ gmeow:expectedViolationCode a owl:DatatypeProperty ;
     gmeow:howToUse "Read the finding code the validator emits — it is `shacl.` followed by the SHACL constraint component's FULL local name (e.g. shacl.MinCountConstraintComponent, shacl.ClassConstraintComponent, shacl.DatatypeConstraintComponent) — and pin that exact string on the violates fixture."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
+gmeow:expectedSourceShape a owl:ObjectProperty ;
+    rdfs:domain gmeow:ExampleConformance ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "expected source shape"@x-gmeow-english ;
+    skos:definition "The SHACL sh:sourceShape the expected finding must originate from, pinning WHICH specific derived shape a counter-example is expected to red. gmeow:expectedViolationCode alone names only the finding COMPONENT, and every logic:Constraint projects to the SAME generic component (shacl.SPARQLConstraintComponent), so a counter-example can satisfy the code by tripping a DIFFERENT rule than the one it is meant to test. Naming the source shape closes that gap: the harness checks it ONLY when present (an exact source-shape IRI match, or a local-name suffix match), so it is fully OPTIONAL and backward-compatible — a fixture that omits it is validated on the component code exactly as before. Applies only to gmeow:violates fixtures."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.SPARQLConstraintComponent\" ; gmeow:expectedSourceShape gmeow:SourceDigestMatchConstraintProceduralConstraintShape ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture whose gmeow:expectedViolationCode is a generic component shared by many rules (e.g. shacl.SPARQLConstraintComponent, shacl.MinCountConstraintComponent) to pin the exact derived shape that must fire, so the fixture proves the SPECIFIC named rule — not merely some rule of the same component — rejected the counter-example."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding), and where the finding's sh:sourceShape is not per-rule stable — e.g. a sh:minCount derived from a class-level node shape reports the shared class shape as its source, not a per-property shape, so pinning it would not narrow to the specific property; leave such a fixture on the component code."@x-gmeow-english ;
+    gmeow:howToUse "Read the derived shape the counter-example must red — for a logic:Constraint it is the projected sh:NodeShape carrying the sh:sparql (the shape logic:formalizes maps FROM, as the generated procedural-constraints surface names it) — and pin its IRI here alongside the gmeow:expectedViolationCode; the harness matches the finding's sh:sourceShape by exact IRI or by local-name suffix."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
 gmeow:conformanceRationale a owl:DatatypeProperty ;
     rdfs:range xsd:string ;
     rdfs:label "conformance rationale"@x-gmeow-english ;
@@ -438,66 +449,11 @@ gmeow:conformanceRationale a owl:DatatypeProperty ;
 # shared here.
 # =============================================================================
 
-gmeow:FlagshipScenario a owl:Class ;
-    rdfs:label "flagship scenario"@x-gmeow-english ;
-    skos:definition "A typed acceptance-manifest object reifying one of a grounding slice's flagship acceptance scenarios — its depth bar. Each gmeow:FlagshipScenario binds one scenario to the artifacts that realize and enforce it: the worked example (gmeow:demonstratedByExample), the competency question that pins its structure (gmeow:demonstratedByCompetency), the native producer that emits its output (gmeow:demonstratedByProducer), the counter-example that proves its gate bites (gmeow:guardedByCounterExample), and the named conformance-failure subclass that gate raises (gmeow:enforcesFailureClass). A scenario missing its example, competency, producer, counter-example, or enforcing class, or naming an enforcing class that is not one of the owning slice's conformance-failure subclasses, is unwired and ill-formed (gmeow:UnwiredFlagshipScenario)."@x-gmeow-english ;
-    skos:example "exa:e8Symmetry a gmeow:FlagshipScenario ; gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ; gmeow:demonstratedByCompetency cq:cqE8RootSystem ; gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ; gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ; gmeow:enforcesFailureClass math:WrongE8WeylOrder ."@x-gmeow-english ;
-    gmeow:useWhen "Use to make a grounding slice's acceptance bar a typed, gated object: one gmeow:FlagshipScenario per flagship, each binding the worked example, competency, producer, counter-example, and enforcing failure class that realize and enforce it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for ordinary well-formedness invariants (use gmeow:StructuralAssertion) or example-validation outcomes (use gmeow:ExampleConformance); a flagship scenario reifies a depth-bar acceptance case, not a single graph constraint."@x-gmeow-english ;
-    gmeow:howToUse "Author one gmeow:FlagshipScenario individual per flagship in the slice's examples/flagship-acceptance.ttl, binding gmeow:demonstratedByExample, gmeow:demonstratedByCompetency, gmeow:demonstratedByProducer, gmeow:guardedByCounterExample, and gmeow:enforcesFailureClass (the last pointing at the owning slice's own conformance-failure subclass)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:UnwiredFlagshipScenario a owl:Class ;
-    rdfs:label "unwired flagship scenario"@x-gmeow-english ;
-    skos:definition "The shared abstract failure class for a gmeow:FlagshipScenario that is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), competency question (gmeow:demonstratedByCompetency), producer (gmeow:demonstratedByProducer), counter-example (gmeow:guardedByCounterExample), or enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not one of the owning slice's conformance-failure subclasses. The depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met. Each grounding slice's own <Slice>UnwiredFlagshipScenario subclasses ONLY its slice-local <Slice>ConformanceFailure root (never this spec-layer marker, which is never a subclass target); unwired-detection is instead enforced UNIFORMLY across every slice by the shared gmeow:FlagshipScenarioShape, which carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, cross-referencing this shared name with the gate that raises it."@x-gmeow-english ;
-    skos:example "gmeow:FlagshipScenarioShape gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the shared, cross-slice-recognisable name for the wiring failure of an incompletely-wired gmeow:FlagshipScenario; the shared gmeow:FlagshipScenarioShape names it via gmeow:enforcesFailureClass so every slice's unwired scenarios are queryable under one common failure name."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid pointing gmeow:enforcesFailureClass at this abstract marker on a scenario individual; the enforcing class of a real scenario is a concrete slice-local conformance failure, and this marker only names the WIRING failure of the acceptance object itself."@x-gmeow-english ;
-    gmeow:howToUse "In a grounding slice, make <Slice>UnwiredFlagshipScenario a subclass of only its own <Slice>ConformanceFailure root; this spec-layer marker itself is never a subclass target (a spec-layer subclass target hard-fails validate.lint.dangling-subterm-target). The shared gmeow:FlagshipScenarioShape (not a per-slice shape) already carries gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario, so slice authors do not redeclare that annotation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:demonstratedByExample a owl:DatatypeProperty ;
-    rdfs:range xsd:string ;
-    rdfs:label "demonstrated by example"@x-gmeow-english ;
-    skos:definition "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the execution-discharge harness validates it clean."@x-gmeow-english ;
-    skos:example "exa:e8Symmetry gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative worked example that realizes it — the positive artifact the discharge harness validates clean."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative, like gmeow:exampleFile) and avoid naming more than one worked example per scenario."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:demonstratedByCompetency a owl:ObjectProperty ;
-    rdfs:label "demonstrated by competency"@x-gmeow-english ;
-    skos:definition "Names the competency question that pins a gmeow:FlagshipScenario's structure, referenced by IRI (a gmeow:CompetencyQuestion). The competency-question individual lives in the slice's tests/competency.ttl, so this reference is resolved and its gmeow:cqExpectRow expectation confirmed by the native flagship cross-check rather than by SHACL, which never loads the tests dataset."@x-gmeow-english ;
-    skos:example "exa:e8Symmetry gmeow:demonstratedByCompetency cq:cqE8RootSystem ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a gmeow:FlagshipScenario to reference, by IRI, the gmeow:CompetencyQuestion that pins its structure and numbers."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a literal here (the value is an IRI into tests/competency.ttl) and avoid pointing at a competency question that carries no gmeow:cqExpectRow — the cross-check requires a pinned green competency."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:demonstratedByProducer a owl:DatatypeProperty ;
-    rdfs:range xsd:string ;
-    rdfs:label "demonstrated by producer"@x-gmeow-english ;
-    skos:definition "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding if and only if the execution-discharge harness actually runs that producer and pins its output — the acceptance bar is discharged by execution, never by an unrun label."@x-gmeow-english ;
-    skos:example "exa:e8Symmetry gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use on every gmeow:FlagshipScenario to name the native producer identifier the execution-discharge harness dispatches and runs."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the discharge harness does not actually run — an unrun label is not a discharged acceptance bar."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:guardedByCounterExample a owl:DatatypeProperty ;
-    rdfs:range xsd:string ;
-    rdfs:label "guarded by counter-example"@x-gmeow-english ;
-    skos:definition "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the execution-discharge harness runs the fixture and confirms exactly that class fires."@x-gmeow-english ;
-    skos:example "exa:e8Symmetry gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative minimal counter-example that raises its enforcing failure class — the negative fixture that proves the gate bites."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative) and avoid a counter-example that raises any failure class other than the scenario's gmeow:enforcesFailureClass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
-
-gmeow:enforcesFailureClass a owl:AnnotationProperty ;
-    rdfs:label "enforces failure class"@x-gmeow-english ;
-    skos:definition "Links a gate — a SHACL shape or a gmeow:FlagshipScenario — to the conformance-failure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a gate to the named failure it raises and back. Carried on a SHACL shape (the shape enforcing that failure) or on a gmeow:FlagshipScenario (the failure its guarding counter-example must raise). An annotation property, never a reasoned axiom; its value is a slice-local <Slice>ConformanceFailure subclass."@x-gmeow-english ;
-    skos:example "math:UnsituatedNumberShape gmeow:enforcesFailureClass math:UnsituatedNumber ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a SHACL gate shape or a gmeow:FlagshipScenario to name the conformance-failure subclass it enforces, cross-referencing the machine-checked gate with the typed failure vocabulary."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as a reasoned axiom (it is an annotation) and avoid pointing it at a class that is not one of the owning slice's conformance-failure subclasses."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+# gmeow:FlagshipScenario, gmeow:UnwiredFlagshipScenario, and the five wiring predicates
+# (gmeow:demonstratedByExample/Competency/Producer, gmeow:guardedByCounterExample,
+# gmeow:enforcesFailureClass) are now first-class ontology terms in the logic grounding
+# slice (slices/grounding/logic/module.ttl), which the shape-derive reads; they are no
+# longer declared here (no dual source of truth).
 
 # --- Counter-example discharge depth --------------------------------------- #
 # How a flagship scenario's GUARDING counter-example proves its gate bites: a

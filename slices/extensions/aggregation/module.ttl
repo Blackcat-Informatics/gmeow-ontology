@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -22,7 +23,7 @@ gmeow:SpatialAggregation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Aggregation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement that aggregates entities located within a spatial region, yielding a scalar result such as a count, density, or average. The aggregation region is the observedFeature; the result is a ScalarQuantity. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core."@x-gmeow-english ;
+    skos:definition "A measurement that aggregates entities located within a spatial region, yielding one or more results such as a count, density, centroid, or average. The aggregation region is the observedFeature. Dimensioned numeric results use math:Quantity; results with an existing canonical carrier, such as gmeow:MonetaryAmount for currency-framed averages, retain that type. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SpatialBin
@@ -117,7 +118,7 @@ gmeow:minimumPopulation
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Spatial aggregation and statistical summarisation over places — count, sum, average, density, centroid, and binning. Realises the Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
 
-Every aggregation is a gmeow:Measurement (the universal observation stack), so vantage, observedFeature, observationResult, confidence, granularity, and temporal scope are inherited without duplication (Principle 4). The aggregation region is the observedFeature; the result is a gmeow:ScalarQuantity. The actual arithmetic — counting, density computation, centroid calculation, binning — is performed by the solver layer (Principle 12), never materialised as asserted triples in the OWL core.
+Every aggregation is a gmeow:Measurement (the universal observation stack), so vantage, observedFeature, observationResult, confidence, granularity, and temporal scope are inherited without duplication (Principle 4). The aggregation region is the observedFeature. Dimensioned numeric results use math:Quantity; domain-specific results retain their canonical carrier (for example gmeow:MonetaryAmount for a currency-framed average), and multiple frame- or standpoint-indexed results may coexist. The actual arithmetic — counting, density computation, centroid calculation, binning — is performed by the solver layer (Principle 12), never materialised as asserted triples in the OWL core.
 
 Privacy (k-anonymity, coarsening, suppression) is handled by the existing projection layer: gmeow:coarsenTo, gmeow:displayable false, and gmeow:hasSensitivity govern whether and at what granularity an aggregation result may be published (Principle 10). K-anonymity thresholds ("publish only if count >= K") remain a solver-layer computation (Principle 12)."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
@@ -125,3 +126,52 @@ Privacy (k-anonymity, coarsening, suppression) is handled by the existing projec
     skos:definition "The GMEOW Spatial Aggregation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/aggregationFunction> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AggregationFunction> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/minimumPopulation> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Place> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/aggregationFunction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B1 shape-drain: spatial-aggregation cardinality + result-type grounding ---
+# gmeow:SpatialAggregationShape — exactly one vantage, one observed region, one aggregation
+# function, one scalar result, and at most one minimum population.
+gmeow:SpatialAggregation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:aggregationFunction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:minimumPopulation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+# The observationResult value is a math:Quantity (the sole quantity authority) or a
+# gmeow:MonetaryAmount (domain-specific results retain their canonical carrier) — the value-class
+# disjunction of the retired gmeow:SpatialAggregationShape sh:or, carried in the logic: canon (no
+# single OWL antecedent reproduces a disjunctive value class on a path).
+gmeow:SpatialAggregationResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "Spatial aggregation result-type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SpatialAggregation yields a result that is a math:Quantity or a gmeow:MonetaryAmount."@x-gmeow-english ;
+    logic:formalizes gmeow:SpatialAggregationShape ;
+    logic:message "A SpatialAggregation result must be a math:Quantity or a gmeow:MonetaryAmount." ;
+    logic:integrity logic:spaggForall .
+logic:spaggForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:spaggImpl .
+logic:spaggImpl a logic:Formula ; logic:antecedent logic:spaggGuard ; logic:consequent logic:spaggOr .
+logic:spaggGuard a logic:Formula ; logic:and logic:spaggType , logic:spaggResult .
+logic:spaggType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SpatialAggregation ] .
+logic:spaggResult a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:spaggOr a logic:Formula ; logic:or logic:spaggQuantity , logic:spaggMonetary .
+logic:spaggQuantity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:Quantity ] .
+logic:spaggMonetary a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MonetaryAmount ] .

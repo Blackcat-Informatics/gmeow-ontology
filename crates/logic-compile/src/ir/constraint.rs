@@ -212,6 +212,244 @@ impl AggregateComparison {
     }
 }
 
+/// One leg (hop) of a [`JoinAggregate`]'s multi-hop join: a reified relation record whose two role
+/// predicates chain the endpoints and whose `value` predicate carries the numeric leaf value
+/// multiplied into the group product. For the general-CW ∂²=0 check a leg is an incidence record —
+/// `source` = `incidenceCoface` (record → higher cell), `target` = `incidenceFace` (record → lower
+/// cell), `value` = `incidenceSign` — so two chained legs traverse coface → cell → far-face and the
+/// group product is `sign₁ · sign₂`. The chain's shared join variable is `leg[k].target =
+/// leg[k+1].source`; there is no cartesian product over cells, so the projected SPARQL scales with
+/// the number of incidence RECORDS, not with cells².
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JoinLeg {
+    /// Optional class the record node is typed with (an index-friendly anchor and a well-formedness
+    /// guard; `None` ⇒ the record is bound only by its role/value predicates).
+    pub record_type: Option<String>,
+    /// The predicate from the record to this leg's SOURCE endpoint (`?record <source> ?from`). The
+    /// first leg's source binds to the focus `$this`; every later leg's source binds to the
+    /// preceding leg's target (the shared join variable).
+    pub source: String,
+    /// The predicate from the record to this leg's TARGET endpoint (`?record <target> ?to`). The
+    /// last leg's target is the far endpoint of the group key.
+    pub target: String,
+    /// The predicate from the record to the numeric leaf value multiplied into the group product
+    /// (`?record <value> ?v`).
+    pub value: String,
+}
+
+impl JoinLeg {
+    /// Construct a join leg, validating the three role/value predicates are non-empty IRIs (and the
+    /// optional record type, when present, is a non-empty IRI).
+    pub fn new(
+        record_type: Option<String>,
+        source: impl Into<String>,
+        target: impl Into<String>,
+        value: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let source = source.into();
+        let target = target.into();
+        let value = value.into();
+        for (label, p) in [("source", &source), ("target", &target), ("value", &value)] {
+            if p.trim().is_empty() {
+                return Err(ir_err(format!(
+                    "JoinLeg.{label} must be a non-empty predicate IRI"
+                )));
+            }
+        }
+        if let Some(rt) = &record_type
+            && rt.trim().is_empty()
+        {
+            return Err(ir_err(
+                "JoinLeg.record_type must be a non-empty class IRI when present; pass None to \
+                 leave it unset",
+            ));
+        }
+        Ok(Self {
+            record_type,
+            source,
+            target,
+            value,
+        })
+    }
+
+    /// The byte-stable content-key fragment for this leg (order-significant within the chain).
+    fn content_key(&self) -> String {
+        format!(
+            "rt={}{SEP}s={}{SEP}t={}{SEP}v={}",
+            key_field(self.record_type.as_deref().unwrap_or("")),
+            key_field(&self.source),
+            key_field(&self.target),
+            key_field(&self.value),
+        )
+    }
+}
+
+/// A join-aggregate satellite on a [`ConstraintIr`]: "over an N-hop JOIN (N ≥ 2) whose legs chain
+/// through a shared intermediate endpoint, `function` the PRODUCT of the joined leaf values, GROUP
+/// BY the (focus, far-endpoint) key, and FIRE when the group value fails `comparator` `threshold`."
+/// It is the generalization of [`AggregateComparison`] from a single-predicate focus aggregate to a
+/// multi-hop-join product aggregate, and the canonical home of the general-CW ∂²=0 conformance check
+/// (a SUM of incidence-sign products over composable cells that must equal 0). Like
+/// [`AggregateComparison`] the realized FOL [`Formula`] core has no aggregate/join node, so the
+/// structured join is carried HERE and lowered to a `SELECT $this ?far … GROUP BY $this ?far
+/// HAVING(…)` `sh:SPARQLConstraint`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JoinAggregate {
+    /// The aggregate function, an upper-case SPARQL name (`SUM` for ∂²; `COUNT`/`MIN`/`MAX` accepted).
+    pub function: String,
+    /// The ordered join legs (at least two — a single hop is not a JOIN). `leg[k].target` is the
+    /// shared join variable that `leg[k+1].source` re-binds.
+    pub legs: Vec<JoinLeg>,
+    /// The comparator the group aggregate is tested against — the authored INVARIANT operator (the
+    /// CONFORMING condition, e.g. `=` for "sum = 0"); the projected `HAVING` uses its negation
+    /// because a `sh:select` returns the VIOLATING groups.
+    pub comparator: AggregateComparator,
+    /// The lexical form of the fixed literal threshold the aggregate is compared to (e.g. `0`).
+    pub threshold_lexical: String,
+    /// The threshold literal's datatype IRI (`None` ⇒ a plain literal).
+    pub threshold_datatype: Option<String>,
+}
+
+impl JoinAggregate {
+    /// Construct, validating the function is a supported aggregate, there are at least two legs (a
+    /// genuine multi-hop join), and the threshold lexical form is non-empty.
+    pub fn new(
+        function: impl Into<String>,
+        legs: Vec<JoinLeg>,
+        comparator: AggregateComparator,
+        threshold_lexical: impl Into<String>,
+        threshold_datatype: Option<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let function = function.into().to_ascii_uppercase();
+        if !matches!(function.as_str(), "COUNT" | "SUM" | "MIN" | "MAX") {
+            return Err(ir_err(format!(
+                "JoinAggregate.function '{function}' must be one of COUNT/SUM/MIN/MAX"
+            )));
+        }
+        if legs.len() < 2 {
+            return Err(ir_err(format!(
+                "JoinAggregate needs at least two join legs to be a multi-hop JOIN; found {}",
+                legs.len()
+            )));
+        }
+        let threshold_lexical = threshold_lexical.into();
+        if threshold_lexical.trim().is_empty() {
+            return Err(ir_err(
+                "JoinAggregate.threshold_lexical must be a non-empty literal (the fixed comparison \
+                 value, e.g. 0)",
+            ));
+        }
+        Ok(Self {
+            function,
+            legs,
+            comparator,
+            threshold_lexical,
+            threshold_datatype,
+        })
+    }
+
+    /// The append-only content-key segment for this satellite (order-significant leg chain folded in).
+    fn content_key(&self) -> String {
+        let mut legs = String::new();
+        for (i, l) in self.legs.iter().enumerate() {
+            if i > 0 {
+                legs.push(SEP);
+            }
+            legs.push_str(&key_field(&l.content_key()));
+        }
+        format!(
+            "fn={}{SEP}legs={}{SEP}cmp={}{SEP}thr={}{SEP}{}",
+            self.function,
+            key_field(&legs),
+            self.comparator.as_key(),
+            key_field(&self.threshold_lexical),
+            key_field(self.threshold_datatype.as_deref().unwrap_or("")),
+        )
+    }
+}
+
+/// An aggregate-BALANCE satellite on a [`ConstraintIr`]: the double-entry balance invariant
+/// "within each group, Σ over the focus's postings of the debit-partition amounts equals Σ of the
+/// credit-partition amounts". Like [`AggregateComparison`], the realized FOL [`Formula`] core has no
+/// aggregate node, so a balance integrity is carried HERE as a structured satellite and lowered to a
+/// `SELECT $this … GROUP BY $this ?group HAVING(sumDebits != sumCredits)` `sh:SPARQLConstraint`. It
+/// generalizes the single-aggregate [`AggregateComparison`] to a *partitioned two-sum equality over a
+/// value-key group*: the focus's postings (`posting_predicate`) are partitioned by
+/// `partition_predicate` into a debit side (`debit_value`) and a credit side (`credit_value`); each
+/// posting's numeric amount is read via `amount_node_predicate` then `value_predicate`; the group key
+/// is read via `amount_node_predicate` then `group_predicate`; and the two partition-sums must be
+/// EQUAL within every group.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateBalance {
+    /// The predicate from the focus to each posting (`$this <posting_predicate> ?posting`).
+    pub posting_predicate: String,
+    /// The predicate on a posting whose value selects its partition (debit vs credit).
+    pub partition_predicate: String,
+    /// The `partition_predicate` value marking a DEBIT posting.
+    pub debit_value: String,
+    /// The `partition_predicate` value marking a CREDIT posting.
+    pub credit_value: String,
+    /// The predicate from a posting to its amount node (`?posting <amount_node_predicate> ?amount`).
+    pub amount_node_predicate: String,
+    /// The predicate from the amount node to its numeric value (`?amount <value_predicate> ?val`).
+    pub value_predicate: String,
+    /// The predicate from the amount node to the group key (`?amount <group_predicate> ?group`).
+    pub group_predicate: String,
+}
+
+impl AggregateBalance {
+    /// Construct, validating every predicate / partition value is a non-empty IRI.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        posting_predicate: impl Into<String>,
+        partition_predicate: impl Into<String>,
+        debit_value: impl Into<String>,
+        credit_value: impl Into<String>,
+        amount_node_predicate: impl Into<String>,
+        value_predicate: impl Into<String>,
+        group_predicate: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let out = Self {
+            posting_predicate: posting_predicate.into(),
+            partition_predicate: partition_predicate.into(),
+            debit_value: debit_value.into(),
+            credit_value: credit_value.into(),
+            amount_node_predicate: amount_node_predicate.into(),
+            value_predicate: value_predicate.into(),
+            group_predicate: group_predicate.into(),
+        };
+        for (field, v) in [
+            ("posting_predicate", &out.posting_predicate),
+            ("partition_predicate", &out.partition_predicate),
+            ("debit_value", &out.debit_value),
+            ("credit_value", &out.credit_value),
+            ("amount_node_predicate", &out.amount_node_predicate),
+            ("value_predicate", &out.value_predicate),
+            ("group_predicate", &out.group_predicate),
+        ] {
+            if v.trim().is_empty() {
+                return Err(ir_err(format!(
+                    "AggregateBalance.{field} must be a non-empty IRI"
+                )));
+            }
+        }
+        Ok(out)
+    }
+
+    /// The append-only content-key segment for this satellite.
+    fn content_key(&self) -> String {
+        format!(
+            "posting={}{SEP}part={}{SEP}debit={}{SEP}credit={}{SEP}amount={}{SEP}value={}{SEP}group={}",
+            key_field(&self.posting_predicate),
+            key_field(&self.partition_predicate),
+            key_field(&self.debit_value),
+            key_field(&self.credit_value),
+            key_field(&self.amount_node_predicate),
+            key_field(&self.value_predicate),
+            key_field(&self.group_predicate),
+        )
+    }
+}
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments
 /// are concatenated into a content key (mirrors the `validation` module's helper verbatim).
 fn key_field(s: &str) -> String {
@@ -246,6 +484,12 @@ pub struct ConstraintIr {
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
     /// content key.
     pub formalizes: Option<String>,
+    /// Additional `logic:formalizes` back-references beyond the primary [`Self::formalizes`]: a
+    /// constraint may formalize several gmeow-domain terms at once (e.g. the canonical class it
+    /// governs AND the legacy hand-authored shape it reproduces). Each is projected as its own
+    /// `logic:formalizes` line. Annotation-level, so excluded from the content key. Sorted,
+    /// deduplicated, and never overlapping the primary.
+    pub also_formalizes: Vec<String>,
     /// Typed conformance failure raised by the projected constraint shape. Annotation-level and
     /// deliberately excluded from the formula's semantic identity.
     pub failure_class: Option<String>,
@@ -255,6 +499,15 @@ pub struct ConstraintIr {
     /// `sh:SPARQLConstraint`. Folded into [`Self::content_key`] only when present (append-only:
     /// absent ⇒ the byte-identical historical key).
     pub aggregate: Option<AggregateComparison>,
+    /// The join-aggregate satellite (`None` ⇒ not a join-aggregate constraint). Carries the
+    /// multi-hop-join product aggregate that generalizes [`Self::aggregate`], lowered to a
+    /// `GROUP BY $this ?far HAVING(…)` `sh:SPARQLConstraint`. Folded into [`Self::content_key`]
+    /// only when present (append-only: absent ⇒ the byte-identical historical key).
+    pub join_aggregate: Option<JoinAggregate>,
+    /// The aggregate-BALANCE satellite (`None` ⇒ not a balance constraint). Carries the
+    /// partitioned two-sum equality; lowered to a `GROUP BY`/`HAVING` `sh:SPARQLConstraint`.
+    /// Folded into [`Self::content_key`] only when present (append-only).
+    pub aggregate_balance: Option<AggregateBalance>,
 }
 
 impl ConstraintIr {
@@ -291,9 +544,19 @@ impl ConstraintIr {
             severity,
             message,
             formalizes: None,
+            also_formalizes: Vec::new(),
             failure_class: None,
             aggregate: None,
+            join_aggregate: None,
+            aggregate_balance: None,
         })
+    }
+
+    /// Attach the aggregate-balance satellite (the partitioned two-sum equality the `GROUP BY`/
+    /// `HAVING` SPARQL projection lowers). Chainable; folded into the content key.
+    pub fn with_aggregate_balance(mut self, balance: AggregateBalance) -> Self {
+        self.aggregate_balance = Some(balance);
+        self
     }
 
     /// Attach the aggregate-comparison satellite (the structured `GROUP BY`/`HAVING` form the
@@ -302,6 +565,15 @@ impl ConstraintIr {
     /// complete), while this satellite drives the real SPARQL-aggregate projection.
     pub fn with_aggregate(mut self, aggregate: AggregateComparison) -> Self {
         self.aggregate = Some(aggregate);
+        self
+    }
+
+    /// Attach the join-aggregate satellite (the structured multi-hop-join `GROUP BY`/`HAVING` form
+    /// the SPARQL projection lowers). Chainable; folded into the content key. The integrity formula
+    /// still carries the honest reified FOL rendering of the same condition, while this satellite
+    /// drives the real join + product + aggregate SPARQL projection.
+    pub fn with_join_aggregate(mut self, join_aggregate: JoinAggregate) -> Self {
+        self.join_aggregate = Some(join_aggregate);
         self
     }
 
@@ -317,6 +589,33 @@ impl ConstraintIr {
             ));
         }
         self.formalizes = Some(formalizes);
+        Ok(self)
+    }
+
+    /// Attach additional `logic:formalizes` back-references (beyond the primary). Each must be a
+    /// non-empty IRI; the primary is filtered out, and the remainder is sorted and deduplicated so
+    /// the projection is deterministic. Chainable; annotation-level (never perturbs the content key).
+    pub fn with_also_formalizes(
+        mut self,
+        also: impl IntoIterator<Item = String>,
+    ) -> gmeow_errors::Result<Self> {
+        let primary = self.formalizes.clone();
+        let mut extra: Vec<String> = Vec::new();
+        for term in also {
+            if term.trim().is_empty() {
+                return Err(ir_err(
+                    "ConstraintIr.with_also_formalizes: every formalized term must be a non-empty \
+                     IRI",
+                ));
+            }
+            if primary.as_deref() == Some(term.as_str()) {
+                continue;
+            }
+            extra.push(term);
+        }
+        extra.sort();
+        extra.dedup();
+        self.also_formalizes = extra;
         Ok(self)
     }
 
@@ -346,6 +645,40 @@ impl ConstraintIr {
         self.iri.clone()
     }
 
+    /// **Hard-fail** when more than one of the three aggregate satellites ([`Self::aggregate`],
+    /// [`Self::join_aggregate`], [`Self::aggregate_balance`]) is `Some`. The SPARQL projection
+    /// (`projections::shapes::constraint_select`) dispatches by PRIORITY — join_aggregate, then
+    /// aggregate_balance, then aggregate — so a constraint carrying more than one would otherwise
+    /// have its lower-priority satellite(s) silently dropped from the projected shape: a
+    /// no-optionality violation (`.goals`), not a permitted profile choice. Callers MUST invoke
+    /// this at the projection chokepoint (every satellite is attached by a chainable `with_*`
+    /// builder AFTER [`Self::new`] returns, so `new` itself cannot observe the conflict) so the
+    /// malformed constraint hard-fails instead of silently picking one.
+    pub fn ensure_single_satellite(&self) -> gmeow_errors::Result<()> {
+        let mut present: Vec<&str> = Vec::new();
+        if self.aggregate.is_some() {
+            present.push("aggregate");
+        }
+        if self.join_aggregate.is_some() {
+            present.push("join_aggregate");
+        }
+        if self.aggregate_balance.is_some() {
+            present.push("aggregate_balance");
+        }
+        if present.len() > 1 {
+            return Err(ir_err(format!(
+                "ConstraintIr {} carries {} coexisting aggregate satellites ({}); at most one of \
+                 aggregate/join_aggregate/aggregate_balance may be set on a single constraint, \
+                 else the SPARQL projection's priority dispatch would silently drop the \
+                 lower-priority satellite(s)",
+                self.iri,
+                present.len(),
+                present.join(", "),
+            )));
+        }
+        Ok(())
+    }
+
     /// A deterministic full-content key for canonical equality. Public to the crate so
     /// [`super::LogicProgram::canonical_key`] can fold it into the program key at the fixed
     /// tail. Folded over `iri` + `target` + `integrity`'s alpha/order-normalized key +
@@ -360,9 +693,19 @@ impl ConstraintIr {
             self.severity.as_str(),
         );
         // Append-only: an aggregate-free constraint keeps the byte-identical historical key.
-        match &self.aggregate {
+        let with_agg = match &self.aggregate {
             Some(agg) => format!("{base}{SEP}agg={}", key_field(&agg.content_key())),
             None => base,
+        };
+        // Append-only: a join-aggregate-free constraint keeps the byte-identical historical key.
+        let with_join = match &self.join_aggregate {
+            Some(ja) => format!("{with_agg}{SEP}joinagg={}", key_field(&ja.content_key())),
+            None => with_agg,
+        };
+        // Append-only again: a balance-free constraint keeps the prior key.
+        match &self.aggregate_balance {
+            Some(bal) => format!("{with_join}{SEP}balance={}", key_field(&bal.content_key())),
+            None => with_join,
         }
     }
 }
@@ -395,17 +738,30 @@ fn target_from_integrity(integrity: &Formula) -> gmeow_errors::Result<ShapeTarge
              (∀ this. guard(this) → condition); the ∀ body is not a material implication",
         ));
     };
-    // The guard is either a single atom or a conjunction of atoms; gather the atoms.
-    let guard_atoms: Vec<&Formula> = match antecedent.as_ref() {
-        atom @ Formula::Atom { .. } => vec![atom],
-        Formula::And(fs) => fs.iter().collect(),
-        _ => {
-            return Err(ir_err(
-                "ConstraintIr integrity guard must be an atom or a conjunction of atoms that \
-                 range-restricts the focus variable",
-            ));
+    // The guard is a single atom, a conjunction of atoms, or an existential wrapping such a
+    // conjunction (`∃x. C(x) ∧ P(x, this)` — the focus is the OBJECT of a predicate whose subject
+    // is separately typed). Gather every atom, descending through `∃` and `∧`, so an object-of
+    // membership guard yields a well-formed target.
+    fn collect_guard_atoms<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
+        match f {
+            Formula::Atom { .. } => out.push(f),
+            Formula::And(fs) => {
+                for x in fs {
+                    collect_guard_atoms(x, out);
+                }
+            }
+            Formula::Exists { body, .. } => collect_guard_atoms(body, out),
+            _ => {}
         }
-    };
+    }
+    let mut guard_atoms: Vec<&Formula> = Vec::new();
+    collect_guard_atoms(antecedent.as_ref(), &mut guard_atoms);
+    if guard_atoms.is_empty() {
+        return Err(ir_err(
+            "ConstraintIr integrity guard must be an atom, a conjunction of atoms, or an \
+             existential over such a conjunction that range-restricts the focus variable",
+        ));
+    }
 
     // Prefer a class-membership guard `rdf:type(this, C)`.
     for atom in &guard_atoms {
@@ -927,6 +1283,79 @@ ex:c7_atom a logic:Formula ;
         assert_ne!(eq.content_key(), ne.content_key());
         assert!(eq.content_key().contains("agg="));
         assert!(!base.content_key().contains("agg="));
+    }
+
+    #[test]
+    fn join_aggregate_satellite_participates_in_the_content_key_and_is_append_only() {
+        // A join-aggregate satellite gives a distinct identity; an aggregate/join-free peer keeps
+        // the byte-identical historical key (append-only), and two satellites differing only in a
+        // leg's value predicate differ in identity.
+        let this = Term::Var("this".into());
+        let integrity = Formula::Forall {
+            vars: vec!["this".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(
+                    Formula::atom(
+                        Term::Iri(RDF_TYPE.into()),
+                        vec![this.clone(), Term::Iri("https://ex/TopCell".into())],
+                    )
+                    .unwrap(),
+                ),
+                Box::new(Formula::atom(Term::Iri("https://ex/ok".into()), vec![this]).unwrap()),
+            )),
+        };
+        let base =
+            ConstraintIr::new("https://ex/bsq", integrity, ShaclSeverity::Violation, None).unwrap();
+        let leg = |value: &str| {
+            JoinLeg::new(
+                Some("https://ex/Incidence".to_owned()),
+                "https://ex/incidenceCoface",
+                "https://ex/incidenceFace",
+                value,
+            )
+            .unwrap()
+        };
+        let ja = JoinAggregate::new(
+            "SUM",
+            vec![
+                leg("https://ex/incidenceSign"),
+                leg("https://ex/incidenceSign"),
+            ],
+            AggregateComparator::Eq,
+            "0",
+            Some("http://www.w3.org/2001/XMLSchema#integer".to_owned()),
+        )
+        .unwrap();
+        let with_ja = base.clone().with_join_aggregate(ja);
+        assert!(!base.content_key().contains("joinagg="));
+        assert!(with_ja.content_key().contains("joinagg="));
+        assert_ne!(base.content_key(), with_ja.content_key());
+
+        // A leg-value difference changes identity.
+        let ja_alt = JoinAggregate::new(
+            "SUM",
+            vec![leg("https://ex/incidenceSign"), leg("https://ex/otherSign")],
+            AggregateComparator::Eq,
+            "0",
+            Some("http://www.w3.org/2001/XMLSchema#integer".to_owned()),
+        )
+        .unwrap();
+        assert_ne!(
+            with_ja.content_key(),
+            base.clone().with_join_aggregate(ja_alt).content_key()
+        );
+
+        // A single hop is not a JOIN.
+        assert!(
+            JoinAggregate::new(
+                "SUM",
+                vec![leg("https://ex/incidenceSign")],
+                AggregateComparator::Eq,
+                "0",
+                None,
+            )
+            .is_err()
+        );
     }
 
     #[test]

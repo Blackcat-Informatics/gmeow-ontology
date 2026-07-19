@@ -3,7 +3,7 @@
 
 //! The full-build entry point: [`run_full`] runs the WHOLE
 //! dogfooded DAG single-pass and either WRITES every produced artifact to disk
-//! (regenerate mode) or COMPARES each against the committed bytes and collects
+//! (update mode) or COMPARES each against the committed bytes and collects
 //! drift [`Finding`]s (check mode).
 //!
 //! # The single-pass property
@@ -18,15 +18,17 @@
 //!
 //! The native `schemas` leaf consumes the `stage-gts-sink` product because the
 //! generated schema surfaces are projections of the exact folded GTS bytes that
-//! are shipped. `run_full` still runs the DAG in two phases so the sink product
-//! exists before schemas render, but schemas read those bytes from the in-memory
-//! upstream product; there is no Python subprocess and no disk-read dependency.
+//! are shipped. The sink product and schemas tail execute in one scheduled DAG;
+//! schemas read those bytes from their in-memory upstream product, with no Python
+//! subprocess and no disk-read dependency.
 
 use std::collections::BTreeMap;
 use std::io::ErrorKind;
 use std::path::Path;
+use std::sync::Arc;
 use std::time::Instant;
 
+use gmeow_cli_core::Reporter;
 use gmeow_errors::{
     Diag, DiagLedger, Finding, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
@@ -57,6 +59,17 @@ const CODE_DRIFT: &str = "pipeline.drift";
 /// gate alone cannot see.
 const CODE_GMN1_CONSTRUCT_COVERAGE_GAP: &str = "pipeline.gmn1.construct-coverage-gap";
 
+/// The native codebook-digest gate's finding code: an envelope declares a
+/// `gmeow:gmnCodebookDigest` that does not equal the codebook's recomputed Merkle root
+/// (`lang:GmnCodebookDigestMismatch`) — a graph-level cross-node check, distinct from a
+/// per-record codec failure.
+const CODE_GMN1_CODEBOOK_DIGEST_MISMATCH: &str = "pipeline.gmn1.codebook-digest-mismatch";
+
+/// The native pack-root check's finding code: a shipped conformance pack declares a
+/// `gmeow:gmnPackRoot` that does not equal the recomputation over its three parts (the
+/// codebook digest, the authored grammar bytes, and the sigil table).
+const CODE_GMN1_PACK_ROOT_MISMATCH: &str = "pipeline.gmn1.pack-root-mismatch";
+
 /// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
 /// drifting path is the finding's focus, so each path is a distinct content-addressed
 /// witness (a shared code alone would hash-cons every drift into one node). All are
@@ -75,8 +88,6 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
     ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
 }
 
-/// The id of the stage that projects the exact sink GTS bytes into schema files.
-const SCHEMAS_STAGE: &str = "stage-export-schemas";
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
 const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project / fanout reads.
@@ -87,14 +98,29 @@ const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
 /// The world the build plan's certification verdict holds in.
 const BUILD_DAG_WORLD: &str = "urn:gmeow:pipeline-build";
 
-/// Whether `run_full` writes artifacts to disk (regenerate) or compares them to
+/// Whether `run_full` reconciles artifacts to disk (update) or compares them to
 /// the committed bytes and reports drift (check).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RunMode {
-    /// Write every produced artifact to `root.join(path)` (regenerate).
-    Regenerate,
+    /// Reconcile every produced artifact, then run the same strict post-build gates.
+    Update,
     /// Compare every produced artifact to the committed bytes, collecting drift.
     Check,
+}
+
+/// Which output family an update-mode run materializes.
+///
+/// This is explicit feature selection, not capability degradation: the complete
+/// DAG still executes and all strict gates still run. The selected output family
+/// is then mandatory. [`Committed`](Self::Committed) suppresses only gitignored
+/// `dist/*` runtime projections so a generated-only sync does not churn unrelated
+/// presentation files.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RunOutputScope {
+    /// Materialize committed outputs and every gitignored runtime projection.
+    All,
+    /// Materialize only committed/generated outputs.
+    Committed,
 }
 
 /// The outcome of a [`run_full`]: how many artifacts were produced / reproduced
@@ -103,14 +129,16 @@ pub enum RunMode {
 pub struct RunReport {
     /// The run mode.
     pub mode: RunMode,
-    /// Total committed-artifact paths the run produced.
+    /// Total logical output paths the run produced.
     pub produced: usize,
-    /// Paths that reproduced byte-for-byte (check) / reconciled cleanly (regenerate).
+    /// Paths that reproduced byte-for-byte (check) / reconciled cleanly (update).
     pub reproduced: usize,
-    /// Artifacts rewritten in regenerate mode because bytes changed or the file was missing.
+    /// Artifacts rewritten in update mode because bytes changed or the file was missing.
     pub written: usize,
-    /// Artifacts left untouched in regenerate mode because committed bytes already matched.
+    /// Artifacts left untouched in update mode because committed bytes already matched.
     pub skipped_writes: usize,
+    /// Stale projection-owned files removed while reconciling output trees.
+    pub removed: usize,
     /// Drift / write findings (empty ⇒ full parity). These are a *projection* of
     /// [`ledger`](RunReport::ledger) — the drift/superset producers intern their
     /// diagnostics into the carrier ledger, and this field is
@@ -126,6 +154,10 @@ pub struct RunReport {
     pub drifted: Vec<String>,
     /// Per-phase timing records for profiling the gate without parsing stderr.
     pub timings: Vec<TimingRecord>,
+    /// Every non-internal logical output path produced by the run, sorted and
+    /// deduplicated. Callers use this to build whole-run output manifests without
+    /// rediscovering or re-running the pipeline.
+    pub output_paths: Vec<String>,
     /// The build plan's DAG-workflow certification, lowered to the typed
     /// [`ReasoningResult`] a consumer reads — the Rust-struct counterpart of the
     /// RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits, both
@@ -166,13 +198,41 @@ pub fn full_spec() -> PipelineSpec {
     let mut stages = vec![
         st_source("stage-source-load", "source_load", &[]),
         st("stage-statements", "statements", &[]),
-        st("stage-compile-logic", "compile_logic", &[]),
-        // Leaf compute: RUN the seven math producers (five flagship producers plus the
-        // probability-model seam producer and the p-value tri-slice producer) and attach each
+        st_compile_logic(
+            "stage-compile-logic",
+            "compile_logic",
+            &["stage-source-load"],
+        ),
+        // Leaf compute: RUN the eight math producers (five flagship producers plus the
+        // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
-        st("stage-mappings", "mappings", &["stage-compile-logic"]),
+        // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
+        // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
+        // It reads the authored slice sources directly, but consumes the four
+        // generated-shape producers so its exemplar-tiering shape union folds THIS run's
+        // fresh generated/shapes/*.ttl bytes (never the committed files — the
+        // stale-disk-fold class) and is scheduled AFTER they materialize generated/shapes.
+        st(
+            "stage-slice-brief",
+            "slice-brief",
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+            ],
+        ),
+        // mappings additionally consumes the constraint-shapes export leaf: the
+        // shape-grounding certificate ledger re-derives every logic:formalizes record's
+        // preservation judgment over THIS run's projected constraint surfaces (the
+        // procedural surface rides the compile-logic product, the FOL surface this leaf).
+        st(
+            "stage-mappings",
+            "mappings",
+            &["stage-compile-logic", "stage-export-constraint-shapes"],
+        ),
         st_reason(
             "stage-reason",
             "reason",
@@ -181,6 +241,17 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-source-load",
                 "stage-statements",
             ],
+        ),
+        // The production consumer of the native proof-carrying full-FOL backward engine: it
+        // compiles the authored `logic:ReasoningProgram` demonstrator corpus (read off the
+        // stage-compile-logic Logic handle) against the reasoned rdfs:subClassOf closure
+        // (read off the stage-reason product's Reasoning handle, for the order-sorted
+        // math-subsort demonstrator), proof-checks every answer, and attaches
+        // graph/goal-directed (folded into gmeow.gts by stage-snapshot).
+        st_goal_directed(
+            "stage-goal-directed",
+            "goal_directed",
+            &["stage-compile-logic", "stage-reason"],
         ),
         st(
             "stage-gts-compose",
@@ -230,6 +301,13 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
+                // THIS run's fresh term-content-manifest product: the docs model's
+                // per-term content-address provenance (definition digest + first-seen
+                // version + computed changelog) reads it in-memory, never the previous
+                // run's committed generated/catalog/term-content-manifest.nq, which
+                // lags one regenerate behind on a definition-digest change (the same
+                // stale-disk-fold class).
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),
@@ -255,21 +333,31 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-constraint-catalog",
                 "stage-docs-render",
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores / research-object
-                // graphs. The presenter reads them off these products, never re-rendered.
+                // render ran once, in the leaf): profiles / evals scores / glossary
+                // vartrans.ttl / research-object graphs. The presenter reads them off these
+                // products, never re-rendered.
                 "stage-export-evals",
+                // The OntoLex vartrans lowering (generated/projections/glossary.vartrans.ttl),
+                // folded as its own graph/fanout/projections named graph.
+                "stage-export-glossary",
                 // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The proof-carrying backward engine's checked answers + proof derivations,
+                // folded into graph/goal-directed of gmeow.gts.
+                "stage-goal-directed",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
-                // The seven math producer graphs (five flagship producers plus the
-                // probability-model seam producer and the p-value tri-slice producer),
+                // The eight math producer graphs (five flagship producers plus the
+                // probability-model seam, p-value tri-slice, and Clifford producers),
                 // folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
+                // The authoring-packet corpus (graph/authoring-briefs), folded into
+                // gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
+                "stage-slice-brief",
                 // The self-description named graphs (authored default / imports / metadata
                 // / alignments / slice-analysis / verify / provenance): the presenter reads
                 // them off this product instead of re-loading + re-canonicalizing sources.
@@ -318,6 +406,11 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-projection-ceilings", "projection_ceilings"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-matrix", "matrix"),
+        // The human-readable per-slice terminology glossary table: a byte-decorated
+        // Markdown projection of the graph/lang-glossary-corpus fold, derived from the
+        // SAME reviewed `.po` entry list (crate::stages::lang_glossary::build_entries),
+        // never a second parse. Source-reading leaf like matrix (consumes nothing).
+        ("stage-export-glossary", "glossary"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
@@ -326,17 +419,22 @@ pub fn full_spec() -> PipelineSpec {
     ] {
         stages.push(st(id, impl_key, &[]));
     }
-    // ── fresh-shape-union export leaves: json-schema and pydantic compile the SHACL
-    //    shape union whose `generated/shapes/*.ttl` members are THIS run's producer
-    //    products (compile-logic + the three shape export leaves), never the stale
-    //    committed files (the stale-disk-fold class). Both consume the same four
-    //    producers (crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS). ──
+    // ── fresh-shape-union export leaves: json-schema, pydantic, and schemas compile
+    //    the SHACL shape union whose `generated/shapes/*.ttl` members are THIS run's
+    //    producer products (compile-logic + the three shape export leaves), never the
+    //    stale committed files (the stale-disk-fold class). All three consume the same
+    //    four producers (crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS). ──
     for (id, impl_key) in [
         ("stage-export-json-schema", "json_schema"),
         // The Pydantic model package (functional documentation surface): co-derived
         // from the SAME fresh shape compilation as json-schema (plus the docs
         // model), folded into REP_MODELS_PYTHON by the sink.
         ("stage-export-pydantic", "pydantic"),
+        // The LinkML/TypeScript/GraphQL developer schema surfaces: co-derived from the
+        // SAME fresh shape compilation via the shared schema_compile builder, folded
+        // into REP_GENERATED by the sink (read off this leaf's product, never
+        // re-derived from the carrier).
+        ("stage-export-schemas", "schemas"),
     ] {
         stages.push(st(
             id,
@@ -349,14 +447,15 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ));
     }
-    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
-    // product (never the stale committed generated/queries/dcat.rq on disk), so it
-    // consumes that stage rather than running source-only (kept in sorted position to
-    // match the registry consumes() and the module.ttl dataflowConsumes).
+    // research-objects reads two generated projections off upstream products, never the
+    // stale/absent committed files on disk: `generated/evals/scores.ttl` off the
+    // stage-export-evals product and `generated/queries/dcat.rq` off the stage-mappings
+    // product. It therefore consumes both rather than running source-only (kept in sorted
+    // position to match the registry consumes() and the module.ttl dataflowConsumes).
     stages.push(st(
         "stage-export-research-objects",
         "research-objects",
-        &["stage-mappings"],
+        &["stage-export-evals", "stage-mappings"],
     ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
@@ -377,7 +476,7 @@ pub fn full_spec() -> PipelineSpec {
         &[
             "stage-compile-logic",
             // The opaque fanout members ride in from their producing export leaves (each
-            // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
+            // rendered once, in the leaf); `collect_fanout_opaque_members` reads them off these
             // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
             "stage-export-agreement",
             "stage-export-apache",
@@ -397,9 +496,13 @@ pub fn full_spec() -> PipelineSpec {
             // these edges a competency/frame-shape edit could never reach the bundle,
             // and the fanout would rewrite the stale committed bytes forever.
             "stage-export-frame-shapes",
+            // The human-readable terminology glossary table (byte-decorated Markdown)
+            // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
+            // product (sorted position: frame-shapes < glossary < governance-floors).
+            "stage-export-glossary",
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: frame-shapes < governance-floors < json-schema).
+            // leaf's product (sorted position: glossary < governance-floors < json-schema).
             "stage-export-governance-floors",
             "stage-export-json-schema",
             "stage-export-matrix",
@@ -418,6 +521,12 @@ pub fn full_spec() -> PipelineSpec {
             // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a
             // competency ResultShape edit reaches the bundle without a manual disk write.
             "stage-export-result-shapes",
+            // THIS run's freshly-rendered LinkML/TypeScript/GraphQL developer schema
+            // surfaces, folded into REP_GENERATED by collect_fanout_opaque_members (sorted
+            // position: result-shapes < schemas < mappings) — schemas moved from a
+            // carrier projection to a fresh SHACL-shape-union compilation, so the sink
+            // now reads its product instead of re-deriving from the in-memory carrier.
+            "stage-export-schemas",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
@@ -426,10 +535,6 @@ pub fn full_spec() -> PipelineSpec {
             "stage-validate",
         ],
     ));
-
-    // ── the schemas tail: a fold-reading export leaf over the carrier dataset
-    //    — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
-    stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
     // Fill each stage's attach declaration (gmeow:attachesGraph / gmeow:attachesBlobRep)
     // from the bound Rust impl — the single Rust-side authority. The scheduler verifies
@@ -499,6 +604,22 @@ fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s
 }
 
+/// The logic compiler stage: it reads ONLY the narrowed `graph/logic-compile-inputs` named
+/// graph off the `stage-source-load` product (a SOUND denylist narrowing of the whole
+/// authored corpus its five augmentation readers walk), so its single typed dataflow entity
+/// is that graph — a documentation-only edit that leaves the graph's digest unchanged skips
+/// re-running the (expensive) compiler. Derives the SAME entity list as
+/// [`crate::stages::compile_logic::CompileLogicStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![(
+        "stage-source-load".to_string(),
+        vec![crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS.to_string()],
+    )];
+    s
+}
+
 /// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
 /// serialization) AND reads only the object-level named graphs
 /// ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`]) from `stage-compile-logic`
@@ -532,8 +653,23 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s
 }
 
+/// The goal-directed stage: its `stage-reason` dependency is narrowed to the single
+/// `graph/reasoning` named graph (the typed Reasoning handle's backing graph, C7) — the
+/// reasoned `rdfs:subClassOf` closure the order-sorted math-subsort demonstrator's
+/// `subsort_edges` are read from. Derives the SAME entity list as
+/// [`crate::stages::goal_directed::GoalDirectedStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![(
+        "stage-reason".to_string(),
+        vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
+    )];
+    s
+}
+
 /// Run the FULL dogfooded build single-pass and either write every produced
-/// artifact (regenerate) or compare it to the committed bytes (check).
+/// artifact (update) or compare it to the committed bytes (check).
 ///
 /// `jobs` is the per-level parallelism budget. Returns a [`RunReport`]; in check
 /// mode `report.is_clean()` is the cutover gate (zero drift across every
@@ -541,6 +677,28 @@ fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// deterministic); the `gmeow.gts` bundle is compared by the FOLD (see
 /// `tests/full_parity.rs`) because CBOR has encoding skew.
 pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped(root, jobs, mode, RunOutputScope::All)
+}
+
+/// Run the complete build once while materializing only the explicitly selected
+/// output family. Selection never removes a stage or gate from the DAG.
+pub fn run_full_scoped(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    output_scope: RunOutputScope,
+) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped_with_progress(root, jobs, mode, output_scope, None)
+}
+
+/// Run the scoped pipeline with an optional live progress sink.
+pub fn run_full_scoped_with_progress(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    output_scope: RunOutputScope,
+    progress: Option<Arc<dyn Reporter>>,
+) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
     let spec = full_spec();
 
@@ -551,19 +709,24 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let graph = spec.validate()?;
     let registry = default_registry();
     let bound = bind(&spec, &graph, &registry)?;
-    // A full single-pass build runs over the PERSISTENT per-stage cache
-    // (`generated/.pipeline-cache/`, gitignored) for cross-invocation reuse: an edit to
-    // one slice re-runs only the affected stages, not the whole DAG. This is safe
-    // because every `stage_key` folds `cache::BUILD_FINGERPRINT` (a hash of the whole
-    // workspace source + Cargo.lock + rustc), so ANY code/dependency/toolchain change —
-    // including one with no `impl_version` bump — yields fresh keys and recomputes. The
-    // cache is also self-verifying (blobs re-hashed on load; a mismatch hard-fails), so
-    // it can never serve a stale or corrupt product. A clean checkout (CI) has no cache
-    // dir and builds cold; subsequent local runs are warm.
-    let mut ctx = RunContext::open(root, jobs)?;
+    // The whole-run sync manifest is the profitable cache boundary. Pipeline stage
+    // products are cumulative carrier snapshots; persisting or hydrating them creates
+    // multi-gigabyte duplicate state and measured slower than recomputation. On a
+    // manifest miss, execute the DAG once with no per-stage cache I/O.
+    let mut ctx = RunContext::open_uncached(root, jobs);
+    if let Some(progress) = progress.as_ref() {
+        ctx = ctx.with_progress(Arc::clone(progress));
+        progress.stage_start("pipeline:dag");
+    }
     let scheduler_started = Instant::now();
     let result = run(&graph, &bound, &mut ctx)?;
     let scheduler_elapsed = scheduler_started.elapsed().as_millis();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end(
+            "pipeline:dag",
+            std::time::Duration::from_millis(u64::try_from(scheduler_elapsed).unwrap_or(u64::MAX)),
+        );
+    }
     let mut timings: Vec<TimingRecord> = Vec::new();
     timings.push(TimingRecord {
         phase: "pipeline-scheduler".to_string(),
@@ -611,7 +774,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     // artifacts — stronger than the loader's capability-declaration-count gate — so a
     // stage emitting `gmeow.gts` WITHOUT declaring `sinkCapability` (identity mismatch),
     // a stage emitting it in addition to the declared sink, or a second declared sink,
-    // is a hard failure in BOTH regenerate and check modes.
+    // is a hard failure in BOTH update and check modes.
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
 
@@ -620,9 +783,14 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     let mut reproduced = 0usize;
     let mut written = 0usize;
     let mut skipped_writes = 0usize;
+    let mut removed = 0usize;
+    let mut output_paths: Vec<String> = Vec::new();
 
     // ── Reconcile every produced artifact against committed / write it. ──
     let reconcile_started = Instant::now();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_start("pipeline:reconcile");
+    }
     for product in products.values() {
         for (path, bytes) in &product.artifacts() {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
@@ -631,17 +799,20 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             if path.starts_with("pipeline/") {
                 continue;
             }
+            output_paths.push(path.clone());
             produced += 1;
 
-            // The `gmeow.gts` bundle: in Regenerate mode WRITE the freshly-assembled
+            // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
             // bundle to disk (the terminal's sole output — without this a stale
-            // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
-            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // local bundle survives an `integrate-main` + update, the exact trap
+            // CLAUDE.md warns about). The bundle is a git-ignored local product with
+            // no committed copy to fall back on, so it must be regenerated, never
+            // trusted stale. In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
             // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
             if path == GTS_PATH {
-                if mode == RunMode::Regenerate {
+                if mode == RunMode::Update {
                     if write_artifact(root, path, bytes)? {
                         written += 1;
                     } else {
@@ -784,18 +955,26 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                             ),
                         );
                     }
+
+                    // GMN-1 native codebook-digest gate + pack-root check: recompute the
+                    // codebook Merkle root and refuse any shipped envelope declaring a stale
+                    // `gmeow:gmnCodebookDigest`, and (when the fanout has projected the pack)
+                    // byte-assert the conformance pack's `gmeow:gmnPackRoot` against the
+                    // recomputation. Both are graph-level cross-node checks no per-record codec
+                    // parse or SHACL shape can see.
+                    reconcile_gmn1_digest_gates(root, &mut ledger, &mut drifted)?;
                 }
                 reproduced += 1;
                 continue;
             }
 
             // `dist/*` artifacts are gitignored runtime outputs with NO committed
-            // authority: a fresh checkout (CI `check-generated`) has no `dist/` tree,
-            // so they can never be drift-compared. They are WRITTEN in Regenerate but
+            // authority: a fresh checkout (CI strict sync) has no `dist/` tree,
+            // so they can never be drift-compared. They are WRITTEN in Update but
             // SKIPPED in Check (their reproducibility is covered by the second-run
             // determinism check in `tests/full_parity.rs`).
             if path.starts_with("dist/") {
-                if mode == RunMode::Regenerate {
+                if mode == RunMode::Update && output_scope == RunOutputScope::All {
                     if write_artifact(root, path, bytes)? {
                         written += 1;
                     } else {
@@ -806,13 +985,14 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                 continue;
             }
 
-            if mode == RunMode::Regenerate {
+            if mode == RunMode::Update {
                 // A stage's only output is its carrier contribution (PIPELINE_SPINE
                 // §3.1): a committed `generated/` file is NOT written here — it is
                 // projected from the bundle by the post-pipeline fanout phase (§6),
                 // which runs after this loop writes `gmeow.gts`. Retiring the direct
-                // write leaves the terminal `gmeow.gts` (and gitignored `dist/*`) as
-                // the pipeline's only disk output. Paths OUTSIDE `generated/` (e.g. the
+                // write leaves the terminal `gmeow.gts` (plus explicitly selected
+                // gitignored `dist/*` projections) as the pipeline's only disk output.
+                // Paths OUTSIDE `generated/` (e.g. the
                 // root OASIS catalog) are out of the superset law's scope (§5 governs
                 // `generated/`), so their producing stage still writes them directly.
                 if !path.starts_with("generated/") {
@@ -871,6 +1051,9 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         elapsed_ms: reconcile_started.elapsed().as_millis(),
         metadata: Some(format!("produced={produced};reproduced={reproduced}")),
     });
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end("pipeline:reconcile", reconcile_started.elapsed());
+    }
 
     // ── Fanout (PIPELINE_SPINE §6): the separate post-pipeline projection phase. ──
     // The pipeline has now written `gmeow.gts`; project every committed `generated/`
@@ -878,23 +1061,53 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     // of the `generated/` tree — the stages contributed to the carrier, the terminal
     // presented it, and fanout unpacks it. Check mode does NOT fan out: the superset
     // gate above already proved every committed path is reconstructible.
-    if mode == RunMode::Regenerate {
+    if mode == RunMode::Update {
         let fanout_started = Instant::now();
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_start("pipeline:fanout");
+        }
         let report = crate::fanout::fanout(root, jobs)?;
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_end("pipeline:fanout", fanout_started.elapsed());
+        }
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),
             metadata: Some(format!(
-                "produced={};written={};skipped={}",
-                report.produced, report.written, report.skipped
+                "produced={};written={};skipped={};removed={}",
+                report.produced, report.written, report.skipped, report.removed
             )),
         });
         written += report.written;
         skipped_writes += report.skipped;
+        removed += report.removed;
+
+        // Update is check-while-writing, not a weaker generation lane. Run the
+        // strict carrier/syntax gates against the freshly fanned-out tree without
+        // executing the pipeline a second time.
+        let gts = products
+            .values()
+            .find_map(|product| product.artifact(GTS_PATH))
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "pipeline".to_string(),
+                    message: format!("no produced {GTS_PATH} available for post-update gates"),
+                })
+            })?;
+        let gates_started = Instant::now();
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_start("pipeline:post-update-gates");
+        }
+        run_post_update_gates(root, gts, &mut ledger, &mut drifted, &mut timings)?;
+        if let Some(progress) = progress.as_ref() {
+            progress.stage_end("pipeline:post-update-gates", gates_started.elapsed());
+        }
     }
 
     drifted.sort();
     drifted.dedup();
+    output_paths.sort();
+    output_paths.dedup();
 
     // The DAG-workflow certification of the build plan (the build-pipeline executor's typed surface): the
     // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
@@ -905,11 +1118,15 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         phase: "pipeline-total".to_string(),
         elapsed_ms: total_started.elapsed().as_millis(),
         metadata: Some(format!(
-            "mode={}",
+            "mode={};outputs={}",
             match mode {
                 RunMode::Check => "check",
-                RunMode::Regenerate => "regenerate",
-            }
+                RunMode::Update => "update",
+            },
+            match output_scope {
+                RunOutputScope::All => "all",
+                RunOutputScope::Committed => "committed",
+            },
         )),
     });
 
@@ -925,12 +1142,156 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
         reproduced,
         written,
         skipped_writes,
+        removed,
         findings,
         ledger,
         drifted,
         timings,
+        output_paths,
         certification,
     })
+}
+
+/// Run the strict gates that historically lived only on the read-only drift path
+/// against the freshly written carrier/tree. Update therefore has the same
+/// superset and GMN teeth without executing the pipeline a second time.
+fn run_post_update_gates(
+    root: &Path,
+    gts: &[u8],
+    ledger: &mut DiagLedger,
+    drifted: &mut Vec<String>,
+    timings: &mut Vec<TimingRecord>,
+) -> Result<(), gmeow_errors::Diag> {
+    let started = Instant::now();
+    let report = crate::stages::superset::check_superset(root, gts)?;
+    timings.push(TimingRecord {
+        phase: "superset".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some("path=generated/dist/gmeow.gts;after=update".to_string()),
+    });
+    for path in report.missing {
+        drifted.push(path.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_MISSING,
+            &path,
+            format!("{path} has no carrier representative in gmeow.gts"),
+        );
+    }
+    for path in report.mismatch {
+        drifted.push(path.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_MISMATCH,
+            &path,
+            format!("{path} differs from its gmeow.gts reconstruction"),
+        );
+    }
+    for rep in report.orphan {
+        drifted.push(rep.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_SUPERSET_ORPHAN,
+            &rep,
+            format!("{rep} is carried in gmeow.gts but maps to no generated path"),
+        );
+    }
+
+    let started = Instant::now();
+    let roundtrip = crate::stages::gmn1_gate::check_gmn1_roundtrip(root)?;
+    timings.push(TimingRecord {
+        phase: "gmn1-roundtrip".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some(format!("failures={}", roundtrip.failures.len())),
+    });
+    for failure in roundtrip.failures {
+        drifted.push(failure.path.clone());
+        gmeow_lang_bridge::error::attach_gmn_failure(
+            ledger,
+            PIPELINE_STAGE_ID,
+            &failure.path,
+            &failure.error,
+        );
+    }
+
+    for failure in crate::stages::gmn1_gate::check_gmn1_shipped_projections(root)?.failures {
+        drifted.push(failure.path.clone());
+        gmeow_lang_bridge::error::attach_gmn_failure(
+            ledger,
+            PIPELINE_STAGE_ID,
+            &failure.path,
+            &failure.error,
+        );
+    }
+
+    let started = Instant::now();
+    let coverage = crate::stages::gmn1_gate::check_gmn1_construct_coverage(root)?;
+    timings.push(TimingRecord {
+        phase: "gmn1-construct-coverage".to_string(),
+        elapsed_ms: started.elapsed().as_millis(),
+        metadata: Some(format!("unexercised={}", coverage.unexercised.len())),
+    });
+    if !coverage.is_complete() {
+        let focus = "slices/grounding (gmn1-construct-coverage)";
+        drifted.push(focus.to_string());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_CONSTRUCT_COVERAGE_GAP,
+            focus,
+            format!(
+                "GMN-1 construct-coverage audit found {} unexercised categories: {:?}",
+                coverage.unexercised.len(),
+                coverage.unexercised
+            ),
+        );
+    }
+
+    reconcile_gmn1_digest_gates(root, ledger, drifted)?;
+    Ok(())
+}
+
+/// The native GMN-1 codebook-digest gate + pack-root check, shared by both reconcile paths
+/// (read-only Check and post-update). Recompute the codebook Merkle root and refuse any shipped
+/// `gmeow:GmnEnvelope` declaring a stale `gmeow:gmnCodebookDigest`
+/// (`lang:GmnCodebookDigestMismatch`), and — once the fanout has projected the conformance pack —
+/// byte-assert its `gmeow:gmnPackRoot` against the recomputation. Both are graph-level cross-node
+/// checks no per-record codec parse or SHACL shape can see; a missing pack is a NO-OP the fanout
+/// activates, never a faked pass.
+fn reconcile_gmn1_digest_gates(
+    root: &Path,
+    ledger: &mut DiagLedger,
+    drifted: &mut Vec<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    let digest_report = crate::stages::gmn1_gate::check_gmn1_codebook_digest_on_gate(root)?;
+    for mismatch in digest_report.mismatches {
+        drifted.push(mismatch.source.clone());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_CODEBOOK_DIGEST_MISMATCH,
+            &mismatch.source,
+            format!(
+                "envelope {} declares codebook digest {} but the codebook recomputes to {} \
+                 (lang:GmnCodebookDigestMismatch)",
+                mismatch.envelope, mismatch.declared, mismatch.recomputed
+            ),
+        );
+    }
+
+    let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
+    if !pack_report.is_clean() {
+        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
+        drifted.push(focus.to_string());
+        attach_pipeline_finding(
+            ledger,
+            CODE_GMN1_PACK_ROOT_MISMATCH,
+            focus,
+            format!(
+                "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
+                pack_report.declared_root, pack_report.recomputed_root
+            ),
+        );
+    }
+    Ok(())
 }
 
 /// The stage_id that DECLARES [`SINK_CAPABILITY`] in `spec` — the identity the runtime
@@ -974,7 +1335,7 @@ fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, gmeow_errors::Diag> 
 /// bundle bytes without declaring the capability (identity mismatch — a rogue writer
 /// impersonating the terminal), the declared sink NOT emitting it, or a second writer, is
 /// a hard failure (no-optionality, fail-closed) — never a silent second terminal, in
-/// either regenerate or check mode.
+/// either update or check mode.
 fn assert_single_gts_writer(
     products: &BTreeMap<String, StageProduct>,
     declared_sink: &str,

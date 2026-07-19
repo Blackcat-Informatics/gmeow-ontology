@@ -69,6 +69,15 @@ pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
 /// Committed logical path of the first-class RDF list functions (§5).
 pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
+/// Committed logical path of the shape-grounding certificate ledger: one entry per
+/// `logic:formalizes` record on the projected constraint surfaces
+/// (`generated/shapes/constraint-shapes.ttl` + `generated/shapes/procedural-constraints.ttl`),
+/// each carrying a preservation judgment RE-DERIVED this run by the certify/oracle
+/// machinery ([`gmeow_validate::shape_grounding`]) — the loss-ledger doctrine applied to
+/// the shape migration: "equivalence was proven" is a committed machine-checked fact,
+/// not transient console output. Emitted as EXACTLY the canonical fold so it rides as an
+/// RDF-fanout named graph (like the projection report).
+pub const SHAPE_GROUNDING_LEDGER_PATH: &str = "generated/logic/shape-grounding-ledger.ttl";
 
 const LEGACY_MAPPING_SOURCE_BANNER: &str = "from mapping-dsl/";
 const CANONICAL_MAPPING_SOURCE_BANNER: &str = "from canonical mapping sources";
@@ -120,6 +129,12 @@ pub struct CompiledMappings {
     /// `lang:translationGap`. Carried as a named graph by [`MappingsStage::run`], excluded
     /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_docs_rendering_corpus: Vec<u8>,
+    /// The per-slice terminology-glossary N-Triples graph (`graph/lang-glossary-corpus`):
+    /// every reviewed `.po` pair folded into a `gmeow:Glossary` of `gmeow:GlossaryEntry`
+    /// records (term, source, rendering, sense anchor, and the `gmeow:glossaryUnit` join to
+    /// its `lang:TranslationUnit`). Carried as a named graph by [`MappingsStage::run`],
+    /// excluded from the reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_glossary_corpus: Vec<u8>,
     /// The correspondence-laws N-Triples graph (`graph/correspondence-laws`): every authored
     /// `logic:Correspondence` re-projected with the EXECUTED lens-law discharge verdicts
     /// attached. Each per-`gmeow:ProjectionMapping` binding correspondence whose
@@ -165,7 +180,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // Prefix-consistency gate (§2): no authored source may shadow a registry
     // prefix with a foreign namespace — a shadow desynchronizes authored CURIEs from
     // the registry-driven shortener. Hard-fail before emitting any artifact
-    // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
+    // (no-optionality); this makes update / strict sync / `make check`
     // all reject a shadow.
     let prefix_problems = lint_prefix_consistency(root, &vocab).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -188,7 +203,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
     // restatement in the wrong place — it must live in the slice that defines its
     // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
-    // makes `regenerate` / `check-generated` / `make check` reject a stray cell.
+    // makes update / strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -278,10 +293,22 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     let projection_corpus = crate::stages::lang_projection::build_corpus(catalog.as_ref())?;
     ledger.extend(projection_corpus.ledger);
     loss.union(&projection_corpus.loss);
-    let lang_projection_corpus = projection_corpus.ntriples;
+    let mut lang_projection_corpus = projection_corpus.ntriples;
     for (path, bytes) in projection_corpus.artifacts {
         artifacts.insert(path, bytes);
     }
+
+    // Glossary interop lowerings (Principle 17): the OntoLex vartrans:translation + TBX
+    // (ISO-30042) lowerings of the reviewed glossary crossings. The rendered byte artifacts
+    // ride stage-export-glossary (REP_GENERATED); HERE we fold each target's honest
+    // `lang:ProjectionEmission` record into graph/lang-projection-corpus (alongside the
+    // sibling `lang:` emissions) and its lossy `SoundUnderApproximation` row into the loss
+    // ledger. Both are lossy — every dropped construct is enumerated, so honest-lossy passes
+    // the overclaim floor and silent-lossy reds the build.
+    let glossary_lowering = crate::stages::lang_glossary::build_lowering_corpus(root)?;
+    ledger.extend(glossary_lowering.ledger);
+    loss.union(&glossary_lowering.loss);
+    lang_projection_corpus.extend_from_slice(&glossary_lowering.emission_ntriples);
 
     // Compositional-lowering corpus (the "a sentence to a formula, compositionally" flagship):
     // lower the authored flagship quantified-SVO sentence to its first-order formula through the
@@ -304,6 +331,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     ledger.extend(docs_rendering_corpus.ledger);
     loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
+
+    // The per-slice terminology glossary (term-grain of the translation corpus): every
+    // reviewed `.po` pair folded into a `gmeow:Glossary`. Rides as a named graph by the
+    // stage `run` below (never a `generated/` file). A pure derivation of the catalogs.
+    let lang_glossary_corpus = crate::stages::lang_glossary::build_corpus(root)?.ntriples;
 
     // Docs-format grounding loss (A9/F2): fold the four documentation output formats'
     // (site / mdbook / print PDF / snippets) dropped-capability rows into the single loss
@@ -392,6 +424,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         lang_projection_corpus,
         lang_lowering_corpus,
         lang_docs_rendering_corpus,
+        lang_glossary_corpus,
         correspondence_laws_corpus,
     })
 }
@@ -491,6 +524,14 @@ fn discharge_correspondence_laws(
         if corr.grounding {
             law_bearing = law_bearing.as_grounding();
         }
+        law_bearing = law_bearing
+            .with_recovery_cases(corr.recovery_cases.clone())
+            .map_err(|e| {
+                stage_err(format!(
+                    "law-bearing correspondence <{}> recovery cases: {e}",
+                    corr.iri
+                ))
+            })?;
         rebuilt.push(law_bearing);
     }
 
@@ -616,11 +657,83 @@ fn build_union_report(
     Ok(report.into_bytes())
 }
 
-/// Fold the gate-derived 591-term up-projection audit into the report header counts: the
-/// `correspondenceCount` becomes the curated production cell PLUS every audited external term;
-/// `lawfulUpliftCount` gains the proved tier (round-trip verified) and `claimedUpliftCount`
-/// the claimed tier (alignment-asserted, not proved). The audit headline thus becomes a
-/// gate-verdict ledger in the canonical loss ledger, not a heuristic bucket count.
+/// Assemble the shape-grounding certificate ledger over THIS run's projected constraint
+/// surfaces: `generated/shapes/procedural-constraints.ttl` (off the consumed
+/// `stage-compile-logic` product) and `generated/shapes/constraint-shapes.ttl` (off the
+/// consumed `stage-export-constraint-shapes` product). For every `logic:formalizes`
+/// record the shared machinery ([`gmeow_validate::shape_grounding`]) RE-DERIVES the
+/// preservation judgment — the oracle read, the executable-SHACL parse, and the
+/// lift/certify round-trip all run afresh each regenerate — and the ledger is emitted as
+/// EXACTLY the canonical fold so it rides as an RDF-fanout named graph (superset gate).
+///
+/// Hard-fail semantics (no-optionality): a missing surface, an underivable record, or an
+/// empty record scan (the surfaces are never record-free) is a stage error.
+fn build_shape_grounding_ledger(
+    upstream: &BTreeMap<String, crate::node::StageProduct>,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let stage_err = |message: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message,
+        })
+    };
+    let surface = |stage: &str,
+                   path: &str|
+     -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .ok_or_else(|| {
+                stage_err(format!(
+                    "shape-grounding ledger: missing {path} in the {stage} product \
+                     (fail-closed, no stale disk read)"
+                ))
+            })?;
+        purrdf::parse_dataset(bytes, "text/turtle", None)
+            .map_err(|e| stage_err(format!("shape-grounding ledger: parse {path}: {e}")))
+    };
+    // Deterministic surface order: the FOL-constraint surface, then the
+    // procedural-constraint surface (the certificates are re-sorted by record IRI, so
+    // the order only scopes the duplicate-record ambiguity check).
+    let surfaces = vec![
+        surface(
+            "stage-export-constraint-shapes",
+            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
+        )?,
+        surface(
+            "stage-compile-logic",
+            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+        )?,
+    ];
+    let certs = gmeow_validate::shape_grounding::derive_grounding_certificates(&surfaces)
+        .map_err(|e| stage_err(format!("shape-grounding ledger: {e}")))?;
+    // Fail closed: both surfaces carry logic:formalizes records by construction, so an
+    // empty certificate set means the record scan silently missed them.
+    if certs.is_empty() {
+        return Err(stage_err(
+            "shape-grounding ledger: the projected constraint surfaces yielded ZERO \
+             logic:formalizes records — the record scan missed the surfaces (fail-closed)"
+                .to_string(),
+        ));
+    }
+    canon_fanout_ttl(&gmeow_validate::shape_grounding::render_grounding_ledger(
+        &certs,
+    ))
+}
+
+/// Compute the FINAL report header correspondence/uplift counts. This is the SINGLE owner
+/// of `correspondenceCount` / `lawfulUpliftCount` / `claimedUpliftCount`: it composes the
+/// curated affine-gate BASE compile-logic ships on the channel (`base_correspondence_count`
+/// / `base_lawful_uplift_count`) with the gate-derived 591-term up-projection audit. The
+/// `correspondenceCount` becomes the curated affine-gate cell PLUS every audited external
+/// term; `lawfulUpliftCount` the base lawful count PLUS the proved tier (round-trip
+/// verified); `claimedUpliftCount` the claimed tier (alignment-asserted, not proved; base 0).
+/// The audit headline thus becomes a gate-verdict ledger in the canonical loss ledger, not a
+/// heuristic bucket count.
+///
+/// The incoming `header`'s count fields ride the channel as 0 (compile-logic no longer writes
+/// them), so the composition is a clean assignment (`=`) that documents mappings owns the
+/// value; the base arrives explicitly via the two `base_*` parameters.
 ///
 /// Inputs are gathered the same way the `gmeow up-projection-audit` CLI does: the freshly
 /// generated SSSOM (in-memory), the authored projection cells under `root`, and the vendored
@@ -630,6 +743,8 @@ fn fold_up_projection_audit(
     root: &Path,
     artifacts: &BTreeMap<String, Vec<u8>>,
     mut header: ReportHeader,
+    base_correspondence_count: usize,
+    base_lawful_uplift_count: usize,
 ) -> Result<ReportHeader, gmeow_errors::Diag> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -686,9 +801,13 @@ fn fold_up_projection_audit(
         crate::up_projection_gates::gate_derived_audit(&sssom_texts, &projection_ttls, &corpus_nts)
             .map_err(|e| stage_err(format!("gate-derived up-projection audit: {e}")))?;
 
-    header.correspondence_count += ledger.total();
-    header.lawful_uplift_count += ledger.totals.proved;
-    header.claimed_uplift_count += ledger.totals.claimed;
+    // Single-owner composition: mappings COMPUTES the final counts as base + audit. The
+    // incoming header carries 0 in these fields (compile-logic ships only the axiom/rule/
+    // profile counts it owns), so `=` and `+=` are arithmetically identical here — `=`
+    // documents that mappings is the sole writer of the final value.
+    header.correspondence_count = base_correspondence_count + ledger.total();
+    header.lawful_uplift_count = base_lawful_uplift_count + ledger.totals.proved;
+    header.claimed_uplift_count = ledger.totals.claimed;
     Ok(header)
 }
 
@@ -846,10 +965,15 @@ pub struct MappingsStage {
 impl MappingsStage {
     /// Construct the stage. It consumes the compile-logic product to obtain the logic
     /// projection rows + report-header counts it unions with the correspondence ledger
-    /// when assembling the final `generated/logic/projection-report.ttl`.
+    /// when assembling the final `generated/logic/projection-report.ttl` (plus the
+    /// procedural-constraint surface the shape-grounding ledger re-certifies), and the
+    /// constraint-shapes export leaf for the FOL-constraint surface of the same ledger.
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-compile-logic".to_string()],
+            consumes: vec![
+                "stage-compile-logic".to_string(),
+                "stage-export-constraint-shapes".to_string(),
+            ],
         }
     }
 }
@@ -865,9 +989,11 @@ impl Stage for MappingsStage {
         "stage-mappings"
     }
     fn consumes(&self) -> &[String] {
-        // Reads dsl/mappings + slice mapping cells from the root, AND the compile-logic
-        // product (the logic projection rows + header counts) so it can assemble the
-        // FINAL projection report over the union with the correspondence ledger.
+        // Reads dsl/mappings + slice mapping cells from the root, the compile-logic
+        // product (the logic projection rows + header counts for the FINAL projection
+        // report, plus the procedural-constraint surface the shape-grounding ledger
+        // re-certifies), AND the constraint-shapes export leaf (the FOL-constraint
+        // surface of the same ledger — THIS run's bytes, never a stale disk read).
         &self.consumes
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
@@ -882,10 +1008,11 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // v10: added the dsl mapping-purity gate (alignment linkage must be authored
-        // in slices, not dsl/mappings/). Bump busts the stage cache so the new gate
-        // runs against existing cached inputs.
-        "mappings.v10-dsl-linkage-purity-gate"
+        // v11: added the shape-grounding certificate ledger
+        // (generated/logic/shape-grounding-ledger.ttl) — every logic:formalizes record's
+        // preservation judgment re-derived per regenerate over the fresh constraint
+        // surfaces. Bump busts the stage cache so the ledger is emitted on cached inputs.
+        "mappings.v11-shape-grounding-ledger"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -961,11 +1088,28 @@ impl Stage for MappingsStage {
         // counts, so the committed loss ledger carries the gate-verdict liftability statistic
         // . Then canonicalize the report TTL so `projection-report.ttl` is carried as
         // the fold of its named graph (superset gate), not an opaque byte lane.
-        let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
+        let header = fold_up_projection_audit(
+            input.root,
+            &artifacts,
+            channel.header,
+            channel.base_correspondence_count,
+            channel.base_lawful_uplift_count,
+        )?;
         let report = build_union_report(header, &channel, &compiled.ledger, &compiled.loss)?;
         artifacts.insert(
             PROJECTION_REPORT_PATH.to_string(),
             canon_fanout_ttl_bytes(&report)?,
+        );
+
+        // The shape-grounding certificate ledger: RE-DERIVE every `logic:formalizes`
+        // record's preservation judgment against THIS run's projected constraint
+        // surfaces — the procedural-constraint surface off the consumed compile-logic
+        // product and the FOL-constraint surface off the consumed constraint-shapes
+        // export leaf (never a stale disk read; PIPELINE_SPINE §3). A record whose
+        // judgment cannot be derived is a stage error, never a skipped entry.
+        artifacts.insert(
+            SHAPE_GROUNDING_LEDGER_PATH.to_string(),
+            build_shape_grounding_ledger(input.upstream)?,
         );
 
         // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
@@ -1055,6 +1199,15 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
         )?;
+        // graph/lang-glossary-corpus — the per-slice terminology glossary derived from the
+        // reviewed `.po` pairs. Carried as a named graph so the presenter reads it via
+        // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
+        // EDB (`gts_compose` folds only the default graph).
+        let lang_glossary_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_glossary_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_GLOSSARY_CORPUS,
+        )?;
         // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
         // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
         // the presenter reads it via `producer_graph`; like the other corpus graphs it stays
@@ -1075,6 +1228,7 @@ impl Stage for MappingsStage {
             lang_projection_graph.as_ref(),
             lang_lowering_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
+            lang_glossary_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
         ]));
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
@@ -1201,7 +1355,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // every set it emits that has a committed counterpart, the bytes MUST match
         // exactly (the lowering's parity contract). The total set count vs committed
         // is subject to the committed-vs-local env/staleness drift and is the CI
-        // `check-generated` gate, not asserted here.
+        // strict-sync gate, not asserted here.
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let mut overlap = 0usize;
@@ -1431,34 +1585,58 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         assert_eq!(bytes, &committed, "claim view drifted from committed");
     }
 
-    #[test]
-    fn projection_report_unions_logic_and_correspondence_rows() {
+    /// Run the REAL upstream producers (compile-logic + the constraint-shapes export
+    /// leaf) and the REAL mappings stage — the exact upstream set `MappingsStage`
+    /// consumes in the production DAG. Shared by the projection-report union test and
+    /// the shape-grounding ledger test so both exercise the same wiring. Returns the
+    /// mappings product AND the upstream products (so a caller can re-read the consumed
+    /// surfaces without re-running the producers).
+    fn run_mappings_with_real_upstream() -> (StageProduct, BTreeMap<String, StageProduct>) {
         use crate::node::StageInput;
         use crate::stages::compile_logic::CompileLogicStage;
+        use crate::stages::constraint_shapes::ConstraintShapesStage;
 
         let root = repo_root();
         // Run the real compile-logic stage to get the logic-projections channel, then the
         // real mappings stage to assemble the FINAL projection report over the union.
+        // compile-logic reads its narrowed corpus off the source-load product.
+        let compile_upstream = crate::stages::compile_logic::source_load_upstream(&root);
         let compile = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &compile_upstream,
+            })
+            .expect("compile-logic");
+        let constraint_shapes = ConstraintShapesStage
             .run(StageInput {
                 root: &root,
                 upstream: &BTreeMap::new(),
             })
-            .expect("compile-logic");
+            .expect("constraint-shapes");
         let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
         up.insert("stage-compile-logic".to_string(), compile.product);
-        let out = MappingsStage::new()
+        up.insert(
+            "stage-export-constraint-shapes".to_string(),
+            constraint_shapes.product,
+        );
+        let product = MappingsStage::new()
             .run(StageInput {
                 root: &root,
                 upstream: &up,
             })
-            .expect("mappings");
-        let report = std::str::from_utf8(
-            out.product
-                .artifact(PROJECTION_REPORT_PATH)
-                .expect("report"),
-        )
-        .expect("utf8 report");
+            .expect("mappings")
+            .product;
+        (product, up)
+    }
+
+    #[test]
+    fn projection_report_unions_logic_and_correspondence_rows() {
+        let root = repo_root();
+        // Run the real compile-logic stage to get the logic-projections channel, then the
+        // real mappings stage to assemble the FINAL projection report over the union.
+        let (out, _upstream) = run_mappings_with_real_upstream();
+        let report = std::str::from_utf8(out.artifact(PROJECTION_REPORT_PATH).expect("report"))
+            .expect("utf8 report");
 
         // The report carries the correspondence rows (the whole point of the union): at
         // least one row per alignment dialect.
@@ -1542,10 +1720,173 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         );
     }
 
+    /// The shape-grounding certificate ledger: one re-derived certificate per
+    /// `logic:formalizes` record on THIS run's projected constraint surfaces, with the
+    /// entry count EQUAL to the surfaces' record count (count-consistency — no record is
+    /// skipped, none is invented), every entry carrying a re-derived
+    /// `logic:preservationKind`, and the artifact emitted as its own canonical fold
+    /// (structural idempotence: re-canonicalizing is a byte no-op).
+    #[test]
+    fn shape_grounding_ledger_covers_every_formalizes_record() {
+        let (out, upstream) = run_mappings_with_real_upstream();
+        let ledger = std::str::from_utf8(
+            out.artifact(SHAPE_GROUNDING_LEDGER_PATH)
+                .expect("shape-grounding ledger artifact"),
+        )
+        .expect("utf8 ledger");
+
+        // Count the formalizes records on the SAME fresh surfaces the stage consumed
+        // (read off the upstream products the helper already ran — no re-run).
+        let constraint_ttl = upstream["stage-export-constraint-shapes"]
+            .artifact(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH)
+            .expect("constraint shapes");
+        let procedural_ttl = upstream["stage-compile-logic"]
+            .artifact(crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH)
+            .expect("procedural constraints");
+        let mut expected = 0usize;
+        for bytes in [constraint_ttl, procedural_ttl] {
+            let ds = purrdf::parse_dataset(bytes, "text/turtle", None).expect("surface parses");
+            expected += gmeow_validate::shape_grounding::formalizes_records(&ds)
+                .values()
+                .map(std::collections::BTreeSet::len)
+                .sum::<usize>();
+        }
+        assert!(expected > 0, "the surfaces must carry formalizes records");
+        // Count-consistency, quad-exact: the ledger re-states EVERY surface
+        // logic:formalizes record (no record skipped, none invented) and carries exactly
+        // one re-derived judgment per record subject.
+        let ledger_ds =
+            purrdf::parse_dataset(ledger.as_bytes(), "text/turtle", None).expect("ledger parses");
+        let ledger_records = gmeow_validate::shape_grounding::formalizes_records(&ledger_ds);
+        assert_eq!(
+            ledger_records
+                .values()
+                .map(std::collections::BTreeSet::len)
+                .sum::<usize>(),
+            expected,
+            "the ledger must carry EXACTLY one certificate entry per surface \
+             logic:formalizes record (count-consistency)"
+        );
+        assert_eq!(
+            ledger.matches("logic:preservationKind logic:").count(),
+            ledger_records.len(),
+            "every record carries exactly one re-derived preservation judgment"
+        );
+        // The committed bytes ARE the canonical fold: re-canonicalizing is a byte no-op
+        // (the structural idempotence guarantee — a second regenerate cannot differ).
+        let recanon = purrdf::turtle_normalize::canonical_turtle(
+            ledger.as_bytes(),
+            &crate::stages::superset::rdf_prefixes(),
+        )
+        .expect("re-canonicalize");
+        assert_eq!(
+            recanon.as_bytes(),
+            ledger.as_bytes(),
+            "the ledger must be emitted as exactly its own canonical fold"
+        );
+    }
+
+    /// Byte-parity oracle for Seam 1 (count-ownership consolidation): the committed
+    /// `generated/logic/projection-report.ttl` was produced by the PRE-change two-writer path
+    /// (compile-logic wrote a base, mappings `+=`-composed the audit). The new single-owner
+    /// path — compile-logic ships the affine-gate BASE on the channel, mappings'
+    /// `fold_up_projection_audit` COMPUTES the final counts as `base + audit` with `=` and is
+    /// the sole writer — MUST reproduce those exact committed `logic:correspondenceCount` /
+    /// `lawfulUpliftCount` / `claimedUpliftCount` values. Reproducing them proves the
+    /// arithmetic did not drift, i.e. the committed report count bytes are unchanged.
+    ///
+    /// Off-gate: this runs the real compile-logic affine gate PLUS the whole-corpus 591-term
+    /// up-projection audit (through `MappingsStage::run`), so it exceeds the 25 s per-test
+    /// budget and rides the maint-heavy lane — mirroring the sibling
+    /// `projection_report_unions_logic_and_correspondence_rows`.
+    #[test]
+    #[ignore = "off-gate: runs the whole-corpus up-projection audit; exceeds the 25s budget"]
+    fn projection_report_counts_reproduce_committed_after_single_owner_consolidation() {
+        use crate::node::StageInput;
+        use crate::stages::compile_logic::CompileLogicStage;
+
+        // Parse `logic:<local> <int> ;` out of a projection-report TTL body. The needle
+        // carries a trailing space so a prefix (e.g. `...Count`) can't match a longer local.
+        fn parse_count(ttl: &str, local: &str) -> Option<usize> {
+            let needle = format!("logic:{local} ");
+            ttl.lines().find_map(|line| {
+                let rest = line.trim_start().strip_prefix(&needle)?;
+                rest.trim_end_matches([';', ' '])
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
+            })
+        }
+
+        let root = repo_root();
+        // The committed report is the PRE-change artifact; parse its pinned counts.
+        let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
+            .expect("committed projection report");
+        let committed_corr =
+            parse_count(&committed, "correspondenceCount").expect("committed correspondenceCount");
+        let committed_claimed =
+            parse_count(&committed, "claimedUpliftCount").expect("committed claimedUpliftCount");
+        // `lawfulUpliftCount` is legitimately 0 in the committed report (still emitted because
+        // `correspondenceCount` > 0), so it is a plain-equality pin, not a `> 0` guard.
+        let committed_lawful =
+            parse_count(&committed, "lawfulUpliftCount").expect("committed lawfulUpliftCount");
+        // Non-vacuity: the pinned counts must be real values, not a silent parse-to-default —
+        // so the equality below can't pass over an empty/absent report.
+        assert!(
+            committed_corr > 0,
+            "committed correspondenceCount must be > 0"
+        );
+        assert!(
+            committed_claimed > 0,
+            "committed claimedUpliftCount must be > 0"
+        );
+
+        // Reproduce the report through the REAL single-owner production path: the compile-logic
+        // affine gate → channel base, then mappings' `fold_up_projection_audit` over the real
+        // inputs. compile-logic reads its narrowed corpus off the source-load product.
+        let compile_upstream = crate::stages::compile_logic::source_load_upstream(&root);
+        let compile = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &compile_upstream,
+            })
+            .expect("compile-logic");
+        let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
+        up.insert("stage-compile-logic".to_string(), compile.product);
+        let out = MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &up,
+            })
+            .expect("mappings");
+        let fresh = std::str::from_utf8(
+            out.product
+                .artifact(PROJECTION_REPORT_PATH)
+                .expect("report"),
+        )
+        .expect("utf8 report");
+
+        assert_eq!(
+            parse_count(fresh, "correspondenceCount"),
+            Some(committed_corr),
+            "single-owner correspondenceCount must reproduce the committed {committed_corr}"
+        );
+        assert_eq!(
+            parse_count(fresh, "lawfulUpliftCount"),
+            Some(committed_lawful),
+            "single-owner lawfulUpliftCount must reproduce the committed {committed_lawful}"
+        );
+        assert_eq!(
+            parse_count(fresh, "claimedUpliftCount"),
+            Some(committed_claimed),
+            "single-owner claimedUpliftCount must reproduce the committed {committed_claimed}"
+        );
+    }
+
     #[test]
     fn fno_is_well_formed_ntriples() {
         // Wiring check: the FnO correspondence lowering produces a non-empty FnO
-        // catalog that parses. (Committed-byte/iso parity is the CI `check-generated`
+        // catalog that parses. (Committed-byte/iso parity is the CI strict-sync
         // gate, env-matched.)
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;

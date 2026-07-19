@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -20,7 +21,7 @@ gmeow:mapQbObservation a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observedFeature ; gmeow:objectVar "region" ]
             [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:aggregationFunction ; gmeow:objectVar "func" ]
             [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "result" ]
-            [ gmeow:subjectVar "result" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "val" ] ) ;
+            [ gmeow:subjectVar "result" ; gmeow:predicate math:quantityValue ; gmeow:objectVar "val" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:mint [ gmeow:bindVar "dataset" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (

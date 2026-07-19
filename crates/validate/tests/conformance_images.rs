@@ -90,8 +90,9 @@ ex:usage gmeow:depictionContext gmeow:depictionContextPortrait .
 gmeow:depictionContextPortrait a gmeow:DepictionContext .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["depictionImage"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/depictionImage", "MinCountConstraintComponent")
 )]
 #[case::image_region_shacl_passes(Case::inline(format!(
     "{PREFIXES}\
@@ -115,8 +116,9 @@ ex:region gmeow:regionOf ex:img .
 {media_object}",
         media_object = media_object_ttl("ex:img"),
     ))
+    .shape_union()
     .fails()
-    .violations(&["regionSelector"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/regionSelector", "MinCountConstraintComponent")
 )]
 #[case::region_selector_missing_value_fails_shacl(
     Case::inline(format!(
@@ -126,8 +128,9 @@ ex:sel gmeow:selectorType gmeow:selectorTypePixelRectangle .
 gmeow:selectorTypePixelRectangle a gmeow:SelectorType .
 "
     ))
+    .shape_union()
     .fails()
-    .violations(&["selectorValue"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/selectorValue", "MinCountConstraintComponent")
 )]
 #[case::scene_graph_edge_shacl_passes(Case::inline(format!(
     "{PREFIXES}\
@@ -149,8 +152,9 @@ ex:edge gmeow:sceneObject ex:region2 .
 {regions}",
         regions = two_regions_ttl(),
     ))
+    .shape_union()
     .fails()
-    .violations(&["sceneRelation"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/sceneRelation", "MinCountConstraintComponent")
 )]
 #[case::scene_graph_edge_confidence_out_of_range_fails_shacl(
     Case::inline(format!(
@@ -181,8 +185,9 @@ gmeow:depictionContextPortrait a gmeow:DepictionContext .
 {media_object}",
         media_object = media_object_ttl("ex:img"),
     ))
+    .shape_union()
     .fails()
-    .violations(&["depictionSubject"])
+    .fails_on_path("https://blackcatinformatics.ca/gmeow/depictionSubject", "MaxCountConstraintComponent")
 )]
 #[case::media_object_colourspace_shacl_passes(Case::inline(format!(
     "{PREFIXES}\

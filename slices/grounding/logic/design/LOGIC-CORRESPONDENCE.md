@@ -186,6 +186,29 @@ tracking, no provenance, and it fails silently on non-injective `get`. It is the
 mode/tabling/minting declarations and a declared law status. Naive backward-execution is a named
 anti-pattern, never the architecture.
 
+### Genuine recovery cases
+
+`logic:RecoveryCase` is the executable evidence for source recovery.  A correspondence links zero or
+more cases through `logic:recoveryCase`; each case owns exactly one `logic:recoveryTransform`, an
+ordered `∀(source → view)` formula.  The native executor supports the positive-conjunctive binary
+RDF-atom fragment: it deterministically instantiates every variable in the complete declared source
+pattern, constructs the view, runs the candidate inverse, and compares the recovered RDF atom set to
+the source.  Every attached case is conjunctive evidence: all must recover; the first missing or
+fabricated atom yields `ObligationViolated` with a deterministic countermodel.
+
+A recovery case is deliberately **neutral**.  Strong correspondences carry cases that discharge;
+lossy correspondences may carry a refuting case, so changing only the rung or the
+`logic:mnemomorphic` boolean cannot manufacture a proof.  The `gmeow:WritingSystem → lang:Script`
+case, for example, includes `gmeow:writingSystemType` and `gmeow:textDirection` in the source while
+the view omits them, and therefore reds if promoted to section/retraction.
+
+This is a bounded query-class discharge, not a theorem over every possible RDF graph.  The authored
+source pattern states the scope and must contain the distinctions on which injectivity depends;
+`logic:DischargeBoundedCorpus` records that honesty boundary.  An atomic one-triple path has a
+complete synthesized case.  A composite path has hidden intermediate structure and therefore stays
+`ObligationUnknown` without an authored complete case — `put = get.invert()` is only candidate
+construction, never evidence.
+
 At the **process layer** the in-band witness is realized by a pair of back-references an executed
 occurrence carries: `logic:instantiatesSchema` (occurrence → `logic:ActionSchema`, the reusable type)
 and `logic:instantiatesPlan` (occurrence → the `logic:Plan` it was executed under, the whole planned
@@ -207,7 +230,7 @@ single `gmeow:confidence` of the old DSL destroys the distinctions:
 - `logic:Determinacy` — whether the *target relationship* is ontically crisp or vague. "Similar but
   not quite" is `determinacy = vague` + `class = affine`, **not** low-confidence equivalence.
 
-Every correspondence is **standpoint-indexed** (`logic:accordingTo`, the typed context algebra of
+Every correspondence is **standpoint-indexed** (`gmeow:accordingTo`, the typed context algebra of
 [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)). An unindexed correspondence holds in
 `gmeow:unspecifiedStandpoint` — **unspecified, not universal** — which kills the silent-universality bug where
 a curated alignment is applied where it was never validated.
@@ -336,9 +359,9 @@ A new **Correspondence** conformance category ([`LOGIC-CONFORMANCE.md`](LOGIC-CO
 generalizes the Common-Logic round-trip gate, with five decisive gates: the **Law gate** (a
 correspondence may not claim a law it fails), the **Overclaim gate** (a bridge view cannot emit
 equivalence; a claimed rung must be satisfiable by the lowered legs), the **Round-trip gate** (iso and
-section/retraction pass canonical-identity checks), the **Mnemomorphism gate** (a recoverability claim
-must actually recover the source), and the **Composition gate** (composing may only preserve or weaken
-claims).
+section/retraction execute complete recovery cases and reproduce the declared source atom set), the
+**Mnemomorphism gate** (a recoverability claim must actually recover the source), and the
+**Composition gate** (composing may only preserve or weaken claims).
 
 ## OpenEHR — the worked subsumption (six layers)
 

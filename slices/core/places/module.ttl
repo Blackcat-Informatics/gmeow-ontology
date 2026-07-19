@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -66,11 +67,11 @@ gmeow:Capacity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Capacity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's gmeow:unit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
+    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a dimensionless math:Quantity, while the entity kind being counted follows from the capacity claim and the location's place type rather than a pseudo-unit. A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
     skos:example "ex:cap a gmeow:Capacity ; gmeow:capacityOf ex:hall ; gmeow:observationResult ex:scalar500 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing fire-code vs venue-claim capacities into one (Principle 9) and avoid deleting a post-renovation capacity — suppress with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a ScalarQuantity whose gmeow:unit fixes what is counted, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a math:Quantity carrying math:dimensionless and its count value, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint-indexed instances."@x-gmeow-english .
 
 gmeow:CelestialCoordinates
@@ -396,11 +397,11 @@ gmeow:Occupancy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Occupancy"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the current number of entities located at or within a location. The location is the observedFeature; the result is a ScalarQuantity. Typically computed by the solver layer from locatedAt relationships and active LocationState instances (P12), but may also be asserted directly from sensor readings or manual counts."@x-gmeow-english ;
+    skos:definition "A measurement of the current number of entities located at or within a location. The location is the observedFeature; the result is a math:Quantity. Typically computed by the solver layer from locatedAt relationships and active LocationState instances (P12), but may also be asserted directly from sensor readings or manual counts."@x-gmeow-english ;
     skos:example "ex:occ a gmeow:Occupancy ; gmeow:occupancyOf ex:hall ; gmeow:observationResult ex:scalar120 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it where the solver should derive it from locatedAt / active LocationStates (P12) unless you have a direct count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Occupancy, set gmeow:occupancyOf, and point gmeow:observationResult at a ScalarQuantity; pair with Capacity to derive Utilization."@x-gmeow-english ;
+    gmeow:howToUse "Mint Occupancy, set gmeow:occupancyOf, and point gmeow:observationResult at a math:Quantity; pair with Capacity to derive Utilization."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the current number of entities at a location, as a Measurement (sensor reading, manual count, or solver-derived)."@x-gmeow-english .
 
 gmeow:Orientation
@@ -469,7 +470,7 @@ gmeow:ProximityMeasurement
     skos:example "ex:dist a gmeow:ProximityMeasurement ; gmeow:observedFeature ex:a ; gmeow:proximityTo ex:b ; gmeow:observationResult ex:scalar ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting the computed distance as a plain triple — proximity is computed by the solver from the metric (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint ProximityMeasurement, set gmeow:observedFeature (the from-entity) and gmeow:proximityTo (the target), and point gmeow:observationResult at a ScalarQuantity in a frame with gmeow:hasMetricKind."@x-gmeow-english ;
+    gmeow:howToUse "Mint ProximityMeasurement, set gmeow:observedFeature (the from-entity) and gmeow:proximityTo (the target), and point gmeow:observationResult at a math:Quantity in a frame with gmeow:hasMetricKind."@x-gmeow-english ;
     gmeow:useWhen "Use to reify a measured distance, dissimilarity, or proximity between two entities in a frame that declares its metric kind."@x-gmeow-english .
 
 gmeow:ReferenceFrame
@@ -663,11 +664,11 @@ gmeow:Utilization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Utilization"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a ScalarQuantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core."@x-gmeow-english ;
+    skos:definition "A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a math:Quantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core."@x-gmeow-english ;
     skos:example "ex:util a gmeow:Utilization ; gmeow:utilizationOf ex:hall ; gmeow:observationResult ex:ratio024 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly in the canonical core — it is computed by the solver from capacity and occupancy (P12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Utilization, set gmeow:utilizationOf, and point gmeow:observationResult at a ratio/percentage ScalarQuantity."@x-gmeow-english ;
+    gmeow:howToUse "Mint Utilization, set gmeow:utilizationOf, and point gmeow:observationResult at a ratio/percentage math:Quantity."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the occupancy-to-capacity ratio at a location, as a Measurement."@x-gmeow-english .
 
 gmeow:VirtualLocation
@@ -1750,7 +1751,7 @@ gmeow:elevation
     rdfs:range xsd:decimal ;
     skos:definition "Elevation above sea level in metres."@x-gmeow-english ;
     skos:example "ex:pt gmeow:elevation 47.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a frame-relative vertical bound on an overlay (use gmeow:overlayLowerBound / gmeow:overlayUpperBound with a ScalarQuantity) and avoid for celestial epoch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a frame-relative vertical bound on an overlay (use gmeow:overlayLowerBound / gmeow:overlayUpperBound with a math:Quantity) and avoid for celestial epoch."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Add gmeow:elevation alongside gmeow:latitude / gmeow:longitude; for explicit vertical datums use the altitude/depth reference frames."@x-gmeow-english ;
     gmeow:useWhen "Use for elevation above sea level in metres on a GeoCoordinates point."@x-gmeow-english .
@@ -2089,7 +2090,7 @@ gmeow:geohash
     rdfs:range xsd:string ;
     skos:definition "A geohash string — a hierarchical spatial indexing system encoding latitude and longitude into a base32 string (e.g. 'u4pruydqqvj')."@x-gmeow-english ;
     skos:example "ex:ghLoc gmeow:geohash \"u4pruydqqvj\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing systems on one Geocode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing a geohash base32 string with another geocoding system (e.g. MGRS) on one Geocode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:geohash on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameGeohash."@x-gmeow-english ;
     gmeow:useWhen "Use for a geohash base32 string on a Geocode."@x-gmeow-english .
@@ -2783,7 +2784,7 @@ gmeow:mgrs
     rdfs:range xsd:string ;
     skos:definition "A Military Grid Reference System coordinate — a geocoordinate standard used by NATO militaries (e.g. '33TWN00020001')."@x-gmeow-english ;
     skos:example "ex:mgrsLoc gmeow:mgrs \"33TWN00020001\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing systems on one Geocode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing an MGRS coordinate with another geocoding system (e.g. geohash) on one Geocode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:mgrs on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameMGRS."@x-gmeow-english ;
     gmeow:useWhen "Use for a Military Grid Reference System coordinate on a Geocode."@x-gmeow-english .
@@ -2903,7 +2904,7 @@ gmeow:occupancyOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The location whose occupancy is measured. Functional: an occupancy measurement concerns exactly one location (constitutive of the measurement's identity)."@x-gmeow-english ;
     skos:example "ex:occ gmeow:occupancyOf ex:hall ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid several locations per measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid several locations per Occupancy measurement; an occupancy count is constitutively about exactly one location."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly one gmeow:occupancyOf per Occupancy."@x-gmeow-english ;
     gmeow:useWhen "Use to name the single location an occupancy measurement concerns; functional, a subproperty of gmeow:observedFeature."@x-gmeow-english .
@@ -2956,13 +2957,13 @@ gmeow:overlayLowerBound
     rdfs:domain gmeow:RegulatoryOverlay ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "overlay lower bound"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
-    skos:definition "The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level)."@x-gmeow-english ;
+    rdfs:range math:Quantity ;
+    skos:definition "The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a math:Quantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level)."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayLowerBound ex:fl100 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for purely 2D overlays (leave absent) and avoid a bare number without unit and vertical frame (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:overlayLowerBound at a ScalarQuantity with QUDT unit in an altitude/depth reference frame; pair with gmeow:overlayUpperBound."@x-gmeow-english ;
-    gmeow:useWhen "Use for the lower vertical bound of an overlay (altitude/depth/elevation) as a frame-relative ScalarQuantity."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:overlayLowerBound at a math:Quantity with QUDT unit in an altitude/depth reference frame; pair with gmeow:overlayUpperBound."@x-gmeow-english ;
+    gmeow:useWhen "Use for the lower vertical bound of an overlay (altitude/depth/elevation) as a frame-relative math:Quantity."@x-gmeow-english .
 
 gmeow:overlayPlace
     a owl:FunctionalProperty ,
@@ -2999,7 +3000,7 @@ gmeow:overlayType
     rdfs:range gmeow:RegulatoryOverlayType ;
     skos:definition "The kind(s) of regulatory overlay (a gmeow:RegulatoryOverlayType individual). Non-functional: a single overlay may be classified by multiple sources as different types (e.g. a zone that is both a protected area and an indigenous territory), and those claims coexist as evidence (Principle 9)."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayType gmeow:overlayTypeProtectedArea ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid encoding the kind as a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a regulatory-overlay kind (e.g. protected area, control zone) as a RegulatoryOverlay subclass; use a gmeow:RegulatoryOverlayType value instead (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:RegulatoryOverlayType individuals; competing classifications coexist as evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a regulatory overlay by one or more gmeow:RegulatoryOverlayType values; non-functional, so multi-source classifications coexist."@x-gmeow-english .
@@ -3177,13 +3178,13 @@ gmeow:overlayUpperBound
     rdfs:domain gmeow:RegulatoryOverlay ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "overlay upper bound"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
-    skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@x-gmeow-english ;
+    rdfs:range math:Quantity ;
+    skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a math:Quantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@x-gmeow-english ;
     skos:example "ex:ov gmeow:overlayUpperBound ex:fl200 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for purely 2D overlays and avoid omitting the vertical frame (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:overlayUpperBound at a ScalarQuantity with QUDT unit in an explicit vertical frame; pair with gmeow:overlayLowerBound."@x-gmeow-english ;
-    gmeow:useWhen "Use for the upper vertical bound of an overlay as a frame-relative ScalarQuantity."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:overlayUpperBound at a math:Quantity with QUDT unit in an explicit vertical frame; pair with gmeow:overlayLowerBound."@x-gmeow-english ;
+    gmeow:useWhen "Use for the upper vertical bound of an overlay as a frame-relative math:Quantity."@x-gmeow-english .
 
 gmeow:parentFrame
     a owl:FunctionalProperty ,
@@ -3220,7 +3221,7 @@ gmeow:pitch
     rdfs:range xsd:double ;
     skos:definition "Rotation about the lateral (typically y) axis, in degrees or radians as indicated by the reference frame."@x-gmeow-english ;
     skos:example "ex:ori gmeow:pitch 0.0 ; gmeow:eulerOrder \"ZYX\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid Euler angles without gmeow:eulerOrder."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid setting pitch (lateral-axis rotation) without gmeow:eulerOrder to disambiguate the Euler sequence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:pitch with gmeow:yaw, gmeow:roll, and gmeow:eulerOrder."@x-gmeow-english ;
     gmeow:useWhen "Use for rotation about the lateral axis in the Euler-angle facet."@x-gmeow-english .
@@ -3415,7 +3416,7 @@ gmeow:proximity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "proximity"@x-gmeow-english ;
     rdfs:range gmeow:ProximityMeasurement ;
-    skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@x-gmeow-english ;
+    skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → math:Quantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@x-gmeow-english ;
     skos:example "ex:a gmeow:proximity ex:dist ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it when vantage, confidence, temporal scope, or standpoint matter — read the reified Measurement directly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3444,7 +3445,7 @@ gmeow:quaternionW
     rdfs:range xsd:double ;
     skos:definition "The w (scalar) component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionW 1.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the scalar (real) w-part alone is meaningless without the X/Y/Z vector components."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionW with X/Y/Z on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the w (scalar) component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -3470,7 +3471,7 @@ gmeow:quaternionY
     rdfs:range xsd:double ;
     skos:definition "The y component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionY 0.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the y vector (imaginary) part alone is meaningless without W/X/Z."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionY with X/Z/W on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the y component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -3483,7 +3484,7 @@ gmeow:quaternionZ
     rdfs:range xsd:double ;
     skos:definition "The z component of a unit quaternion representing orientation."@x-gmeow-english ;
     skos:example "ex:ori gmeow:quaternionZ 0.0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a partial quaternion; supply all four components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a partial quaternion; the z vector (imaginary) part alone is meaningless without W/X/Y."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:quaternionZ with X/Y/W on the same Orientation."@x-gmeow-english ;
     gmeow:useWhen "Use for the z component of a unit quaternion orientation facet."@x-gmeow-english .
@@ -4663,7 +4664,7 @@ gmeow:roll
     rdfs:range xsd:double ;
     skos:definition "Rotation about the longitudinal (typically x) axis, in degrees or radians as indicated by the reference frame."@x-gmeow-english ;
     skos:example "ex:ori gmeow:roll 0.0 ; gmeow:eulerOrder \"ZYX\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid Euler angles without gmeow:eulerOrder."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid setting roll (longitudinal-axis rotation) without gmeow:eulerOrder to disambiguate the Euler sequence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:roll with gmeow:yaw, gmeow:pitch, and gmeow:eulerOrder."@x-gmeow-english ;
     gmeow:useWhen "Use for rotation about the longitudinal axis in the Euler-angle facet."@x-gmeow-english .
@@ -4838,26 +4839,26 @@ gmeow:stateHasAngularVelocity
     rdfs:domain gmeow:LocationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "state has angular velocity"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:range math:Quantity ;
     skos:definition "The angular velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing readings coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:s1 gmeow:stateHasAngularVelocity ex:omega ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for linear velocity (use gmeow:stateHasVelocity) and avoid a bare number without unit and frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:stateHasAngularVelocity at a ScalarQuantity expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
-    gmeow:useWhen "Use for the angular velocity at a location state, as a ScalarQuantity in the state's frame; non-functional."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:stateHasAngularVelocity at a math:Quantity expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
+    gmeow:useWhen "Use for the angular velocity at a location state, as a math:Quantity in the state's frame; non-functional."@x-gmeow-english .
 
 gmeow:stateHasVelocity
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LocationState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "state has velocity"@x-gmeow-english ;
-    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:range math:Quantity ;
     skos:definition "The linear velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing velocity readings from different sensors coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:s1 gmeow:stateHasVelocity ex:vel ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for angular velocity (use gmeow:stateHasAngularVelocity) and avoid a bare number without unit and frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point gmeow:stateHasVelocity at a ScalarQuantity (value + unit) expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
-    gmeow:useWhen "Use for the linear velocity at a location state, as a ScalarQuantity in the state's frame; non-functional, so competing sensor readings coexist."@x-gmeow-english .
+    gmeow:howToUse "Point gmeow:stateHasVelocity at a math:Quantity (value + unit) expressed in the gmeow:stateReferenceFrame."@x-gmeow-english ;
+    gmeow:useWhen "Use for the linear velocity at a location state, as a math:Quantity in the state's frame; non-functional, so competing sensor readings coexist."@x-gmeow-english .
 
 gmeow:stateOf
     a owl:FunctionalProperty ,
@@ -5069,7 +5070,7 @@ gmeow:tenureType
     rdfs:range gmeow:LandTenureType ;
     skos:definition "The kind(s) of land tenure (a gmeow:LandTenureType individual). Non-functional: a single tenure may be classified by multiple sources as different types, and those claims coexist as evidence (Principle 9)."@x-gmeow-english ;
     skos:example "ex:lt gmeow:tenureType gmeow:tenureTypeLeasehold ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid encoding the kind as a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a land-tenure kind (e.g. freehold, leasehold) as a LandTenure subclass; use a gmeow:LandTenureType value instead (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:LandTenureType individuals; competing classifications coexist as evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a land tenure by one or more gmeow:LandTenureType values; non-functional, so multi-source classifications coexist."@x-gmeow-english .
@@ -5202,7 +5203,7 @@ gmeow:utilizationOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The location whose utilization is measured. Functional: a utilization measurement concerns exactly one location (constitutive of the measurement's identity)."@x-gmeow-english ;
     skos:example "ex:util gmeow:utilizationOf ex:hall ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid several locations per measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid several locations per Utilization measurement; a utilization ratio is constitutively about exactly one location."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set exactly one gmeow:utilizationOf per Utilization."@x-gmeow-english ;
     gmeow:useWhen "Use to name the single location a utilization measurement concerns; functional, a subproperty of gmeow:observedFeature."@x-gmeow-english .
@@ -5323,7 +5324,7 @@ gmeow:yaw
 
 STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
-REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
+REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
 
 VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (virtual-location design). Virtual locations (video conferences, chat spaces, websites, social media pages) are typed by an open value vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are solver-layer computations (Principle 12), never asserted as triples in the OWL core.
 
@@ -5345,11 +5346,11 @@ _:b0
     owl:members ( gmeow:rcc8dc gmeow:rcc8ec gmeow:rcc8po gmeow:rcc8tpp gmeow:rcc8ntpp gmeow:rcc8tppi gmeow:rcc8ntppi gmeow:rcc8eq ) .
 
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
-# well-formedness shapes.
+# well-formedness shapes. Observation results remain multi-valued so measurements
+# in distinct frames or from coexisting standpoints do not collapse.
 gmeow:ProximityMeasurement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -5377,7 +5378,7 @@ gmeow:FrameAxisTypeConstraint
     logic:onClass gmeow:ReferenceFrame ;
     logic:valuePath gmeow:hasAxis ;
     logic:valueClass gmeow:Axis ;
-    logic:formalizes gmeow:ReferenceFrame ;
+    logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
     logic:message "A reference frame's coordinate axis (gmeow:hasAxis) must be a gmeow:Axis." .
 
 # A reference frame's declared gmeow:dimensionCount must equal the number of
@@ -5395,8 +5396,8 @@ gmeow:FrameDimensionCountConstraint
     logic:aggPath gmeow:hasAxis ;
     logic:aggComparator "=" ;
     logic:aggCompareTo gmeow:dimensionCount ;
-    logic:formalizes gmeow:ReferenceFrame ;
-    logic:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." .
+    logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
+    logic:message "A reference frame's dimension count must equal its number of coordinate axes." .
 
 # =========================================================================== #
 # Suppression constraint (#1194) — projection of SupersededPlaceSuppressionShape.
@@ -5410,7 +5411,7 @@ gmeow:SupersededPlaceSuppressionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a superseded gmeow:Place (one carrying gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:Place ;
+    logic:formalizes gmeow:Place , gmeow:SupersededPlaceSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supPlForall .
@@ -5441,7 +5442,7 @@ gmeow:CoarsenToReachabilityConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world reachability constraint: for every gmeow:coarsenTo target level, some gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the coarsened value has a replacement."@x-gmeow-english ;
-    logic:formalizes gmeow:coarsenTo ;
+    logic:formalizes gmeow:CoarsenToShape ;
     logic:severity "Warning" ;
     logic:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
     logic:integrity logic:ctrForall .
@@ -5459,3 +5460,274 @@ logic:ctrReach a logic:Formula ; logic:relation logic:transitiveReach ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:containedInPlace ] , [ logic:termIndex 2 ; logic:termVariable "ancestor" ] .
 logic:ctrGran a logic:Formula ; logic:relation gmeow:hasGranularity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ancestor" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceJurisdiction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/CadastralReference> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/referenceType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentChild> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/containmentParent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureParty> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenurePlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/LandTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureType> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Place> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasCentroid> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Geometry> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPoseOrientation> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Orientation> ] .
+<https://blackcatinformatics.ca/gmeow/Pose> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasPosePosition> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SpatialCoordinates> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/proximityTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/determinacyModel> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Determinacy> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/dimensionCount> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasAxis> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Axis> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasMetricKind> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MetricKind> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/parentFrame> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/gmeow/ReferenceFrame> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transformsTo> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayAuthority> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/overlayPlace> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceAuthority" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceJurisdiction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/CadastralReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/referenceType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/containmentChild" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/containmentParent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/jurisdictionPlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/jurisdictionPolity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureParty" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenurePlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/LandTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureType" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Pose> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasPoseOrientation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Pose> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasPosePosition" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/proximityTo" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/determinacyModel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/dimensionCount" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/frameKind" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/frameRealm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasAxis" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/requiresHost" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/duringInterval" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/overlayAuthority" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/overlayPlace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# --- Wave B2 shape-drain: places at-most-one restorations (non-functional paths) ---
+# gmeow:hasPosePosition / gmeow:hasPoseOrientation / gmeow:hasCentroid carry a per-shape sh:maxCount 1
+# but are NOT globally owl:FunctionalProperty, so the bound rides a class-scoped max-qualified
+# antecedent (logic:onClass owl:Thing degrades to the plain sh:maxCount 1 the oracle compares).
+gmeow:Pose logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPosePosition ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPoseOrientation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Place logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasCentroid ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# gmeow:CadastralReferenceShape — a CadastralReference records exactly one gmeow:referenceValue.
+# referenceValue is literal-valued, so the existence axiom ranges over rdfs:Literal (logic:allValuesFrom
+# owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal); the closure entry
+# projects sh:minCount 1, and the owl:FunctionalProperty contract supplies the sh:maxCount 1.
+gmeow:CadastralReference logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:referenceValue ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CadastralReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/referenceValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# --- Wave B2 shape-drain: places procedural residue (logic: canon; project to generated/shapes) ---
+
+# gmeow:GeocodeShape — a Geocode carries exactly one code value across the eight code systems: a
+# choice-group exclusive-disjunction (sh:xone). Its datatype/node-kind facets ride each predicate's
+# rdfs:range (xsd:string / rdfs:Literal), so the choice group is over predicate presence.
+gmeow:GeocodeCodeChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Geocode code-value choice constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Geocode binds exactly one of gmeow:geocodeValue, gmeow:plusCode, gmeow:what3words, gmeow:geohash, gmeow:mgrs, gmeow:unLocode, gmeow:mileMarker or gmeow:hasCoordinateMatrix — one code in one system per Geocode instance (Principle 9)."@x-gmeow-english ;
+    logic:onClass gmeow:Geocode ;
+    logic:choicePredicate gmeow:geocodeValue , gmeow:plusCode , gmeow:what3words , gmeow:geohash , gmeow:mgrs , gmeow:unLocode , gmeow:mileMarker , gmeow:hasCoordinateMatrix ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:GeocodeShape ;
+    logic:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .
+
+# gmeow:OrientationShape — an Orientation carries at least one representation: a complete unit
+# quaternion (x,y,z,w), complete Euler angles with eulerOrder (yaw,pitch,roll,order), a heading, a
+# bearing, or a homogeneous coordinate matrix — a node-level disjunction of conjunctions (sh:or).
+gmeow:OrientationRepresentationConstraint
+    a logic:Constraint ;
+    rdfs:label "Orientation representation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Orientation carries a complete unit quaternion (x,y,z,w), complete Euler angles with eulerOrder (yaw,pitch,roll,order), a heading, a bearing, or a homogeneous coordinate matrix."@x-gmeow-english ;
+    logic:formalizes gmeow:OrientationShape ;
+    logic:severity "Violation" ;
+    logic:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." ;
+    logic:integrity logic:ornForall .
+logic:ornForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ornImpl .
+logic:ornImpl a logic:Formula ; logic:antecedent logic:ornGuard ; logic:consequent logic:ornOr .
+logic:ornGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Orientation ] .
+logic:ornOr a logic:Formula ; logic:or logic:ornQuat , logic:ornEuler , logic:ornHeading , logic:ornBearing , logic:ornMatrix .
+logic:ornQuat a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "qx" ] , [ logic:termIndex 1 ; logic:termVariable "qy" ] , [ logic:termIndex 2 ; logic:termVariable "qz" ] , [ logic:termIndex 3 ; logic:termVariable "qw" ] ;
+    logic:exists logic:ornQuatBody .
+logic:ornQuatBody a logic:Formula ; logic:and logic:ornQx , logic:ornQy , logic:ornQz , logic:ornQw .
+logic:ornQx a logic:Formula ; logic:relation gmeow:quaternionX ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qx" ] .
+logic:ornQy a logic:Formula ; logic:relation gmeow:quaternionY ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qy" ] .
+logic:ornQz a logic:Formula ; logic:relation gmeow:quaternionZ ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qz" ] .
+logic:ornQw a logic:Formula ; logic:relation gmeow:quaternionW ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "qw" ] .
+logic:ornEuler a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "yaw" ] , [ logic:termIndex 1 ; logic:termVariable "pitch" ] , [ logic:termIndex 2 ; logic:termVariable "roll" ] , [ logic:termIndex 3 ; logic:termVariable "eord" ] ;
+    logic:exists logic:ornEulerBody .
+logic:ornEulerBody a logic:Formula ; logic:and logic:ornYaw , logic:ornPitch , logic:ornRoll , logic:ornOrder .
+logic:ornYaw a logic:Formula ; logic:relation gmeow:yaw ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "yaw" ] .
+logic:ornPitch a logic:Formula ; logic:relation gmeow:pitch ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pitch" ] .
+logic:ornRoll a logic:Formula ; logic:relation gmeow:roll ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "roll" ] .
+logic:ornOrder a logic:Formula ; logic:relation gmeow:eulerOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "eord" ] .
+logic:ornHeading a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "h" ] ;
+    logic:exists logic:ornHeadingAtom .
+logic:ornHeadingAtom a logic:Formula ; logic:relation gmeow:heading ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] .
+logic:ornBearing a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
+    logic:exists logic:ornBearingAtom .
+logic:ornBearingAtom a logic:Formula ; logic:relation gmeow:bearing ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+logic:ornMatrix a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ;
+    logic:exists logic:ornMatrixAtom .
+logic:ornMatrixAtom a logic:Formula ; logic:relation gmeow:hasCoordinateMatrix ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+
+# gmeow:ProximityMeasurementShape — a ProximityMeasurement's gmeow:observationResult value is a
+# math:Quantity (the sole quantity authority; the retired scalar-quantity aliases are gone): a
+# property-scoped value-type obligation carried in the logic: canon.
+gmeow:ProximityResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "Proximity result-type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:observationResult value of a gmeow:ProximityMeasurement is a math:Quantity."@x-gmeow-english ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:severity "Violation" ;
+    logic:message "A ProximityMeasurement must yield a math:Quantity result." ;
+    logic:integrity logic:prtForall .
+logic:prtForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:prtImpl .
+logic:prtImpl a logic:Formula ; logic:antecedent logic:prtGuard ; logic:consequent logic:prtQuantity .
+logic:prtGuard a logic:Formula ; logic:and logic:prtType , logic:prtResult .
+logic:prtType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProximityMeasurement ] .
+logic:prtResult a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:prtQuantity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:Quantity ] .
+
+# gmeow:PlaceNamingHasPlayersShape — a gmeow:NameUsage that names a gmeow:Place must bind a
+# gmeow:PlaceName appellation (a guarded existence over the naming relator).
+gmeow:PlaceNamingAppellationBindingConstraint
+    a logic:Constraint ;
+    rdfs:label "Place-naming appellation-binding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NameUsage whose gmeow:usageNamed value is a gmeow:Place binds a gmeow:PlaceName via gmeow:usageAppellation."@x-gmeow-english ;
+    logic:formalizes gmeow:PlaceNamingHasPlayersShape ;
+    logic:severity "Violation" ;
+    logic:message "A name-usage that names a gmeow:Place must bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+    logic:integrity logic:pnhForall .
+logic:pnhForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "place" ] ;
+    logic:forall logic:pnhImpl .
+logic:pnhImpl a logic:Formula ; logic:antecedent logic:pnhGuard ; logic:consequent logic:pnhAppExists .
+logic:pnhGuard a logic:Formula ; logic:and logic:pnhType , logic:pnhNamed , logic:pnhPlaceType .
+logic:pnhType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NameUsage ] .
+logic:pnhNamed a logic:Formula ; logic:relation gmeow:usageNamed ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "place" ] .
+logic:pnhPlaceType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "place" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
+logic:pnhAppExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "app" ] ;
+    logic:exists logic:pnhAppBody .
+logic:pnhAppBody a logic:Formula ; logic:and logic:pnhAppAtom , logic:pnhAppType .
+logic:pnhAppAtom a logic:Formula ; logic:relation gmeow:usageAppellation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "app" ] .
+logic:pnhAppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "app" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PlaceName ] .
+
+# gmeow:FrameProfileShape / gmeow:ProximityMeasurementShape — the required-property EXISTENCE halves
+# carried procedurally so the fixture-conformance corpus (which excludes the declarative
+# validation-shape surface) still catches a missing property; the closure entries + functional
+# contracts carry the same bounds to the production gate. Messages mirror the retired shapes verbatim.
+gmeow:FrameRealmPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Reference-frame realm-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame declares a gmeow:frameRealm."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:anyOf gmeow:frameRealm ;
+    logic:formalizes gmeow:FrameProfileShape ;
+    logic:message "A reference frame must declare its frame realm." .
+
+gmeow:FrameAxisPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Reference-frame axis-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame carries at least one gmeow:hasAxis coordinate axis."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:anyOf gmeow:hasAxis ;
+    logic:formalizes gmeow:FrameProfileShape ;
+    logic:message "A reference frame must have at least one coordinate axis." .
+
+gmeow:ProximityObservedFeaturePresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity observed-feature present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement names a gmeow:observedFeature starting entity."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:observedFeature ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must name exactly one starting entity (gmeow:observedFeature)." .
+
+gmeow:ProximityToPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity target present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement names a gmeow:proximityTo target entity."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:proximityTo ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must name exactly one target entity (gmeow:proximityTo)." .
+
+gmeow:ProximityResultPresentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Proximity result present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProximityMeasurement yields a gmeow:observationResult."@x-gmeow-english ;
+    logic:onClass gmeow:ProximityMeasurement ;
+    logic:anyOf gmeow:observationResult ;
+    logic:formalizes gmeow:ProximityMeasurementShape ;
+    logic:message "A ProximityMeasurement must yield at least one math:Quantity result." .

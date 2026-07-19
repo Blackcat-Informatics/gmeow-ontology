@@ -1,0 +1,15 @@
+# The discrete-connection flatness reading: a math:FlatConnection is the sheaf connection
+# (math:connectionOfSheaf) whose transport cochain (math:transportCochain) is a math:Cocycle —
+# flat ⇔ closed. The query pins that the flat connection over the sheaf data names a CLOSED
+# cochain, the checkable discrete witness of flatness (the universal curvature statement stays
+# the honest math:holonomyCurvatureBoundary).
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?connection ?sheaf ?cochain
+WHERE {
+  ?connection a math:FlatConnection ;
+              math:connectionOfSheaf ?sheaf ;
+              math:transportCochain ?cochain .
+  ?cochain a math:Cocycle .
+}
+ORDER BY ?connection

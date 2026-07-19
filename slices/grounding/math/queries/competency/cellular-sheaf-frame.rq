@@ -1,0 +1,11 @@
+# External-corpus coverage: reusable cellular-sheaf frame.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?sheaf ?base ?stalk ?restriction
+WHERE {
+  ?sheaf a math:CellularSheaf ;
+         math:sheafBaseComplex ?base ;
+         math:hasStalk ?stalk ;
+         math:restrictionMap ?restriction .
+}
+ORDER BY ?sheaf ?stalk

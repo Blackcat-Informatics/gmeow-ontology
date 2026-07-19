@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Counter-example: a gmeow:GmnEnvelope missing exactly ONE of its eight contract fields —
+# Counter-example: a gmeow:GmnEnvelope missing exactly ONE of its nine contract fields —
 # the boundary ring (gmeow:gmnSecurityRing) is absent (fires lang:GmnMissingEnvelopeField
-# via sh:minCount 1 on lang:GmnEnvelopeContractShape). The other seven fields are all
+# via sh:minCount 1 on lang:GmnEnvelopeContractShape). The other eight fields are all
 # present and well-formed, so exactly the one MinCount finding is emitted.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
@@ -24,9 +24,10 @@ ex:corrEnvelope a logic:Correspondence ;
 # The ring is missing: an envelope whose payload was never admitted under a boundary ring.
 ex:envelopeNoRing a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;
     gmeow:contentDigest "blake3:0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

@@ -45,7 +45,7 @@ with OWL 2 DL retained as a *generated projection*; the never-overclaim rule is 
 applies to `logic:` in full force.
 
 *Embodied in:* the authored `dsl/statements/` source; [`README.md`](./README.md) § RDF 1.2.
-*Tested by:* the `statements` generator drift gate (`gmeow check-generated`), the RDF 1.2
+*Tested by:* the `statements` generator drift gate (`gmeow-dev sync --mode check --outputs generated`), the RDF 1.2
 round-trip tests.
 
 ## 3. The OWL axiom-annotation form is a generated, reasoning-lossless downcast
@@ -60,8 +60,8 @@ applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for lega
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
 
-*Embodied in:* `make regenerate`, `queries/rdf12-project.rq` (a codec between two
-generated forms). *Tested by:* `make check-generated` and the OWL↔RDF 1.2
+*Embodied in:* `make sync`, `queries/rdf12-project.rq` (a codec between two
+generated forms). *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` and the OWL↔RDF 1.2
 round-trip / isomorphism gate.
 
 ## 4. One canonical source; everything else a generated lossy projection
@@ -74,7 +74,7 @@ alignment layer (the mapping compiler), and to the RDF 1.2 ↔ OWL relationship 
 The reasoned core stays clean; lossiness is pushed to the boundary and made explicit.
 
 *Embodied in:* [`docs/projections.md`](./docs/projections.md); [`README.md`](./README.md) §
-The mapping compiler. *Tested by:* `make check-generated`, projection round-trips.
+The mapping compiler. *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, projection round-trips.
 
 ## 5. Maximal superset, maximal bridging — by reference
 
@@ -121,13 +121,13 @@ Generation without verification is a second source of truth in disguise. Every d
 mapping artifacts, the RDF 1.2 view, the OWL compat form — must be regenerable and proven
 non-divergent, so drift is *impossible* rather than merely discouraged.
 
-*Embodied in:* `make check-generated`, the `projection_lint` /
+*Embodied in:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, the `projection_lint` /
 `statement_lint` invariants, `make check`.
 
 ## 8. Reasoning-gated and FAIR
 
 > **The logical core is OWL 2 DL, gated by the native `logic:` solver (a fast EL pre-check plus a
-> sound-and-complete OWL 2 DL check, cross-checked in-process against the `purrdf::entail` oracle); published
+> sound-and-complete OWL 2 DL check), the single reasoning authority; published
 > FAIR with content negotiation, VoID/DCAT, a DOI, and LOD-Cloud presence. The reasoner is our
 > quality assurance, never the consumer's prerequisite.**
 
@@ -139,7 +139,7 @@ or to know that we do (Principle 13). FAIR publication is pursued seriously as s
 and discoverability hygiene; the product it certifies is Principle 14's.
 
 **Superseded in part by Principle 17:** the native `logic:` solver becomes the reasoning authority,
-and the in-process OWL 2 DL oracle cross-check becomes a secondary validator of the OWL projection (one fragment among several). The
+and the OWL projection and the Datalog / SHACL engines become secondary validators of their projected fragments. The
 commitment that the reasoner is *our* QA and never the consumer's prerequisite is unchanged.
 
 **Documentation is a first-class artifact.** Every GMEOW-namespaced class, property, annotation
@@ -381,7 +381,7 @@ grounding, made explicit in the loss ledger. The OntoUML discipline that lived i
 becomes **actual axioms**; the lints survive as projection-conformance tests over the gUFO downcast,
 so nothing is lost in the move from lint to logic.
 
-The native `logic:` solver is the **reasoning authority**; the in-process OWL 2 DL oracle cross-check and the Datalog / SHACL
+The native `logic:` solver is the **reasoning authority** and the single reasoner on-gate; the OWL projection and the Datalog / SHACL
 engines become **secondary validators of their projected fragments**. This supersedes the
 OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
 construction** (Principle 7): the **Rust core is canonical** (the native gmeow RDF 1.2,
@@ -408,28 +408,27 @@ The machine-readable enforcement lives in
 ## 18. The reference RDF-1.2 stack — complete, coherent, and Docker-free
 
 > **The authoritative gate runs the native `logic:` solver and nothing heavier: `make check`, CI,
-> the build, and runtime need no Java and no Docker. The external cross-check oracle is now the
-> in-process `purrdf::entail` engine — it confirms the native verdicts on-gate, with no JVM and no
-> container.**
+> the build, and runtime need no Java and no Docker. The native reasoner is the single reasoning
+> authority; there is no live second reasoner on-gate — only committed engine-independent goldens
+> remain as external evidence.**
 
 Principle 17 already settled *authority* — the native `logic:` core is the reasoner, OWL is a
 projection. This principle settles the *gate*: the consequence of that authority is that the
 machine which proves GMEOW correct carries no external runtime. The native EL/DL reasoning lane
 (`gmeow_logic.reason_native`, bound by PyO3) reasons the committed bundle in-process, emits the
 told-vs-inferred closure with per-triple derivation provenance, the per-axiom proof skeletons, and
-the native↔oracle divergence ledger — and every one of those artifacts is produced and drift-gated
+the native gap-zero DL⊇EL divergence ledger — and every one of those artifacts is produced and drift-gated
 without spawning a container or a JVM. This extends Principle 13's Docker-free *consumer* gate to
 the *authoring* gate as well: the reasoner is no longer a heavyweight release-only step.
 
-The *secondary validator* Principle 17 names is now the in-process `purrdf::entail` engine —
-OWL-RL subsumption plus OWL-Direct-tableau consistency, itself 70/70 W3C-entailment
-conformance-tested — not a Java/Docker reasoner. The committed divergence ledger
-(`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it records
-the native consistency verdict, the native-only subsumption entailments, and the native DL coverage
-defect count, which must stay zero for the committed bundle. The oracle comparison runs in-process
-via `gmeow-dev reason-crosscheck` (folded on-gate into `make reason-verify`), with no container and
-no JVM. The authoritative gate thus stays green offline, on any machine, with no privileged daemon —
-and the oracle cross-check rides the same Docker-free path rather than a separately-scheduled Java lane.
+The *secondary validators* Principle 17 names are the OWL / Datalog / SHACL projected fragments and
+the committed engine-independent goldens — **not** a live second reasoner. The committed divergence
+ledger (`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it
+records the native consistency verdict, the native-only subsumption entailments, and the native DL
+coverage defect count, which must stay zero for the committed bundle — a native DL⊇EL fragment
+comparison, with no external oracle. The retired live native-vs-`purrdf::entail` differential
+cross-check is gone; the authoritative gate stays green offline, on any machine, with no privileged
+daemon and no second reasoner running beside the native lane.
 
 This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
 authoritative gate; the release-as-evidence and reusable-crate-suite clauses are realized below, and a
@@ -437,44 +436,45 @@ later amendment appends the public-receipts clause.
 
 **Extends Principle 17 and Principle 13.**
 
-**Amendment — the cross-check oracle is native, in-process, and on-gate.** The split foreshadowed
-above once ran the oracle comparison in a separate Java+Docker lane; that lane has been retired.
-The authoritative path — `make check`, the required CI `quality` gate, the build, and runtime — is
+**Amendment — the native reasoner is the single authority; the live cross-check oracle is retired.**
+The split foreshadowed above once ran an oracle comparison in a separate Java+Docker lane, and later
+as an in-process `purrdf::entail` differential cross-check; **both** have now been retired. The
+authoritative path — `make check`, the required CI `quality` gate, the build, and runtime — is
 rust-first and carries **no Java and no Docker**: native EL/DL reasoning (`reason --mode native`),
 the native OWL 2 RL closure (`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2
-emission (`gmeow-rdf`), and native SHACL/validation. The cross-check oracle now rides that same
-Docker-free path: `gmeow-dev reason-crosscheck` runs the in-process `purrdf::entail` engine —
-OWL-RL subsumption + OWL-Direct-tableau consistency, 70/70 W3C-entailment conformance-tested — as
-an **on-gate** confirmation of the native verdicts, and it **enforces** agreement, strictly and
-without a knob: any subsumption or consistency divergence between the native lane and the entail
-oracle fails the gate; any `DlGap` is a native coverage defect and fails. The committed
-`dl-el-crosscheck-report.ttl` stays native-built (built from native results, Docker-free) with
-`gapCount` required at zero; the cross-check emits its agreement + timing data through the
-`gmeow-diagnostics` SARIF rail (the gate taxonomy this issue owns). Producer inversion of the
-RDF-1.2 codec is **done**: the statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is
-written natively by `gmeow-rdf` (`gmeow_rdf.project_statements_rdf12`), so the build / `make check`
-/ `check-generated` / `regenerate` carry **zero Java and zero Docker** on the statement path.
+emission (`gmeow-rdf`), and native SHACL/validation. There is **no live second reasoner on-gate**:
+the native `logic:` solver is the single reasoning authority, and the only external evidence
+retained is a set of **committed engine-independent goldens** — the offline frozen OWL 2 DL
+oracle-gold corpus (`native ⊇ frozen-gold`, proven under `make conformance`) and the native gap-zero
+DL⊇EL ledger. This allowed/forbidden boundary is machine-checked: a committed golden is permitted; a
+live external/second reasoner wired on-gate as a differential subsumption/entailment oracle is
+**forbidden** and cannot silently regrow (the single-authority seal). The committed
+`dl-el-crosscheck-report.ttl` stays native-built (a native DL⊇EL fragment comparison, Docker-free)
+with `gapCount` required at zero. Producer inversion of the RDF-1.2 codec is **done**: the statement
+lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
+(`gmeow_rdf.project_statements_rdf12`), so the build, `make check`, and `sync` paths carry **zero
+Java and zero Docker** on the statement path.
 
 *Embodied in:* the native reason lane ([`crates/logic/src/reason/mod.rs`](./crates/logic/src/reason/mod.rs)),
-the `reason --mode native` CLI command, the `reason` registered pipeline generator, and the enforcing
-in-process entail cross-check oracle
-([`crates/logic/src/entail_oracle.rs`](./crates/logic/src/entail_oracle.rs),
-[`crates/logic/src/entail_crosscheck.rs`](./crates/logic/src/entail_crosscheck.rs)). *Tested by:* the
+the `reason --mode native` CLI command, the `reason` registered pipeline generator, and the native
+gap-zero DL⊇EL ledger builder
+([`crates/logic/src/reason/artifacts.rs`](./crates/logic/src/reason/artifacts.rs)). *Tested by:* the
 native-reasoning authority gate (`meta:gate-reason-native`), the native gap-zero divergence ledger
-gate (`meta:gate-dl-el-crosscheck`), the native ⊇ oracle anti-regression superset gate
-(`meta:gate-native-oracle-superset`), the on-gate entail cross-check
-(`gmeow-dev reason-crosscheck`, folded into `make reason-verify`), and the executable lane-purity seal
+gate (`meta:gate-dl-el-crosscheck`), the native ⊇ frozen-oracle-gold anti-regression superset gate
+(`meta:gate-native-oracle-superset`, an offline committed golden), and the executable
+single-authority + lane-purity seal
 ([`crates/validate/src/repo_static.rs`](./crates/validate/src/repo_static.rs),
 `meta:tests-lane-purity`) that statically proves the required CI `quality` jobs and
-`make check` carry no Java and no Docker — whose machine-readable enforcement lives in
+`make check` carry no Java, no Docker, and no live differential reasoning oracle — whose
+machine-readable enforcement lives in
 [`governance/constitution.ttl`](./governance/constitution.ttl).
 
 **Amendment — release-as-evidence.** A GMEOW release is its own evidence. The `make full-release`
-lane runs, in order, the native authority gate (`make check`, which now folds in the on-gate
-`purrdf::entail` cross-check), and the public conformance + perf suites — then **folds every
+lane runs, in order, the native authority gate (`make check`), and the public conformance + perf
+suites — then **folds every
 result into a single signed release bundle as content-addressed, individually-verifiable attestation
-frames**. Each artifact the lane produces — the native↔oracle agreement matrices (the native gap-zero
-DL-EL ledger and the in-process `purrdf::entail` cross-check), the public conformance-suite verdicts
+frames**. Each artifact the lane produces — the native gap-zero
+DL-EL ledger, the public conformance-suite verdicts
 (the `gmeow-conformance` corpus rolled up by `make conformance-report`), the SHACL/diagnostics SARIF
 findings, the machine-readable compliance report, and the perf results — rides into the bundle as a
 BLAKE3-content-addressed blob, and is described by a queryable `gmeow:Attestation` envelope (from the
@@ -492,8 +492,8 @@ always-latest concept DOI. Signing, publishing, and DOI submission are maintaine
 the project tooling never holds signing keys. The fold is **reproducible**: release timestamps are injected
 rather than sampled, blobs and frames are content-hash-sorted, and perf timings are carried as data,
 never as a gate. Two invariants bound this lane. First, the release fold adds no external runtime:
-there is no Java/Docker oracle pass, and the in-process `purrdf::entail` cross-check keeps
-Principle 18's authoritative lane native and offline. Second, the release fold writes only the
+there is no Java/Docker oracle pass and no live second reasoner — the native `logic:` lane keeps
+Principle 18's authoritative path native and offline. Second, the release fold writes only the
 release bundle (`dist/gmeow.gts`, the `--out` path) and **never mutates the committed, drift-gated
 `generated/dist/gmeow.gts`**: the committed snapshot remains the Docker-free narrow waist, and the
 signed evidence bundle is a packaging step layered over it. Perf and timing are folded as data, so

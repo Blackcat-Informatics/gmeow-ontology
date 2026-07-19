@@ -42,6 +42,7 @@ pub mod export;
 pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
+pub mod goal_directed;
 // The governance-floors export leaf: the two slice-quality floor TSVs projected as
 // lossy views of the ontology-resident gmeow:AxisFloorCommitment / gmeow:SliceTierFloor
 // individuals (Principle 17 — the ontology is canonical, these TSVs are its projection).
@@ -59,6 +60,7 @@ pub mod gts_sink;
 pub mod json_schema;
 pub mod lang_docs_rendering;
 pub mod lang_form;
+pub mod lang_glossary;
 pub mod lang_lowering;
 pub mod lang_projection;
 pub mod lang_translation;
@@ -84,6 +86,10 @@ pub mod research_objects;
 pub mod result_shape_composition;
 pub mod result_shapes;
 pub mod rule_severity;
+// The ONE shared enriched-CompiledSchema builder every SHACL-derived schema surface
+// (json-schema, schemas) compiles through — dedups the compile+enrich+pretty-print
+// sequence so both surfaces read byte-identical `$defs`.
+pub(crate) mod schema_compile;
 pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
@@ -93,6 +99,9 @@ pub(crate) mod schema_ident;
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
 // pydantic, and validate).
 pub mod shape_union_fresh;
+// The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
+// slice batch and folds the union into the carrier as graph/authoring-briefs.
+pub mod slice_brief;
 pub mod source_load;
 pub mod statements;
 // Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
@@ -114,7 +123,12 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
+    registry.register(
+        "goal_directed",
+        Arc::new(goal_directed::GoalDirectedStage::new()),
+    );
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),
@@ -155,6 +169,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage::new()));
     registry.register("pydantic", Arc::new(pydantic::PydanticStage::new()));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
+    registry.register("glossary", Arc::new(lang_glossary::GlossaryTableStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage::new()));

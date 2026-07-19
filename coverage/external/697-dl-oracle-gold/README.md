@@ -54,12 +54,14 @@ authority).
 
 The gold is **permanently frozen** from its historical external OWL 2 DL oracle run: the
 Docker/Java external DL oracle stack (and its regeneration lane) has been **removed**, so the
-`expected/*.json` verdicts are no longer regenerated in-repo. The reasoning oracle that
-now runs continuously is the native, in-process, Docker-free `purrdf::entail` engine
-(OWL-RL subsumption + OWL-Direct-tableau consistency, 70/70 W3C-entailment
-conformance-tested), exercised on-gate by `make reason-verify`; this frozen corpus is
-kept as an independent external-oracle-authored baseline that the native reasoner must
-still strictly cover, checked offline by the gate below.
+`expected/*.json` verdicts are no longer regenerated in-repo. There is **no live
+differential reasoning oracle on any gate** — the `purrdf::entail`-vs-native cross-check
+lane was retired end-to-end. The reasoner that runs on-gate is GMEOW's own native,
+in-process, Docker-free `logic:` reasoner, exercised by `make reason-verify`, and it is
+the **sole reasoning authority**; `purrdf` remains only a runtime RDF-parsing dependency,
+not a live reasoning oracle. This frozen corpus is kept as an independent
+external-oracle-authored baseline that the native reasoner must still strictly cover,
+checked offline by the gate below.
 
 ## The offline gate
 
@@ -93,6 +95,6 @@ PROFILE VIOLATION ERROR https://blackcatinformatics.ca/gmeow/full violates profi
 `gmeow:usesTerm`'s `rdfs:Resource` range (and a `Declaration(Class(rdfs:Resource))`)
 sit outside OWL 2 DL, so the external DL oracle refused to reason over the merged bundle. The
 curated small datasets above are where the external DL/EL oracles ran clean, so the frozen gold is
-scoped to them — not faked over the bundle. Full-bundle reasoning is now handled by
-the native EL/DL engine and the in-process `purrdf::entail` cross-check, neither of
-which needs OWL 2 DL profile conformance.
+scoped to them — not faked over the bundle. Full-bundle reasoning is now handled solely by
+the native `logic:` EL/DL engine (`make reason-verify`), which needs no OWL 2 DL profile
+conformance and has no live differential oracle counterpart.

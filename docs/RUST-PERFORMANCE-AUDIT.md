@@ -3,6 +3,18 @@
 
 # Rust and native-gate performance audit
 
+**Historical, dated record.** This audit captures a point-in-time measurement
+pass (baseline `2026-07-13`, see below) taken while `make reason-gate` and
+`make reason-crosscheck` — the live native-vs-`purrdf::entail` cross-check
+oracle lane — still existed. A subsequent removal deleted that oracle
+lane entirely (`make reason-gate`, `make reason-crosscheck`,
+`gmeow-dev reason-crosscheck`/`reason-gate`, and the
+`bench-entail-oracle-alloc` bench are gone); the native `logic:` reasoner is
+now the single reasoning authority and `make reason-verify` is the retained
+aggregate. The measurements and dispositions below are preserved as dated
+history and must not be read as current commands — see the annotated
+reproduction-lane list at the end of this document.
+
 This audit records the measured optimization pass over the Rust workspace and
 the composition of `make check`. It is evidence for the standing doctrine in
 [`RUST-OPTIMIZATION.md`](./RUST-OPTIMIZATION.md), not a second performance
@@ -42,7 +54,7 @@ report-only evidence, never a correctness threshold.
 | `reason-crosscheck`, median of 3 | 237.540 s | 210.350 s | -11.45% | 104 worlds; 1,488 native / 281 oracle; 281 agree, 1,207 native-only, 0 oracle-only, 0 DL-gap |
 | Fresh `reason-verify`, 1 run | 458.483 s | 214.966 s | -53.11% | 1,112,386 inferred axioms; zero verify errors |
 | Combined `reason-gate`, 1 candidate run | — | 217.305 s | one closure instead of composing two producers | same reasoning, verify, and oracle counters as the focused commands |
-| Cold `check-generated`, 1 run | 478.283 s | 192.973 s | -59.65% | all 9,614 artifacts byte-clean |
+| Cold artifact drift gate, 1 run | 478.283 s | 192.973 s | -59.65% | all 9,614 artifacts byte-clean |
 | Cold source-load critical stage | 342.706 s | 55.747 s | -83.73% | identical assessment and generated-artifact bytes |
 | Slice-quality assessment phase | 313.548 s | 27.750 s | -91.15% | indexed result fold preserves slice, diagnostic, finding, and RDF order |
 | MCP full-card JSON test, standalone | 12.677 s | 6.711 s | -47.06% | identical JSON and tier fields; pointer identity pins one shared documentation projection |
@@ -62,20 +74,69 @@ The three-run median cross-check peak moved from 6,363,772 KiB to 6,541,688 KiB
 217.305 s sample split into 1.626 s snapshot import, 203.560 s native reasoning,
 7.413 s verification, and 4.171 s oracle work; peak RSS was 6,702,244 KiB.
 
+### 2026-07-16 follow-on: exact batch proofs and verified task reuse
+
+The earlier indexed-Rayon change still executed one complete reasoner closure per
+leave-one-out candidate. The follow-on replaces that repeated work with exact
+shared indexes for subclass/subproperty reachability, equivalence and finite-union
+support, fixed-head absence, disjointness impossibility, and property-characteristic
+load-bearingness. Ambiguous constructs retain the production incremental-session +
+finite-DL path; mixed-family tests compare every batch answer with a scratch
+`reason_closure_axioms` run. The redundant eager baseline closure in the
+slice-quality axis was removed because its value was discarded and each selected
+positive/negative proof already owns its error path.
+
+Focused warm observations on the same checkout moved the extension/music slice
+from 39.91 s to 1.24 s and the exhaustive logic-slice scoring test from 55.31 s to
+1.57 s. The strict pipeline's slice-quality phase moved from 54.639 s in the first
+batch implementation to 1.487 s in the final implementation (36.7×); total pipeline
+telemetry moved from 300.165 s to 208.276 s. After the canonical update established
+the fixed point, the read-only generated check hit the whole-run manifest in 0.80 s.
+These are report-only observations taken while the shared host had variable
+contention; the acceptance claim is exact scratch parity and unchanged scoring,
+not any wall-clock value. The retained ignored exhaustive audit compared every
+capped candidate in every real slice with parallel scratch reasoning in 65.3 s.
+After integrating the newer main-branch corpus, the same slice-quality phase was
+1.858 s inside a 283.735 s cold pipeline. A complete receipt-fallback gate then
+passed in 493.616 s, including 6,170 default-lane Rust tests; those corpus-expanded
+figures are evidence for the current checkout, not a like-for-like baseline.
+
+The aggregate check runner now has two execution profiles. `make check-full`
+physically executes the entire task DAG. `make check` may reuse an unaffected task
+only from a GitHub-attested successful main-push receipt whose commit, tree, task
+registry, toolchain contract, and full task inventory match. It classifies the
+complete committed/staged/unstaged/untracked diff; unknown paths, Rust/tooling
+changes, missing `gh`, missing receipts, and any attestation or contract failure
+fall back to the full profile. This is proof-carrying DAG pruning, not a reduced
+correctness profile (Principles 4, 7, and 18).
+
+The local `make check` entry point also owns update-mode synchronization. This
+removes the developer-visible `make sync` / `make check` boundary without adding
+another cold pipeline: a clean manifest returns immediately, while a miss pays the
+same regeneration that previously had to be run as a separate command. The
+internal `make check-sync` target defaults to read-only mode for CI drift proof.
+
+On a cold full profile, `rust-build` is an explicit aggregate DAG node. Rust
+consumers wait for that one owner instead of racing separate Make subprocesses
+to create the same readiness stamp behind Cargo's build lock. The dedicated
+`gts-frame-profile-gate` target remains independently runnable, while the
+aggregate relies on the identical `gts_profile` unit tests already present in
+the complete `rust-gate` nextest population.
+
 ## Ranked findings and dispositions
 
 | Rank | Hot symbol or composition seam | Measured share / smell | Mechanism | Disposition and proof |
 |---:|---|---|---|---|
-| 1 | `slice_quality::reasoner_axis` leave-one-out probes | 313.548 s, 91.5% of source-load and 65.9% of the cold pipeline | Up to 64 independent closures per slice were serial; every probe then allocated a complete `BTreeSet<String>` although it asked one membership question | Accepted: borrow closure strings, stop at the first match, evaluate independent probes with indexed Rayon collection, and fold in authored order. Fixed four-worker tests compare serial and parallel findings repeatedly. |
+| 1 | `slice_quality::reasoner_axis` leave-one-out probes | 313.548 s, 91.5% of source-load and 65.9% of the cold pipeline | Up to 64 candidates rebuilt equivalent closure state | Superseded by exact batch relation/support indexes with conservative incremental + finite-DL fallback. Mixed-family tests compare every result with scratch reasoning; authored order is retained. |
 | 2 | `gmeow-dev reason-verify --fresh` | Two full native chases for one command | The first result checked consistency; verification called a second reasoning entry point | Accepted: a `FnOnce` producer returns one `ReasoningResult`, and verification consumes that exact value. A unit test pins one producer invocation. |
 | 3 | Aggregate reasoning targets | Focused verify and oracle targets independently acquired equivalent native state | Make composed command surfaces instead of composing their shared product | Accepted: `reason-gate` imports once, chases once, then feeds the same result to verification and the entailment oracle. Focused targets remain runnable. |
 | 4 | `entail_crosscheck::oracle_subsumptions` | 104 isolated worlds evaluated serially | Each projected named graph is immutable and independent | Accepted: indexed per-world Rayon buffers, followed by explicit stable sort/dedup. Repeated fixed-pool serial/parallel parity tests pin order and values. |
 | 5 | `entail_oracle::owlrl_subsumptions` scan | Predicate rejection allocated owned IRI strings | Terms were owned before knowing whether a row survived | Accepted: compare borrowed `TermRef::Iri` values and own only output pairs. Five exact samples moved from 8,260,960 bytes / 37,145 allocations to 8,116,809 bytes / 33,030 allocations (-1.75% bytes, -11.08% count) with the same 3,212,206-byte peak-live value. |
 | 6 | `McpView::run_docs_query` documentation panels | A full card re-projected the whole documentation graph for every SPARQL panel; the test reached 30.675 s under full-suite contention | Each panel copied the same immutable named graph before querying it | Accepted: one `OnceLock<Arc<RdfDataset>>` projection per server is shared by every documentation query. Exact-output tests and pointer identity pin the contract; the standalone full-card test moved from 12.677 s to 6.711 s (-47.06%) without an off-gate exception. |
-| 7 | Whole-bundle coherence teeth | Clean bundle and poisoned bundle were each chased in the teeth test, after the aggregate reasoning lane already established cleanliness | The test mixed the hold proof with the mutation-sensitivity proof | Accepted: `coherence-gate-teeth` explicitly depends on `reason-gate`; the test owns only the poisoned-bundle witness. GNU Make evaluates the shared phony prerequisite once per invocation, while the standalone teeth target stays complete. |
+| 7 | Whole-bundle coherence teeth | Clean bundle and poisoned bundle were each chased in the teeth test, after the aggregate reasoning lane already established cleanliness | The test mixed the hold proof with the mutation-sensitivity proof | Accepted: the aggregate xtask DAG orders `coherence-gate-teeth` after `reason-gate`; the test owns only the poisoned-bundle witness. The Make contract test pins that dependency without rerunning the reasoning producer. |
 | 8 | Aggregate linting | `lint-issue-refs` ran as an explicit prerequisite and again as an always-run pre-commit hook; clippy ran in pre-commit and `rust-gate` | The aggregate invoked a complete standalone facade twice | Accepted: standalone `lint` remains complete; internal `check-lint` skips only `cargo-clippy`, while the always-run issue-reference hook executes once. A Rust structural test pins the exact aggregate inventory and recipes. |
-| 9 | Aggregate mapping and engine-golden targets | `check-generated` already runs the registered mapping producer; the first `bench-soak --soak 3` iteration is the golden check | Duplicate facade targets repeated the same authority | Accepted: remove only the duplicate aggregate entries. `mappings` and `bench-golden-gate` remain standalone commands. The Make contract test prevents accidental reintroduction. |
-| 10 | Warm pipeline cache hydration | Warm `check-generated` was 287.173 s; cached reason hydration was 119.698 s and cached snapshot hydration 129.369 s | Large cache products must be deserialized even when computation is skipped | No change: replacing these products requires a cache-format/dataflow redesign and would alter a persistence boundary without evidence that a smaller representation preserves every consumer. The cold critical path offered the higher-confidence gain. |
+| 9 | Aggregate mapping and engine-golden targets | The artifact drift gate already runs the registered mapping producer; the first `bench-soak --soak 3` iteration is the golden check | Duplicate facade targets repeated the same authority | Accepted: remove only the duplicate aggregate entries. `mappings` and `bench-golden-gate` remain standalone commands. The Make contract test prevents accidental reintroduction. |
+| 10 | Warm pipeline cache hydration | The prior warm artifact check was 287.173 s; cached reason hydration was 119.698 s and cached snapshot hydration 129.369 s | Large cache products must be deserialized even when computation is skipped | Superseded by the unified sync boundary: full-run cumulative stage snapshots are no longer persisted; the clean whole-run manifest skips the pipeline instead. |
 | 11 | Source ingestion | Hypothesis: repeated authored RDF parsing dominated source-load | Phase telemetry measured authored dataset load at 90 ms and base N-Quads at 126 ms | Rejected: an immutable authored-corpus abstraction would add API surface without touching the measured bottleneck. |
 | 12 | Self-description carrier construction | 28.602 s baseline, 27.445 s candidate | Real but secondary whole-repo work | No change: output assembly is already a single canonical carrier path; speculative caching or a parallel representation would threaten Principle 4 for less than one tenth of the former slice-quality cost. |
 
@@ -141,32 +202,41 @@ change.
   shared by `Arc`; query results and their authored order remain unchanged.
 - Standalone Make targets retain their full behavior. Only the aggregate target
   uses the non-overlapping composition, and a Rust test parses the Makefile to pin
-  that contract.
+  that contract. Its explicit Rust-build node owns cold workspace preparation;
+  downstream Rust consumers never race the readiness stamp.
+- Impact-selected aggregate runs accept reuse only after GitHub provenance
+  attestation plus exact commit/tree/registry/toolchain/task-inventory checks.
+  Selection uncertainty executes the complete DAG; timing/explanation output is
+  observational and unsigned local data.
 - GTS payload compression remains exactly zstd-rsyncable level 12.
 - The O3/checks-on/no-debug-symbol Cargo profile is unchanged; the doctrine now
   describes the actual checked-in profile accurately.
 
-## Reproduction lanes
+## Reproduction lanes (historical — commands as they existed at measurement time)
 
-Use the repository targets for final evidence:
+At measurement time, the repository targets used for final evidence were:
 
 ```bash
 make help
 make fmt
-make reason-gate
+make reason-gate       # REMOVED; use make reason-verify
 make reason-verify
-make reason-crosscheck
-make check-generated
+make reason-crosscheck # REMOVED — the live native-vs-purrdf::entail oracle lane
+make sync SYNC_MODE=check SYNC_OUTPUTS=generated
 make gts-frame-profile-gate
 make check
+make check-full
 ```
 
-The focused allocation counter is intentionally a bench-only diagnostic:
+The focused allocation counter was intentionally a bench-only diagnostic and has since been
+removed along with the oracle lane it measured:
 
 ```bash
-make bench-entail-oracle-alloc
+make bench-entail-oracle-alloc   # REMOVED
 ```
 
 For timing comparisons, build once, run the exact same command and population,
 record process-tree RSS and phase JSON, and keep the machine quiescent. Do not
-turn the report-only wall times above into CI thresholds.
+turn the report-only wall times above into CI thresholds. Current reproduction
+should use `make reason-verify` and `make check`; `reason-gate`,
+`reason-crosscheck`, and `bench-entail-oracle-alloc` no longer exist.

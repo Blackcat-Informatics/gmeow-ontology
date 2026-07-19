@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a gmeow:Glossary whose two gmeow:GlossaryEntry members share one
+# gmeow:glossaryConcept but carry TWO DIFFERENT gmeow:glossaryTranslation values ("lire"
+# vs "lu") — one sense reads back as two divergent renderings across batches. Fires the
+# sh:sparql of the derived lang:GlossaryTermConsistencyConstraintProceduralConstraintShape
+# (lang:GlossaryTermInconsistency); validation MUST emit shacl.SPARQLConstraintComponent
+# and NO other finding.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:glossaryZh a gmeow:Glossary ;
+    gmeow:glossarySlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:glossaryLanguage "fr" ;
+    gmeow:glossaryEntry ex:entryReadA , ex:entryReadB .
+
+ex:entryReadA a gmeow:GlossaryEntry ;
+    gmeow:glossaryTerm lang:readPresent ;
+    gmeow:glossaryPredicate "rdfs:label" ;
+    gmeow:glossarySource "read" ;
+    gmeow:glossaryTranslation "lire" ;
+    gmeow:glossarySense ex:senseReadA ;
+    gmeow:glossaryConcept ex:conceptRead .
+
+# Same gmeow:glossaryConcept as ex:entryReadA, a DIFFERENT gmeow:glossaryTranslation.
+ex:entryReadB a gmeow:GlossaryEntry ;
+    gmeow:glossaryTerm lang:readAnew ;
+    gmeow:glossaryPredicate "rdfs:label" ;
+    gmeow:glossarySource "read" ;
+    gmeow:glossaryTranslation "lu" ;
+    gmeow:glossarySense ex:senseReadB ;
+    gmeow:glossaryConcept ex:conceptRead .
+
+# Two distinct senses both evoke the ONE concept — the entries are synonymous by the
+# model, so their divergent renderings ARE the gated inconsistency (grouped on the concept).
+ex:senseReadA a lang:Sense ;
+    lang:evokes ex:conceptRead .
+
+ex:senseReadB a lang:Sense ;
+    lang:evokes ex:conceptRead .
+
+ex:conceptRead a lang:LexicalConcept .

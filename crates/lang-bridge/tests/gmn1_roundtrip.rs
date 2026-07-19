@@ -14,8 +14,8 @@
 use std::sync::Arc;
 
 use gmeow_lang_bridge::{
-    Gmn0Model, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
-    gmn1_write_tabular, round_trip_check,
+    Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, gmn1_write_tabular, per_claim_round_trip_check, round_trip_check,
 };
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, parse_dataset};
 
@@ -33,7 +33,7 @@ fn lang_module_dataset() -> Arc<RdfDataset> {
 }
 
 fn dict() -> GmnDictionary {
-    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v1 loads from the carrier")
+    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict-v3 loads from the carrier")
 }
 
 /// Load and parse one grounding slice's authored `module.ttl`.
@@ -60,7 +60,10 @@ fn single_claim_record_round_trips() {
     round_trip_check(&model, &dict()).expect("single claim record round-trips");
 
     let doc = gmn1_write(&model, &dict()).expect("write");
-    assert!(doc.text.starts_with("@gmn{v: 1, aliases: dict-v1}\n"));
+    assert!(
+        doc.text
+            .starts_with("@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n")
+    );
     assert!(
         doc.text.contains("@c{"),
         "must emit one @c record: {}",
@@ -181,7 +184,7 @@ fn lang_tagged_literal_round_trips_the_language_tag() {
 // `logic:naryArg0(R, a)`, `logic:naryArg1(R, b)`, … This is ALREADY inside this codec's
 // covered fragment: it is nothing but a subject (the reifier node R, an ordinary IRI or
 // blank node) carrying several ordinary triples, each with >1 primary predicate per
-// subject so the safe-fold guard emits them as flat `@c` records — no special-casing
+// subject so the safe-fold guard emits them as flat logic (`@ℒ`) records — no special-casing
 // needed. This fixture proves the round-trip explicitly rather than asserting it.
 
 #[test]
@@ -203,8 +206,8 @@ fn nary_predication_reification_round_trips() {
 
     let doc = gmn1_write(&model, &dict()).expect("write");
     // Four distinct predicates share the reifier subject, so the safe-fold guard (>1
-    // primary triple per subject) emits four flat @c records — none silently dropped.
-    let claim_count = doc.text.lines().filter(|l| l.starts_with("@c{")).count();
+    // primary triple per subject) emits four flat @ℒ records — none silently dropped.
+    let claim_count = doc.text.lines().filter(|l| l.starts_with("@ℒ{")).count();
     assert_eq!(
         claim_count, 4,
         "all four reifier triples must round-trip: {}",
@@ -317,7 +320,7 @@ fn process_record_with_boundary_and_iteration_round_trips() {
     );
     assert!(
         doc.text.contains("bd: open"),
-        "bd must use the dict-v1 alias: {}",
+        "bd must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
@@ -413,12 +416,12 @@ fn every_task5_qualifier_slot_round_trips() {
     let doc = gmn1_write(&model, &dict()).expect("write");
     assert!(
         doc.text.contains("m: poss"),
-        "m must use the dict-v1 alias: {}",
+        "m must use the dict-v3 alias: {}",
         doc.text
     );
     assert!(
         doc.text.contains("ek: inst"),
-        "ek must use the dict-v1 alias: {}",
+        "ek must use the dict-v3 alias: {}",
         doc.text
     );
 
@@ -513,14 +516,14 @@ fn real_math_module_round_trips() {
     }
 }
 
-// ── The hard-fail path actually fires (not merely a design assertion) ──────────────
+// ── RDF 1.2 triple terms + reifiers round-trip losslessly (RDF-star native) ─────────
 
 #[test]
-fn genuinely_uncovered_construct_hard_fails_not_silently_drops() {
+fn quoted_triple_term_object_round_trips_losslessly() {
     let mut b = RdfDatasetBuilder::new();
-    // A quoted RDF 1.2 triple term as OBJECT: outside this codec's covered fragment
-    // (RDF 1.2 quoted-triple subjects are rejected by the dataset builder itself, so the
-    // object position is where this construct is actually reachable).
+    // A quoted RDF 1.2 triple term as OBJECT — first-class model content the codec encodes
+    // losslessly as the compact `( s p o )` surface (RDF 1.2 triple terms occur only as an
+    // object; subjects are rejected by the dataset builder itself).
     let s = b.intern_iri(&format!("{GMEOW}someAgent"));
     let p = b.intern_iri(&format!("{GMEOW}asserts"));
     let ta = b.intern_iri(&format!("{GMEOW}a"));
@@ -530,7 +533,410 @@ fn genuinely_uncovered_construct_hard_fails_not_silently_drops() {
     b.push_quad(s, p, o, None);
     let ds = b.freeze().expect("freeze");
     let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
 
-    let err = round_trip_check(&model, &dict()).expect_err("quoted triple term must hard-fail");
-    assert!(matches!(err, Gmn1Error::Uncovered(_)));
+    // Primary assertion: the round-trip is canonically exact.
+    round_trip_check(&model, &dictionary).expect("a triple-term object must round-trip losslessly");
+
+    // The surface actually carries the `( s p o )` spelling over three nested terms.
+    let document = gmn1_write(&model, &dictionary).expect("triple-term object writes");
+    assert!(
+        document.text.contains("o: ( gmeow__a gmeow__b gmeow__c )"),
+        "the triple term must render as the compact `( s p o )` object surface:\n{}",
+        document.text
+    );
+
+    // Reconstruct and compare canonically, then assert idempotence (write → read → write
+    // reproduces the SAME bytes).
+    let reconstructed = gmn1_read(&document, &dictionary).expect("triple-term object reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "reconstructed model must be canonically equal to the original"
+    );
+    let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
+    assert_eq!(
+        document.text, rewritten.text,
+        "gmn1_read then gmn1_write must reproduce the same bytes (idempotence)"
+    );
+}
+
+#[test]
+fn reifier_with_folded_annotations_round_trips_losslessly() {
+    let mut b = RdfDatasetBuilder::new();
+    // The canonical RDF 1.2 reifier: `x rdf:reifies <<( s p o )>>`, with folded `st`/`ev`
+    // annotations on the same reifier subject.
+    let reifier = b.intern_iri(&format!("{GMEOW}reifier1"));
+    let reifies = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
+    let ts = b.intern_iri(&format!("{GMEOW}doorGate1"));
+    let tp = b.intern_iri(&format!("{GMEOW}hasState"));
+    let to = b.intern_iri(&format!("{LOGIC}Open"));
+    let triple = b.intern_triple(ts, tp, to);
+    b.push_quad(reifier, reifies, triple, None);
+
+    // Folded annotations: `accordingTo` → st slot, `hasAvailableEvidence` → ev slot.
+    let according_to = b.intern_iri(&format!("{GMEOW}accordingTo"));
+    let standpoint = b.intern_iri(&format!("{GMEOW}sensorStandpoint"));
+    b.push_quad(reifier, according_to, standpoint, None);
+    let evidence = b.intern_iri(&format!("{GMEOW}hasAvailableEvidence"));
+    let evidence_span = b.intern_iri(&format!("{GMEOW}span42"));
+    b.push_quad(reifier, evidence, evidence_span, None);
+
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    round_trip_check(&model, &dictionary)
+        .expect("a reifier + triple term + folded annotations must round-trip losslessly");
+
+    let document = gmn1_write(&model, &dictionary).expect("reifier writes");
+    // The reifier subject, its `rdf:reifies` triple-term object, and BOTH folded annotations
+    // fold into ONE record (the `st` and `ev` slots ride beside the primary `o` triple term).
+    assert!(
+        document.text.contains("rdf__reifies")
+            && document
+                .text
+                .contains("o: ( gmeow__doorGate1 gmeow__hasState ")
+            && document.text.contains("st: ")
+            && document.text.contains("ev: "),
+        "the reifier must fold its triple-term object and annotations into one record:\n{}",
+        document.text
+    );
+
+    let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "the reconstructed reifier model must be canonically equal to the original"
+    );
+    let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
+    assert_eq!(
+        document.text, rewritten.text,
+        "reifier round-trip must be byte-idempotent"
+    );
+}
+
+#[test]
+fn turtle_authored_reifier_reaches_the_production_codec_path() {
+    // The PRODUCTION-reachability witness: a reifier authored in RDF 1.2 Turtle bytes
+    // (`s p o ~ :reifier {| … |}`) must reach the codec through the REAL ingestion path —
+    // `purrdf::parse_dataset` -> `Gmn0Model::from_dataset` -> `gmn1_write` -> `gmn1_read` —
+    // NOT a hand-materialization helper. purrdf stores the `rdf:reifies` binding and its
+    // folded annotations in side-tables outside `owned_quads`; a `from_dataset` that read
+    // `owned_quads` alone would SILENTLY DROP this reifier, making RDF-star losslessness
+    // test-only. This test freezes that the real constructor materializes them.
+    let ttl = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix logic: <{LOGIC}> .\n\
+         gmeow:doorGate1 gmeow:hasState logic:Open ~ gmeow:reifier1 {{|\n\
+         \x20   gmeow:accordingTo gmeow:sensorStandpoint ;\n\
+         \x20   gmeow:hasAvailableEvidence gmeow:span42\n\
+         |}} .\n"
+    );
+    let ds =
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("RDF 1.2 reifier Turtle parses");
+
+    // Sanity: purrdf DID route the reifier/annotations into the side-tables (not owned_quads),
+    // so `from_dataset` reaching them is the load-bearing behavior under test, not a no-op.
+    assert_eq!(
+        ds.owned_reifiers().count(),
+        1,
+        "the reifier must land in purrdf's reifier side-table, outside owned_quads"
+    );
+    assert_eq!(
+        ds.owned_annotations().count(),
+        2,
+        "both folded annotations must land in purrdf's annotation side-table"
+    );
+
+    // The REAL constructor — the exact call the production GMN-1 gate uses.
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    // The materialized reifier + annotation quads are present (they would be absent if
+    // `from_dataset` still read only `owned_quads`).
+    assert!(
+        model
+            .quads
+            .iter()
+            .any(|q| q.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"),
+        "the materialized rdf:reifies quad must be in the GMN-0 model built from the real dataset"
+    );
+
+    round_trip_check(&model, &dictionary)
+        .expect("a Turtle-authored reifier must round-trip through the production path");
+
+    let document = gmn1_write(&model, &dictionary).expect("reifier writes");
+    assert!(
+        document.text.contains("rdf__reifies")
+            && document
+                .text
+                .contains("o: ( gmeow__doorGate1 gmeow__hasState "),
+        "the production path must fold the reifier's triple-term object into a record:\n{}",
+        document.text
+    );
+
+    let reconstructed = gmn1_read(&document, &dictionary).expect("reifier reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "the reconstructed reifier model must be canonically equal to the source"
+    );
+    per_claim_round_trip_check(&model, &dictionary)
+        .expect("the per-claim inversion witness must hold over the Turtle-authored reifier");
+}
+
+#[test]
+fn nested_triple_term_object_round_trips_losslessly() {
+    let mut b = RdfDatasetBuilder::new();
+    // A nested triple term as object: `s p <<( a q <<( x y z )>> )>>`.
+    let inner_x = b.intern_iri(&format!("{GMEOW}x"));
+    let inner_y = b.intern_iri(&format!("{GMEOW}y"));
+    let inner_z = b.intern_iri(&format!("{GMEOW}z"));
+    let inner = b.intern_triple(inner_x, inner_y, inner_z);
+    let outer_a = b.intern_iri(&format!("{GMEOW}a"));
+    let outer_q = b.intern_iri(&format!("{GMEOW}q"));
+    let outer = b.intern_triple(outer_a, outer_q, inner);
+    let s = b.intern_iri(&format!("{GMEOW}someAgent"));
+    let p = b.intern_iri(&format!("{GMEOW}asserts"));
+    b.push_quad(s, p, outer, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    round_trip_check(&model, &dictionary)
+        .expect("a nested triple-term object must round-trip losslessly");
+    let document = gmn1_write(&model, &dictionary).expect("nested triple-term writes");
+    assert!(
+        document
+            .text
+            .contains("( gmeow__a gmeow__q ( gmeow__x gmeow__y gmeow__z ) )"),
+        "nested triple terms must render recursively:\n{}",
+        document.text
+    );
+}
+
+// ── Named-graph domain boundary: a named-graph quad is out-of-domain, not "uncovered" ──
+
+#[test]
+fn named_graph_quad_raises_out_of_domain_not_uncovered() {
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}doorGate1"));
+    let p = b.intern_iri(&format!("{GMEOW}hasState"));
+    let o = b.intern_iri(&format!("{LOGIC}Open"));
+    let g = b.intern_iri(&format!("{GMEOW}graphA"));
+    b.push_quad(s, p, o, Some(g));
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+
+    let err = gmn1_write(&model, &dict()).expect_err("a named-graph quad is out of domain");
+    assert!(
+        matches!(err, Gmn1Error::NamedGraphOutOfDomain { .. }),
+        "a named-graph quad must raise the honest domain-boundary class, not Uncovered: {err:?}"
+    );
+    assert_eq!(
+        err.failure_class(),
+        Gmn1Error::CLASS_GRAPH_OUT_OF_DOMAIN,
+        "the failure must classify as lang:GmnGraphOutOfDomain"
+    );
+}
+
+// ── In-band repair records: @err / @patch / @retract (claims-about-claims) ─────────────
+//
+// Each repair record is a reified NEW claim over a stable TARGET record id, never an
+// in-place mutation. The charter surface (`LANG-GMN.md` § "In-band repair") shows a
+// blank-node repair subject rendered WITHOUT an `s` slot: the reified claim's own fresh
+// identity, minted fresh on read, canonically equal under RDFC-1.0's blank-label
+// canonicalization. These fixtures are real `round_trip_check`s over that GMN-0 shape.
+
+/// Parse an inline Turtle fragment (blank-node repair subjects) to a [`Gmn0Model`].
+fn model_from_turtle(body: &str) -> Gmn0Model {
+    let ttl = format!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n{body}\n"
+    );
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("repair Turtle parses");
+    Gmn0Model::from_dataset(&ds)
+}
+
+/// The record line (skipping the `@gmn{…}` header) of a single-record document.
+fn sole_record_line(doc: &Gmn1Document) -> String {
+    doc.text
+        .lines()
+        .find(|l| l.starts_with('@') && !l.starts_with("@gmn{"))
+        .expect("one repair record line")
+        .to_owned()
+}
+
+#[test]
+fn err_repair_record_round_trips_and_renders_id_and_class() {
+    let model = model_from_turtle(
+        "[] a gmeow:GmnErr ;\n\
+         gmeow:gmnRepairId \"c42\" ;\n\
+         gmeow:gmnRepairClass lang:GmnMalformedNumber .",
+    );
+    let d = dict();
+    round_trip_check(&model, &d).expect("@err record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @err");
+    let line = sole_record_line(&doc);
+    assert!(line.starts_with("@err{"), "must emit an @err sigil: {line}");
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+    assert!(
+        line.contains("class: ") && line.contains("GmnMalformedNumber"),
+        "must render the failure-class name in the class slot: {line}"
+    );
+    assert!(
+        !line.contains("{s:"),
+        "a blank-node repair subject rides no `s` slot: {line}"
+    );
+
+    // Reconstruction is canonically the same GMN-0 model.
+    let back = gmn1_read(&doc, &d).expect("read @err");
+    assert!(gmn0_canonically_equal(&back, &model));
+    // The three reconstructed quads: the type, the target id, the failure class.
+    assert_eq!(
+        back.quads.len(),
+        3,
+        "exactly type + id + class: {:?}",
+        back.quads
+    );
+
+    // Read → write idempotence: the surface is a fixed point.
+    let doc2 = gmn1_write(&back, &d).expect("re-write @err");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @err surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn patch_repair_record_round_trips_and_restates_the_q_slot() {
+    let model = model_from_turtle(
+        "[] a gmeow:GmnPatch ;\n\
+         gmeow:gmnRepairId \"c42\" ;\n\
+         gmeow:confidence \"0.95\"^^xsd:decimal .",
+    );
+    let d = dict();
+    round_trip_check(&model, &d).expect("@patch record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @patch");
+    let line = sole_record_line(&doc);
+    assert!(
+        line.starts_with("@patch{"),
+        "must emit a @patch sigil: {line}"
+    );
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+    assert!(
+        line.contains("q: 0.95"),
+        "must restate the confidence in the q slot: {line}"
+    );
+    // `id` precedes the restated `q`, per the canonical repair key order.
+    assert!(
+        line.find("id:").unwrap() < line.find("q:").unwrap(),
+        "id must precede a restated q: {line}"
+    );
+
+    let back = gmn1_read(&doc, &d).expect("read @patch");
+    assert!(gmn0_canonically_equal(&back, &model));
+    assert_eq!(
+        back.quads.len(),
+        3,
+        "exactly type + id + restated q: {:?}",
+        back.quads
+    );
+
+    let doc2 = gmn1_write(&back, &d).expect("re-write @patch");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @patch surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn retract_repair_record_round_trips_carrying_just_the_id() {
+    let model = model_from_turtle("[] a gmeow:GmnRetract ; gmeow:gmnRepairId \"c17\" .");
+    let d = dict();
+    round_trip_check(&model, &d).expect("@retract record round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write @retract");
+    let line = sole_record_line(&doc);
+    assert_eq!(
+        line, "@retract{id: c17}",
+        "a @retract renders exactly its target id: {line}"
+    );
+
+    let back = gmn1_read(&doc, &d).expect("read @retract");
+    assert!(gmn0_canonically_equal(&back, &model));
+    assert_eq!(back.quads.len(), 2, "exactly type + id: {:?}", back.quads);
+
+    let doc2 = gmn1_write(&back, &d).expect("re-write @retract");
+    assert_eq!(
+        doc.text, doc2.text,
+        "the @retract surface is a read→write fixed point"
+    );
+}
+
+#[test]
+fn iri_subject_repair_record_preserves_its_identity_via_the_s_slot() {
+    // A repair record whose subject is an IRI (as the module.ttl `ex:err` example is)
+    // must preserve that identity — it rides the `s` slot, and round-trips exactly.
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}errRecord1"));
+    let ty = b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    let err = b.intern_iri(&format!("{GMEOW}GmnErr"));
+    b.push_quad(s, ty, err, None);
+    let repair_id = b.intern_iri(&format!("{GMEOW}gmnRepairId"));
+    let target = b.intern_literal(RdfLiteral::typed("c42", XSD_STRING));
+    b.push_quad(s, repair_id, target, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let d = dict();
+    round_trip_check(&model, &d).expect("IRI-subject @err round-trips losslessly");
+
+    let doc = gmn1_write(&model, &d).expect("write IRI-subject @err");
+    let line = sole_record_line(&doc);
+    assert!(line.starts_with("@err{"), "must emit an @err sigil: {line}");
+    assert!(
+        line.contains("s: gmeow__errRecord1"),
+        "an IRI repair subject rides the s slot: {line}"
+    );
+    assert!(
+        line.contains("id: c42"),
+        "must render the target id: {line}"
+    );
+}
+
+#[test]
+fn repair_record_missing_its_id_hard_fails_typed() {
+    // A hand-authored @err with no `id` — the repair record does not name its target,
+    // a HARD FAIL, never a silently subject-less reconstruction.
+    let doc = Gmn1Document::from_text(
+        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@err{class: GmnMalformedNumber}\n",
+    );
+    let err = gmn1_read(&doc, &dict()).expect_err("an @err without id must hard-fail");
+    assert!(
+        matches!(err, Gmn1Error::NonDecodableGrammar { .. }),
+        "a missing repair id is non-decodable grammar: {err:?}"
+    );
+    assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+}
+
+#[test]
+fn repair_record_with_a_disallowed_key_hard_fails_typed() {
+    // A `class` slot is legal ONLY on an @err; a @patch carrying one would silently drop
+    // a quad on reconstruction — a HARD FAIL instead.
+    let doc = Gmn1Document::from_text(
+        "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@patch{id: c42, class: GmnMalformedNumber}\n",
+    );
+    let err = gmn1_read(&doc, &dict()).expect_err("a @patch with a class key must hard-fail");
+    assert!(
+        matches!(err, Gmn1Error::NonDecodableGrammar { .. }),
+        "a disallowed repair key is non-decodable grammar: {err:?}"
+    );
+    assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
 }

@@ -35,9 +35,10 @@
 
 use std::collections::BTreeMap;
 
+use crate::graphutil::{Subject, nn, objects, term_as_subject};
 use crate::ir::{
     Correspondence, CorrespondenceRelation, LOGIC_NAMESPACE, LegPath, MorphismKind,
-    PreservationKind, TransactionProgramIr,
+    PreservationKind, RecoveryCaseIr, TransactionProgramIr,
 };
 
 use gmeow_errors::Diag;
@@ -48,6 +49,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
+const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
@@ -67,6 +69,9 @@ fn class_caveat() -> String {
 }
 fn class_law_claim() -> String {
     format!("{LOGIC_NAMESPACE}LawClaim")
+}
+fn class_recovery_case() -> String {
+    format!("{LOGIC_NAMESPACE}RecoveryCase")
 }
 fn p_has_correspondence() -> String {
     format!("{LOGIC_NAMESPACE}hasCorrespondence")
@@ -120,7 +125,7 @@ fn p_probability() -> String {
     format!("{LOGIC_NAMESPACE}probability")
 }
 fn p_according_to() -> String {
-    format!("{LOGIC_NAMESPACE}accordingTo")
+    format!("{GMEOW_NAMESPACE}accordingTo")
 }
 fn p_has_law_claim() -> String {
     format!("{LOGIC_NAMESPACE}hasLawClaim")
@@ -139,6 +144,12 @@ fn p_has_caveat() -> String {
 }
 fn p_lossy_drop() -> String {
     format!("{LOGIC_NAMESPACE}lossyDrop")
+}
+fn p_recovery_case() -> String {
+    format!("{LOGIC_NAMESPACE}recoveryCase")
+}
+fn p_recovery_transform() -> String {
+    format!("{LOGIC_NAMESPACE}recoveryTransform")
 }
 
 /// The single `CorrespondenceProgram` node IRI (one program per build).
@@ -315,8 +326,20 @@ impl CorrespondenceProgram {
                     _ => unreachable!("Correspondence endpoints are constructed all-or-nothing"),
                 };
                 let grounding = if c.grounding { "|grounding=true" } else { "" };
+                let recovery = if c.recovery_cases.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "|recovery={}",
+                        c.recovery_cases
+                            .iter()
+                            .map(RecoveryCaseIr::content_key)
+                            .collect::<Vec<_>>()
+                            .join(",")
+                    )
+                };
                 format!(
-                    "{}|{}|{}|{}|{}|{}|{}|{}{preservation}{endpoints}{grounding}",
+                    "{}|{}|{}|{}|{}|{}|{}|{}{preservation}{endpoints}{grounding}{recovery}",
                     c.iri,
                     c.relation.as_str(),
                     c.morphism_class.as_str(),
@@ -451,6 +474,74 @@ fn law_claim_iri(corr_iri: &str, index: usize) -> String {
     format!("{corr_iri}/law-claim/{index}")
 }
 
+/// The root of a recovery case's `logic:recoveryTransform` formula tree — the ONE genuinely
+/// recursive sub-namespace a [`RecoveryCaseIr`] mints (see [`project_correspondence`]'s
+/// `{case.iri}/transform` emission and `super::rdf::emit_formula`'s `{node}/...` child-naming
+/// scheme). Every node the formula tree mints is a slash-descendant of exactly this root.
+fn recovery_transform_root(case_iri: &str) -> String {
+    format!("{case_iri}/transform")
+}
+
+/// The complete, precisely-enumerated set of RDF subjects a correspondence projection mints
+/// and therefore owns — used by the CGIF/CLIF/XCL meta-channel writers to exclude these
+/// subjects from a generic flat-axiom re-derivation (which would otherwise duplicate them
+/// under a different lexical form, breaking idempotence; see each writer's `meta_predications`).
+///
+/// Ownership is intentionally **narrow**:
+///
+/// * every node this projection mints DIRECTLY (the correspondence individual, the singleton
+///   `correspondence-program` wrapper, each recovery case, and each law-claim node) is owned by
+///   EXACT IRI match only;
+/// * the one node this projection mints RECURSIVELY — a recovery case's `recoveryTransform`
+///   formula tree — is owned by prefix match rooted at [`recovery_transform_root`], because
+///   [`super::rdf::emit_formula`] mints an unbounded, content-keyed tree of `{node}/...`
+///   children under that exact root and no other.
+///
+/// No other slash-suffix of any owned IRI is owned. An unrelated resource that merely shares a
+/// correspondence or recovery-case IRI as a *string* prefix (e.g. a domain resource authored at
+/// `<case-iri>/unrelated-node`, which is not a `recoveryTransform` descendant) is never treated
+/// as correspondence-owned, so its axioms are never silently dropped from a generated dialect.
+pub(crate) struct CorrespondenceOwnership {
+    exact: std::collections::HashSet<String>,
+    transform_roots: Vec<String>,
+}
+
+impl CorrespondenceOwnership {
+    /// Build the owned-subject set for `correspondences` (one call per writer invocation; the
+    /// writers already hold `program.correspondences` on hand).
+    pub(crate) fn build(correspondences: &[Correspondence]) -> Self {
+        let mut exact = std::collections::HashSet::new();
+        exact.insert(program_iri());
+        let mut transform_roots = Vec::new();
+        for c in correspondences {
+            exact.insert(c.iri.clone());
+            for index in 0..c.law_claims.len() {
+                exact.insert(law_claim_iri(&c.iri, index));
+            }
+            for case in &c.recovery_cases {
+                exact.insert(case.iri.clone());
+                transform_roots.push(recovery_transform_root(&case.iri));
+            }
+        }
+        Self {
+            exact,
+            transform_roots,
+        }
+    }
+
+    /// Whether `subject` is a correspondence-owned node under the narrow rule documented on
+    /// [`CorrespondenceOwnership`].
+    pub(crate) fn owns(&self, subject: &str) -> bool {
+        self.exact.contains(subject)
+            || self.transform_roots.iter().any(|root| {
+                subject == root.as_str()
+                    || subject
+                        .strip_prefix(root.as_str())
+                        .is_some_and(|rest| rest.starts_with('/'))
+            })
+    }
+}
+
 /// Project a [`CorrespondenceProgram`] into a deterministic, sorted, byte-stable
 /// N-Triples graph — the content folded into the `graph/correspondence` named graph.
 ///
@@ -566,6 +657,25 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
                 lines.push(triple_iri(&claim_iri, &p_law_condition(), &cond.iri()));
             }
         }
+        // First-class, correspondence-owned recovery evidence.  The formula tree uses the
+        // same canonical RDF 1.2 emitter as every other logic:Formula; only its ownership
+        // differs, so it can round-trip without becoming a second top-level assertion.
+        for case in &c.recovery_cases {
+            let transform_iri = format!("{}/transform", case.iri);
+            lines.push(triple_iri(&c.iri, &p_recovery_case(), &case.iri));
+            lines.push(triple_iri(&case.iri, RDF_TYPE, &class_recovery_case()));
+            lines.push(triple_iri(
+                &case.iri,
+                &p_recovery_transform(),
+                &transform_iri,
+            ));
+            lines.extend(
+                super::rdf::formula_ntriples(&transform_iri, &case.transform)
+                    .lines()
+                    .filter(|line| !line.is_empty())
+                    .map(str::to_owned),
+            );
+        }
         // Caveats for this correspondence.
         for (owner, caveat) in &program.caveats {
             if owner == &c.iri {
@@ -654,6 +764,20 @@ impl SpIndex {
         out
     }
 
+    /// Whether every object of `(s, p)` is an IRI.  Recovery cases are first-class named
+    /// evidence because their IRI participates in content identity; accepting a blank/literal
+    /// object by silently filtering it out would turn authored evidence into an absent case.
+    fn all_objs_are_iris(&self, s: &str, p: &str) -> bool {
+        use purrdf::RdfTerm;
+        self.by_sp
+            .get(&(s.to_owned(), p.to_owned()))
+            .is_none_or(|objects| {
+                objects
+                    .iter()
+                    .all(|object| matches!(object, RdfTerm::Iri(_)))
+            })
+    }
+
     /// Subjects carrying an `rdf:type <type_iri>` triple, sorted + deduped. Finds bare
     /// `logic:Correspondence` individuals independent of any program wrapper.
     fn subjects_of_type(&self, type_iri: &str) -> Vec<String> {
@@ -687,7 +811,11 @@ fn strip_logic(iri: &str) -> String {
 /// Read ONE [`Correspondence`] node by its IRI from the shared index. The single reader
 /// behind both the cache re-derivation and the frontend extractor; returns a hard error
 /// (the caller decides whether to propagate it or downgrade it to a diagnostic).
-fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Correspondence> {
+fn read_correspondence(
+    dataset: &purrdf::RdfDataset,
+    idx: &SpIndex,
+    corr_iri: &str,
+) -> gmeow_errors::Result<Correspondence> {
     let relation = idx
         .iri_obj(corr_iri, &p_relation())
         .and_then(|i| CorrespondenceRelation::from_local(&strip_logic(&i)))
@@ -772,6 +900,46 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Co
         });
     }
 
+    let mut recovery_cases = Vec::new();
+    if !idx.all_objs_are_iris(corr_iri, &p_recovery_case()) {
+        return Err(Diag::of_kind(crate::error::Correspondence {
+            detail: format!(
+                "correspondence <{corr_iri}> has a non-IRI logic:recoveryCase object; recovery cases require stable named identity"
+            ),
+        }));
+    }
+    for case_iri in idx.iri_objs(corr_iri, &p_recovery_case()) {
+        if !idx.types_of(&case_iri).contains(&class_recovery_case()) {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "recovery case <{case_iri}> on correspondence <{corr_iri}> is not typed logic:RecoveryCase"
+                ),
+            }));
+        }
+        let transforms = objects(
+            dataset,
+            &Subject::Iri(case_iri.clone()),
+            &nn(&p_recovery_transform()),
+        );
+        if transforms.len() != 1 {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "recovery case <{case_iri}> on correspondence <{corr_iri}> requires exactly one logic:recoveryTransform; found {}",
+                    transforms.len()
+                ),
+            }));
+        }
+        let transform_subject = term_as_subject(&transforms[0]).ok_or_else(|| {
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "recovery case <{case_iri}> on correspondence <{corr_iri}> has a non-resource logic:recoveryTransform"
+                ),
+            })
+        })?;
+        let transform = crate::frontend::parse_formula(dataset, &transform_subject)?;
+        recovery_cases.push(RecoveryCaseIr::new(case_iri, transform)?);
+    }
+
     let mut correspondence = Correspondence::new(
         corr_iri.to_owned(),
         relation,
@@ -795,6 +963,7 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Co
     if grounding {
         correspondence = correspondence.as_grounding();
     }
+    correspondence = correspondence.with_recovery_cases(recovery_cases)?;
     Ok(correspondence)
 }
 
@@ -848,7 +1017,7 @@ pub fn parse_correspondence(
     let mut correspondences = Vec::new();
     let mut caveats: Vec<(String, CorrespondenceCaveat)> = Vec::new();
     for corr_iri in idx.iri_objs(&prog, &p_has_correspondence()) {
-        correspondences.push(read_correspondence(&idx, &corr_iri)?);
+        correspondences.push(read_correspondence(dataset, &idx, &corr_iri)?);
         for caveat in read_caveats(&idx, &corr_iri)? {
             caveats.push((corr_iri.clone(), caveat));
         }
@@ -878,7 +1047,7 @@ pub fn extract_correspondences(
     // `subjects_of_type` yields the correspondence IRIs already sorted, and each parsed
     // cell keeps that IRI, so `ok` is built in IRI order — no trailing re-sort needed.
     for corr_iri in idx.subjects_of_type(&class_correspondence()) {
-        match read_correspondence(&idx, &corr_iri) {
+        match read_correspondence(dataset, &idx, &corr_iri) {
             Ok(c) => ok.push(c),
             Err(msg) => errors.push((corr_iri, msg.message().to_owned())),
         }
@@ -1006,6 +1175,12 @@ fn preservation_from_iri(iri: &str) -> Option<PreservationKind> {
 /// alignment surface MUST be `skos:relatedMatch` (NEVER `skos:exactMatch`, NEVER
 /// `owl:equivalentClass`), and the lane declares its `SoundUnderApproximation`
 /// preservation polarity in the loss ledger.
+///
+/// TEST-ONLY (`#[cfg(test)]`): the production correspondence lane no longer constructs
+/// this Rust literal — it reads the authored `affine-correspondence.ttl` cell via
+/// `parse_correspondence` (honest dogfooding). This literal survives ONLY as the fidelity
+/// oracle the round-trip test asserts the authored cell re-derives to, byte-for-byte.
+#[cfg(test)]
 pub fn affine_triangle_worked_example() -> CorrespondenceProgram {
     use crate::ir::{
         CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict, LawClaimIr,

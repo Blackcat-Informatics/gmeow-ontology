@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed math:PersistenceModule: the ALGEBRAIC object a persistence
+# computation decomposes — the functor P: (index poset) → Vect. It names the index
+# poset it is a functor over through math:moduleIndex and one of its comparable-pair
+# transition maps through math:structureMap. Because math:PersistenceModule is a
+# subclass of the existing math:Functor grounding (no parallel category-theory
+# structure is minted), this node IS a functor on its index poset. It
+# is distinct from a math:PersistenceLifetime (one feature's birth–death bar), held
+# owl:disjointWith it, and distinct from the analysis activity that produced it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix expm: <https://blackcatinformatics.ca/gmeow/examples/math/persistence-module/> .
+
+expm:module a math:PersistenceModule ;
+    rdfs:label "H0 persistence module over the distance filtration"@x-gmeow-english ;
+    math:moduleIndex expm:indexPoset ;
+    math:structureMap expm:transition01 .
+
+expm:indexPoset a math:MathematicalObject ; rdfs:label "the real-line index poset (source category)"@x-gmeow-english .
+expm:transition01 a math:MathematicalObject ; rdfs:label "linear map P(0 ≤ 1): P(0) → P(1)"@x-gmeow-english .

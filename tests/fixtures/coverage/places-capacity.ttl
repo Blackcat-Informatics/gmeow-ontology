@@ -4,6 +4,7 @@
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix qudt:  <http://qudt.org/schema/qudt/> .
 
@@ -17,9 +18,9 @@ ex:capFireCode a gmeow:Capacity ;
     gmeow:confidence 0.95 ;
     gmeow:assertedAt "2024-01-15T09:00:00Z"^^xsd:dateTime .
 
-ex:sqFireCode a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "450"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
+ex:sqFireCode a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "450"^^xsd:decimal .
 
 ex:capVenueClaim a gmeow:Capacity ;
     gmeow:capacityOf ex:venue ;
@@ -28,9 +29,9 @@ ex:capVenueClaim a gmeow:Capacity ;
     gmeow:confidence 0.7 ;
     gmeow:assertedAt "2024-01-20T14:00:00Z"^^xsd:dateTime .
 
-ex:sqVenue a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "600"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
+ex:sqVenue a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "600"^^xsd:decimal .
 
 ex:fireDept a gmeow:Organization ;
     gmeow:hasName [ gmeow:fullName "Fire Department"@x-gmeow-en ] .
@@ -46,9 +47,9 @@ ex:capOld a gmeow:Capacity ;
     gmeow:displayable false ;
     gmeow:validUntil "2023-12-01T00:00:00Z"^^xsd:dateTime .
 
-ex:sqOld a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "300"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
+ex:sqOld a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "300"^^xsd:decimal .
 
 # Current occupancy from a sensor reading.
 ex:occNow a gmeow:Occupancy ;
@@ -58,9 +59,9 @@ ex:occNow a gmeow:Occupancy ;
     gmeow:confidence 0.9 ;
     gmeow:assertedAt "2024-06-01T20:00:00Z"^^xsd:dateTime .
 
-ex:sqOcc a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "412"^^xsd:decimal ;
-    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
+ex:sqOcc a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "412"^^xsd:decimal .
 
 ex:ticketGate a gmeow:SoftwareAgent ;
     gmeow:hasName [ gmeow:fullName "Ticket Gate Sensor"@x-gmeow-en ] .
@@ -75,8 +76,9 @@ ex:capStorage a gmeow:Capacity ;
     gmeow:vantage ex:cloudProvider ;
     gmeow:confidence 1.0 .
 
-ex:sqStorage a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "1099511627776"^^xsd:decimal ;
+ex:sqStorage a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "1099511627776"^^xsd:decimal ;
     gmeow:unit <http://qudt.org/vocab/unit/BYTE> .
 
 ex:cloudProvider a gmeow:Organization ;

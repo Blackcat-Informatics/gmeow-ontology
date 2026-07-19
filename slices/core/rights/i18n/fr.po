@@ -223,7 +223,7 @@ msgstr "obtenir le consentement"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actionPlay|rdfs:label"
 msgid "play"
-msgstr "lire"
+msgstr "lecture (audio/vidéo)"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actionPresent|rdfs:label"
 msgid "present / display"
@@ -832,3 +832,19 @@ msgstr "non enregistrée (™)"
 msgctxt "https://blackcatinformatics.ca/gmeow/usageInfo|rdfs:label"
 msgid "usage info"
 msgstr "informations d'utilisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|rdfs:label"
+msgid "Atomic constraint operand-choice constraint"
+msgstr "Contrainte de choix d'opérande de contrainte atomique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|skos:definition"
+msgid "A closed-world integrity constraint: a gmeow:AtomicConstraint binds exactly one of gmeow:rightOperand (a literal value) or gmeow:rightOperandReference (an IRI reference), never both and never neither."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:AtomicConstraint lie exactement l'un de gmeow:rightOperand (une valeur littérale) ou gmeow:rightOperandReference (une référence IRI), jamais les deux ni aucun des deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|rdfs:label"
+msgid "LogicalConstraint member-count constraint"
+msgstr "Contrainte de nombre de membres de LogicalConstraint"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|skos:definition"
+msgid "A closed-world integrity constraint: a gmeow:LogicalConstraint combines at least two gmeow:logicConstraintMember constraints."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:LogicalConstraint combine au moins deux contraintes gmeow:logicConstraintMember."

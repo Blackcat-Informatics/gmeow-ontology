@@ -5,14 +5,15 @@
 //!
 //! This module is the ONE import path an external runtime consumer needs to fold a
 //! dataset it owns, resolve goals against it, and pin the engine it trusted. It is a
-//! curated projection of the internal store → snapshot → dispatch → result chain, plus
-//! the self-describing [`EngineContract`] runtime pin.
+//! curated projection of the RDF 1.2 view → selective fact source → native execution →
+//! certified result chain, plus the compatibility store/snapshot path and the
+//! self-describing [`EngineContract`](crate::runtime::EngineContract) runtime pin.
 //!
 //! # What "stable" means here
 //!
 //! Stability is delivered **consumer-side**, never as a backwards-compat freeze of the
 //! core. The surface re-exported below is stable *within a pinned git tag*; across tags
-//! it may change, and [`EngineContract`] is how a consumer *detects* that change. The
+//! it may change, and [`EngineContract`](crate::runtime::EngineContract) is how a consumer *detects* that change. The
 //! `gmeow-logic` core (everything outside this module) is greenfield and free to churn;
 //! a consumer is protected by its git-tag/vendor pin plus the content-addressed
 //! contract, not by a repo promise to preserve these names. There is no crates.io semver
@@ -20,29 +21,31 @@
 //!
 //! # Pinning the engine
 //!
-//! At load, fetch [`EngineContract::current`] and record its
-//! [`descriptor_hash`](EngineContract::descriptor_hash) — or the
-//! [`to_nquads`](EngineContract::to_nquads) projection, folded into a (signed) ledger AS
+//! At load, fetch [`EngineContract::current`](crate::runtime::EngineContract::current) and record its
+//! [`descriptor_hash`](crate::runtime::EngineContract::descriptor_hash) — or the
+//! [`to_nquads`](crate::runtime::EngineContract::to_nquads) projection, folded into a (signed) ledger AS
 //! DATA. Before trusting a previously-minted answer, call
-//! [`assert_matches`](EngineContract::assert_matches): it hard-fails if the engine
+//! [`assert_matches`](crate::runtime::EngineContract::assert_matches): it hard-fails if the engine
 //! drifted from the pinned descriptor, exactly as a signed-ledger consumer refuses an
 //! entry under a wrong signature. Per invocation,
-//! [`EngineContract::query_contract_hash`] identifies the `profile`/`budget` an answer
+//! [`EngineContract::query_contract_hash`](crate::runtime::EngineContract::query_contract_hash) identifies the `profile`/`budget` an answer
 //! was decided under (two queries under different budgets share the descriptor but not
-//! the per-query contract).
+//! the per-query contract). The annotated-query and selected-materialization helpers
+//! reproduce their richer invocation identities from the same canonical inputs.
 //!
 //! # Thread-safety / single-writer contract
 //!
-//! [`RdfDataset`] is the frozen, `Send + Sync` IR — share an `Arc<RdfDataset>` across
-//! threads freely. [`WorldStore`] wraps a `RefCell` and is **`!Sync`**: refresh it from a
-//! single writer, then take a [`WorldFactSnapshot`] via
-//! [`WorldFactSnapshot::from_world`] and parallelize over the (immutable) snapshot. A
-//! snapshot reflects the store's quads at the instant it is taken — after an append you
-//! must re-snapshot to see the new facts.
+//! [`RdfDataset`](crate::runtime::RdfDataset), [`PagedDataset`](crate::runtime::PagedDataset), and [`PackView`](crate::runtime::PackView) implement the frozen read contract;
+//! share their supported handles across threads and create an operation-scoped fallible
+//! paged query view when provider reads need budgets/cancellation evidence. The direct
+//! dispatch/materialization functions borrow those views and own only rows admitted by
+//! their pushed patterns. [`WorldStore`](crate::store::WorldStore) remains the mutable compatibility path: it wraps
+//! a `RefCell` and is **`!Sync`**, so refresh it from one writer, then take a
+//! [`WorldFactSnapshot`](crate::seam::WorldFactSnapshot) before parallel snapshot dispatch.
 //!
 //! # Refusal semantics (three distinct outcomes)
 //!
-//! [`dispatch_query`] returns:
+//! [`dispatch_query`](crate::dispatch::dispatch_query) and [`dispatch_query_view`](crate::dispatch::dispatch_query_view) return:
 //! * `Ok(AnswerSet { bindings, .. })` — the engine DECIDED. An empty `bindings` means
 //!   "decided: no answers".
 //! * `Err(..)` — the engine REFUSED: a profile gate rejected the program, or the native
@@ -50,22 +53,28 @@
 //!   failure, **never** a silent empty answer — there is no fallback engine. A consumer
 //!   must treat `Err` as "refused", distinct from `Ok(empty)`.
 //!
-//! A third case is the caller's responsibility: querying a `world` IRI that is absent
+//! A third semantic case is the caller's responsibility: querying a `world` IRI that is absent
 //! from the snapshot yields `Ok(empty)` (nothing to resolve against), indistinguishable
-//! from "decided: no answers". Precheck world existence with [`WorldStore::worlds`] if
+//! from "decided: no answers". Precheck world existence with [`WorldStore::worlds`](crate::store::WorldStore::worlds) if
 //! that distinction matters — world-scoping is the caller's job (as with
-//! [`WorldStore::select`]).
+//! [`WorldStore::select`](crate::store::WorldStore::select)).
 //!
-//! # Forward-compatibility with a paged dataset backend
+//! The fallible boundaries add an operational outcome: provider, page/byte budget,
+//! cancellation, deadline, or stale-generation failure. It is distinct from semantic
+//! absence and takes precedence over any partial internal answer or materialization.
 //!
-//! [`WorldStore::from_dataset`] takes the [`RdfDataset`] IR, so its signature is stable
-//! when a paged dataset/storage backend lands behind that type. Note the current path
-//! **fully materializes**: [`WorldStore`] copies quads into an owned dataset, and
-//! [`WorldFactSnapshot::from_world`] copies again into an owned fact vector. A paged
-//! backend therefore reduces the caller's dataset-build cost, but the store still
-//! materializes its working set; end-to-end paging would need a future read-through
-//! [`WorldFactSource`] implemented directly over a paged `Arc<RdfDataset>`. This is not
-//! delivered here.
+//! # Direct resident, paged, and succinct-pack execution
+//!
+//! [`dispatch_query_view`](crate::dispatch::dispatch_query_view) and [`dispatch_query_fallible_view`](crate::dispatch::dispatch_query_fallible_view) bind
+//! [`RdfViewFactSource`](crate::seam::RdfViewFactSource) directly to a caller's view. The compiled query pushes its named
+//! world, predicate, and bound subject/object values plus cardinality estimates into the
+//! view; unrelated pages are not copied or enumerated. The annotated variants preserve
+//! tuple lineage through the same physical pass. [`materialize_program_view`](crate::materialize::materialize_program_view) and
+//! [`materialize_program_fallible_view`](crate::materialize::materialize_program_fallible_view) provide the forward counterpart over explicit
+//! named worlds: they admit only predicates consumed or produced by the canonical
+//! program. [`materialize_program`](crate::materialize::materialize_program) remains the explicit whole-dataset/complete-input-echo
+//! operation. A source plan that cannot name a predicate is refused rather than widened
+//! to an unconstrained scan.
 //!
 //! # Worked example — external dataset → snapshot → dispatch, with a load-bearing append
 //!
@@ -130,9 +139,24 @@
 
 use std::sync::OnceLock;
 
-use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, SemanticProfileId};
+use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 
 use crate::result::EngineId;
+
+pub mod session;
+
+/// The stable operational session surface: a content-addressed [`ReasoningSession`]
+/// over the incremental maintenance engine, its 7-axis [`SessionIdentity`], the
+/// authorized-commit-referencing [`SessionDelta`]/[`Suppression`] inputs, the total
+/// 6-way [`OperationOutcome`], the hash-linked [`TransitionEntry`] journal, and the
+/// content-addressed [`Checkpoint`]. Re-exported here so an external runtime consumer
+/// needs only `use gmeow_logic::runtime::*` (the one supported import path).
+pub use session::{
+    Checkpoint, CommittedDelta, FragmentDisposition, IncompleteCause, IntegrityFault,
+    OperationOutcome, OutcomeTag, PagedCompositionMetrics, ReasoningSession, RebuildReason,
+    SessionDelta, SessionIdentity, Suppression, TransitionEntry, UnsupportedFragment,
+    edb_data_generation,
+};
 
 // ── The curated stable surface ───────────────────────────────────────────────────
 //
@@ -146,7 +170,8 @@ pub use crate::store::WorldStore;
 /// The read-only fact-source bridge `dispatch_query` consumes, and the snapshot that
 /// crosses a [`WorldStore`] into it.
 pub use crate::seam::{
-    BudgetStatus, DerivationId, DerivedQuad, WorldFactSnapshot, WorldFactSource,
+    BudgetStatus, DerivationId, DerivedQuad, RdfViewFactSource, WorldFactPattern,
+    WorldFactSnapshot, WorldFactSource, WorldSourceIdentity, WorldSourceMetrics,
 };
 
 /// The query IR: the parser, the program/goal value types, the answer set, and the
@@ -155,17 +180,59 @@ pub use crate::query_ir::{
     AnswerSet, Binding, Budget, CompletionFrontier, QProgram, parse_query_program,
 };
 
-/// The single production entry point for backward goal resolution.
-pub use crate::dispatch::dispatch_query;
+/// Production entry points and completeness/evidence carriers for backward goal
+/// resolution over snapshots, resident/pack views, and fallible paged views.
+pub use crate::dispatch::{
+    CompleteAnnotatedViewQuery, CompleteRelationViewQuery, CompleteViewQuery,
+    FallibleAnnotatedViewQueryResult, FallibleRelationViewQueryError,
+    FallibleRelationViewQueryResult, FallibleViewQueryError, FallibleViewQueryResult,
+    QueryExecutionEvidence, QueryExecutionIdentity, RelationAnnotationRequest, RelationQueryError,
+    ResidentViewEvidence, dispatch_query, dispatch_query_annotated_fallible_view,
+    dispatch_query_annotated_view, dispatch_query_annotated_with_relations,
+    dispatch_query_annotated_with_relations_fallible_view,
+    dispatch_query_annotated_with_relations_view, dispatch_query_fallible_view,
+    dispatch_query_view,
+};
+
+/// Immutable external-relation descriptors, providers, evidence, and typed failures.
+pub use crate::external_relation::{
+    ExternalRelationProvider, NeverCancelled, ProviderTupleSource, QueryRelationProviders,
+    RelationAccessMetrics, RelationAnnotationDimension, RelationBatch, RelationCall,
+    RelationCancellation, RelationContractError, RelationExecutionError,
+    RelationExecutionFailureKind, RelationInvocationReceipt, RelationInvocationStatus,
+    RelationOrderDirection, RelationOrdering, RelationProviderBudget, RelationProviderDescriptor,
+    RelationProviderError, RelationProviderFailureKind, RelationProviderIncompletenessKind,
+    RelationProviderRegistration, RelationQueryFailureReceipt, RelationQueryReceipt,
+    RelationQueryResult, RelationTuple, TableRelationProvider,
+};
+
+/// Opaque tuple-annotation inputs and results used by annotated direct-view dispatch.
+pub use crate::annotation::{
+    AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedFactKey, AnnotationCertification,
+    AnnotationContract, AnnotationDerivation, AnnotationFactRef, AnnotationQueryClass,
+    AnnotationRequest, TupleAnnotationAlgebra,
+};
+
+/// Forward materialization over whole resident datasets or selective RDF views.
+pub use crate::materialize::{
+    CompleteViewMaterialization, FallibleViewMaterializationError,
+    FallibleViewMaterializationResult, Materialization, MaterializationLimits, MaterializeError,
+    materialize_program, materialize_program_fallible_view, materialize_program_source,
+    materialize_program_view,
+};
 
 /// The preservation claim an [`AnswerSet`] carries, and its polarity kind — the
 /// faithfulness judgment a consumer reads off an answer.
 pub use crate::result::PreservationClaim;
-pub use gmeow_logic_compile::ir::PreservationKind;
+pub use gmeow_logic_compile::ir::{LogicProgram, PreservationKind, SemanticProfileId};
+pub use gmeow_logic_compile::result_shape::ColumnKind;
 
 /// Frozen-dataset construction types, re-exported so a consumer needs no direct
 /// `purrdf` import churn to build the `Arc<RdfDataset>` it folds.
-pub use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+pub use purrdf::{
+    FallibleDatasetView, PackView, PagedDataset, PagedQueryError, PagedQueryEvidence,
+    PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue,
+};
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -220,6 +287,7 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("annotation.rs", include_str!("annotation.rs")),
     ("dispatch.rs", include_str!("dispatch.rs")),
+    ("external_relation.rs", include_str!("external_relation.rs")),
     ("facts.rs", include_str!("facts.rs")),
     ("profile_gate.rs", include_str!("profile_gate.rs")),
     ("provenance.rs", include_str!("provenance.rs")),
@@ -245,6 +313,16 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("physical/cursor.rs", include_str!("physical/cursor.rs")),
     ("physical/generic.rs", include_str!("physical/generic.rs")),
     ("physical/id.rs", include_str!("physical/id.rs")),
+    // The structured full-FOL rung, and the term-arena / unification / proof substrate it
+    // consumes in production. Since `magic::resolve_native_under` routes a structured
+    // (`QTerm::Struct`) program into `resolve_fol`, and `resolve_fol` imports `term_dag`,
+    // `term_key`, `lower`, `unify`, and `proof`, a change to any of them can change a decided
+    // structured `AnswerSet` — so they are part of the backward decision surface.
+    ("physical/lower.rs", include_str!("physical/lower.rs")),
+    ("physical/proof.rs", include_str!("physical/proof.rs")),
+    ("physical/term_dag.rs", include_str!("physical/term_dag.rs")),
+    ("physical/term_key.rs", include_str!("physical/term_key.rs")),
+    ("physical/unify.rs", include_str!("physical/unify.rs")),
     (
         "physical/incremental.rs",
         include_str!("physical/incremental.rs"),
@@ -260,6 +338,10 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     ("physical/mod.rs", include_str!("physical/mod.rs")),
     ("physical/plan.rs", include_str!("physical/plan.rs")),
+    (
+        "physical/resolve_fol.rs",
+        include_str!("physical/resolve_fol.rs"),
+    ),
     (
         "physical/seminaive.rs",
         include_str!("physical/seminaive.rs"),
@@ -321,12 +403,8 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "truth-maintenance derivation graph, consumed by foundation.rs — forward evaluator support, not backward dispatch",
     ),
     (
-        "entail_crosscheck.rs",
-        "native vs entail-oracle OWL-RL subsumption divergence cross-check — forward reasoning-oracle gate, not backward dispatch",
-    ),
-    (
-        "entail_oracle.rs",
-        "native OWL-RL/RDFS forward-closure reasoning oracle, not backward dispatch",
+        "entail.rs",
+        "native entailment-by-refutation (A ⊨ C iff premise ∪ ¬C inconsistent) composed over dl_consistency — forward consistency reduction, not backward query dispatch",
     ),
     (
         "entrenchment.rs",
@@ -344,6 +422,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "foundation.rs",
         "native OntoUML foundation-discipline evaluator — forward evaluator/classifier, not backward dispatch",
     ),
+    (
+        "goal_directed.rs",
+        "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
+    ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (
         "logic_diagnostics.rs",
@@ -351,11 +433,11 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "lower.rs",
-        "canonical-AST to EvalRule lowering; explicitly phase-dead-code (`#![allow(dead_code)]`) pending the PyO3 routing consumer — no current dispatch caller",
+        "canonical-AST to EvalRule lowering consumed by the forward materializer and pinned through forward_contract_hash; no backward dispatch caller",
     ),
     (
         "materialize.rs",
-        "pure-Rust forward materialization core — forward reasoning surface with no backward dispatch caller",
+        "pure-Rust forward materialization core pinned through forward_contract_hash — no backward dispatch caller",
     ),
     (
         "nary.rs",
@@ -374,8 +456,12 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "ProbLog-style weighted-inference evaluator for logic:ProbabilisticProfile — a separate execution path with no reference from dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance",
     ),
     (
+        "reasoning_graphs.rs",
+        "shared constants and membership predicate for the forward object-level named-graph boundary — consumed by pipeline assembly and coherence gates, not backward dispatch",
+    ),
+    (
         "relational_core.rs",
-        "FOL-to-Horn relational-core lowering adapter, consumed by conjecture.rs and reason/mod.rs — forward reasoning surface, not backward dispatch",
+        "FOL-to-Horn relational-core lowering adapter consumed by forward reasoning/materialization and pinned through forward_contract_hash — not backward dispatch",
     ),
     (
         "result.rs",
@@ -391,7 +477,7 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "stablemodel.rs",
-        "native stable-model/answer-set evaluator, consumed only by materialize.rs's IncrementalStableModelSession — forward incremental materialization, not backward dispatch",
+        "native stable-model/answer-set evaluator consumed by materialize.rs and pinned through forward_contract_hash — forward incremental materialization, not backward dispatch",
     ),
     (
         "store.rs",
@@ -404,6 +490,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "teleology.rs",
         "native canonical-process teleology evaluator — forward evaluator/classifier, not backward dispatch",
+    ),
+    (
+        "termination_demonstrators.rs",
+        "static chase-termination-ladder demonstrator RDF constants shipped into gmeow.gts — data, not backward dispatch decision logic",
     ),
     (
         "transaction.rs",
@@ -423,7 +513,7 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "wellfounded.rs",
-        "native well-founded-semantics evaluator, consumed only by materialize.rs/cost.rs's IncrementalWellFoundedSession — forward incremental materialization, not backward dispatch",
+        "native well-founded-semantics evaluator consumed by materialize.rs and pinned through forward_contract_hash — forward incremental materialization, not backward dispatch",
     ),
     (
         "reference_resolver.rs",
@@ -562,6 +652,59 @@ impl EngineContract {
     /// carry the same descriptor but different per-query contracts.
     pub fn query_contract_hash(profile: &str, budget: &Budget) -> String {
         crate::dispatch::query_contract_hash(profile, budget)
+    }
+
+    /// Reproduce the invocation identity used by annotated direct-view dispatch.
+    ///
+    /// This frames the ordinary profile/resource contract together with the exact
+    /// tuple-annotation admission/convergence contract.
+    pub fn annotated_query_contract_hash(
+        profile: &str,
+        budget: &Budget,
+        annotation: &AnnotationContract,
+        algebra_identity: &str,
+    ) -> String {
+        crate::dispatch::annotated_query_contract_hash(
+            profile,
+            budget,
+            annotation,
+            algebra_identity,
+        )
+    }
+
+    /// Reproduce the invocation identity used by provider-aware annotated dispatch.
+    pub fn external_relation_query_contract_hash(
+        profile: &str,
+        budget: &Budget,
+        annotation: &AnnotationContract,
+        algebra_identity: &str,
+        provider_manifest_hash: &str,
+    ) -> String {
+        crate::dispatch::external_relation_query_contract_hash(
+            profile,
+            budget,
+            annotation,
+            algebra_identity,
+            provider_manifest_hash,
+        )
+    }
+
+    /// Reproduce the invocation identity used by selected view materialization.
+    ///
+    /// The canonical program, explicit named-world set, step budget, and declared
+    /// semantic profile are all content-framed; world input order is immaterial.
+    pub fn materialization_contract_hash(
+        program: &LogicProgram,
+        worlds: &[String],
+        limits: MaterializationLimits,
+        declared_profile: Option<SemanticProfileId>,
+    ) -> String {
+        crate::materialize::selected_materialization_contract_hash(
+            program,
+            worlds,
+            limits,
+            declared_profile,
+        )
     }
 
     /// Hard-fail (typed `Err`) when `pinned_descriptor_hash` differs from this engine's

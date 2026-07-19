@@ -16,6 +16,7 @@
 # exactly the named finding fires.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
 
 # === Rule: every form names exactly one sign system ========================= #
@@ -23,7 +24,7 @@
 ex:ecFormSituated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/form-situated.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A lang:WordForm naming exactly one lang:SignSystem through lang:inSignSystem satisfies lang:FormSituatedShape and validates with no findings." .
+    gmeow:conformanceRationale "A lang:WordForm naming exactly one lang:SignSystem through lang:inSignSystem and its owning lang:Lexeme through lang:lexemeOf satisfies the generated form and word-form constraints and validates with no findings." .
 
 ex:ecFormMissingSignSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/form-missing-sign-system.ttl" ;
@@ -151,7 +152,7 @@ ex:ecAnchorUnanchored a gmeow:ExampleConformance ;
 ex:ecSlotFormResource a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/slot-form-resource.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A lang:FormSlot whose lang:slotForm points at a lang:WordForm resource satisfies lang:SlotFormStructuralShape and validates with no findings." .
+    gmeow:conformanceRationale "A lang:FormSlot whose lang:slotForm points at a lang:Form resource satisfies lang:SlotFormStructuralShape and validates with no findings." .
 
 ex:ecSlotFormLiteral a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-form-literal.ttl" ;
@@ -409,7 +410,7 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # =========================================================================== #
 # GMN dialect fixtures — the gmeow:gmn* graft's eight SHACL gates: canonical
 # codepoints, the confusables blocklist, sigil-scoped glyph collisions, the
-# eight-field envelope contract, the ring lattice, version overclaims,
+# nine-field envelope contract, the ring lattice, version overclaims,
 # compaction provenance, and compaction overclaims. The five parser-tier failure classes
 # (lang:GmnUncoveredTerm, lang:GmnNonCanonicalOrder, lang:GmnMalformedNumber,
 # lang:GmnUndeclaredDialectVersion, lang:GmnNonDecodableGrammar) are the GMN
@@ -424,12 +425,12 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 ex:ecGmnScriptGlyphCanonical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-script-glyph-canonical.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A grapheme in gmeow:gmnScript with the canonical codepoint spelling \"U+2291\" and a full lang:Denotation binding its operator form to a denoted term, plus two sigil-scoped glyphs lawfully sharing \"U+03BC\" (BOTH carry gmeow:gmnSigilScope, the exemption of lang:GmnGlyphCollisionShape) — satisfies the codepoint, confusable, and collision gates and validates with no findings." .
+    gmeow:conformanceRationale "A @ℒ-scoped grapheme in gmeow:gmnScript with the canonical codepoint spelling \"U+2291\", its measured three-token cost, and a full lang:Denotation binding its operator form to canonical logic:subClassOf through gmeow:gmnDenotationGrapheme, plus two sigil-scoped glyphs lawfully sharing \"U+03BC\" (BOTH carry gmeow:gmnSigilScope, the exemption of lang:GmnGlyphCollisionShape) — satisfies the codepoint, confusable, collision, and grounding-direction gates and validates with no findings." .
 
 ex:ecGmnEnvelopeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-envelope-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all eight contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
+    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all nine contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, gmeow:gmnCodebookDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
 
 ex:ecGmnCompactionHonest a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-compaction-honest.ttl" ;
@@ -463,13 +464,13 @@ ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its eight contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven fields are present." .
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its nine contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight fields are present." .
 
 ex:ecGmnEnvelopeDictionaryVersionPlural a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-dictionary-version-plural.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven contract fields are present and well-formed (R5, version-pinning is non-interchangeable)." .
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope declares TWO gmeow:gmnDictionaryVersion literals at once (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — an alias is meaningless without the ONE pinned dictionary version that minted it, so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other eight contract fields are present and well-formed (R5, version-pinning is non-interchangeable)." .
 
 ex:ecGmnRingLatticeMalformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-ring-lattice-malformed.ttl" ;
@@ -489,6 +490,26 @@ ex:ecGmnDictionaryAliasCollision a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "Two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary alias two DIFFERENT terms (gmeow:GmnEnvelope, gmeow:GmnCodebook) with the SAME alias string \"genv\" (the sh:sparql of lang:GmnDictionaryAliasInjectivityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnDictionaryAliasCollision) — the alias table is not a bijection, so gmeow:gmnCorrNormalToGmn's mnemomorphic claim would be silently corrupted on read-back." .
+
+# === Rule: a per-slice terminology glossary is single-valued per sense === #
+# (the derived lang:GlossaryTermConsistencyConstraintProceduralConstraintShape, the
+#  functional-dependency dual of the GMN alias-injectivity constraint).
+
+ex:ecGlossaryTermConsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/glossary-term-consistent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:Glossary whose two gmeow:GlossaryEntry members share one gmeow:glossaryConcept and carry the SAME gmeow:glossaryTranslation (\"forme composée\") satisfies lang:GlossaryTermConsistencyConstraint — one sense renders one way — and validates with no findings." .
+
+ex:ecGlossaryTermInconsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/glossary-term-inconsistent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two gmeow:GlossaryEntry members of one gmeow:Glossary share one gmeow:glossaryConcept but carry TWO DIFFERENT gmeow:glossaryTranslation values (\"lire\", \"lu\"), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GlossaryTermInconsistency) — one sense reads back as two divergent renderings across batches, the functional-dependency dual of a GMN alias collision." .
+
+ex:ecGlossaryDeclaredHomograph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/glossary-declared-homograph.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One English source (\"read\") declared a lang:DeclaredTerminologyHomograph over two distinct lang:LexicalConcepts projects its two gmeow:GlossaryEntry members onto DISTINCT gmeow:glossaryConcept values, so their divergent renderings (\"lire\", \"lu\") share no concept and do NOT violate lang:GlossaryTermConsistencyConstraint — the sense-aware escape, so a genuine homograph is never a false positive." .
 
 # === Rule: a gmeow:processExport crossing binds to its ring === #
 

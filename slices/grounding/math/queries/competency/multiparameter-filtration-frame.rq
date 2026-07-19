@@ -1,0 +1,13 @@
+# A multiparameter filtration names its parameter poset (math:filtrationIndexPoset)
+# and its stages, each carrying a math:multiIndex tuple rather than a single real
+# threshold — the frame that makes the multi-parameter index inspectable.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?filtration ?poset ?stage ?index
+WHERE {
+  ?filtration a math:MultiparameterFiltration ;
+              math:filtrationIndexPoset ?poset ;
+              math:hasFiltrationStage ?stage .
+  ?stage math:multiIndex ?index .
+}
+ORDER BY ?filtration ?stage

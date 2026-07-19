@@ -196,21 +196,24 @@ impl TripleSink {
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
     pub(crate) fn serialize(self, banner: &str) -> String {
         let body = self
-            .builder
+            .serialize_as("text/turtle")
+            .expect("constructed triple set must serialize as Turtle");
+        let body = format!("{}\n", body.trim_end_matches('\n'));
+        format!("{banner}{body}")
+    }
+
+    /// Serialize the accumulated default graph in `media_type` without a generated banner.
+    /// Kept separate from [`Self::serialize`] so correspondence-owned formula trees can be
+    /// embedded in their deterministic N-Triples carrier without reimplementing the formula
+    /// projection.
+    fn serialize_as(self, media_type: &str) -> Option<String> {
+        self.builder
             .freeze()
             .ok()
             .and_then(|dataset| {
-                serialize_dataset(
-                    dataset.as_ref(),
-                    "text/turtle",
-                    SerializeGraph::DefaultGraph,
-                )
-                .ok()
+                serialize_dataset(dataset.as_ref(), media_type, SerializeGraph::DefaultGraph).ok()
             })
             .and_then(|bytes| String::from_utf8(bytes).ok())
-            .unwrap_or_default();
-        let body = format!("{}\n", body.trim_end_matches('\n'));
-        format!("{banner}{body}")
     }
 }
 
@@ -1110,6 +1113,23 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         emit_formula(&mut g, &f_node, formula);
     }
 
+    // `program.reasoning_programs` (`logic:ReasoningProgram`) is DELIBERATELY not re-emitted
+    // here, exactly like `program.constraints` / `program.validation_shapes` /
+    // `program.path_shapes` / `program.correspondences` above: none of those collections is
+    // re-serialized by this projection either. This projection carries only the content that
+    // genuinely CHANGES shape between the source graph and the IR (formula-tree nodes
+    // reassembled from term-carrier triples, rule/contract nodes reassembled from reified
+    // structural triples) — content the frontend can only reconstruct from a byte-identical
+    // re-emission. A `logic:ReasoningProgram`'s clause/query/probe formulas are ALREADY
+    // ordinary reified `logic:Formula` trees authored verbatim in the source graph (the same
+    // shape `emit_formula` would produce), so the authored triples themselves are the
+    // canonical round-trip surface for reasoning-program content — the source graph is
+    // preserved verbatim by the surrounding slice pipeline, not reconstructed through this
+    // compiled-IR-only projection. Re-deriving a second reified copy here would source-fork
+    // the same clause set under a fresh set of minted IRIs, which is the anti-pattern
+    // `extract_formulas`'s "referenced" exclusion set (clause/programQuery/verdictProbe
+    // roots) exists to prevent on the read side.
+    //
     // Exact target: drops nothing, so it interns nothing into the loss store (its
     // read-back is empty and its report/ledger rows carry no `gmeow:lossyDrop`).
     rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", &[])
@@ -1119,7 +1139,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
 /// minted child IRIs (path segment + zero-padded index) make the serialization stable;
 /// commutative connectives sort their operands by content key so emission order does not
 /// depend on the stored vector order.
-fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
+pub(crate) fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
     g.add_iri(node, RDF_TYPE, &logic("Formula"));
     match formula {
         Formula::Atom { relation, args } => {
@@ -1155,6 +1175,16 @@ fn emit_formula(g: &mut TripleSink, node: &str, formula: &Formula) {
         Formula::Forall { vars, body } => emit_quantifier(g, node, "forall", vars, body),
         Formula::Exists { vars, body } => emit_quantifier(g, node, "exists", vars, body),
     }
+}
+
+/// Project one correspondence-owned [`Formula`] tree at the caller-supplied root IRI as
+/// deterministic N-Triples. This is the same emitter the canonical RDF 1.2 projection uses;
+/// formula ownership changes, never its serialized semantics.
+pub(crate) fn formula_ntriples(node: &str, formula: &Formula) -> String {
+    let mut sink = TripleSink::default();
+    emit_formula(&mut sink, node, formula);
+    sink.serialize_as("application/n-triples")
+        .expect("constructed logic:Formula must serialize as N-Triples")
 }
 
 /// Emit the operands of a commutative connective (`and`/`or`/`iff`), sorted by content
@@ -1208,6 +1238,23 @@ fn emit_term_value(g: &mut TripleSink, node: &str, term: &Term) {
         }
         Term::SequenceMarker(name) => {
             g.add_lit(node, &logic("termSequenceMarker"), RdfLiteral::simple(name))
+        }
+        Term::App { symbol, args } => {
+            // A compound function term is carried by a logic:FunctionTerm node the carrier
+            // points at via logic:termApplication: one reified logic:functionSymbol plus its
+            // ordered logic:argument carriers, emitted with the same index+value machinery a
+            // predication's arguments use — so `parse_function_term` reconstructs it and a
+            // nested application (`cons(H, cons(1, nil))`) round-trips losslessly.
+            let ft = format!("{node}/app");
+            g.add_iri(node, &logic("termApplication"), &ft);
+            g.add_iri(&ft, RDF_TYPE, &logic("FunctionTerm"));
+            g.add_iri(&ft, &logic("functionSymbol"), symbol);
+            for (i, arg) in args.iter().enumerate() {
+                let arg_node = format!("{ft}/arg/{i:04}");
+                g.add_iri(&ft, &logic("argument"), &arg_node);
+                emit_term_index(g, &arg_node, i);
+                emit_term_value(g, &arg_node, arg);
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ OKF bundle back *into* GMEOW (import), so the format is a fully **bidirectional*
 surface.
 
 ```text
-gmeow.gts ──export──▶  dist/gmeow-okf/**.md  ──gts from-okf──▶ GMEOW (transpile)
+gmeow.gts ──export──▶  dist/gmeow-okf/**.md  ──purrdf lift──▶ GMEOW (transpile)
  (the fold)            (one doc per term)      (recognized okf: → rdfs/skos/rdf)
 ```
 
@@ -24,20 +24,31 @@ statement/reification layer, and the full alignment graph stay in the canonical
 grounding-slice sources carried by GTS. The lossiness is declared **in-band** in the bundle's root
 `index.md`, mirroring how the OBO Graphs view declares its own loss.
 
-## The seam: gmeow produces, `gts` validates
+## The seam: gmeow produces, purrdf lifts
 
-The Markdown ↔ graph codec is the **Rust `gts` primitive** (`gts from-okf` /
-`gts to-okf`, built `--features okf`); GMEOW never re-implements it. The export
-lane *produces* a bundle conformant to the `okf:` profile that `gts from-okf`
-folds; the import lane shells `gts from-okf` to *consume* it. This is the
-[gts/gmeow seam](./gts-narrow-waist.md) — `gts` owns format conversion, gmeow
-owns the ontology projection and lift.
+The export lane's Rust generator (`crate::stages::okf`) is a direct structural
+projection: it builds the GMEOW-specific bundle layout itself
+(Class/Property/Individual docs, per-category indexes, relation links) and
+hand-renders the Markdown/YAML-frontmatter bytes — it does not call a shared
+codec, because the bundle shape (`okf:path`/`okf:body`/`okf:links` triples
+scoped per rendered document) is synthesized procedurally from the folded
+term surface, not carried natively by the RDF graph. The import lane is the
+inverse direction only: `gmeow transpile <dir>` calls purrdf 0.7.0's native,
+in-process OKF reader (`purrdf::lift_okf_bundle`) directly to fold a bundle
+directory back to RDF, then lifts the recognized `okf:` predicates to GMEOW.
+There is no external binary or subprocess in either direction — the former
+`gts from-okf` seam is retired now that purrdf ships the codec directly.
 
-The `okf:` contract (frontmatter keys): the six recognized keys
-`type` / `title` / `description` / `resource` / `tags` / `timestamp`, plus
-arbitrary extension keys that fold to `okf:<key>`. `type` is a **string literal**
-(`Class` / `Property` / `Individual`), not `rdf:type`; `resource` is the subject
-IRI; the body's `[text](target)` links become reified `okf:links` edges.
+The `okf:` contract (frontmatter keys): a **closed** vocabulary — exactly the
+field set the export lane ever emits (`type`, `title`, `description`,
+`resource`, `tags`, `version`, `curie`, `parents`, `prop_kind`, `domain`,
+`range`, `functional`, `sub_property_of`, `types`, `alignments`,
+`scope_notes`, `examples`, `use_when`, `avoid_when`, `how_to_use`,
+`use_for_consumer`, `avoid_for_consumer`). `type` is a **string literal**
+(`Class` / `Property` / `Individual`), not `rdf:type`; `resource` is the
+subject IRI; the body's `[text](target)` links become reified `okf:links`
+edges. purrdf's reader validates this profile strictly — an unrecognized
+frontmatter key is a HARD FAIL, never a silently-accepted ad-hoc predicate.
 
 ## Export lane
 
@@ -61,21 +72,21 @@ to agents at `gmeow://ontology/okf-index`.
 ## Import / lift lane
 
 ```bash
-GMEOW_GTS_BIN=/path/to/gts gmeow transpile path/to/okf-bundle/ --profiles all
+gmeow transpile path/to/okf-bundle/ --profiles all
 ```
 
-`gmeow transpile <dir>` detects an OKF directory, shells `gts from-okf` to fold
-it, then lifts the recognized `okf:` predicates to GMEOW — `okf:title` →
-`rdfs:label`, `okf:description` → `skos:definition`, `okf:type` → `rdf:type`,
-`okf:scope_notes` / `okf:examples` → the SKOS documentation predicates. Every
-**other** `okf:` triple is retained verbatim as a provenance-bearing annotation
-(lossy honesty — never silently dropped), and `MAXIMAL(G)` then runs over the
-draft exactly like the [Turtle / YAML-LD transpile paths](./transpile.md).
+`gmeow transpile <dir>` detects an OKF directory, reads every `.md` file under
+it into a purrdf `OkfBundle` in-process, folds it through purrdf 0.7.0's native
+OKF reader (`purrdf::lift_okf_bundle`), then lifts the recognized `okf:`
+predicates to GMEOW — `okf:title` → `rdfs:label`, `okf:description` →
+`skos:definition`, `okf:type` → `rdf:type`, `okf:scope_notes` / `okf:examples`
+→ the SKOS documentation predicates. Every **other** `okf:` triple is retained
+verbatim as a provenance-bearing annotation (lossy honesty — never silently
+dropped), and `MAXIMAL(G)` then runs over the draft exactly like the
+[Turtle / YAML-LD transpile paths](./transpile.md).
 
-The `gts` binary with OKF support is a **required** Rust dependency for this
-lane (the consumed Python `gts` package carries no OKF codec). It is located via
-`$GMEOW_GTS_BIN` → `gts` on `PATH` → the sibling `gmeow-gts/rust/target/`. A
-missing binary is a hard failure with a clear remedy — no degraded fallback.
-Build it with `cargo build --release --features okf --bin gts` in the
-`gmeow-gts` repo. The `gts from-okf` round-trip conformance tests therefore run
-in a separate acceptance lane (set `GMEOW_GTS_BIN`), not the fast `make check`.
+There is no external binary dependency for this lane: purrdf 0.7.0 ships the
+OKF Markdown ↔ RDF codec directly, so `gmeow transpile` never shells out. A
+malformed bundle (unsafe path, invalid YAML frontmatter, an unrecognized
+frontmatter key, a dangling Markdown-link target) is a hard failure with no
+degraded fallback.

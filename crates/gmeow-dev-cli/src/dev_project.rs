@@ -1,16 +1,25 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Repo-anchored projection / description commands: `describe`, `export-docs`,
-//! `export-docs`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
+//! Repo-anchored projection / description commands: `describe`, the docs fanout
+//! used by `sync`, `temporal`, `import-foundation`, `crossref`, and
+//! `compliance-report`.
 
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_cli_core::write_docs_projection;
+use gmeow_cli_core::{DocsProjectionReport, reconcile_docs_projection_tree};
 
 use crate::dev_common::{emit_error, fail, fail_code, note, project_root, snapshot_bytes};
 use crate::error;
+
+/// Aggregate render and filesystem-reconciliation outcome for the complete
+/// external documentation fanout selected by `gmeow-dev sync`.
+#[derive(Debug, Default)]
+pub struct DocsSyncReport {
+    pub output_paths: Vec<String>,
+    pub reconciliation: DocsProjectionReport,
+}
 
 /// `gmeow-dev describe TERM [--gts --lang]` — render one term card.
 pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
@@ -90,32 +99,19 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     })
 }
 
-/// `gmeow-dev export-docs --format F -d DIR [--force --lang]` — render from
-/// canonical repository sources.
-pub fn export_docs(
-    format: &crate::ExportFormat,
-    directory: &Path,
-    force: bool,
-    lang: Option<&str>,
-) -> i32 {
+/// Render every external documentation projection once for `gmeow-dev sync`.
+/// Update mode reconciles the trees to their canonical destinations; check mode
+/// performs the same complete render in memory and never touches the workspace.
+pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32> {
     let root = project_root();
-    if !force
-        && let Ok(mut entries) = std::fs::read_dir(directory)
-        && entries.next().is_some()
-    {
-        return fail(format!(
-            "{} is not empty; pass --force to write into it",
-            directory.display()
-        ));
-    }
 
     let mut model = match gmeow_docs::DocsModel::discover(&root) {
         Ok(model) => model,
-        Err(e) => return fail(format!("cannot build documentation model: {e}")),
+        Err(e) => return Err(fail(format!("cannot build documentation model: {e}"))),
     };
     // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
     // Python (Pydantic) + Rust example tabs actually render on this — the sole —
-    // production docs surface (`make docs` fanout). The standalone render has no
+    // production docs surface (`make sync SYNC_OUTPUTS=docs` fanout). The standalone render has no
     // live pipeline product, so the digest is sourced off the committed
     // `generated/schemas/*.json`, the projection of the same
     // `stage-export-json-schema` emitter output the in-pipeline reader consumes.
@@ -124,11 +120,9 @@ pub fn export_docs(
     match gmeow_pipeline::stages::docs_render::schema_fragments_from_generated(&root, &model.terms)
     {
         Ok(digest) => model.attach_schema_fragments(digest),
-        Err(e) => return fail(format!("cannot build schema-fragment digest: {e}")),
+        Err(e) => return Err(fail(format!("cannot build schema-fragment digest: {e}"))),
     }
-    let source_lang = pick_source_lang(lang, &model.translations);
-
-    use crate::ExportFormat;
+    let source_lang = pick_source_lang(lang, &model.translations)?;
 
     // The reasoned SPARQL playground is a SITE surface: build its `ExecutableDocsData`
     // from the committed bundle — which already carries the documentation graph, the
@@ -136,59 +130,55 @@ pub fn export_docs(
     // the formats that render the site. No-optionality: for a site render a missing or
     // unreadable committed bundle is a HARD FAIL (mirrors the schema-fragment gate above),
     // never a silently empty playground; non-site formats never touch the bundle.
-    let exec = if matches!(format, ExportFormat::Site | ExportFormat::All) {
-        match playground_exec_from_bundle(&root) {
-            Ok(exec) => exec,
-            Err(code) => return code,
-        }
-    } else {
-        gmeow_docs::ExecutableDocsData::default()
-    };
+    let exec = playground_exec_from_bundle(&root)?;
 
-    match format {
-        ExportFormat::Site => write_docs_projection(
-            directory,
-            Ok(gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files),
-        ),
-        ExportFormat::Mdbook => write_docs_projection(directory, Ok(render_source_book(&model))),
-        ExportFormat::Pdf => write_docs_projection(directory, render_source_print(&root, &model)),
-        ExportFormat::Snippets => write_docs_projection(
-            directory,
-            source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
-        ),
-        ExportFormat::Pydantic => write_docs_projection(
-            directory,
-            gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
-        ),
-        ExportFormat::All => {
-            let plan = [
-                (
-                    "site",
-                    Ok(gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files),
-                ),
-                ("mdbook", Ok(render_source_book(&model))),
-                ("pdf", render_source_print(&root, &model)),
-                (
-                    "snippets",
-                    source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
-                ),
-                (
-                    "pydantic",
-                    gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
-                ),
-            ];
-            for (sub, tree) in plan {
-                let code = write_docs_projection(&directory.join(sub), tree);
-                if code != 0 {
-                    return code;
-                }
-            }
-            0
+    // One model discovery and ONE site render feed both site destinations and
+    // the snippets projection. The previous workflow rendered this same site
+    // three times (`all` site, snippets, then ontology-docs).
+    let site = gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files;
+    let snippets =
+        source_snippets(&site).map_err(|e| fail(format!("cannot render snippets: {e}")))?;
+    let mdbook = render_source_book(&model);
+    let pdf = render_source_print(&root, &model)
+        .map_err(|e| fail(format!("cannot render print docs: {e}")))?;
+    let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
+        .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
+
+    let destinations = [
+        ("ontology-docs", &site),
+        ("dist/gmeow-docs/site", &site),
+        ("dist/gmeow-docs/mdbook", &mdbook),
+        ("dist/gmeow-docs/pdf", &pdf),
+        ("dist/gmeow-docs/snippets", &snippets),
+        ("dist/gmeow-docs/pydantic", &pydantic),
+    ];
+    let mut outputs = Vec::new();
+    let mut reconciliation = DocsProjectionReport::default();
+    for (base, tree) in destinations {
+        outputs.extend(tree.keys().map(|rel| format!("{base}/{rel}")));
+        if update {
+            let report = reconcile_docs_projection_tree(&root.join(base), tree).map_err(fail)?;
+            println!("docs -> {}", root.join(base).display());
+            reconciliation.produced += report.produced;
+            reconciliation.written += report.written;
+            reconciliation.unchanged += report.unchanged;
+            reconciliation.removed += report.removed;
+        } else {
+            reconciliation.produced += tree.len();
         }
     }
+    outputs.sort();
+    outputs.dedup();
+    Ok(DocsSyncReport {
+        output_paths: outputs,
+        reconciliation,
+    })
 }
 
-fn pick_source_lang(lang: Option<&str>, translations: &gmeow_docs::Translations) -> String {
+fn pick_source_lang(
+    lang: Option<&str>,
+    translations: &gmeow_docs::Translations,
+) -> Result<String, i32> {
     let available = gmeow_docs::available_languages(translations);
     let requested = lang
         .map(str::to_owned)
@@ -198,11 +188,15 @@ fn pick_source_lang(lang: Option<&str>, translations: &gmeow_docs::Translations)
             if let Some(found) = available.iter().find(|candidate| {
                 candidate.as_str() == tag || translations.internal_tag(candidate) == tag
             }) {
-                return found.clone();
+                return Ok(found.clone());
             }
         }
+        return Err(fail(format!(
+            "requested documentation language profile {requested:?} is unavailable; available: {}",
+            available.join(", ")
+        )));
     }
-    gmeow_docs::i18n::ENGLISH.to_string()
+    Ok(gmeow_docs::i18n::ENGLISH.to_string())
 }
 
 fn render_source_book(model: &gmeow_docs::DocsModel) -> BTreeMap<String, Vec<u8>> {
@@ -242,14 +236,14 @@ fn render_source_print(
 }
 
 fn source_snippets(
-    site: BTreeMap<String, Vec<u8>>,
+    site: &BTreeMap<String, Vec<u8>>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut snippets = site
-        .into_iter()
+        .iter()
         .filter_map(|(path, bytes)| {
             let rest = path.strip_prefix("terms/")?;
             let slug = rest.strip_suffix("/card.md")?;
-            Some((format!("terms/{slug}.md"), bytes))
+            Some((format!("terms/{slug}.md"), bytes.clone()))
         })
         .collect::<BTreeMap<_, _>>();
     if snippets.is_empty() {
@@ -284,7 +278,7 @@ rendering.
 - Ingest the whole corpus: concatenate or index every `terms/*.md` file; the set
   is complete (one card per documented term) and deterministically named.
 - Regenerate the corpus from canonical sources with
-  `gmeow-dev export-docs --format snippets -d <dir>`.
+  `gmeow-dev sync --mode update --outputs docs`.
 
 The cards here are the same per-term surface the published documentation renders;
 this projection simply flattens them for offline agent use.
@@ -733,7 +727,7 @@ mod tests {
         assert!(SNIPPETS_README.contains("offline, agent-ingestible projection"));
         assert!(SNIPPETS_README.contains("one prompt-ready Markdown card per vocabulary term"));
         assert!(SNIPPETS_README.contains("terms/<slug>.md"));
-        assert!(SNIPPETS_README.contains("gmeow-dev export-docs --format snippets"));
+        assert!(SNIPPETS_README.contains("gmeow-dev sync --mode update --outputs docs"));
     }
 
     #[test]
@@ -746,7 +740,7 @@ mod tests {
         site.insert("terms/foo/index.html".to_string(), b"<html/>".to_vec());
         site.insert("index.html".to_string(), b"<html/>".to_vec());
 
-        let out = source_snippets(site).expect("cards present → snippets projection succeeds");
+        let out = source_snippets(&site).expect("cards present → snippets projection succeeds");
 
         // The cards are flattened to `terms/<slug>.md`; nothing else leaks through.
         assert_eq!(
@@ -774,6 +768,11 @@ mod tests {
         // No `terms/*/card.md` in the tree → a hard error, never a silent empty tree.
         let mut site: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         site.insert("index.html".to_string(), b"<html/>".to_vec());
-        assert!(source_snippets(site).is_err());
+        assert!(source_snippets(&site).is_err());
+    }
+
+    #[test]
+    fn explicit_unknown_docs_language_hard_fails() {
+        assert!(pick_source_lang(Some("not-a-language"), &Default::default()).is_err());
     }
 }

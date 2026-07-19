@@ -1,0 +1,6 @@
+{
+  "https://gmeow.example/entailment-mini/subclass-transitive/w": {
+    "quads": 8,
+    "status": "inconsistent"
+  }
+}

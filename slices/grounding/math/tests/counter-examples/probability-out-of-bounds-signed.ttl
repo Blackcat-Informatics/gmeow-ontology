@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Counter-example for the native math:ProbabilityOutOfBounds gate: a
-# math:ProbabilityValue whose gmeow:quantityValue magnitude carries an EXPLICIT leading
+# math:ProbabilityValue whose math:quantityValue magnitude carries an EXPLICIT leading
 # '+' sign ("+1.5"), a valid xsd:decimal lexical form. The exact-rational reader must
 # strip the '+' the same way it strips a leading '-', so the magnitude still parses to
 # 3/2 and lies outside the closed unit interval [0, 1] — the native probability gate
@@ -15,7 +15,8 @@
 @prefix ex:    <http://example.org/math/> .
 
 ex:outOfBoundsSignedProbability a math:ProbabilityValue ;
-    gmeow:quantityValue "+1.5" ;
+    math:quantityValue "+1.5" ;
     gmeow:hasReferenceFrame ex:outOfBoundsSignedFrame .
 
 ex:outOfBoundsSignedFrame a gmeow:ReferenceFrame .
+<http://example.org/math/outOfBoundsSignedProbability> <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> .

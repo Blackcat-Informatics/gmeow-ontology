@@ -21,8 +21,9 @@
 use gmeow_errors::Diag;
 
 use crate::ir::{
-    AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, LogicProgram,
-    PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    AggregateBalance, AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr,
+    Formula, JoinAggregate, LogicProgram, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
+    ShapeValue, Term, ValidationShapeIr,
 };
 
 use super::sparql_lower::{sparql_literal, sparql_predicate};
@@ -65,6 +66,16 @@ const LOGIC_TERM_STR_STARTS: &str = "https://blackcatinformatics.ca/logic/termSt
 /// `FILTER ( REGEX(STR(x), 'pattern') )` (negated: `!REGEX(…)`). The second argument is the literal
 /// regex. It expresses a `sh:pattern`-style lexical match over a bound term.
 const LOGIC_TERM_REGEX: &str = "https://blackcatinformatics.ca/logic/termRegex";
+/// The `logic:` language-tag introspection relation `termLangMatches(x, "pattern")`, lowered to a
+/// case-insensitive SPARQL `FILTER ( REGEX(LANG(x), 'pattern', 'i') )` (negated: `!REGEX(…)`). It
+/// mirrors [`LOGIC_TERM_REGEX`] but matches against the value's LANGUAGE TAG (`LANG(x)`) rather than
+/// its lexical form (`STR(x)`) — the term the private-use language-tag convention needs.
+const LOGIC_TERM_LANG_MATCHES: &str = "https://blackcatinformatics.ca/logic/termLangMatches";
+/// The `logic:` language-tag presence relation `termHasLang(x)`, lowered to a unary SPARQL
+/// `FILTER ( LANG(x) != "" )` (negated: `LANG(x) = ""`). The companion to [`LOGIC_TERM_LANG_MATCHES`]:
+/// it restricts a language-tag check to genuinely TAGGED literals, so a plain / typed literal (whose
+/// `LANG` is the empty string) is never swept into a tag-pattern violation.
+const LOGIC_TERM_HAS_LANG: &str = "https://blackcatinformatics.ca/logic/termHasLang";
 /// The `logic:` transitive-reachability relation `transitiveReach(subject, pathPredicate, target)`,
 /// lowered to a SPARQL one-or-more property path `subject <pathPredicate>+ target .`. The middle
 /// argument is the path predicate IRI (not a bound term); the outer two are subject / object terms.
@@ -336,6 +347,8 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
                 .join(" ");
             vec![format!("sh:or ( {items} )")]
         }
+        // A per-property unique-language facet: at most one value per language tag.
+        ConstraintComponent::UniqueLang => vec!["sh:uniqueLang true".to_owned()],
     }
 }
 
@@ -509,7 +522,8 @@ fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<St
         | ConstraintComponent::LanguageIn(_)
         | ConstraintComponent::DateTimeRange { .. }
         | ConstraintComponent::HasValue(_)
-        | ConstraintComponent::OrProperties(_) => {}
+        | ConstraintComponent::OrProperties(_)
+        | ConstraintComponent::UniqueLang => {}
     }
 }
 
@@ -697,6 +711,9 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // ShEx Core has alternation (`|`) but not exclusive-or; both are carried in the
             // canonical logic: layer rather than partially projected. Declared in shex_residue.
             | ConstraintComponent::Or(_)
+            // `sh:uniqueLang` has no ShEx Core form; carried in the canonical logic: layer and
+            // disclosed in shex_residue.
+            | ConstraintComponent::UniqueLang
             | ConstraintComponent::Xone(_) => {}
         }
     }
@@ -858,6 +875,11 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                      carried whole in the canonical logic: layer",
                     p.path
                 )),
+                ConstraintComponent::UniqueLang => residue.push(format!(
+                    "unique-language facet (sh:uniqueLang) on {} has no ShEx Core form; carried \
+                     in the canonical logic: layer",
+                    p.path
+                )),
                 // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
                 // ShEx-only drop. Listed explicitly so a NEW variant forces a decision.
                 ConstraintComponent::NumericRange { .. }
@@ -953,6 +975,13 @@ fn constraint_term(t: &Term, focus: &str) -> gmeow_errors::Result<String> {
         Term::SequenceMarker(n) => Err(proj_err(format!(
             "sequence marker ...{n} has no single-term SPARQL triple form"
         ))),
+        // A compound function term does not name a single node the way a variable/IRI/literal
+        // does; SPARQL is function-free over the graph, so it has no single-term triple token.
+        // Flattening an application into a reifier-node join is a lowering, not a rendering, so
+        // it is refused here (carried as residue) rather than silently mis-projected.
+        Term::App { symbol, .. } => Err(proj_err(format!(
+            "compound function term {symbol}(…) has no single-term SPARQL triple form"
+        ))),
     }
 }
 
@@ -972,12 +1001,15 @@ fn binary_comparison_ops(pred: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 
-/// The SPARQL string-function name a two-argument string relation lowers to (`STRSTARTS` /
-/// `REGEX`). `None` for a relation that is not a string test.
-fn string_test_func(pred: &str) -> Option<&'static str> {
+/// The SPARQL lowering of a two-argument string relation, as `(outer func, inner accessor, optional
+/// flags)`: `STRSTARTS(STR(x), pat)` / `REGEX(STR(x), pat)` / `REGEX(LANG(x), pat, 'i')`. The inner
+/// accessor selects WHAT of the term is tested — its lexical form (`STR`) or its language tag
+/// (`LANG`). `None` for a relation that is not a string test.
+fn string_test_func(pred: &str) -> Option<(&'static str, &'static str, Option<&'static str>)> {
     match pred {
-        LOGIC_TERM_STR_STARTS => Some("STRSTARTS"),
-        LOGIC_TERM_REGEX => Some("REGEX"),
+        LOGIC_TERM_STR_STARTS => Some(("STRSTARTS", "STR", None)),
+        LOGIC_TERM_REGEX => Some(("REGEX", "STR", None)),
+        LOGIC_TERM_LANG_MATCHES => Some(("REGEX", "LANG", Some("i"))),
         _ => None,
     }
 }
@@ -992,6 +1024,7 @@ fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
             format!("( isIRI({x}) || isBlank({x}) )"),
             format!("!( isIRI({x}) || isBlank({x}) )"),
         )),
+        LOGIC_TERM_HAS_LANG => Some((format!("LANG({x}) != \"\""), format!("LANG({x}) = \"\""))),
         _ => None,
     }
 }
@@ -1052,8 +1085,9 @@ fn filter_atom_expr(
         let kw = if negate { "NOT IN" } else { "IN" };
         return Some(Ok(format!("{x} {kw} ({})", members.join(", "))));
     }
-    // String tests `termStrStarts(x, "p")` / `termRegex(x, "p")` → `[!]STRSTARTS|REGEX(STR(x), 'p')`.
-    if let Some(func) = string_test_func(pred) {
+    // String tests `termStrStarts(x, "p")` / `termRegex(x, "p")` → `[!]STRSTARTS|REGEX(STR(x), 'p')`,
+    // and `termLangMatches(x, "p")` → `[!]REGEX(LANG(x), 'p', 'i')` (against the value's language tag).
+    if let Some((func, inner, flags)) = string_test_func(pred) {
         if args.len() != 2 {
             return Some(Err(proj_err(format!(
                 "string relation <{pred}> has arity {}, it needs a tested term and a literal pattern",
@@ -1070,7 +1104,10 @@ fn filter_atom_expr(
             ))));
         };
         let pat = sparql_literal(lexical);
-        let expr = format!("{func}(STR({x}), {pat})");
+        let flags_arg = flags
+            .map(|f| format!(", {}", sparql_literal(f)))
+            .unwrap_or_default();
+        let expr = format!("{func}({inner}({x}), {pat}{flags_arg})");
         let expr = if negate { format!("!{expr}") } else { expr };
         return Some(Ok(expr));
     }
@@ -1333,16 +1370,44 @@ fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>>
                 branches.join(" UNION ")
             )])
         }
-        // `¬(a ∧ b) ≡ ¬a ∨ ¬b`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
+        // `¬(a ∧ b ∧ …)`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
         Formula::And(fs) => {
             if let Some(expr) = filter_expr(f, focus, true) {
                 return Ok(vec![format!("FILTER ( {} )", expr?)]);
             }
-            let mut branches = Vec::with_capacity(fs.len());
-            for x in fs {
-                branches.push(format!("{{ {} }}", lower_negative(x, focus)?.join(" ")));
+            // `¬(c1 ∧ … ∧ cn) ≡ ¬c1 ∨ … ∨ ¬cn`. When EVERY negated conjunct is a
+            // self-scoped pattern group — one that re-binds `$this` through its own positive
+            // triple (a negated implication `{ a . ¬b }`, the ∀-of-implications shape such as
+            // the math:LimitResult value/outcome-agreement law) — lower the disjunction as a
+            // UNION of those groups: each arm binds `$this`, so the violation is checked per
+            // focus node. When ANY negated conjunct is a bare FILTER (`¬atom = FILTER NOT
+            // EXISTS { $this p o }`, which binds no variable), a UNION arm would be UNSCOPED —
+            // SPARQL evaluates `Union(¬a, ¬b, …)` independently of the guard it joins, so any
+            // sibling node satisfying that one conjunct clears it (the
+            // orgbook_notability_mutation regression). In that case negate the WHOLE
+            // conjunction as ONE scoped `FILTER NOT EXISTS { pos(a) pos(b) … }`, which keeps
+            // `$this` bound (the FILTER rides the guard's group).
+            let negated: Vec<Vec<String>> = fs
+                .iter()
+                .map(|c| lower_negative(c, focus))
+                .collect::<gmeow_errors::Result<_>>()?;
+            let all_scoped = negated.iter().all(|group| {
+                group
+                    .iter()
+                    .any(|line| !line.trim_start().starts_with("FILTER"))
+            });
+            if all_scoped {
+                let arms: Vec<String> = negated
+                    .iter()
+                    .map(|group| format!("{{ {} }}", group.join(" ")))
+                    .collect();
+                Ok(vec![arms.join(" UNION ")])
+            } else {
+                Ok(vec![format!(
+                    "FILTER NOT EXISTS {{ {} }}",
+                    lower_positive(f, focus)?.join(" ")
+                )])
             }
-            Ok(vec![branches.join(" UNION ")])
         }
         Formula::Iff(..) => Err(proj_err(
             "a biconditional has no SPARQL constraint-body form",
@@ -1474,10 +1539,104 @@ fn aggregate_select(agg: &AggregateComparison) -> String {
     )
 }
 
-/// The whole `sh:select` query body of a constraint: the aggregate `GROUP BY`/`HAVING` form when
-/// the constraint carries an [`AggregateComparison`] satellite, else the range-restricted
-/// `guard ∧ ¬φ` violation query lowered from the integrity formula.
+/// Lower a [`JoinAggregate`] to a whole `SELECT $this ?far … GROUP BY $this ?far HAVING(…)` query
+/// selecting the (focus, far-endpoint) groups that VIOLATE the invariant. Each leg is a reified
+/// relation record `?rK`: its source triple anchors the join on the ALREADY-BOUND endpoint (`$this`
+/// for the first leg, the preceding leg's target `?j{K-1}` for every later leg), then the target
+/// triple binds this leg's endpoint `?jK` and the value triple binds its leaf `?vK`. Anchoring the
+/// source triple on the bound endpoint first makes the store use its incidence index (the
+/// object-keyed lookup of records incident to a cell) instead of scanning all records, so the query
+/// scales with the number of incidence RECORDS, not with cells² — there is no cartesian product.
+/// The aggregate is the group `function` of the PRODUCT `?v1 * … * ?vN` of the joined leaf values;
+/// the group key is `$this` (the first leg's source) and `?jN` (the last leg's target, the far
+/// endpoint). Because a `sh:SPARQLConstraint` `sh:select` returns violations, the `HAVING` uses the
+/// comparator's logical negation (`=` ↦ `!=`, …). Variable names are byte-deterministic (`?rK`
+/// records, `?jK` endpoints, `?vK` values) so regeneration is stable.
+fn join_aggregate_select(ja: &JoinAggregate) -> String {
+    let mut where_pats: Vec<String> = Vec::new();
+    let mut value_vars: Vec<String> = Vec::with_capacity(ja.legs.len());
+    for (idx, leg) in ja.legs.iter().enumerate() {
+        let k = idx + 1;
+        let record = format!("?r{k}");
+        // The source endpoint is the focus for the first leg, else the shared join variable the
+        // preceding leg bound (`leg[k-1].target = leg[k].source`).
+        let src = if idx == 0 {
+            "$this".to_owned()
+        } else {
+            format!("?j{}", idx)
+        };
+        let tgt = format!("?j{k}");
+        let val = format!("?v{k}");
+        // Index-friendly join order: anchor on the bound source endpoint, then bind the target and
+        // the leaf value.
+        where_pats.push(format!(
+            "{record} {} {src} .",
+            sparql_predicate(&leg.source)
+        ));
+        where_pats.push(format!(
+            "{record} {} {tgt} .",
+            sparql_predicate(&leg.target)
+        ));
+        where_pats.push(format!("{record} {} {val} .", sparql_predicate(&leg.value)));
+        if let Some(rt) = &leg.record_type {
+            where_pats.push(format!("{record} a {} .", iri_term(rt)));
+        }
+        value_vars.push(val);
+    }
+    let far = format!("?j{}", ja.legs.len());
+    let product = value_vars.join(" * ");
+    let inner = format!("{}({product})", ja.function);
+    let op = ja.comparator.negated().as_sparql();
+    let threshold = match &ja.threshold_datatype {
+        Some(dt) => format!("{}^^<{dt}>", sparql_literal(&ja.threshold_lexical)),
+        None => sparql_literal(&ja.threshold_lexical),
+    };
+    format!(
+        "SELECT $this {far} WHERE {{ {} }} GROUP BY $this {far} HAVING ( {inner} {op} {threshold} )",
+        where_pats.join(" ")
+    )
+}
+
+/// Lower an [`AggregateBalance`] to the double-entry violation `SELECT`: a `GROUP BY $this ?group`
+/// sub-`SELECT` that sums the debit-partition and credit-partition amounts per group, wrapped by an
+/// outer `FILTER(?sumDebits != ?sumCredits)` that selects the focus nodes whose books do NOT balance
+/// in some group. Each posting's amount and group key hang off the shared amount node
+/// (`amount_node_predicate`), so a value and its currency are always read from the same amount.
+fn aggregate_balance_select(bal: &AggregateBalance) -> String {
+    let posting = sparql_predicate(&bal.posting_predicate);
+    let amount_node = sparql_predicate(&bal.amount_node_predicate);
+    let partition = sparql_predicate(&bal.partition_predicate);
+    let value = sparql_predicate(&bal.value_predicate);
+    let group = sparql_predicate(&bal.group_predicate);
+    let debit = iri_term(&bal.debit_value);
+    let credit = iri_term(&bal.credit_value);
+    format!(
+        "SELECT $this WHERE {{ {{ SELECT $this ?group (SUM(?debitVal) AS ?sumDebits) \
+         (SUM(?creditVal) AS ?sumCredits) WHERE {{ $this {posting} ?posting . \
+         ?posting {amount_node} ?amount ; {partition} ?direction . \
+         ?amount {value} ?val ; {group} ?group . \
+         BIND(IF(?direction = {debit}, ?val, 0) AS ?debitVal) \
+         BIND(IF(?direction = {credit}, ?val, 0) AS ?creditVal) }} \
+         GROUP BY $this ?group }} FILTER(?sumDebits != ?sumCredits) }}"
+    )
+}
+
+/// The whole `sh:select` query body of a constraint: the multi-hop-join `GROUP BY`/`HAVING` form
+/// when the constraint carries a [`JoinAggregate`] satellite, the double-entry-balance
+/// `GROUP BY`/`HAVING` form when it carries an [`AggregateBalance`] satellite, the single-path
+/// aggregate `GROUP BY`/`HAVING` form when it carries an [`AggregateComparison`] satellite, else
+/// the range-restricted `guard ∧ ¬φ` violation query lowered from the integrity formula.
 fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    // Hard-fail rather than silently pick a winner: a constraint carrying more than one
+    // aggregate satellite would otherwise have the lower-priority satellite(s) below silently
+    // dropped from the projected shape (a no-optionality violation).
+    c.ensure_single_satellite()?;
+    if let Some(ja) = &c.join_aggregate {
+        return Ok(join_aggregate_select(ja));
+    }
+    if let Some(bal) = &c.aggregate_balance {
+        return Ok(aggregate_balance_select(bal));
+    }
     match &c.aggregate {
         Some(agg) => Ok(aggregate_select(agg)),
         None => Ok(format!("SELECT $this WHERE {{ {} }}", violation_where(c)?)),
@@ -1549,8 +1708,16 @@ fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     let failure_line = c.failure_class.as_ref().map_or_else(String::new, |fc| {
         format!("    gmeow:enforcesFailureClass <{fc}> ;\n")
     });
+    // The primary back-reference plus every additional `logic:formalizes` term (a constraint may
+    // formalize the canonical class it governs AND the legacy shape it reproduces). `also_formalizes`
+    // is pre-sorted/deduped and never contains the primary, so the emission is deterministic.
+    let also_lines = c
+        .also_formalizes
+        .iter()
+        .map(|f| format!("    logic:formalizes <{f}> ;\n"))
+        .collect::<String>();
     Ok(format!(
-        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n{failure_line}    {target} ;\n    \
+        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n{also_lines}{failure_line}    {target} ;\n    \
          sh:sparql [\n        a sh:SPARQLConstraint ;\n        sh:severity sh:{sev} ;\n{message_line}        \
          sh:select \"\"\"{select}\"\"\" ;\n    ] .\n"
     ))
@@ -2893,6 +3060,64 @@ mod procedural_tests {
     }
 
     #[test]
+    fn coexisting_aggregate_satellites_hard_fail_at_projection() {
+        // A constraint carrying BOTH a join_aggregate and an aggregate satellite would otherwise
+        // have the projection dispatch's priority order silently drop the lower-priority
+        // `aggregate` satellite (Gap 12a). It must instead hard-fail — carried as flagged residue,
+        // never silently projected with one satellite dropped.
+        use crate::ir::{AggregateComparator, JoinLeg};
+
+        let leg = JoinLeg::new(
+            None,
+            "https://ex/incidenceCoface",
+            "https://ex/incidenceFace",
+            "https://ex/incidenceSign",
+        )
+        .unwrap();
+        let ja = JoinAggregate::new(
+            "SUM",
+            vec![leg.clone(), leg],
+            AggregateComparator::Eq,
+            "0",
+            None,
+        )
+        .unwrap();
+        let agg = AggregateComparison::new(
+            "COUNT",
+            false,
+            "https://ex/part",
+            AggregateComparator::Le,
+            AggregateRhs::Literal {
+                lexical: "10".into(),
+                datatype: None,
+            },
+        )
+        .unwrap();
+        let c = guarded(
+            "https://ex/cDualSatellite",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        )
+        .with_join_aggregate(ja)
+        .with_aggregate(agg);
+
+        assert!(
+            c.ensure_single_satellite().is_err(),
+            "a constraint carrying two aggregate satellites must fail the guard directly"
+        );
+        assert!(
+            project_procedural_constraint(&c).is_empty(),
+            "a dual-satellite constraint must not emit a block"
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let residue = procedural_constraint_residue(&prog);
+        assert_eq!(residue.len(), 1, "{residue:?}");
+        assert!(
+            residue[0].contains("aggregate") && residue[0].contains("join_aggregate"),
+            "the residue must name the coexisting satellites: {residue:?}"
+        );
+    }
+
+    #[test]
     fn every_constraint_gets_a_blanket_shex_unsupported_note() {
         let c = guarded(
             "https://ex/c2",
@@ -3324,6 +3549,83 @@ mod procedural_tests {
     }
 
     #[test]
+    fn aggregate_balance_sugar_projects_partitioned_group_by_having() {
+        let b = project_sugar(
+            "ex:bal a logic:AggregateBalanceConstraint ;\n\
+             logic:onClass ex:JournalEntry ;\n\
+             logic:balancePostingPredicate ex:posting ;\n\
+             logic:balancePartitionPredicate ex:direction ;\n\
+             logic:balanceDebitValue ex:debit ;\n\
+             logic:balanceCreditValue ex:credit ;\n\
+             logic:balanceAmountNodePredicate ex:amount ;\n\
+             logic:balanceValuePredicate ex:value ;\n\
+             logic:balanceGroupPredicate ex:currency ;\n\
+             logic:formalizes ex:JournalEntry .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/JournalEntry>"),
+            "{b}"
+        );
+        assert!(
+            b.contains("SELECT $this ?group (SUM(?debitVal) AS ?sumDebits) (SUM(?creditVal) AS ?sumCredits)"),
+            "{b}"
+        );
+        assert!(b.contains("$this <https://ex/posting> ?posting ."), "{b}");
+        assert!(
+            b.contains("?amount <https://ex/value> ?val ; <https://ex/currency> ?group ."),
+            "{b}"
+        );
+        assert!(
+            b.contains("BIND(IF(?direction = <https://ex/debit>, ?val, 0) AS ?debitVal)"),
+            "{b}"
+        );
+        assert!(b.contains("GROUP BY $this ?group"), "{b}");
+        assert!(b.contains("FILTER(?sumDebits != ?sumCredits)"), "{b}");
+    }
+
+    #[test]
+    fn term_lang_matches_and_has_lang_project_language_tag_filters() {
+        // A hand-authored language-tag gate: a sparqlTarget-focused constraint whose body forbids a
+        // gmeow:-namespaced tagged literal whose LANGUAGE TAG is not under the x-gmeow- prefix.
+        let src = format!(
+            "{SUGAR_PREFIXES}\
+ex:ilt a logic:Constraint ;\n\
+  logic:formalizes ex:LangShape ;\n\
+  logic:severity \"Violation\" ;\n\
+  logic:integrity ex:iltForall .\n\
+ex:iltForall a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"this\" ] ; logic:forall ex:iltImpl .\n\
+ex:iltImpl a logic:Formula ; logic:antecedent ex:iltTarget ; logic:consequent ex:iltOk .\n\
+ex:iltTarget a logic:Formula ; logic:relation <https://blackcatinformatics.ca/logic/sparqlTarget> ;\n\
+  logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] , [ logic:termIndex 1 ; logic:termLiteral \"SELECT DISTINCT ?this WHERE {{ ?this ?p ?value . FILTER(isLiteral(?value)) }}\" ] .\n\
+ex:iltOk a logic:Formula ; logic:not ex:iltBad .\n\
+ex:iltBad a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"p\" ] , [ logic:termIndex 1 ; logic:termVariable \"value\" ] ; logic:exists ex:iltBody .\n\
+ex:iltBody a logic:Formula ; logic:and ex:iltLink , ex:iltLit , ex:iltHasLang , ex:iltNotOk .\n\
+ex:iltLink a logic:Formula ; logic:relation <https://blackcatinformatics.ca/logic/linkVia> ; logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] , [ logic:termIndex 1 ; logic:termVariable \"p\" ] , [ logic:termIndex 2 ; logic:termVariable \"value\" ] .\n\
+ex:iltLit a logic:Formula ; logic:relation <https://blackcatinformatics.ca/logic/termIsLiteral> ; logic:argument [ logic:termIndex 0 ; logic:termVariable \"value\" ] .\n\
+ex:iltHasLang a logic:Formula ; logic:relation <https://blackcatinformatics.ca/logic/termHasLang> ; logic:argument [ logic:termIndex 0 ; logic:termVariable \"value\" ] .\n\
+ex:iltNotOk a logic:Formula ; logic:not ex:iltMatch .\n\
+ex:iltMatch a logic:Formula ; logic:relation <https://blackcatinformatics.ca/logic/termLangMatches> ; logic:argument [ logic:termIndex 0 ; logic:termVariable \"value\" ] , [ logic:termIndex 1 ; logic:termLiteral \"^x-gmeow-[a-z0-9-]+$\" ] .\n"
+        );
+        let (program, diags) =
+            crate::frontend::parse_logic_str(&src, None).expect("fixture must parse");
+        assert!(
+            !diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"),
+            "unexpected diagnostics: {diags:?}"
+        );
+        assert_eq!(program.constraints.len(), 1);
+        let b = project_procedural_constraint(&program.constraints[0]);
+        assert!(!b.is_empty(), "must project a block: {b}");
+        // The tagged-literal presence check and the case-insensitive negated language-tag regex.
+        assert!(b.contains(r#"LANG(?value) != """#), "{b}");
+        assert!(
+            b.contains("!REGEX(LANG(?value), '^x-gmeow-[a-z0-9-]+$', 'i')"),
+            "{b}"
+        );
+        // The raw sparqlTarget is carried verbatim as the sh:target select.
+        assert!(b.contains("a sh:SPARQLTarget"), "{b}");
+    }
+
+    #[test]
     fn p6_aggregate_sum_literal_rhs_projects_group_by_having() {
         let b = project_sugar(
             "ex:agg2 a logic:AggregateConstraint ;\n\
@@ -3387,6 +3689,128 @@ ex:aggv a logic:AggregateConstraint ;\n\
         assert!(
             !flagged.iter().any(|f| f.contains("good")),
             "the conforming node must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    /// The two-leg boundary-square-zero (∂²=0) join-aggregate demonstrator: a coface hops via an
+    /// incidence record to an intermediate cell, then via a second incidence record to a far face,
+    /// and the SUM of the incidence-sign PRODUCT over the intermediate cells must be 0 per
+    /// (coface, far-face) group. Reused by the projection and end-to-end tests.
+    const JOIN_AGG_SUGAR: &str = "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
+         logic:onClass ex:TopCell ;\n\
+         logic:aggFunction \"SUM\" ;\n\
+         logic:aggComparator \"=\" ;\n\
+         logic:aggThreshold 0 ;\n\
+         logic:joinPath (\n\
+           [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+           [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
+         ) ;\n\
+         logic:formalizes ex:BoundaryOperator .";
+
+    #[test]
+    fn join_aggregate_multi_hop_projects_deterministic_group_by_having() {
+        let b = project_sugar(JOIN_AGG_SUGAR);
+        // The focus is the coface (the top cell); the join is anchored on $this.
+        assert!(b.contains("sh:targetClass <https://ex/TopCell>"), "{b}");
+        // Leg 1 anchors on the bound focus $this via the source predicate, then binds the
+        // intermediate endpoint ?j1 and the leaf value ?v1 (index-friendly ordering).
+        assert!(
+            b.contains("?r1 <https://ex/incidenceCoface> $this . ?r1 <https://ex/incidenceFace> ?j1 . ?r1 <https://ex/incidenceSign> ?v1 . ?r1 a <https://ex/Incidence> ."),
+            "leg 1 must anchor on $this and bind ?j1/?v1: {b}"
+        );
+        // Leg 2 re-binds the SHARED join variable ?j1 as its source (the multi-hop join), binds the
+        // far endpoint ?j2, and the second leaf value ?v2.
+        assert!(
+            b.contains("?r2 <https://ex/incidenceCoface> ?j1 . ?r2 <https://ex/incidenceFace> ?j2 . ?r2 <https://ex/incidenceSign> ?v2 . ?r2 a <https://ex/Incidence> ."),
+            "leg 2 must re-bind ?j1 and bind ?j2/?v2: {b}"
+        );
+        // The group key is (focus, far endpoint); the aggregate is the SUM of the sign PRODUCT.
+        assert!(b.contains("SELECT $this ?j2 WHERE"), "{b}");
+        assert!(b.contains("GROUP BY $this ?j2"), "{b}");
+        // Invariant is `=` 0, so the violation-selecting HAVING negates it to `!=`.
+        assert!(
+            b.contains(
+                "HAVING ( SUM(?v1 * ?v2) != '0'^^<http://www.w3.org/2001/XMLSchema#integer> )"
+            ),
+            "{b}"
+        );
+        // No cartesian product over cells: every triple pattern is a record-anchored join, so no
+        // FILTER-cross or bare cell×cell pattern is emitted.
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn join_aggregate_projection_is_byte_deterministic() {
+        // Two independent parses of the same source produce byte-identical SPARQL (stable variable
+        // names + clause order), so regeneration is stable.
+        let a = project_sugar(JOIN_AGG_SUGAR);
+        let b = project_sugar(JOIN_AGG_SUGAR);
+        assert_eq!(a, b, "join-aggregate projection must be byte-deterministic");
+    }
+
+    #[test]
+    fn join_aggregate_boundary_square_zero_validates_against_a_graph() {
+        // End-to-end: the generated multi-hop-join GROUP BY/HAVING SELECT must be valid SPARQL and
+        // flag exactly the top cell whose ∂² ≠ 0. `good` is a triangle whose signed incidences make
+        // every (coface, far-vertex) group sum to 0; `bad` has one flipped sign so a group sums to
+        // -2 ≠ 0.
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!("{SUGAR_PREFIXES}{JOIN_AGG_SUGAR}");
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let int = "<http://www.w3.org/2001/XMLSchema#integer>";
+        // A signed incidence record `coface → face` with sign `s`, as four N-Triples over a fresh
+        // labeled blank node (the data graph is parsed as N-Triples, so no `[]`/`;` sugar).
+        let mut rec = 0u32;
+        let mut inc = |coface: &str, face: &str, s: i32| {
+            rec += 1;
+            let r = format!("_:rec{rec}");
+            format!(
+                "{r} {ty} <https://ex/Incidence> .\n\
+                 {r} <https://ex/incidenceCoface> <{coface}> .\n\
+                 {r} <https://ex/incidenceFace> <{face}> .\n\
+                 {r} <https://ex/incidenceSign> \"{s}\"^^{int} .\n"
+            )
+        };
+        let mut data = String::new();
+        // GOOD triangle: T over edges a,b,c over vertices p,q,r; ∂² = 0 in every group.
+        data.push_str(&format!("<https://ex/T> {ty} <https://ex/TopCell> .\n"));
+        data.push_str(&inc("https://ex/T", "https://ex/a", 1));
+        data.push_str(&inc("https://ex/T", "https://ex/b", 1));
+        data.push_str(&inc("https://ex/T", "https://ex/c", 1));
+        data.push_str(&inc("https://ex/a", "https://ex/p", -1));
+        data.push_str(&inc("https://ex/a", "https://ex/q", 1));
+        data.push_str(&inc("https://ex/b", "https://ex/q", -1));
+        data.push_str(&inc("https://ex/b", "https://ex/r", 1));
+        data.push_str(&inc("https://ex/c", "https://ex/r", -1));
+        data.push_str(&inc("https://ex/c", "https://ex/p", 1));
+        // BAD triangle: same shape but the c→p sign is flipped, so group (Tb, pb) sums to -2 ≠ 0.
+        data.push_str(&format!("<https://ex/Tb> {ty} <https://ex/TopCell> .\n"));
+        data.push_str(&inc("https://ex/Tb", "https://ex/ab", 1));
+        data.push_str(&inc("https://ex/Tb", "https://ex/bb", 1));
+        data.push_str(&inc("https://ex/Tb", "https://ex/cb", 1));
+        data.push_str(&inc("https://ex/ab", "https://ex/pb", -1));
+        data.push_str(&inc("https://ex/ab", "https://ex/qb", 1));
+        data.push_str(&inc("https://ex/bb", "https://ex/qb", -1));
+        data.push_str(&inc("https://ex/bb", "https://ex/rb", 1));
+        data.push_str(&inc("https://ex/cb", "https://ex/rb", -1));
+        data.push_str(&inc("https://ex/cb", "https://ex/pb", -1)); // flipped: should be +1
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("/Tb")),
+            "the ∂²≠0 top cell must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged
+                .iter()
+                .any(|f| f.contains("/T>") || f.ends_with("/T")),
+            "the ∂²=0 top cell must NOT be flagged; flagged: {flagged:?}"
         );
     }
 

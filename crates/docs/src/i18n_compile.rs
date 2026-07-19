@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_errors::{Diag, Result};
+use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -27,22 +28,10 @@ const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
 
-pub const LOCALIZABLE_PREDICATES: &[&str] = &[
-    "http://www.w3.org/2000/01/rdf-schema#label",
-    "http://www.w3.org/2000/01/rdf-schema#comment",
-    "http://www.w3.org/2004/02/skos/core#definition",
-    "http://www.w3.org/2004/02/skos/core#scopeNote",
-    "http://www.w3.org/2004/02/skos/core#example",
-    "http://www.w3.org/2004/02/skos/core#prefLabel",
-    "http://www.w3.org/2004/02/skos/core#altLabel",
-    "http://www.w3.org/2004/02/skos/core#note",
-    "http://purl.org/dc/terms/title",
-    "http://purl.org/dc/terms/description",
-    "https://blackcatinformatics.ca/gmeow/name",
-    "https://blackcatinformatics.ca/gmeow/title",
-    "https://blackcatinformatics.ca/gmeow/description",
-    "https://blackcatinformatics.ca/gmeow/fullName",
-];
+// The localizable-predicate set has a single authority in `gmeow-validate`; this
+// re-export is an alias, not a second definition, so i18n consumers here and the
+// Check-2 language-tag policy cannot drift.
+pub use gmeow_validate::localizable::LOCALIZABLE_PREDICATES;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PoEntry {
@@ -403,6 +392,35 @@ pub fn language_from_po(text: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
+/// A `.po` entry that is a candidate reviewed translation: a real (non-empty)
+/// translation that is NOT flagged `#, fuzzy` (human-reviewed, not machine-seeded).
+pub fn is_candidate_translation(entry: &PoEntry) -> bool {
+    !entry.fuzzy && !entry.msgstr.is_empty()
+}
+
+/// The target surface that counts as a LIVE translation when projecting a catalog entry
+/// into the shipped `gmeow.gts` bundle (docs-rendering + translation-crossing corpora).
+/// A machine-seeded `#, fuzzy` entry is not yet a reviewed translation, so it contributes
+/// no live target — treated as not-yet-live (English fallback), byte-identical to an
+/// untranslated entry. Single source of truth shared by both pipeline corpus builders so
+/// the fuzzy-gating cannot drift between them or from the coverage axis.
+pub fn live_translation_target(entry: &PoEntry) -> &str {
+    if entry.fuzzy {
+        ""
+    } else {
+        entry.msgstr.as_str()
+    }
+}
+
+/// Whether a `.po` entry counts toward reviewed translation coverage: a candidate
+/// translation that also passes the translation-integrity guard (not copied/hybrid
+/// English). Single source of truth shared by the slice-quality translation axis and
+/// the PO linter, so the reviewed-coverage policy cannot drift between them.
+pub fn counts_as_reviewed_coverage(entry: &PoEntry, language: &str) -> bool {
+    is_candidate_translation(entry)
+        && crate::i18n::translation_has_integrity(language, &entry.msgid, &entry.msgstr)
+}
+
 fn po_header(lang: Option<&str>) -> String {
     let mut out = String::new();
     out.push_str("msgid \"\"\n");
@@ -597,7 +615,41 @@ fn bcp47_to_internal_map(root: &Path) -> BTreeMap<String, String> {
     out
 }
 
-fn authored_turtle_files(root: &Path) -> Vec<PathBuf> {
+/// The set of English source skeletons declared as terminology homographs
+/// (`lang:DeclaredTerminologyHomograph` → `lang:homographSource`) in the authored
+/// ontology. A source in this set is exempted from the glossary-consistency check
+/// (its distinct senses legitimately render differently); it is the ontology-resident,
+/// non-calibrated escape.
+///
+/// Read ONLY from authored TTL (`module.ttl`/`manifest.ttl`/`ontology/gmeow.ttl` via
+/// [`authored_turtle_files`]), NEVER from the derived `graph/lang-glossary-corpus` nor the
+/// twin fixtures under `tests/`. `lang:homographSource` is authored solely on homograph
+/// declarations (never on the derived glossary entries, which carry `gmeow:glossarySource`),
+/// so this predicate-scoped read can never pick up a derived entry literal and silently
+/// widen the exempt set.
+pub fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
+    const HOMOGRAPH_SOURCE_PRED: &str = "https://blackcatinformatics.ca/lang/homographSource";
+    let mut out = BTreeSet::new();
+    for source in authored_turtle_files(root) {
+        let Ok(bytes) = fs::read(&source) else {
+            continue;
+        };
+        if let Ok(rows) = parse_rdf_literals(&bytes, "turtle") {
+            for row in rows {
+                if row.predicate == HOMOGRAPH_SOURCE_PRED {
+                    out.insert(skeleton(&row.lexical));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// The authored Turtle files the homograph escape reads (`ontology/gmeow.ttl` plus every
+/// slice `module.ttl`/`manifest.ttl`), sorted. Exposed so a stage that derives from
+/// [`declared_homograph_sources`] can fold these exact bytes into its cache key — the
+/// SAME read surface, never a re-authored guess.
+pub fn authored_turtle_files(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     let ontology = root.join("ontology/gmeow.ttl");
     if ontology.is_file() {
@@ -678,6 +730,10 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     let mut report = I18nLintReport::default();
     let tag_map = bcp47_to_internal_map(root);
     let current = current_english_values(root);
+    // Ontology-resident escape for the glossary-consistency check: English sources
+    // explicitly declared homographs (distinct senses that legitimately render
+    // differently). Loaded once from authored TTL only.
+    let homographs = declared_homograph_sources(root);
 
     for path in collect_po_paths(root)
         .into_iter()
@@ -725,18 +781,30 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
         };
         let mut total = 0usize;
         let mut fuzzy = 0usize;
+        // (msgid_skeleton, msgstr_skeleton, msgctxt) for every candidate translation in
+        // THIS catalog — the distinctiveness invariant runs over it after the loop: a
+        // target skeleton shared across distinct source skeletons is a collapsed
+        // distinction (a near-duplicate translation), while twin sources sharing one
+        // translation are legitimate.
+        let mut xlat_triples: Vec<(String, String, String)> = Vec::new();
         for entry in entries {
             total += 1;
             if entry.fuzzy {
                 fuzzy += 1;
             }
-            if !entry.msgstr.is_empty()
-                && let Some(reason) =
+            if is_candidate_translation(&entry) {
+                if let Some(reason) =
                     translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
-            {
-                report.errors.push(format!(
-                    "{rel}: invalid translation {:?}: {reason}",
-                    entry.msgctxt
+                {
+                    report.errors.push(format!(
+                        "{rel}: invalid translation {:?}: {reason}",
+                        entry.msgctxt
+                    ));
+                }
+                xlat_triples.push((
+                    skeleton(&entry.msgid),
+                    skeleton(&entry.msgstr),
+                    entry.msgctxt.clone(),
                 ));
             }
             if !entry.msgctxt.contains('|') {
@@ -759,6 +827,40 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                 )),
                 Some(_) => {}
             }
+        }
+        // Glossary terminology CONSISTENCY — the functional-dependency DUAL of the
+        // distinctiveness check below. Within THIS catalog (one slice, one language) one
+        // English source translated two different ways across batches is a hard reject,
+        // UNLESS the source is a declared homograph (its distinct senses legitimately
+        // render differently). distinctiveness_violations groups by its 2nd column and
+        // flags >=2 distinct 1st columns, so feeding (msgstr_skel, msgid_skel, msgctxt)
+        // groups by the English SOURCE and flags a source that splits into >=2 renderings.
+        // Borrows xlat_triples (the distinctiveness call below then consumes it).
+        let glossary_triples = xlat_triples
+            .iter()
+            .filter(|(msgid_skel, _, _)| !homographs.contains(msgid_skel))
+            .map(|(msgid_skel, msgstr_skel, ctx)| {
+                (msgstr_skel.clone(), msgid_skel.clone(), ctx.clone())
+            });
+        for c in distinctiveness_violations(glossary_triples) {
+            report.errors.push(format!(
+                "{rel}: English source {:?} is translated {} different ways across batches — a per-slice glossary must translate one term consistently (lang:GlossaryTermInconsistency): {}",
+                c.skeleton,
+                c.members.len(),
+                c.members.join(", ")
+            ));
+        }
+        // Translation DISTINCTIVENESS: a msgstr skeleton shared across distinct msgid
+        // sources means the translation collapsed a distinction the source made — a hard
+        // reject. Twin sources (same English label on a class and its property twin)
+        // sharing one translation legitimately do NOT collide (identical msgid skeleton).
+        for c in distinctiveness_violations(xlat_triples) {
+            report.errors.push(format!(
+                "{rel}: msgstr {:?} collides across {} distinct sources — a translation must preserve every distinction its source makes: {}",
+                c.skeleton,
+                c.members.len(),
+                c.members.join(", ")
+            ));
         }
         if total > 0 {
             *report.total_counts.entry(internal.clone()).or_insert(0) += total;
@@ -1124,8 +1226,13 @@ pub fn export_xliff(root: &Path, output: Option<&Path>) -> Result<String> {
         text.push_str("    <body>\n");
         for row in rows {
             let id = format!("{}|{}", row.term_iri, row.predicate);
+            let state = if row.fuzzy {
+                "needs-review-translation"
+            } else {
+                "translated"
+            };
             text.push_str(&format!(
-                "      <trans-unit id=\"{}\">\n        <source>{}</source>\n        <target>{}</target>\n        <note>Term: {} Predicate: {}</note>\n      </trans-unit>\n",
+                "      <trans-unit id=\"{}\">\n        <source>{}</source>\n        <target state=\"{state}\">{}</target>\n        <note>Term: {} Predicate: {}</note>\n      </trans-unit>\n",
                 xml_escape(&id),
                 xml_escape(&row.msgid),
                 xml_escape(&row.msgstr),
@@ -1951,6 +2058,29 @@ mod tests {
     }
 
     #[test]
+    fn live_translation_target_gates_fuzzy_seeds() {
+        // The shared fuzzy-gating policy consumed by both pipeline corpus builders: a
+        // reviewed entry contributes its msgstr; a machine-seeded `#, fuzzy` entry
+        // contributes NO live target (English fallback), byte-identical to untranslated.
+        let reviewed = PoEntry {
+            msgctxt: "x|rdfs:label".to_owned(),
+            msgid: "A".to_owned(),
+            msgstr: "B".to_owned(),
+            fuzzy: false,
+        };
+        assert_eq!(live_translation_target(&reviewed), "B");
+        let seeded = PoEntry {
+            fuzzy: true,
+            ..reviewed
+        };
+        assert_eq!(
+            live_translation_target(&seeded),
+            "",
+            "a #, fuzzy seed contributes no live target to the shipped bundle"
+        );
+    }
+
+    #[test]
     fn markdown_extract_uses_stable_hash() {
         let entries = extract_markdown_text("# Title\n\nBody.", "README.md");
         assert_eq!(entries.len(), 2);
@@ -2120,6 +2250,8 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         let text = export_xliff(&root, None).unwrap();
         assert!(text.contains("original=\"slices/extensions/example\""));
         assert!(!text.contains("original=\"slices/core/example\""));
+        // A non-fuzzy entry is emitted as an XLIFF `translated` target state.
+        assert!(text.contains("<target state=\"translated\">example label translated</target>"));
         let _ = fs::remove_dir_all(root);
     }
 
@@ -2150,6 +2282,305 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
         assert!(report.warnings.is_empty(), "{:?}", report.warnings);
         assert_eq!(report.total_counts.get("x-gmeow-french"), Some(&2));
         assert_eq!(report.fuzzy_counts.get("x-gmeow-french"), Some(&0));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_flags_collapsed_translation_distinction() {
+        // Two DISTINCT English sources translated to the SAME target — the translation
+        // collapsed a distinction the source made. A hard reject.
+        let root = test_root("lint-collapsed");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "collapsed_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/eventTypeAdoption|rdfs:label",
+                    "adoption",
+                    "pareil",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label",
+                    "chain id",
+                    "pareil",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        let collisions: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("collides across"))
+            .collect();
+        assert_eq!(
+            collisions.len(),
+            1,
+            "one distinctiveness error: {:?}",
+            report.errors
+        );
+        assert!(
+            collisions[0].contains("pareil") && collisions[0].contains("distinct sources"),
+            "names the shared target: {collisions:?}"
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_passes_twin_source_shared_translation() {
+        // A class and its property twin share ONE English label, so sharing ONE target
+        // translation is legitimate (identical msgid skeleton) and must NOT be flagged.
+        let root = test_root("lint-twin");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "twin_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/PValue|rdfs:label",
+                    "p-value",
+                    "valeur p",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/pValue|rdfs:label",
+                    "p-value",
+                    "valeur p",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report.errors.iter().any(|e| e.contains("collides across")),
+            "twin sources sharing one translation must not red: {:?}",
+            report.errors
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    /// An ontology whose terms carry the English labels the glossary-consistency tests
+    /// render ("read" twice as a homograph pair, "play" once), so entries do not orphan.
+    fn write_glossary_ontology(root: &Path) {
+        let ontology = root.join("ontology/gmeow.ttl");
+        fs::create_dir_all(ontology.parent().unwrap()).unwrap();
+        fs::write(
+            ontology,
+            r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:readPresent rdfs:label "read"@x-gmeow-english .
+gmeow:readPast rdfs:label "read"@x-gmeow-english .
+gmeow:playMedia rdfs:label "play"@x-gmeow-english .
+"#,
+        )
+        .unwrap();
+    }
+
+    /// Author a `lang:DeclaredTerminologyHomograph` per source into a slice `module.ttl`
+    /// (which `authored_turtle_files` scans), so the real `lint_po_files` loader exempts them.
+    fn write_declared_homographs(root: &Path, sources: &[&str]) {
+        let path = root.join("slices/core/test/module.ttl");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut ttl = String::from(
+            "@prefix lang: <https://blackcatinformatics.ca/lang/> .\n@prefix ex: <http://example.org/h/> .\n\n",
+        );
+        for (i, s) in sources.iter().enumerate() {
+            ttl.push_str(&format!(
+                "ex:hg{i} a lang:DeclaredTerminologyHomograph ; lang:homographSource \"{s}\" ; lang:homographConcept ex:c{i}a , ex:c{i}b .\n"
+            ));
+        }
+        fs::write(path, ttl).unwrap();
+    }
+
+    #[test]
+    fn lint_flags_glossary_inconsistency() {
+        // One English source ("read") translated two different ways ("lire" / "lu") across
+        // batches — the cross-batch terminology-consistency violation (the dual of the
+        // distinctiveness collapse). A hard reject via lang:GlossaryTermInconsistency.
+        let root = test_root("lint-glossary-inconsistent");
+        write_glossary_ontology(&root);
+        write_test_po(
+            &root,
+            "glossary_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPresent|rdfs:label",
+                    "read",
+                    "lire",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPast|rdfs:label",
+                    "read",
+                    "lu",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        let hits: Vec<&String> = report
+            .errors
+            .iter()
+            .filter(|e| e.contains("different ways across batches"))
+            .collect();
+        assert_eq!(
+            hits.len(),
+            1,
+            "one glossary-consistency error: {:?}",
+            report.errors
+        );
+        assert!(
+            hits[0].contains("\"read\"") && hits[0].contains("lang:GlossaryTermInconsistency"),
+            "names the source and the failure class: {hits:?}"
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_passes_consistent_glossary() {
+        // One English source rendered ONE consistent way across batches — no violation.
+        let root = test_root("lint-glossary-consistent");
+        write_glossary_ontology(&root);
+        write_test_po(
+            &root,
+            "glossary_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPresent|rdfs:label",
+                    "read",
+                    "lire",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPast|rdfs:label",
+                    "read",
+                    "lire",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("different ways across batches")),
+            "a consistent glossary must not red: {:?}",
+            report.errors
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_passes_declared_homograph() {
+        // "read" is DECLARED a homograph, so its two senses may render differently
+        // ("lire" / "lu") without a consistency violation. The real lint_po_files loader
+        // reads the declaration from authored TTL (write_declared_homographs), not a
+        // hand-built set — the production module.ttl -> gate flow.
+        let root = test_root("lint-glossary-homograph");
+        write_glossary_ontology(&root);
+        write_declared_homographs(&root, &["read"]);
+        write_test_po(
+            &root,
+            "glossary_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPresent|rdfs:label",
+                    "read",
+                    "lire",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPast|rdfs:label",
+                    "read",
+                    "lu",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report
+                .errors
+                .iter()
+                .any(|e| e.contains("different ways across batches")),
+            "a declared homograph must be exempt: {:?}",
+            report.errors
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_flags_inconsistency_despite_unrelated_homograph() {
+        // Guardrail: an UNRELATED declared homograph ("play") must not widen the exempt set
+        // and mask a genuine "read" inconsistency — the exempt-set read is source-keyed and
+        // authored-TTL-only, so only the exact declared source is exempted.
+        let root = test_root("lint-glossary-unrelated-homograph");
+        write_glossary_ontology(&root);
+        write_declared_homographs(&root, &["play"]);
+        write_test_po(
+            &root,
+            "glossary_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPresent|rdfs:label",
+                    "read",
+                    "lire",
+                    false,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/readPast|rdfs:label",
+                    "read",
+                    "lu",
+                    false,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("different ways across batches") && e.contains("\"read\"")),
+            "an unrelated homograph must not mask the read inconsistency: {:?}",
+            report.errors
+        );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_excludes_fuzzy_from_distinctiveness() {
+        // Fuzzy entries are not candidate translations, so a fuzzy collapsed pair is not
+        // a distinctiveness violation (consistent with the rest of the lint's exclusions).
+        let root = test_root("lint-fuzzy-excluded");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "fuzzy_fr.po",
+            &po_body(&[
+                (
+                    "https://blackcatinformatics.ca/gmeow/eventTypeAdoption|rdfs:label",
+                    "adoption",
+                    "pareil",
+                    true,
+                ),
+                (
+                    "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label",
+                    "chain id",
+                    "pareil",
+                    true,
+                ),
+            ]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert!(
+            !report.errors.iter().any(|e| e.contains("collides across")),
+            "fuzzy entries are excluded from the distinctiveness check: {:?}",
+            report.errors
+        );
         let _ = fs::remove_dir_all(root);
     }
 

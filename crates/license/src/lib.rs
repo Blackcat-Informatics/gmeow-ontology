@@ -237,6 +237,75 @@ mod tests {
         );
     }
 
+    /// The exact input→output rows the retired `test_config.py::test_policy_for_license`
+    /// pinned — including the two rows no existing test covered (`CC-BY-NC-ND`, bare
+    /// `Proprietary`).
+    #[test]
+    fn retired_test_config_policy_table_rows() {
+        for id in [
+            "CC-BY-4.0",
+            "CC-BY-3.0",
+            "CC0-1.0",
+            "MIT",
+            "Apache-2.0",
+            "PDDL-1.0",
+            "ODC-BY-1.0",
+            "Public-Domain",
+        ] {
+            assert_eq!(policy_for_license(id), LicensePolicy::ImportOk, "{id}");
+        }
+        for id in [
+            "CC-BY-SA-3.0",
+            "CC-BY-NC-ND 4.0",
+            "CC-BY-NC-SA 4.0",
+            "GPL-2.0",
+            "LGPL",
+            "EUPL-1.2",
+            "Proprietary",
+            "SomethingUnknown",
+        ] {
+            assert_eq!(policy_for_license(id), LicensePolicy::ReferenceOnly, "{id}");
+        }
+    }
+
+    /// The FULL policy table is exercised arm-by-arm: since `policy_for_license` is
+    /// `&str`-keyed (no compiler-checked exhaustiveness), every `IMPORT_OK_LICENSES`
+    /// entry and every `REFERENCE_ONLY_MARKERS` marker gets a pinned case, and the
+    /// recognized-arm count is pinned so a NEW arm added without a case fails here.
+    #[test]
+    fn full_policy_table_is_exercised_arm_by_arm() {
+        for id in IMPORT_OK_LICENSES {
+            assert_eq!(
+                policy_for_license(id),
+                LicensePolicy::ImportOk,
+                "import-ok arm {id}"
+            );
+        }
+        for marker in REFERENCE_ONLY_MARKERS {
+            // The marker as a delimited segment forces ReferenceOnly even under the
+            // otherwise-permissive `CC-BY-…` prefix.
+            let id = format!("CC-BY-{marker}-4.0");
+            assert_eq!(
+                policy_for_license(&id),
+                LicensePolicy::ReferenceOnly,
+                "reference-only marker {marker}"
+            );
+        }
+        assert_eq!(
+            policy_for_license("Totally-Unknown-XYZ"),
+            LicensePolicy::ReferenceOnly,
+            "unknown fails safe"
+        );
+        // Pin the recognized-arm count: a new arm added without a test case above
+        // (which would change one of these lengths) trips this assertion.
+        assert_eq!(IMPORT_OK_LICENSES.len(), 22, "import-ok arm count");
+        assert_eq!(
+            REFERENCE_ONLY_MARKERS.len(),
+            8,
+            "reference-only marker count"
+        );
+    }
+
     #[test]
     fn ring_fenced_attributed_cc_by_sa_is_import_ok() {
         // The Gate-2 vendored UD fragment: CC BY-SA 4.0 is ReferenceOnly as a bare token

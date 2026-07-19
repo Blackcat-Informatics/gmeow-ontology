@@ -119,6 +119,37 @@ Each query snapshots its world into the typed fact source, lowers the adorned go
 demand-transformed program, and evaluates that plan in the native fixpoint core. The snapshot and
 working relations are query-local, while immutable compiled plans may be cached by contract hash.
 
+### Query-scoped external relations
+
+A provider-aware query may carry an immutable set of **external relation descriptors** as an
+explicit DAG input. Each descriptor binds one relation IRI to a provider, artifact generation,
+model, positional RDF 1.2 argument schema, tuple-annotation dimension and algebra, total order,
+per-call limit, and preservation claim. Registration is borrowed by that query execution only:
+there is no global mutable provider registry, and providing no descriptor does not select a
+half-featured fallback. It simply describes a different query plan.
+
+An external relation atom is a physical EDB operator inside the same arity-generic annotated
+fixpoint as ordinary RDF EDB and recursive IDB atoms. At the atom's authored left-to-right SIPS
+position, the current binding becomes positional provider bounds; limit and total ordering are
+pushed with it. A complete batch is checked for artifact generation, arity, RDF 1.2 term kinds
+(including triple terms), bounds, limit, uniqueness, total order, and annotation consistency before
+any row becomes visible. Validated complete batches alone enter the query-local cache. Cache lookup
+precedes provider-budget charging, so recursive reuse is both deterministic and cheap.
+
+Provider tuples are **derived query inputs, not ontology assertions**. They live in the evaluator,
+lineage, and receipt; they are never inserted into `WorldStore`, a scratch named graph, or the
+committed ontology. Their annotations participate in the existing `⊗`/`⊕` equations and their
+preservation claims merge into the answer's ordinary preservation ledger. Provider failure,
+incompleteness, cancellation, budget exhaustion, stale generation, or malformed output is a typed
+non-result. Only a successful complete batch may denote an empty relation; incompleteness is never
+reported as semantic absence.
+
+The source/snapshot, resident-view, and fallible-view dispatch boundaries all retain this contract.
+A complete result binds the RDF source generation, engine descriptor, provider manifest, query
+contract, ordered invocation evidence, response hashes, and structural call/row counters. At a
+fallible RDF view, RDF operational failure remains distinct from provider/query failure and takes
+precedence over any partial internal work.
+
 ## The forward materialization ↔ backward resolution seam
 
 Forward materialization and backward demand evaluation share one relational core and exchange
@@ -173,6 +204,17 @@ Two native optimizations preserve the same semantics: **demand-driven materializ
 query narrow; **incremental maintenance** keeps the fixed-contract positive-Datalog store fresh
 under signed edits without a full re-chase. Uncovered fragments are explicit perf-ledger rows,
 never an unnamed slow path.
+
+That incremental maintainer has a stable public promotion. Where the
+[`EngineContract`](#the-native-physical-engine--execution-and-optimization) is the *identity*
+surface a consumer pins to detect engine drift, the **`ReasoningSession`** is its **operational
+(stateful) sibling** — the surface a consumer pins to *maintain* a reasoned closure across a stream
+of authorized edits, checkpoint it, and restore it deterministically. It promotes this
+finite-positive-binary-Datalog maintainer into a `gmeow_logic::runtime` façade with a seven-axis
+content-addressed identity (strictly finer than the engine descriptor, which it folds in), a
+hash-linked transition journal, and a total six-way operation outcome. Its full specification —
+identity axes, the two delta anchors, suppression-not-erasure, checkpoints, and semver governance —
+is in [LOGIC-SESSION.md](LOGIC-SESSION.md).
 
 ### The seam data contract
 
@@ -375,13 +417,52 @@ world/standpoint and the quantitative axes in one pass, where the semiring *is* 
 decidability-as-projection applied to performance.
 
 Honest staging: native subsumption is fragment-by-fragment and corpus-gated. The forward-chase
-profiles (EL, RL, DL Horn) are native and in production; the hard parts —
+profiles (EL, RL, DL Horn) are native and in production, and the backward path is now native too —
+structured-term unification (with order-sorted subsumption), proof objects, and full-FOL resolution
+with three-valued SLG-WFS negation (see *Structured terms, proof objects, and full-FOL backward
+resolution* below). The hard parts that remain staged are the *incremental* versions —
 well-founded / stable-model semantics *incrementally*, existential-rule chase with termination *and*
-incrementality together, and the paraconsistent/modal facets — stay heavy-path fallbacks longest and
-are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
+incrementality together — and the paraconsistent/modal facets; these stay heavy-path fallbacks longest
+and are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
 (architecture borrowed, substrate not) are in
 [`docs/APPLIED_CATEGORY_THEORY/take1.md`](../../../../docs/APPLIED_CATEGORY_THEORY/take1.md) §10.1–§10.2;
 the correspondence calculus that rides this engine is in [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).
+
+### Structured terms, proof objects, and full-FOL backward resolution
+
+The backward path is native, not merely a deleted bootstrap substrate. A hash-consed, binder-aware,
+content-addressed **structured-term arena** — one shared DAG serving `logic:`, `lang:`, and `math:`
+lowering, locally-nameless (bound occurrences are de-Bruijn references, so alpha-equivalence is node
+identity and substitution is capture-avoiding by construction), content keys the persistent identity
+and dense node ids never escaping the runtime — backs:
+
+- **Structured-term unification with occurs-check**, including **order-sorted** unification over the
+  authored `math:` subsort lattice (`math:NaturalNumber ⊑ Integer ⊑ RationalNumber ⊑ RealNumber ⊑
+  ComplexNumber`): a variable of sort `S` unifies with a term of sort `S′ ⊑ S`, and two sorted
+  metavariables unify at their meet — so the `math:` consumer's subsort demand is met natively, not
+  by exact sort-equality alone.
+- **Proof objects as first-class, checkable arena terms** — a proof is a term in the same DAG whose
+  `check()` re-derives its goal from its premises (de Bruijn / Curry-Howard criterion), turning
+  "incomplete, never wrong" from a sampled property into a structural one; its derivation identity
+  reuses the existing `mint_derivation_id` recipe byte-for-byte (numeric ids never enter the hash).
+- **Full-FOL backward resolution** — SLG-style answer tables over compound terms (subsumptive demand
+  keying, `unify` the join primitive, occurs-check ⇒ finite terms), including **three-valued SLG-WFS
+  well-founded negation** (van-Gelder alternating fixpoint): an atom trapped in a negative loop
+  evaluates to **undefined**, never a fabricated true/false. Budget exhaustion returns a
+  **deterministic sound partial** answer set (`BudgetStatus::Exhausted`); an unsupported goal shape is
+  a typed `Unsupported` hard failure — no external oracle, no demotion.
+
+These are shipped and observable, and driven entirely from authored slice content — not Rust
+constants. A goal-directed program is an authored `logic:ReasoningProgram` cell (a clause set over
+the ordinary `logic:Formula`/`logic:FunctionTerm` shape, a `logic:programQuery` goal, optional
+`logic:verdictProbe` atoms, and a `logic:evaluationMode`); the `stage-goal-directed` pipeline stage
+consumes those compiled programs plus the reasoner's derived `rdfs:subClassOf` closure (which supplies
+the order-sort lattice), lowers each clause/query/probe through the shared structured-term arena
+lowering, evaluates it on this backward engine, and folds the proof-carrying structured answers and
+three-valued WFS verdicts — together with the authored program itself — into the `graph/goal-directed`
+named graph of `gmeow.gts`. The same production path is reachable interactively through
+`gmeow logic backward`. What remains staged is the *incremental* form: these backward capabilities are
+batch, and incremental well-founded maintenance is the longest-standing perf gap.
 
 ### Native arithmetic and comparison builtins
 

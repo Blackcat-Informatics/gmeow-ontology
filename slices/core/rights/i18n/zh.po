@@ -759,7 +759,7 @@ msgstr "商业秘密"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeTrademark|rdfs:label"
 msgid "trademark"
-msgstr "商标"
+msgstr "商标权"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ruleAction|rdfs:label"
 msgid "rule action"
@@ -832,3 +832,19 @@ msgstr "未注册 (™)"
 msgctxt "https://blackcatinformatics.ca/gmeow/usageInfo|rdfs:label"
 msgid "usage info"
 msgstr "使用信息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|rdfs:label"
+msgid "Atomic constraint operand-choice constraint"
+msgstr "原子约束操作数选择约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AtomicConstraintOperandChoiceConstraint|skos:definition"
+msgid "A closed-world integrity constraint: a gmeow:AtomicConstraint binds exactly one of gmeow:rightOperand (a literal value) or gmeow:rightOperandReference (an IRI reference), never both and never neither."
+msgstr "闭世界完整性约束：gmeow:AtomicConstraint 恰好绑定 gmeow:rightOperand（字面值）或 gmeow:rightOperandReference（IRI 引用）之一，二者不可兼有，亦不可皆无。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|rdfs:label"
+msgid "LogicalConstraint member-count constraint"
+msgstr "LogicalConstraint 成员数量约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|skos:definition"
+msgid "A closed-world integrity constraint: a gmeow:LogicalConstraint combines at least two gmeow:logicConstraintMember constraints."
+msgstr "闭世界完整性约束：gmeow:LogicalConstraint 组合至少两个 gmeow:logicConstraintMember 约束。"

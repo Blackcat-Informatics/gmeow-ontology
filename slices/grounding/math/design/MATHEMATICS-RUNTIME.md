@@ -9,8 +9,9 @@
 > observations. It makes precise the seam the manifesto ([`MATHEMATICS.md`](MATHEMATICS.md)) names in
 > passing as "future solver profiles", and it answers the three engineering-friction questions a
 > maximal, fully-reified design necessarily raises: ingestion, ABox density, and the execution
-> handoff. Implementation is **design-only** here and gated (§ Acceptance); this charter fixes the
-> posture so the future Rust core is not improvised.
+> handoff. General ingestion and solver-profile implementation is **design-only** here and gated
+> (§ Acceptance); the bounded exact Clifford calculation described below is realized. This charter
+> fixes the posture so later Rust work is not improvised.
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the slice's gates and the projection loss ledger — not a
@@ -133,8 +134,8 @@ The discipline mirrors the `logic:` oracle contract exactly:
 
 ## Rust-first implementation posture
 
-Implementation is out of scope for the design phase, but the posture is fixed now so it is not
-improvised later. The anticipated crate map:
+General-purpose ingestion and solver-profile implementation remains outside this charter's realized
+surface, but the posture is fixed so later work is not improvised. The anticipated crate map:
 
 ```text
 crates/math-ast/          typed expression AST, symbol resolution, content-addressed normalization
@@ -156,10 +157,25 @@ The hard posture when work begins:
 - Every lossy transformation — ingest, projection, or solver handoff — produces a machine-readable
   preservation/loss record.
 
+### Realized exact Clifford calculation
+
+One bounded computation is already native rather than an external handoff. The public
+`gmeow_math::clifford` module implements diagonal orthonormal `Cl(p,q)` with at most 64 generators,
+`u64` basis-blade masks, exact checked rational coefficients, deterministic sparse multivectors,
+geometric and exterior products, left contraction, grade projection, the three standard
+involutions, and exact positive-extension embedding/split/join.
+
+The eighth math producer invokes that same kernel for `Cl(12,0)`, `Cl(6,6)`, `Cl(13,0)`, and
+`Cl(7,6)`. It emits exact dimensions, all generator squares, all distinct-generator
+anticommutation witnesses, pseudoscalar squares, and both `8192 = 4096 + 4096` module splits into a
+dedicated carrier graph. The ontology is the semantic frame and the Rust kernel is the calculation
+authority; neither hand-authors the other's derived results. No E8 representation is emitted.
+
 ## Acceptance
 
-The runtime seam is design-only until the slice's implementation gates pass. Consistent with the
-manifesto's acceptance posture, a conforming realization is accepted only when:
+The general runtime seam remains design-only until the slice's implementation gates pass; the exact
+Clifford kernel and producer are the bounded realized exception described above. Consistent with the
+manifesto's acceptance posture, a conforming general realization is accepted only when:
 
 1. A lift from at least one real ingest format (e.g. an R formula or a MathML content fragment)
    produces a well-formed, gate-passing AST, with `math:parseSource` retained and any loss

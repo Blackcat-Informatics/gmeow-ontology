@@ -1,0 +1,15 @@
+# C7 — with-metric agreement (violation finder; must be EMPTY over valid data). A
+# gmeow:SimilarityObservation whose gmeow:withMetric differs from the
+# gmeow:distanceMetric of its gmeow:overVectorSpace — a metric disagreement that
+# makes the similarity score uninterpretable. Independent SPARQL twin of
+# gmeow:WithMetricAgreementConstraint.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?obs WHERE {
+  ?obs a gmeow:SimilarityObservation ;
+       gmeow:overVectorSpace ?vsc ;
+       gmeow:withMetric ?m .
+  ?vsc gmeow:distanceMetric ?sm .
+  FILTER(?m != ?sm)
+}
+ORDER BY ?obs

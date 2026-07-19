@@ -4,14 +4,13 @@
 //! Emit `GMEOW_BUILD_FINGERPRINT`: a content hash of the entire workspace Rust
 //! source (every `crates/**/*.rs`), `Cargo.lock`, and the `rustc` version.
 //!
-//! The pipeline's persistent per-stage cache keys each stage by this fingerprint
-//! (folded into `stage_key`), so ANY change to ANY workspace crate — or a toolchain
-//! or dependency bump — changes the fingerprint and invalidates every cached stage
-//! product. That makes the persistent cache fail-closed against the one hazard that
-//! kept the build on an ephemeral cache: a Rust impl change served a stale
-//! pre-change product because no `impl_version` was bumped. With the fingerprint in
-//! the key there is no manual version to forget, so the cache is always correct:
-//! cold on the first run / a clean checkout / any source change, warm otherwise.
+//! The full-run clean manifest and focused per-stage cache keys incorporate this
+//! fingerprint, so ANY change to ANY workspace crate — or a toolchain or dependency
+//! bump — invalidates the cached proof. That makes both cache boundaries fail-closed
+//! against the hazard where a Rust implementation change could serve a stale
+//! pre-change product because no manual `impl_version` was bumped. Full sync runs do
+//! not serialize cumulative carriers per stage; their warm path is the whole-run
+//! clean manifest.
 //!
 //! A `rerun-if-changed` is emitted for every hashed file, so Cargo recomputes the
 //! fingerprint exactly when a hashed input changes (and not otherwise).

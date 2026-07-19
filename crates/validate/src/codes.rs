@@ -125,6 +125,40 @@ pub const SLICE_OWNERSHIP_UNPARSEABLE_QUERY: &str = "slice-ownership.unparseable
 /// Family base for `slice-ownership.*`.
 pub const SLICE_OWNERSHIP_FAMILY: &str = "slice-ownership.";
 
+// ── Ontology-surface authoring gates (`crates/validate/src/authoring_integrity.rs`) ──
+/// A `sh:NodeShape` IRI is declared in more than one shape file — merged into one
+/// graph, the definitions fuse into a shape whose meaning depends on parse order.
+pub const AUTHORING_SHAPE_IRI_COLLISION: &str = "authoring.shape-iri-collision";
+/// A slice module's `owl:Ontology` IRI is absent from the generated XML catalog.
+pub const AUTHORING_CATALOG_MISSING_MODULE: &str = "authoring.catalog-missing-module";
+/// A slice module's `owl:Ontology` IRI does not match its location-derived IRI.
+pub const AUTHORING_MODULE_IRI_MISMATCH: &str = "authoring.module-iri-mismatch";
+/// A profile's `owl:imports` closure disagrees with the slice-tier partition
+/// (full ≠ root ∪ extensions, claims ⊄ core, or a slice outside core/ext/profile).
+pub const AUTHORING_PROFILE_CLOSURE: &str = "authoring.profile-closure";
+/// The core `rights` module references a norms-extension IRI — the graft must live
+/// on the extension side only, with zero core churn.
+pub const AUTHORING_GRAFT_LEAK: &str = "authoring.graft-leak";
+/// A fixture / example references a GMEOW vocabulary term that is not declared in
+/// the ontology or any slice module (an undeclared predicate SHACL leaves inert).
+pub const AUTHORING_UNDECLARED_TERM: &str = "authoring.undeclared-term";
+/// A localizable-predicate literal in authored source carries no language tag — a
+/// plain literal is a distinct RDF term from any tagged sibling, silently
+/// untranslatable.
+pub const AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL: &str = "authoring.untagged-localizable-literal";
+/// Family base for `authoring.*`.
+pub const AUTHORING_FAMILY: &str = "authoring.";
+
+// ── Slice-discipline loader gates (`crates/validate/src/authoring_integrity.rs`) ──
+/// Two slice manifests declare the same slice IRI — identity is manifest-only and
+/// must be unique (the catalog loader would otherwise keep both silently).
+pub const SLICE_DISCIPLINE_DUPLICATE_IRI: &str = "slice-discipline.duplicate-iri";
+/// A `gmeow:Slice` manifest carries no `gmeow:sliceTier` — tier is mandatory
+/// (the loader would otherwise accept a silent `None`).
+pub const SLICE_DISCIPLINE_MISSING_TIER: &str = "slice-discipline.missing-tier";
+/// Family base for `slice-discipline.*`.
+pub const SLICE_DISCIPLINE_FAMILY: &str = "slice-discipline.";
+
 /// `crates/validate/src/crate_layering.rs` — a first-party layering violation.
 pub const CRATE_LAYERING_VIOLATION: &str = "crate-layering.violation";
 /// `crates/validate/src/crate_layering.rs` — a non-failing layering observation.
@@ -244,6 +278,15 @@ pub const ALL_CODES: &[&str] = &[
     ONTOLOGY_MISSING_LABEL,
     ONTOLOGY_MISSING_DEFINITION,
     EXAMPLE_PARSE,
+    AUTHORING_SHAPE_IRI_COLLISION,
+    AUTHORING_CATALOG_MISSING_MODULE,
+    AUTHORING_MODULE_IRI_MISMATCH,
+    AUTHORING_PROFILE_CLOSURE,
+    AUTHORING_GRAFT_LEAK,
+    AUTHORING_UNDECLARED_TERM,
+    AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
+    SLICE_DISCIPLINE_DUPLICATE_IRI,
+    SLICE_DISCIPLINE_MISSING_TIER,
 ];
 
 /// Every dynamic-code family base declared here, paired with the module that

@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 # Illustrative clean scene for the GMN dialect graft. Demonstrates the three
-# working surfaces of the dialect: a codepoint-explicit glyph of the GMN script
-# bound to the term it denotes through a full lang:Denotation record (with its
-# symbol provenance carried by the citations vocabulary), a complete
-# gmeow:GmnEnvelope with its full eight-field contract, and an honest GMN-2
+# working surfaces of the dialect: a citation record referencing the one
+# codepoint-explicit, candidate-audited ⊑ glyph/denotation chain owned by
+# module.ttl, a complete
+# gmeow:GmnEnvelope with its full nine-field contract, and an honest GMN-2
 # compaction that names its sources, its standpoint, and its validation-only
 # correspondence — losslessness is always a judged logic:Correspondence,
 # never a boolean flag.
@@ -18,59 +18,33 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
 
 # --- A GMN glyph: codepoint-explicit, denotation-bound, citation-grounded ---- #
-# The ⊑ glyph (U+2291) joins the GMN script's repertoire codepoint-explicitly.
-# Its operator form denotes the subsumption relation through a full reified
-# lang:Denotation record — the canonical fact the writer-projected gmeow:gmnGlyph
-# convenience flattens. Symbol provenance is the citations vocabulary's job,
-# carried on the glyph's SOURCE RECORD (an information object referencing the
-# grapheme): a flat gmeow:cites edge to the standard DL notation source,
-# promoted to a gmeow:CitationAct because the intent (the glyph conforms to
-# standard DL notation) is worth typing.
-
-gmeow:gmnScript lang:hasGrapheme ex:gSquareImageOfOrEqual .
-
-ex:gSquareImageOfOrEqual
-    a lang:Grapheme ;
-    rdfs:label "square image of or equal to"@x-gmeow-english ;
-    lang:inScript gmeow:gmnScript ;
-    gmeow:gmnCodepoints "U+2291" .
-
-ex:subsumesOperatorForm
-    a lang:WordForm ;
-    rdfs:label "the GMN subsumption operator"@x-gmeow-english ;
-    lang:inSignSystem gmeow:gmnModelNotation .
-
-ex:denSubsumesOperator
-    a lang:Denotation ;
-    lang:denotedForm ex:subsumesOperatorForm ;
-    lang:denotationKind lang:denotesEntity ;
-    lang:denotationTarget rdfs:subClassOf ;
-    lang:denotationContext ex:gmnGlyphTableContext .
-
-ex:gmnGlyphTableContext
-    a gmeow:InformationObject ;
-    rdfs:label "the GMN glyph-table context"@x-gmeow-english .
+# The canonical inventory in module.ttl owns the complete U+2291 chain:
+# gmeow:gmnGlyphLogicSubClassOf -> gmeow:gmnFormLogicSubClassOf ->
+# gmeow:gmnDenLogicSubClassOf -> logic:subClassOf, plus the audited
+# gmeow:gmnCandidateLogicSubClassOf disposition. This example deliberately
+# REFERENCES that one authority instead of minting a second grapheme/denotation
+# table. The downstream rdfs:subClassOf spelling is reached only through the
+# logic slice's grounding correspondence, never denoted directly here.
 
 ex:glyphSourceRecordSquareImage
     a gmeow:InformationObject ;
     rdfs:label "glyph-table source record for ⊑"@x-gmeow-english ;
-    gmeow:references ex:gSquareImageOfOrEqual ;
-    gmeow:cites ex:dlNotationCanon .
-
-ex:dlNotationCanon
-    a gmeow:CreativeWork ;
-    gmeow:title "The Description Logic Handbook"@x-gmeow-english .
+    gmeow:references gmeow:gmnGlyphLogicSubClassOf ,
+        gmeow:gmnDenLogicSubClassOf ,
+        gmeow:gmnCandidateLogicSubClassOf ;
+    gmeow:cites gmeow:gmnDescriptionLogicNotationWork .
 
 ex:citeSquareImageGlyph
     a gmeow:CitationAct ;
     gmeow:citingEntity   ex:glyphSourceRecordSquareImage ;
-    gmeow:citedEntity    ex:dlNotationCanon ;
+    gmeow:citedEntity    gmeow:gmnDescriptionLogicNotationWork ;
     gmeow:citationIntent gmeow:intentConformsTo .
 
-# --- A complete GMN envelope: the full eight-field contract ------------------ #
+# --- A complete GMN envelope: the full nine-field contract ------------------ #
 # One envelope per serialized GMN payload: the three dialect coordinates, the
 # boundary ring, the asserting standpoint, the generating activity, the
-# byte-exact digest, and the losslessness judgment — a logic:Correspondence.
+# codebook-frame digest (gmeow:gmnCodebookDigest), the byte-exact content
+# digest, and the losslessness judgment — a logic:Correspondence.
 
 ex:archiveKeeper a gmeow:Agent .
 ex:nightlyGmnWrite a gmeow:Activity .
@@ -86,12 +60,13 @@ ex:corrNightlyEnvelope
 ex:nightlyEnvelope
     a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveKeeper ;
     gmeow:wasGeneratedBy ex:nightlyGmnWrite ;
     gmeow:contentDigest "blake3:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrNightlyEnvelope .
 
 # --- A compartmented-scope envelope: the NATO demonstrator ring -------------- #
@@ -115,12 +90,13 @@ ex:corrCoalitionEnvelope
 ex:coalitionEnvelope
     a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
-    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnDictionaryVersion "3" ;
+    gmeow:gmnGlyphTableVersion "2" ;
     gmeow:gmnSecurityRing gmeow:gmnRingNato ;
     gmeow:accordingTo ex:coalitionDesk ;
     gmeow:wasGeneratedBy ex:coalitionGmnWrite ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:gmnCodebookDigest "blake3:f3790c9de9cbce99c7f14d9fc35761993b7648b91bcdffa4af001275d8567051" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrCoalitionEnvelope .
 
 # --- A worked gmeow:gmnRingWithin flow example: querying the DERIVED order --- #
