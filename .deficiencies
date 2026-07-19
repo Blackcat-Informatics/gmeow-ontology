@@ -1725,26 +1725,3 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   dispatch_query under ProceduralPrologProfile, and/or a shipped logic:ReasoningProgram the
   reason-verify gate runs — so `make check` exercises an exact-ℚ / dimension / bilinear builtin
   query on the production surface.
-
-## 2026-07-19 — issue 1385 (canonical affect prototypes + `gmeow affect classify`)
-
-- WEAKER-PROXY (AffectPrototype cardinality no longer declaratively enforced): the plan
-  authored three EL-safe OWL restrictions on `gmeow:AffectPrototype` — `prototypeFor`
-  min-1, `vectorComponent` min-1, and `vectorProfile hasValue coreAffectMetricPAD`. They
-  were REMOVED because each is an `rdfs:subClassOf` edge (to an `owl:Restriction` blank
-  node) that the affect slice's `vocab rdfs` ungrounded-residue slice-quality ratchet
-  counts, and the slice was already AT its committed projection ceiling (49) — adding them
-  pushed it to 53, and a ceiling raise is a maintainer-only out-of-band decision. The class
-  subsumption `AffectPrototype ⊑ AffectVectorObservation` was re-authored as the GROUNDED
-  `logic:subClassOf` (projected to `rdfs:subClassOf`, not counted as residue), so the class
-  hierarchy is unchanged. Of the three removed restrictions: `vectorProfile hasValue` is a
-  CORRECTION (the explicit-vantage-Gram model decouples a prototype's declared profile from
-  the classification vantage, so pinning it was over-constraint); `vectorComponent` min-1 is
-  fully enforced at runtime (`load_cells` hard-fails a prototype with no readable cells). The
-  genuine loss is `prototypeFor` min-1: that every `gmeow:AffectPrototype` names exactly one
-  `gmeow:EmotionType` now holds by authored-instance correctness (all 10 canonical prototypes
-  declare it; `prototypeFor` still carries `rdfs:range gmeow:EmotionType` + `owl:FunctionalProperty`)
-  rather than by an enforced cardinality obligation. FORWARD PATH: re-express the min-1
-  obligation as a GROUNDED `logic:Constraint` + `logic:Formula` (the `AppraisalFramedValueConstraint`
-  idiom, which the residue ratchet does not count), or a maintainer ceiling raise (49 → 50)
-  authorizing the hand-authored OWL restriction.

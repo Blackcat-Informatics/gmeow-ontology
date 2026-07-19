@@ -2480,6 +2480,58 @@ logic:arsDim a logic:Formula ; logic:relation gmeow:appraisalDimension ;
 logic:arsVal a logic:Formula ; logic:relation gmeow:appraisalValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .
 
+# Every gmeow:AffectPrototype names the gmeow:EmotionType it is the typical signature of:
+# gmeow:prototypeFor is mandatory (min-1). With owl:FunctionalProperty + rdfs:range
+# gmeow:EmotionType this is exactly-one-of-the-right-type. Authored as a GROUNDED
+# logic:Constraint (not a hand-authored owl:Restriction) so the min-1 obligation projects
+# through the Principle-17 SHACL-derive path, OFF the ungrounded-rdfs residue ledger.
+gmeow:AffectPrototypePrototypeForPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectPrototype prototypeFor-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectPrototype declares the gmeow:EmotionType it is the typical signature of via gmeow:prototypeFor."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectPrototype , gmeow:AffectPrototypeShape ;
+    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:prototypeFor — a prototype OF no named gmeow:EmotionType is meaningless. With owl:FunctionalProperty + rdfs:range gmeow:EmotionType this is exactly-one EmotionType." ;
+    logic:integrity logic:pfpForall .
+logic:pfpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pfpImpl .
+logic:pfpImpl a logic:Formula ; logic:antecedent logic:pfpGuard ; logic:consequent logic:pfpExists .
+logic:pfpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectPrototype ] .
+logic:pfpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:pfpAtom .
+logic:pfpAtom a logic:Formula ; logic:relation gmeow:prototypeFor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+# Every gmeow:AffectPrototype carries at least one gmeow:vectorComponent cell (min-1): a
+# prototype with no readable core-affect cell is an empty signature. The classify runtime
+# `load_cells` already hard-fails it, but validation belongs in logic: — this GROUNDED
+# logic:Constraint restores the ontology-level obligation (projected to SHACL, off the
+# residue ledger) so `make validate` catches a cell-less prototype too.
+gmeow:AffectPrototypeVectorComponentPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectPrototype vectorComponent-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectPrototype declares at least one gmeow:vectorComponent core-affect cell."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectPrototype , gmeow:AffectPrototypeShape ;
+    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:vectorComponent cell — a prototype with no core-affect signature cell is an empty vector." ;
+    logic:integrity logic:vcpForall .
+logic:vcpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:vcpImpl .
+logic:vcpImpl a logic:Formula ; logic:antecedent logic:vcpGuard ; logic:consequent logic:vcpExists .
+logic:vcpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectPrototype ] .
+logic:vcpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:vcpAtom .
+logic:vcpAtom a logic:Formula ; logic:relation gmeow:vectorComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
 # =========================================================================== #
 # Migrated procedural constraints (#1194): the affect-domain closed-world shapes  #
 # from shapes/gmeow-shapes.ttl, re-authored as logic:Constraint integrity trees   #
