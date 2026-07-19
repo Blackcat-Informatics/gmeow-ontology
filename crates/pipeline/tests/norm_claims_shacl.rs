@@ -14,8 +14,9 @@
 //! bundle but structurally invisible to the validator.
 //!
 //! This test does not merely assert that fact; it PROVES the Task-1 mandatory-`vantage`
-//! restriction on `gmeow:ComplianceAssessment` (`slices/extensions/norms/module.ttl`,
-//! `owl:Restriction` on `gmeow:vantage` with `owl:minQualifiedCardinality 1`) actually
+//! constraint on `gmeow:ComplianceAssessment` (`slices/extensions/norms/module.ttl`,
+//! `gmeow:ComplianceAssessmentVantageConstraint` — a `logic:Constraint` guarded on
+//! `logic:directType gmeow:ComplianceAssessment` that the frontend derives to SHACL) actually
 //! FIRES as a SHACL violation on the shipped assessment: it validates the well-formed
 //! `graph/norm-claims` fragment unioned with the bundle's default graph — the object-level
 //! TBox, exactly the flattened dataset `make validate-gts` checks (must CONFORM) — and a
@@ -203,11 +204,11 @@ fn shipped_norm_claims_shacl_conforms_and_fails_without_mandatory_vantage() {
     );
 
     // Negative half: dropping the assessment's ONLY gmeow:vantage triple must produce a
-    // SHACL violation — the non-vacuity proof that the Task-1 mandatory-vantage
-    // restriction (`gmeow:ComplianceAssessment rdfs:subClassOf [ owl:onProperty
-    // gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ]`,
+    // SHACL violation — the non-vacuity proof that the Task-1 mandatory-vantage constraint
+    // (`gmeow:ComplianceAssessmentVantageConstraint`, a logic:Constraint guarded on
+    // logic:directType gmeow:ComplianceAssessment requiring gmeow:vantage,
     // `slices/extensions/norms/module.ttl`) is genuinely enforced by the derived shape.
-    // If that restriction were ever deleted, no shape would fire here, this mutant would
+    // If that constraint were ever deleted, no shape would fire here, this mutant would
     // incorrectly conform, and this assertion would fail.
     let mutated_graph = norm_claims_only_graph(Some((assessment.as_str(), vantage_pred.as_str())));
     let mutated_dataset = purrdf::gts::dataset_from_gts_graph(&mutated_graph)
