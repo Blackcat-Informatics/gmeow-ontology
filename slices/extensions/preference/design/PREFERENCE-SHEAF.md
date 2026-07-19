@@ -137,6 +137,6 @@ relation, distinct from "not yet compared" and from a tie.
   Cl(12)-bundle-over-E8 structure **compositionally** (`math:CellularSheaf` with
   Clifford-module `math:SheafStalk`s over an E8-organized `math:CellComplex` +
   `math:connectionOfSheaf`) and the gap is **surfaced to the maintainer as a separate
-  grounding follow-up issue** — it is a scope-ownership boundary, not a descope of any
-  issue-#1525 acceptance criterion (none of which needs a named bundle object; the
+  grounding follow-up** — it is a scope-ownership boundary, not a descope of any
+  acceptance criterion (none of which needs a named bundle object; the
   geometry is the consumer's substrate, referenced by content digest).

@@ -1036,7 +1036,7 @@ gmeow:HardSoftDisjointnessConstraint
 # =========================================================================== #
 
 gmeow:PreferenceProof
-    a logic:Kind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Preference Proof"@x-gmeow-english ;
@@ -1222,7 +1222,7 @@ gmeow:scalarizationChoice
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:DpoView
-    a logic:Kind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "DPO View"@x-gmeow-english ;
