@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CONFORMS-witness for gmeow:VantageScopedStrictOrderConstraint (G3): the cell-scoping proof.
+# TWO different gmeow:PreferenceProjection cells assert OPPOSITE within-cell orders — cell 1
+# prefers A≻B, cell 2 prefers B≻A — each via its OWN reified gmeow:PreferenceEdge under its OWN
+# gmeow:PreferenceOrder. This is the LEGAL Principle-9 cross-vantage conflict (the H1 obstruction),
+# NOT a violation: because G3 joins both edges through ?cell gmeow:projectionOrder ?order
+# gmeow:orderEdge, the reversed edges never meet under a single order, so G3 does NOT fire. The
+# scene must validate CLEAN (zero findings). This is exactly the conflict a global asymmetry check
+# over bare gmeow:preferredOver would have wrongly rejected (FLAG-1) — the reason G3 rides the
+# cell-attributed reified edge.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- Cell 1: evaluator one's local order prefers A ≻ B ------------------------- #
+ex:eval1 a gmeow:Standpoint ; rdfs:label "evaluator one"@en .
+ex:rel1 a math:Relation ; rdfs:label "cell 1's raw relation"@en .
+ex:order1 a gmeow:PreferenceOrder ;
+    gmeow:orderRelation ex:rel1 ;
+    gmeow:orderEdge ex:e1 .
+ex:e1 a gmeow:PreferenceEdge ; gmeow:edgeWinner ex:candA ; gmeow:edgeLoser ex:candB .
+ex:cell1 a gmeow:PreferenceProjection ;
+    rdfs:label "evaluator one's local order cell (A ≻ B)"@en ;
+    gmeow:vantage ex:eval1 ;
+    gmeow:projectionOrder ex:order1 .
+
+# --- Cell 2: evaluator two's local order prefers B ≻ A (the legal conflict) ---- #
+ex:eval2 a gmeow:Standpoint ; rdfs:label "evaluator two"@en .
+ex:rel2 a math:Relation ; rdfs:label "cell 2's raw relation"@en .
+ex:order2 a gmeow:PreferenceOrder ;
+    gmeow:orderRelation ex:rel2 ;
+    gmeow:orderEdge ex:e2 .
+ex:e2 a gmeow:PreferenceEdge ; gmeow:edgeWinner ex:candB ; gmeow:edgeLoser ex:candA .
+ex:cell2 a gmeow:PreferenceProjection ;
+    rdfs:label "evaluator two's local order cell (B ≻ A)"@en ;
+    gmeow:vantage ex:eval2 ;
+    gmeow:projectionOrder ex:order2 .

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:VantageScopedStrictOrderConstraint (G3): ONE gmeow:PreferenceProjection
+# cell whose gmeow:PreferenceOrder carries a REVERSED pair of reified gmeow:PreferenceEdges — an
+# edge A≻B and an edge B≻A under the SAME order. That is an incoherent strict order within one
+# cell (asymmetry violated). Because both edges hang under this single cell's order, the ∀→¬∃
+# SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent and NO other finding — the
+# scene carries no claim, receipt, verdict, tie, or incomparability, isolating exactly the
+# within-cell reversal. (Contrast cross-cell-legal-conflict.ttl, where the SAME reversal across two
+# DIFFERENT cells is legal.)
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+ex:eval a gmeow:Standpoint ; rdfs:label "the evaluator vantage"@en .
+ex:rel a math:Relation ; rdfs:label "the raw relation the order references"@en .
+
+# The DEFECT: one cell's order carries BOTH A≻B and B≻A (reified edges).
+ex:order a gmeow:PreferenceOrder ;
+    gmeow:orderRelation ex:rel ;
+    gmeow:orderEdge ex:eAB , ex:eBA .
+ex:eAB a gmeow:PreferenceEdge ; gmeow:edgeWinner ex:candA ; gmeow:edgeLoser ex:candB .
+ex:eBA a gmeow:PreferenceEdge ; gmeow:edgeWinner ex:candB ; gmeow:edgeLoser ex:candA .
+
+ex:cell a gmeow:PreferenceProjection ;
+    rdfs:label "one evaluator's local order cell — incoherent (reversed pair)"@en ;
+    gmeow:vantage ex:eval ;
+    gmeow:projectionOrder ex:order .

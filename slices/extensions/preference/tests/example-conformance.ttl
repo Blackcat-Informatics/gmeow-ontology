@@ -72,6 +72,18 @@ ex:ecSoftOverridesHard a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "A candidate carrying a HARD gmeow:VerifierVerdict of gmeow:verdictNotHeld is bound as a gmeow:selectedCandidate. A genuine whole-base discharged gmeow:PreferenceClaim backs the selection, so gmeow:SelectedCandidateRequiresConsensusConstraint (F1) and gmeow:NoGlobalWinnerWithoutConsensusConstraint are SATISFIED and not the violation under test; the sole defect is the hard-failing selection, so the ∀→¬∃ SPARQL constraint of gmeow:HardFailureNotOverriddenConstraint (gmeow:HardFailureOverridden) MUST emit shacl.SPARQLConstraintComponent and NO other finding. Exactly one violation, AND no other." .
 
+# === G3 — within-cell strict order is asymmetric; cross-cell reversal is legal = #
+ex:ecWithinCellOrderCycle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/within-cell-order-cycle.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "ONE gmeow:PreferenceProjection cell's gmeow:PreferenceOrder carries a reversed reified gmeow:PreferenceEdge pair (A≻B and B≻A under the same order), an incoherent within-cell strict order. Because gmeow:VantageScopedStrictOrderConstraint (G3) now joins both edges through ?cell gmeow:projectionOrder ?order gmeow:orderEdge, the reversed pair is caught within the single cell, so its ∀→¬∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding — the scene carries no claim/receipt/verdict/tie, isolating the within-cell reversal. Exactly one violation, AND no other." .
+
+ex:ecCrossCellLegalConflict a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cross-cell-legal-conflict.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "TWO different gmeow:PreferenceProjection cells assert opposite within-cell orders — cell 1 prefers A≻B, cell 2 prefers B≻A — each via its OWN reified gmeow:PreferenceEdge under its OWN gmeow:PreferenceOrder. This is the LEGAL Principle-9 cross-vantage conflict (FLAG-1), NOT a violation: because gmeow:VantageScopedStrictOrderConstraint (G3) scopes both edges to a single cell's order, the reversed edges never meet, so G3 does NOT fire and the scene validates CLEAN (zero findings). This is the regression witness that G3 is genuinely cell-scoped — a global bare-preferredOver asymmetry check would have wrongly rejected it." .
+
 # === G1 — a tie and a positive incomparability are distinct verdicts ========== #
 ex:ecIncomparabilityCollapsedToTie a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/incomparability-collapsed-to-tie.ttl" ;

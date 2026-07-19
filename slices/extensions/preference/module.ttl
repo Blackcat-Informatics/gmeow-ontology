@@ -189,7 +189,7 @@ gmeow:preferredOver
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "preferred over"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "The STRICT comparative relation: within one gmeow:PreferenceProjection cell (one vantage's local order), the candidate on the left is strictly preferred to the candidate on the right. It is a strict partial order (irreflexive, asymmetric, transitive — the logic:properPartOf reading) but only its IRREFLEXIVITY is declared globally (gmeow:preferredOverIrreflexivity, safe); its ASYMMETRY and TRANSITIVITY are enforced CELL-SCOPED only by gmeow:VantageScopedStrictOrderConstraint (G3), NEVER as global characteristics (FLAG-1): two vantages legitimately assert gmeow:preferredOver(A,B) and gmeow:preferredOver(B,A), and a cross-vantage cycle is the legal H1 obstruction, not a contradiction — cross-vantage conflicts are carried by the reified, vantage-indexed gmeow:PreferenceObservation/gmeow:PreferenceClaim, not by bare conflicting edges. It is NOT gmeow:preferentiallyEquivalentWith (a tie) nor gmeow:incomparableWith (a positive non-order)."@x-gmeow-english ;
+    skos:definition "The STRICT comparative relation: within one gmeow:PreferenceProjection cell (one vantage's local order), the candidate on the left is strictly preferred to the candidate on the right. It is a strict partial order (irreflexive, asymmetric, transitive — the logic:properPartOf reading) but only its IRREFLEXIVITY is declared globally (gmeow:preferredOverIrreflexivity, safe). Its ASYMMETRY and TRANSITIVITY are NOT declared as global characteristics (FLAG-1): two vantages legitimately assert gmeow:preferredOver(A,B) and gmeow:preferredOver(B,A), and a cross-vantage cycle is the legal H1 obstruction, not a contradiction — cross-vantage conflicts are carried by the reified, vantage-indexed gmeow:PreferenceObservation/gmeow:PreferenceClaim, not by bare conflicting edges. This bare candidate→candidate relation is uncell-scopeable, so per-cell asymmetry is enforced NOT over it but over the cell-attributed reified gmeow:PreferenceEdges (gmeow:edgeWinner/gmeow:edgeLoser hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge) by gmeow:VantageScopedStrictOrderConstraint (G3): winner gmeow:preferredOver loser is the bare reading of an edge, and G3 fires only on a reversed pair under ONE cell's order. It is NOT gmeow:preferentiallyEquivalentWith (a tie) nor gmeow:incomparableWith (a positive non-order)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:preferentiallyEquivalentWith
@@ -303,6 +303,52 @@ gmeow:projectionOrder
     rdfs:label "projection order"@x-gmeow-english ;
     rdfs:range gmeow:PreferenceOrder ;
     skos:definition "Relates a gmeow:PreferenceProjection cell to the gmeow:PreferenceOrder it carries — the reified local order (referencing a raw math:Relation) that is coherent within the cell. It is the cell→order edge; the vantage the cell is held from rides gmeow:vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Reified within-cell strict-preference EDGES (the cell-attributed order) --- #
+# FLAG-1 / G3 cell-scoping: bare gmeow:preferredOver is a candidate→candidate edge with
+# NO structural attribution to a cell, so a constraint over it can only ever be GLOBAL —
+# it cannot tell one cell's order from another's, and a global asymmetry check would
+# reject the legal cross-vantage conflict preferredOver(A,B) ∧ preferredOver(B,A)
+# (Principle 9). The within-cell order is therefore carried by REIFIED gmeow:PreferenceEdge
+# nodes hung under the cell's gmeow:PreferenceOrder (gmeow:orderEdge), each naming its
+# gmeow:edgeWinner and gmeow:edgeLoser. gmeow:VantageScopedStrictOrderConstraint (G3) joins
+# these edges through ?cell gmeow:projectionOrder ?order gmeow:orderEdge ?e, so a reversed
+# pair is a violation ONLY when BOTH edges sit under the SAME cell's order — two DIFFERENT
+# cells asserting opposite directions is the legal coexistence, never a violation.
+gmeow:PreferenceEdge
+    a owl:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "preference edge"@x-gmeow-english ;
+    skos:definition "A reified directed strict-preference edge WITHIN one gmeow:PreferenceProjection cell's order: it names a gmeow:edgeWinner (the strictly preferred candidate) and a gmeow:edgeLoser (the dispreferred one). It is the CELL-ATTRIBUTED carrier of the within-cell strict order — hung under the cell's gmeow:PreferenceOrder via gmeow:orderEdge — that makes gmeow:VantageScopedStrictOrderConstraint (G3) genuinely cell-scoped (FLAG-1). It corresponds to the bare candidate→candidate gmeow:preferredOver relation (winner preferredOver loser) but, unlike the bare edge, it is attributable to exactly one cell, so a reversed pair is incoherent only within a single cell — a cross-vantage reversal across two cells is the legal Principle-9 conflict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:orderEdge
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PreferenceOrder ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "order edge"@x-gmeow-english ;
+    rdfs:range gmeow:PreferenceEdge ;
+    skos:definition "Relates a gmeow:PreferenceOrder (the reified order one gmeow:PreferenceProjection cell carries) to a gmeow:PreferenceEdge it contains — a within-cell directed strict-preference pair. Because every edge is reached ONLY through its owning cell's order, gmeow:VantageScopedStrictOrderConstraint (G3) can scope its asymmetry/irreflexivity check to a single cell (FLAG-1)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:edgeWinner
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PreferenceEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "edge winner"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The strictly preferred candidate of a within-cell gmeow:PreferenceEdge (the winner side of the directed pair). Corresponds to the subject of the bare gmeow:preferredOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:edgeLoser
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PreferenceEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "edge loser"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The dispreferred candidate of a within-cell gmeow:PreferenceEdge (the loser side of the directed pair). Corresponds to the object of the bare gmeow:preferredOver edge, but carried cell-attributed so G3 is cell-scoped."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Strict-order (irreflexivity only, global-safe) + tie/incomparability ----- #
@@ -716,10 +762,10 @@ gmeow:VantageScopedStrictOrderConstraint
     rdfs:label "Vantage-scoped strict-order constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: within a single gmeow:PreferenceProjection cell, the cell's gmeow:PreferenceOrder must not relate a candidate to itself and must not carry both gmeow:preferredOver(a,b) and gmeow:preferredOver(b,a). Strict-order coherence (irreflexivity, asymmetry) is enforced CELL-SCOPED only (FLAG-1, G3): a cross-vantage cycle is the legal H1 obstruction, not a violation, so the constraint is guarded to one cell's order. A ∀→¬∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: within a single gmeow:PreferenceProjection cell, the cell's gmeow:PreferenceOrder must not carry a reversed pair of gmeow:PreferenceEdges — an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) together with an edge (gmeow:edgeWinner b, gmeow:edgeLoser a) — where a self-loop (a = b) is the degenerate reflexive case (both edges collapse to one). The check is GENUINELY cell-scoped: both edges are reached through ?cell gmeow:projectionOrder ?order gmeow:orderEdge, so it fires ONLY when both sit under the SAME cell's order. Two DIFFERENT cells asserting opposite directions is the legal Principle-9 cross-vantage conflict (the H1 obstruction), NEVER a violation — this is why the check rides the cell-attributed reified gmeow:PreferenceEdge, not the bare candidate→candidate gmeow:preferredOver (which is uncell-scopeable and would wrongly reject that conflict globally, FLAG-1). A ∀→¬∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:PreferenceProjection ;
     logic:severity "Violation" ;
-    logic:message "Within a single gmeow:PreferenceProjection cell, gmeow:preferredOver must be irreflexive and asymmetric; a reflexive or two-way strictly-preferred pair inside one cell is incoherent (cross-vantage cycles remain the legal obstruction)." ;
+    logic:message "Within a single gmeow:PreferenceProjection cell, the cell's order must be irreflexive and asymmetric: no reversed pair of gmeow:PreferenceEdges (a≻b and b≻a) — nor a self-loop (a≻a) — may sit under one cell's gmeow:PreferenceOrder (cross-vantage reversals across DIFFERENT cells remain the legal obstruction)." ;
     logic:integrity gmeow:vssForall .
 gmeow:vssForall a logic:Formula ;
     rdfs:label "vssForall (formula AST node)"@x-gmeow-english ;
@@ -734,16 +780,36 @@ gmeow:vssNoCycle a logic:Formula ;
     rdfs:label "vssNoCycle (formula AST node)"@x-gmeow-english ; logic:not gmeow:vssBad .
 gmeow:vssBad a logic:Formula ;
     rdfs:label "vssBad (formula AST node)"@x-gmeow-english ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e1" ] , [ logic:termIndex 2 ; logic:termVariable "e2" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] ;
     logic:exists gmeow:vssBadBody .
+# Cell-scoped: BOTH edges are reached through ?this gmeow:projectionOrder ?order
+# gmeow:orderEdge, so a reversed pair (a≻b ∧ b≻a) is a violation only WITHIN one cell's
+# order. A self-loop (a = b, e1 = e2) is the degenerate reflexive case, caught by the
+# same body. A cross-vantage reversal across two DIFFERENT cells never matches (their
+# edges hang under different ?order nodes) — that is the legal Principle-9 obstruction.
 gmeow:vssBadBody a logic:Formula ;
-    rdfs:label "vssBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:vssAB , gmeow:vssBA .
-gmeow:vssAB a logic:Formula ;
-    rdfs:label "vssAB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-gmeow:vssBA a logic:Formula ;
-    rdfs:label "vssBA (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+    rdfs:label "vssBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:vssOrder , gmeow:vssE1 , gmeow:vssE2 , gmeow:vssE1Win , gmeow:vssE1Lose , gmeow:vssE2Win , gmeow:vssE2Lose .
+gmeow:vssOrder a logic:Formula ;
+    rdfs:label "vssOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "order" ] .
+gmeow:vssE1 a logic:Formula ;
+    rdfs:label "vssE1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e1" ] .
+gmeow:vssE2 a logic:Formula ;
+    rdfs:label "vssE2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e2" ] .
+gmeow:vssE1Win a logic:Formula ;
+    rdfs:label "vssE1Win (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e1" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+gmeow:vssE1Lose a logic:Formula ;
+    rdfs:label "vssE1Lose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e1" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+gmeow:vssE2Win a logic:Formula ;
+    rdfs:label "vssE2Win (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e2" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+gmeow:vssE2Lose a logic:Formula ;
+    rdfs:label "vssE2Lose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e2" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 
 # --- G2: a sharper standpoint's order restricts, never contradicts ----------- #
 gmeow:RestrictionCoherenceConstraint
@@ -751,10 +817,10 @@ gmeow:RestrictionCoherenceConstraint
     rdfs:label "Restriction coherence constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (G2): when one gmeow:PreferenceProjection cell sharpens another (gmeow:vantage related by gmeow:sharpens), the sharper cell's gmeow:preferredOver must RESTRICT, not CONTRADICT, the coarser one — it may not assert gmeow:preferredOver(b,a) where the coarser cell asserts gmeow:preferredOver(a,b) UNLESS a gmeow:DisagreementObstruction is present to carry the disagreement. A ∀→¬∃ formula testing a sharpens-linked contradicting pair with no recorded obstruction, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (G2): when one gmeow:PreferenceProjection cell (this, the sharper) sharpens another (gmeow:vantage related by gmeow:sharpens), the sharper cell's order must RESTRICT, not CONTRADICT, the coarser one — the sharper cell's gmeow:PreferenceOrder may not carry a gmeow:PreferenceEdge (gmeow:edgeWinner b, gmeow:edgeLoser a) where the coarser cell's order carries an edge (gmeow:edgeWinner a, gmeow:edgeLoser b) UNLESS a gmeow:DisagreementObstruction is present to carry the disagreement. Like G3 it rides the cell-attributed reified gmeow:PreferenceEdge (each edge reached through its own cell's gmeow:projectionOrder gmeow:orderEdge), never the uncell-scopeable bare gmeow:preferredOver, so the sharper and coarser edges are genuinely tied to their respective cells. A ∀→¬∃ formula testing a sharpens-linked contradicting pair with no recorded obstruction, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:PreferenceProjection ;
     logic:severity "Violation" ;
-    logic:message "A gmeow:PreferenceProjection that sharpens another must restrict, not contradict, its order: a reversed gmeow:preferredOver pair along gmeow:sharpens with no gmeow:DisagreementObstruction is incoherent refinement." ;
+    logic:message "A gmeow:PreferenceProjection that sharpens another must restrict, not contradict, its order: a reversed reified gmeow:PreferenceEdge pair along gmeow:sharpens (the sharper cell's order prefers b≻a where the coarser prefers a≻b) with no gmeow:DisagreementObstruction is incoherent refinement." ;
     logic:integrity gmeow:rccForall .
 gmeow:rccForall a logic:Formula ;
     rdfs:label "rccForall (formula AST node)"@x-gmeow-english ;
@@ -769,11 +835,13 @@ gmeow:rccNoContra a logic:Formula ;
     rdfs:label "rccNoContra (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccBad .
 gmeow:rccBad a logic:Formula ;
     rdfs:label "rccBad (formula AST node)"@x-gmeow-english ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] , [ logic:termIndex 2 ; logic:termVariable "vc" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] , [ logic:termIndex 2 ; logic:termVariable "vc" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] , [ logic:termIndex 5 ; logic:termVariable "os" ] , [ logic:termIndex 6 ; logic:termVariable "es" ] , [ logic:termIndex 7 ; logic:termVariable "oc" ] , [ logic:termIndex 8 ; logic:termVariable "ec" ] ;
     logic:exists gmeow:rccBadBody .
+# Cell-scoped like G3: the sharper edge es hangs under THIS cell's order os, the coarser
+# edge ec under the OTHER cell's order oc, and the two cells' vantages are sharpens-linked.
 gmeow:rccBadBody a logic:Formula ;
     rdfs:label "rccBadBody (formula AST node)"@x-gmeow-english ;
-    logic:and gmeow:rccSharpVantage , gmeow:rccCoarseVantage , gmeow:rccSharpens , gmeow:rccSharpEdge , gmeow:rccCoarseEdge , gmeow:rccNoObstruction .
+    logic:and gmeow:rccSharpVantage , gmeow:rccCoarseVantage , gmeow:rccSharpens , gmeow:rccSharpOrder , gmeow:rccSharpEdgeNode , gmeow:rccSharpWin , gmeow:rccSharpLose , gmeow:rccCoarseOrder , gmeow:rccCoarseEdgeNode , gmeow:rccCoarseWin , gmeow:rccCoarseLose , gmeow:rccNoObstruction .
 gmeow:rccSharpVantage a logic:Formula ;
     rdfs:label "rccSharpVantage (formula AST node)"@x-gmeow-english ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
@@ -783,12 +851,30 @@ gmeow:rccCoarseVantage a logic:Formula ;
 gmeow:rccSharpens a logic:Formula ;
     rdfs:label "rccSharpens (formula AST node)"@x-gmeow-english ; logic:relation gmeow:sharpens ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vc" ] .
-gmeow:rccSharpEdge a logic:Formula ;
-    rdfs:label "rccSharpEdge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "b" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
-gmeow:rccCoarseEdge a logic:Formula ;
-    rdfs:label "rccCoarseEdge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferredOver ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+gmeow:rccSharpOrder a logic:Formula ;
+    rdfs:label "rccSharpOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "os" ] .
+gmeow:rccSharpEdgeNode a logic:Formula ;
+    rdfs:label "rccSharpEdgeNode (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "os" ] , [ logic:termIndex 1 ; logic:termVariable "es" ] .
+gmeow:rccSharpWin a logic:Formula ;
+    rdfs:label "rccSharpWin (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "es" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+gmeow:rccSharpLose a logic:Formula ;
+    rdfs:label "rccSharpLose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "es" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+gmeow:rccCoarseOrder a logic:Formula ;
+    rdfs:label "rccCoarseOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "oc" ] .
+gmeow:rccCoarseEdgeNode a logic:Formula ;
+    rdfs:label "rccCoarseEdgeNode (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "oc" ] , [ logic:termIndex 1 ; logic:termVariable "ec" ] .
+gmeow:rccCoarseWin a logic:Formula ;
+    rdfs:label "rccCoarseWin (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ec" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+gmeow:rccCoarseLose a logic:Formula ;
+    rdfs:label "rccCoarseLose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ec" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:rccNoObstruction a logic:Formula ;
     rdfs:label "rccNoObstruction (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccObstrEx .
 gmeow:rccObstrEx a logic:Formula ;
