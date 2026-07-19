@@ -58,7 +58,10 @@ pub fn docs_package(out: &std::path::Path) -> i32 {
     }
     let archive_digest_path = sidecar_path(&out_path);
     if let Err(e) = std::fs::write(&archive_digest_path, format!("{archive_digest}\n")) {
-        return fail(format!("cannot write {}: {e}", archive_digest_path.display()));
+        return fail(format!(
+            "cannot write {}: {e}",
+            archive_digest_path.display()
+        ));
     }
 
     let manifest_bytes = match std::fs::read(&manifest_path) {
@@ -74,7 +77,10 @@ pub fn docs_package(out: &std::path::Path) -> i32 {
     let manifest_digest = gmeow_pipeline::docs_distribution::blake3_of(&manifest_bytes);
     let manifest_digest_path = sidecar_path(&manifest_path);
     if let Err(e) = std::fs::write(&manifest_digest_path, format!("{manifest_digest}\n")) {
-        return fail(format!("cannot write {}: {e}", manifest_digest_path.display()));
+        return fail(format!(
+            "cannot write {}: {e}",
+            manifest_digest_path.display()
+        ));
     }
 
     let mut produced: Vec<(PathBuf, String)> = vec![

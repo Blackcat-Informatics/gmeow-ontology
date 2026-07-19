@@ -183,8 +183,11 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     ];
     let mut entries = Vec::with_capacity(format_trees.len());
     for (slug, rel_path, tree) in format_trees {
-        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree)
-            .map_err(|e| fail(format!("cannot content-address the {slug} distribution: {e}")))?;
+        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree).map_err(|e| {
+            fail(format!(
+                "cannot content-address the {slug} distribution: {e}"
+            ))
+        })?;
         let media_type = gmeow_pipeline::stages::distribution_catalog::media_type_for_slug(slug)
             .ok_or_else(|| {
                 fail(format!(

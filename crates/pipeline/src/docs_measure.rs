@@ -183,7 +183,11 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
         None,
         None,
     )
-    .map_err(|e| err(format!("frame the Design B docs-only sidecar snapshot: {e}")))?
+    .map_err(|e| {
+        err(format!(
+            "frame the Design B docs-only sidecar snapshot: {e}"
+        ))
+    })?
     .len() as u64;
 
     let without_docs_bytes =
@@ -372,9 +376,11 @@ fn render_print(
         .ok_or_else(|| err("missing stage-compile-logic product for the print renderer"))?;
     let mut axioms: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for rel in AXIOM_FILES {
-        let bytes = compile_logic
-            .artifact(rel)
-            .ok_or_else(|| err(format!("missing axiom artifact {rel} for the print renderer")))?;
+        let bytes = compile_logic.artifact(rel).ok_or_else(|| {
+            err(format!(
+                "missing axiom artifact {rel} for the print renderer"
+            ))
+        })?;
         axioms.insert(rel.to_string(), bytes.to_vec());
     }
     let bib = products
@@ -454,7 +460,9 @@ fn source_snippets(site: &BTreeMap<String, Vec<u8>>) -> Result<BTreeMap<String, 
 /// is documented as "the standalone `make sync SYNC_OUTPUTS=docs` entry" that
 /// requires an already-materialized `generated/shapes` tree; this module has
 /// the fresher, in-memory bytes already, from the same run that fed Design C).
-fn pydantic_docs_tree(products: &BTreeMap<String, StageProduct>) -> Result<BTreeMap<String, Vec<u8>>, Diag> {
+fn pydantic_docs_tree(
+    products: &BTreeMap<String, StageProduct>,
+) -> Result<BTreeMap<String, Vec<u8>>, Diag> {
     let product = products
         .get("stage-export-pydantic")
         .ok_or_else(|| err("missing stage-export-pydantic product for the pydantic docs format"))?;
@@ -511,8 +519,11 @@ mod tests {
         let second = measure_docs_designs(&root).expect("second measurement");
         assert_eq!(first, second);
         assert!(!first.formats.is_empty());
-        let mut sorted_names: Vec<&str> =
-            first.formats.iter().map(|f| f.format_name.as_str()).collect();
+        let mut sorted_names: Vec<&str> = first
+            .formats
+            .iter()
+            .map(|f| f.format_name.as_str())
+            .collect();
         let mut expected = sorted_names.clone();
         expected.sort_unstable();
         assert_eq!(sorted_names, expected, "formats must be sorted by name");

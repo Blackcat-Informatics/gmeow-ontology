@@ -120,10 +120,15 @@ pub fn render_serialization_distributions(
 /// construction failure [`purrdf::ustar::write_archive`] itself documents —
 /// no-optionality forbids silently swallowing that failure into a bogus digest.
 pub fn distribution_blake3(tree: &BTreeMap<String, Vec<u8>>) -> Result<String, Diag> {
-    let members: Vec<(String, Vec<u8>)> =
-        tree.iter().map(|(name, data)| (name.clone(), data.clone())).collect();
-    let archive = purrdf::ustar::write_archive(&members)
-        .map_err(|e| err(format!("tar a distribution tree for content-addressing: {e}")))?;
+    let members: Vec<(String, Vec<u8>)> = tree
+        .iter()
+        .map(|(name, data)| (name.clone(), data.clone()))
+        .collect();
+    let archive = purrdf::ustar::write_archive(&members).map_err(|e| {
+        err(format!(
+            "tar a distribution tree for content-addressing: {e}"
+        ))
+    })?;
     Ok(format!("blake3:{}", blake3::hash(&archive).to_hex()))
 }
 
@@ -186,22 +191,30 @@ fn collect_docs_files(
     let entries = std::fs::read_dir(dir)
         .map_err(|e| err(format!("read directory {}: {e}", dir.display())))?;
     for entry in entries {
-        let entry = entry
-            .map_err(|e| err(format!("read a directory entry under {}: {e}", dir.display())))?;
+        let entry = entry.map_err(|e| {
+            err(format!(
+                "read a directory entry under {}: {e}",
+                dir.display()
+            ))
+        })?;
         let path = entry.path();
         if path.is_dir() {
             collect_docs_files(root, &path, out)?;
             continue;
         }
-        let rel = path
-            .strip_prefix(root)
-            .map_err(|e| err(format!("compute the relative path of {}: {e}", path.display())))?;
+        let rel = path.strip_prefix(root).map_err(|e| {
+            err(format!(
+                "compute the relative path of {}: {e}",
+                path.display()
+            ))
+        })?;
         let rel_str: String = rel
             .components()
             .map(|c| c.as_os_str().to_string_lossy().into_owned())
             .collect::<Vec<_>>()
             .join("/");
-        let bytes = std::fs::read(&path).map_err(|e| err(format!("read {}: {e}", path.display())))?;
+        let bytes =
+            std::fs::read(&path).map_err(|e| err(format!("read {}: {e}", path.display())))?;
         out.insert(rel_str, bytes);
     }
     Ok(())
@@ -292,8 +305,11 @@ pub fn build_docs_distribution_manifest(
     let dcat_rq = std::str::from_utf8(dcat_rq_bytes)
         .map_err(|e| err(format!("bundled dcat.rq is not valid UTF-8: {e}")))?;
 
-    project_graph(&instance_nt, dcat_rq, &TagMap::default())
-        .map_err(|e| err(format!("project the release distribution instance through dcat.rq: {e}")))
+    project_graph(&instance_nt, dcat_rq, &TagMap::default()).map_err(|e| {
+        err(format!(
+            "project the release distribution instance through dcat.rq: {e}"
+        ))
+    })
 }
 
 // ── consumer-side catalog matrix (issue 1491 Task 5, `gmeow docs matrix`) ─────────
@@ -343,7 +359,11 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| err(format!("gts read_graph failed: {e}")))?;
     let term = |id: usize| -> String {
-        graph.terms.get(id).and_then(|t| t.value.clone()).unwrap_or_default()
+        graph
+            .terms
+            .get(id)
+            .and_then(|t| t.value.clone())
+            .unwrap_or_default()
     };
     let catalog: Vec<(String, String, String)> = graph
         .quads
@@ -386,17 +406,29 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
             .iter()
             .find(|(s, p, _)| s == subject && *p == pred_format)
             .map(|(_, _, o)| o.clone())
-            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:distributionFormat")))?;
+            .ok_or_else(|| {
+                err(format!(
+                    "distribution {subject} is missing gmeow:distributionFormat"
+                ))
+            })?;
         let family = catalog
             .iter()
             .find(|(s, p, _)| s == subject && *p == pred_family)
             .map(|(_, _, o)| local_name(o))
-            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:distributionFamily")))?;
+            .ok_or_else(|| {
+                err(format!(
+                    "distribution {subject} is missing gmeow:distributionFamily"
+                ))
+            })?;
         let media_type = catalog
             .iter()
             .find(|(s, p, _)| s == subject && *p == pred_media)
             .map(|(_, _, o)| o.clone())
-            .ok_or_else(|| err(format!("distribution {subject} is missing gmeow:artifactMediaType")))?;
+            .ok_or_else(|| {
+                err(format!(
+                    "distribution {subject} is missing gmeow:artifactMediaType"
+                ))
+            })?;
 
         let mut consumers: Vec<String> = catalog
             .iter()
@@ -423,7 +455,9 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
                 .find(|(s, p, _)| s == loss_node && *p == pred_accounts)
                 .map(|(_, _, o)| local_name(o))
                 .ok_or_else(|| {
-                    err(format!("loss node {loss_node} is missing gmeow:accountsForParameter"))
+                    err(format!(
+                        "loss node {loss_node} is missing gmeow:accountsForParameter"
+                    ))
                 })?;
             dropped_capabilities.push(cap);
         }
@@ -467,7 +501,7 @@ pub struct DistributionVerdict {
 /// for each — optionally restricted to the single slug `only` — recomputes
 /// [`package_docs_dir`]`(dir.join(slug)).1` and compares.
 ///
-/// No-optionality: a missing/unparseable manifest, a manifest with zero declared
+/// No-optionality: a missing/unparsable manifest, a manifest with zero declared
 /// distributions, an `only` slug the manifest does not name, or a referenced format
 /// directory that is missing/empty under `dir`, is a HARD FAIL — never a silently
 /// skipped or partial verdict list.
@@ -483,8 +517,12 @@ pub fn verify_docs_distribution(
             manifest_path.display()
         ))
     })?;
-    let dataset = purrdf::parse_dataset(&bytes, "application/n-triples", None)
-        .map_err(|e| err(format!("parse {} as N-Triples: {e}", manifest_path.display())))?;
+    let dataset = purrdf::parse_dataset(&bytes, "application/n-triples", None).map_err(|e| {
+        err(format!(
+            "parse {} as N-Triples: {e}",
+            manifest_path.display()
+        ))
+    })?;
     let quads = purrdf::flat_rdf_quads_from_dataset(dataset.as_ref());
 
     const DIST_BASE: &str = "https://blackcatinformatics.ca/gmeow/distribution/dist/";
@@ -648,7 +686,10 @@ mod tests {
         let d1 = distribution_blake3(&tree).expect("digest 1");
         let d2 = distribution_blake3(&tree).expect("digest 2");
         assert_eq!(d1, d2, "distribution_blake3 must be deterministic");
-        assert!(d1.starts_with("blake3:"), "digest must carry the blake3: prefix: {d1}");
+        assert!(
+            d1.starts_with("blake3:"),
+            "digest must carry the blake3: prefix: {d1}"
+        );
 
         tree.insert("a.txt".to_string(), b"HELLO".to_vec());
         let d3 = distribution_blake3(&tree).expect("digest 3");
@@ -665,8 +706,14 @@ mod tests {
 
         let (archive1, digest1) = package_docs_dir(tmp.path()).expect("package 1");
         let (archive2, digest2) = package_docs_dir(tmp.path()).expect("package 2");
-        assert_eq!(archive1, archive2, "package_docs_dir must be byte-reproducible");
-        assert_eq!(digest1, digest2, "package_docs_dir digest must be deterministic");
+        assert_eq!(
+            archive1, archive2,
+            "package_docs_dir must be byte-reproducible"
+        );
+        assert_eq!(
+            digest1, digest2,
+            "package_docs_dir digest must be deterministic"
+        );
         assert!(
             digest1.starts_with("blake3:"),
             "digest must carry the blake3: prefix: {digest1}"
@@ -674,7 +721,10 @@ mod tests {
 
         std::fs::write(sub.join("b.txt"), b"WORLD").expect("mutate sub/b.txt");
         let (archive3, digest3) = package_docs_dir(tmp.path()).expect("package 3");
-        assert_ne!(archive1, archive3, "changing content must change the archive bytes");
+        assert_ne!(
+            archive1, archive3,
+            "changing content must change the archive bytes"
+        );
         assert_ne!(digest1, digest3, "changing content must change the digest");
     }
 
@@ -705,7 +755,10 @@ mod tests {
         let entries = sample_entries();
         let m1 = build_docs_distribution_manifest(&entries, &gts_bytes).expect("manifest 1");
         let m2 = build_docs_distribution_manifest(&entries, &gts_bytes).expect("manifest 2");
-        assert_eq!(m1, m2, "the release distribution manifest must be byte-reproducible");
+        assert_eq!(
+            m1, m2,
+            "the release distribution manifest must be byte-reproducible"
+        );
     }
 
     #[test]
@@ -769,7 +822,10 @@ mod tests {
         let mut sorted = lines.clone();
         sorted.sort();
         sorted.dedup();
-        assert_eq!(lines, sorted, "release instance N-Triples must be sorted+deduped");
+        assert_eq!(
+            lines, sorted,
+            "release instance N-Triples must be sorted+deduped"
+        );
     }
 
     // ── read_distribution_matrix ────────────────────────────────────────────────
@@ -782,7 +838,9 @@ mod tests {
         let dataset = crate::stages::distribution_catalog::build_distribution_catalog()
             .expect("build distribution catalog");
         let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
-        builder.add_dataset(&dataset).expect("add catalog dataset to snapshot builder");
+        builder
+            .add_dataset(&dataset)
+            .expect("add catalog dataset to snapshot builder");
         crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
             .expect("frame the synthetic GTS snapshot")
     }
@@ -794,7 +852,9 @@ mod tests {
         let slugs: Vec<&str> = rows.iter().map(|r| r.slug.as_str()).collect();
         assert_eq!(
             slugs,
-            vec!["jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"],
+            vec![
+                "jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"
+            ],
             "matrix must carry exactly the eight declared distributions, sorted by slug"
         );
 
@@ -805,7 +865,10 @@ mod tests {
 
         let okf = rows.iter().find(|r| r.slug == "okf").expect("okf row");
         assert_eq!(okf.family, "serialization");
-        assert_eq!(okf.consumers, vec!["consumerKnowledgeFederation".to_string()]);
+        assert_eq!(
+            okf.consumers,
+            vec!["consumerKnowledgeFederation".to_string()]
+        );
         assert!(
             okf.dropped_capabilities.is_empty(),
             "serialization family declares no loss: {okf:?}"
@@ -861,11 +924,19 @@ mod tests {
         std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");
 
         let verdicts = verify_docs_distribution(docs_dir, None).expect("verify fresh package");
-        assert_eq!(verdicts.len(), 1, "expected exactly one verdict: {verdicts:?}");
+        assert_eq!(
+            verdicts.len(),
+            1,
+            "expected exactly one verdict: {verdicts:?}"
+        );
         assert_eq!(verdicts[0].slug, "sample");
         assert_eq!(verdicts[0].declared, digest);
         assert_eq!(verdicts[0].actual, digest);
-        assert!(verdicts[0].ok, "a freshly packaged tree must verify clean: {:?}", verdicts[0]);
+        assert!(
+            verdicts[0].ok,
+            "a freshly packaged tree must verify clean: {:?}",
+            verdicts[0]
+        );
 
         // Flip a byte in the packaged tree — the recomputed digest must diverge and the
         // verdict must flip to failed, never silently pass.
@@ -876,7 +947,11 @@ mod tests {
             verdicts[0].actual, verdicts[0].declared,
             "tampering must change the recomputed digest"
         );
-        assert!(!verdicts[0].ok, "a tampered tree must fail verification: {:?}", verdicts[0]);
+        assert!(
+            !verdicts[0].ok,
+            "a tampered tree must fail verification: {:?}",
+            verdicts[0]
+        );
 
         // `only` filtering on the sole declared slug still finds it.
         let filtered =

@@ -15,7 +15,10 @@ pub fn docs_measure() -> i32 {
         Err(e) => return fail(format!("docs-measure failed: {e}")),
     };
 
-    println!("{:<12} {:<14} {:>16} {:>16}", "format", "family", "uncompressed", "l12-framed");
+    println!(
+        "{:<12} {:<14} {:>16} {:>16}",
+        "format", "family", "uncompressed", "l12-framed"
+    );
     for format in &measurements.formats {
         println!(
             "{:<12} {:<14} {:>16} {:>16}",

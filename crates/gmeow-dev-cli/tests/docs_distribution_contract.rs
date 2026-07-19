@@ -255,7 +255,11 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
          `gmeow_pipeline::docs_distribution::render_serialization_distributions`, never a \
          re-implemented serializer"
     );
-    for banned in ["fn render_okf", "fn serialize_graph(", "fn serialize_graph_yaml("] {
+    for banned in [
+        "fn render_okf",
+        "fn serialize_graph(",
+        "fn serialize_graph_yaml(",
+    ] {
         assert!(
             !dev_project.contains(banned),
             "AC2/AC6 (issue 1491): dev_project.rs must not re-implement `{banned}` — okf/JSON-LD/\
@@ -275,7 +279,11 @@ fn ac2_ac6_single_serializer_authority_no_reimplementation() {
              call the single authority `{authority}`, never a re-derived serializer"
         );
     }
-    for banned in ["fn render_okf", "fn serialize_graph(", "fn serialize_graph_yaml("] {
+    for banned in [
+        "fn render_okf",
+        "fn serialize_graph(",
+        "fn serialize_graph_yaml(",
+    ] {
         assert!(
             !docs_distribution.contains(banned),
             "AC2/AC6 (issue 1491): docs_distribution.rs must not locally re-implement `{banned}` — \
@@ -300,7 +308,8 @@ fn ac5_forbidden_embed_gate_stays_present() {
 /// Recursively collect every `.rs` file under `dir` (skipping `target/` build
 /// output directories, which are not committed source).
 fn walk_rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
-    let entries = std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read dir {}: {e}", dir.display()));
+    let entries =
+        std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read dir {}: {e}", dir.display()));
     for entry in entries {
         let entry = entry.expect("read a directory entry");
         let path = entry.path();

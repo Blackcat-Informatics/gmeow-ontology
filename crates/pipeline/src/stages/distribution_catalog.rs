@@ -132,8 +132,8 @@ fn doc_render_consumer(fmt: DocFormat) -> &'static str {
 /// Build the distribution catalog graph: the eight distributions, their two families,
 /// and (doc-render only) their declared capability loss, folded into
 /// [`GRAPH_DISTRIBUTION_CATALOG`].
-pub fn build_distribution_catalog()
--> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+pub fn build_distribution_catalog() -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag>
+{
     let nt = emit_ntriples();
     parse_into_graph(&nt, "application/n-triples", GRAPH_DISTRIBUTION_CATALOG)
 }
@@ -289,11 +289,7 @@ fn emit_ntriples() -> Vec<u8> {
         for cap in &caps.dropped {
             let cap_slug = cap.slug();
             let loss_node = loss_iri(slug, cap_slug);
-            lines.push(triple(
-                &dist,
-                &iri(GMEOW_NS, "declaredLoss"),
-                &loss_node,
-            ));
+            lines.push(triple(&dist, &iri(GMEOW_NS, "declaredLoss"), &loss_node));
             skeleton(
                 &mut lines,
                 &loss_node,
@@ -440,11 +436,8 @@ mod tests {
             let caps = format_capabilities(fmt);
             for cap in Capability::ALL {
                 let loss_node = loss_iri(slug, cap.slug());
-                let declares = nt.contains(&triple(
-                    &dist,
-                    &iri(GMEOW_NS, "declaredLoss"),
-                    &loss_node,
-                ));
+                let declares =
+                    nt.contains(&triple(&dist, &iri(GMEOW_NS, "declaredLoss"), &loss_node));
                 let is_dropped = caps.dropped.contains(&cap);
                 assert_eq!(
                     declares, is_dropped,

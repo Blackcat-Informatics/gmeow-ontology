@@ -4234,7 +4234,10 @@ pub fn docs_verify(reporter: &dyn Reporter, dir: &Path, format: Option<&str>) ->
             return fail(
                 reporter,
                 "gmeow-cli.docs.verify.read",
-                format!("cannot verify the docs distribution under {}: {e}", dir.display()),
+                format!(
+                    "cannot verify the docs distribution under {}: {e}",
+                    dir.display()
+                ),
             );
         }
     };
@@ -4253,8 +4256,11 @@ pub fn docs_verify(reporter: &dyn Reporter, dir: &Path, format: Option<&str>) ->
     if all_ok {
         return 0;
     }
-    let mismatched: Vec<&str> =
-        verdicts.iter().filter(|v| !v.ok).map(|v| v.slug.as_str()).collect();
+    let mismatched: Vec<&str> = verdicts
+        .iter()
+        .filter(|v| !v.ok)
+        .map(|v| v.slug.as_str())
+        .collect();
     fail(
         reporter,
         "gmeow-cli.docs.verify.mismatch",
