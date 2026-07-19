@@ -1500,10 +1500,10 @@ gmeow:SelectedCandidateRequiresConsensusConstraint
     rdfs:label "Selected candidate requires consensus constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (AC2/F1): a gmeow:ProjectionReceipt of ANY kind (especially listwise/scalarized, whose argmax emits one top pick) that binds a gmeow:selectedCandidate at whole-gmeow:CandidateSet scope is REJECTED unless a resource typed gmeow:PreferenceClaim asserts a global winner (gmeow:assertsGlobalWinner true), extends to a gmeow:ConsensusSection, and discharges a gmeow:DisagreementObstruction — closing the 'argmax winner that never sets the flag' bypass. A ∀→∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (AC2/F1): a gmeow:ProjectionReceipt of ANY kind (especially listwise/scalarized, whose argmax emits one top pick) that binds a gmeow:selectedCandidate at whole-gmeow:CandidateSet scope is REJECTED unless a resource typed gmeow:PreferenceClaim asserts a global winner (gmeow:assertsGlobalWinner true), extends to a gmeow:ConsensusSection that gmeow:reconcilesObservation an observation whose gmeow:observationPrefers winner IS that selected candidate, and discharges a gmeow:DisagreementObstruction — closing both the 'argmax winner that never sets the flag' bypass AND the cross-candidate/cross-context leak (a discharged claim about a DIFFERENT candidate can never back this selection). A ∀→∃ formula, projected to a sh:SPARQLConstraint."@x-gmeow-english ;
     logic:formalizes gmeow:ProjectionReceipt ;
     logic:severity "Violation" ;
-    logic:message "A gmeow:ProjectionReceipt binding a gmeow:selectedCandidate must be backed by a typed gmeow:PreferenceClaim that asserts a global winner, extends to a gmeow:ConsensusSection, and discharges a gmeow:DisagreementObstruction (F1)." ;
+    logic:message "A gmeow:ProjectionReceipt binding a gmeow:selectedCandidate must be backed by a typed gmeow:PreferenceClaim that asserts a global winner, extends to a gmeow:ConsensusSection reconciling an observation that prefers THAT selected candidate, and discharges a gmeow:DisagreementObstruction (F1)." ;
     logic:integrity gmeow:srcForall .
 gmeow:srcForall a logic:Formula ;
     rdfs:label "srcForall (formula AST node)"@x-gmeow-english ;
@@ -1525,10 +1525,22 @@ gmeow:srcSelectsAtom a logic:Formula ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:srcExists a logic:Formula ;
     rdfs:label "srcExists (formula AST node)"@x-gmeow-english ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] , [ logic:termIndex 3 ; logic:termVariable "obs" ] ;
     logic:exists gmeow:srcBody .
+# The consequent MUST bind the guard's selected ?cand: the backing claim's
+# whole-base consensus section must reconcile an observation whose winner IS this
+# receipt's selected candidate. Without srcReconciles + srcObsPrefersCand the ∃
+# claim floats free of ?cand — any discharged winner-claim anywhere (about a
+# different candidate / CandidateSet / ComparisonContext) would satisfy it,
+# reopening the "hidden winner via a projection's top pick" bypass (Hard Rule 3).
 gmeow:srcBody a logic:Formula ;
-    rdfs:label "srcBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge .
+    rdfs:label "srcBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge , gmeow:srcReconciles , gmeow:srcObsPrefersCand .
+gmeow:srcReconciles a logic:Formula ;
+    rdfs:label "srcReconciles (formula AST node)"@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
+gmeow:srcObsPrefersCand a logic:Formula ;
+    rdfs:label "srcObsPrefersCand (formula AST node)"@x-gmeow-english ; logic:relation gmeow:observationPrefers ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:srcClaimType a logic:Formula ;
     rdfs:label "srcClaimType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceClaim ] .

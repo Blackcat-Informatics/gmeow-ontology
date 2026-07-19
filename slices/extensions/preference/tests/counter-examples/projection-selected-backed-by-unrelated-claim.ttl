@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1): the
+# CROSS-CANDIDATE LEAK. A gmeow:ProjectionReceipt selects ex:candB at whole-gmeow:CandidateSet
+# scope, and the graph DOES carry a fully-discharged whole-base gmeow:PreferenceClaim — but that
+# claim's consensus reconciles an observation preferring ex:candA, a DIFFERENT candidate. A
+# receipt's selected candidate must be backed by a discharged winner claim for THAT candidate;
+# a discharged claim about someone else can never legitimise this selection. The scene is
+# otherwise fully legal — the consensus is genuine and whole-base (so
+# gmeow:NoGlobalWinnerWithoutConsensusConstraint is SATISFIED and NOT the violation under test),
+# and the receipt is well-formed (content-addressed, deterministic with a tie-break rule, exact
+# preservation, no hard verdict) — so the ∀→∃ SPARQL constraint MUST reject the unbacked
+# selection with shacl.SPARQLConstraintComponent and NO other finding. Exactly one violation,
+# AND no other.
+#
+# This is the regression witness for the F1 soundness fix: BEFORE the fix (whose ∃ consequent
+# never bound the selected ?cand) this scene passed clean, because a discharged claim existed
+# SOMEWHERE; AFTER the fix (∃ threads sec gmeow:reconcilesObservation ?obs .
+# ?obs gmeow:observationPrefers ?cand) it is correctly rejected.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ---------------------------------------------- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A — the actual reconciled winner"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B — selected, but backed by nobody"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- A genuine whole-base discharged consensus — but its winner is ex:candA ---- #
+ex:eval a gmeow:Standpoint ; rdfs:label "the evaluator"@en .
+ex:panel a gmeow:Standpoint ; rdfs:label "the panel standpoint"@en .
+ex:goal a gmeow:Goal ; rdfs:label "select the strongest response"@en .
+
+ex:ctx a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal ;
+    gmeow:contentDigest "blake3:f206f206f206f206f206f206f206f206f206f206f206f206f206f206f206f206" ;
+    gmeow:registersObservation ex:obs .
+ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obs a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval ; gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:feat ; gmeow:observationPrefers ex:candA .
+
+ex:h0 a math:GlobalSection .
+ex:h1 a math:GluingObstruction .
+ex:obstruction a gmeow:DisagreementObstruction ; gmeow:obstructionClass ex:h1 .
+ex:consensus a gmeow:ConsensusSection ;
+    gmeow:consensusGlobalSection ex:h0 ;
+    gmeow:sectionContext ex:ctx ;
+    gmeow:reconcilesObservation ex:obs .              # <-- reconciles the ex:candA winner only
+ex:claim a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:panel ; gmeow:accordingTo ex:panel ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:consensus ;
+    gmeow:dischargesDisagreement ex:obstruction .
+
+# --- The DEFECT: a projection selects ex:candB, whom no discharged claim backs - #
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a projection selecting ex:candB, backed only by a claim about ex:candA"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:selectedCandidate ex:candB ;               # <-- winner claim exists, but for ex:candA
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:f306f306f306f306f306f306f306f306f306f306f306f306f306f306f306f306" .

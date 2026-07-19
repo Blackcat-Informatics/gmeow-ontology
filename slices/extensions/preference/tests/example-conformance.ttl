@@ -51,6 +51,13 @@ ex:ecProjectionArgmaxWinnerNoConsensus a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "A gmeow:ProjectionReceipt binds a gmeow:selectedCandidate at whole-set scope with no backing gmeow:PreferenceClaim that asserts a global winner, extends to a consensus section, and discharges an obstruction — the argmax-winner bypass. The receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation), so the ∀→∃ SPARQL constraint of gmeow:SelectedCandidateRequiresConsensusConstraint (F1) MUST emit shacl.SPARQLConstraintComponent and NO other finding — exactly one violation, AND no other." .
 
+# === F1 (cross-candidate leak) — a discharged claim about a different candidate does not back this selection === #
+ex:ecProjectionSelectedBackedByUnrelatedClaim a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-selected-backed-by-unrelated-claim.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A gmeow:ProjectionReceipt selects ex:candB at whole-set scope, and the graph carries a fully-discharged whole-base gmeow:PreferenceClaim — but its gmeow:ConsensusSection gmeow:reconcilesObservation an observation whose gmeow:observationPrefers winner is ex:candA, a DIFFERENT candidate. Because gmeow:SelectedCandidateRequiresConsensusConstraint (F1) now threads the selected candidate into its ∃ consequent (the backing claim's consensus must reconcile an observation preferring the SELECTED candidate), the cross-candidate leak is closed: the ∀→∃ SPARQL constraint MUST emit shacl.SPARQLConstraintComponent and NO other finding. The consensus is genuine and whole-base (gmeow:NoGlobalWinnerWithoutConsensusConstraint SATISFIED) and the receipt is otherwise well-formed (content-addressed, deterministic + tie-break, exact preservation, no hard verdict), isolating the unbacked selection — exactly one violation, AND no other." .
+
 # === F4 — same inputs must yield the same digest ============================== #
 ex:ecProjectionSameInputsDivergentDigest a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/projection-same-inputs-divergent-digest.ttl" ;
