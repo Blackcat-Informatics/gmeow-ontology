@@ -184,9 +184,35 @@ pub enum QBuiltin {
         /// Right comparison operand.
         rhs: QTerm,
     },
+    /// `target is bilinearSqDist(gram, x, y)` — the exact bilinear-form squared
+    /// distance `(x − y)ᵀ G (x − y)` over exact ℚ (no √; √ stays a seam).
+    ///
+    /// A named 3-ary math builtin. `gram` is an IRI to an authored `math:GramMatrix`,
+    /// and `x`/`y` are IRIs to authored `math:` vectors (each operand is a `Const` IRI,
+    /// or a `Var` bound to an IRI). The moded evaluator loads the exact-rational Gram
+    /// cells and coordinate vectors from the graph and binds `target` to the exact
+    /// `Value::Rat` squared distance (or filters when `target` is already bound). This
+    /// is the first entry of a table-driven family of `math:` moded builtins.
+    BilinearSqDist {
+        /// The variable (or operand) that receives the exact squared distance.
+        target: QTerm,
+        /// The `math:GramMatrix` IRI operand (the symmetric bilinear form).
+        gram: QTerm,
+        /// The first `math:` vector IRI operand.
+        x: QTerm,
+        /// The second `math:` vector IRI operand.
+        y: QTerm,
+    },
 }
 
 /// Arithmetic operators recognized in `X is Expr` builtins.
+///
+/// Operator identity is stable across the exact-numeric value tower: `+ - *` are
+/// shared across ℤ and ℚ, [`ArithOp::Div`] (`//`) is truncating-integer division
+/// (the ℤ operator), and [`ArithOp::ExactDiv`] (`/`) is exact rational division (the
+/// ℚ operator). `//` and `/` are DISTINCT operators — `//` truncates toward zero on
+/// integers, `/` yields the exact rational quotient — resolving the historical
+/// ℤ/ℚ division overload.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArithOp {
     /// Addition (`+`).
@@ -195,8 +221,10 @@ pub enum ArithOp {
     Sub,
     /// Multiplication (`*`).
     Mul,
-    /// Integer division (`//`).
+    /// Truncating integer division (`//`, toward zero) — the ℤ division operator.
     Div,
+    /// Exact rational division (`/`) — the ℚ division operator, distinct from `//`.
+    ExactDiv,
 }
 
 impl ArithOp {
@@ -207,6 +235,7 @@ impl ArithOp {
             ArithOp::Sub => "-",
             ArithOp::Mul => "*",
             ArithOp::Div => "//",
+            ArithOp::ExactDiv => "/",
         }
     }
 }
@@ -1100,6 +1129,16 @@ fn try_parse_builtin(
         let target_str = tok[..is_pos].trim();
         let rhs_str = tok[is_pos + 4..].trim();
         let target = parse_term(target_str, prefixes)?;
+        // A named n-ary math function on the RHS (e.g. `bilinearSqDist(G, X, Y)`) is a
+        // moded math builtin, detected BEFORE the arithmetic split so its parenthesized
+        // argument list (which may contain `/` inside `<iri>`s) is never mistaken for a
+        // binary arithmetic operator. The table is greenfield-extensible: more math
+        // builtins register a name here.
+        if let Some((name, args)) = parse_named_function(rhs_str)
+            && let Some(builtin) = try_parse_math_function(name, &args, &target, prefixes)?
+        {
+            return Ok(Some(builtin));
+        }
         // Split a binary RHS on its arithmetic operator (multi-char `//` checked
         // first). A single operand is the arithmetic-expression base case; lower it
         // canonically to `operand + 0` so parsing, hashing, mode analysis, and execution
@@ -1128,6 +1167,61 @@ fn try_parse_builtin(
     }
 
     Ok(None)
+}
+
+/// Detect an RHS shaped as a named n-ary function call `name(arg0, arg1, ...)`.
+///
+/// Returns `(name, arg_tokens)` when `s` is `name(...)` with a bare alphanumeric
+/// name and a `)`-terminated argument list, splitting the arguments at top-level
+/// commas (parens/quotes respected, exactly like [`split_comma_top`]). Returns
+/// `None` for any non-function shape (a bare operand, an arithmetic expression), so
+/// the caller falls through to the arithmetic split.
+fn parse_named_function(s: &str) -> Option<(&str, Vec<&str>)> {
+    let s = s.trim();
+    if !s.ends_with(')') {
+        return None;
+    }
+    let open = s.find('(')?;
+    let name = s[..open].trim();
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return None;
+    }
+    let inner = &s[open + 1..s.len() - 1];
+    Some((name, split_comma_top(inner)))
+}
+
+/// Table-driven parse of a named math builtin from its `name(args)` surface.
+///
+/// `Ok(Some(_))` for a recognized math function (currently only `bilinearSqDist/3`),
+/// `Ok(None)` for an unrecognized name (the caller falls through to arithmetic), or
+/// `Err` for a recognized name with the wrong arity — a malformed builtin, never a
+/// silent fallthrough.
+fn try_parse_math_function(
+    name: &str,
+    args: &[&str],
+    target: &QTerm,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Option<QBuiltin>> {
+    match name {
+        "bilinearSqDist" => {
+            if args.len() != 3 {
+                return Err(query_err(format!(
+                    "bilinearSqDist(...) takes exactly 3 arguments (gram, x, y); got {}",
+                    args.len()
+                )));
+            }
+            let gram = parse_term(args[0].trim(), prefixes)?;
+            let x = parse_term(args[1].trim(), prefixes)?;
+            let y = parse_term(args[2].trim(), prefixes)?;
+            Ok(Some(QBuiltin::BilinearSqDist {
+                target: target.clone(),
+                gram,
+                x,
+                y,
+            }))
+        }
+        _ => Ok(None),
+    }
 }
 
 /// Find a top-level (not inside parens/quotes) occurrence of `needle` in `s`.
@@ -1175,21 +1269,27 @@ fn is_atom_shaped(tok: &str) -> bool {
 }
 
 /// Split an arithmetic RHS `lhs op rhs` on the first top-level arithmetic operator.
-/// `//` is checked before `/`-family single chars; returns `(lhs, op, rhs)`.
+///
+/// The multi-char `//` (truncating integer division, [`ArithOp::Div`]) is checked
+/// FIRST so it always wins over the single-char `/` (exact rational division,
+/// [`ArithOp::ExactDiv`]) when both could match. The single-char pass then adds `/`
+/// alongside `+ * -`, each skipping a leading-sign occurrence at position 0.
+/// Returns `(lhs, op, rhs)`.
 fn split_arith(s: &str) -> Option<(&str, ArithOp, &str)> {
-    // Multi-char first.
+    // Multi-char first: `//` must bind before the lone `/`.
     if let Some(pos) = find_infix_top(s, "//") {
         return Some((&s[..pos], ArithOp::Div, &s[pos + 2..]));
     }
-    // Single-char operators. `-` is searched as ` - ` (spaces) to avoid colliding
-    // with a leading sign; `+ * ` likewise require surrounding context only loosely.
+    // Single-char operators. A leading `-`/`+`/`/` at position 0 is a sign or a
+    // dangling operator (no LHS), not a binary split, so it is skipped.
     for (tok, op) in [
         ("+", ArithOp::Add),
         ("*", ArithOp::Mul),
         ("-", ArithOp::Sub),
+        ("/", ArithOp::ExactDiv),
     ] {
         if let Some(pos) = find_infix_top(s, tok) {
-            // Skip a leading-sign `-`/`+` (operator at position 0 with no LHS).
+            // Skip a leading-sign `-`/`+`/`/` (operator at position 0 with no LHS).
             if pos == 0 {
                 continue;
             }
@@ -1665,6 +1765,40 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             }
             other => panic!("expected Is builtin, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn parse_distinguishes_truncating_and_exact_division_operators() {
+        // `//` parses to the truncating-integer operator; a lone `/` to exact ℚ
+        // division. `//` (multi-char, checked first) always wins over `/`.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(A, B) :- A is 6 // 4, B is 6 / 4.\n\
+             ?- ex:p(A, B).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 2);
+        assert_eq!(
+            body[0],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("A".to_owned()),
+                lhs: QTerm::Num(6),
+                op: ArithOp::Div,
+                rhs: QTerm::Num(4),
+            })
+        );
+        assert_eq!(
+            body[1],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("B".to_owned()),
+                lhs: QTerm::Num(6),
+                op: ArithOp::ExactDiv,
+                rhs: QTerm::Num(4),
+            })
+        );
+        assert_eq!(ArithOp::Div.token(), "//");
+        assert_eq!(ArithOp::ExactDiv.token(), "/");
     }
 
     #[test]

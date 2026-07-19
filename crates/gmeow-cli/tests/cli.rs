@@ -500,6 +500,92 @@ fn affect_fixture_gts() -> PathBuf {
     path
 }
 
+/// Build a fixture `.gts` from the canonical `module.ttl` (carries the core-affect
+/// axis indices) merged with the committed nearest-prototype worked example.
+fn affect_nearest_fixture_gts() -> PathBuf {
+    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+    use purrdf::{NativeRdfFormat, parse_dataset};
+
+    let mut builder = SnapshotBuilder::default();
+    for relative in [
+        "core/affect/module.ttl",
+        "core/affect/examples/nearest-prototype-metric.ttl",
+    ] {
+        let text = std::fs::read(slice_path(relative)).expect("read slice file");
+        let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
+            .unwrap_or_else(|e| panic!("parse {relative}: {e}"));
+        builder.add_dataset(&dataset).expect("add dataset");
+    }
+    let bytes = emit_gts(
+        &builder,
+        "dist",
+        None,
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .expect("emit gts");
+
+    let dir = scratch("affect-nearest-fixture");
+    let path = dir.join("affect-nearest.gts");
+    std::fs::write(&path, bytes).expect("write fixture gts");
+    path
+}
+
+#[test]
+fn affect_nearest_selects_metric_nearest_prototype() {
+    // Under the valence-dominant metric diag(2, 1) the state (0.5, 0.0) is classified
+    // to ELATION (exact squared 19/50) — NOT the raw-L²-nearest contentment (0.34).
+    // Selection is by exact Rational squared distance; the CLI prints the winner, the
+    // exact squared distance, and the display √ decimal.
+    let fixture = affect_nearest_fixture_gts();
+    let ns = "https://blackcatinformatics.ca/gmeow/examples/affect/nearest/";
+    gmeow()
+        .args(["affect", "nearest"])
+        .arg(&fixture)
+        .args(["--observation", &format!("{ns}stateObservation")])
+        .args(["--prototype", &format!("{ns}contentmentPrototype")])
+        .args(["--prototype", &format!("{ns}elationPrototype")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains(format!("nearest {ns}elationPrototype"))
+                .and(predicate::str::contains("squared-distance 19/50")),
+        );
+}
+
+#[test]
+fn affect_nearest_missing_source_is_a_runtime_error() {
+    gmeow()
+        .args([
+            "affect",
+            "nearest",
+            "/nonexistent-affect-fixture.gts",
+            "--observation",
+            "urn:x",
+            "--prototype",
+            "urn:p",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
+}
+
+#[test]
+fn affect_nearest_without_prototype_is_a_clap_usage_error() {
+    // `--prototype` is `required = true`, so omitting it fails with a usage error
+    // (exit 2) before the source is read.
+    gmeow()
+        .args(["affect", "nearest", "/dev/null", "--observation", "urn:x"])
+        .assert()
+        .failure()
+        .code(2)
+        .stderr(predicate::str::contains("--prototype").and(predicate::str::contains("Usage:")));
+}
+
 #[test]
 fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
     // Q10: the CLI computes √(xᵀGx) over the canonical coreAffectGram

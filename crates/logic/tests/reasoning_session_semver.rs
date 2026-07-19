@@ -27,13 +27,13 @@ use session_common::*;
 /// (non-resource ref / duplicate slot hard-fails), and the MSA critical-instance size cap
 /// all move the `physical/chase.rs` / `reason/dl.rs` content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "49458ce909129def61cc27c2c4b64a20725b54c3c39a62d1d025bce1e67a8ef1";
+    "53f769341556ef2df634a391c33ccd4f2ac144dea1b1f241a19a9e2bc58bcee1";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e019f1038a6c118485bff881d422f3cb16693acce002b32e32ff0cea7dae19c9";
+    "8610b18a7133b52ec73d8183ceb13212b4e9278bece10d8c5d7b857b74971237";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

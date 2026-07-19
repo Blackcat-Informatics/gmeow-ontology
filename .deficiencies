@@ -1682,3 +1682,46 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   incomplete). FORWARD PATH: a full multi-hop unification-reachability (tracking the
   Skolem term through datalog laundering) would close the gap; it converges toward the
   MSA/MFA critical-instance machinery already shipped for the MSA rung.
+
+# ── issue #1428 (native moded builtin family: exact-ℚ, SI ℚ⁷ dimensions, bilinear distance) — merged 2026-07-19 (PR #1603) ──
+
+- HUMAN-SIGNED-OFF DESCOPE (issue AC2 "native rule program" → shipped enforcement):
+  the dimensional-homogeneity hard-fail gate ships as a Rust-NATIVE reasoned-graph pass
+  (crates/logic/src/math_dimension.rs, run at `make reason-verify` over the frozen
+  reasoned graph via verify.rs:315), NOT as a gate DERIVED-from and reasoner-MATERIALIZED
+  from the authored `logic:Formula` ASTs (math:dimensionalHomogeneityLaw /
+  integralDimensionCompositionLaw in slices/grounding/math/module.ttl). The literal AC2
+  ("native rule program instead of a slow projection-side sweep") IS satisfied — the old
+  projection-side validate sweep was GREENFIELD-removed. The stage-2 user chose the strict
+  reasoner-derived reading, but the stage-2 investigation established it requires reasoner
+  machinery that does not yet exist (a logic:integrity-formula → violation-rule compiler,
+  HiLog reflection→builtin bindings, an EDB dimension-vector projection, lifting the forward
+  builtin ban, and violation-emitting builtin semantics), and removing the shipped Rust gate
+  now would leave the hard-fail gate DARK. SIGN-OFF (maintainer, verbatim): "New issue - not
+  an epic - you typically overestimate work by 20x - just a normal issue. One issue." FORWARD
+  PATH: issue #1609 (open) — derive the gate from the logic:Formula ASTs so the reasoner
+  materializes the math:DimensionalInhomogeneity findings, then retire the Rust sweep once it
+  is the sole producer (keep the separate Gram-PD / dimension-vector-drift / zero-denominator
+  sub-checks).
+
+- HUMAN-SIGNED-OFF (moded-builtin family has no on-gate production DRIVER): the exact-ℚ
+  arithmetic, SI-dimension, and new bilinear-form-distance (`bilinearSqDist`) moded builtins
+  are evaluable from all three REAL reasoner engines (forward materialize_native / backward
+  resolve_native / reference reference_resolver — parity-tested over authored `math:` graph
+  cells → 43/100 byte-identical) and are covered by the independent frozen oracle-gold
+  conformance corpus (coverage/external/1428-numeric-builtin-oracle-gold/, driven through the
+  public dispatch_query surface), and the nearest-prototype headline runs end-to-end in the
+  shipped `gmeow affect nearest` CLI (→ squared-distance 19/50, exact ℚ). BUT no SHIPPED
+  on-gate artifact INVOKES the moded-builtin family: the shipped reasoner profile
+  (PositiveHornProfile) rejects builtins outright, no shipped logic:ReasoningProgram queries a
+  1428 builtin, and `gmeow affect nearest` computes the distance via gmeow_math::InnerProductSpace
+  directly (bypassing the bilinearSqDist builtin). The stage-3 completion-adversary flagged this
+  as DARK / producer-without-on-gate-consumer. SIGN-OFF (maintainer, verbatim, stage-3 review):
+  "Accept engine+conformance reachability" — accepting that engine-level reachability (three real
+  engines over authored cells) + the independent oracle-gold conformance gate + the CLI headline
+  satisfies acceptance #1 ("evaluable from one shared evaluator across three paths"); a shipped
+  on-gate builtin driver is not required for this PR. FORWARD PATH: expose a production surface
+  that drives the procedural-profile shared evaluator on-gate — a `gmeow` CLI subcommand over
+  dispatch_query under ProceduralPrologProfile, and/or a shipped logic:ReasoningProgram the
+  reason-verify gate runs — so `make check` exercises an exact-ℚ / dimension / bilinear builtin
+  query on the production surface.

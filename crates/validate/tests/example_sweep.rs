@@ -48,6 +48,7 @@ const NON_CONFORMANT: &[&str] = &[
     // node lacks its `rdf:type` when the file is loaded in isolation. The example
     // is meant to be read alongside the full ontology; standalone it is
     // illustrative, not valid instance data.
+    "slices/core/affect/examples/nearest-prototype-metric.ttl", // math:definiteness → math:positiveDefinite and gmeow:profilePolarity → gmeow:polarityBipolar are shared definiteness/polarity value individuals defined in module.ttl, untyped standalone; ex:analyst a gmeow:Person and the math:GramMatrix/math:SymmetricBilinearForm form/basis nodes lack their subClassOf→Entity / shared-vocabulary typing when the fixture is loaded in isolation — illustrative alongside the ontology, conformant in the merged bundle (make validate passes)
     "slices/core/ai/examples/grounded-claim.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/attestation/examples/release-evidence-bundle.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone (CreativeWork/SoftwareAgent); gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone
     "slices/core/attestation/examples/software-release.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone; gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone

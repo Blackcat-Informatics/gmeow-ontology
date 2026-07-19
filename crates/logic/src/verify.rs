@@ -303,6 +303,18 @@ pub fn verify_with_reasoning_result(
     for finding in crate::obligations::check_candidate_source_hash_drift(&reasoned)? {
         report.add_finding(finding);
     }
+    // 5. The math: measure-and-dimension reasoned gate — dimensional homogeneity,
+    //    integral dimensional composition, math:dimensionVector string drift, and the
+    //    positive-definiteness of every authored math:GramMatrix used as a metric form.
+    //    Each is computed THROUGH the one exact-rational (ℚ⁷) gmeow_math source over
+    //    this same frozen reasoned graph, never asserted data; a violation is a
+    //    Severity::Error Finding naming its typed math: failure class. It is the
+    //    executable lowering of the math: dimensional-homogeneity laws and the Gram
+    //    positive-definiteness constraint (the sole positive-definiteness enforcement
+    //    point the runtime distance builtin trusts).
+    for finding in crate::math_dimension::check_math_dimension_findings(&reasoned) {
+        report.add_finding(finding);
+    }
 
     report.add_finding(
         Finding::new(

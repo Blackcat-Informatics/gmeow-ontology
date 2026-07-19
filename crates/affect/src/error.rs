@@ -84,6 +84,16 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// A nearest-prototype classification was asked to argmin over an EMPTY
+    /// prototype set — there is no candidate to select, so it hard-fails rather
+    /// than returning a meaningless "no nearest".
+    pub struct EmptyPrototypeSet {}
+    code = "affect.nearest.empty-prototype-set";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "nearest-prototype classification requires at least one prototype observation";
+}
+
 /// The complete affect diagnostic-code catalog, in registration order.
 pub const AFFECT_DIAG_CODES: &[&str] = &[
     MissingAffectProperty::CODE,
@@ -94,6 +104,7 @@ pub const AFFECT_DIAG_CODES: &[&str] = &[
     GramHasNoEntries::CODE,
     DefinitenessCrosscheckFailed::CODE,
     MetricBasisMismatch::CODE,
+    EmptyPrototypeSet::CODE,
 ];
 
 /// Eagerly intern every affect diagnostic code (idempotent).
@@ -107,6 +118,7 @@ pub fn register_all() -> Vec<Code> {
         GramHasNoEntries::register(),
         DefinitenessCrosscheckFailed::register(),
         MetricBasisMismatch::register(),
+        EmptyPrototypeSet::register(),
     ]
 }
 

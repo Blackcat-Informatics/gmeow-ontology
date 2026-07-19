@@ -357,7 +357,7 @@ pub(crate) fn evaluate_annotations<A: TupleAnnotationAlgebra>(
             let full = Delta::all(rel.row_count());
             let mut contributions: BTreeMap<FactKey, Vec<AnnotationContribution<A::Element>>> =
                 BTreeMap::new();
-            let mut builtin_gap = false;
+            let mut builtin_gap: Vec<super::builtin_eval::BuiltinGap> = Vec::new();
             for &index in rule_indices {
                 let (rule, plan) = exe.rule_entry(index);
                 for solution in join_body_indexed(rule, plan, &rel, &rel, full, &mut builtin_gap) {
@@ -393,9 +393,11 @@ pub(crate) fn evaluate_annotations<A: TupleAnnotationAlgebra>(
                     ));
                 }
             }
-            if builtin_gap {
+            if !builtin_gap.is_empty() {
+                // Name each gap's `math:` class + operation rather than an anonymous
+                // "unsupported arithmetic binding".
                 return Err(annotation_err(
-                    "annotation evaluation encountered an unsupported arithmetic binding",
+                    crate::reason::builtin_gap::builtin_gap_refusal_detail(&builtin_gap),
                 ));
             }
 
