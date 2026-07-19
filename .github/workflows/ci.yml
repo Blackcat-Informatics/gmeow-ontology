@@ -33,20 +33,12 @@ env:
 # Uploads are fork-safe: only push + same-repo PRs hit code scanning; fork PRs
 # fall back to a workflow artifact (their token lacks security-events: write).
 jobs:
-  # === SINGLE PRODUCER AUTHORITY ===
-  # generated/ is a git-ignored local/release product, not a committed input. ONE job
-  # builds the producer (gmeow-dev) from canonical sources, materializes the bundle and
-  # fans out the whole generated/ tree, runs the sync fixed-point / superset / declared-
-  # inventory completeness / GTS-frame-profile / two-generation-determinism gates, and
-  # uploads the materialized tree as an immutable workflow artifact keyed to the commit
-  # SHA. Every downstream job DOWNLOADS that exact artifact and validates its bundle
-  # digest before compiling any consumer (gmeow / gmeow-lsp embed the bundle via
-  # include_bytes!, so they cannot build until it exists) — none regenerate. This is the
-  # CI mirror of the local producer->sync->consumers bootstrap order.
-  producer:
+  # === SOURCE-BUILT PRODUCER BINARY ===
+  # Build gmeow-dev once for the exact Rust source + toolchain contract. Ontology-only
+  # changes reuse that immutable producer binary; Rust changes miss the exact-source
+  # cache and rebuild it. No consumer is compiled before generated/dist/gmeow.gts exists.
+  producer-build:
     runs-on: ubuntu-latest
-    outputs:
-      bundle_digest: ${{ steps.digest.outputs.sha256 }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -57,66 +49,174 @@ jobs:
         with:
           toolchain: nightly
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - name: Fingerprint the resolved Rust toolchain
+        id: toolchain
+        run: |
+          set -euo pipefail
+          sha256=$(rustc -Vv | sha256sum | cut -d' ' -f1)
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
 
-      # Whole-run proof cache: the manifest re-hashes canonical inputs + the embedded
-      # producer/toolchain BUILD_FINGERPRINT (never generated/**) before it can skip the
-      # pipeline, so a stale restore is a safe miss. A pipeline-slice manifest edit lands
-      # under slices/**, so it invalidates this key.
-      - name: Cache strict-sync manifest
+      - name: Restore exact-source producer binary
+        id: producer-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .cache/gmeow-sync/manifests
-          key: sync-manifest-v3-${{ runner.os }}-${{ hashFiles('*.md', 'Cargo.toml', 'Cargo.lock', 'Makefile', 'rust-toolchain.toml', '.cargo/**', 'crates/**', 'slices/**', 'dsl/**', 'imports/**', 'metadata/**', 'shapes/**', 'queries/**', 'evals/**', 'bench/**', 'docs/**', 'i18n/**', 'ontology/**', 'governance/**', 'conformance/**', 'coverage/**', 'tests/**', 'validations/**') }}
-          restore-keys: |
-            sync-manifest-v3-${{ runner.os }}-
+          path: dist/bin/gmeow-dev
+          key: producer-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.sha256 }}-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'Makefile', 'rust-toolchain.toml', '.cargo/**', 'crates/**', 'vendor/**') }}
 
-      # Build ONLY the producer (gmeow-dev). Never compiles gmeow-cli / gmeow-lsp, which
-      # cannot build until the bundle they embed exists — that is the whole point.
+      - name: Cache Cargo dependencies
+        if: steps.producer-cache.outputs.cache-hit != 'true'
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
       - name: Build the producer (gmeow-dev only)
+        if: steps.producer-cache.outputs.cache-hit != 'true'
         run: make producer-build
 
-      # Materialize the bundle + fan out the whole generated/ tree from canonical
-      # sources. Update mode runs the superset + declared-inventory completeness +
-      # fanout-bijection gates as it writes.
-      - name: Materialize the generated product (sync, update)
-        run: make sync SYNC_MODE=update SYNC_OUTPUTS=all
+      - name: Verify the producer binary
+        run: |
+          set -euo pipefail
+          chmod +x dist/bin/gmeow-dev
+          dist/bin/gmeow-dev version
 
-      # Read-only fixed-point confirmation: the materialized tree must be a fixed point
-      # (missing / drift / orphan against the bundle projection + declared inventory).
+      - name: Upload the exact producer binary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin/gmeow-dev
+          if-no-files-found: error
+          retention-days: 1
+
+  # === TWO INDEPENDENT COLD GENERATIONS ===
+  # Both runners start without generated/ or a pipeline cache and reconstruct the
+  # complete generated tree from the same source-built producer. They run concurrently,
+  # so the hard two-generation determinism proof costs one generation on the critical
+  # path rather than two additional serial generations.
+  generation:
+    name: generation (${{ matrix.generation }})
+    needs: [producer-build]
+    strategy:
+      fail-fast: false
+      matrix:
+        generation: [a, b]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Download the exact producer binary
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Make the producer executable
+        run: chmod +x dist/bin/gmeow-dev
+
+      # Update mode runs the superset, declared-inventory completeness, fanout-
+      # bijection, drift, orphan, and internal-tag-leak gates while materializing.
+      - name: Cold-materialize the generated product
+        run: make sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
+
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
-        run: make check-sync CHECK_SYNC_MODE=check
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev CHECK_SYNC_MODE=check
 
-      # zstd-rsyncable level 12 on every GTS payload frame.
       - name: GTS frame/profile gate
-        run: make gts-frame-profile-gate
+        run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
 
-      # Two independent cold generations must be byte-identical + fold/profile-equivalent
-      # (catches a NON-deterministic output; the declared-inventory oracle above catches a
-      # deterministic drop). This is the one place the heavy ignored gate runs.
-      - name: Two-generation determinism gate
-        run: cargo nextest run -p gmeow-pipeline -E 'test(/two_cold_generations_are_deterministic/)' --run-ignored all
+      - name: Upload independent generated tree
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: generated-tree-${{ github.sha }}-${{ matrix.generation }}
+          path: generated
+          if-no-files-found: error
+          retention-days: 1
 
-      # Validate the materialized bundle (SHACL + lint over the flattened dataset).
-      - name: Validate the materialized bundle
-        run: make validate-gts
+  # === SINGLE PRODUCER AUTHORITY ===
+  # Byte-compare both independently reconstructed trees, publish generation A as the
+  # one immutable artifact, and expose its bundle digest. Every downstream job consumes
+  # this exact authority artifact and never regenerates it.
+  producer:
+    needs: [generation]
+    runs-on: ubuntu-latest
+    outputs:
+      bundle_digest: ${{ steps.digest.outputs.sha256 }}
+    steps:
+      - name: Download generation A
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: generated-tree-${{ github.sha }}-a
+          path: generated-a
+
+      - name: Download generation B
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: generated-tree-${{ github.sha }}-b
+          path: generated-b
+
+      - name: Prove byte-identical independent generations
+        run: diff --recursive --brief --no-dereference generated-a generated-b
 
       - name: Compute the bundle digest (artifact identity)
         id: digest
         run: |
           set -euo pipefail
-          sha256=$(sha256sum generated/dist/gmeow.gts | cut -d' ' -f1)
+          sha256=$(sha256sum generated-a/dist/gmeow.gts | cut -d' ' -f1)
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
           echo "producer bundle sha256=$sha256"
 
-      - name: Upload the materialized generated/ tree (immutable producer artifact)
+      - name: Upload the authoritative generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: generated-tree-${{ github.sha }}
-          path: generated
+          path: generated-a
           if-no-files-found: error
           retention-days: 3
+
+  # Semantic validation remains a mandatory gate, but it does not define whether
+  # two complete reconstructions are the same authoritative artifact. Run it once
+  # over that byte-proven authority in parallel with the other downstream lanes.
+  bundle-validate:
+    needs: [producer]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Download the exact producer binary
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Make the producer executable
+        run: chmod +x dist/bin/gmeow-dev
+
+      - name: Download the authoritative generated tree
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: generated-tree-${{ github.sha }}
+          path: generated
+
+      - name: Validate the producer artifact digest
+        env:
+          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
+        run: |
+          set -euo pipefail
+          echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
+
+      # Reuse the same content-addressed findings store as the source-validation
+      # lane. Its internal content keys remain authoritative on a coarse-key miss.
+      - name: Cache validate (content-addressed SHACL findings)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/validate
+          key: validate-${{ runner.os }}-${{ hashFiles('slices/**/*.ttl', 'shapes/**/*.ttl', 'dsl/**/*.ttl', 'crates/shacl/**/*.rs', 'crates/validate/**/*.rs') }}
+          restore-keys: |
+            validate-${{ runner.os }}-
+
+      - name: Validate the authoritative bundle
+        run: make validate-gts GMEOW_DEV=./dist/bin/gmeow-dev
 
   lint:
     needs: [producer]
@@ -610,7 +710,7 @@ jobs:
   # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [producer, bundle-validate, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -621,6 +721,7 @@ jobs:
       - name: Require all quality jobs to have succeeded
         env:
           PRODUCER: ${{ needs.producer.result }}
+          BUNDLE_VALIDATE: ${{ needs.bundle-validate.result }}
           LINT: ${{ needs.lint.result }}
           RUST: ${{ needs.rust.result }}
           WASM: ${{ needs.wasm.result }}
@@ -629,8 +730,8 @@ jobs:
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: producer=$PRODUCER lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$PRODUCER" "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: producer=$PRODUCER bundle-validate=$BUNDLE_VALIDATE lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$PRODUCER" "$BUNDLE_VALIDATE" "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
