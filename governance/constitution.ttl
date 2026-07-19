@@ -582,14 +582,15 @@ meta:gate-lang-conformance a meta:Gate ;
     meta:makeTarget "validate", "rust-test" .
 
 meta:gate-math-conformance a meta:Gate ;
-    rdfs:label "the math: conformance surface — native dimensional/ingest invariants + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
+    rdfs:label "the math: conformance surface — the reasoned-graph dimensional gate + native ingest invariant + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
     meta:artifact "crates/validate/src/lint.rs",
+        "crates/logic/src/math_dimension.rs",
         "crates/slicetest/tests/flagship_manifest.rs",
         "slices/grounding/math/tests/competency.ttl",
         "slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md" ;
-    meta:symbol "check_math_dimension_invariants", "check_math_ingest_invariants",
+    meta:symbol "check_math_dimension_findings", "check_math_ingest_invariants",
         "every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts" ;
-    meta:makeTarget "validate", "rust-test" .
+    meta:makeTarget "validate", "reason-verify", "rust-test" .
 
 meta:Principle19 a meta:Principle ;
     meta:number 19 ;

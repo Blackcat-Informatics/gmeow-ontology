@@ -14,6 +14,7 @@
 //! comparing native results against captured external corpora.
 
 pub mod artifacts;
+pub(crate) mod builtin_gap;
 pub mod dl;
 pub mod el;
 pub mod ledger;

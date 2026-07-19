@@ -1,0 +1,13 @@
+{
+  "op": "rational_compare_ge",
+  "mode": "compare",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:holds(X, ex:yes) :- X is 1, A is 2/3, B is 1, A >= B.\n?- ex:holds(X, Y).\n",
+  "expect_bindings": 0,
+  "checks": [],
+  "provenance": {
+    "generator": "hand-derived exact-ℚ reference",
+    "derivation": "2/3 >= 1 ? 2/3 ~= 0.667 < 1, so 2/3 >= 1 is FALSE. Cross-multiply: 2*1=2 vs 3*1=3; 2 < 3, confirming 2/3 < 1, so the `>=` filter prunes the only candidate solution and `ex:holds(X, ex:yes)` never fires -- the goal `ex:holds(X, Y)` has zero answers. `X` is an unused dummy arg (`X is 1`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

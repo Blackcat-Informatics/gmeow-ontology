@@ -1,0 +1,16 @@
+{
+  "op": "dimension_commensurable_neq",
+  "mode": "compare",
+  "facts": [
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimA", "lex": "1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" },
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimB", "lex": "0/1,1/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:commensurable(X, Y) :- ex:dimA(X, A), ex:dimB(X, B), A =:= B, Y is 1.\n?- ex:commensurable(X, Y).\n",
+  "expect_bindings": 0,
+  "checks": [],
+  "provenance": {
+    "generator": "hand-derived ℚ⁷ reference (fixed SI base order L,M,T,I,Θ,N,J)",
+    "derivation": "dimA = [1,0,0,0,0,0,0] (pure length, L^1); dimB = [0,1,0,0,0,0,0] (pure mass, M^1). Commensurability is exact ℚ⁷ vector equality, and these vectors differ in the first two components (1!=0 and 0!=1), so they are NOT commensurable and the `=:=` filter prunes the only candidate solution -- the goal has zero answers. `Y` is an unused dummy arg (`Y is 1`) so the goal atom is arity >= 2, keeping the query on the binary backward path -- see the corpus README's arity note.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

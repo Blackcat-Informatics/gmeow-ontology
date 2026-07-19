@@ -150,6 +150,18 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A `math:` dimension is structurally malformed: an exponent cell names a
+    /// non-base target dimension, declares a zero-denominator (undefined) exact
+    /// power, omits a required exponent numerator/denominator, or a queried node is
+    /// not a recognizable dimension (neither a base generator, `math:Dimensionless`,
+    /// nor a `math:DerivedDimension`). The ℚ⁷ exponent vector cannot be derived.
+    pub struct MalformedDimension { detail: String }
+    code = "math.dimension.malformed";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// A Clifford signature requests more than the supported 64 generators, so
     /// its basis blades cannot be represented by the kernel's exact `u64` masks.
     pub struct InvalidCliffordSignature { detail: String }
@@ -183,6 +195,7 @@ pub const MATH_DIAG_CODES: &[&str] = &[
     GraphRead::CODE,
     MissingProperty::CODE,
     NoCells::CODE,
+    MalformedDimension::CODE,
     InvalidCliffordSignature::CODE,
     CliffordBladeOutOfRange::CODE,
     CliffordGradeOutOfRange::CODE,
@@ -205,6 +218,7 @@ pub fn register_all() -> Vec<Code> {
         GraphRead::register(),
         MissingProperty::register(),
         NoCells::register(),
+        MalformedDimension::register(),
         InvalidCliffordSignature::register(),
         CliffordBladeOutOfRange::register(),
         CliffordGradeOutOfRange::register(),
