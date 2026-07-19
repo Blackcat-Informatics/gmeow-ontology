@@ -104,7 +104,7 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -142,13 +142,13 @@ jobs:
       bundle_digest: ${{ steps.digest.outputs.sha256 }}
     steps:
       - name: Download generation A
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}-a
           path: generated-a
 
       - name: Download generation B
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}-b
           path: generated-b
@@ -184,7 +184,7 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -193,7 +193,7 @@ jobs:
         run: chmod +x dist/bin/gmeow-dev
 
       - name: Download the authoritative generated tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -239,7 +239,7 @@ jobs:
       # digest before any cargo compile (make lint's clippy hook builds the consumers,
       # whose build.rs embeds generated/dist/gmeow.gts).
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -316,7 +316,7 @@ jobs:
       # gmeow-cli / gmeow-lsp embed generated/dist/gmeow.gts, and the docs tests read
       # generated/catalog/*.nq. Download it and validate the bundle digest; never regenerate.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -452,7 +452,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -503,7 +503,7 @@ jobs:
       # producer job. Here we consume its exact artifact and validate the bundle digest —
       # never a second regeneration — then run the checks that read the materialized tree.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -538,7 +538,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -584,7 +584,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -650,7 +650,7 @@ jobs:
       # The Node round-trip validates a sample dataset against the materialized bundle,
       # so the producer artifact must be present before make validate-wasm-pkg-test.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
