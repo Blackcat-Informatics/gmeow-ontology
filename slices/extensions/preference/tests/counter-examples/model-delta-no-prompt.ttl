@@ -3,7 +3,7 @@
 #
 # Counter-example for gmeow:ModelConfigDeltaCompletenessConstraint (AC5): a
 # gmeow:ModelConfigDelta binds TEN of its eleven mandatory identity legs but OMITS
-# gmeow:deltaPrompt — a partial delta is not a reproducible identity. The ∀→∃(∧×11)
+# gmeow:deltaPromptIdentity — a partial delta is not a reproducible identity. The ∀→∃(∧×11)
 # SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent and NO other
 # finding; every other leg is present, isolating the missing prompt leg.
 

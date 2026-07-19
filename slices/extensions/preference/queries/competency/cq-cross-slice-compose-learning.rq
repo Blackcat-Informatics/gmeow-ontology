@@ -11,6 +11,7 @@ SELECT ?learningEvent ?consumedReceipt ?producedDelta WHERE {
     ?learningEvent a gmeow:PreferenceLearningEvent ;
         gmeow:wasDerivedFrom ?consumedReceipt .
     ?consumedReceipt a gmeow:DpoView .
-    ?producedDelta gmeow:wasGeneratedBy ?learningEvent .
+    ?producedDelta a gmeow:ModelConfigDelta ;
+        gmeow:wasGeneratedBy ?learningEvent .
 }
 ORDER BY ?learningEvent

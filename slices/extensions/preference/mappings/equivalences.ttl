@@ -92,11 +92,11 @@ gmeow:eqPreference007 a gmeow:TermEquivalence ;
 # ── learning: the learning event, specialized by-reference ────────────────────
 gmeow:eqPreference008 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:PreferenceLearningEvent ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:narrowMatch ;
     gmeow:alignObject gmeow:LearningEvent ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary; a preference-learning run IS a kind of learning event." ;
+    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary; a preference-learning run IS a kind of learning event, so the alignment is skos:narrowMatch (the preference term is strictly narrower than the learning-slice term), not a symmetric closeMatch." ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" .
 
 # ── provenance: the derivation spine, reused by-reference ──────────────────────
