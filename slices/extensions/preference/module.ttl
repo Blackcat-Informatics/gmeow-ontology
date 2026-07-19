@@ -701,56 +701,110 @@ gmeow:NoGlobalWinnerWithoutConsensusConstraint
     logic:integrity gmeow:ngwForall .
 gmeow:ngwForall a logic:Formula ;
     rdfs:label "ngwForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): binds ?this and requires ?this is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?this, 'true') → ∃?sec,?ctx,?g. gmeow:ngwBody."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:ngwImpl .
 gmeow:ngwImpl a logic:Formula ;
-    rdfs:label "ngwImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:ngwGuard ; logic:consequent gmeow:ngwDischarged .
+    rdfs:label "ngwImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): when ?this is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?this, 'true') holds, requires ∃?sec,?ctx,?g. gmeow:extendsToConsensusSection(?this, ?sec) ∧ ?sec is a gmeow:ConsensusSection ∧ gmeow:sectionContext(?sec, ?ctx) ∧ gmeow:dischargesDisagreement(?this, ?g) ∧ ?g is a gmeow:DisagreementObstruction ∧ gmeow:ngwWholeBase."@x-gmeow-english ; logic:antecedent gmeow:ngwGuard ; logic:consequent gmeow:ngwDischarged .
 gmeow:ngwGuard a logic:Formula ;
-    rdfs:label "ngwGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:ngwType , gmeow:ngwAsserts .
+    rdfs:label "ngwGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): conjoins ?this is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?this, 'true')."@x-gmeow-english ; logic:and gmeow:ngwType , gmeow:ngwAsserts .
 gmeow:ngwType a logic:Formula ;
-    rdfs:label "ngwType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "ngwType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): asserts ?this is a gmeow:PreferenceClaim."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceClaim ] .
 gmeow:ngwAsserts a logic:Formula ;
-    rdfs:label "ngwAsserts (formula AST node)"@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
+    rdfs:label "ngwAsserts (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:assertsGlobalWinner atom ('asserts global winner') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?this, 'true'."@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
 gmeow:ngwDischarged a logic:Formula ;
     rdfs:label "ngwDischarged (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): quantifies ?sec, ?ctx, ?g and requires gmeow:extendsToConsensusSection(?this, ?sec) ∧ ?sec is a gmeow:ConsensusSection ∧ gmeow:sectionContext(?sec, ?ctx) ∧ gmeow:dischargesDisagreement(?this, ?g) ∧ ?g is a gmeow:DisagreementObstruction ∧ ¬[gmeow:ngwHole]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "ctx" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] ;
     logic:exists gmeow:ngwBody .
 gmeow:ngwBody a logic:Formula ;
     rdfs:label "ngwBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): conjoins gmeow:extendsToConsensusSection(?this, ?sec) ∧ ?sec is a gmeow:ConsensusSection ∧ gmeow:sectionContext(?sec, ?ctx) ∧ gmeow:dischargesDisagreement(?this, ?g) ∧ ?g is a gmeow:DisagreementObstruction ∧ ¬[gmeow:ngwHole]."@x-gmeow-english ;
     logic:and gmeow:ngwExtends , gmeow:ngwSecType , gmeow:ngwSecCtx , gmeow:ngwDischarge , gmeow:ngwObsType , gmeow:ngwWholeBase .
 gmeow:ngwExtends a logic:Formula ;
-    rdfs:label "ngwExtends (formula AST node)"@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
+    rdfs:label "ngwExtends (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:extendsToConsensusSection atom ('extends to consensus section') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?this, ?sec."@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
 gmeow:ngwSecType a logic:Formula ;
-    rdfs:label "ngwSecType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "ngwSecType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): asserts ?sec is a gmeow:ConsensusSection."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ConsensusSection ] .
 gmeow:ngwSecCtx a logic:Formula ;
-    rdfs:label "ngwSecCtx (formula AST node)"@x-gmeow-english ; logic:relation gmeow:sectionContext ;
+    rdfs:label "ngwSecCtx (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:sectionContext atom ('section context') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?sec, ?ctx."@x-gmeow-english ; logic:relation gmeow:sectionContext ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "ctx" ] .
 gmeow:ngwDischarge a logic:Formula ;
-    rdfs:label "ngwDischarge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
+    rdfs:label "ngwDischarge (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:dischargesDisagreement atom ('discharges disagreement') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?this, ?g."@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
 gmeow:ngwObsType a logic:Formula ;
-    rdfs:label "ngwObsType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "ngwObsType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): asserts ?g is a gmeow:DisagreementObstruction."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DisagreementObstruction ] .
 # F2: no registered observation is left unreconciled by the section.
 gmeow:ngwWholeBase a logic:Formula ;
-    rdfs:label "ngwWholeBase (formula AST node)"@x-gmeow-english ; logic:not gmeow:ngwHole .
+    rdfs:label "ngwWholeBase (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): holds only when it is NOT the case that ∃?obs. gmeow:registersObservation(?ctx, ?obs) ∧ gmeow:ngwUnreconciled."@x-gmeow-english ; logic:not gmeow:ngwHole .
 gmeow:ngwHole a logic:Formula ;
     rdfs:label "ngwHole (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): quantifies ?obs and requires gmeow:registersObservation(?ctx, ?obs) ∧ ¬[gmeow:reconcilesObservation(?sec, ?obs)]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "obs" ] ;
     logic:exists gmeow:ngwHoleBody .
 gmeow:ngwHoleBody a logic:Formula ;
-    rdfs:label "ngwHoleBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:ngwRegisters , gmeow:ngwUnreconciled .
+    rdfs:label "ngwHoleBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): conjoins gmeow:registersObservation(?ctx, ?obs) ∧ ¬[gmeow:reconcilesObservation(?sec, ?obs)]."@x-gmeow-english ; logic:and gmeow:ngwRegisters , gmeow:ngwUnreconciled .
 gmeow:ngwRegisters a logic:Formula ;
-    rdfs:label "ngwRegisters (formula AST node)"@x-gmeow-english ; logic:relation gmeow:registersObservation ;
+    rdfs:label "ngwRegisters (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:registersObservation atom ('registers observation') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?ctx, ?obs."@x-gmeow-english ; logic:relation gmeow:registersObservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ctx" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
 gmeow:ngwUnreconciled a logic:Formula ;
-    rdfs:label "ngwUnreconciled (formula AST node)"@x-gmeow-english ; logic:not gmeow:ngwReconciled .
+    rdfs:label "ngwUnreconciled (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): holds only when it is NOT the case that gmeow:reconcilesObservation(?sec, ?obs)."@x-gmeow-english ; logic:not gmeow:ngwReconciled .
 gmeow:ngwReconciled a logic:Formula ;
-    rdfs:label "ngwReconciled (formula AST node)"@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
+    rdfs:label "ngwReconciled (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:reconcilesObservation atom ('reconciles observation') of gmeow:NoGlobalWinnerWithoutConsensusConstraint (the governing no-context-free-winner gate): relates ?sec, ?obs."@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
 
 # --- G3: strict-order coherence is enforced WITHIN one vantage only ---------- #
@@ -769,17 +823,32 @@ gmeow:VantageScopedStrictOrderConstraint
     logic:integrity gmeow:vssForall .
 gmeow:vssForall a logic:Formula ;
     rdfs:label "vssForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): binds ?this and requires ?this is a gmeow:PreferenceProjection → ¬[gmeow:vssBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:vssImpl .
 gmeow:vssImpl a logic:Formula ;
-    rdfs:label "vssImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:vssGuard ; logic:consequent gmeow:vssNoCycle .
+    rdfs:label "vssImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): when ?this is a gmeow:PreferenceProjection holds, requires ¬[∃?order,?e1,?e2,?a,?b. gmeow:vssBadBody]."@x-gmeow-english ; logic:antecedent gmeow:vssGuard ; logic:consequent gmeow:vssNoCycle .
 gmeow:vssGuard a logic:Formula ;
-    rdfs:label "vssGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "vssGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): asserts ?this is a gmeow:PreferenceProjection."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceProjection ] .
 gmeow:vssNoCycle a logic:Formula ;
-    rdfs:label "vssNoCycle (formula AST node)"@x-gmeow-english ; logic:not gmeow:vssBad .
+    rdfs:label "vssNoCycle (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): holds only when it is NOT the case that ∃?order,?e1,?e2,?a,?b. gmeow:projectionOrder(?this, ?order) ∧ gmeow:orderEdge(?order, ?e1) ∧ gmeow:orderEdge(?order, ?e2) ∧ gmeow:edgeWinner(?e1, ?a) ∧ gmeow:edgeLoser(?e1, ?b) ∧ gmeow:edgeWinner(?e2, ?b) ∧ gmeow:edgeLoser(?e2, ?a)."@x-gmeow-english ; logic:not gmeow:vssBad .
 gmeow:vssBad a logic:Formula ;
     rdfs:label "vssBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): quantifies ?order, ?e1, ?e2, ?a, ?b and requires gmeow:projectionOrder(?this, ?order) ∧ gmeow:orderEdge(?order, ?e1) ∧ gmeow:orderEdge(?order, ?e2) ∧ gmeow:edgeWinner(?e1, ?a) ∧ gmeow:edgeLoser(?e1, ?b) ∧ gmeow:edgeWinner(?e2, ?b) ∧ gmeow:edgeLoser(?e2, ?a)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e1" ] , [ logic:termIndex 2 ; logic:termVariable "e2" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] ;
     logic:exists gmeow:vssBadBody .
 # Cell-scoped: BOTH edges are reached through ?this gmeow:projectionOrder ?order
@@ -788,27 +857,51 @@ gmeow:vssBad a logic:Formula ;
 # same body. A cross-vantage reversal across two DIFFERENT cells never matches (their
 # edges hang under different ?order nodes) — that is the legal Principle-9 obstruction.
 gmeow:vssBadBody a logic:Formula ;
-    rdfs:label "vssBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:vssOrder , gmeow:vssE1 , gmeow:vssE2 , gmeow:vssE1Win , gmeow:vssE1Lose , gmeow:vssE2Win , gmeow:vssE2Lose .
+    rdfs:label "vssBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): conjoins gmeow:projectionOrder(?this, ?order) ∧ gmeow:orderEdge(?order, ?e1) ∧ gmeow:orderEdge(?order, ?e2) ∧ gmeow:edgeWinner(?e1, ?a) ∧ gmeow:edgeLoser(?e1, ?b) ∧ gmeow:edgeWinner(?e2, ?b) ∧ gmeow:edgeLoser(?e2, ?a)."@x-gmeow-english ; logic:and gmeow:vssOrder , gmeow:vssE1 , gmeow:vssE2 , gmeow:vssE1Win , gmeow:vssE1Lose , gmeow:vssE2Win , gmeow:vssE2Lose .
 gmeow:vssOrder a logic:Formula ;
-    rdfs:label "vssOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    rdfs:label "vssOrder (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionOrder atom ('projection order') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?this, ?order."@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "order" ] .
 gmeow:vssE1 a logic:Formula ;
-    rdfs:label "vssE1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    rdfs:label "vssE1 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:orderEdge atom ('order edge') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?order, ?e1."@x-gmeow-english ; logic:relation gmeow:orderEdge ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e1" ] .
 gmeow:vssE2 a logic:Formula ;
-    rdfs:label "vssE2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    rdfs:label "vssE2 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:orderEdge atom ('order edge') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?order, ?e2."@x-gmeow-english ; logic:relation gmeow:orderEdge ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "order" ] , [ logic:termIndex 1 ; logic:termVariable "e2" ] .
 gmeow:vssE1Win a logic:Formula ;
-    rdfs:label "vssE1Win (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    rdfs:label "vssE1Win (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeWinner atom ('edge winner') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?e1, ?a."@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e1" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 gmeow:vssE1Lose a logic:Formula ;
-    rdfs:label "vssE1Lose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    rdfs:label "vssE1Lose (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeLoser atom ('edge loser') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?e1, ?b."@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e1" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:vssE2Win a logic:Formula ;
-    rdfs:label "vssE2Win (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    rdfs:label "vssE2Win (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeWinner atom ('edge winner') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?e2, ?b."@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e2" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:vssE2Lose a logic:Formula ;
-    rdfs:label "vssE2Lose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    rdfs:label "vssE2Lose (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeLoser atom ('edge loser') of gmeow:VantageScopedStrictOrderConstraint (G3, within-cell strict-order coherence over reified gmeow:PreferenceEdges): relates ?e2, ?a."@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e2" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 
 # --- G2: a sharper standpoint's order restricts, never contradicts ----------- #
@@ -824,65 +917,125 @@ gmeow:RestrictionCoherenceConstraint
     logic:integrity gmeow:rccForall .
 gmeow:rccForall a logic:Formula ;
     rdfs:label "rccForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): binds ?this and requires ?this is a gmeow:PreferenceProjection → ¬[gmeow:rccBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:rccImpl .
 gmeow:rccImpl a logic:Formula ;
-    rdfs:label "rccImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:rccGuard ; logic:consequent gmeow:rccNoContra .
+    rdfs:label "rccImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): when ?this is a gmeow:PreferenceProjection holds, requires ¬[∃?other,?vs,?vc,?a,?b,?os,?es,?oc,?ec. gmeow:rccBadBody]."@x-gmeow-english ; logic:antecedent gmeow:rccGuard ; logic:consequent gmeow:rccNoContra .
 gmeow:rccGuard a logic:Formula ;
-    rdfs:label "rccGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "rccGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): asserts ?this is a gmeow:PreferenceProjection."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceProjection ] .
 gmeow:rccNoContra a logic:Formula ;
-    rdfs:label "rccNoContra (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccBad .
+    rdfs:label "rccNoContra (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): holds only when it is NOT the case that ∃?other,?vs,?vc,?a,?b,?os,?es,?oc,?ec. gmeow:vantage(?this, ?vs) ∧ gmeow:vantage(?other, ?vc) ∧ gmeow:sharpens(?vs, ?vc) ∧ gmeow:projectionOrder(?this, ?os) ∧ gmeow:orderEdge(?os, ?es) ∧ gmeow:edgeWinner(?es, ?b) ∧ gmeow:edgeLoser(?es, ?a) ∧ gmeow:projectionOrder(?other, ?oc) ∧ gmeow:orderEdge(?oc, ?ec) ∧ gmeow:edgeWinner(?ec, ?a) ∧ gmeow:edgeLoser(?ec, ?b) ∧ gmeow:rccNoObstruction."@x-gmeow-english ; logic:not gmeow:rccBad .
 gmeow:rccBad a logic:Formula ;
     rdfs:label "rccBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): quantifies ?other, ?vs, ?vc, ?a, ?b, ?os, ?es, ?oc, ?ec and requires gmeow:vantage(?this, ?vs) ∧ gmeow:vantage(?other, ?vc) ∧ gmeow:sharpens(?vs, ?vc) ∧ gmeow:projectionOrder(?this, ?os) ∧ gmeow:orderEdge(?os, ?es) ∧ gmeow:edgeWinner(?es, ?b) ∧ gmeow:edgeLoser(?es, ?a) ∧ gmeow:projectionOrder(?other, ?oc) ∧ gmeow:orderEdge(?oc, ?ec) ∧ gmeow:edgeWinner(?ec, ?a) ∧ gmeow:edgeLoser(?ec, ?b) ∧ ¬[gmeow:rccObstrEx]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] , [ logic:termIndex 2 ; logic:termVariable "vc" ] , [ logic:termIndex 3 ; logic:termVariable "a" ] , [ logic:termIndex 4 ; logic:termVariable "b" ] , [ logic:termIndex 5 ; logic:termVariable "os" ] , [ logic:termIndex 6 ; logic:termVariable "es" ] , [ logic:termIndex 7 ; logic:termVariable "oc" ] , [ logic:termIndex 8 ; logic:termVariable "ec" ] ;
     logic:exists gmeow:rccBadBody .
 # Cell-scoped like G3: the sharper edge es hangs under THIS cell's order os, the coarser
 # edge ec under the OTHER cell's order oc, and the two cells' vantages are sharpens-linked.
 gmeow:rccBadBody a logic:Formula ;
     rdfs:label "rccBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): conjoins gmeow:vantage(?this, ?vs) ∧ gmeow:vantage(?other, ?vc) ∧ gmeow:sharpens(?vs, ?vc) ∧ gmeow:projectionOrder(?this, ?os) ∧ gmeow:orderEdge(?os, ?es) ∧ gmeow:edgeWinner(?es, ?b) ∧ gmeow:edgeLoser(?es, ?a) ∧ gmeow:projectionOrder(?other, ?oc) ∧ gmeow:orderEdge(?oc, ?ec) ∧ gmeow:edgeWinner(?ec, ?a) ∧ gmeow:edgeLoser(?ec, ?b) ∧ ¬[gmeow:rccObstrEx]."@x-gmeow-english ;
     logic:and gmeow:rccSharpVantage , gmeow:rccCoarseVantage , gmeow:rccSharpens , gmeow:rccSharpOrder , gmeow:rccSharpEdgeNode , gmeow:rccSharpWin , gmeow:rccSharpLose , gmeow:rccCoarseOrder , gmeow:rccCoarseEdgeNode , gmeow:rccCoarseWin , gmeow:rccCoarseLose , gmeow:rccNoObstruction .
 gmeow:rccSharpVantage a logic:Formula ;
-    rdfs:label "rccSharpVantage (formula AST node)"@x-gmeow-english ; logic:relation gmeow:vantage ;
+    rdfs:label "rccSharpVantage (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:vantage atom of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?this, ?vs."@x-gmeow-english ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
 gmeow:rccCoarseVantage a logic:Formula ;
-    rdfs:label "rccCoarseVantage (formula AST node)"@x-gmeow-english ; logic:relation gmeow:vantage ;
+    rdfs:label "rccCoarseVantage (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:vantage atom of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?other, ?vc."@x-gmeow-english ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "vc" ] .
 gmeow:rccSharpens a logic:Formula ;
-    rdfs:label "rccSharpens (formula AST node)"@x-gmeow-english ; logic:relation gmeow:sharpens ;
+    rdfs:label "rccSharpens (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:sharpens atom of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?vs, ?vc."@x-gmeow-english ; logic:relation gmeow:sharpens ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vs" ] , [ logic:termIndex 1 ; logic:termVariable "vc" ] .
 gmeow:rccSharpOrder a logic:Formula ;
-    rdfs:label "rccSharpOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    rdfs:label "rccSharpOrder (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionOrder atom ('projection order') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?this, ?os."@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "os" ] .
 gmeow:rccSharpEdgeNode a logic:Formula ;
-    rdfs:label "rccSharpEdgeNode (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    rdfs:label "rccSharpEdgeNode (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:orderEdge atom ('order edge') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?os, ?es."@x-gmeow-english ; logic:relation gmeow:orderEdge ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "os" ] , [ logic:termIndex 1 ; logic:termVariable "es" ] .
 gmeow:rccSharpWin a logic:Formula ;
-    rdfs:label "rccSharpWin (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    rdfs:label "rccSharpWin (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeWinner atom ('edge winner') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?es, ?b."@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "es" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:rccSharpLose a logic:Formula ;
-    rdfs:label "rccSharpLose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    rdfs:label "rccSharpLose (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeLoser atom ('edge loser') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?es, ?a."@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "es" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 gmeow:rccCoarseOrder a logic:Formula ;
-    rdfs:label "rccCoarseOrder (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
+    rdfs:label "rccCoarseOrder (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionOrder atom ('projection order') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?other, ?oc."@x-gmeow-english ; logic:relation gmeow:projectionOrder ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "oc" ] .
 gmeow:rccCoarseEdgeNode a logic:Formula ;
-    rdfs:label "rccCoarseEdgeNode (formula AST node)"@x-gmeow-english ; logic:relation gmeow:orderEdge ;
+    rdfs:label "rccCoarseEdgeNode (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:orderEdge atom ('order edge') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?oc, ?ec."@x-gmeow-english ; logic:relation gmeow:orderEdge ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "oc" ] , [ logic:termIndex 1 ; logic:termVariable "ec" ] .
 gmeow:rccCoarseWin a logic:Formula ;
-    rdfs:label "rccCoarseWin (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
+    rdfs:label "rccCoarseWin (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeWinner atom ('edge winner') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?ec, ?a."@x-gmeow-english ; logic:relation gmeow:edgeWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ec" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
 gmeow:rccCoarseLose a logic:Formula ;
-    rdfs:label "rccCoarseLose (formula AST node)"@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
+    rdfs:label "rccCoarseLose (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:edgeLoser atom ('edge loser') of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): relates ?ec, ?b."@x-gmeow-english ; logic:relation gmeow:edgeLoser ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "ec" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:rccNoObstruction a logic:Formula ;
-    rdfs:label "rccNoObstruction (formula AST node)"@x-gmeow-english ; logic:not gmeow:rccObstrEx .
+    rdfs:label "rccNoObstruction (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): holds only when it is NOT the case that ∃?g. ?g is a gmeow:DisagreementObstruction."@x-gmeow-english ; logic:not gmeow:rccObstrEx .
 gmeow:rccObstrEx a logic:Formula ;
     rdfs:label "rccObstrEx (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): quantifies ?g and requires ?g is a gmeow:DisagreementObstruction."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ] ;
     logic:exists gmeow:rccObstrAtom .
 gmeow:rccObstrAtom a logic:Formula ;
-    rdfs:label "rccObstrAtom (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "rccObstrAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:RestrictionCoherenceConstraint (G2, sharpens-refinement coherence): asserts ?g is a gmeow:DisagreementObstruction."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DisagreementObstruction ] .
 
 # --- G1: tie, incomparability, and uncompared are pairwise distinct ---------- #
@@ -898,26 +1051,50 @@ gmeow:TieIncomparabilityDistinctnessConstraint
     logic:integrity gmeow:tidForall .
 gmeow:tidForall a logic:Formula ;
     rdfs:label "tidForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): binds ?a and requires ?a is a gmeow:InformationObject → ¬[gmeow:tidBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ;
     logic:forall gmeow:tidImpl .
 gmeow:tidImpl a logic:Formula ;
-    rdfs:label "tidImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:tidGuard ; logic:consequent gmeow:tidNoBoth .
+    rdfs:label "tidImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): when ?a is a gmeow:InformationObject holds, requires ¬[∃?b. gmeow:tidBadBody]."@x-gmeow-english ; logic:antecedent gmeow:tidGuard ; logic:consequent gmeow:tidNoBoth .
 gmeow:tidGuard a logic:Formula ;
-    rdfs:label "tidGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "tidGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): asserts ?a is a gmeow:InformationObject."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
 gmeow:tidNoBoth a logic:Formula ;
-    rdfs:label "tidNoBoth (formula AST node)"@x-gmeow-english ; logic:not gmeow:tidBad .
+    rdfs:label "tidNoBoth (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): holds only when it is NOT the case that ∃?b. gmeow:preferentiallyEquivalentWith(?a, ?b) ∧ gmeow:incomparableWith(?a, ?b)."@x-gmeow-english ; logic:not gmeow:tidBad .
 gmeow:tidBad a logic:Formula ;
     rdfs:label "tidBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): quantifies ?b and requires gmeow:preferentiallyEquivalentWith(?a, ?b) ∧ gmeow:incomparableWith(?a, ?b)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
     logic:exists gmeow:tidBadBody .
 gmeow:tidBadBody a logic:Formula ;
-    rdfs:label "tidBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:tidTie , gmeow:tidIncomp .
+    rdfs:label "tidBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): conjoins gmeow:preferentiallyEquivalentWith(?a, ?b) ∧ gmeow:incomparableWith(?a, ?b)."@x-gmeow-english ; logic:and gmeow:tidTie , gmeow:tidIncomp .
 gmeow:tidTie a logic:Formula ;
-    rdfs:label "tidTie (formula AST node)"@x-gmeow-english ; logic:relation gmeow:preferentiallyEquivalentWith ;
+    rdfs:label "tidTie (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:preferentiallyEquivalentWith atom ('preferentially equivalent with') of gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): relates ?a, ?b."@x-gmeow-english ; logic:relation gmeow:preferentiallyEquivalentWith ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 gmeow:tidIncomp a logic:Formula ;
-    rdfs:label "tidIncomp (formula AST node)"@x-gmeow-english ; logic:relation gmeow:incomparableWith ;
+    rdfs:label "tidIncomp (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:incomparableWith atom ('incomparable with') of gmeow:TieIncomparabilityDistinctnessConstraint (G1, tie/incomparability distinctness): relates ?a, ?b."@x-gmeow-english ; logic:relation gmeow:incomparableWith ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # --- The order wrapper must not be conflated with its raw math:Relation ------ #
@@ -934,26 +1111,50 @@ gmeow:ProjectionObjectConflationConstraint
     logic:integrity gmeow:pocForall .
 gmeow:pocForall a logic:Formula ;
     rdfs:label "pocForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): binds ?this and requires ?this is a gmeow:PreferenceOrder → ¬[gmeow:pocEx]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pocImpl .
 gmeow:pocImpl a logic:Formula ;
-    rdfs:label "pocImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pocGuard ; logic:consequent gmeow:pocNot .
+    rdfs:label "pocImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): when ?this is a gmeow:PreferenceOrder holds, requires ¬[∃?k. gmeow:pocBody]."@x-gmeow-english ; logic:antecedent gmeow:pocGuard ; logic:consequent gmeow:pocNot .
 gmeow:pocGuard a logic:Formula ;
-    rdfs:label "pocGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "pocGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): asserts ?this is a gmeow:PreferenceOrder."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceOrder ] .
 gmeow:pocNot a logic:Formula ;
-    rdfs:label "pocNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:pocEx .
+    rdfs:label "pocNot (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): holds only when it is NOT the case that ∃?k. ?this is a ?k ∧ ?k starts with 'https://blackcatinformatics.ca/math/'."@x-gmeow-english ; logic:not gmeow:pocEx .
 gmeow:pocEx a logic:Formula ;
     rdfs:label "pocEx (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): quantifies ?k and requires ?this is a ?k ∧ ?k starts with 'https://blackcatinformatics.ca/math/'."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:pocBody .
 gmeow:pocBody a logic:Formula ;
-    rdfs:label "pocBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pocType , gmeow:pocMathNs .
+    rdfs:label "pocBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): conjoins ?this is a ?k ∧ ?k starts with 'https://blackcatinformatics.ca/math/'."@x-gmeow-english ; logic:and gmeow:pocType , gmeow:pocMathNs .
 gmeow:pocType a logic:Formula ;
-    rdfs:label "pocType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "pocType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): asserts ?this is a ?k."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
 gmeow:pocMathNs a logic:Formula ;
-    rdfs:label "pocMathNs (formula AST node)"@x-gmeow-english ; logic:relation logic:termStrStarts ;
+    rdfs:label "pocMathNs (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The namespace-prefix atom of gmeow:ProjectionObjectConflationConstraint (the order/math-object conflation gate): asserts ?k's IRI starts with the literal 'https://blackcatinformatics.ca/math/'."@x-gmeow-english ; logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/math/" ] .
 
 # =========================================================================== #
@@ -1065,33 +1266,63 @@ gmeow:HardFailureNotOverriddenConstraint
     logic:integrity gmeow:hfoForall .
 gmeow:hfoForall a logic:Formula ;
     rdfs:label "hfoForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): binds ?this and requires ?this is a gmeow:ProjectionReceipt → ¬[gmeow:hfoBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:hfoImpl .
 gmeow:hfoImpl a logic:Formula ;
-    rdfs:label "hfoImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:hfoGuard ; logic:consequent gmeow:hfoNoOverride .
+    rdfs:label "hfoImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): when ?this is a gmeow:ProjectionReceipt holds, requires ¬[∃?cand,?vv. gmeow:hfoBadBody]."@x-gmeow-english ; logic:antecedent gmeow:hfoGuard ; logic:consequent gmeow:hfoNoOverride .
 gmeow:hfoGuard a logic:Formula ;
-    rdfs:label "hfoGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "hfoGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:hfoNoOverride a logic:Formula ;
-    rdfs:label "hfoNoOverride (formula AST node)"@x-gmeow-english ; logic:not gmeow:hfoBad .
+    rdfs:label "hfoNoOverride (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): holds only when it is NOT the case that ∃?cand,?vv. gmeow:selectedCandidate(?this, ?cand) ∧ gmeow:verifiesCandidate(?vv, ?cand) ∧ gmeow:hardConstraintClass(?vv, gmeow:constraintHardnessHard) ∧ gmeow:verifierOutcome(?vv, gmeow:verdictNotHeld)."@x-gmeow-english ; logic:not gmeow:hfoBad .
 gmeow:hfoBad a logic:Formula ;
     rdfs:label "hfoBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): quantifies ?cand, ?vv and requires gmeow:selectedCandidate(?this, ?cand) ∧ gmeow:verifiesCandidate(?vv, ?cand) ∧ gmeow:hardConstraintClass(?vv, gmeow:constraintHardnessHard) ∧ gmeow:verifierOutcome(?vv, gmeow:verdictNotHeld)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cand" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] ;
     logic:exists gmeow:hfoBadBody .
 gmeow:hfoBadBody a logic:Formula ;
     rdfs:label "hfoBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): conjoins gmeow:selectedCandidate(?this, ?cand) ∧ gmeow:verifiesCandidate(?vv, ?cand) ∧ gmeow:hardConstraintClass(?vv, gmeow:constraintHardnessHard) ∧ gmeow:verifierOutcome(?vv, gmeow:verdictNotHeld)."@x-gmeow-english ;
     logic:and gmeow:hfoSelected , gmeow:hfoVerifies , gmeow:hfoHard , gmeow:hfoNotHeld .
 gmeow:hfoSelected a logic:Formula ;
-    rdfs:label "hfoSelected (formula AST node)"@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
+    rdfs:label "hfoSelected (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:selectedCandidate atom ('selected candidate') of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): relates ?this, ?cand."@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:hfoVerifies a logic:Formula ;
-    rdfs:label "hfoVerifies (formula AST node)"@x-gmeow-english ; logic:relation gmeow:verifiesCandidate ;
+    rdfs:label "hfoVerifies (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:verifiesCandidate atom ('verifies candidate') of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): relates ?vv, ?cand."@x-gmeow-english ; logic:relation gmeow:verifiesCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:hfoHard a logic:Formula ;
-    rdfs:label "hfoHard (formula AST node)"@x-gmeow-english ; logic:relation gmeow:hardConstraintClass ;
+    rdfs:label "hfoHard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:hardConstraintClass atom ('hard constraint class') of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): relates ?vv, gmeow:constraintHardnessHard."@x-gmeow-english ; logic:relation gmeow:hardConstraintClass ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termIri gmeow:constraintHardnessHard ] .
 gmeow:hfoNotHeld a logic:Formula ;
-    rdfs:label "hfoNotHeld (formula AST node)"@x-gmeow-english ; logic:relation gmeow:verifierOutcome ;
+    rdfs:label "hfoNotHeld (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:verifierOutcome atom ('verifier outcome') of gmeow:HardFailureNotOverriddenConstraint (AC3, hard-failure-not-overridden): relates ?vv, gmeow:verdictNotHeld."@x-gmeow-english ; logic:relation gmeow:verifierOutcome ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vv" ] , [ logic:termIndex 1 ; logic:termIri gmeow:verdictNotHeld ] .
 
 gmeow:HardFailureOverridden
@@ -1357,33 +1588,63 @@ gmeow:CompleteLossDisclosureConstraint
     logic:integrity gmeow:cldForall .
 gmeow:cldForall a logic:Formula ;
     rdfs:label "cldForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): binds ?this and requires ?this is a gmeow:ProjectionReceipt ∧ gmeow:cldLossy → ∃?e. gmeow:disclosesLoss(?this, ?e)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cldImpl .
 gmeow:cldImpl a logic:Formula ;
-    rdfs:label "cldImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:cldGuard ; logic:consequent gmeow:cldExists .
+    rdfs:label "cldImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): when ?this is a gmeow:ProjectionReceipt ∧ ∃?k. gmeow:cldLossyBody holds, requires ∃?e. gmeow:disclosesLoss(?this, ?e)."@x-gmeow-english ; logic:antecedent gmeow:cldGuard ; logic:consequent gmeow:cldExists .
 gmeow:cldGuard a logic:Formula ;
-    rdfs:label "cldGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:cldType , gmeow:cldLossy .
+    rdfs:label "cldGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): conjoins ?this is a gmeow:ProjectionReceipt ∧ ∃?k. gmeow:cldLossyBody."@x-gmeow-english ; logic:and gmeow:cldType , gmeow:cldLossy .
 gmeow:cldType a logic:Formula ;
-    rdfs:label "cldType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "cldType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:cldLossy a logic:Formula ;
     rdfs:label "cldLossy (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): quantifies ?k and requires logic:preservationKind(?this, ?k) ∧ ?k ≠ logic:ExactPreservation."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:cldLossyBody .
 gmeow:cldLossyBody a logic:Formula ;
-    rdfs:label "cldLossyBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:cldKind , gmeow:cldNotExact .
+    rdfs:label "cldLossyBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): conjoins logic:preservationKind(?this, ?k) ∧ ?k ≠ logic:ExactPreservation."@x-gmeow-english ; logic:and gmeow:cldKind , gmeow:cldNotExact .
 gmeow:cldKind a logic:Formula ;
-    rdfs:label "cldKind (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
+    rdfs:label "cldKind (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The logic:preservationKind atom of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): relates ?this, ?k."@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
 gmeow:cldNotExact a logic:Formula ;
-    rdfs:label "cldNotExact (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
+    rdfs:label "cldNotExact (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The inequality atom of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): asserts ?k and logic:ExactPreservation are distinct, the witness that closes the violation pattern."@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 gmeow:cldExists a logic:Formula ;
     rdfs:label "cldExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): quantifies ?e and requires gmeow:disclosesLoss(?this, ?e)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
     logic:exists gmeow:cldAtom .
 gmeow:cldAtom a logic:Formula ;
-    rdfs:label "cldAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
+    rdfs:label "cldAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:disclosesLoss atom ('discloses loss') of gmeow:CompleteLossDisclosureConstraint (AC4, complete loss disclosure): relates ?this, ?e."@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 
 # Preservation consistency: a receipt disclosing a dropped relation may not
@@ -1400,29 +1661,56 @@ gmeow:PreservationConsistencyConstraint
     logic:integrity gmeow:pccForall .
 gmeow:pccForall a logic:Formula ;
     rdfs:label "pccForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): binds ?this and requires ?this is a gmeow:ProjectionReceipt → ¬[gmeow:pccBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pccImpl .
 gmeow:pccImpl a logic:Formula ;
-    rdfs:label "pccImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pccGuard ; logic:consequent gmeow:pccNot .
+    rdfs:label "pccImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): when ?this is a gmeow:ProjectionReceipt holds, requires ¬[∃?e,?r. gmeow:pccBadBody]."@x-gmeow-english ; logic:antecedent gmeow:pccGuard ; logic:consequent gmeow:pccNot .
 gmeow:pccGuard a logic:Formula ;
-    rdfs:label "pccGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "pccGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:pccNot a logic:Formula ;
-    rdfs:label "pccNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:pccBad .
+    rdfs:label "pccNot (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): holds only when it is NOT the case that ∃?e,?r. gmeow:disclosesLoss(?this, ?e) ∧ gmeow:droppedRelation(?e, ?r) ∧ logic:preservationKind(?this, logic:ExactPreservation)."@x-gmeow-english ; logic:not gmeow:pccBad .
 gmeow:pccBad a logic:Formula ;
     rdfs:label "pccBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): quantifies ?e, ?r and requires gmeow:disclosesLoss(?this, ?e) ∧ gmeow:droppedRelation(?e, ?r) ∧ logic:preservationKind(?this, logic:ExactPreservation)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] ;
     logic:exists gmeow:pccBadBody .
 gmeow:pccBadBody a logic:Formula ;
-    rdfs:label "pccBadBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pccDiscloses , gmeow:pccDropped , gmeow:pccExact .
+    rdfs:label "pccBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): conjoins gmeow:disclosesLoss(?this, ?e) ∧ gmeow:droppedRelation(?e, ?r) ∧ logic:preservationKind(?this, logic:ExactPreservation)."@x-gmeow-english ; logic:and gmeow:pccDiscloses , gmeow:pccDropped , gmeow:pccExact .
 gmeow:pccDiscloses a logic:Formula ;
-    rdfs:label "pccDiscloses (formula AST node)"@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
+    rdfs:label "pccDiscloses (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:disclosesLoss atom ('discloses loss') of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): relates ?this, ?e."@x-gmeow-english ; logic:relation gmeow:disclosesLoss ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
 gmeow:pccDropped a logic:Formula ;
-    rdfs:label "pccDropped (formula AST node)"@x-gmeow-english ; logic:relation gmeow:droppedRelation ;
+    rdfs:label "pccDropped (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:droppedRelation atom ('dropped relation') of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): relates ?e, ?r."@x-gmeow-english ; logic:relation gmeow:droppedRelation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
 gmeow:pccExact a logic:Formula ;
-    rdfs:label "pccExact (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
+    rdfs:label "pccExact (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The logic:preservationKind atom of gmeow:PreservationConsistencyConstraint (AC4, preservation consistency): relates ?this, logic:ExactPreservation."@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 
 # Determinism: a deterministic receipt must carry a tie-break rule.
@@ -1438,24 +1726,45 @@ gmeow:DeterministicProjectionConstraint
     logic:integrity gmeow:dpcForall .
 gmeow:dpcForall a logic:Formula ;
     rdfs:label "dpcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): binds ?this and requires ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionDeterminism(?this, gmeow:determinismDeterministic) → ∃?t. gmeow:tieBreakRule(?this, ?t)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:dpcImpl .
 gmeow:dpcImpl a logic:Formula ;
-    rdfs:label "dpcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:dpcGuard ; logic:consequent gmeow:dpcExists .
+    rdfs:label "dpcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): when ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionDeterminism(?this, gmeow:determinismDeterministic) holds, requires ∃?t. gmeow:tieBreakRule(?this, ?t)."@x-gmeow-english ; logic:antecedent gmeow:dpcGuard ; logic:consequent gmeow:dpcExists .
 gmeow:dpcGuard a logic:Formula ;
-    rdfs:label "dpcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:dpcType , gmeow:dpcDet .
+    rdfs:label "dpcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): conjoins ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionDeterminism(?this, gmeow:determinismDeterministic)."@x-gmeow-english ; logic:and gmeow:dpcType , gmeow:dpcDet .
 gmeow:dpcType a logic:Formula ;
-    rdfs:label "dpcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "dpcType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:dpcDet a logic:Formula ;
-    rdfs:label "dpcDet (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionDeterminism ;
+    rdfs:label "dpcDet (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionDeterminism atom ('projection determinism') of gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): relates ?this, gmeow:determinismDeterministic."@x-gmeow-english ; logic:relation gmeow:projectionDeterminism ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:determinismDeterministic ] .
 gmeow:dpcExists a logic:Formula ;
     rdfs:label "dpcExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): quantifies ?t and requires gmeow:tieBreakRule(?this, ?t)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
     logic:exists gmeow:dpcAtom .
 gmeow:dpcAtom a logic:Formula ;
-    rdfs:label "dpcAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
+    rdfs:label "dpcAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:tieBreakRule atom ('tie-break rule') of gmeow:DeterministicProjectionConstraint (AC4, deterministic projection): relates ?this, ?t."@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
 
 # Scalarization disclosure: a scalarized receipt must carry weights.
@@ -1471,24 +1780,45 @@ gmeow:ScalarizationDisclosureConstraint
     logic:integrity gmeow:sdcForall .
 gmeow:sdcForall a logic:Formula ;
     rdfs:label "sdcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): binds ?this and requires ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionKind(?this, gmeow:projectionScalarized) → ∃?w. gmeow:scalarizationWeights(?this, ?w)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:sdcImpl .
 gmeow:sdcImpl a logic:Formula ;
-    rdfs:label "sdcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:sdcGuard ; logic:consequent gmeow:sdcExists .
+    rdfs:label "sdcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): when ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionKind(?this, gmeow:projectionScalarized) holds, requires ∃?w. gmeow:scalarizationWeights(?this, ?w)."@x-gmeow-english ; logic:antecedent gmeow:sdcGuard ; logic:consequent gmeow:sdcExists .
 gmeow:sdcGuard a logic:Formula ;
-    rdfs:label "sdcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:sdcType , gmeow:sdcScal .
+    rdfs:label "sdcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): conjoins ?this is a gmeow:ProjectionReceipt ∧ gmeow:projectionKind(?this, gmeow:projectionScalarized)."@x-gmeow-english ; logic:and gmeow:sdcType , gmeow:sdcScal .
 gmeow:sdcType a logic:Formula ;
-    rdfs:label "sdcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "sdcType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:sdcScal a logic:Formula ;
-    rdfs:label "sdcScal (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
+    rdfs:label "sdcScal (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionKind atom ('projection kind') of gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): relates ?this, gmeow:projectionScalarized."@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:projectionScalarized ] .
 gmeow:sdcExists a logic:Formula ;
     rdfs:label "sdcExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): quantifies ?w and requires gmeow:scalarizationWeights(?this, ?w)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
     logic:exists gmeow:sdcAtom .
 gmeow:sdcAtom a logic:Formula ;
-    rdfs:label "sdcAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:scalarizationWeights ;
+    rdfs:label "sdcAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:scalarizationWeights atom ('scalarization weights') of gmeow:ScalarizationDisclosureConstraint (AC4, scalarization disclosure): relates ?this, ?w."@x-gmeow-english ; logic:relation gmeow:scalarizationWeights ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
 
 # Content-addressing: every projection receipt carries a content digest.
@@ -1504,19 +1834,34 @@ gmeow:ProjectionMustBeContentAddressed
     logic:integrity gmeow:pcaForall .
 gmeow:pcaForall a logic:Formula ;
     rdfs:label "pcaForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:ProjectionMustBeContentAddressed (AC4, projection content-addressing): binds ?this and requires ?this is a gmeow:ProjectionReceipt → ∃?d. gmeow:contentDigest(?this, ?d)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pcaImpl .
 gmeow:pcaImpl a logic:Formula ;
-    rdfs:label "pcaImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pcaGuard ; logic:consequent gmeow:pcaExists .
+    rdfs:label "pcaImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:ProjectionMustBeContentAddressed (AC4, projection content-addressing): when ?this is a gmeow:ProjectionReceipt holds, requires ∃?d. gmeow:contentDigest(?this, ?d)."@x-gmeow-english ; logic:antecedent gmeow:pcaGuard ; logic:consequent gmeow:pcaExists .
 gmeow:pcaGuard a logic:Formula ;
-    rdfs:label "pcaGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "pcaGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ProjectionMustBeContentAddressed (AC4, projection content-addressing): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:pcaExists a logic:Formula ;
     rdfs:label "pcaExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ProjectionMustBeContentAddressed (AC4, projection content-addressing): quantifies ?d and requires gmeow:contentDigest(?this, ?d)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
     logic:exists gmeow:pcaAtom .
 gmeow:pcaAtom a logic:Formula ;
-    rdfs:label "pcaAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
+    rdfs:label "pcaAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:contentDigest atom of gmeow:ProjectionMustBeContentAddressed (AC4, projection content-addressing): relates ?this, ?d."@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
 
 # F4 — same inputs ⇒ same digest: two receipts sharing source-set, kind, and
@@ -1533,51 +1878,99 @@ gmeow:DeterministicDigestConstraint
     logic:integrity gmeow:ddcForall .
 gmeow:ddcForall a logic:Formula ;
     rdfs:label "ddcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): binds ?this and requires ?this is a gmeow:ProjectionReceipt → ¬[gmeow:ddcBad]."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:ddcImpl .
 gmeow:ddcImpl a logic:Formula ;
-    rdfs:label "ddcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:ddcGuard ; logic:consequent gmeow:ddcNot .
+    rdfs:label "ddcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): when ?this is a gmeow:ProjectionReceipt holds, requires ¬[∃?other,?ss,?pk,?tb,?d1,?d2. gmeow:ddcBadBody]."@x-gmeow-english ; logic:antecedent gmeow:ddcGuard ; logic:consequent gmeow:ddcNot .
 gmeow:ddcGuard a logic:Formula ;
-    rdfs:label "ddcGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "ddcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:ddcNot a logic:Formula ;
-    rdfs:label "ddcNot (formula AST node)"@x-gmeow-english ; logic:not gmeow:ddcBad .
+    rdfs:label "ddcNot (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): holds only when it is NOT the case that ∃?other,?ss,?pk,?tb,?d1,?d2. ?other is a gmeow:ProjectionReceipt ∧ gmeow:projectionSourceSet(?this, ?ss) ∧ gmeow:projectionSourceSet(?other, ?ss) ∧ gmeow:projectionKind(?this, ?pk) ∧ gmeow:projectionKind(?other, ?pk) ∧ gmeow:tieBreakRule(?this, ?tb) ∧ gmeow:tieBreakRule(?other, ?tb) ∧ gmeow:contentDigest(?this, ?d1) ∧ gmeow:contentDigest(?other, ?d2) ∧ ?d1 ≠ ?d2."@x-gmeow-english ; logic:not gmeow:ddcBad .
 gmeow:ddcBad a logic:Formula ;
     rdfs:label "ddcBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): quantifies ?other, ?ss, ?pk, ?tb, ?d1, ?d2 and requires ?other is a gmeow:ProjectionReceipt ∧ gmeow:projectionSourceSet(?this, ?ss) ∧ gmeow:projectionSourceSet(?other, ?ss) ∧ gmeow:projectionKind(?this, ?pk) ∧ gmeow:projectionKind(?other, ?pk) ∧ gmeow:tieBreakRule(?this, ?tb) ∧ gmeow:tieBreakRule(?other, ?tb) ∧ gmeow:contentDigest(?this, ?d1) ∧ gmeow:contentDigest(?other, ?d2) ∧ ?d1 ≠ ?d2."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] , [ logic:termIndex 2 ; logic:termVariable "pk" ] , [ logic:termIndex 3 ; logic:termVariable "tb" ] , [ logic:termIndex 4 ; logic:termVariable "d1" ] , [ logic:termIndex 5 ; logic:termVariable "d2" ] ;
     logic:exists gmeow:ddcBadBody .
 gmeow:ddcBadBody a logic:Formula ;
     rdfs:label "ddcBadBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): conjoins ?other is a gmeow:ProjectionReceipt ∧ gmeow:projectionSourceSet(?this, ?ss) ∧ gmeow:projectionSourceSet(?other, ?ss) ∧ gmeow:projectionKind(?this, ?pk) ∧ gmeow:projectionKind(?other, ?pk) ∧ gmeow:tieBreakRule(?this, ?tb) ∧ gmeow:tieBreakRule(?other, ?tb) ∧ gmeow:contentDigest(?this, ?d1) ∧ gmeow:contentDigest(?other, ?d2) ∧ ?d1 ≠ ?d2."@x-gmeow-english ;
     logic:and gmeow:ddcOtherType , gmeow:ddcSS1 , gmeow:ddcSS2 , gmeow:ddcPK1 , gmeow:ddcPK2 , gmeow:ddcTB1 , gmeow:ddcTB2 , gmeow:ddcD1 , gmeow:ddcD2 , gmeow:ddcDigestDiffer .
 gmeow:ddcOtherType a logic:Formula ;
-    rdfs:label "ddcOtherType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "ddcOtherType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): asserts ?other is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:ddcSS1 a logic:Formula ;
-    rdfs:label "ddcSS1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
+    rdfs:label "ddcSS1 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionSourceSet atom ('projection source set') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?this, ?ss."@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] .
 gmeow:ddcSS2 a logic:Formula ;
-    rdfs:label "ddcSS2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
+    rdfs:label "ddcSS2 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionSourceSet atom ('projection source set') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?other, ?ss."@x-gmeow-english ; logic:relation gmeow:projectionSourceSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "ss" ] .
 gmeow:ddcPK1 a logic:Formula ;
-    rdfs:label "ddcPK1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
+    rdfs:label "ddcPK1 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionKind atom ('projection kind') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?this, ?pk."@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pk" ] .
 gmeow:ddcPK2 a logic:Formula ;
-    rdfs:label "ddcPK2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:projectionKind ;
+    rdfs:label "ddcPK2 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:projectionKind atom ('projection kind') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?other, ?pk."@x-gmeow-english ; logic:relation gmeow:projectionKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "pk" ] .
 gmeow:ddcTB1 a logic:Formula ;
-    rdfs:label "ddcTB1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
+    rdfs:label "ddcTB1 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:tieBreakRule atom ('tie-break rule') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?this, ?tb."@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "tb" ] .
 gmeow:ddcTB2 a logic:Formula ;
-    rdfs:label "ddcTB2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
+    rdfs:label "ddcTB2 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:tieBreakRule atom ('tie-break rule') of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?other, ?tb."@x-gmeow-english ; logic:relation gmeow:tieBreakRule ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "tb" ] .
 gmeow:ddcD1 a logic:Formula ;
-    rdfs:label "ddcD1 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
+    rdfs:label "ddcD1 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:contentDigest atom of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?this, ?d1."@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d1" ] .
 gmeow:ddcD2 a logic:Formula ;
-    rdfs:label "ddcD2 (formula AST node)"@x-gmeow-english ; logic:relation gmeow:contentDigest ;
+    rdfs:label "ddcD2 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:contentDigest atom of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): relates ?other, ?d2."@x-gmeow-english ; logic:relation gmeow:contentDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
 gmeow:ddcDigestDiffer a logic:Formula ;
-    rdfs:label "ddcDigestDiffer (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
+    rdfs:label "ddcDigestDiffer (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The inequality atom of gmeow:DeterministicDigestConstraint (AC4/F4, deterministic digest): asserts ?d1 and ?d2 are distinct, the witness that closes the violation pattern."@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "d1" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
 
 # F1 — a selected candidate at whole-set scope requires a discharged winner claim.
@@ -1593,24 +1986,45 @@ gmeow:SelectedCandidateRequiresConsensusConstraint
     logic:integrity gmeow:srcForall .
 gmeow:srcForall a logic:Formula ;
     rdfs:label "srcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): binds ?this and requires ?this is a gmeow:ProjectionReceipt ∧ gmeow:srcSelects → ∃?claim,?sec,?g,?obs. gmeow:srcBody."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:srcImpl .
 gmeow:srcImpl a logic:Formula ;
-    rdfs:label "srcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:srcGuard ; logic:consequent gmeow:srcExists .
+    rdfs:label "srcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): when ?this is a gmeow:ProjectionReceipt ∧ ∃?cand. gmeow:selectedCandidate(?this, ?cand) holds, requires ∃?claim,?sec,?g,?obs. ?claim is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?claim, 'true') ∧ gmeow:extendsToConsensusSection(?claim, ?sec) ∧ gmeow:dischargesDisagreement(?claim, ?g) ∧ gmeow:reconcilesObservation(?sec, ?obs) ∧ gmeow:observationPrefers(?obs, ?cand)."@x-gmeow-english ; logic:antecedent gmeow:srcGuard ; logic:consequent gmeow:srcExists .
 gmeow:srcGuard a logic:Formula ;
-    rdfs:label "srcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcType , gmeow:srcSelects .
+    rdfs:label "srcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): conjoins ?this is a gmeow:ProjectionReceipt ∧ ∃?cand. gmeow:selectedCandidate(?this, ?cand)."@x-gmeow-english ; logic:and gmeow:srcType , gmeow:srcSelects .
 gmeow:srcType a logic:Formula ;
-    rdfs:label "srcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "srcType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): asserts ?this is a gmeow:ProjectionReceipt."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionReceipt ] .
 gmeow:srcSelects a logic:Formula ;
     rdfs:label "srcSelects (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): quantifies ?cand and requires gmeow:selectedCandidate(?this, ?cand)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cand" ] ;
     logic:exists gmeow:srcSelectsAtom .
 gmeow:srcSelectsAtom a logic:Formula ;
-    rdfs:label "srcSelectsAtom (formula AST node)"@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
+    rdfs:label "srcSelectsAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:selectedCandidate atom ('selected candidate') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?this, ?cand."@x-gmeow-english ; logic:relation gmeow:selectedCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:srcExists a logic:Formula ;
     rdfs:label "srcExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): quantifies ?claim, ?sec, ?g, ?obs and requires ?claim is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?claim, 'true') ∧ gmeow:extendsToConsensusSection(?claim, ?sec) ∧ gmeow:dischargesDisagreement(?claim, ?g) ∧ gmeow:reconcilesObservation(?sec, ?obs) ∧ gmeow:observationPrefers(?obs, ?cand)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] , [ logic:termIndex 2 ; logic:termVariable "g" ] , [ logic:termIndex 3 ; logic:termVariable "obs" ] ;
     logic:exists gmeow:srcBody .
 # The consequent MUST bind the guard's selected ?cand: the backing claim's
@@ -1620,24 +2034,45 @@ gmeow:srcExists a logic:Formula ;
 # different candidate / CandidateSet / ComparisonContext) would satisfy it,
 # reopening the "hidden winner via a projection's top pick" bypass (Hard Rule 3).
 gmeow:srcBody a logic:Formula ;
-    rdfs:label "srcBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge , gmeow:srcReconciles , gmeow:srcObsPrefersCand .
+    rdfs:label "srcBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): conjoins ?claim is a gmeow:PreferenceClaim ∧ gmeow:assertsGlobalWinner(?claim, 'true') ∧ gmeow:extendsToConsensusSection(?claim, ?sec) ∧ gmeow:dischargesDisagreement(?claim, ?g) ∧ gmeow:reconcilesObservation(?sec, ?obs) ∧ gmeow:observationPrefers(?obs, ?cand)."@x-gmeow-english ; logic:and gmeow:srcClaimType , gmeow:srcAsserts , gmeow:srcExtends , gmeow:srcDischarge , gmeow:srcReconciles , gmeow:srcObsPrefersCand .
 gmeow:srcReconciles a logic:Formula ;
-    rdfs:label "srcReconciles (formula AST node)"@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
+    rdfs:label "srcReconciles (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:reconcilesObservation atom ('reconciles observation') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?sec, ?obs."@x-gmeow-english ; logic:relation gmeow:reconcilesObservation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sec" ] , [ logic:termIndex 1 ; logic:termVariable "obs" ] .
 gmeow:srcObsPrefersCand a logic:Formula ;
-    rdfs:label "srcObsPrefersCand (formula AST node)"@x-gmeow-english ; logic:relation gmeow:observationPrefers ;
+    rdfs:label "srcObsPrefersCand (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:observationPrefers atom ('observation prefers') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?obs, ?cand."@x-gmeow-english ; logic:relation gmeow:observationPrefers ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "cand" ] .
 gmeow:srcClaimType a logic:Formula ;
-    rdfs:label "srcClaimType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "srcClaimType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): asserts ?claim is a gmeow:PreferenceClaim."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PreferenceClaim ] .
 gmeow:srcAsserts a logic:Formula ;
-    rdfs:label "srcAsserts (formula AST node)"@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
+    rdfs:label "srcAsserts (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:assertsGlobalWinner atom ('asserts global winner') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?claim, 'true'."@x-gmeow-english ; logic:relation gmeow:assertsGlobalWinner ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
 gmeow:srcExtends a logic:Formula ;
-    rdfs:label "srcExtends (formula AST node)"@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
+    rdfs:label "srcExtends (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:extendsToConsensusSection atom ('extends to consensus section') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?claim, ?sec."@x-gmeow-english ; logic:relation gmeow:extendsToConsensusSection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
 gmeow:srcDischarge a logic:Formula ;
-    rdfs:label "srcDischarge (formula AST node)"@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
+    rdfs:label "srcDischarge (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:dischargesDisagreement atom ('discharges disagreement') of gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1, selected-candidate-requires-consensus): relates ?claim, ?g."@x-gmeow-english ; logic:relation gmeow:dischargesDisagreement ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
 
 # DPO is derived-only: a canonical observation may not be derived from a DPO view.
@@ -1835,52 +2270,100 @@ gmeow:ModelConfigDeltaCompletenessConstraint
     logic:integrity gmeow:mcdForall .
 gmeow:mcdForall a logic:Formula ;
     rdfs:label "mcdForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): binds ?this and requires ?this is a gmeow:ModelConfigDelta → ∃?ba,?tk,?cb,?dp,?sq,?pr,?rb,?en,?op,?sd,?ev. gmeow:mcdBody."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:mcdImpl .
 gmeow:mcdImpl a logic:Formula ;
-    rdfs:label "mcdImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:mcdGuard ; logic:consequent gmeow:mcdExists .
+    rdfs:label "mcdImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): when ?this is a gmeow:ModelConfigDelta holds, requires ∃?ba,?tk,?cb,?dp,?sq,?pr,?rb,?en,?op,?sd,?ev. gmeow:deltaBaseArtifact(?this, ?ba) ∧ gmeow:deltaTokenizer(?this, ?tk) ∧ gmeow:deltaCodebook(?this, ?cb) ∧ gmeow:deltaDatasetProjection(?this, ?dp) ∧ gmeow:deltaSelectionQuery(?this, ?sq) ∧ gmeow:deltaPromptIdentity(?this, ?pr) ∧ gmeow:deltaRubricIdentity(?this, ?rb) ∧ gmeow:deltaEngine(?this, ?en) ∧ gmeow:deltaOptimizer(?this, ?op) ∧ gmeow:deltaSeed(?this, ?sd) ∧ gmeow:deltaEvaluationEvidence(?this, ?ev)."@x-gmeow-english ; logic:antecedent gmeow:mcdGuard ; logic:consequent gmeow:mcdExists .
 gmeow:mcdGuard a logic:Formula ;
-    rdfs:label "mcdGuard (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "mcdGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): asserts ?this is a gmeow:ModelConfigDelta."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelConfigDelta ] .
 gmeow:mcdExists a logic:Formula ;
     rdfs:label "mcdExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): quantifies ?ba, ?tk, ?cb, ?dp, ?sq, ?pr, ?rb, ?en, ?op, ?sd, ?ev and requires gmeow:deltaBaseArtifact(?this, ?ba) ∧ gmeow:deltaTokenizer(?this, ?tk) ∧ gmeow:deltaCodebook(?this, ?cb) ∧ gmeow:deltaDatasetProjection(?this, ?dp) ∧ gmeow:deltaSelectionQuery(?this, ?sq) ∧ gmeow:deltaPromptIdentity(?this, ?pr) ∧ gmeow:deltaRubricIdentity(?this, ?rb) ∧ gmeow:deltaEngine(?this, ?en) ∧ gmeow:deltaOptimizer(?this, ?op) ∧ gmeow:deltaSeed(?this, ?sd) ∧ gmeow:deltaEvaluationEvidence(?this, ?ev)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ba" ] , [ logic:termIndex 1 ; logic:termVariable "tk" ] , [ logic:termIndex 2 ; logic:termVariable "cb" ] , [ logic:termIndex 3 ; logic:termVariable "dp" ] , [ logic:termIndex 4 ; logic:termVariable "sq" ] , [ logic:termIndex 5 ; logic:termVariable "pr" ] , [ logic:termIndex 6 ; logic:termVariable "rb" ] , [ logic:termIndex 7 ; logic:termVariable "en" ] , [ logic:termIndex 8 ; logic:termVariable "op" ] , [ logic:termIndex 9 ; logic:termVariable "sd" ] , [ logic:termIndex 10 ; logic:termVariable "ev" ] ;
     logic:exists gmeow:mcdBody .
 gmeow:mcdBody a logic:Formula ;
     rdfs:label "mcdBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): conjoins gmeow:deltaBaseArtifact(?this, ?ba) ∧ gmeow:deltaTokenizer(?this, ?tk) ∧ gmeow:deltaCodebook(?this, ?cb) ∧ gmeow:deltaDatasetProjection(?this, ?dp) ∧ gmeow:deltaSelectionQuery(?this, ?sq) ∧ gmeow:deltaPromptIdentity(?this, ?pr) ∧ gmeow:deltaRubricIdentity(?this, ?rb) ∧ gmeow:deltaEngine(?this, ?en) ∧ gmeow:deltaOptimizer(?this, ?op) ∧ gmeow:deltaSeed(?this, ?sd) ∧ gmeow:deltaEvaluationEvidence(?this, ?ev)."@x-gmeow-english ;
     logic:and gmeow:mcdBA , gmeow:mcdTK , gmeow:mcdCB , gmeow:mcdDP , gmeow:mcdSQ , gmeow:mcdPR , gmeow:mcdRB , gmeow:mcdEN , gmeow:mcdOP , gmeow:mcdSD , gmeow:mcdEV .
 gmeow:mcdBA a logic:Formula ;
-    rdfs:label "mcdBA (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaBaseArtifact ;
+    rdfs:label "mcdBA (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaBaseArtifact atom ('delta base artifact') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?ba."@x-gmeow-english ; logic:relation gmeow:deltaBaseArtifact ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ba" ] .
 gmeow:mcdTK a logic:Formula ;
-    rdfs:label "mcdTK (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaTokenizer ;
+    rdfs:label "mcdTK (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaTokenizer atom ('delta tokenizer') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?tk."@x-gmeow-english ; logic:relation gmeow:deltaTokenizer ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "tk" ] .
 gmeow:mcdCB a logic:Formula ;
-    rdfs:label "mcdCB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaCodebook ;
+    rdfs:label "mcdCB (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaCodebook atom ('delta codebook') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?cb."@x-gmeow-english ; logic:relation gmeow:deltaCodebook ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cb" ] .
 gmeow:mcdDP a logic:Formula ;
-    rdfs:label "mcdDP (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaDatasetProjection ;
+    rdfs:label "mcdDP (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaDatasetProjection atom ('delta dataset projection') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?dp."@x-gmeow-english ; logic:relation gmeow:deltaDatasetProjection ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dp" ] .
 gmeow:mcdSQ a logic:Formula ;
-    rdfs:label "mcdSQ (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaSelectionQuery ;
+    rdfs:label "mcdSQ (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaSelectionQuery atom ('delta selection query') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?sq."@x-gmeow-english ; logic:relation gmeow:deltaSelectionQuery ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sq" ] .
 gmeow:mcdPR a logic:Formula ;
-    rdfs:label "mcdPR (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaPromptIdentity ;
+    rdfs:label "mcdPR (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaPromptIdentity atom ('delta prompt identity') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?pr."@x-gmeow-english ; logic:relation gmeow:deltaPromptIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pr" ] .
 gmeow:mcdRB a logic:Formula ;
-    rdfs:label "mcdRB (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaRubricIdentity ;
+    rdfs:label "mcdRB (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaRubricIdentity atom ('delta rubric identity') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?rb."@x-gmeow-english ; logic:relation gmeow:deltaRubricIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rb" ] .
 gmeow:mcdEN a logic:Formula ;
-    rdfs:label "mcdEN (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaEngine ;
+    rdfs:label "mcdEN (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaEngine atom ('delta engine') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?en."@x-gmeow-english ; logic:relation gmeow:deltaEngine ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "en" ] .
 gmeow:mcdOP a logic:Formula ;
-    rdfs:label "mcdOP (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaOptimizer ;
+    rdfs:label "mcdOP (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaOptimizer atom ('delta optimizer') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?op."@x-gmeow-english ; logic:relation gmeow:deltaOptimizer ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "op" ] .
 gmeow:mcdSD a logic:Formula ;
-    rdfs:label "mcdSD (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaSeed ;
+    rdfs:label "mcdSD (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaSeed atom ('delta seed') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?sd."@x-gmeow-english ; logic:relation gmeow:deltaSeed ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
 gmeow:mcdEV a logic:Formula ;
-    rdfs:label "mcdEV (formula AST node)"@x-gmeow-english ; logic:relation gmeow:deltaEvaluationEvidence ;
+    rdfs:label "mcdEV (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:deltaEvaluationEvidence atom ('delta evaluation evidence') of gmeow:ModelConfigDeltaCompletenessConstraint (AC5, eleven-leg model-config-delta completeness): relates ?this, ?ev."@x-gmeow-english ; logic:relation gmeow:deltaEvaluationEvidence ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ev" ] .
 
 # Closed-world roster of the delta's mandatory legs (F2-style closure).
@@ -1932,59 +2415,116 @@ gmeow:GeometricBindingConstraint
     logic:integrity gmeow:gbcForall .
 gmeow:gbcForall a logic:Formula ;
     rdfs:label "gbcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): binds ?this, ?mv and requires gmeow:candidateGeometry(?this, ?mv) → gmeow:gbcNoSigBad ∧ gmeow:gbcNoDimBad."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mv" ] ;
     logic:forall gmeow:gbcImpl .
 gmeow:gbcImpl a logic:Formula ;
-    rdfs:label "gbcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:gbcGuard ; logic:consequent gmeow:gbcOk .
+    rdfs:label "gbcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): when gmeow:candidateGeometry(?this, ?mv) holds, requires ¬[gmeow:gbcSigEx] ∧ ¬[gmeow:gbcDimEx]."@x-gmeow-english ; logic:antecedent gmeow:gbcGuard ; logic:consequent gmeow:gbcOk .
 gmeow:gbcGuard a logic:Formula ;
-    rdfs:label "gbcGuard (formula AST node)"@x-gmeow-english ; logic:relation gmeow:candidateGeometry ;
+    rdfs:label "gbcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:candidateGeometry atom ('candidate geometry') of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?this, ?mv."@x-gmeow-english ; logic:relation gmeow:candidateGeometry ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mv" ] .
 gmeow:gbcOk a logic:Formula ;
-    rdfs:label "gbcOk (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcNoSigBad , gmeow:gbcNoDimBad .
+    rdfs:label "gbcOk (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): conjoins ¬[gmeow:gbcSigEx] ∧ ¬[gmeow:gbcDimEx]."@x-gmeow-english ; logic:and gmeow:gbcNoSigBad , gmeow:gbcNoDimBad .
 # ¬∃ signature mismatch: p + q ≠ 12
 gmeow:gbcNoSigBad a logic:Formula ;
-    rdfs:label "gbcNoSigBad (formula AST node)"@x-gmeow-english ; logic:not gmeow:gbcSigEx .
+    rdfs:label "gbcNoSigBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): holds only when it is NOT the case that ∃?alg,?sig,?p,?q,?s. gmeow:geometryAlgebra(?mv, ?alg) ∧ math:metricSignature(?alg, ?sig) ∧ math:signaturePositive(?sig, ?p) ∧ math:signatureNegative(?sig, ?q) ∧ ?s = ?p + ?q ∧ ?s ≠ '12'."@x-gmeow-english ; logic:not gmeow:gbcSigEx .
 gmeow:gbcSigEx a logic:Formula ;
     rdfs:label "gbcSigEx (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): quantifies ?alg, ?sig, ?p, ?q, ?s and requires gmeow:geometryAlgebra(?mv, ?alg) ∧ math:metricSignature(?alg, ?sig) ∧ math:signaturePositive(?sig, ?p) ∧ math:signatureNegative(?sig, ?q) ∧ ?s = ?p + ?q ∧ ?s ≠ '12'."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "alg" ] , [ logic:termIndex 1 ; logic:termVariable "sig" ] , [ logic:termIndex 2 ; logic:termVariable "p" ] , [ logic:termIndex 3 ; logic:termVariable "q" ] , [ logic:termIndex 4 ; logic:termVariable "s" ] ;
     logic:exists gmeow:gbcSigBody .
 gmeow:gbcSigBody a logic:Formula ;
-    rdfs:label "gbcSigBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcSigAlg , gmeow:gbcSigSig , gmeow:gbcSigP , gmeow:gbcSigQ , gmeow:gbcSigSum , gmeow:gbcSigNot12 .
+    rdfs:label "gbcSigBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): conjoins gmeow:geometryAlgebra(?mv, ?alg) ∧ math:metricSignature(?alg, ?sig) ∧ math:signaturePositive(?sig, ?p) ∧ math:signatureNegative(?sig, ?q) ∧ ?s = ?p + ?q ∧ ?s ≠ '12'."@x-gmeow-english ; logic:and gmeow:gbcSigAlg , gmeow:gbcSigSig , gmeow:gbcSigP , gmeow:gbcSigQ , gmeow:gbcSigSum , gmeow:gbcSigNot12 .
 gmeow:gbcSigAlg a logic:Formula ;
-    rdfs:label "gbcSigAlg (formula AST node)"@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
+    rdfs:label "gbcSigAlg (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:geometryAlgebra atom ('geometry algebra') of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?mv, ?alg."@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mv" ] , [ logic:termIndex 1 ; logic:termVariable "alg" ] .
 gmeow:gbcSigSig a logic:Formula ;
-    rdfs:label "gbcSigSig (formula AST node)"@x-gmeow-english ; logic:relation math:metricSignature ;
+    rdfs:label "gbcSigSig (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math:metricSignature atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?alg, ?sig."@x-gmeow-english ; logic:relation math:metricSignature ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "alg" ] , [ logic:termIndex 1 ; logic:termVariable "sig" ] .
 gmeow:gbcSigP a logic:Formula ;
-    rdfs:label "gbcSigP (formula AST node)"@x-gmeow-english ; logic:relation math:signaturePositive ;
+    rdfs:label "gbcSigP (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math:signaturePositive atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?sig, ?p."@x-gmeow-english ; logic:relation math:signaturePositive ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sig" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
 gmeow:gbcSigQ a logic:Formula ;
-    rdfs:label "gbcSigQ (formula AST node)"@x-gmeow-english ; logic:relation math:signatureNegative ;
+    rdfs:label "gbcSigQ (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math:signatureNegative atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?sig, ?q."@x-gmeow-english ; logic:relation math:signatureNegative ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sig" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
 gmeow:gbcSigSum a logic:Formula ;
-    rdfs:label "gbcSigSum (formula AST node)"@x-gmeow-english ; logic:relation logic:termSum ;
+    rdfs:label "gbcSigSum (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The arithmetic sum atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): binds ?s to the sum ?p + ?q."@x-gmeow-english ; logic:relation logic:termSum ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "q" ] .
 gmeow:gbcSigNot12 a logic:Formula ;
-    rdfs:label "gbcSigNot12 (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
+    rdfs:label "gbcSigNot12 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The inequality atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): asserts ?s and '12' are distinct, the witness that closes the violation pattern."@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termLiteral "12" ; logic:termLiteralDatatype xsd:integer ] .
 # ¬∃ carrier-dimension mismatch: spaceDimension ≠ 4096
 gmeow:gbcNoDimBad a logic:Formula ;
-    rdfs:label "gbcNoDimBad (formula AST node)"@x-gmeow-english ; logic:not gmeow:gbcDimEx .
+    rdfs:label "gbcNoDimBad (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The negation within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): holds only when it is NOT the case that ∃?alg2,?d. gmeow:geometryAlgebra(?mv, ?alg2) ∧ math:spaceDimension(?alg2, ?d) ∧ ?d ≠ '4096'."@x-gmeow-english ; logic:not gmeow:gbcDimEx .
 gmeow:gbcDimEx a logic:Formula ;
     rdfs:label "gbcDimEx (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): quantifies ?alg2, ?d and requires gmeow:geometryAlgebra(?mv, ?alg2) ∧ math:spaceDimension(?alg2, ?d) ∧ ?d ≠ '4096'."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "alg2" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] ;
     logic:exists gmeow:gbcDimBody .
 gmeow:gbcDimBody a logic:Formula ;
-    rdfs:label "gbcDimBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:gbcDimAlg , gmeow:gbcDimSD , gmeow:gbcDimNot4096 .
+    rdfs:label "gbcDimBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): conjoins gmeow:geometryAlgebra(?mv, ?alg2) ∧ math:spaceDimension(?alg2, ?d) ∧ ?d ≠ '4096'."@x-gmeow-english ; logic:and gmeow:gbcDimAlg , gmeow:gbcDimSD , gmeow:gbcDimNot4096 .
 gmeow:gbcDimAlg a logic:Formula ;
-    rdfs:label "gbcDimAlg (formula AST node)"@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
+    rdfs:label "gbcDimAlg (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:geometryAlgebra atom ('geometry algebra') of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?mv, ?alg2."@x-gmeow-english ; logic:relation gmeow:geometryAlgebra ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mv" ] , [ logic:termIndex 1 ; logic:termVariable "alg2" ] .
 gmeow:gbcDimSD a logic:Formula ;
-    rdfs:label "gbcDimSD (formula AST node)"@x-gmeow-english ; logic:relation math:spaceDimension ;
+    rdfs:label "gbcDimSD (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math:spaceDimension atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): relates ?alg2, ?d."@x-gmeow-english ; logic:relation math:spaceDimension ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "alg2" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
 gmeow:gbcDimNot4096 a logic:Formula ;
-    rdfs:label "gbcDimNot4096 (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
+    rdfs:label "gbcDimNot4096 (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The inequality atom of gmeow:GeometricBindingConstraint (the Cl(12)/4096-d geometric binding gate): asserts ?d and '4096' are distinct, the witness that closes the violation pattern."@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ] , [ logic:termIndex 1 ; logic:termLiteral "4096" ; logic:termLiteralDatatype xsd:integer ] .
 
 gmeow:GeometryDimensionMismatch
@@ -2151,31 +2691,58 @@ gmeow:ActivationAuthorityConstraint
     logic:integrity gmeow:aacForall .
 gmeow:aacForall a logic:Formula ;
     rdfs:label "aacForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:ActivationAuthorityConstraint (AC6, activation authority): binds ?this and requires ∃?dep. gmeow:grantsActivation(?this, ?dep) → ∃?gate. gmeow:aacBody."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:aacImpl .
 gmeow:aacImpl a logic:Formula ;
-    rdfs:label "aacImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:aacGuard ; logic:consequent gmeow:aacExists .
+    rdfs:label "aacImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:ActivationAuthorityConstraint (AC6, activation authority): when ∃?dep. gmeow:grantsActivation(?this, ?dep) holds, requires ∃?gate. gmeow:activationAuthorizedBy(?this, ?gate) ∧ ?gate is a gmeow:ConsumerImprovementGate ∧ gmeow:gateVerdict(?gate, gmeow:verdictHeld)."@x-gmeow-english ; logic:antecedent gmeow:aacGuard ; logic:consequent gmeow:aacExists .
 gmeow:aacGuard a logic:Formula ;
     rdfs:label "aacGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ActivationAuthorityConstraint (AC6, activation authority): quantifies ?dep and requires gmeow:grantsActivation(?this, ?dep)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dep" ] ;
     logic:exists gmeow:aacGrants .
 gmeow:aacGrants a logic:Formula ;
-    rdfs:label "aacGrants (formula AST node)"@x-gmeow-english ; logic:relation gmeow:grantsActivation ;
+    rdfs:label "aacGrants (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:grantsActivation atom ('grants activation') of gmeow:ActivationAuthorityConstraint (AC6, activation authority): relates ?this, ?dep."@x-gmeow-english ; logic:relation gmeow:grantsActivation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dep" ] .
 gmeow:aacExists a logic:Formula ;
     rdfs:label "aacExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:ActivationAuthorityConstraint (AC6, activation authority): quantifies ?gate and requires gmeow:activationAuthorizedBy(?this, ?gate) ∧ ?gate is a gmeow:ConsumerImprovementGate ∧ gmeow:gateVerdict(?gate, gmeow:verdictHeld)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gate" ] ;
     logic:exists gmeow:aacBody .
 gmeow:aacBody a logic:Formula ;
-    rdfs:label "aacBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:aacAuth , gmeow:aacGateType , gmeow:aacHeld .
+    rdfs:label "aacBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:ActivationAuthorityConstraint (AC6, activation authority): conjoins gmeow:activationAuthorizedBy(?this, ?gate) ∧ ?gate is a gmeow:ConsumerImprovementGate ∧ gmeow:gateVerdict(?gate, gmeow:verdictHeld)."@x-gmeow-english ; logic:and gmeow:aacAuth , gmeow:aacGateType , gmeow:aacHeld .
 gmeow:aacAuth a logic:Formula ;
-    rdfs:label "aacAuth (formula AST node)"@x-gmeow-english ; logic:relation gmeow:activationAuthorizedBy ;
+    rdfs:label "aacAuth (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:activationAuthorizedBy atom ('activation authorized by') of gmeow:ActivationAuthorityConstraint (AC6, activation authority): relates ?this, ?gate."@x-gmeow-english ; logic:relation gmeow:activationAuthorizedBy ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "gate" ] .
 gmeow:aacGateType a logic:Formula ;
-    rdfs:label "aacGateType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "aacGateType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:ActivationAuthorityConstraint (AC6, activation authority): asserts ?gate is a gmeow:ConsumerImprovementGate."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gate" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ConsumerImprovementGate ] .
 gmeow:aacHeld a logic:Formula ;
-    rdfs:label "aacHeld (formula AST node)"@x-gmeow-english ; logic:relation gmeow:gateVerdict ;
+    rdfs:label "aacHeld (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The gmeow:gateVerdict atom ('gate verdict') of gmeow:ActivationAuthorityConstraint (AC6, activation authority): relates ?gate, gmeow:verdictHeld."@x-gmeow-english ; logic:relation gmeow:gateVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "gate" ] , [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] .
 
 # =========================================================================== #
@@ -2218,33 +2785,63 @@ gmeow:PreservationBoundaryConstraint
     logic:integrity gmeow:pbcForall .
 gmeow:pbcForall a logic:Formula ;
     rdfs:label "pbcForall (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The top-level ∀ quantifier of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): binds ?this and requires ?this is a gmeow:ProjectionPreservationRecord ∧ gmeow:pbcLossy → ∃?b. logic:expressivenessBoundary(?this, ?b)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:pbcImpl .
 gmeow:pbcImpl a logic:Formula ;
-    rdfs:label "pbcImpl (formula AST node)"@x-gmeow-english ; logic:antecedent gmeow:pbcGuard ; logic:consequent gmeow:pbcExists .
+    rdfs:label "pbcImpl (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent→consequent implication of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): when ?this is a gmeow:ProjectionPreservationRecord ∧ ∃?k. gmeow:pbcLossyBody holds, requires ∃?b. logic:expressivenessBoundary(?this, ?b)."@x-gmeow-english ; logic:antecedent gmeow:pbcGuard ; logic:consequent gmeow:pbcExists .
 gmeow:pbcGuard a logic:Formula ;
-    rdfs:label "pbcGuard (formula AST node)"@x-gmeow-english ; logic:and gmeow:pbcType , gmeow:pbcLossy .
+    rdfs:label "pbcGuard (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): conjoins ?this is a gmeow:ProjectionPreservationRecord ∧ ∃?k. gmeow:pbcLossyBody."@x-gmeow-english ; logic:and gmeow:pbcType , gmeow:pbcLossy .
 gmeow:pbcType a logic:Formula ;
-    rdfs:label "pbcType (formula AST node)"@x-gmeow-english ; logic:relation rdf:type ;
+    rdfs:label "pbcType (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The type-guard atom of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): asserts ?this is a gmeow:ProjectionPreservationRecord."@x-gmeow-english ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProjectionPreservationRecord ] .
 gmeow:pbcLossy a logic:Formula ;
     rdfs:label "pbcLossy (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): quantifies ?k and requires logic:preservationKind(?this, ?k) ∧ ?k ≠ logic:ExactPreservation."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "k" ] ;
     logic:exists gmeow:pbcLossyBody .
 gmeow:pbcLossyBody a logic:Formula ;
-    rdfs:label "pbcLossyBody (formula AST node)"@x-gmeow-english ; logic:and gmeow:pbcKind , gmeow:pbcNotExact .
+    rdfs:label "pbcLossyBody (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The conjunctive body within gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): conjoins logic:preservationKind(?this, ?k) ∧ ?k ≠ logic:ExactPreservation."@x-gmeow-english ; logic:and gmeow:pbcKind , gmeow:pbcNotExact .
 gmeow:pbcKind a logic:Formula ;
-    rdfs:label "pbcKind (formula AST node)"@x-gmeow-english ; logic:relation logic:preservationKind ;
+    rdfs:label "pbcKind (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The logic:preservationKind atom of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): relates ?this, ?k."@x-gmeow-english ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "k" ] .
 gmeow:pbcNotExact a logic:Formula ;
-    rdfs:label "pbcNotExact (formula AST node)"@x-gmeow-english ; logic:relation logic:termDistinct ;
+    rdfs:label "pbcNotExact (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The inequality atom of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): asserts ?k and logic:ExactPreservation are distinct, the witness that closes the violation pattern."@x-gmeow-english ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "k" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
 gmeow:pbcExists a logic:Formula ;
     rdfs:label "pbcExists (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The ∃ existential within gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): quantifies ?b and requires logic:expressivenessBoundary(?this, ?b)."@x-gmeow-english ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
     logic:exists gmeow:pbcAtom .
 gmeow:pbcAtom a logic:Formula ;
-    rdfs:label "pbcAtom (formula AST node)"@x-gmeow-english ; logic:relation logic:expressivenessBoundary ;
+    rdfs:label "pbcAtom (formula AST node)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The logic:expressivenessBoundary atom of gmeow:PreservationBoundaryConstraint (the preservation-boundary honesty gate): relates ?this, ?b."@x-gmeow-english ; logic:relation logic:expressivenessBoundary ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # The governing anti-context-free-winner gate is the whole-base consensus gate;
