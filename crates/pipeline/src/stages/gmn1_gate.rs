@@ -700,10 +700,16 @@ mod tests {
     /// The gate's own negative teeth, proven through the SAME `check_gmn1_roundtrip`
     /// entry point `run.rs` wires into `make check` — not merely the codec's own unit
     /// tests. Builds a throwaway `<tmp>/slices/grounding/{logic,lang,math}` tree with a
-    /// deliberately uncovered construct (an IRI under no registered namespace) in the
-    /// `math` module and asserts the gate reds on it, naming the offending path — proof
-    /// the gate has teeth at the file-I/O entry point a permanent fixture can safely
-    /// exercise (unlike temporarily corrupting a real committed slice file).
+    /// deliberately uncovered construct (a blank node whose label carries the reserved
+    /// `__` separator, which `is_safe_token_body` rejects) in the `math` module and
+    /// asserts the gate reds on it, naming the offending path — proof the gate has teeth
+    /// at the file-I/O entry point a permanent fixture can safely exercise (unlike
+    /// temporarily corrupting a real committed slice file).
+    ///
+    /// The prior witness (an IRI under no registered namespace) is NO LONGER uncovered:
+    /// G11 (issue 1579) makes such external IRIs ride LOSSLESSLY by reference. The
+    /// still-uncovered witness is therefore an unsafe blank-node label — the blank arm
+    /// still raises `UncoveredTerm` → `CLASS_UNCOVERED_TERM`, so the gate keeps its teeth.
     #[test]
     fn gate_reds_on_a_deliberately_uncovered_construct() {
         let dir =
@@ -738,12 +744,14 @@ mod tests {
             b"@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
         )
         .unwrap();
-        // The deliberately uncovered construct: an IRI under a namespace this codec's
-        // prefix table does not register.
+        // The deliberately uncovered construct: a blank-node subject whose label carries
+        // the reserved `__` separator, which `is_safe_token_body` rejects — so the blank
+        // arm raises UncoveredTerm. (An external-namespace IRI is NO LONGER uncovered; it
+        // now rides by reference, so the witness must be an unsafe blank label.)
         std::fs::write(
             math_dir.join("module.ttl"),
-            b"@prefix unreg: <https://not-a-registered-namespace.example/> .\n\
-              unreg:subject unreg:predicate unreg:object .\n",
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              _:a__b gmeow:predicate gmeow:object .\n",
         )
         .unwrap();
 
