@@ -23,7 +23,7 @@ const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm
 const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
 /// The demonstrator advisory code both wings project (`crates/validate/src/advisory.rs`
-/// `Advisory::demo`), and the code embedded in the `graph/norm-claims` claim's
+/// `advisory_demonstrator()`), and the code embedded in the `graph/norm-claims` claim's
 /// content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`).
 const ADVICE_CODE: &str = "advice.tier.active";
 

@@ -42,7 +42,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
 /// The demonstrator advisory code both advice wings project (`crates/validate/src/advisory.rs`
-/// `Advisory::demo`), embedded in the `graph/norm-claims` claim's content-addressed IRIs
+/// `advisory_demonstrator()`), embedded in the `graph/norm-claims` claim's content-addressed IRIs
 /// (`NORM_CLAIMS_BASE_IRI`).
 const ADVICE_CODE: &str = "advice.tier.active";
 
