@@ -33,10 +33,17 @@ use gmeow_cli_core::ConsoleMode;
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
 /// generator inputs, and no network. Every command that defaults to "the bundle"
 /// reads these bytes unless the user supplies a file / `--gts`.
-pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../generated/dist/gmeow.gts"
-));
+///
+/// The bundle is a git-ignored staged product materialized by `make sync` (or
+/// `make install`), never a committed input. `build.rs` resolves it to an
+/// absolute path, guards against it being absent or empty, and exposes that
+/// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
+/// reads — so the build fails closed with a bootstrap pointer (naming
+/// `make sync`) rather than a bare "file not found" when the bundle hasn't
+/// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
+/// override the staged path for release/package flows; the same hard fail on
+/// absence still applies.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -634,6 +641,163 @@ pub enum LogicCommands {
         #[arg(long = "subsort-source")]
         subsort_source: Option<PathBuf>,
     },
+    /// Drive the stable operational `gmeow_logic::runtime::ReasoningSession` façade
+    /// over authored `logic:` programs and RDF EDBs: open a content-addressed
+    /// session, apply content-addressed deltas, READ BACK the incrementally
+    /// maintained derived closure with its proof provenance, and round-trip a
+    /// content-addressed / identity-gated checkpoint to disk. This is the real
+    /// production consumer of the façade — it drives AND surfaces the reasoning
+    /// output, so the maintained closure is never a test-only surface.
+    Session {
+        #[command(subcommand)]
+        command: LogicSessionCommands,
+    },
+}
+
+/// The `gmeow logic session` nested subcommands — the production consumer of the
+/// operational [`gmeow_logic::runtime::ReasoningSession`] façade.
+///
+/// Every subcommand loads the authored `logic:` program (`--program`) and the
+/// authorized RDF EDB (`--edb`, Turtle/N-Triples/N-Quads/TriG, re-homed into one
+/// named-graph world) through the SAME production loaders the rest of the CLI uses,
+/// then drives the real façade — never a re-implementation.
+#[derive(Debug, Subcommand)]
+pub enum LogicSessionCommands {
+    /// Open a session over an authorized EDB + program and print the full
+    /// seven-axis `SessionIdentity` (as N-Quads), the genesis journal head, and the
+    /// fixed program's fragment disposition.
+    Open {
+        /// The authorized RDF EDB (Turtle/N-Triples/N-Quads/TriG).
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// The single named-graph world IRI the EDB is re-homed into (the façade
+        /// maintains exactly one world). Default: the session world IRI.
+        #[arg(long = "world")]
+        world: Option<String>,
+        /// Compose over a demand-paged world-source: page the authorized EDB back in
+        /// through a `PagedDataset` and drive `ReasoningSession::open_paged`, then print
+        /// the page-fault composition metrics. Implied by `--page-size`.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
+    },
+    /// Open a session, build a content-addressed `SessionDelta` (additions +
+    /// optional retirements, anchored on the session's own data-generation and
+    /// current head), apply it, and print the typed `OperationOutcome` variant with
+    /// its evidence plus the advanced journal head.
+    Apply {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// The facts to insert (RDF, re-homed into the session world).
+        #[arg(long = "additions")]
+        additions: PathBuf,
+        /// Active state to retire/suppress (RDF, re-homed into the session world).
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// Optional committed-derivation step budget for the insertion.
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+    },
+    /// Read the incrementally-maintained derived closure back out — the production
+    /// READER that makes the maintained answer set observable. Optionally applies a
+    /// delta first (`--apply`), then prints the deterministic, diffable closure with
+    /// per-fact proof provenance (firing rule, premises, signed Z-weight).
+    Facts {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Optionally apply this additions delta before reading the closure back.
+        #[arg(long = "apply")]
+        apply: Option<PathBuf>,
+        /// Active state to retire/suppress before reading the closure back (RDF,
+        /// re-homed into the session world exactly as `--apply` additions are, via the
+        /// identical suppression path `checkpoint --retract` / `apply --retract` use).
+        /// Folds a NON-EMPTY suppression into the applied delta, so the read-back
+        /// closure and its per-fact proof heights reflect the retraction — e.g. a
+        /// surviving fact's min-proof-height RISES when its shortest proof is retired.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// Read the closure back over a demand-paged world-source
+        /// (`ReasoningSession::open_paged`) instead of the resident open, and print the
+        /// page-fault composition metrics. Implied by `--page-size`. The maintained
+        /// closure read back is identical to the resident path.
+        #[arg(long)]
+        paged: bool,
+        /// Chunk the paged world into pages of this many quads (implies `--paged`); a
+        /// value `>=` the quad count (or omitted) pages the whole world as one page.
+        #[arg(long = "page-size")]
+        page_size: Option<usize>,
+    },
+    /// Open a session (optionally applying a delta first), mint a content-addressed
+    /// checkpoint, and write it to disk as JSON (identity + EDB generation + journal
+    /// head + content address).
+    Checkpoint {
+        /// The authorized RDF EDB.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Optionally apply this additions delta before checkpointing.
+        #[arg(long = "apply")]
+        apply: Option<PathBuf>,
+        /// Active state to retire/suppress in the applied delta (RDF, re-homed into
+        /// the session world exactly as the additions are). Folds a NON-EMPTY
+        /// suppression into the committed delta the checkpoint persists and replays.
+        #[arg(long = "retract")]
+        retract: Option<PathBuf>,
+        /// The path to write the checkpoint JSON to.
+        #[arg(long = "out", short = 'o')]
+        out: PathBuf,
+    },
+    /// Load a checkpoint from disk and restore a session by deterministic
+    /// re-materialization, printing the typed outcome — including the identity-gated
+    /// `Invalid{IdentityMismatch}` rejection when the checkpoint does not match the
+    /// current identity, and `Invalid{CorruptCheckpoint}` when the bytes were
+    /// tampered with.
+    Restore {
+        /// The checkpoint JSON to load.
+        #[arg(long = "in")]
+        input: PathBuf,
+        /// The authorized RDF EDB to re-materialize from.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+    },
+    /// Restart from a checkpoint and resume at its durable journal head. If
+    /// `--reapply` re-submits an already-committed delta (anchored on the stale
+    /// pre-checkpoint head), print the `Invalid{PreconditionMismatch}` refusal — the
+    /// structural no-double-apply guard surviving a persist→restore boundary.
+    Restart {
+        /// The checkpoint JSON to load.
+        #[arg(long = "in")]
+        input: PathBuf,
+        /// The authorized RDF EDB to re-materialize from.
+        #[arg(long = "edb")]
+        edb: PathBuf,
+        /// The authored `logic:`-vocabulary program Turtle.
+        #[arg(long = "program")]
+        program: PathBuf,
+        /// Re-submit this already-committed additions delta (anchored on the
+        /// genesis head) to demonstrate the double-apply refusal after a restart.
+        #[arg(long = "reapply")]
+        reapply: Option<PathBuf>,
+    },
 }
 
 /// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
@@ -889,6 +1053,83 @@ pub fn run() -> i32 {
                 program_iri.as_deref(),
                 subsort_source.as_deref(),
             ),
+            LogicCommands::Session { command } => match command {
+                LogicSessionCommands::Open {
+                    edb,
+                    program,
+                    world,
+                    paged,
+                    page_size,
+                } => commands::logic_session_open(
+                    reporter,
+                    &edb,
+                    &program,
+                    world.as_deref(),
+                    paged,
+                    page_size,
+                ),
+                LogicSessionCommands::Apply {
+                    edb,
+                    program,
+                    additions,
+                    retract,
+                    max_steps,
+                } => commands::logic_session_apply(
+                    reporter,
+                    &edb,
+                    &program,
+                    &additions,
+                    retract.as_deref(),
+                    max_steps,
+                ),
+                LogicSessionCommands::Facts {
+                    edb,
+                    program,
+                    apply,
+                    retract,
+                    paged,
+                    page_size,
+                } => commands::logic_session_facts(
+                    reporter,
+                    &edb,
+                    &program,
+                    apply.as_deref(),
+                    retract.as_deref(),
+                    paged,
+                    page_size,
+                ),
+                LogicSessionCommands::Checkpoint {
+                    edb,
+                    program,
+                    apply,
+                    retract,
+                    out,
+                } => commands::logic_session_checkpoint(
+                    reporter,
+                    &edb,
+                    &program,
+                    apply.as_deref(),
+                    retract.as_deref(),
+                    &out,
+                ),
+                LogicSessionCommands::Restore {
+                    input,
+                    edb,
+                    program,
+                } => commands::logic_session_restore(reporter, &input, &edb, &program),
+                LogicSessionCommands::Restart {
+                    input,
+                    edb,
+                    program,
+                    reapply,
+                } => commands::logic_session_restart(
+                    reporter,
+                    &input,
+                    &edb,
+                    &program,
+                    reapply.as_deref(),
+                ),
+            },
         },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {

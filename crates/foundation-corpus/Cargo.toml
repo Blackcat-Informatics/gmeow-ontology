@@ -4,7 +4,7 @@
 [package]
 name = "gmeow-foundation-corpus"
 description = "Foundation-corpus importer (#364): reads a narrative JSONL corpus into a GMEOW RDF graph and emits foundation.ttl, a flat-vs-reified budget report, and six lossy projections (DraCor/Syuzhet/schema.org/TEI/Web-Annotation/training-manifest)."
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

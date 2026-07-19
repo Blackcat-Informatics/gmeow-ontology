@@ -2503,8 +2503,8 @@ msgid "Relates a quadratic space or Clifford algebra to the quadratic form gover
 msgstr "Relie un espace quadratique ou une algèbre de Clifford à sa forme quadratique."
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|rdfs:label"
-msgid "scalar field"
-msgstr "corps scalaire"
+msgid "field of scalars"
+msgstr "corps des scalaires"
 
 msgctxt "https://blackcatinformatics.ca/math/scalarField|skos:definition"
 msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."

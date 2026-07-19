@@ -1,0 +1,15 @@
+# CT1 — source-digest present (violation finder). A gmeow:EmbeddingProjection whose
+# resolved gmeow:projectionSource carries NO gmeow:contentDigest: the source's byte
+# identity is absent, so gmeow:SourceDigestMatchConstraint's guard is unsatisfiable and
+# it passes vacuously — the content-addressed exact-source binding is escapable. Empty
+# over the clean scene (ex:bookshelfPack carries a gmeow:contentDigest); returns the
+# offending projection over a digest-less-source counter-example. Independent SPARQL
+# twin of gmeow:ProjectionSourceDigestPresentConstraint (C8), not the derived SHACL.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?proj WHERE {
+  ?proj a gmeow:EmbeddingProjection ;
+        gmeow:projectionSource ?src .
+  FILTER NOT EXISTS { ?src gmeow:contentDigest ?d }
+}
+ORDER BY ?proj

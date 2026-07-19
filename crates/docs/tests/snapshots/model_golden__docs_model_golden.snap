@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
-  "slice_count": 83,
-  "term_count": 5459,
-  "dependency_edge_count": 1211,
+  "slice_count": 84,
+  "term_count": 5546,
+  "dependency_edge_count": 1243,
   "term_count_by_category": {
-    "Class": 1733,
+    "Class": 1754,
     "Datatype": 1,
-    "Individual": 806,
-    "Property": 2919
+    "Individual": 807,
+    "Property": 2984
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -40,6 +40,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/documents",
     "https://blackcatinformatics.ca/gmeow/slices/dreaming",
     "https://blackcatinformatics.ca/gmeow/slices/email",
+    "https://blackcatinformatics.ca/gmeow/slices/embedding-projection",
     "https://blackcatinformatics.ca/gmeow/slices/employment",
     "https://blackcatinformatics.ca/gmeow/slices/entities",
     "https://blackcatinformatics.ca/gmeow/slices/epistemics",
@@ -213,7 +214,8 @@ expression: summary
         "full",
         "memory",
         "music",
-        "narrative"
+        "narrative",
+        "purremb"
       ]
     },
     {
@@ -265,7 +267,8 @@ expression: summary
         "full",
         "memory",
         "music",
-        "narrative"
+        "narrative",
+        "purremb"
       ]
     },
     {
@@ -307,7 +310,7 @@ expression: summary
   ],
   "mapping_set_count": 99,
   "linkage_count": 2114,
-  "example_count": 176,
+  "example_count": 177,
   "concern_count": 7,
   "external_term_count": 1800,
   "sample_mapping_set": {
@@ -425,7 +428,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 221,
+  "competency_count": 270,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

@@ -128,9 +128,10 @@ authority for why the top row is the right next move.
    slices when they share a mechanical fix). Keep the diff inside the slice you
    uplifted; do not fan out edits across unrelated slices.
 3. If any canonical source changed the bundle, regenerate under the
-   land-one-at-a-time discipline: `generated/dist/gmeow.gts` is `merge=ours`, so
-   `make regenerate` it in-PR and let bundle-touching PRs land **one at a time** to
-   avoid a stale-bundle race (Principle 7).
+   land-one-at-a-time discipline: `generated/dist/gmeow.gts` is a git-ignored
+   product re-materialized by `make sync`, so `make sync` it in-PR and let
+   bundle-touching PRs land **one at a time** — and re-sync after integrating
+   main — to avoid a stale-bundle race (Principle 7).
 
 ---
 

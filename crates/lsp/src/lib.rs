@@ -25,10 +25,17 @@ use purrdf::{NativeRdfFormat, parse_dataset};
 /// consumer CLI uses). The `.ttl` analysis path reads the bundle's `shapes-archive`
 /// through this constant to run the substrate SHACL validation — a HARD dependency:
 /// the build fails if `generated/dist/gmeow.gts` is absent, never a degraded fallback.
-pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../generated/dist/gmeow.gts"
-));
+///
+/// The bundle is a git-ignored staged product materialized by `make sync` (or
+/// `make install`), never a committed input. `build.rs` resolves it to an
+/// absolute path, guards against it being absent or empty, and exposes that
+/// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
+/// reads — so the build fails closed with a bootstrap pointer (naming
+/// `make sync`) rather than a bare "file not found" when the bundle hasn't
+/// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
+/// override the staged path for release/package flows; the same hard fail on
+/// absence still applies.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 

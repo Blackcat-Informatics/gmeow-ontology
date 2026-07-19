@@ -256,7 +256,69 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
 
     assert!(target_recipe(&source, "reason-verify").contains("$(GMEOW_DEV) reason-verify"));
     assert!(target_recipe(&source, "bench-soak").contains("--soak 3"));
+    assert_eq!(
+        target_header(&source, "gts-frame-profile-gate"),
+        "gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame."
+    );
+    assert!(
+        target_recipe(&source, "gts-frame-profile-gate")
+            .contains("$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts"),
+        "the frame-profile gate must audit through the already-built producer binary"
+    );
     assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-verify"));
     assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-verify\"]"));
     assert!(xtask().contains("const AFTER_RUST_BUILD: &[&str] = &[\"rust-build\"]"));
+}
+
+#[test]
+fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
+    let source = ci_workflow();
+    let generation = source
+        .split_once("  generation:")
+        .and_then(|(_, tail)| tail.split_once("\n  producer:"))
+        .map(|(job, _)| job)
+        .expect("generation job is bounded by the producer job");
+
+    assert!(
+        source.contains("generation: [a, b]"),
+        "CI must run two independent generations as a matrix"
+    );
+    assert!(
+        source.contains("needs: [producer-build]") && source.contains("needs: [generation]"),
+        "the source-built producer, parallel generations, and authority job must remain ordered"
+    );
+    assert_eq!(
+        source
+            .matches("run: make sync GMEOW_DEV=./dist/bin/gmeow-dev")
+            .count(),
+        1,
+        "one matrix step must define both cold generations through the prebuilt producer"
+    );
+    assert!(
+        source.contains("diff --recursive --brief --no-dereference generated-a generated-b"),
+        "the authority job must compare the complete independent trees byte-for-byte"
+    );
+    assert!(
+        !source.contains("two_cold_generations_are_deterministic"),
+        "CI must not append two more serial cold generations after the matrix proof"
+    );
+    assert!(
+        !source.contains("Cache strict-sync manifest"),
+        "independent generation jobs must start cold rather than restore a proof manifest"
+    );
+    assert!(
+        !generation.contains("validate-gts"),
+        "semantic validation must not block publication of the byte-proven authority"
+    );
+    assert!(
+        source.contains("  bundle-validate:\n    needs: [producer]")
+            && source.contains("run: make validate-gts GMEOW_DEV=./dist/bin/gmeow-dev"),
+        "the authoritative bundle must still receive mandatory semantic validation"
+    );
+    assert!(
+        source.contains(
+            "needs: [producer, bundle-validate, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
+        ),
+        "the aggregate quality gate must require authoritative bundle validation"
+    );
 }

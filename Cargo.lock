@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "docs-print"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-docs",
@@ -1397,7 +1397,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "gmeow-affect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-math",
@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-affect-ingest"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-math",
  "purrdf",
@@ -1416,7 +1416,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-bench-engines"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-conformance",
@@ -1430,7 +1430,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1457,7 +1457,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cli-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anstream 0.6.21",
  "anstyle",
@@ -1473,7 +1473,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-conformance"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "datatest-stable",
@@ -1488,11 +1488,11 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cost-measure"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "gmeow-dev-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "assert_cmd",
  "ciborium",
@@ -1521,7 +1521,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-docs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-errors",
@@ -1540,7 +1540,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-errors"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "insta",
@@ -1552,7 +1552,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-foundation-corpus"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "purrdf",
  "serde",
@@ -1563,7 +1563,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lang-bridge"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-errors",
@@ -1582,7 +1582,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lang-form"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "insta",
  "proptest",
@@ -1591,11 +1591,11 @@ dependencies = [
 
 [[package]]
 name = "gmeow-license"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "gmeow-logic"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "chrono",
@@ -1615,6 +1615,7 @@ dependencies = [
  "proptest",
  "purrdf",
  "rayon",
+ "serde",
  "serde_json",
  "sha1",
  "sha2",
@@ -1623,8 +1624,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-logic-compile"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
+ "blake3",
  "gmeow-errors",
  "insta",
  "purrdf",
@@ -1636,7 +1638,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lsp"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-cli-core",
  "gmeow-errors",
@@ -1654,7 +1656,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-math"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "purrdf",
@@ -1662,7 +1664,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-music"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "purrdf",
@@ -1671,7 +1673,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-pipeline"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ahash",
  "bincode",
@@ -1709,7 +1711,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slice-brief"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
@@ -1724,7 +1726,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slice-quality"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
@@ -1743,7 +1745,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slicetest"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "datatest-stable",
  "gmeow-errors",
@@ -1755,7 +1757,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-validate"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ciborium",
  "criterion",
@@ -1787,7 +1789,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-validate-wasm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-validate",
  "wasm-bindgen",
@@ -5606,7 +5608,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gmeow-errors",
 ]

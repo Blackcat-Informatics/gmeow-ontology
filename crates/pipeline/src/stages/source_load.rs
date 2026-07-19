@@ -614,13 +614,28 @@ impl Stage for SourceLoadStage {
         // Score slice quality ONCE at the DAG root: the RDF graph rides in the
         // self-description carrier and the rendered diagnostics HTML rides as an internal
         // pipeline artifact for the terminal docs archive.
+        //
+        // The DocMaturity axis's constraint catalog is rendered FRESH here from THIS run's
+        // authored sources (root ontology + slice modules) and handed to the sweep, never
+        // read off the committed generated/catalog/constraint-catalog.nq. That file is
+        // absent on a cold tree and the previous run's bytes on a warm one, and a disk read
+        // would fail the whole documentation-model build, collapsing every slice's
+        // DocMaturity to a vacuous 1.0 (diverging cold-vs-warm — a two-generation
+        // determinism break). `render_constraint_catalog` is a PURE function of the authored
+        // sources (source-load already declares them as inputs), so it needs no DAG edge to
+        // the constraint-catalog stage — which cannot precede this DAG root anyway — and is
+        // byte-identical to what that stage produces and the fanout writes.
         let started = Instant::now();
-        let quality = gmeow_slice_quality::assessment_artifacts(input.root).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_string(),
-                message: format!("quality-assessment sweep: {e}"),
-            })
-        })?;
+        let catalog_bytes =
+            crate::stages::constraint_catalog::render_constraint_catalog(input.root)?;
+        let quality =
+            gmeow_slice_quality::assessment_artifacts_with_catalog(input.root, &catalog_bytes)
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: self.id().to_string(),
+                        message: format!("quality-assessment sweep: {e}"),
+                    })
+                })?;
         timings.push(crate::node::StageRunTiming::new(
             "slice-quality",
             started.elapsed().as_millis(),

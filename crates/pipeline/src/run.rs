@@ -208,10 +208,22 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
-        // Leaf compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and
-        // attach the union as graph/authoring-briefs (folded into gmeow.gts by
-        // stage-snapshot). It reads the authored slice sources directly — no upstream.
-        st("stage-slice-brief", "slice-brief", &[]),
+        // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
+        // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
+        // It reads the authored slice sources directly, but consumes the four
+        // generated-shape producers so its exemplar-tiering shape union folds THIS run's
+        // fresh generated/shapes/*.ttl bytes (never the committed files — the
+        // stale-disk-fold class) and is scheduled AFTER they materialize generated/shapes.
+        st(
+            "stage-slice-brief",
+            "slice-brief",
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+            ],
+        ),
         // mappings additionally consumes the constraint-shapes export leaf: the
         // shape-grounding certificate ledger re-derives every logic:formalizes record's
         // preservation judgment over THIS run's projected constraint surfaces (the
@@ -321,9 +333,13 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-constraint-catalog",
                 "stage-docs-render",
                 // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores / research-object
-                // graphs. The presenter reads them off these products, never re-rendered.
+                // render ran once, in the leaf): profiles / evals scores / glossary
+                // vartrans.ttl / research-object graphs. The presenter reads them off these
+                // products, never re-rendered.
                 "stage-export-evals",
+                // The OntoLex vartrans lowering (generated/projections/glossary.vartrans.ttl),
+                // folded as its own graph/fanout/projections named graph.
+                "stage-export-glossary",
                 // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
@@ -390,6 +406,11 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-projection-ceilings", "projection_ceilings"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-matrix", "matrix"),
+        // The human-readable per-slice terminology glossary table: a byte-decorated
+        // Markdown projection of the graph/lang-glossary-corpus fold, derived from the
+        // SAME reviewed `.po` entry list (crate::stages::lang_glossary::build_entries),
+        // never a second parse. Source-reading leaf like matrix (consumes nothing).
+        ("stage-export-glossary", "glossary"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
@@ -426,14 +447,15 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ));
     }
-    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
-    // product (never the stale committed generated/queries/dcat.rq on disk), so it
-    // consumes that stage rather than running source-only (kept in sorted position to
-    // match the registry consumes() and the module.ttl dataflowConsumes).
+    // research-objects reads two generated projections off upstream products, never the
+    // stale/absent committed files on disk: `generated/evals/scores.ttl` off the
+    // stage-export-evals product and `generated/queries/dcat.rq` off the stage-mappings
+    // product. It therefore consumes both rather than running source-only (kept in sorted
+    // position to match the registry consumes() and the module.ttl dataflowConsumes).
     stages.push(st(
         "stage-export-research-objects",
         "research-objects",
-        &["stage-mappings"],
+        &["stage-export-evals", "stage-mappings"],
     ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
@@ -454,7 +476,7 @@ pub fn full_spec() -> PipelineSpec {
         &[
             "stage-compile-logic",
             // The opaque fanout members ride in from their producing export leaves (each
-            // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
+            // rendered once, in the leaf); `collect_fanout_opaque_members` reads them off these
             // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
             "stage-export-agreement",
             "stage-export-apache",
@@ -474,9 +496,13 @@ pub fn full_spec() -> PipelineSpec {
             // these edges a competency/frame-shape edit could never reach the bundle,
             // and the fanout would rewrite the stale committed bytes forever.
             "stage-export-frame-shapes",
+            // The human-readable terminology glossary table (byte-decorated Markdown)
+            // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
+            // product (sorted position: frame-shapes < glossary < governance-floors).
+            "stage-export-glossary",
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: frame-shapes < governance-floors < json-schema).
+            // leaf's product (sorted position: glossary < governance-floors < json-schema).
             "stage-export-governance-floors",
             "stage-export-json-schema",
             "stage-export-matrix",
@@ -496,7 +522,7 @@ pub fn full_spec() -> PipelineSpec {
             // competency ResultShape edit reaches the bundle without a manual disk write.
             "stage-export-result-shapes",
             // THIS run's freshly-rendered LinkML/TypeScript/GraphQL developer schema
-            // surfaces, folded into REP_GENERATED by build_fanout_opaque_blob (sorted
+            // surfaces, folded into REP_GENERATED by collect_fanout_opaque_members (sorted
             // position: result-shapes < schemas < mappings) — schemas moved from a
             // carrier projection to a fresh SHACL-shape-union compilation, so the sink
             // now reads its product instead of re-deriving from the in-memory carrier.
@@ -778,8 +804,10 @@ pub fn run_full_scoped_with_progress(
 
             // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
             // bundle to disk (the terminal's sole output — without this a stale
-            // `merge=ours` bundle survives an `integrate-main` + update, the exact
-            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // local bundle survives an `integrate-main` + update, the exact trap
+            // CLAUDE.md warns about). The bundle is a git-ignored local product with
+            // no committed copy to fall back on, so it must be regenerated, never
+            // trusted stale. In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
             // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.

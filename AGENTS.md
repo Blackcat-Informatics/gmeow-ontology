@@ -80,17 +80,18 @@ When adding a command, ask the razor first. If it needs a repo path that the bin
 
 ```bash
 make help            # Show the grouped task plan
-make install         # Build the Rust CLIs and configure repo-local Git merge drivers
+make install         # Source-first bootstrap: build the producer, sync generated/, build the consumer CLIs
 make fmt             # Auto-format Rust sources with cargo fmt
 make lint            # Run the issue-ref lint and the pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets)
 make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
-`make install` also runs `scripts/bootstrap-git-merge-drivers.sh`, which sets
-`merge.ours.driver=true` in the local Git config. That driver backs the
-`.gitattributes` rule for `generated/dist/gmeow.gts`: Git keeps the current
-side during binary bundle merges/rebases, and the developer regenerates/checks
-the bundle from canonical sources afterward.
+`make install` bootstraps source-first: it builds only the `gmeow-dev` producer
+crate, runs `make sync` to materialize the git-ignored `generated/` tree
+(including `generated/dist/gmeow.gts`) from canonical sources, and only then
+builds the consumer CLIs that embed that materialized bundle. There is no Git
+merge-driver step — `generated/` is never tracked, so it never participates in
+a merge.
 
 Every payload-bearing frame in any production-authored GMEOW GTS bundle MUST use
 exactly `zstd-rsyncable` at compression level 12. This is a hard distribution
@@ -540,13 +541,37 @@ git merge -X theirs       ;   git merge -X ours
 ```
 
 For conflicts in `generated/*` artifacts, do **not** hand-edit or hand-pick a side — regenerate
-them from canonical sources after the merge. `generated/dist/gmeow.gts` is `merge=ours` (it keeps
-your branch copy without a conflict marker), so it too must be regenerated and committed:
+them from canonical sources after the merge. `generated/dist/gmeow.gts` is a git-ignored local
+product (never tracked, so it never produces a merge conflict), but it still holds pre-merge bytes
+on disk until you re-materialize it:
 
 ```bash
-make sync          # reconcile all generated artifacts on the merged base
+make sync          # re-materialize generated/ (including the bundle) on the merged base
 make sync SYNC_MODE=check SYNC_OUTPUTS=generated     # verify no drift remains
 ```
+
+#### Integrating the `generated/` untracking transition
+
+`generated/` was a committed tree and is now a git-ignored local product. When you integrate the
+`main` revision that removed it from tracking, apply these rules — the transition is one-way, and
+**deletion always wins**:
+
+* **A branch that never touched `generated/`** merges cleanly: `main`'s deletion of those paths
+  applies against your unchanged copies with no conflict. Nothing to resolve — just re-materialize
+  afterward with `make sync`.
+* **A branch that modified `generated/`** hits delete/modify conflicts (your side edited a path
+  `main` deleted). Resolve **every one in favor of the deletion** (`git rm <path>` for each
+  conflicted `generated/` path) — never re-add the file, never hand-pick your edited bytes. Your
+  intent lives in the canonical *sources*; once the tree is deleted, run `make sync` to regenerate
+  it locally from those sources and confirm the change landed in the materialized product.
+* **Never `git add -f generated/`.** The path is git-ignored on purpose; force-adding it re-commits
+  the product and re-introduces exactly the coupling this change removed. If you think you need to
+  force-add a `generated/` file, you are working around the ignore rule instead of fixing the source.
+
+An older clone or long-lived branch stays perfectly usable across this change — it only needs one
+`make sync` after integrating `main`. (A separate, later change will rewrite retained history to
+drop `generated/` from past commits; only *after* that rewrite do stale clones/branches become
+unsafe and require a fresh clone. This branch does not perform that rewrite.)
 
 ### Pull review feedback
 

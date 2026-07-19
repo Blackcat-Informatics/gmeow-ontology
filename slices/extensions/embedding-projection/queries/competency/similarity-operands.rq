@@ -1,0 +1,23 @@
+# Similarity operands grounded to actual rows (violation finder). A
+# gmeow:SimilarityObservation that carries a gmeow:similarityScore but does NOT name
+# BOTH of the exact vector ROWS it scored — gmeow:comparesLeftTarget AND
+# gmeow:comparesRightTarget (each a gmeow:VectorTarget). A score bound only to whole
+# projections (gmeow:comparesLeft/gmeow:comparesRight) cannot identify WHICH vector
+# pair produced it, so the proximity is unattributable at the operand grain — a
+# similarity result must be grounded to its actual operands, not merely to whole
+# projections. Independent
+# SPARQL twin of the gmeow:comparesLeftTarget/gmeow:comparesRightTarget requiredness
+# (allValuesFrom carrier + class-scoped ClosureEntry, lowered to sh:minCount 1) —
+# the live, reasoning-independent check of the same invariant the derived SHACL
+# surface enforces.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?obs WHERE {
+  ?obs a gmeow:SimilarityObservation ;
+       gmeow:similarityScore ?score .
+  FILTER NOT EXISTS {
+    ?obs gmeow:comparesLeftTarget  ?leftRow ;
+         gmeow:comparesRightTarget ?rightRow .
+  }
+}
+ORDER BY ?obs

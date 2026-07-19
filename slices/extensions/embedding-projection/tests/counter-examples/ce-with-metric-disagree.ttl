@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# C7 counter-example (Don't): a gmeow:SimilarityObservation whose gmeow:withMetric
+# (cosine) disagrees with the gmeow:distanceMetric (dot product) of the
+# gmeow:overVectorSpace it is observed over. A similarity claim is made UNDER a
+# metric, so a score reported under a metric the space does not use is
+# uninterpretable — a hard fail. Valid in every other respect; the sole defect is
+# the metric disagreement. Triggers with-metric-agreement.rq (→ ce:disagreeObs) and
+# gmeow:WithMetricAgreementConstraint.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
+
+ce:disagreeFamily a gmeow:EmbeddingFamily ;
+    gmeow:contentDigest "blake3:d15a000011112222333344445555666677778888999900001111222233334444" .
+
+ce:disagreeSpace a gmeow:VectorSpaceContract ;
+    gmeow:effectiveOfFamily ce:disagreeFamily ;
+    gmeow:distanceMetric    gmeow:distanceMetricDotProduct ;
+    gmeow:contentDigest     "blake3:d15b000011112222333344445555666677778888999900001111222233334444" .
+
+ce:disagreeObs a gmeow:SimilarityObservation ;
+    gmeow:overVectorSpace ce:disagreeSpace ;
+    gmeow:withMetric      gmeow:distanceMetricCosine .

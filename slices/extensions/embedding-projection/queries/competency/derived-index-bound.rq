@@ -1,0 +1,16 @@
+# CT8 — derived index is fully bound (violation finder). A gmeow:DerivedVectorIndex
+# MISSING any of the three mandatory bindings: gmeow:indexOfProjection (the
+# authoritative projection it accelerates), gmeow:approximationRecall (its measured
+# recall), or gmeow:indexOverSpace (the exact effective/prefix space it is built
+# over). Independent SPARQL twin of the CT8 EL-safe requiredness axioms.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?idx WHERE {
+  ?idx a gmeow:DerivedVectorIndex .
+  FILTER(
+    NOT EXISTS { ?idx gmeow:indexOfProjection ?p } ||
+    NOT EXISTS { ?idx gmeow:approximationRecall ?r } ||
+    NOT EXISTS { ?idx gmeow:indexOverSpace ?s }
+  )
+}
+ORDER BY ?idx

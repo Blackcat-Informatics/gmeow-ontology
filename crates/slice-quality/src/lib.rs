@@ -569,38 +569,30 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 /// [`report::slice_ttl_paths`]: each slice's `docs.md` (the `ThesisSentence` /
 /// `RealizedState` slice-scoped coverage facts) and each slice's `i18n/*.po` translation
 /// catalogs (the `TranslationCoverage` dimension), both read via `DocMaturity`'s own
-/// `DocsModel::discover` sweep; and the generated `generated/catalog/constraint-catalog.nq`
-/// catalog that same sweep hard-fails without (`crates/docs/src/model.rs::read_constraint_catalog`
-/// — a regenerated tree always carries it, so its absence is a broken invariant, not an
-/// optional input). `generated/catalog/term-content-manifest.nq` is deliberately NOT
-/// listed here: `DocsModel::discover` itself tolerates its absence (the one-shot bootstrap
-/// build that first mints it), so treating it as required-but-missing here would diverge
-/// from the reader it keys.
+/// `DocsModel` sweep.
+///
+/// The generated `generated/catalog/constraint-catalog.nq` is DELIBERATELY NOT listed
+/// here anymore: the in-pipeline `DocMaturity` sweep now sources the constraint catalog
+/// from THIS run's freshly-rendered `stage-constraint-catalog` bytes
+/// ([`gmeow_docs::model::DocsModel::discover_with_catalog`]), never a disk read of the
+/// not-yet-materialized `generated/` file (the cold-absence class this retires). Its
+/// SOURCE determinants — each slice's `module.ttl` (already listed via
+/// [`report::slice_ttl_paths`]) and the root ontology — bust the cache when the catalog
+/// would change, and the catalog content does not feed the coverage fraction anyway, so
+/// dropping the generated file loses no cache soundness. `generated/catalog/term-content-manifest.nq`
+/// is likewise not listed: `DocsModel::discover` tolerates its absence (the one-shot
+/// bootstrap build that first mints it) and it too is provenance-only, not a coverage
+/// determinant.
 ///
 /// This is the SINGLE authority the pipeline's source-load cache key over the assessment
 /// graph consults — if any scored file changes, the attached `graph/quality-assessment`
 /// must be recomputed (cache soundness: a stale scored input would ship a stale
 /// assessment in `gmeow.gts`, including a docs-only edit that must not serve a stale
-/// `DocMaturity` verdict). Deterministic and deduplicated.
-///
-/// # Errors
-/// Hard-fails (never a silent skip) if a generated catalog `DocMaturity` requires is
-/// missing on this tree — the same invariant [`gmeow_docs::model::DocsModel::discover`]
-/// enforces. Per-slice files (`docs.md`, `i18n/*.po`, …) are legitimately optional and
-/// are silently omitted when absent.
-pub fn scored_source_files(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+/// `DocMaturity` verdict). Deterministic and deduplicated. All entries are authored
+/// sources, so no generated artifact is required to be present — a cold tree scores
+/// cleanly.
+pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
     let mut files = vec![repo_root.join(RUBRIC_MODULE)];
-    let constraint_catalog = repo_root.join("generated/catalog/constraint-catalog.nq");
-    if !constraint_catalog.is_file() {
-        return Err(gmeow_errors::Diag::of_kind(error::Io {
-            detail: format!(
-                "{}: required by the DocMaturity axis's DocsModel::discover sweep \
-                 (crates/docs/src/model.rs::read_constraint_catalog) but not found on this tree",
-                constraint_catalog.display()
-            ),
-        }));
-    }
-    files.push(constraint_catalog);
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         files.push(dir.join("manifest.ttl"));
         files.extend(report::slice_ttl_paths(&dir));
@@ -610,7 +602,7 @@ pub fn scored_source_files(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf
     files.retain(|p| p.is_file());
     files.sort();
     files.dedup();
-    Ok(files)
+    files
 }
 
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
@@ -638,6 +630,33 @@ fn doc_maturity_i18n_paths(slice_dir: &Path) -> Vec<PathBuf> {
 /// # Errors
 /// Hard-fails if the rubric or ANY discovered slice cannot be scored.
 pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<AssessmentArtifacts> {
+    assessment_artifacts_inner(repo_root, None)
+}
+
+/// Score every discovered slice as [`assessment_artifacts`] does, but source the
+/// `DocMaturity` axis's constraint catalog from `catalog_bytes` — THIS run's
+/// freshly-rendered `stage-constraint-catalog` product — instead of the committed
+/// `generated/catalog/constraint-catalog.nq` on disk. The IN-PIPELINE
+/// quality-assessment stage MUST use this: on a cold tree the committed catalog is
+/// not yet materialized, and the disk read would fail the whole documentation model
+/// build, collapsing every slice's `DocMaturity` to a vacuous `1.0` and diverging
+/// from a warm run's real scores (the two-generation determinism gate). The catalog
+/// content does not feed the coverage fraction, so live bytes only guarantee the
+/// model builds — identically cold and warm.
+///
+/// # Errors
+/// Hard-fails if the rubric or ANY discovered slice cannot be scored.
+pub fn assessment_artifacts_with_catalog(
+    repo_root: &Path,
+    catalog_bytes: &[u8],
+) -> gmeow_errors::Result<AssessmentArtifacts> {
+    assessment_artifacts_inner(repo_root, Some(catalog_bytes))
+}
+
+fn assessment_artifacts_inner(
+    repo_root: &Path,
+    catalog_bytes: Option<&[u8]>,
+) -> gmeow_errors::Result<AssessmentArtifacts> {
     let rubric = repo_rubric(repo_root)?;
     let dirs = discover_slice_dirs(&repo_root.join("slices"));
     if dirs.is_empty() {
@@ -648,7 +667,7 @@ pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<Assessment
 
     let mut nquads = String::new();
     let mut aggregate = gmeow_errors::Report::new("slice-quality");
-    let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric);
+    let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes);
     let mut slice_timings = Vec::with_capacity(scored.len());
     for (report, timing) in scored {
         slice_timings.push(timing);
@@ -688,7 +707,7 @@ pub fn score_slices_with_rubric(
     dirs: &[PathBuf],
     rubric: &Rubric,
 ) -> Vec<gmeow_errors::Result<report::SliceReport>> {
-    score_slices_with_rubric_timed(repo_root, dirs, rubric)
+    score_slices_with_rubric_timed(repo_root, dirs, rubric, None)
         .into_iter()
         .map(|(result, _timing)| result)
         .collect()
@@ -698,8 +717,9 @@ fn score_slices_with_rubric_timed(
     repo_root: &Path,
     dirs: &[PathBuf],
     rubric: &Rubric,
+    catalog_bytes: Option<&[u8]>,
 ) -> Vec<(gmeow_errors::Result<report::SliceReport>, SliceScoreTiming)> {
-    doc_maturity::prime_repo_facts(repo_root);
+    doc_maturity::prime_repo_facts(repo_root, catalog_bytes);
     let score = |dir: &PathBuf| {
         let started = std::time::Instant::now();
         let result = report::score_slice_with_standard(dir, &rubric.standard, ScoringEnv::Repo);

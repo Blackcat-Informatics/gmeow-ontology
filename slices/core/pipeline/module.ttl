@@ -260,7 +260,7 @@ gmeow:FanoutExtraction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Fanout Extraction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts as the fold of one named graph (PIPELINE_SPINE §6/§7). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed path resolves to exactly one row and every row is claimed (a bijection — no path silently dropped from fanout)."@x-gmeow-english ;
+    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts, either as the fold of one named graph (the \"rdf-fanout\" / \"edoal\" families, PIPELINE_SPINE §6/§7) or as a byte-exact member of the inline generated-opaque archive blob (the \"opaque\" family). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path, or \"opaque\" for a blob member), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm, or \"blob\" for an opaque member). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed named-graph path resolves to exactly one non-opaque row and every opaque archive member resolves to exactly one opaque row — and every row is claimed (a bijection over each family — no path silently dropped from fanout). The rdf-fanout / edoal rows are AUTHORED here; the opaque rows are EMITTED by the carrier at build time (one per archive member, derived from the exact member set), never hand-authored."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores a gmeow:FanoutExtraction ; gmeow:extractsPath \"generated/evals/scores.ttl\" ; gmeow:extractsMatch \"exact\" ; gmeow:extractsGraphFamily \"rdf-fanout\" ; gmeow:extractsForm \"turtle\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -273,7 +273,7 @@ gmeow:fanoutExtracts
     skos:definition "Gathers the gmeow:FanoutExtraction rows of a gmeow:Pipeline — the complete path ↔ representative map the post-pipeline fanout phase and the superset gate read to reconstruct every committed generated/ RDF file from the bundle. Multi-valued; the whole set must be a bijection against the bundle's reconstruction graphs (the gate HARD-fails otherwise)."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build gmeow:fanoutExtracts gmeow:fanout-evals-scores ."@x-gmeow-english ;
     gmeow:useWhen "Declare, as data, the reconstruction rule for a committed generated/ RDF path so the superset gate resolves it without a Rust branch."@x-gmeow-english ;
-    gmeow:avoidWhen "Do NOT add a row for an opaque / byte-decorated output carried as an inline archive blob member (those reconstruct from the blob lane, not a named-graph fold)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT hand-author a row for an opaque / byte-decorated output carried as an inline archive blob member: the carrier emits those \"opaque\"-family rows automatically at build time (one per generated-opaque archive member, derived from the exact member set), so a hand-authored opaque row would double-declare a member and break the opaque bijection."@x-gmeow-english ;
     gmeow:howToUse "Add one gmeow:FanoutExtraction per named-graph-carried committed path (exact) or path family (prefix); the gate proves the rows are a bijection over the bundle's fanout/EDOAL reconstruction graphs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -313,7 +313,7 @@ gmeow:extractsGraphFamily
     rdfs:label "extracts graph family"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The reconstruction-graph namespace family that fixes how the per-file named-graph IRI derives from the committed path: \"rdf-fanout\" (graph/fanout/<path-without-generated/>) or \"edoal\" (graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl). The gate folds the named graph at that IRI to the committed bytes."@x-gmeow-english ;
+    skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores gmeow:extractsGraphFamily \"rdf-fanout\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -323,8 +323,18 @@ gmeow:extractsForm
     rdfs:label "extracts form"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches."@x-gmeow-english ;
+    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph."@x-gmeow-english ;
     skos:example "gmeow:fanout-shacl-diagnostics gmeow:extractsForm \"nquads-diagnostics\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:expectsGeneratedOutput
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "expects generated output"@x-gmeow-english ;
+    rdfs:domain gmeow:Pipeline ;
+    rdfs:range xsd:string ;
+    skos:definition "One committed non-terminal generated/ path the pipeline is REQUIRED to produce — an entry of the independently-authored expected-output completeness inventory. Unlike gmeow:fanoutExtracts (whose opaque rows the carrier EMITS, so they are self-consistent with what it produced), this inventory is HAND-AUTHORED, so it is a second, independent source: when a carrier change silently stops emitting a declared output, the reconstructed bundle shrinks but this inventory does not, and the superset gate HARD-fails (expected ⊆ produced). The terminal bundle (generated/dist/gmeow.gts) is EXCLUDED — a bundle is not a projection of itself. Multi-valued; the whole set is the complete non-terminal generated/ tree."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-build gmeow:expectsGeneratedOutput \"generated/catalog/constraint-catalog.nq\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
@@ -527,6 +537,7 @@ gmeow:pipeline-build
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
@@ -598,11 +609,16 @@ gmeow:stage-slice-brief
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "slice-brief"@x-gmeow-english ;
-    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. A leaf compute stage: it consumes no upstream pipeline product — it reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) and the SHACL shape union directly, gating each same-slice exemplar on SHACL per-term conformance (a coat with any shape violation is never surfaced) and ordering the conforming candidates by annotation completeness."@x-gmeow-english ;
+    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. It reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) directly and gates each same-slice exemplar on SHACL per-term conformance (a coat with any shape violation is never surfaced), ordering the conforming candidates by annotation completeness. The enforced shape union is FRESH: its generated/shapes/*.ttl members are read off THIS run's producer products — gmeow:stage-compile-logic (validation-shapes.ttl + procedural-constraints.ttl) and the three shape export leaves (result/frame/constraint-shapes.ttl) — never the previous run's committed files (the stale-disk-fold class); consuming those producers also orders this stage after they materialize generated/shapes, so the union enumeration never fires before that directory exists."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "slice-brief" .
+    gmeow:stageImpl "slice-brief" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;
@@ -730,6 +746,7 @@ gmeow:stage-snapshot
         gmeow:stage-constraint-catalog ,
         gmeow:stage-docs-render ,
         gmeow:stage-export-evals ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
@@ -941,6 +958,17 @@ gmeow:stage-export-matrix
     gmeow:stageImpl "matrix" ;
     gmeow:producesFormat "makefile-matrix" .
 
+gmeow:stage-export-glossary
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: glossary"@x-gmeow-english ;
+    skos:definition "Emit the committed per-slice terminology glossary projections: the human-readable Markdown table (generated/catalog/glossary.md, grouped by slice then language with one row per reviewed source→target crossing) plus the two external terminology-interchange lowerings (Principle 17) — the OntoLex vartrans:translation Turtle (generated/projections/glossary.vartrans.ttl: one vartrans:Translation per crossing over the reused ontolex:LexicalSense structure) and the TBX ISO-30042 termbase (generated/projections/glossary.tbx: one termEntry per concept, one langSet per language). All three are derived from the SAME reviewed `.po` entry list the corpus folds (crate::stages::lang_glossary::build_entries) — lossy sanctioned projections, never a second parse, so they cannot drift from the graph; each lowering's honest drop list rides its lang:ProjectionEmission record in graph/lang-projection-corpus. A source-reading leaf like gmeow:stage-export-matrix: it reads the authored `.po` catalogs and homograph declarations directly. The `.vartrans.ttl` is RDF, so it rides as the canonical fold of the RDF-fanout named graph graph/fanout/projections/glossary.vartrans.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate); the non-RDF `.md` table and `.tbx` termbase stay opaque REP_GENERATED fanout members."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "glossary" ;
+    gmeow:producesFormat "markdown" .
+
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -963,7 +991,9 @@ gmeow:stage-export-research-objects
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "research-objects" ;
     gmeow:producesFormat "ro-crate" ;
-    gmeow:dataflowConsumes gmeow:stage-mappings .
+    gmeow:dataflowConsumes
+        gmeow:stage-export-evals ,
+        gmeow:stage-mappings .
 
 gmeow:stage-export-references
     a gmeow:PipelineStage ;
@@ -1067,6 +1097,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-glossary ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
@@ -1135,6 +1166,7 @@ gmeow:stage-mappings
         <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-glossary-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus> ,
         <https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus> ,
@@ -1181,8 +1213,10 @@ gmeow:stage-snapshot
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/memory.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/music.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/narrative.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/purremb.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/functions.fno.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/glossary.vartrans.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/list-functions.fno.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/lillith.dcat.ttl> ,
@@ -1263,6 +1297,7 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-logic-shape-grounding-ledger ,
     gmeow:fanout-projections-core-prefixes ,
     gmeow:fanout-projections-functions-fno ,
+    gmeow:fanout-projections-glossary-vartrans ,
     gmeow:fanout-projections-list-functions-fno ,
     gmeow:fanout-quality-assessment ,
     gmeow:fanout-profiles ,
@@ -1381,6 +1416,14 @@ gmeow:fanout-projections-functions-fno a gmeow:FanoutExtraction ;
     gmeow:extractsPath "generated/projections/functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
+gmeow:fanout-projections-glossary-vartrans a gmeow:FanoutExtraction ;
+    rdfs:label "fanout projections glossary vartrans"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/projections/glossary.vartrans.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/glossary.vartrans.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
 gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;
     rdfs:label "fanout projections list functions fno"@x-gmeow-english ;
     skos:definition "Fanout reconstruction row: the committed path generated/projections/list-functions.fno.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
@@ -1421,6 +1464,409 @@ gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
     gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ;
     gmeow:extractsSuffix ".edoal.ttl" ;
     gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
+
+
+# =========================================================================== #
+# Expected-output inventory (gmeow:expectsGeneratedOutput) — the                #
+# INDEPENDENTLY-AUTHORED completeness oracle: every non-terminal committed      #
+# generated/ path the pipeline must produce, hand-authored (NOT carrier-emitted #
+# like the opaque fanout rows) so a silently-dropped output HARD-fails the      #
+# superset gate. Sorted; the two terminal bundles are excluded. See             #
+# crates/pipeline/src/stages/superset.rs (read_expected_outputs).                #
+# =========================================================================== #
+gmeow:pipeline-build gmeow:expectsGeneratedOutput
+    "generated/agreement-matrix.md",
+    "generated/apache/gmeow.conf",
+    "generated/bench/cost-ledger.md",
+    "generated/bench/leaderboard.md",
+    "generated/bench/soak.md",
+    "generated/briefs/authoring-packets.nt",
+    "generated/catalog/constraint-catalog.nq",
+    "generated/catalog/glossary.md",
+    "generated/catalog/term-content-manifest.nq",
+    "generated/cl/gmeow.cgif",
+    "generated/cl/gmeow.clif",
+    "generated/cl/gmeow.xcl",
+    "generated/context.jsonld",
+    "generated/datalog/gmeow.dl",
+    "generated/diagnostics/logic-compile.html",
+    "generated/diagnostics/logic-compile.json",
+    "generated/diagnostics/logic-compile.nq",
+    "generated/diagnostics/logic-compile.sarif",
+    "generated/diagnostics/shacl.html",
+    "generated/diagnostics/shacl.json",
+    "generated/diagnostics/shacl.nq",
+    "generated/diagnostics/shacl.sarif",
+    "generated/evals/leaderboard.md",
+    "generated/evals/reference-baseline.scorecard.json",
+    "generated/evals/scores.ttl",
+    "generated/foundation/gufo.ttl",
+    "generated/governance/slice-quality-axis-floors.tsv",
+    "generated/governance/slice-quality-floors.tsv",
+    "generated/governance/slice-quality-projection-ceilings.tsv",
+    "generated/governance/slice-quality-projection-vocabularies.tsv",
+    "generated/logic/dl-el-crosscheck-report.ttl",
+    "generated/logic/gmeow.correspondence-laws.nt",
+    "generated/logic/gmeow.correspondence.nt",
+    "generated/logic/gmeow.logic.rdf12.ttl",
+    "generated/logic/gmeow.relational-core.nt",
+    "generated/logic/inferred-closure.rdf12.ttl",
+    "generated/logic/perf-ledger.ttl",
+    "generated/logic/projection-report.ttl",
+    "generated/logic/reasoning-explanations.rdf12.ttl",
+    "generated/logic/shape-grounding-ledger.ttl",
+    "generated/lpg/edges.csv",
+    "generated/lpg/graphml/graph.graphml",
+    "generated/lpg/graphml/manifest.json",
+    "generated/lpg/manifest.json",
+    "generated/lpg/neo4j/label-map.csv",
+    "generated/lpg/neo4j/manifest.json",
+    "generated/lpg/neo4j/nodes/group_e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.csv",
+    "generated/lpg/neo4j/property-map.csv",
+    "generated/lpg/neo4j/rdf-sideband.csv",
+    "generated/lpg/neo4j/relationship-type-map.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_0327481b0a8ba0e03412ec9e0d5d7c1007950ff84182f333b8189a33af5a411b.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_0945e21f4f945182496f73b1b3f43eaf1766bbcd0d9c75f5c51ca2125ee9d0b0.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_1de8b51baea2fc440be20fed87db5fdf30510175d88631d88fa26b82558a64dd.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_331ff4bac358d2f1a23911eec6d9d08e2bcfe685f201c60bdf58463a9db6316c.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_3af6497654f3965887da48e7df9a82a718fe162583ac8e1d88ddc5f3161cf695.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_440cc77b4e048de822ef9b00387a8e725328300bd9b04d80f375d4993a42d1ee.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_444b0d9dcac7eb167c61d913047951e47a2a7a56bca7e83438aa65f94ae6a301.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_45e0994c8a5191a3f273b6394ef81c9a7739f316b8a5252aced834bf4c09a714.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_4a7ec67970a9fb46c4a11c8cbe4f785cfd6eaf33ca5169502a724c3df15778d5.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_5bb08e96006a26aa6b2e030af8002fc3804cf8bf6994544a40a4c109b11c86ec.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_5f5a7419a65f8487bba350cecb1d2cdf9358b7f7ef64f6d060a2c05f415a5e2d.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_6df7f0c5954e15f1f5134b87777a863f760748e1567fbe6d4afe667c418919bf.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_75644b0599d3e176c727a96bfa98086be2ebfcf43eab91694daf534ac2b3f05a.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_7cee38c71a7416b25e95a3c068797da039fba1a78a687f3544c41662a6c88bf3.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_7cf2ab6ca59bc7e22e338b994ce08558ce346149903f5075ddca37d50351b565.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_83fcc7d24a2e8446d071e4cda545413528ca5e0fd3d5dcc6c398f37b047e2341.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_89604ba12d445db3831f01a68fb43ac32f7b65f253d33ad0008cb9347c7f439f.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_9855d63b908abbaed704b923d6885b33fd037f912078570b5fd6dc24f52f2ad0.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_9abbd6b9e032a3184214b536b42ae48755ab8a8db4be107fe2050be080e8608d.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_9ae42b2e3d05598fb49943f8c092e773da21793179b02980012baa3432685ebe.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_a2800aa130b9d30c675ad1fcbc6744f26d986db0ee9aef3521761311be36ed3a.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_a701aaa61a4f75e876fe888376a8058a41a6efd54a16fbbc64566668705cf375.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_a7c7ed21d79fc92b6ed921fc2572a3b08e7fd2c8ba97b3b83744b5fa3e7f74b1.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_b72266b0a84c84698a150174754e8e46782d8a77f49225746deafb9200220f6d.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_c1c3ed916a915df17bb67b37c9bd75a5e1726813f73520b5208496c0bbb374ae.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_c5129733974085fe6a5c11762c9e208a43a953b40d1db61cc0c61fc44392d1dc.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_cf1f464d0aca027208c8101990e4df81d5c1b37d6e43f9c38b0c90cd7131ba26.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_d9ea7157f7644171724992c31c4213cb1b41e4c64e4727def32e6ca431cb1e9d.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_ddf335c9c060a2c1d0882ad9458ddf28051e210984238b16cafbb442080d02c2.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_e2e64339eef3cd4f0882af2288bb9acd7cde2e5969a3345681bc9b4ef010aa29.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_ec79b7fea862aaedd49a5d63b11bbfdaa635f57de8e23a8c1bbfb2911ab22cd2.csv",
+    "generated/lpg/neo4j/relationships/RdfEdge_f4f7be3feb53dfb8f2b653f7397712f4824f71a84faed6e22647a15b52ee0651.csv",
+    "generated/lpg/nodes.csv",
+    "generated/lpg/open-cypher/graph.cypher",
+    "generated/lpg/open-cypher/lpg.json",
+    "generated/lpg/open-cypher/manifest.json",
+    "generated/lpg/rdf-sideband.csv",
+    "generated/mappings/dsl-stats.json",
+    "generated/mappings/gmeow-accessibility.sssom.tsv",
+    "generated/mappings/gmeow-affect.sssom.tsv",
+    "generated/mappings/gmeow-agentic.sssom.tsv",
+    "generated/mappings/gmeow-aggregation.sssom.tsv",
+    "generated/mappings/gmeow-ai.sssom.tsv",
+    "generated/mappings/gmeow-archaeological-evidence.sssom.tsv",
+    "generated/mappings/gmeow-attestation.sssom.tsv",
+    "generated/mappings/gmeow-awareness.sssom.tsv",
+    "generated/mappings/gmeow-bcp47.sssom.tsv",
+    "generated/mappings/gmeow-calendar.sssom.tsv",
+    "generated/mappings/gmeow-citations.sssom.tsv",
+    "generated/mappings/gmeow-claims.sssom.tsv",
+    "generated/mappings/gmeow-classes.sssom.tsv",
+    "generated/mappings/gmeow-cognition.sssom.tsv",
+    "generated/mappings/gmeow-common-logic.sssom.tsv",
+    "generated/mappings/gmeow-concepts.sssom.tsv",
+    "generated/mappings/gmeow-conformance-corpus.sssom.tsv",
+    "generated/mappings/gmeow-connectivity.sssom.tsv",
+    "generated/mappings/gmeow-coreference.sssom.tsv",
+    "generated/mappings/gmeow-creative-works.sssom.tsv",
+    "generated/mappings/gmeow-deception.sssom.tsv",
+    "generated/mappings/gmeow-determinacy.sssom.tsv",
+    "generated/mappings/gmeow-diagnostics.sssom.tsv",
+    "generated/mappings/gmeow-dlmf.sssom.tsv",
+    "generated/mappings/gmeow-dsi.sssom.tsv",
+    "generated/mappings/gmeow-dublin-core.sssom.tsv",
+    "generated/mappings/gmeow-email.sssom.tsv",
+    "generated/mappings/gmeow-employment.sssom.tsv",
+    "generated/mappings/gmeow-epistemics.sssom.tsv",
+    "generated/mappings/gmeow-events.sssom.tsv",
+    "generated/mappings/gmeow-evidence.sssom.tsv",
+    "generated/mappings/gmeow-fibo.sssom.tsv",
+    "generated/mappings/gmeow-gender.sssom.tsv",
+    "generated/mappings/gmeow-genealogy.sssom.tsv",
+    "generated/mappings/gmeow-glottolog.sssom.tsv",
+    "generated/mappings/gmeow-graphrag.sssom.tsv",
+    "generated/mappings/gmeow-gts.sssom.tsv",
+    "generated/mappings/gmeow-images.sssom.tsv",
+    "generated/mappings/gmeow-imagination.sssom.tsv",
+    "generated/mappings/gmeow-inference.sssom.tsv",
+    "generated/mappings/gmeow-inhabitation.sssom.tsv",
+    "generated/mappings/gmeow-inquiry.sssom.tsv",
+    "generated/mappings/gmeow-iso4217.sssom.tsv",
+    "generated/mappings/gmeow-lang-lexinfo.sssom.tsv",
+    "generated/mappings/gmeow-lang-nif.sssom.tsv",
+    "generated/mappings/gmeow-lang-web-annotation.sssom.tsv",
+    "generated/mappings/gmeow-lang-wordnet-schema.sssom.tsv",
+    "generated/mappings/gmeow-languages.sssom.tsv",
+    "generated/mappings/gmeow-learning.sssom.tsv",
+    "generated/mappings/gmeow-lexicon.sssom.tsv",
+    "generated/mappings/gmeow-lexvo.sssom.tsv",
+    "generated/mappings/gmeow-lifecycle.sssom.tsv",
+    "generated/mappings/gmeow-logic-bfo.sssom.tsv",
+    "generated/mappings/gmeow-logic-dul.sssom.tsv",
+    "generated/mappings/gmeow-logic-gufo.sssom.tsv",
+    "generated/mappings/gmeow-logic-iao.sssom.tsv",
+    "generated/mappings/gmeow-logic-obo.sssom.tsv",
+    "generated/mappings/gmeow-logic-opencyc.sssom.tsv",
+    "generated/mappings/gmeow-logic-owl.sssom.tsv",
+    "generated/mappings/gmeow-logic-pato.sssom.tsv",
+    "generated/mappings/gmeow-logic-shacl.sssom.tsv",
+    "generated/mappings/gmeow-logic-sumo.sssom.tsv",
+    "generated/mappings/gmeow-logic-yamato.sssom.tsv",
+    "generated/mappings/gmeow-math-information.sssom.tsv",
+    "generated/mappings/gmeow-math-obcs.sssom.tsv",
+    "generated/mappings/gmeow-math-qb.sssom.tsv",
+    "generated/mappings/gmeow-math-stato.sssom.tsv",
+    "generated/mappings/gmeow-mathlib.sssom.tsv",
+    "generated/mappings/gmeow-mentation.sssom.tsv",
+    "generated/mappings/gmeow-model-serving.sssom.tsv",
+    "generated/mappings/gmeow-music.sssom.tsv",
+    "generated/mappings/gmeow-names.sssom.tsv",
+    "generated/mappings/gmeow-narrative.sssom.tsv",
+    "generated/mappings/gmeow-norms.sssom.tsv",
+    "generated/mappings/gmeow-notation.sssom.tsv",
+    "generated/mappings/gmeow-notes.sssom.tsv",
+    "generated/mappings/gmeow-observations.sssom.tsv",
+    "generated/mappings/gmeow-oeis.sssom.tsv",
+    "generated/mappings/gmeow-om2.sssom.tsv",
+    "generated/mappings/gmeow-ontolex.sssom.tsv",
+    "generated/mappings/gmeow-ontouml.sssom.tsv",
+    "generated/mappings/gmeow-openmath.sssom.tsv",
+    "generated/mappings/gmeow-places.sssom.tsv",
+    "generated/mappings/gmeow-privacy.sssom.tsv",
+    "generated/mappings/gmeow-procedures.sssom.tsv",
+    "generated/mappings/gmeow-properties.sssom.tsv",
+    "generated/mappings/gmeow-provenance.sssom.tsv",
+    "generated/mappings/gmeow-quality.sssom.tsv",
+    "generated/mappings/gmeow-qudt.sssom.tsv",
+    "generated/mappings/gmeow-rights.sssom.tsv",
+    "generated/mappings/gmeow-schema-org-finance.sssom.tsv",
+    "generated/mappings/gmeow-sensory-environment.sssom.tsv",
+    "generated/mappings/gmeow-sensory.sssom.tsv",
+    "generated/mappings/gmeow-sexuality.sssom.tsv",
+    "generated/mappings/gmeow-software.sssom.tsv",
+    "generated/mappings/gmeow-standpoint.sssom.tsv",
+    "generated/mappings/gmeow-tags.sssom.tsv",
+    "generated/mappings/gmeow-temporal.sssom.tsv",
+    "generated/mappings/gmeow-trust.sssom.tsv",
+    "generated/mappings/gmeow-versions.sssom.tsv",
+    "generated/mappings/gmeow-wikidata.sssom.tsv",
+    "generated/mappings/gmeow-wordnet.sssom.tsv",
+    "generated/metadata/dcat.ttl",
+    "generated/metadata/preservation.json",
+    "generated/metadata/void.ttl",
+    "generated/module-status.md",
+    "generated/n3/gmeow.n3",
+    "generated/owl/gmeow-dl.ttl",
+    "generated/owl/gmeow-el.ttl",
+    "generated/profiles/agent-runtime.ttl",
+    "generated/profiles/claims.ttl",
+    "generated/profiles/dreaming.ttl",
+    "generated/profiles/full.ttl",
+    "generated/profiles/memory.ttl",
+    "generated/profiles/music.ttl",
+    "generated/profiles/narrative.ttl",
+    "generated/profiles/purremb.ttl",
+    "generated/projections/activitystreams.edoal.ttl",
+    "generated/projections/bibframe.edoal.ttl",
+    "generated/projections/bibo.edoal.ttl",
+    "generated/projections/bot.edoal.ttl",
+    "generated/projections/cc.edoal.ttl",
+    "generated/projections/codemeta.edoal.ttl",
+    "generated/projections/core-prefixes.ttl",
+    "generated/projections/crmarchaeo.edoal.ttl",
+    "generated/projections/dcat.edoal.ttl",
+    "generated/projections/dcterms.edoal.ttl",
+    "generated/projections/doap.edoal.ttl",
+    "generated/projections/exif.edoal.ttl",
+    "generated/projections/foaf.edoal.ttl",
+    "generated/projections/functions.fno.ttl",
+    "generated/projections/gedcom.edoal.ttl",
+    "generated/projections/geosparql.edoal.ttl",
+    "generated/projections/glossary.tbx",
+    "generated/projections/glossary.vartrans.ttl",
+    "generated/projections/gmeow-affect.emotionml.xml",
+    "generated/projections/ical.edoal.ttl",
+    "generated/projections/iiif.edoal.ttl",
+    "generated/projections/intoto.edoal.ttl",
+    "generated/projections/iptc.edoal.ttl",
+    "generated/projections/ivoa.edoal.ttl",
+    "generated/projections/jams.edoal.ttl",
+    "generated/projections/jcal.edoal.ttl",
+    "generated/projections/lang/bcp47-tags.ttl",
+    "generated/projections/lang/conllu/forms-and-sign-systems.sentCatsChaseMice.reading-0.conllu",
+    "generated/projections/lang/conllu/forms-and-sign-systems.sentSawHerDuck.reading-0.conllu",
+    "generated/projections/lang/conllu/forms-and-sign-systems.sentSawHerDuck.reading-1.conllu",
+    "generated/projections/lang/conllu/pvalue-tri-slice.pvalueSentence.reading-0.conllu",
+    "generated/projections/lang/ebnf/gmn.ebnf",
+    "generated/projections/lang/ebnf/gts.ebnf",
+    "generated/projections/lang/ebnf/turtle.ebnf",
+    "generated/projections/lang/gmn1/conformance-pack.ttl",
+    "generated/projections/lang/gmn1/expression-rendering.gmn",
+    "generated/projections/lang/gmn1/flagship-acceptance.gmn",
+    "generated/projections/lang/gmn1/forms-and-sign-systems.gmn",
+    "generated/projections/lang/gmn1/gmn-dialect.gmn",
+    "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn",
+    "generated/projections/lang/gmn1/inscription-reading.gmn",
+    "generated/projections/lang/gmn1/multilingual-document.gmn",
+    "generated/projections/lang/gmn1/notation-systems.gmn",
+    "generated/projections/lang/gmn1/person-names.gmn",
+    "generated/projections/lang/gmn1/proficiency.gmn",
+    "generated/projections/lang/gmn1/pvalue-tri-slice.gmn",
+    "generated/projections/lang/gmn1/pydantic-projection-profile.gmn",
+    "generated/projections/lang/gmn1/word-etymology.gmn",
+    "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.anno.jsonld",
+    "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.nif.nt",
+    "generated/projections/lang/ontolex-lemon/forms-and-sign-systems.ttl",
+    "generated/projections/lang/semaf/forms-and-sign-systems.denCatsChaseMice.amr",
+    "generated/projections/lang/semaf/pvalue-tri-slice.pvalueDenotation.amr",
+    "generated/projections/lang/tei/forms-and-sign-systems.sentCatsChaseMice.tei.xml",
+    "generated/projections/lang/tei/forms-and-sign-systems.sentSawHerDuck.tei.xml",
+    "generated/projections/lang/tei/pvalue-tri-slice.pvalueSentence.tei.xml",
+    "generated/projections/list-functions.fno.ttl",
+    "generated/projections/loinc.edoal.ttl",
+    "generated/projections/lrmoo.edoal.ttl",
+    "generated/projections/mailmap.edoal.ttl",
+    "generated/projections/markdown.edoal.ttl",
+    "generated/projections/ml-schema.edoal.ttl",
+    "generated/projections/mo.edoal.ttl",
+    "generated/projections/oai_dc.edoal.ttl",
+    "generated/projections/odrl.edoal.ttl",
+    "generated/projections/ontolex.edoal.ttl",
+    "generated/projections/ontouml.edoal.ttl",
+    "generated/projections/org.edoal.ttl",
+    "generated/projections/owl-time.edoal.ttl",
+    "generated/projections/pon.edoal.ttl",
+    "generated/projections/prov.edoal.ttl",
+    "generated/projections/qb.edoal.ttl",
+    "generated/projections/resume.edoal.ttl",
+    "generated/projections/schema-org-schedule.edoal.ttl",
+    "generated/projections/schema-org.edoal.ttl",
+    "generated/projections/sigstore.edoal.ttl",
+    "generated/projections/sioc.edoal.ttl",
+    "generated/projections/skos.edoal.ttl",
+    "generated/projections/slsa.edoal.ttl",
+    "generated/projections/sosa.edoal.ttl",
+    "generated/projections/spdx.edoal.ttl",
+    "generated/projections/vcard.edoal.ttl",
+    "generated/projections/web-annotation.edoal.ttl",
+    "generated/quality/gmeow.quality-assessment.nt",
+    "generated/queries/activitystreams.rq",
+    "generated/queries/bibframe.put.rq",
+    "generated/queries/bibframe.rq",
+    "generated/queries/bibo.put.rq",
+    "generated/queries/bibo.rq",
+    "generated/queries/bot.rq",
+    "generated/queries/cc.put.rq",
+    "generated/queries/cc.rq",
+    "generated/queries/codemeta.rq",
+    "generated/queries/crmarchaeo.rq",
+    "generated/queries/dcat.rq",
+    "generated/queries/dcterms.put.rq",
+    "generated/queries/dcterms.rq",
+    "generated/queries/doap.rq",
+    "generated/queries/exif.rq",
+    "generated/queries/foaf.rq",
+    "generated/queries/gedcom.put.rq",
+    "generated/queries/gedcom.rq",
+    "generated/queries/geosparql.rq",
+    "generated/queries/ical.rq",
+    "generated/queries/iiif.rq",
+    "generated/queries/intoto.rq",
+    "generated/queries/iptc.rq",
+    "generated/queries/ivoa.rq",
+    "generated/queries/jams.rq",
+    "generated/queries/jcal.rq",
+    "generated/queries/loinc.rq",
+    "generated/queries/lrmoo.rq",
+    "generated/queries/mailmap.rq",
+    "generated/queries/markdown.rq",
+    "generated/queries/ml-schema.put.rq",
+    "generated/queries/ml-schema.rq",
+    "generated/queries/mo.rq",
+    "generated/queries/oai_dc.rq",
+    "generated/queries/observation-claim-view.rq",
+    "generated/queries/odrl.put.rq",
+    "generated/queries/odrl.rq",
+    "generated/queries/ontolex.rq",
+    "generated/queries/ontouml.put.rq",
+    "generated/queries/ontouml.rq",
+    "generated/queries/org.put.rq",
+    "generated/queries/org.rq",
+    "generated/queries/owl-time.rq",
+    "generated/queries/pon.rq",
+    "generated/queries/prov.rq",
+    "generated/queries/qb.rq",
+    "generated/queries/resume.rq",
+    "generated/queries/schema-org-schedule.rq",
+    "generated/queries/schema-org.put.rq",
+    "generated/queries/schema-org.rq",
+    "generated/queries/sigstore.rq",
+    "generated/queries/sioc.put.rq",
+    "generated/queries/sioc.rq",
+    "generated/queries/skos.rq",
+    "generated/queries/slsa.rq",
+    "generated/queries/sosa.rq",
+    "generated/queries/spdx.put.rq",
+    "generated/queries/spdx.rq",
+    "generated/queries/standpoint-bbc.rq",
+    "generated/queries/standpoint-crminf.rq",
+    "generated/queries/standpoint-modality.rq",
+    "generated/queries/standpoint-oa.rq",
+    "generated/queries/standpoint-owl2.rq",
+    "generated/queries/standpoint-prov.rq",
+    "generated/queries/standpoint-schema.rq",
+    "generated/queries/vcard.rq",
+    "generated/queries/web-annotation.rq",
+    "generated/rdf-loss-matrix.json",
+    "generated/references/references.bib",
+    "generated/references/references.csl.json",
+    "generated/references/references.md",
+    "generated/research-objects/lillith/datapackage.json",
+    "generated/research-objects/lillith/lillith.croissant.jsonld",
+    "generated/research-objects/lillith/lillith.datacite.xml",
+    "generated/research-objects/lillith/lillith.dcat.ttl",
+    "generated/research-objects/lillith/ro-crate/corpus.ttl",
+    "generated/research-objects/lillith/ro-crate/grounded-claim.ttl",
+    "generated/research-objects/lillith/ro-crate/lillith-dataset.ttl",
+    "generated/research-objects/lillith/ro-crate/lillith-pipeline.ttl",
+    "generated/research-objects/lillith/ro-crate/lillith.croissant.jsonld",
+    "generated/research-objects/lillith/ro-crate/ro-crate-metadata.json",
+    "generated/research-objects/lillith/ro-crate/ro-crate-preview.html",
+    "generated/research-objects/lillith/ro-crate/rubric.ttl",
+    "generated/research-objects/lillith/ro-crate/scores.ttl",
+    "generated/schemas/card.schema.json",
+    "generated/schemas/gmeow.graphql",
+    "generated/schemas/gmeow.graphql.name-map.json",
+    "generated/schemas/gmeow.linkml.yaml",
+    "generated/schemas/gmeow.openapi.json",
+    "generated/schemas/gmeow.schema.json",
+    "generated/schemas/gmeow.ts",
+    "generated/schemas/validate-finding.schema.json",
+    "generated/shacl-af/gmeow.shacl-af.ttl",
+    "generated/shapes/constraint-shapes.ttl",
+    "generated/shapes/frame-shapes.ttl",
+    "generated/shapes/procedural-constraints.ttl",
+    "generated/shapes/result-shapes.ttl",
+    "generated/shapes/validation-shapes.shex",
+    "generated/shapes/validation-shapes.ttl",
+    "generated/statements/gmeow-statements.owl.ttl",
+    "generated/statements/gmeow.rdf12.ttl",
+    "generated/transcode-loss-matrix.json",
+    "generated/transcode-matrix.json" .
 
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world

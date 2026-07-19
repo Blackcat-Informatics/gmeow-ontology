@@ -21,6 +21,24 @@ use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, project_root, write_timings_json,
 };
 
+/// Audit the mandatory wire-level compression profile of a GMEOW GTS bundle.
+pub fn gts_frame_profile(path: &Path) -> i32 {
+    let bytes = match std::fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(error) => return fail(format!("cannot read {}: {error}", path.display())),
+    };
+    match gmeow_pipeline::validate_mandated_frames(&bytes) {
+        Ok(()) => {
+            println!("GTS frame profile passed: {}", path.display());
+            0
+        }
+        Err(message) => fail(format!(
+            "GTS frame profile failed for {}: {message}",
+            path.display()
+        )),
+    }
+}
+
 /// `gmeow-dev validate [--gts --trust-policy --require-signed --trusted-key --deep …]`.
 #[allow(clippy::too_many_arguments)]
 pub fn validate(

@@ -629,7 +629,7 @@ pub(crate) fn schema_fragments_from_json(
 /// committed `generated/schemas/*.json` (the stale-disk-fold class). The per-term
 /// content-address provenance is likewise read from THIS run's `stage-term-manifest`
 /// product (hard-fails on a missing artifact) via
-/// `gmeow_docs::model::DocsModel::discover_with_manifest`, never the committed
+/// `gmeow_docs::model::DocsModel::discover_with_manifest_and_catalog`, never the committed
 /// `generated/catalog/term-content-manifest.nq`, which lags one regenerate behind
 /// whenever a term's definition digest changes (the same stale-disk-fold class).
 pub fn render_docs_graph(
@@ -660,12 +660,24 @@ pub fn render_docs_graph(
                 ),
             })
         })?;
-    let mut model = DocsModel::discover_with_manifest(root, manifest_bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-docs-render".to_string(),
-            message: format!("docs model discovery failed: {e}"),
-        })
-    })?;
+    // The constraint catalog, rendered FRESH from THIS run's authored sources (root
+    // ontology + slice modules) — never the committed
+    // generated/catalog/constraint-catalog.nq, which is absent on a cold tree and the
+    // previous run's bytes on a warm one (the stale-disk-fold / cold-absence class).
+    // render_constraint_catalog is a pure function of the authored sources this stage's
+    // input_files already declare, and the catalog content does not feed the documentation
+    // named graph (to_gmeow_rdf ignores constraint_rules), so this render is byte-neutral
+    // to the output and needs no new DAG edge — it only keeps the model build from
+    // hard-failing on the not-yet-materialized file.
+    let catalog_bytes = crate::stages::constraint_catalog::render_constraint_catalog(root)?;
+    let mut model =
+        DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-docs-render".to_string(),
+                    message: format!("docs model discovery failed: {e}"),
+                })
+            })?;
     model.attach_reasoning(verdict);
     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
     let diagnostics =
@@ -883,7 +895,7 @@ impl Stage for DocsRenderStage {
     fn impl_version(&self) -> &str {
         // v9: the per-term content-address manifest (definition digest + first-seen
         // version + computed changelog) is read from THIS run's consumed
-        // stage-term-manifest product (DocsModel::discover_with_manifest) instead of
+        // stage-term-manifest product (DocsModel::discover_with_manifest_and_catalog) instead of
         // lagging one regenerate behind on the committed
         // generated/catalog/term-content-manifest.nq disk read; the manifest is
         // dropped from input_files since it is now a product edge, not a raw source
