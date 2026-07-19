@@ -458,9 +458,10 @@ pub fn project_compliance_assessment(claims: &[AdvisoryClaim], graph_iri: &str) 
     // Codes key all three per-claim IRIs; two claims sharing a code would collide onto
     // the same subjects and emit conflicting triples on functional properties. Codes are
     // sorted, so a duplicate is adjacent — a producer bug, hard-fail deterministically.
-    if let Some(dup) = sorted_claims.windows(2).find_map(|w| {
-        (w[0].code == w[1].code).then_some(&w[0].code)
-    }) {
+    if let Some(dup) = sorted_claims
+        .windows(2)
+        .find_map(|w| (w[0].code == w[1].code).then_some(&w[0].code))
+    {
         panic!(
             "advisory claims contain a duplicate code {dup:?} — each code must be unique \
              (it keys the ComplianceAssessment / norm / event IRIs)"
