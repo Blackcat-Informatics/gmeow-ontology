@@ -1,0 +1,15 @@
+{
+  "op": "quantity_add_dimension_mismatch",
+  "mode": "gap",
+  "facts": [
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyA", "lex": "3/1;1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" },
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyC", "lex": "2/1;0/1,0/1,1/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:sum(X, D) :- ex:qtyA(X, A), ex:qtyC(X, B), D is A + B.\n?- ex:sum(X, D).\n",
+  "expected_gap_kind": "DimensionMismatch",
+  "provenance": {
+    "generator": "hand-derived exact-ℚ / ℚ⁷ reference",
+    "derivation": "qtyA = 3 m (dimension [1,0,0,0,0,0,0], length). qtyC = 2 s (dimension [0,0,1,0,0,0,0], time). Quantity `+` REQUIRES the two dimensions be commensurable (intrinsic-homogeneity gate); length != time componentwise (index0: 1 vs 0), so the operands are incommensurable and the addition is undefined -- a declared math:DimensionMismatch domain error, never a silently-computed sum.",
+    "note": "independently derived; never hand-edited to match the native engine. Each moded-builtin gap is ledgered with per-kind identity, so the native-engine refusal surfaced through gmeow_logic::dispatch::dispatch_query NAMES the specific math: failure class it anchors (BuiltinError::DimensionMismatch anchors math:DimensionalInhomogeneity). The consuming test asserts the refusal surfaces exactly that class -- proving the engine both REFUSES this program (never silently computes a wrong sum) AND ledgers the specific derived kind; `expected_gap_kind` is the kind independently derived by hand, and the test now confirms it bit-for-bit against the ledgered refusal."
+  }
+}

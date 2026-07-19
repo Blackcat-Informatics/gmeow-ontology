@@ -619,7 +619,9 @@ pub(super) fn resolve_native_generic(
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
                 }
                 QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic(
+                        Vec::new(),
+                    )));
                 }
                 QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
             }
@@ -1030,7 +1032,9 @@ where
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
                 }
                 QBodyLit::Builtin(_) => {
-                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic(
+                        Vec::new(),
+                    )));
                 }
                 QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
             }

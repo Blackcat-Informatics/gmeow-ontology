@@ -2778,6 +2778,14 @@ logic:builtinArithmetic
     skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; the closed operator set is evaluated by the native physical reasoning core as binding-pattern-keyed filters and generators. Residual modes (an unbound operand, division by zero, integer overflow) are typed hard failures, never wrong answers or silent approximations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+logic:builtinBilinearSquaredDistance
+    a owl:NamedIndividual ,
+        logic:Builtin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bilinear squared-distance builtin"@x-gmeow-english ;
+    skos:definition "The native metric-form builtin: derives the EXACT squared distance (x − y)ᵀ G (x − y) of two coordinate vectors under an authored symmetric bilinear form (a math:GramMatrix). A derivational builtin (Principle 12, in-logic): the lightweight exact-rational metric a foundation needs to decide a nearest-prototype question, NOT heavy external numerical domain computation. Its operands are IRIs into the math: slice — a math:GramMatrix and two math: vectors, whose exact-rational cells (math:hasEntry/math:hasComponent → math:RationalValue) the vocabulary owns; this builtin never re-authors that math: surface, it reads it. The squared distance is exact over ℚ (no √: the square root stays an output-edge seam, and √ is monotone so squared order equals distance order). Gated to logic:ProceduralPrologProfile; the closed function is evaluated by the native physical reasoning core as a binding-pattern-keyed filter/generator. Positive-definiteness of the form is certified once, off-gate, by the math: reasoned-graph gate; the runtime builtin trusts that certificate. Residual modes (an unbound operand, an absent or malformed form, a coordinate-length mismatch, exact-arithmetic overflow) are typed hard failures, never wrong answers or silent approximations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 logic:builtinDateDifference
     a owl:NamedIndividual ,
         logic:Builtin ;

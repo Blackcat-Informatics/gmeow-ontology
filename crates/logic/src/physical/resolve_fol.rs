@@ -1314,7 +1314,9 @@ fn lower_qprogram(
                     body.push(FolLit::Neg(lower_atom(dag, a, &mut vars)?));
                 }
                 crate::query_ir::QBodyLit::Cut => return Err(UnsupportedKind::Cut),
-                crate::query_ir::QBodyLit::Builtin(_) => return Err(UnsupportedKind::Arithmetic),
+                crate::query_ir::QBodyLit::Builtin(_) => {
+                    return Err(UnsupportedKind::Arithmetic(Vec::new()));
+                }
             }
         }
         let rule_iri = dag.intern_atom(&TermValue::iri(format!(

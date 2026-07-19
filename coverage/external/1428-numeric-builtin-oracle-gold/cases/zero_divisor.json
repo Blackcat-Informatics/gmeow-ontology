@@ -1,0 +1,12 @@
+{
+  "op": "rational_exact_div_zero_divisor",
+  "mode": "gap",
+  "facts": [],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:ans(X, D) :- X is 0, D is 5 / 0.\n?- ex:ans(X, D).\n",
+  "expected_gap_kind": "ZeroDivisor",
+  "provenance": {
+    "generator": "hand-derived exact-ℚ reference",
+    "derivation": "5 / 0: exact rational division by the zero rational (0/1) is undefined -- a declared math:ZeroDivisor domain error, never a silently-computed value (e.g. never 0 and never an unbounded/infinite surface). `X` is an unused dummy arg (`X is 0`) so the goal atom is arity >= 2, keeping the query on the binary backward path (which actually evaluates the builtin) rather than the arity-generic path (which refuses ANY builtin unconditionally, positive-Datalog-only) -- see the corpus README's arity note; this is what makes the refusal below trace to the REAL zero-divisor condition rather than the arity-routing gap.",
+    "note": "independently derived; never hand-edited to match the native engine. The moded-builtin gap is ledgered with per-kind identity, so the dispatch_query refusal names the specific math:ZeroDivisor class it anchors -- the consuming test asserts the refusal surfaces exactly that class, proving the engine both refuses (never divides by zero) AND ledgers the specific derived kind."
+  }
+}

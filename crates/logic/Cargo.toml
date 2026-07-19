@@ -28,6 +28,11 @@ purrdf.workspace = true
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON (#695).
 gmeow-errors = { path = "../errors" }
+# The ONE exact-ℚ numeric core (i128 gcd-normalized Rational + the ℚ⁷ SI
+# DimVector): the moded-builtin value tower computes THROUGH this shared math
+# core rather than minting its own duplicate rational. No layering cycle:
+# gmeow-math depends only on gmeow-errors + purrdf, never back on logic.
+gmeow-math = { path = "../math" }
 # SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
 # A leaf-ish crate (gmeow-iri/gmeow-xsd only) — no layering cycle.
 # The pure, wasm-able logic compiler (#732): the runtime consumes its parse→IR→

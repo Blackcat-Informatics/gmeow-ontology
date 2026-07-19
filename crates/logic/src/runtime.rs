@@ -440,6 +440,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "pure-Rust forward materialization core pinned through forward_contract_hash — no backward dispatch caller",
     ),
     (
+        "math_dimension.rs",
+        "the math: measure-and-dimension reasoned-graph gate over an already-reasoned graph — post-hoc verify-time enforcement, not backward-dispatch decision logic",
+    ),
+    (
         "nary.rs",
         "n-ary predication to reified-binary lowering + forward-chase ingestion — facts are lowered before backward dispatch runs; not itself part of the decision",
     ),

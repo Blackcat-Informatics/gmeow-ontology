@@ -1,0 +1,17 @@
+{
+  "op": "dimension_compose_mul",
+  "mode": "value",
+  "facts": [
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimLen", "lex": "1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" },
+    { "s": "https://example.org/1428/a", "p": "https://example.org/1428/dimInvTime", "lex": "0/1,0/1,-1/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:dimension" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:compose(X, D) :- ex:dimLen(X, A), ex:dimInvTime(X, B), D is A * B.\n?- ex:compose(X, D).\n",
+  "checks": [
+    { "var": "D", "value_kind": "dimension", "expected": "1/1,0/1,-1/1,0/1,0/1,0/1,0/1" }
+  ],
+  "provenance": {
+    "generator": "hand-derived ℚ⁷ reference (fixed SI base order L,M,T,I,Θ,N,J)",
+    "derivation": "dimLen = [1,0,0,0,0,0,0] (length L^1). dimInvTime = [0,0,-1,0,0,0,0] (inverse time T^-1). Dimension `Mul` composes by componentwise vector addition (the dimProduct law): [1,0,0,0,0,0,0] + [0,0,-1,0,0,0,0] = [1,0,-1,0,0,0,0] -- the velocity dimension L^1 T^-1.",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}

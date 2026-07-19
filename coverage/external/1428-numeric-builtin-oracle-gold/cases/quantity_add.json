@@ -1,0 +1,17 @@
+{
+  "op": "quantity_add",
+  "mode": "value",
+  "facts": [
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyA", "lex": "3/1;1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" },
+    { "s": "https://example.org/1428/q", "p": "https://example.org/1428/qtyB", "lex": "2/1;1/1,0/1,0/1,0/1,0/1,0/1,0/1", "datatype": "urn:gmeow:transport:quantity" }
+  ],
+  "program": ":- prefix(ex, 'https://example.org/1428/').\nex:sum(X, D) :- ex:qtyA(X, A), ex:qtyB(X, B), D is A + B.\n?- ex:sum(X, D).\n",
+  "checks": [
+    { "var": "D", "value_kind": "quantity", "expected": "5/1;1/1,0/1,0/1,0/1,0/1,0/1,0/1" }
+  ],
+  "provenance": {
+    "generator": "hand-derived exact-ℚ / ℚ⁷ reference",
+    "derivation": "qtyA = 3 m (magnitude 3/1, dimension [1,0,0,0,0,0,0] = length). qtyB = 2 m (magnitude 2/1, same length dimension). Quantity `+` requires the two dimensions be commensurable (here: IDENTICAL length vectors, so trivially commensurable) and then adds the magnitudes: 3 + 2 = 5, keeping the shared dimension -- 5 m, i.e. magnitude 5/1 over [1,0,0,0,0,0,0].",
+    "note": "independently derived; never hand-edited to match the native engine"
+  }
+}
