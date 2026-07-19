@@ -214,18 +214,7 @@ gmeow:AffectPrototype
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Prototype"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:AffectVectorObservation ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:prototypeFor ;
-            owl:minQualifiedCardinality 1 ;
-            owl:onClass gmeow:EmotionType ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:vectorComponent ;
-            owl:minQualifiedCardinality 1 ;
-            owl:onClass owl:Thing ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:vectorProfile ;
-            owl:hasValue gmeow:coreAffectMetricPAD ] ;
+    logic:subClassOf gmeow:AffectVectorObservation ;
     skos:definition "A named-emotion PROTOTYPE / region — a typical, idealized core-affect appraisal SIGNATURE labelling one gmeow:EmotionType, expressed in the canonical core-affect basis (gmeow:coreAffectMetricPAD, so every prototype shares one metric basis). 'Model up, don't mint': a named emotion is canonically a prototype/region (this) or a gmeow:AffectComposite, never an unanalyzed primitive. A prototype is a communication/bridging anchor and a classification LANDMARK, NOT ground truth — named emotions stay OPEN and CONTESTED (Principle 9), and nearest-prototype classification is a vantage-relative claim under a declared metric, never a stored label (Principle 12). Distinct from an episodic gmeow:AffectVectorObservation of a felt state: its gmeow:vantage is the naming TRADITION (gmeow:prototypeAuthority), not a real bearer, and its gmeow:observedFeature is the gmeow:EmotionType, not an occurrent episode."@x-gmeow-english ;
     skos:example "gmeow:joyPrototype a gmeow:AffectPrototype ; gmeow:prototypeFor gmeow:emotionJoy ; gmeow:vantage gmeow:prototypeAuthority ; gmeow:observedFeature gmeow:emotionJoy ; gmeow:vectorProfile gmeow:coreAffectMetricPAD ; gmeow:vectorComponent gmeow:joyPrototypeValenceCell , gmeow:joyPrototypeArousalCell ."@x-gmeow-english ;
     skos:scopeNote "Its vectorComponent cells read the CORE-AFFECT axes only (valence 0, arousal 1, dominance 2, unpredictability 3 — gmeow:coreAxisIndex), never the cognitive gmeow:AppraisalDimension axes (agency, norm, …), which differentiate composites but are not the metric basis. Two further invariants are NUMERIC and enforced OUTSIDE the logic at classification time (Principle 12), not as OWL/SHACL: every cell magnitude lies in the profile's bipolar [-1,1] range, and the authored prototypes are PAIRWISE DISTINCT under gmeow:coreAffectGram (coincident signatures are an authoring error and make the nearest-prototype margin bisector undefined)."@x-gmeow-english ;
@@ -616,7 +605,6 @@ gmeow:decisionMargin
 gmeow:prototypeFor
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
-    rdfs:domain gmeow:AffectPrototype ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "prototype for"@x-gmeow-english ;
     rdfs:range gmeow:EmotionType ;
