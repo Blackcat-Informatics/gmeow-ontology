@@ -4486,7 +4486,7 @@ math:ZeroDenominator
 
 math:ZeroDivisor
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Zero Divisor"@x-gmeow-english ;
     skos:definition "The failure raised when a division or remainder builtin is asked to divide by zero: an integer `//` or exact `/` by 0, or a division of a dimensioned magnitude by the zero rational. Division by zero has no value in a field, so the moded numeric evaluator raises this typed conformance failure rather than fabricate a quotient — a declared gap, never a wrong answer. Distinct from math:ZeroDenominator, which is an ill-formed math:RationalValue carrier (a stored p/0), whereas this is a runtime division operation whose divisor evaluated to zero."@x-gmeow-english ;
@@ -4494,7 +4494,7 @@ math:ZeroDivisor
 
 math:Overflow
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Overflow"@x-gmeow-english ;
     skos:definition "The failure raised when an exact-numeric builtin computation exceeds the machine-integer range of its exact carrier: a checked integer `+ - *` or `//` that overflows i64, an exact-ℚ operation whose i128 numerator/denominator overflows, or an unrepresentable i64::MIN magnitude / sign-flip during rational normalization. The evaluator computes over checked arithmetic and raises this typed conformance failure rather than wrap or truncate — a declared gap the caller surfaces, never a silently wrong (wrapped) answer."@x-gmeow-english ;
@@ -14737,6 +14737,7 @@ math:MissingProbabilityModelLowering a logic:Situation .
 math:NonDistributiveRing a logic:Situation .
 math:NonContiguousArgumentSlots a logic:Situation .
 math:NonPositiveDefiniteNorm a logic:Situation .
+math:Overflow a logic:Situation .
 math:ProbabilityEventOccurrentConflation a logic:Situation .
 math:ProbabilityMeasureMassViolation a logic:Situation .
 math:ProbabilityOutOfBounds a logic:Situation .
@@ -14819,6 +14820,7 @@ math:IncompleteSheafSection a logic:Situation .
 math:UnanchoredGluingObstruction a logic:Situation .
 math:IncompleteRestrictionImage a logic:Situation .
 math:ZeroDenominator a logic:Situation .
+math:ZeroDivisor a logic:Situation .
 
 # Multiparameter / zigzag persistence failures
 math:IncompleteMultiparameterFiltration a logic:Situation .

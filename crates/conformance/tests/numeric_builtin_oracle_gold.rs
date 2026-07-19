@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The per-op numeric-builtin oracle-gold conformance lane (issue #1428).
+//! The per-op numeric-builtin oracle-gold conformance lane (issue 1428).
 //!
-//! Issue #1428's acceptance criterion requires "each op separately anchored to
+//! Issue 1428's acceptance criterion requires "each op separately anchored to
 //! an INDEPENDENT oracle." The native evaluator's exact-ℚ arithmetic
 //! (`crates/logic/src/physical/builtin_eval.rs`) previously carried ONLY
 //! in-crate `#[test]`s that call its own `eval()` and assert on `eval()`'s own
@@ -270,9 +270,8 @@ fn native_engine_matches_the_independent_numeric_builtin_oracle_gold() {
                             "MetricForm" => "NonPositiveDefiniteNorm",
                             other => other,
                         };
-                        let needle = format!(
-                            "https://blackcatinformatics.ca/math/{expected_class}"
-                        );
+                        let needle =
+                            format!("https://blackcatinformatics.ca/math/{expected_class}");
                         if !diag.message().contains(&needle) {
                             failures.push(format!(
                                 "{ctx}: expected the refusal to name the ledgered gap class \

@@ -3,10 +3,10 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# per-op numeric-builtin oracle gold (issue #1428)
+# per-op numeric-builtin oracle gold (issue 1428)
 
-A frozen, **independently hand-derived** conformance corpus anchoring issue
-#1428's acceptance criterion: "Each op separately anchored to an INDEPENDENT
+A frozen, **independently hand-derived** conformance corpus anchoring
+issue 1428's acceptance criterion: "Each op separately anchored to an INDEPENDENT
 oracle." It covers the native evaluator's exact-ℚ arithmetic
 (`+ - * / //`), comparison (`> < >= =< =:=`), SI-dimension commensurability
 and composition (`gmeow_math::dimension::DimVector`), and dimensioned-quantity
