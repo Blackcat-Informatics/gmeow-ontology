@@ -298,6 +298,15 @@ gmeow:unspecifiedStandpoint
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:gmeowBestPractice
+    a gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "GMEOW best-practice standpoint"@x-gmeow-english ;
+    skos:definition "The named advisory vantage from which GMEOW's own best-practice recommendations (gmeow:deonticRecommendation) are issued — the root of the advisory standpoint sub-poset that per-domain style-guide standpoints gmeow:sharpens. Advice is one coequal standpoint's perspectival claim, never a global verdict: a gmeow:ComplianceAssessment issued from this vantage may coexist with a contrary assessment from another (Principle 9). It is the in-graph reconciliation of the advisory tier's issuing-standpoint IRI (the validate crate's BEST_PRACTICE_STANDPOINT_IRI)."@x-gmeow-english ;
+    gmeow:sharpens gmeow:universalStandpoint ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Factored claim modality.
 # The closed 5-value gmeow:StandpointModality fuses four separable epistemic

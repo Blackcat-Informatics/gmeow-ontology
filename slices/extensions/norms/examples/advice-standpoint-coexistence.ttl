@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: Principle 9, contestable / vantage-indexed compliance. Two
+# assessors — a senior human reviewer and an automated linter — judge the SAME
+# gmeow:Event against the SAME recommendation gmeow:Norm and DISAGREE: one
+# holds the norm was complied with, the other holds it was not. Both
+# gmeow:ComplianceAssessment claims coexist in the graph, each scoped to its
+# own gmeow:vantage; there is no global, assessor-free verdict, and the
+# disagreement is not an inconsistency to resolve — it is data (P9), the same
+# move `graph/norm-claims` makes at scale for the shipped `advice.tier.active`
+# demonstrator claim.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:styleAuthority a gmeow:Organization ; gmeow:name "Editorial Style Board"@x-gmeow-english .
+
+# --- A RECOMMENDATION norm (the soft-tier mirror of an obligation): the norm
+#     names its gmeow:normIssuer — there is no ought, only ought-according-to.
+ex:activeVoiceNorm a gmeow:Norm ;
+    rdfs:label            "Prefer active-voice phrasing in commit messages"@x-gmeow-english ;
+    gmeow:deonticModality gmeow:deonticRecommendation ;
+    gmeow:normIssuer      ex:styleAuthority .
+
+# --- The single event both assessors are judging.
+ex:eventTypeCodeReview a gmeow:EventType ; rdfs:label "code review"@x-gmeow-english .
+
+ex:commitReview a gmeow:Event ;
+    rdfs:label                "Commit message review"@x-gmeow-english ;
+    gmeow:eventType            ex:eventTypeCodeReview ;
+    gmeow:eventTime            "2026-06-20T09:30:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame   gmeow:temporalFrameUTCGregorian .
+
+# --- Two standpoints: the assessors' vantages, both sharpening the universal
+#     standpoint (neither is privileged over the other).
+ex:seniorReviewerView a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:automatedLinterView a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Ruling 1: the senior human reviewer holds the norm was complied with.
+ex:seniorReviewerRuling a gmeow:ComplianceAssessment ;
+    gmeow:assessedEvent     ex:commitReview ;
+    gmeow:assessedNorm      ex:activeVoiceNorm ;
+    gmeow:complianceVerdict gmeow:verdictHeld ;
+    gmeow:vantage           ex:seniorReviewerView .
+
+# --- Ruling 2: the automated linter holds the SAME norm, over the SAME event,
+#     was NOT complied with. Both rulings coexist — no global verdict (P9).
+ex:automatedLinterRuling a gmeow:ComplianceAssessment ;
+    gmeow:assessedEvent     ex:commitReview ;
+    gmeow:assessedNorm      ex:activeVoiceNorm ;
+    gmeow:complianceVerdict gmeow:verdictNotHeld ;
+    gmeow:vantage           ex:automatedLinterView .
