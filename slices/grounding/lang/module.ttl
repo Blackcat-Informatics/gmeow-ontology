@@ -5502,7 +5502,8 @@ gmeow:gmnScript lang:hasGrapheme
     gmeow:gmnGlyphMathEulerMascheroni ,
     gmeow:gmnGlyphMathAddition ,
     gmeow:gmnGlyphMathMultiplication ,
-    gmeow:gmnGlyphMathExponentiation .
+    gmeow:gmnGlyphMathExponentiation ,
+    gmeow:gmnGlyphMathMorphismArrow .
 
 gmeow:phoneVoicelessVelarPlosive
     a lang:Phone ;
@@ -7333,6 +7334,162 @@ gmeow:gmnCandidateMathOpenEndpoint
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "The parentheses ( ) are reserved by the GMN-1 surface grammar as the triple-term delimiters, so a flat parenthesis glyph cannot also carry interval-endpoint inclusion; GMN retains an explicit interval constructor naming each endpoint's inclusion." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Math plane: morphisms & category theory ------------------------------ #
+# The morphism arrow → is adopted (one pinned token, no penalty over its `to`
+# key) and scoped to @μ; the logic plane owns → as implication under @ℒ, so the
+# record-initial sigil scope disambiguates the two readings cross-plane. Because
+# a functor is a morphism of categories (math:Functor ⊑ math:Morphism), functors
+# are written with the same arrow rather than a rival glyph. Composition ∘ and
+# the natural-transformation double arrow ⇒ both fragment under the pinned BPE,
+# so their one-token keys win (`compose`, `nt`). Set complement is a structured
+# constructor because math:Complement ranges over five complementSemantics kinds
+# that a flat ∁ glyph cannot fix.
+
+gmeow:gmnGlyphMathMorphismArrow
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN morphism-arrow glyph"@x-gmeow-english ;
+    skos:definition "The NFC → grapheme (U+2192) in the @μ scope, adopted as the executable GMN sign for math:Morphism after the pinned BPE measured it at one token. Its @μ sigil scope keeps it distinct from the logic plane's → implication reading under @ℒ."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+2192" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilMath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathMorphismArrow
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN morphism-arrow operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by → and denoting math:Morphism (the source→target arrow of f: A → B) in the mathematical glyph context; a functor is written with the same arrow because math:Functor is a subclass of math:Morphism."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 15 ;
+    gmeow:gmnArity 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMorphismArrow
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN morphism arrow"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN → form to the class math:Morphism in the mathematical glyph context."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMorphismArrow ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:Morphism ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphMathMorphismArrow ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMorphismArrow
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: morphism arrow →"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering math:Morphism (and, via subsumption, math:Functor) as → in @μ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Morphism ;
+    gmeow:gmnCandidateGlyph "→" ;
+    gmeow:gmnAsciiFallback "to" ;
+    gmeow:gmnSpokenLabel "maps to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conventional morphism arrow → and the ASCII key `to` each cost one pinned cl100k_base token; → is adopted because it preserves the established categorical reading of f: A → B without a token penalty, scoped to @μ so the logic plane's @ℒ implication arrow stays distinct." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMorphismArrow ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathComposition
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN composition named key `compose`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `compose` for math:functionComposition; it binds at the tight composition precedence band. Composition is non-commutative — f compose g applies the inner map g then the outer map f (math:compositionInner then math:compositionOuter) — so the ordered reading is carried by the operand order, and the ∘ sign is retained only as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 75 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathComposition
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN composition key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `compose` named key to math:functionComposition; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathComposition ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:functionComposition ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathComposition
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: composition ∘"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for math:functionComposition rendered ∘."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:functionComposition ;
+    gmeow:gmnCandidateGlyph "∘" ;
+    gmeow:gmnAsciiFallback "compose" ;
+    gmeow:gmnSpokenLabel "composed with" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The ring-operator ∘ fragments into two pinned cl100k_base tokens while the one-token `compose` key wins on token cost, so ∘ remains display notation and adopts no glyph; the non-commutative outer/inner order is carried by operand order." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathComposition ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathNaturalTransformation
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN natural-transformation named key `nt`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `nt` for math:NaturalTransformation (the double arrow η: F ⇒ G between two functors) at the type-arrow precedence band; the ⇒ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 15 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathNaturalTransformation
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN natural-transformation key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `nt` named key to the class math:NaturalTransformation; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathNaturalTransformation ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:NaturalTransformation ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathNaturalTransformation
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: natural transformation ⇒"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for math:NaturalTransformation rendered ⇒."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:NaturalTransformation ;
+    gmeow:gmnCandidateGlyph "⇒" ;
+    gmeow:gmnAsciiFallback "nt" ;
+    gmeow:gmnSpokenLabel "natural transformation to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The double arrow ⇒ fragments into three pinned cl100k_base tokens while the one-token `nt` key wins on token cost, so ⇒ remains display notation and adopts no glyph; the logic plane's @ℒ implication double-arrow stays distinct by sigil scope." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathNaturalTransformation ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathComplement
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: set complement ∁"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for set complement rendered ∁, targeting math:Complement."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Complement ;
+    gmeow:gmnCandidateGlyph "∁" ;
+    gmeow:gmnAsciiFallback "complement" ;
+    gmeow:gmnSpokenLabel "the complement of" ;
+    gmeow:gmnArity 1 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "math:Complement ranges over five complementSemantics kinds (set-theoretic, orthogonal, complex-linear, topological, quotient) and requires a declared ambient space, so a flat ∁ glyph cannot fix which complement is meant; GMN retains an explicit complement constructor naming the ambient space and semantics." ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
