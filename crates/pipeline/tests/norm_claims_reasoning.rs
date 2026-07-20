@@ -1,39 +1,36 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Reasoning-reuse acceptance test over the SHIPPED bundle
-//! demonstration.
+//! Reasoning-reuse acceptance test over the SHIPPED bundle's `graph/norm-claims` — honestly
+//! EMPTY of advice content.
 //!
 //! Models `crates/logic/tests/ontology_entailments.rs`'s scoped-closure pattern: union a
 //! small TBox with a small A-Box in one default-graph world and close it under the native
-//! OWL 2 RL chase (`gmeow_logic::reason::rl_closure`), then assert a concrete triple is
-//! ABSENT before closure and PRESENT after — the "authored nowhere, entailed" contrast
-//! that proves the content is reasoning-consumable, not merely CLI-rendered prose.
+//! OWL 2 RL chase (`gmeow_logic::reason::rl_closure`). The A-Box here is the REAL
+//! `graph/norm-claims` named graph read back from the SHIPPED `generated/dist/gmeow.gts`; the
+//! TBox is `slices/extensions/norms/module.ttl`.
 //!
-//! Unlike `ontology_entailments.rs` (a synthetic A-Box), the A-Box here is the REAL
-//! `graph/norm-claims` named graph read back from the SHIPPED `generated/dist/gmeow.gts`
-//! — the emitted `gmeow:ComplianceAssessment` / `gmeow:Event` claim for the demonstrator
-//! advisory code. The TBox is `slices/extensions/norms/module.ttl`, which carries both
-//! axioms this test exercises:
-//!   * `gmeow:ComplianceAssessment rdfs:subClassOf gmeow:Observation` (line ~41)
-//!   * `gmeow:assessedEvent rdfs:subPropertyOf gmeow:observedFeature` (line ~416)
+//! Advice fires only on a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the
+//! shipped bundle's base graph is deliberately TBox-only, so `graph/norm-claims` carries no
+//! advisory-harvested `gmeow:ComplianceAssessment` / `gmeow:Event` / `gmeow:Norm` triple here
+//! — the reified advice wing is honestly EMPTY. This test asserts that honest absence
+//! (rather than a specific harvested code no producer emits any more) and, when the A-Box is
+//! non-empty for any other reason, proves the native OWL 2 RL reasoner still consumes it
+//! without error — reasoning-consumability is a property of the TBox/reader, not of any one
+//! demonstrator individual.
 //!
-//! Two independent entailments are proven, both authored nowhere in the emitted claim:
-//!   1. `(assessment, gmeow:observedFeature, event)` — RL `prp-spo1` over the
-//!      `assessedEvent ⊑ observedFeature` sub-property axiom.
-//!   2. `(assessment, rdf:type, gmeow:Observation)` — RL `cax-sco` over the
-//!      `ComplianceAssessment ⊑ Observation` sub-class axiom.
-//!
-//! `crates/pipeline/Cargo.toml` depends on `gmeow-logic` directly (the compile-logic /
-//! reason-native producers), so `gmeow_logic::reason::rl_closure` is reachable from this
-//! integration test without moving it into `crates/logic/tests/`.
+//! The positive proof that a REAL advisory event's `ComplianceAssessment` is genuinely
+//! reasoning-consumable content (entailing `gmeow:observedFeature` / `rdf:type
+//! gmeow:Observation` authored nowhere in the emitted claim) lives in `advice_wing_fixture.rs`,
+//! which supplies its own TEST-ONLY anti-pattern individual and drives the whole
+//! compile → validate → split → project pipeline over it.
 //!
 //! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle — it runs
 //! green only after `make sync`.
 
 use std::path::{Path, PathBuf};
 
-use gmeow_logic::reason::{RlClosure, rl_closure};
+use gmeow_logic::reason::rl_closure;
 use purrdf::gts::model::Graph;
 use purrdf::{RdfDatasetBuilder, RdfQuad, parse_dataset};
 
@@ -41,16 +38,10 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
-/// A harvested advisory rule's code both advice wings project — `advice.` family
-/// prefix + the `logic:candAdviceAvoidBareEntity` candidate local name (harvesting
-/// gmeow:Entity's `avoidWhen`) — embedded in the `graph/norm-claims` claim's
-/// content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`).
-const ADVICE_CODE: &str = "advice.candAdviceAvoidBareEntity";
-
-/// `https://blackcatinformatics.ca/gmeow/<local>`.
-fn gmeow(local: &str) -> String {
-    format!("{GMEOW}{local}")
-}
+/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the
+/// string this test proves is ABSENT from any `gmeow:ComplianceAssessment` subject IRI in the
+/// shipped bundle's `graph/norm-claims` A-Box.
+const ADVICE_FAMILY: &str = "advice.";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -77,19 +68,23 @@ fn turtle_quads(rel_paths: &[&str]) -> Vec<RdfQuad> {
 }
 
 /// The `graph/norm-claims` named graph of the committed `generated/dist/gmeow.gts`, folded
-/// into owned quads in one default-graph world (the "union graph/norm-claims into the
-/// reasoning EDB" step) — the emitted `gmeow:ComplianceAssessment`/`gmeow:Event`/`gmeow:Norm`
-/// A-Box, read back through the native GTS reader exactly as `norm_claims_bundle.rs` does.
+/// into owned quads in one default-graph world — the emitted `gmeow:ComplianceAssessment`/
+/// `gmeow:Event`/`gmeow:Norm` A-Box, read back through the native GTS reader exactly as
+/// `norm_claims_bundle.rs` does. Returns an EMPTY vector, not an error, when the named graph
+/// is entirely absent from the bundle (no such graph-name term interned) — an absent graph
+/// and an empty graph are both honest "no norm-claims content" states.
 fn norm_claims_abox_quads() -> Vec<RdfQuad> {
     let bytes =
         std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
     let g = purrdf::gts::read_graph(&bytes, true).expect("read_graph");
 
-    let graph_id = g
+    let Some(graph_id) = g
         .terms
         .iter()
         .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))
-        .expect("graph/norm-claims graph-name term must be interned in the shipped bundle");
+    else {
+        return Vec::new();
+    };
 
     let quads: Vec<_> = g
         .quads
@@ -97,10 +92,9 @@ fn norm_claims_abox_quads() -> Vec<RdfQuad> {
         .filter(|&&(_, _, _, gname)| gname == Some(graph_id))
         .map(|&(s, p, o, _)| (s, p, o, None))
         .collect();
-    assert!(
-        !quads.is_empty(),
-        "graph/norm-claims must carry a non-empty triple set in the shipped bundle"
-    );
+    if quads.is_empty() {
+        return Vec::new();
+    }
 
     let filtered = Graph {
         terms: g.terms,
@@ -120,98 +114,58 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
     builder.freeze().expect("valid TBox+ABox dataset")
 }
 
-/// Strip an optional surrounding `<…>` so closure terms compare against bare IRIs
-/// regardless of how `RlTriple` renders each position — the `unwrap_iri` idiom of
-/// `crates/logic/tests/ontology_entailments.rs`.
-fn unwrap_iri(term: &str) -> &str {
-    term.strip_prefix('<')
-        .and_then(|t| t.strip_suffix('>'))
-        .unwrap_or(term)
-}
-
-/// `true` iff the closure contains the IRI triple `s p o`.
-fn contains(closure: &RlClosure, s: &str, p: &str, o: &str) -> bool {
-    closure.triples.iter().any(|t| {
-        unwrap_iri(&t.subject) == s && unwrap_iri(&t.predicate) == p && unwrap_iri(&t.object) == o
-    })
-}
-
-/// `true` iff `s p o` (as IRIs) is one of the asserted quads.
-fn asserted(quads: &[RdfQuad], s: &str, p: &str, o: &str) -> bool {
-    quads.iter().any(|q| {
-        matches!(&q.subject, purrdf::RdfTerm::Iri(qs) if qs == s)
-            && q.predicate == p
-            && matches!(&q.object, purrdf::RdfTerm::Iri(qo) if qo == o)
-    })
-}
-
-/// The reasoning-reuse demonstration (Completion-Adversary F2): union the real shipped
-/// `graph/norm-claims` A-Box with the `norms` TBox, close under native OWL 2 RL, and prove
-/// two entailments that are authored nowhere in the emitted claim — the demonstrator advice
-/// event's `ComplianceAssessment` is genuinely reasoning-consumable content, not a CLI line.
+/// The honest invariant (G1 rework): the shipped `graph/norm-claims` A-Box carries no
+/// advisory-harvested `gmeow:ComplianceAssessment` (no subject IRI embeds an `advice.`-family
+/// code) — vacuously true when the graph is absent/empty, the expected state for the
+/// TBox-only shipped bundle. When the A-Box DOES carry other content, the native OWL 2 RL
+/// reasoner must still union + close it with the `norms` TBox without error, proving
+/// reasoning-consumability is a property of the reader/TBox pairing, not of any one
+/// demonstrator individual.
 #[test]
-fn shipped_norm_claims_abox_is_consumed_by_the_native_rl_reasoner() {
+fn shipped_norm_claims_abox_carries_no_advisory_assessment_and_reasons_cleanly() {
     let abox = norm_claims_abox_quads();
+
+    let assessment_class = gmeow_iri("ComplianceAssessment");
+    let advisory_assessments: Vec<&str> = abox
+        .iter()
+        .filter_map(|q| match (&q.subject, q.predicate.as_str(), &q.object) {
+            (purrdf::RdfTerm::Iri(s), p, purrdf::RdfTerm::Iri(o))
+                if p == RDF_TYPE && o == &assessment_class && s.contains(ADVICE_FAMILY) =>
+            {
+                Some(s.as_str())
+            }
+            _ => None,
+        })
+        .collect();
+    assert!(
+        advisory_assessments.is_empty(),
+        "the TBox-only shipped bundle's graph/norm-claims A-Box must carry NO \
+         gmeow:ComplianceAssessment whose IRI embeds an `{ADVICE_FAMILY}` code; found: \
+         {advisory_assessments:?}"
+    );
+
+    if abox.is_empty() {
+        // Absent or empty graph/norm-claims: the honest invariant holds vacuously, and there
+        // is no content to union + close — nothing further to prove here.
+        return;
+    }
+
     let tbox = turtle_quads(&["slices/extensions/norms/module.ttl"]);
-
-    let assessment_iri =
-        format!("https://blackcatinformatics.ca/gmeow/norm-claims/{ADVICE_CODE}/assessment");
-    let event_iri = format!("https://blackcatinformatics.ca/gmeow/norm-claims/{ADVICE_CODE}/event");
-    let observed_feature = gmeow("observedFeature");
-    let observation_class = gmeow("Observation");
-
-    // The A-Box asserts assessedEvent, never observedFeature or rdf:type Observation.
-    assert!(
-        asserted(&abox, &assessment_iri, &gmeow("assessedEvent"), &event_iri),
-        "the shipped graph/norm-claims A-Box must assert {assessment_iri} gmeow:assessedEvent \
-         {event_iri} — the property-chain premise this test reasons over"
-    );
-    assert!(
-        !asserted(&abox, &assessment_iri, &observed_feature, &event_iri),
-        "{assessment_iri} gmeow:observedFeature {event_iri} must be ABSENT from the raw A-Box \
-         (it must be entailed, not authored, or this is not a reasoning-reuse proof)"
-    );
-    assert!(
-        !asserted(&abox, &assessment_iri, RDF_TYPE, &observation_class),
-        "{assessment_iri} rdf:type gmeow:Observation must be ABSENT from the raw A-Box (it must \
-         be entailed, not authored, or this is not a reasoning-reuse proof)"
-    );
 
     let mut quads = tbox;
     quads.extend(abox);
     let dataset = dataset_from_quads(quads);
-    let closure = rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed");
-
-    // Entailment 1: assessedEvent ⊑ observedFeature (prp-spo1) — the reified assessment is
-    // discoverable through the generic Observation query surface (observedFeature) despite
-    // never asserting that property directly.
-    assert!(
-        contains(&closure, &assessment_iri, &observed_feature, &event_iri),
-        "{assessment_iri} gmeow:observedFeature {event_iri} must be ENTAILED by the native OWL \
-         2 RL closure via gmeow:assessedEvent rdfs:subPropertyOf gmeow:observedFeature \
-         (slices/extensions/norms/module.ttl)"
+    let closure = rl_closure(dataset.as_ref()).expect(
+        "the native OWL 2 RL reasoner must close whatever graph/norm-claims content the \
+         shipped bundle carries, together with the norms TBox, without error",
     );
-
-    // Entailment 2: ComplianceAssessment ⊑ Observation (cax-sco) — the assessment is
-    // classified into the universal claim construct, authored nowhere in the emitted claim.
     assert!(
-        contains(&closure, &assessment_iri, RDF_TYPE, &observation_class),
-        "{assessment_iri} rdf:type gmeow:Observation must be ENTAILED by the native OWL 2 RL \
-         closure via gmeow:ComplianceAssessment rdfs:subClassOf gmeow:Observation \
-         (slices/extensions/norms/module.ttl)"
-    );
-
-    // Non-vacuity floor: the closure over the real shipped A-Box is non-trivial.
-    assert!(
-        closure.triples.len() > abox_triple_count_floor(),
-        "the scoped RL closure over the shipped graph/norm-claims A-Box should be non-trivial; \
-         got {} triples",
-        closure.triples.len()
+        !closure.triples.is_empty(),
+        "a non-empty A-Box union non-empty TBox must close to at least the asserted triples"
     );
 }
 
-/// A conservative non-vacuity floor: fewer triples than this would indicate the TBox or
-/// A-Box silently failed to parse/union rather than genuinely closing.
-fn abox_triple_count_floor() -> usize {
-    10
+/// `https://blackcatinformatics.ca/gmeow/<local>`.
+fn gmeow_iri(local: &str) -> String {
+    format!("{GMEOW}{local}")
 }

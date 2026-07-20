@@ -1,19 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Acceptance tests over the SHIPPED bundle: the advice dual-projection.
+//! Acceptance test over the SHIPPED bundle: the advice dual-projection is honestly EMPTY.
 //!
-//! Observe BOTH advice wings in the materialized
-//! `generated/dist/gmeow.gts` — the flat `graph/diagnostics` Note finding AND the
-//! reified `graph/norm-claims` `gmeow:ComplianceAssessment` claim — for a HARVESTED
-//! advisory rule: `advice.candAdviceAvoidBareEntity`, the soft rule harvested from
-//! gmeow:Entity's `avoidWhen` prose. One advisory event, two projections
-//! (dual-projection-always, P4/P17); this test proves both actually SHIP, not merely
-//! that the emitter code exists.
+//! Advice fires only on a DATA MATCH: a `logic:Constraint` at `logic:severity "Info"`
+//! (a "advice-constraint") derives to a `sh:SPARQLConstraint` NodeShape carrying
+//! `logic:formalizes`, and that shape only produces a `gmeow:ComplianceAssessment` /
+//! `gmeow:Finding` pair when an individual in the validated graph actually matches its
+//! guard (`crates/validate/src/advisory.rs::split_advisory_results`). The SHIPPED bundle's
+//! base graph is deliberately TBox-only — `slices/*/*/module.ttl` + imports, with NO
+//! `examples/` individuals folded in — so no individual anywhere in `generated/dist/gmeow.gts`
+//! ever matches an advisory guard, and the advice wing (`graph/norm-claims`
+//! `gmeow:ComplianceAssessment`s embedding an `advice.` code, `graph/diagnostics`
+//! `gmeow:findingCode` literals starting with `advice.`) is honestly EMPTY in the shipped
+//! bundle. This test asserts exactly that absence, rather than asserting the presence of a
+//! specific harvested code that nothing in the current architecture produces.
 //!
-//! Like `correspondence_laws_bundle.rs`, this test `.expect()`s the committed bundle —
-//! it FAILS (never silently skips) if `generated/dist/gmeow.gts` is absent. It runs
-//! green only after `make sync` materializes the bundle.
+//! The POSITIVE proof that the advisory dual-projection machinery actually works — the real
+//! `gmeow:BareEntitySortalAdviceConstraint` fired end-to-end over a fixture individual that
+//! DOES match its guard — lives in `advice_wing_fixture.rs`, which supplies its own
+//! TEST-ONLY anti-pattern individual (deliberately absent from the shipped bundle) and drives
+//! the full compile → validate → split → project pipeline over it.
+//!
+//! Like `correspondence_laws_bundle.rs`, this test `.expect()`s the committed bundle — it
+//! FAILS (never silently skips) if `generated/dist/gmeow.gts` is absent. It runs green only
+//! after `make sync` materializes the bundle.
 
 use std::path::{Path, PathBuf};
 
@@ -23,11 +34,10 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
-/// A harvested advisory rule's code both wings project — `advice.` family prefix +
-/// the `logic:candAdviceAvoidBareEntity` candidate's local name — embedded in the
-/// `graph/norm-claims` claim's content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`). The
-/// candidate harvests gmeow:Entity's `avoidWhen` prose, which ships in the bundle.
-const ADVICE_CODE: &str = "advice.candAdviceAvoidBareEntity";
+/// The `advice.` family code prefix every harvested advisory-constraint match's code carries
+/// (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the string this test proves is ABSENT
+/// from the shipped bundle's advice wing.
+const ADVICE_FAMILY: &str = "advice.";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -38,7 +48,9 @@ fn repo_root() -> PathBuf {
 }
 
 /// The ground triples (subject, predicate, object as IRI/label strings) of ONE named graph of
-/// the committed `gmeow.gts`, read through the kernel GTS reader.
+/// the committed `gmeow.gts`, read through the kernel GTS reader. Returns an empty vector, not
+/// an error, when the named graph is entirely absent from the bundle (no such graph-name term
+/// interned) — an absent graph and an empty graph are both honest "no advice wing" states.
 fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
     let bytes =
         std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
@@ -60,170 +72,47 @@ fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
     out
 }
 
-/// Objects `o` such that `(subject, predicate, o)` is present.
-fn objects_of<'a>(
-    triples: &'a [(String, String, String)],
-    subject: &str,
-    predicate: &str,
-) -> Vec<&'a str> {
-    triples
-        .iter()
-        .filter(|(s, p, _)| s == subject && p == predicate)
-        .map(|(_, _, o)| o.as_str())
-        .collect()
-}
-
-/// Wing 1 (`graph/norm-claims`): the shipped bundle carries a `gmeow:ComplianceAssessment`
-/// whose IRI embeds the harvested advisory code, with exactly one `gmeow:vantage` =
-/// `gmeowBestPractice`, exactly one `gmeow:complianceVerdict`, and a `gmeow:assessedNorm`
-/// whose object carries `gmeow:deonticModality` = `deonticRecommendation` AND a
-/// `gmeow:normIssuer` — the reified, standpoint-indexed advice claim.
+/// Wing 1 (`graph/norm-claims`): the shipped bundle carries NO `gmeow:ComplianceAssessment`
+/// whose subject IRI embeds an `advice.`-family code. A TBox-only bundle has no anti-pattern
+/// individual for any data-matching advisory guard to fire on, so the reified advice wing is
+/// honestly empty — an absent or empty `graph/norm-claims` graph both satisfy this.
 #[test]
-fn shipped_bundle_norm_claims_carries_the_advisory_compliance_assessment() {
+fn shipped_bundle_norm_claims_carries_no_advisory_compliance_assessment() {
     let triples = graph_triples(GRAPH_NORM_CLAIMS);
-    assert!(
-        !triples.is_empty(),
-        "the shipped gmeow.gts must carry a non-empty `graph/norm-claims` named graph \
-         (missing the reified advice wing entirely)"
-    );
 
     let assessment_class = format!("{GMEOW}ComplianceAssessment");
-    let assessment_subjects: Vec<&str> = triples
+    let advisory_assessment_subjects: Vec<&str> = triples
         .iter()
         .filter(|(_, p, o)| p == RDF_TYPE && o == &assessment_class)
         .map(|(s, _, _)| s.as_str())
-        .filter(|s| s.contains(ADVICE_CODE))
+        .filter(|s| s.contains(ADVICE_FAMILY))
         .collect();
-    assert_eq!(
-        assessment_subjects.len(),
-        1,
-        "expected exactly one gmeow:ComplianceAssessment subject in graph/norm-claims whose \
-         IRI embeds `{ADVICE_CODE}`, got {assessment_subjects:?} (full graph has {} triples)",
-        triples.len()
-    );
-    let assessment = assessment_subjects[0];
-
-    let vantage_pred = format!("{GMEOW}vantage");
-    let best_practice = format!("{GMEOW}gmeowBestPractice");
-    let vantages = objects_of(&triples, assessment, &vantage_pred);
-    assert_eq!(
-        vantages,
-        vec![best_practice.as_str()],
-        "the {ADVICE_CODE} ComplianceAssessment must carry exactly one gmeow:vantage = \
-         gmeowBestPractice, got {vantages:?}"
-    );
-
-    let verdict_pred = format!("{GMEOW}complianceVerdict");
-    let verdicts = objects_of(&triples, assessment, &verdict_pred);
-    assert_eq!(
-        verdicts.len(),
-        1,
-        "the {ADVICE_CODE} ComplianceAssessment must carry exactly one gmeow:complianceVerdict, \
-         got {verdicts:?}"
-    );
-
-    let assessed_norm_pred = format!("{GMEOW}assessedNorm");
-    let norms = objects_of(&triples, assessment, &assessed_norm_pred);
-    assert_eq!(
-        norms.len(),
-        1,
-        "the {ADVICE_CODE} ComplianceAssessment must carry exactly one gmeow:assessedNorm, \
-         got {norms:?}"
-    );
-    let norm = norms[0];
-
-    let modality_pred = format!("{GMEOW}deonticModality");
-    let deontic_recommendation = format!("{GMEOW}deonticRecommendation");
-    let modalities = objects_of(&triples, norm, &modality_pred);
-    assert_eq!(
-        modalities,
-        vec![deontic_recommendation.as_str()],
-        "the assessedNorm {norm} must carry gmeow:deonticModality = deonticRecommendation, \
-         got {modalities:?}"
-    );
-
-    let issuer_pred = format!("{GMEOW}normIssuer");
-    let issuers = objects_of(&triples, norm, &issuer_pred);
     assert!(
-        !issuers.is_empty(),
-        "the assessedNorm {norm} must carry a gmeow:normIssuer (there is no ought, only \
-         ought-according-to), found none"
+        advisory_assessment_subjects.is_empty(),
+        "the TBox-only shipped bundle must carry NO gmeow:ComplianceAssessment whose IRI \
+         embeds an `{ADVICE_FAMILY}` code (no anti-pattern individual exists for a \
+         data-matching advisory guard to fire on); found: {advisory_assessment_subjects:?}"
     );
 }
 
-/// Wing 2 (`graph/diagnostics`): the shipped bundle carries a `gmeow:Finding` with
-/// `gmeow:findingCode` = the harvested advisory code, graded at the never-gating
-/// `gmeow:standpointAdvisory` truth-axis — the flat projection of the same advice event.
+/// Wing 2 (`graph/diagnostics`): the shipped bundle carries NO `gmeow:findingCode` literal
+/// starting with the `advice.` family prefix — the flat wing is equally honestly empty.
 #[test]
-fn shipped_bundle_diagnostics_carries_the_advisory_finding() {
+fn shipped_bundle_diagnostics_carries_no_advisory_finding_code() {
     let triples = graph_triples(GRAPH_DIAGNOSTICS);
-    assert!(
-        !triples.is_empty(),
-        "the shipped gmeow.gts must carry a non-empty `graph/diagnostics` named graph \
-         (missing the flat advice wing entirely)"
-    );
 
     let finding_code_pred = format!("{GMEOW}findingCode");
-    // `graph_triples` resolves a literal object to its lexical VALUE (no surrounding
-    // quotes, no datatype suffix) via the GTS term table, so match the bare code.
-    let code_literal = ADVICE_CODE.to_string();
-    let finding_subjects: Vec<&str> = triples
+    // `graph_triples` resolves a literal object to its lexical VALUE (no surrounding quotes,
+    // no datatype suffix) via the GTS term table, so a bare prefix match is correct here.
+    let advisory_finding_codes: Vec<&str> = triples
         .iter()
-        .filter(|(_, p, o)| p == &finding_code_pred && o == &code_literal)
-        .map(|(s, _, _)| s.as_str())
+        .filter(|(_, p, o)| p == &finding_code_pred && o.starts_with(ADVICE_FAMILY))
+        .map(|(_, _, o)| o.as_str())
         .collect();
     assert!(
-        !finding_subjects.is_empty(),
-        "expected at least one subject in graph/diagnostics carrying \
-         gmeow:findingCode = \"{ADVICE_CODE}\", found none (searched {} triples)",
-        triples.len()
-    );
-
-    let standpoint_pred = format!("{GMEOW}findingStandpoint");
-    let standpoint_advisory = format!("{GMEOW}standpointAdvisory");
-    let advisory_findings: Vec<&str> = finding_subjects
-        .into_iter()
-        .filter(|subject| {
-            objects_of(&triples, subject, &standpoint_pred).contains(&standpoint_advisory.as_str())
-        })
-        .collect();
-    assert!(
-        !advisory_findings.is_empty(),
-        "expected the {ADVICE_CODE} finding to carry gmeow:findingStandpoint = \
-         standpointAdvisory (the never-gate advisory tier), found none among the \
-         findingCode-matching subjects"
-    );
-}
-
-/// The finding<->claim pairing (Completion-Adversary F3): the SAME advisory code appears
-/// BOTH as a `gmeow:findingCode` literal in `graph/diagnostics` AND embedded in the
-/// `gmeow:ComplianceAssessment` subject IRI in `graph/norm-claims` — the executable proof
-/// that these are two projections of ONE advice event, not two unrelated pieces of content.
-#[test]
-fn shipped_bundle_pairs_the_finding_and_the_norm_claim_by_advisory_code() {
-    let diagnostics = graph_triples(GRAPH_DIAGNOSTICS);
-    let norm_claims = graph_triples(GRAPH_NORM_CLAIMS);
-
-    let finding_code_pred = format!("{GMEOW}findingCode");
-    // `graph_triples` resolves a literal object to its lexical VALUE (no surrounding
-    // quotes, no datatype suffix) via the GTS term table, so match the bare code.
-    let code_literal = ADVICE_CODE.to_string();
-    let has_matching_finding_code = diagnostics
-        .iter()
-        .any(|(_, p, o)| p == &finding_code_pred && o == &code_literal);
-    assert!(
-        has_matching_finding_code,
-        "graph/diagnostics must carry a gmeow:findingCode literal \"{ADVICE_CODE}\" — the \
-         flat wing of the paired advice event is missing"
-    );
-
-    let assessment_class = format!("{GMEOW}ComplianceAssessment");
-    let has_matching_claim_iri = norm_claims
-        .iter()
-        .any(|(s, p, o)| p == RDF_TYPE && o == &assessment_class && s.contains(ADVICE_CODE));
-    assert!(
-        has_matching_claim_iri,
-        "graph/norm-claims must carry a gmeow:ComplianceAssessment whose IRI embeds \
-         \"{ADVICE_CODE}\" — the reified wing of the paired advice event is missing"
+        advisory_finding_codes.is_empty(),
+        "the TBox-only shipped bundle must carry NO gmeow:findingCode literal starting with \
+         `{ADVICE_FAMILY}` (no anti-pattern individual exists for a data-matching advisory \
+         guard to fire on); found: {advisory_finding_codes:?}"
     );
 }
