@@ -12,6 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use gmeow_errors::abox::X_GMEOW_ENGLISH;
 use purrdf::slice::rdf_query::{Dataset, Object};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -204,12 +205,14 @@ fn profile_document(
         "@prefix owl:  <http://www.w3.org/2002/07/owl#> .".to_string(),
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .".to_string(),
         "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .".to_string(),
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .".to_string(),
         String::new(),
         format!("<{iri}>"),
         "    a owl:Ontology ;".to_string(),
-        format!("    rdfs:label \"{label}\"@en ;"),
-        format!("    skos:definition \"{comment}\"@en ;"),
+        format!("    rdfs:label \"{label}\"@{X_GMEOW_ENGLISH} ;"),
+        format!("    skos:definition \"{comment}\"@{X_GMEOW_ENGLISH} ;"),
         format!("    rdfs:isDefinedBy <{iri}> ;"),
+        "    gmeow:graphBoxRole gmeow:boxTBox ;".to_string(),
         "    owl:imports".to_string(),
     ];
     for imp in &imports[..imports.len() - 1] {

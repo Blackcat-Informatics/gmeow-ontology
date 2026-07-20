@@ -32,6 +32,8 @@
 //! ledgered drop, never dropped in silence. The surface is **emit-only**: there is no
 //! parse-back from `sh:SPARQLRule` into a `logic:` rule (Principle 4).
 
+use gmeow_errors::abox::X_GMEOW_ENGLISH;
+
 use super::super::ir::{LogicAxiom, LogicProgram, LogicRule};
 use super::sparql_lower::{sparql_literal, sparql_predicate};
 use super::{
@@ -161,13 +163,33 @@ fn axiom_shape_local(axiom: &LogicAxiom, index: usize) -> String {
     format!("GenSubsumptionRule_{sanitized}_a{index}")
 }
 
+/// The `rdfs:isDefinedBy` target every minted SHACL-AF rule-shape individual
+/// carries — mirrors the deterministic per-committed-path graph-identity IRI
+/// naming convention `crate::stages::superset::rdf_fanout_graph_iri` uses in the
+/// `gmeow-pipeline` crate for any RDF file under `generated/` (`RDF_FANOUT_NS` +
+/// the path with its `generated/` prefix stripped). Computed here directly — no
+/// reverse `logic-compile` → `pipeline` dependency exists — for the committed
+/// path `generated/shacl-af/gmeow.shacl-af.ttl`
+/// (`gmeow_pipeline::stages::compile_logic::SHACL_AF_PATH`). NOTE: that path
+/// currently rides in the `REP_GENERATED` OPAQUE archive member
+/// (`carrier.rs::build_archive_blobs`), not an authored `rdf-fanout` row in
+/// `slices/core/pipeline/module.ttl` — this IRI is the document's stable
+/// identity label, not (yet) an independently RDF-fold-verified named graph
+/// inside `gmeow.gts`.
+const SHACL_AF_GRAPH_IRI: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/fanout/shacl-af/gmeow.shacl-af.ttl";
+
 /// Emit one `sh:NodeShape` carrying a `sh:SPARQLTarget` (selecting the focus nodes as `?this`)
 /// and a `sh:rule`/`sh:SPARQLRule` whose `sh:construct` derives `$this <head_pred> <head_obj>`
 /// per focus node. Shared by the derivation-rule and the subsumption-axiom projections so the
-/// two cannot drift.
+/// two cannot drift. Carries the full four-annotation A-Box contract (`rdfs:label` /
+/// `skos:definition` / `rdfs:isDefinedBy` / `gmeow:graphBoxRole`) every minted gmeow-namespaced
+/// individual owes (`crates/errors/src/abox.rs`).
+#[allow(clippy::too_many_arguments)]
 fn emit_rule_shape(
     local: &str,
     label: &str,
+    definition: &str,
     head_pred: &str,
     head_obj: &str,
     target_where: &str,
@@ -176,7 +198,10 @@ fn emit_rule_shape(
     format!(
         "gmeow:{local}\n\
          \x20   a sh:NodeShape ;\n\
-         \x20   rdfs:label \"{label}\"@en ;\n\
+         \x20   rdfs:label \"{label}\"@{X_GMEOW_ENGLISH} ;\n\
+         \x20   skos:definition \"{definition}\"@{X_GMEOW_ENGLISH} ;\n\
+         \x20   rdfs:isDefinedBy <{SHACL_AF_GRAPH_IRI}> ;\n\
+         \x20   gmeow:graphBoxRole gmeow:boxABox ;\n\
          \x20   sh:target [\n\
          \x20       a sh:SPARQLTarget ;\n\
          \x20       sh:select \"\"\"SELECT ?this WHERE {{ {target_where} }}\"\"\" ;\n\
@@ -209,7 +234,8 @@ pub fn project_shacl_af(
          # (Principle 17 — computation added to the canon and emitted, never bolted onto SHACL).\n\
          @prefix gmeow: <{GMEOW_NS}> .\n\
          @prefix sh:    <{SH_NS}> .\n\
-         @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> ."
+         @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos:  <http://www.w3.org/2004/02/skos/core#> ."
     )];
 
     let mut actual_drops: Vec<String> = Vec::new();
@@ -283,9 +309,14 @@ pub fn project_shacl_af(
                 "SHACL-AF reduce projection of the logic: rule deriving <{}> ({} aggregation, generated)",
                 head.predicate, func
             );
+            let definition = format!(
+                "SHACL-AF rule shape deriving <{}> via {} aggregation.",
+                head.predicate, func
+            );
             blocks.push(emit_rule_shape(
                 &local,
                 &label,
+                &definition,
                 &head_pred,
                 &agg.result_var,
                 &render_where(rule, focus_var, "?this"),
@@ -357,9 +388,11 @@ pub fn project_shacl_af(
             "SHACL-AF projection of the logic: rule deriving <{}> (generated)",
             head.predicate
         );
+        let definition = format!("SHACL-AF rule shape deriving <{}>.", head.predicate);
         blocks.push(emit_rule_shape(
             &local,
             &label,
+            &definition,
             &head_pred,
             &head_obj_construct,
             &target_where,
@@ -397,9 +430,14 @@ pub fn project_shacl_af(
                 "SHACL-AF projection of the logic: subClassOf axiom (<{}> subClassOf <{}>) (generated)",
                 axiom.subject, axiom.obj
             );
+            let definition = format!(
+                "SHACL-AF rule shape materializing the subClassOf axiom <{}> subClassOf <{}>.",
+                axiom.subject, axiom.obj
+            );
             blocks.push(emit_rule_shape(
                 &local,
                 &label,
+                &definition,
                 "a",
                 &sup,
                 &format!("?this a {sub} ."),
@@ -414,9 +452,14 @@ pub fn project_shacl_af(
                 "SHACL-AF projection of the logic: subPropertyOf axiom (<{}> subPropertyOf <{}>) (generated)",
                 axiom.subject, axiom.obj
             );
+            let definition = format!(
+                "SHACL-AF rule shape materializing the subPropertyOf axiom <{}> subPropertyOf <{}>.",
+                axiom.subject, axiom.obj
+            );
             blocks.push(emit_rule_shape(
                 &local,
                 &label,
+                &definition,
                 &supp,
                 "?o",
                 &format!("?this {subp} ?o ."),
@@ -978,6 +1021,76 @@ mod tests {
                 .iter()
                 .any(|d| d.contains("ground axiom") && d.contains("asserted fact")),
             "the non-projected ground axiom must be a ledgered drop, never silent: {drops:?}"
+        );
+    }
+
+    /// Shift-left for the A-Box annotation contract (`gmeow-errors::abox`): every
+    /// `sh:NodeShape` [`emit_rule_shape`] mints carries all four mandatory annotations
+    /// (`rdfs:label`, `skos:definition`, `rdfs:isDefinedBy`, `gmeow:graphBoxRole`); the
+    /// label/definition literals carry the `x-gmeow-english` carrier tag (never bare
+    /// `en`); `isDefinedBy` points at [`SHACL_AF_GRAPH_IRI`]; `graphBoxRole` is
+    /// `gmeow:boxABox`.
+    ///
+    /// `gmeow-logic-compile` has zero dependency on `gmeow-validate` (the reverse
+    /// dependency would cycle: `gmeow-validate` depends on this crate), so this parses
+    /// the emitted Turtle directly and asserts on it, rather than driving
+    /// `gmeow_validate::lint::structural_lint_dataset` as the pipeline-level
+    /// frame-shapes/result-shapes tests do.
+    #[test]
+    fn rule_shapes_carry_the_full_abox_annotation_contract() {
+        use crate::graphutil::{Node, Subject, nn, objects};
+        use gmeow_errors::abox::{
+            BOX_ABOX, GRAPH_BOX_ROLE, RDFS_IS_DEFINED_BY, RDFS_LABEL, SKOS_DEFINITION,
+        };
+
+        let (result, _loss) = project(&ladder_program());
+        let ttl = &result.content;
+        let dataset =
+            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse shacl-af");
+        let ds = dataset.as_ref();
+
+        let subject = Subject::Iri(format!("{GMEOW_NS}GenComputeRule_knowsAbout_r0"));
+
+        let labels = objects(ds, &subject, &nn(RDFS_LABEL));
+        assert_eq!(labels.len(), 1, "exactly one rdfs:label: {labels:?}");
+        match &labels[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(
+                    lexical,
+                    "SHACL-AF projection of the logic: rule deriving \
+                     <https://blackcatinformatics.ca/gmeow/knowsAbout> (generated)"
+                );
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("rdfs:label must be a literal: {other:?}"),
+        }
+
+        let definitions = objects(ds, &subject, &nn(SKOS_DEFINITION));
+        assert_eq!(
+            definitions.len(),
+            1,
+            "exactly one skos:definition: {definitions:?}"
+        );
+        match &definitions[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(
+                    lexical,
+                    "SHACL-AF rule shape deriving <https://blackcatinformatics.ca/gmeow/knowsAbout>."
+                );
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("skos:definition must be a literal: {other:?}"),
+        }
+
+        assert_eq!(
+            objects(ds, &subject, &nn(RDFS_IS_DEFINED_BY)),
+            vec![Node::iri(SHACL_AF_GRAPH_IRI)],
+            "rdfs:isDefinedBy must point at the shacl-af document graph identity"
+        );
+        assert_eq!(
+            objects(ds, &subject, &nn(GRAPH_BOX_ROLE)),
+            vec![Node::iri(BOX_ABOX)],
+            "graphBoxRole must be gmeow:boxABox"
         );
     }
 }
