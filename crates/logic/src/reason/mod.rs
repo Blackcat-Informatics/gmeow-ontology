@@ -19,6 +19,7 @@ pub mod dl;
 pub mod el;
 pub mod ledger;
 pub mod perf_ledger;
+pub(crate) mod refute;
 pub mod rl;
 pub(crate) mod rl_rules;
 
@@ -116,6 +117,9 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
 ///   `classify_coverage` — any edit to those changes the contract semantics even
 ///   when the rule text is unchanged;
+/// * the full source of `refute.rs`, the fragment-certified refutation kernel the
+///   `dl.rs` decide path invokes — any change to which withheld constructs it
+///   decides (or the certificate/boundary it emits) changes the contract;
 /// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
 ///   existential chase, and relation store that execute those rules;
 /// * the canonical-program lowering, selected-view materializer, and native
@@ -131,6 +135,7 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/el.rs", include_str!("el.rs")),
     ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
     ("reason/dl.rs", include_str!("dl.rs")),
+    ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
     ("certify.rs", include_str!("../certify.rs")),
@@ -1905,6 +1910,7 @@ mod tests {
                 "reason/el.rs",
                 "reason/rl_rules.rs",
                 "reason/dl.rs",
+                "reason/refute.rs",
                 "reason/mod.rs",
                 "oracle.rs",
                 "certify.rs",

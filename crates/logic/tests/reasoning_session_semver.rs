@@ -42,14 +42,22 @@ use session_common::*;
 /// `compare_sqdist` / `BilinearFormError`) on the runtime engine surface (`physical/builtin_eval.rs`,
 /// `physical/mod.rs`) also folds into the runtime engine-source content digest, so the golden below
 /// is the merged value (both this branch's fmt and PR 1385's bilinear API move the digest).
+/// Re-blessed for the fragment-certified refutation kernel: `reason/refute.rs` is registered
+/// as a new load-bearing `NATIVE_CONTRACT_COMPONENTS` engine component (the unified beyond-Horn
+/// decider the `reason/dl.rs` decide path now invokes), so the native contract hash folded into
+/// this descriptor moves. The kernel is inert on this input (it registers no family sub-decider
+/// yet), so no reasoning verdict changes — only the source-content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "869cdbf2a93a73d0a2df08836d94f86ff8ec00e961e95379aa0ff128bc5ad8a9";
+    "f2793e96b24fa675e2a06d2896f66ef9433433be171ad7458067c58ab9a6cd7d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
+/// Re-blessed for the fragment-certified refutation kernel component registration (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded axes, so
+/// the fixed-input session identity moves with it even though the reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f6ff18cf42c6b7db0dc0755c984cd112d75bd3fde829b1d5c37e383c1d61772c";
+    "0174e81845d28dd096335ae2f0eab9294e4056c7506cc464aa37e02aa269e77c";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

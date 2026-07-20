@@ -639,6 +639,54 @@ fn add_inferred_fact(
     true
 }
 
+/// Materialize a fragment-certified refutation kernel verdict into the closure.
+///
+/// The unified beyond-Horn kernel ([`crate::reason::refute`]) decides a
+/// precisely-characterized COMPLETE fragment of the constructs this forward chase
+/// withholds. An `InFragment{Inconsistent}` decision carries one
+/// [`crate::reason::refute::NothingClash`] per forced-empty individual; each is
+/// added as the `type(?i, owl:Nothing, ?w)` witness [`verdict_from_inferred`]
+/// reads off, with the deciding rule name and clash premises preserved. An
+/// `InFragment{Consistent}` decision materializes NO clash (its family is promoted
+/// to `decided` by [`classify_coverage`], per family, in the later kernel tasks),
+/// and an `OutOfFragment` withhold materializes nothing (the family stays an
+/// honest gap).
+///
+/// Returns whether any witness fact was added, so the caller can fold the kernel
+/// into its fixpoint if it ever decides on materialized facts. Task 2 registers no
+/// family sub-decider, so on every real closure the kernel returns `OutOfFragment`
+/// and this is a strict no-op — no current verdict changes — while still being
+/// CALLED on the production path (no dark code).
+fn materialize_refutation(
+    certificate: &crate::reason::refute::RefutationCertificate,
+    inferred: &mut Vec<InferredAxiom>,
+    facts: &mut BTreeSet<Fact>,
+) -> bool {
+    use crate::reason::refute::{Decision, RefutationCertificate};
+    let RefutationCertificate::InFragment { decision, witness } = certificate else {
+        return false;
+    };
+    if *decision != Decision::Inconsistent {
+        return false;
+    }
+    let mut added = false;
+    for clash in &witness.clashes {
+        added |= add_inferred_fact(
+            inferred,
+            facts,
+            Fact::new(
+                clash.individual.clone(),
+                RDF_TYPE.to_owned(),
+                OWL_NOTHING.to_owned(),
+                clash.world.clone(),
+            ),
+            &clash.rule_name,
+            clash.premises.clone(),
+        );
+    }
+    added
+}
+
 fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> {
     let mut rows = Vec::new();
     for quad in edb.owned_quads() {
@@ -2359,6 +2407,19 @@ pub(crate) fn augment_inferred_with_dl_certificates(
         &mut certificates,
         &mut witness_registries,
     )?;
+
+    // ── Fragment-certified refutation kernel (unified beyond-Horn decider) ──────
+    // Decide the precisely-characterized COMPLETE fragment of the beyond-Horn
+    // constructs the forward chase above withholds (datatype value-space,
+    // counting, case-split/complement), and honestly withhold outside it. The
+    // kernel is CALLED on every production closure — so its wiring is exercised,
+    // not dark — but Task 2 registers no family sub-decider yet, so it returns
+    // `OutOfFragment` and `materialize_refutation` adds nothing: a strict no-op on
+    // real inputs (no current verdict changes; the drift-pinned withholds stay
+    // `incomplete`). Tasks 3/4/5 register the per-family sub-deciders whose
+    // `InFragment{Inconsistent}` clashes are materialized here as
+    // `type(?i, owl:Nothing)` witnesses `verdict_from_inferred` reads off.
+    materialize_refutation(&crate::reason::refute::refute(edb), inferred, &mut facts);
 
     certificates.sort_by(|left, right| {
         let left_finding = left.admission.to_finding();
@@ -6639,5 +6700,76 @@ mod tests {
             "the withheld XMLLiteral shape surfaces as a gap: {:?}",
             v.gaps
         );
+    }
+
+    // The refutation-kernel materialization seam: an `InFragment{Inconsistent}`
+    // certificate materializes its `type(?i, owl:Nothing)` clash witness into the
+    // closure, which `verdict_from_inferred` then reads off as an inconsistency —
+    // while an `OutOfFragment` withhold (the Task-2 production steady state) and an
+    // `InFragment{Consistent}` decision materialize nothing. This exercises the
+    // decide-path seam the per-family deciders (Tasks 3/4/5) plug into.
+    #[test]
+    fn materialize_refutation_seam_forces_owl_nothing_only_on_inconsistent() {
+        use crate::reason::refute::{
+            Decision, FragmentBoundary, FragmentFamily, NothingClash, RefutationCertificate,
+            Witness, WitnessEvidence,
+        };
+
+        let inconsistent = RefutationCertificate::InFragment {
+            decision: Decision::Inconsistent,
+            witness: Witness {
+                family: FragmentFamily::Counting,
+                clashes: [NothingClash {
+                    individual: "http://ex/i".to_owned(),
+                    world: String::new(),
+                    rule_name: "refute:counting".to_owned(),
+                    premises: vec![(
+                        "http://ex/i".to_owned(),
+                        RDF_TYPE.to_owned(),
+                        "http://ex/A".to_owned(),
+                    )],
+                }]
+                .into_iter()
+                .collect(),
+                evidence: WitnessEvidence::default(),
+            },
+        };
+        let mut inferred: Vec<InferredAxiom> = Vec::new();
+        let mut facts: BTreeSet<Fact> = BTreeSet::new();
+        assert!(
+            materialize_refutation(&inconsistent, &mut inferred, &mut facts),
+            "an inconsistent certificate materializes its clash"
+        );
+        let store = dataset(Vec::new());
+        let verdict = verdict_from_inferred(&inferred, store.as_ref()).expect("verdict");
+        assert!(
+            !verdict.consistent,
+            "the materialized owl:Nothing witness makes the closure inconsistent"
+        );
+        assert_eq!(verdict.inconsistencies.len(), 1);
+        assert_eq!(verdict.inconsistencies[0].individual, "http://ex/i");
+
+        // A consistent decision and an out-of-fragment withhold are both no-ops.
+        for benign in [
+            RefutationCertificate::InFragment {
+                decision: Decision::Consistent,
+                witness: Witness {
+                    family: FragmentFamily::Counting,
+                    clashes: BTreeSet::new(),
+                    evidence: WitnessEvidence::default(),
+                },
+            },
+            RefutationCertificate::OutOfFragment {
+                reason: FragmentBoundary::NoDeciderEngaged,
+            },
+        ] {
+            let mut inferred2: Vec<InferredAxiom> = Vec::new();
+            let mut facts2: BTreeSet<Fact> = BTreeSet::new();
+            assert!(
+                !materialize_refutation(&benign, &mut inferred2, &mut facts2),
+                "a consistent decision / withhold materializes nothing: {benign:?}"
+            );
+            assert!(inferred2.is_empty(), "no witness axiom added: {benign:?}");
+        }
     }
 }
