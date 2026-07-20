@@ -483,16 +483,19 @@ mod tests {
     fn all_axioms_project() {
         let root = repo_root();
         let ttl = render_constraint_shapes(&root).expect("render");
-        // 3 irreflexivity + 1 acyclicity + 7 distinctness + 4 disjointness + 3 conditional-range +
-        // 1 role-composition-exclusion + 1 mediated-property-requirement = 20 shapes. Grounding the
+        // 6 irreflexivity + 1 acyclicity + 7 distinctness + 4 disjointness + 3 conditional-range +
+        // 1 role-composition-exclusion + 1 mediated-property-requirement = 23 shapes. Grounding the
         // inference + inhabitation proving slices added the attack/support self-exclusion distinctness,
         // the three kind→target conditional-range agreements, the argument-component exclusion, and the
         // inhabitation-interval frame requirement; grounding math/lang add Frege object-vs-reference and
-        // linguistic act-vs-observation disjointness.
+        // linguistic act-vs-observation disjointness; the preference extension adds the three
+        // irreflexivity characteristics of its cell-order relations (gmeow:strictlyOver,
+        // gmeow:preferentiallyEquivalentWith, gmeow:incomparableWith) — nothing is strictly preferred
+        // to, tied with, or incomparable to itself under any vantage.
         assert_eq!(
             ttl.matches("a sh:NodeShape").count(),
-            20,
-            "exactly twenty FOL axioms must project to constraint shapes"
+            23,
+            "exactly twenty-three FOL axioms must project to constraint shapes"
         );
         for anchor in [
             "gmeow:counterGoal",
@@ -512,6 +515,9 @@ mod tests {
             "inhabitationIntervalFrameRequirement",
             "ActObservationDisjointness",
             "FregeDisjointness",
+            "StrictlyOverIrreflexivity",
+            "PreferentiallyEquivalentWithIrreflexivity",
+            "IncomparableWithIrreflexivity",
         ] {
             assert!(ttl.contains(anchor), "expected {anchor} in the projection");
         }
@@ -519,7 +525,7 @@ mod tests {
         // (the header comment mentions the term in prose, so match the triple form).
         assert_eq!(
             ttl.matches("logic:formalizes <").count(),
-            20,
+            23,
             "every projected shape must carry a logic:formalizes back-reference"
         );
     }
