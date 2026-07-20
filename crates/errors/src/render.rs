@@ -246,8 +246,12 @@ fn severity_individual(severity: crate::model::Severity) -> String {
     format!("{GMEOW}{local}")
 }
 
-/// Escape a string literal for N-Triples/N-Quads.
-fn nq_escape(value: &str) -> String {
+/// Escape a string literal for an N-Triples/N-Quads `STRING_LITERAL_QUOTE`:
+/// backslash, double-quote, and the C0 control characters (`\n`, `\r`, `\t`,
+/// and any other U+0000–U+001F as `\uXXXX`). Public so the `gmeow-validate`
+/// `ComplianceAssessment` emitter (`crates/validate/src/advisory.rs`) escapes
+/// its N-Quad literals through the exact same rules rather than a drifting copy.
+pub fn nq_escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 2);
     for ch in value.chars() {
         match ch {

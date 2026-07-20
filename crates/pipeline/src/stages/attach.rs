@@ -176,11 +176,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
-    // stage-validate — the SHACL diagnostics graph + diagnostics nodes.
+    // stage-validate — the SHACL diagnostics graph, the advisory dual-projection's
+    // materialised ComplianceAssessment claim graph (D4), + diagnostics nodes.
     entry(
         &mut t,
         "stage-validate",
-        &["https://blackcatinformatics.ca/gmeow/graph/diagnostics"],
+        &[
+            "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
+            "https://blackcatinformatics.ca/gmeow/graph/norm-claims",
+        ],
         &["diagnostics:nodes"],
     );
 

@@ -473,6 +473,34 @@ gmeow:consumerInternalArchive
     skos:definition "The consumer is an internal archival system — not publicly visible."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:consumerKnowledgeFederation
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "knowledge federation"@x-gmeow-english ;
+    skos:definition "The consumer is the OKF Open-Knowledge export a downstream catalog or federation ingests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:consumerLinkedDataTooling
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "linked-data tooling"@x-gmeow-english ;
+    skos:definition "The consumer is generic linked-data / RDF tooling consuming the JSON-LD-star or YAML-LD-star serialization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:consumerOfflineBook
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "offline book"@x-gmeow-english ;
+    skos:definition "The consumer is a reader of the offline, downloadable mdbook documentation tree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:consumerPrintArchive
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "print archive"@x-gmeow-english ;
+    skos:definition "The consumer is a print/PDF archival reader of the typeset documentation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:consumerPublicSite
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
@@ -492,6 +520,13 @@ gmeow:consumerSchemaOrgJsonLd
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "schema.org JSON-LD"@x-gmeow-english ;
     skos:definition "The consumer is a schema.org JSON-LD markup export."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:consumerTypedModelClient
+    a gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "typed model client"@x-gmeow-english ;
+    skos:definition "The consumer is a client consuming the generated Pydantic typed-model package for code or data validation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerWikidata

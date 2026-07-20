@@ -98,6 +98,15 @@ const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The advisory dual-projection's second wing (D4): the materialised
+/// `gmeow:ComplianceAssessment` / `deonticRecommendation` claim graph
+/// `stage-validate` emits alongside `graph/diagnostics`'s flat Note finding —
+/// ONE `Advisory::project()` call, two carrier destinations. Single-producer
+/// (only `stage-validate` writes it) and bundle-internal like the
+/// `MATH_PRODUCER_GRAPHS`: no committed `generated/` byte artifact, so it
+/// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
+/// (`gts_compose` folds only the default graph).
+pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 /// The by-reference blob `representation` under which a diagnostics producer
 /// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
@@ -483,10 +492,21 @@ fn serialize_carrier_snapshot_without_docs(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    // The opaque-fanout manifest rides as a meta-level named graph alongside the assembled
-    // carrier, so the shipped bundle DECLARES its opaque byte lane as data (read back by the
-    // superset gate) without entering object-level reasoning closure.
-    serialize_snapshot(carrier, &[opaque_manifest], blobs, report_blobs)
+    // The canonical distribution catalog (AC2/AC6): a carrier-time,
+    // clock-free, byte-stable meta-level graph declaring which documentation
+    // distributions exist, their family, their consumer class, and their declared
+    // capability loss — folded alongside the opaque-fanout manifest.
+    let distribution_catalog = crate::stages::distribution_catalog::build_distribution_catalog()?;
+    // The opaque-fanout manifest and the distribution catalog both ride as meta-level
+    // named graphs alongside the assembled carrier, so the shipped bundle DECLARES its
+    // opaque byte lane and its distribution catalog as data (read back by the superset
+    // gate / catalog consumers) without entering object-level reasoning closure.
+    serialize_snapshot(
+        carrier,
+        &[opaque_manifest, distribution_catalog],
+        blobs,
+        report_blobs,
+    )
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -887,6 +907,10 @@ fn assemble_carrier(
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         documentation,
         std::sync::Arc::new(diagnostics),
+        // graph/norm-claims — the advisory dual-projection's materialised
+        // ComplianceAssessment claim graph (D4), read off stage-validate's attached
+        // graph the same way graph/diagnostics is (a pure keyed fold).
+        producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,
@@ -2502,6 +2526,15 @@ fn collect_fanout_opaque_members(
 /// reconstruction graph.
 pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
     "https://blackcatinformatics.ca/gmeow/graph/fanout-opaque-manifest";
+
+/// The meta-level named graph carrying the canonical distribution catalog (AC2/AC6):
+/// WHICH documentation distributions exist, their FAMILY, their
+/// CONSUMER class, and (for the doc-render family) their declared capability LOSS. See
+/// [`crate::stages::distribution_catalog`]. NOT in
+/// `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`, so — like
+/// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] — it stays out of the object-level reasoning EDB.
+pub(crate) const GRAPH_DISTRIBUTION_CATALOG: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/distribution-catalog";
 
 /// The subject-IRI namespace of an emitted opaque fanout row: `…/fanout-opaque/<path>`.
 /// The committed path is already unique, so the identity mapping is collision-free by

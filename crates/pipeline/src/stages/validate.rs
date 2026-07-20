@@ -212,6 +212,10 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v5: emit BOTH wings of the advisory dual-projection unconditionally — the
+        // flat Note finding folded into `report` (→ `graph/diagnostics`) AND the
+        // materialised `gmeow:ComplianceAssessment` claim in the new `graph/norm-claims`
+        // carrier named graph (D4), unioned into this stage's product dataset.
         // v4: the shape union's generated/shapes/*.ttl members are product-sourced
         // from the consumed producer stages (shape_union_fresh) instead of read off
         // disk, so a shape-source edit is ENFORCED (and its diagnostics rendered) in
@@ -223,7 +227,7 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v4-fresh-shape-union"
+        "validate.v5-norm-claims"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -311,6 +315,38 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             source_dataset.as_ref(),
         );
+        // Advisory tier (D1/D4): route BOTH wings of the dual-projection onto this
+        // UNCONDITIONAL path (no early-return between the report build above and
+        // here), so the advisory fires even on a non-conforming corpus. The
+        // demonstrator is single-sourced via `advisory_demonstrator()` — the SAME
+        // builder the CLI path (`gmeow_validate::validate_all::run`) calls — so the
+        // two consumer surfaces can never drift apart (D4).
+        let advisory = gmeow_validate::advisory::advisory_demonstrator();
+        let projection = advisory.project();
+        // Flat wing: fold the graded Note finding into `report` (→ rendered into
+        // `graph/diagnostics` below), routed through a `DiagLedger` exactly as
+        // `gmeow_validate::advisory`'s own test helper does, so the finding carries
+        // genuine ledger identity (finding_iri/anchor), not a hand-built stand-in.
+        let mut advisory_ledger = DiagLedger::new();
+        advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+        let advisory_finding = advisory_ledger
+            .findings("validate")
+            .pop()
+            .expect("exactly one advisory finding");
+        report.add_finding(advisory_finding);
+        report.add_rule(advisory.rule());
+        // Claim wing: materialise the ComplianceAssessment as N-Quads into ITS OWN
+        // carrier named graph (`graph/norm-claims`), parsed the same way the SHACL
+        // diagnostics RDF is parsed into `graph/diagnostics` below.
+        let claim_nq = gmeow_validate::advisory::project_compliance_assessment(
+            &[projection.claim],
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        );
+        let claim_dataset = crate::stages::carrier::parse_into_graph(
+            claim_nq.as_bytes(),
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_NORM_CLAIMS,
+        )?;
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
@@ -342,11 +378,19 @@ impl Stage for ValidateStage {
                 message: format!("render_artifacts omitted {SHACL_RDF_PATH}"),
             })
         })?;
-        let dataset = crate::stages::carrier::parse_into_graph(
+        let diagnostics_dataset = crate::stages::carrier::parse_into_graph(
             shacl_rdf,
             "application/n-quads",
             crate::stages::carrier::GRAPH_DIAGNOSTICS,
         )?;
+        // UNION the two named-graph datasets so this stage's product bundle carries
+        // BOTH `graph/diagnostics` (the flat advisory Note + SHACL findings) AND
+        // `graph/norm-claims` (the materialised ComplianceAssessment claim, D4) —
+        // one stage product, two carrier destinations from the same advisory event.
+        let dataset = Arc::new(purrdf::RdfDataset::union(&[
+            diagnostics_dataset.as_ref(),
+            claim_dataset.as_ref(),
+        ]));
         // FORWARD diagnostics fold: the producer's report findings are the SINGLE source
         // of both the shipped `graph/diagnostics` RDF (above) AND the run-level
         // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on
@@ -597,5 +641,273 @@ ex:RequiredShape a sh:NodeShape ;
             "the pipeline validate-stage report must carry a remediation, matching the CLI \
              path: {finding:?}"
         );
+    }
+
+    /// Build the full `ValidateStage::run` harness — a `stage-source-load` product
+    /// with an empty base graph + `REP_SPAN_TABLE` blob, plus header-only members for
+    /// the four shape producers — parameterized on the authored `shapes/gmeow-shapes.ttl`
+    /// body, and run the stage. Factored out of
+    /// `stage_validate_run_is_enriched_matching_the_cli_path` so Task 4's two new tests
+    /// reuse the EXACT same harness shape rather than a hand-rolled twin.
+    fn run_full_stage(shapes: &str) -> StageOutput {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo(shapes);
+
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        let span_index = crate::ingest::SpanIndex::new();
+        let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_string(), product);
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        let input = StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        };
+        ValidateStage::new().run(input).expect("validate stage run")
+    }
+
+    /// The GMEOW namespace prefix. `crates/validate/src/advisory.rs`'s `GMEOW`
+    /// constant is crate-private, so this trivial namespace string is redeclared
+    /// here — the same per-module local-const idiom used across the workspace
+    /// (`crates/docs`, `crates/conformance`, …) rather than a shared export.
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    /// Assert the `graph/norm-claims` graph carries the D4 `gmeow:ComplianceAssessment`
+    /// claim shape: exactly one subject typed `gmeow:ComplianceAssessment`, with exactly
+    /// one `gmeow:complianceVerdict` and a `gmeow:vantage` of `gmeowBestPractice`, whose
+    /// `gmeow:assessedNorm` object carries `gmeow:deonticModality` = `deonticRecommendation`
+    /// AND a `gmeow:normIssuer`. Falsifiable: an empty or malformed norm-claims graph
+    /// fails every assertion below (not a vacuous existence check).
+    fn assert_compliance_assessment_present(ds: &purrdf::RdfDataset) {
+        use purrdf::RdfTerm;
+
+        let quads: Vec<_> = ds.owned_quads().collect();
+
+        let assessment_class = format!("{GMEOW}ComplianceAssessment");
+        let assessment_subjects: Vec<RdfTerm> = quads
+            .iter()
+            .filter(|q| {
+                q.predicate.as_str() == RDF_TYPE_IRI
+                    && matches!(&q.object, RdfTerm::Iri(o) if o == &assessment_class)
+            })
+            .map(|q| q.subject.clone())
+            .collect();
+        assert_eq!(
+            assessment_subjects.len(),
+            1,
+            "expected exactly one gmeow:ComplianceAssessment subject in graph/norm-claims, \
+             got {assessment_subjects:?}"
+        );
+        let assessment = &assessment_subjects[0];
+
+        let verdict_pred = format!("{GMEOW}complianceVerdict");
+        let verdicts: Vec<_> = quads
+            .iter()
+            .filter(|q| &q.subject == assessment && q.predicate.as_str() == verdict_pred)
+            .collect();
+        assert_eq!(
+            verdicts.len(),
+            1,
+            "expected exactly one gmeow:complianceVerdict on the assessment, got {verdicts:?}"
+        );
+
+        let vantage_pred = format!("{GMEOW}vantage");
+        let best_practice_standpoint =
+            RdfTerm::Iri(gmeow_validate::advisory::BEST_PRACTICE_STANDPOINT_IRI.to_owned());
+        let vantages: Vec<_> = quads
+            .iter()
+            .filter(|q| {
+                &q.subject == assessment
+                    && q.predicate.as_str() == vantage_pred
+                    && q.object == best_practice_standpoint
+            })
+            .collect();
+        assert_eq!(
+            vantages.len(),
+            1,
+            "expected exactly one gmeow:vantage = gmeowBestPractice on the assessment, \
+             got {vantages:?}"
+        );
+
+        let assessed_norm_pred = format!("{GMEOW}assessedNorm");
+        let norms: Vec<RdfTerm> = quads
+            .iter()
+            .filter(|q| &q.subject == assessment && q.predicate.as_str() == assessed_norm_pred)
+            .map(|q| q.object.clone())
+            .collect();
+        assert_eq!(
+            norms.len(),
+            1,
+            "expected exactly one gmeow:assessedNorm on the assessment, got {norms:?}"
+        );
+        let norm = &norms[0];
+
+        let modality_pred = format!("{GMEOW}deonticModality");
+        let deontic_recommendation =
+            RdfTerm::Iri(gmeow_validate::advisory::DEONTIC_RECOMMENDATION_IRI.to_owned());
+        let modalities: Vec<_> = quads
+            .iter()
+            .filter(|q| {
+                &q.subject == norm
+                    && q.predicate.as_str() == modality_pred
+                    && q.object == deontic_recommendation
+            })
+            .collect();
+        assert_eq!(
+            modalities.len(),
+            1,
+            "expected the assessedNorm to carry gmeow:deonticModality = deonticRecommendation, \
+             got {modalities:?}"
+        );
+
+        let issuer_pred = format!("{GMEOW}normIssuer");
+        let issuers: Vec<_> = quads
+            .iter()
+            .filter(|q| &q.subject == norm && q.predicate.as_str() == issuer_pred)
+            .collect();
+        assert!(
+            !issuers.is_empty(),
+            "expected the assessedNorm to carry a gmeow:normIssuer, found none"
+        );
+    }
+
+    /// Task 4: BOTH advisory wings must ride a CONFORMING run. Reuses the full
+    /// `ValidateStage::run` harness with a shape module that cannot fire against the
+    /// empty base graph (no `sh:targetNode`/property shape), so the run is genuinely
+    /// conforming (`shacl.clean`), and asserts:
+    ///  - the report carries the flat `advice.tier.active` finding at the
+    ///    Advisory standpoint (routed into `graph/diagnostics`);
+    ///  - the stage product's `graph/norm-claims` carries the materialised
+    ///    `gmeow:ComplianceAssessment` claim, in full documented shape.
+    ///
+    /// Falsifiable: this asserts the actual emitted content, not mere presence.
+    #[test]
+    fn stage_validate_emits_both_advice_projections() {
+        let output = run_full_stage(
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+"#,
+        );
+
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+        assert_eq!(
+            report.error_count(),
+            0,
+            "the empty-shapes / empty-base-graph corpus must be conforming: {report:?}"
+        );
+
+        let advisory_finding = report
+            .findings
+            .iter()
+            .find(|f| f.code == "advice.tier.active")
+            .expect("the advice.tier.active finding must be present on a conforming run");
+        assert_eq!(
+            advisory_finding.standpoint,
+            Some(gmeow_errors::Standpoint::Advisory),
+            "the advisory finding must carry the Advisory standpoint: {advisory_finding:?}"
+        );
+
+        let norm_claims = output
+            .product
+            .dataset()
+            .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS);
+        assert_compliance_assessment_present(&norm_claims);
+    }
+
+    /// Task 4 (Completion-Adversary F5): the `gmeow:ComplianceAssessment` claim must be
+    /// emitted UNCONDITIONALLY — even on a NON-conforming run — because it rides the
+    /// same unconditional completion path as the flat advisory Note (never gated behind
+    /// `report.conforms`). Reuses the SHACL-violation shape from
+    /// `validate_stage_emits_sarif_for_shacl_violation` inside the full `run` harness so
+    /// the report genuinely carries a SHACL error. Falsifiable: guarding the emit behind
+    /// `if report.conforms` (or any early return before the emit) makes this test fail.
+    #[test]
+    fn stage_validate_emits_advice_claim_even_when_nonconforming() {
+        let output = run_full_stage(
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+        assert!(
+            report.error_count() >= 1,
+            "the minCount-violation corpus must be genuinely non-conforming: {report:?}"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == "shacl.MinCountConstraintComponent"),
+            "expected the SHACL minCount violation finding: {report:?}"
+        );
+
+        let norm_claims = output
+            .product
+            .dataset()
+            .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS);
+        assert_compliance_assessment_present(&norm_claims);
     }
 }

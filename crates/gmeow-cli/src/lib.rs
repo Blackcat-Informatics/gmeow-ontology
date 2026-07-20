@@ -294,6 +294,13 @@ pub enum Commands {
         #[command(subcommand)]
         command: SliceCommands,
     },
+    /// External documentation distribution tools: the checkout-free consumer twin
+    /// of the release-time docs distribution — dogfoods the distribution catalog
+    /// and verifies the content-addressed distribution.
+    Docs {
+        #[command(subcommand)]
+        cmd: DocsCmd,
+    },
     /// GMN-1 conformance surface: the shipped, checkout-free twin of the GMN-1
     /// codec gates. `digest`/`encode`/`decode` expose the digest + codec legs, and
     /// `verify` is the conformance driver an independent GMN-1 implementation runs
@@ -435,6 +442,27 @@ pub enum SliceCommands {
         /// Output serialization: `human` (default) or `tsv`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
+    },
+}
+
+/// The `gmeow docs` nested subcommands.
+#[derive(Debug, Subcommand)]
+pub enum DocsCmd {
+    /// Resolve the per-format consumer-need matrix by querying the meta-level
+    /// distribution-catalog named graph shipped inside the embedded `gmeow.gts`
+    /// bundle (AC2) — dogfooding the distribution-catalog ontology content, never a
+    /// re-authored static table.
+    Matrix,
+    /// Verify a materialized documentation distribution's blake3 content digests
+    /// against its DCAT manifest (`<dir>/manifest/docs-manifest.ttl`).
+    Verify {
+        /// The materialized `dist/gmeow-docs/`-shaped documentation distribution root.
+        #[arg(long, default_value = "dist/gmeow-docs")]
+        dir: PathBuf,
+        /// Restrict verification to a single distribution slug (default: every
+        /// distribution the manifest declares).
+        #[arg(long)]
+        format: Option<String>,
     },
 }
 
@@ -1181,6 +1209,12 @@ pub fn run() -> i32 {
             ),
             SliceCommands::ProjectionCeilings { format } => {
                 commands::slice_projection_ceilings(reporter, &format)
+            }
+        },
+        Commands::Docs { cmd } => match cmd {
+            DocsCmd::Matrix => commands::docs_matrix(reporter),
+            DocsCmd::Verify { dir, format } => {
+                commands::docs_verify(reporter, &dir, format.as_deref())
             }
         },
         Commands::Gmn { command } => match command {

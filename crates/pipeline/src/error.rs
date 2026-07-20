@@ -308,6 +308,30 @@ define_diag_kind! {
     message = "diagnostic meta-fold error: {}", message;
 }
 
+define_diag_kind! {
+    /// A hard defect raised while measuring the documentation-distribution
+    /// designs (`docs_measure`): a renderer failure, a missing upstream
+    /// pipeline product, or a GTS-framing failure while computing a
+    /// per-format L12 delta.
+    pub struct DocsMeasure { message: String }
+    code = "pipeline.docs-measure";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "docs-measure error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised while rendering the external documentation /
+    /// serialization distributions or building the release-time DCAT
+    /// distribution manifest (`docs_distribution`): a
+    /// serializer failure, a malformed OKF member path, a missing bundled
+    /// `dcat.rq` projection query, or a DCAT projection failure over the
+    /// release-time distribution instance graph.
+    pub struct DocsDistribution { message: String }
+    code = "pipeline.docs-distribution";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "docs-distribution error: {}", message;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -341,6 +365,8 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     EvalSchema::CODE,
     MetaFold::CODE,
     SpanTableConsumedAfterDrop::CODE,
+    DocsMeasure::CODE,
+    DocsDistribution::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -387,6 +413,8 @@ pub fn register_all() -> Vec<Code> {
         EvalSchema::register(),
         MetaFold::register(),
         SpanTableConsumedAfterDrop::register(),
+        DocsMeasure::register(),
+        DocsDistribution::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
