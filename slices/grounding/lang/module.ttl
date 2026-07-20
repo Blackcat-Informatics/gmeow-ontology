@@ -7069,9 +7069,10 @@ gmeow:gmnCandidateMathComplexNumbers
 # --- Math plane: extended real line ℝ̄ and its poles ±∞ ------------------- #
 # The sixth number system math:ExtendedRealLine (ℝ̄ = ℝ ∪ {−∞, +∞}, a
 # math:NumberSystem individual sibling to the five above) and its two poles
-# math:PositiveInfinity / math:NegativeInfinity. Each rendering (ℝ̄, the signed
-# ∞ forms) fragments under the pinned BPE, so the one-token keys win — no glyph is
-# adopted. Including them keeps the number-system audit set complete (no silent
+# math:PositiveInfinity / math:NegativeInfinity. ℝ̄ and the signed +∞ measure a
+# token win over their keys; −∞ measures no win and is keyed on its U+2212-minus
+# confusability instead — no glyph is adopted either way. Including them keeps the
+# number-system audit set complete (no silent
 # gap for the extended line the interval and measure machinery already ranges
 # over).
 
@@ -7174,8 +7175,8 @@ gmeow:gmnCandidateMathNegativeInfinity
     gmeow:gmnAsciiFallback "neginf" ;
     gmeow:gmnSpokenLabel "negative infinity" ;
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
-    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
-    gmeow:gmnDispositionRationale "The signed −∞ display is the minus sign U+2212 plus the infinity glyph U+221E, fragmenting into multiple pinned cl100k_base tokens while the one-token `neginf` key wins on token cost and names the pole unambiguously (a bare ∞ cannot say which pole is meant), so the sign remains display notation and adopts no glyph." ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "The signed −∞ display is the minus sign U+2212 plus the infinity glyph U+221E; it does not measure cheaper than the `neginf` key under the pinned cl100k_base BPE, so there is no token-cost justification to adopt it. Its U+2212 minus is confusable with the hyphen-minus U+002D and the en dash U+2013, so the pole is named by the `neginf` key on the confusability safety basis — which also names the pole unambiguously where a bare ∞ cannot say which pole is meant." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathNegativeInfinity ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
@@ -7555,7 +7556,9 @@ gmeow:gmnCandidateMathOpenEndpoint
 # Closing the containment and order families around the named examples above.
 # ⊇ binds the non-strict superset relation math:supersetRel and ≤ ≥ bind the
 # non-strict order relations math:lessOrEqualRel / math:greaterOrEqualRel as
-# named keys (each fragments under the pinned BPE, so the one-token key wins).
+# named keys. The pinned BPE measures no token win for these three (the glyph
+# does not cost more than the key), and each has a confusable slanted/square
+# variant, so they are keyed on the confusability safety basis, not token cost.
 # The proper (strict) forms ⊂ ⊃ have no distinct strict-containment target —
 # math:subsetOf / math:supersetRel are the non-strict relations — so a flat glyph
 # cannot carry the strictness (proper = containment ∧ not-equal); each is a
@@ -7598,8 +7601,8 @@ gmeow:gmnCandidateMathSupersetOf
     gmeow:gmnSpokenLabel "is a superset of" ;
     gmeow:gmnArity 2 ;
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
-    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
-    gmeow:gmnDispositionRationale "The superset sign ⊇ fragments into two pinned cl100k_base tokens while the one-token `supseteq` key wins on token cost, so ⊇ remains display notation and adopts no glyph." ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "The superset sign ⊇ (U+2287) does not measure cheaper than the `supseteq` key under the pinned cl100k_base BPE, so there is no token-cost justification to adopt it; and ⊇ is visually confusable with the square-image variant ⊒ (U+2292) and its struck negations, so it is retained as a key on the confusability safety basis rather than enrolling a spoofable operator glyph." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathSupersetOf ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
@@ -7637,8 +7640,8 @@ gmeow:gmnCandidateMathLessOrEqual
     gmeow:gmnSpokenLabel "is less than or equal to" ;
     gmeow:gmnArity 2 ;
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
-    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
-    gmeow:gmnDispositionRationale "The less-or-equal sign ≤ fragments into two pinned cl100k_base tokens while the one-token `leq` key wins on token cost, so ≤ remains display notation and adopts no glyph." ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "The less-or-equal sign ≤ (U+2264) does not measure cheaper than the `leq` key under the pinned cl100k_base BPE, so there is no token-cost justification to adopt it; and ≤ is visually confusable with the slanted variant ⩽ (U+2A7D), so it is retained as a key on the confusability safety basis rather than enrolling a spoofable operator glyph." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathLessOrEqual ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
@@ -7676,8 +7679,8 @@ gmeow:gmnCandidateMathGreaterOrEqual
     gmeow:gmnSpokenLabel "is greater than or equal to" ;
     gmeow:gmnArity 2 ;
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
-    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
-    gmeow:gmnDispositionRationale "The greater-or-equal sign ≥ fragments into two pinned cl100k_base tokens while the one-token `geq` key wins on token cost, so ≥ remains display notation and adopts no glyph." ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "The greater-or-equal sign ≥ (U+2265) does not measure cheaper than the `geq` key under the pinned cl100k_base BPE, so there is no token-cost justification to adopt it; and ≥ is visually confusable with the slanted variant ⩾ (U+2A7E), so it is retained as a key on the confusability safety basis rather than enrolling a spoofable operator glyph." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathGreaterOrEqual ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .

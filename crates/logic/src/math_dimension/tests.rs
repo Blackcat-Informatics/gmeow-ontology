@@ -387,6 +387,31 @@ fn gmn_dimension_roundtrip_scene_is_clean() {
 }
 
 #[test]
+fn real_math_module_force_dimension_is_clean_under_the_reasoned_gate() {
+    // Unlike the example scene, the slice `module.ttl` IS part of the object-level EDB the
+    // reason-verify pass reasons over (`carrier::assemble_object_level_edb` = ontology +
+    // slice module.ttl, examples excluded). The canonical `math:forceDimension`
+    // (M¹L¹T⁻²) therefore rides the SAME reasoned graph
+    // `check_math_dimension_findings` scans at `make reason-verify` — so the ℚ⁷ gate
+    // exercises real authored content in production, not only the include_str scene.
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/math/module.ttl");
+    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
+    let turtle = String::from_utf8(bytes).expect("math module.ttl is UTF-8");
+    // Non-vacuity: the canonical derived dimension really is in the module we feed the gate.
+    assert!(
+        turtle.contains("math:forceDimension") && turtle.contains("math:DerivedDimension"),
+        "math:forceDimension must be authored as a math:DerivedDimension in the real math module"
+    );
+    let f = findings(&turtle);
+    assert!(
+        f.iter().all(|x| x.severity != Severity::Error),
+        "the real math module (incl. the canonical math:forceDimension) must pass the ℚ⁷ \
+         dimension gate cleanly in the production read substrate: {f:?}"
+    );
+}
+
+#[test]
 fn gmn_dimension_perturbed_exponent_falsifies_the_law() {
     // The counter-example perturbs the force result's time exponent (−2 → −3), so the
     // integral composition dim(accel) ⊕ dim(mass) ≠ dim(result): EXACTLY
