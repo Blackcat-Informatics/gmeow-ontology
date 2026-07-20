@@ -38,10 +38,10 @@ use session_common::*;
 /// Re-blessed once more for the stage-2 `cargo fmt` pass over the branch-modified reasoning
 /// core: reformatting `reason/dl.rs` / `physical/chase.rs` (behaviour-preserving — `reason-verify`
 /// stays green) moves the raw-source content digest folded into this descriptor. Re-blessed again
-/// for the merge of origin/main #1385: the public bilinear-form distance API (`bilinear_sqdist` /
+/// for the merge of origin/main PR 1385: the public bilinear-form distance API (`bilinear_sqdist` /
 /// `compare_sqdist` / `BilinearFormError`) on the runtime engine surface (`physical/builtin_eval.rs`,
 /// `physical/mod.rs`) also folds into the runtime engine-source content digest, so the golden below
-/// is the merged value (both this branch's fmt and #1385's bilinear API move the digest).
+/// is the merged value (both this branch's fmt and PR 1385's bilinear API move the digest).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
     "869cdbf2a93a73d0a2df08836d94f86ff8ec00e961e95379aa0ff128bc5ad8a9";
 
