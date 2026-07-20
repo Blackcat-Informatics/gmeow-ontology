@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 85,
-  "term_count": 5682,
-  "dependency_edge_count": 1297,
+  "term_count": 6403,
+  "dependency_edge_count": 1346,
   "term_count_by_category": {
-    "Class": 1798,
+    "Class": 1799,
     "Datatype": 1,
-    "Individual": 829,
-    "Property": 3054
+    "Individual": 1547,
+    "Property": 3056
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -151,15 +151,15 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "06d16d51d48025b272755518c3421b877c1eef396095347a2d0324e93067f17e",
-        "semantic_digest": "7624f4c2c37e493284cd977f7d0e24e4d168a81282c7b3e6eecf1650ced90ecf"
+        "raw_digest": "f16507ba35295331d9af45bbab99108caead1ad1e320d5de70057f71a7080a91",
+        "semantic_digest": "11f50c2a2992170914be4b588cc12970b10652f55dd29f4856a9f07263e3f0a2"
       },
       {
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "6b4491bb3bb19bd71b398d870bc523defccf0f988e8f61b93dcbc97a6c14d83b",
-        "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
+        "raw_digest": "7024bdab47ba22c73d99128cadd8b468891a7c66c51de876eca6f80a1290b59d",
+        "semantic_digest": "ad849f1d8a4438cfdf099bcc6b595a717113e84da076dd881658569517b4dbb6"
       }
     ],
     "has_thesis_sentence": true,

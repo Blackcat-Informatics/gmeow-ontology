@@ -47,15 +47,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:KeyScheme MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — key schemes are an open individual vocabulary, not per-scheme subclasses (Principle 9)." .
 
-# --- 3. keyScheme is a functional property (MUST) ----------------------------
-ex:saKeySchemeFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:keyScheme a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:keyScheme MUST be an owl:FunctionalProperty — a key has exactly one scheme; a key in a different scheme is a different key." .
-
 # --- 4. The four standard KeyScheme seed individuals exist (MUST) -------------
 ex:saKeySchemeSeeds a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -137,30 +128,14 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:trusts a owl:ObjectProperty . }""" ;
     gmeow:saRationale "gmeow:trusts MUST NOT be declared as owl:ObjectProperty — perspectival trust lives only on TrustAssertion via the functional trustor; there is deliberately no global Agent→Agent trusts relation (Principle 9)." .
 
-# --- 12. Reification endpoint properties are functional (MUST) ---------------
-ex:saReificationEndpointsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:certifier         a owl:FunctionalProperty .
-    gmeow:certifiedKey      a owl:FunctionalProperty .
-    gmeow:certifiedIdentity a owl:FunctionalProperty .
-    gmeow:trustor           a owl:FunctionalProperty .
-    gmeow:trustee           a owl:FunctionalProperty .
-    gmeow:signingKey        a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:certifier, gmeow:certifiedKey, gmeow:certifiedIdentity, gmeow:trustor, gmeow:trustee, and gmeow:signingKey MUST all be owl:FunctionalProperty — each reification binds exactly one value for its endpoint." .
-
 # --- 13. Conflict-prone key data properties are NOT functional (MUST-NOT) ----
 ex:saConflictProneKeyDataNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?prop { gmeow:fingerprint gmeow:keyId gmeow:keyAlgorithm gmeow:keyMaterial }
-    ?prop a owl:FunctionalProperty .
+    ?rec logic:characterizes ?prop ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:fingerprint, gmeow:keyId, gmeow:keyAlgorithm, and gmeow:keyMaterial MUST NOT be owl:FunctionalProperty — multi-source values must coexist without forcing a merge or inconsistency (evidence-centric design)." .

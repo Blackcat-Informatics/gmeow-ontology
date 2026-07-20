@@ -183,8 +183,7 @@ gmeow:taggingInterval
     gmeow:useWhen "Use to time-scope a reified gmeow:Tagging — the period over which the tag was held to apply, when validity has a beginning or end."@x-gmeow-english .
 
 gmeow:taggingScheme
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging scheme"@x-gmeow-english ;
@@ -197,8 +196,7 @@ gmeow:taggingScheme
     gmeow:useWhen "Use to record the single scheme under which a reified gmeow:Tagging act was performed — the vocabulary context of this particular application."@x-gmeow-english .
 
 gmeow:taggingTag
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tag"@x-gmeow-english ;
@@ -211,8 +209,7 @@ gmeow:taggingTag
     gmeow:useWhen "Use to name which gmeow:Tag a reified gmeow:Tagging act applies — the label being attached in this particular tagging."@x-gmeow-english .
 
 gmeow:taggingTagged
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tagged"@x-gmeow-english ;

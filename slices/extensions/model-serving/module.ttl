@@ -149,8 +149,7 @@ gmeow:RuntimeExecution
 # ─────────────────────────────────────────────────────────────────────────────
 
 gmeow:deploymentArtifact
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment artifact"@x-gmeow-english ;
@@ -169,8 +168,7 @@ gmeow:deploymentEndpoint
         gmeow:boxRBox .
 
 gmeow:deploymentHost
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment host"@x-gmeow-english ;
@@ -180,8 +178,7 @@ gmeow:deploymentHost
         gmeow:boxRBox .
 
 gmeow:deploymentService
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment service"@x-gmeow-english ;
@@ -251,8 +248,7 @@ gmeow:invocationInExecution
         gmeow:boxRBox .
 
 gmeow:sessionConfiguration
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session configuration"@x-gmeow-english ;
@@ -261,8 +257,7 @@ gmeow:sessionConfiguration
         gmeow:boxRBox .
 
 gmeow:sessionSubjectStage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session subject stage"@x-gmeow-english ;

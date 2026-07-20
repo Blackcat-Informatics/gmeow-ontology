@@ -259,8 +259,7 @@ gmeow:analysisScope
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authMethod
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication method"@x-gmeow-english ;
@@ -269,8 +268,7 @@ gmeow:authMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authResult
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication result"@x-gmeow-english ;
@@ -279,8 +277,7 @@ gmeow:authResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authServer
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication server"@x-gmeow-english ;
@@ -325,8 +322,7 @@ gmeow:bodyLineFingerprint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:bodyStructure
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "body structure"@x-gmeow-english ;
@@ -508,8 +504,7 @@ gmeow:eventDescribedBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:filename
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Attachment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "filename"@x-gmeow-english ;
@@ -566,8 +561,7 @@ gmeow:hasCalendarMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasContentDisposition
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has content disposition"@x-gmeow-english ;
@@ -576,8 +570,7 @@ gmeow:hasContentDisposition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasContentTransferEncoding
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has content transfer encoding"@x-gmeow-english ;
@@ -643,8 +636,7 @@ gmeow:hasMessageParticipant
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMultipartType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MultipartBodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has multipart type"@x-gmeow-english ;
@@ -672,8 +664,7 @@ gmeow:hasRelayHop
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:headerName
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "header name"@x-gmeow-english ;
@@ -682,8 +673,7 @@ gmeow:headerName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:headerValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "header value"@x-gmeow-english ;
@@ -692,8 +682,7 @@ gmeow:headerValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hopOrdinal
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hop ordinal"@x-gmeow-english ;
@@ -834,8 +823,7 @@ gmeow:mailboxName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxOfAccount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox of account"@x-gmeow-english ;
@@ -853,8 +841,7 @@ gmeow:mailboxPath
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxRole
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox role"@x-gmeow-english ;
@@ -1140,8 +1127,7 @@ gmeow:partOfThread
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantAddress
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant address"@x-gmeow-english ;
@@ -1159,8 +1145,7 @@ gmeow:participantGroup
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantHeader
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant header"@x-gmeow-english ;
@@ -1169,8 +1154,7 @@ gmeow:participantHeader
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantMessage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant message"@x-gmeow-english ;
@@ -1179,8 +1163,7 @@ gmeow:participantMessage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantOrdinal
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant ordinal"@x-gmeow-english ;
@@ -1189,8 +1172,7 @@ gmeow:participantOrdinal
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant role"@x-gmeow-english ;
@@ -1253,8 +1235,7 @@ gmeow:receivedAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayAt
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay at"@x-gmeow-english ;
@@ -1263,8 +1244,7 @@ gmeow:relayAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayBy
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay by"@x-gmeow-english ;
@@ -1273,8 +1253,7 @@ gmeow:relayBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayFrom
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay from"@x-gmeow-english ;
@@ -1283,8 +1262,7 @@ gmeow:relayFrom
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayProtocol
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay protocol"@x-gmeow-english ;
@@ -1320,8 +1298,7 @@ gmeow:resentMessageId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:residenceMailbox
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MailboxResidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residence mailbox"@x-gmeow-english ;
@@ -1330,8 +1307,7 @@ gmeow:residenceMailbox
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:residentMessage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MailboxResidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "resident message"@x-gmeow-english ;
@@ -1349,8 +1325,7 @@ gmeow:residesIn
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:rfcMessageId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "RFC message id"@x-gmeow-english ;

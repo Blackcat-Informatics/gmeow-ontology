@@ -2,29 +2,29 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Affect Prototype
+# Changelog Entry
 
-`gmeow:AffectPrototype` · Class
+`gmeow:ChangelogEntry` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AffectPrototype` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AffectPrototype` |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
 | Category | Class |
-| Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect appraisal SIGNATURE labelling one gmeow:EmotionType, expressed in the canonical core\-affect basis \(gmeow:coreAffectMetricPAD, so every prototype shares one metric basis\)\. 'Model up, don't mint': a named emotion is canonically a prototype/region \(this\) or a gmeow:AffectComposite, never an unanalyzed primitive\. A prototype is a communication/bridging anchor and a classification LANDMARK, NOT ground truth — named emotions stay OPEN and CONTESTED \(Principle 9\), and nearest\-prototype classification is a vantage\-relative claim under a declared metric, never a stored label \(Principle 12\)\. Distinct from an episodic gmeow:AffectVectorObservation of a felt state: its gmeow:vantage is the naming TRADITION \(gmeow:prototypeAuthority\), not a real bearer, and its gmeow:observedFeature is the gmeow:EmotionType, not an occurrent episode\.
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AffectPrototype .
+<subject> a gmeow:ChangelogEntry .
 ```
 
 ## Example in multiple syntaxes
@@ -32,7 +32,7 @@ A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect apprai
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AffectPrototype .
+<subject> a gmeow:ChangelogEntry .
 ```
 
 **JSON\-LD**
@@ -45,7 +45,7 @@ A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect apprai
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AffectPrototype"
+          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
         }
       ]
     }
@@ -55,53 +55,57 @@ A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect apprai
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/affectprototype.svg)
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+
+## Super\-classes
+
+- [`gmeow:InformationObject`](../informationobject/index.md)
 
 ## Usage Advice
 
-- **Scope:** Its vectorComponent cells read the CORE\-AFFECT axes only \(valence 0, arousal 1, dominance 2, unpredictability 3 — gmeow:coreAxisIndex\), never the cognitive gmeow:AppraisalDimension axes \(agency, norm, …\), which differentiate composites but are not the metric basis\. Two further invariants are NUMERIC and enforced OUTSIDE the logic at classification time \(Principle 12\), not as OWL/SHACL: every cell magnitude lies in the profile's bipolar \[\-1,1\] range, and the authored prototypes are PAIRWISE DISTINCT under gmeow:coreAffectGram \(coincident signatures are an authoring error and make the nearest\-prototype margin bisector undefined\)\.
-- **Example:** gmeow:joyPrototype a gmeow:AffectPrototype ; gmeow:prototypeFor gmeow:emotionJoy ; gmeow:vantage gmeow:prototypeAuthority ; gmeow:observedFeature gmeow:emotionJoy ; gmeow:vectorProfile gmeow:coreAffectMetricPAD ; gmeow:vectorComponent gmeow:joyPrototypeValenceCell , gmeow:joyPrototypeArousalCell \.
-- **Use when:** Use to author the canonical typical signature of a named emotion so an arbitrary affect vector can be classified by nearest labelled prototype under the declared core\-affect metric \(competency Q9: is this vector a schadenfreude?\)\.
-- **Avoid when:** Avoid it for a felt EPISODE \(that is an ordinary gmeow:AffectVectorObservation with a real bearer/vantage\) and for a named compound bound by relations to a specific elicitor/target \(that is a gmeow:AffectComposite\)\. Never treat the nearest prototype as ground truth — classification is metric\- and vantage\-relative\.
-- **How to use:** Mint one gmeow:AffectPrototype per named gmeow:EmotionType, link it with gmeow:prototypeFor, hold it from gmeow:prototypeAuthority \(gmeow:vantage\) over that EmotionType \(gmeow:observedFeature\), name its basis gmeow:vectorProfile gmeow:coreAffectMetricPAD, and attach one core\-affect gmeow:Appraisal cell per axis via gmeow:vectorComponent\. Classification \(gmeow affect classify\) computes the nearest prototype under a declared vantage metric OUTSIDE the logic \(Principle 12\)\.
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
 
 ## Profiles
 
-- `full` · `narrative`
+- `full` · `music` · `purremb`
 
 ## Formal & academic
 
+## Description\-Logic axioms
+
+```text
+gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+```
+
 ## Logic stereotypes
 
-`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
-## Formalized by
-
-- `gmeow:AffectPrototypePrototypeForPresentConstraint`
-- `gmeow:AffectPrototypeVectorComponentPresentConstraint`
-
 ## Documentation coverage
 
-- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** stable
+- **Status:** experimental
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
+- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectPrototype>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectPrototype@blake3:e866fe6f50e5a3aab87bb62583cd2736215c2f43600a886fcd6c9d8c491ace3d`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

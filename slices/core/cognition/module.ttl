@@ -202,8 +202,7 @@ gmeow:knowledgeMastered
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:knowledgeProficiencyAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "knowledge proficiency agent"@x-gmeow-english ;
@@ -229,8 +228,7 @@ gmeow:knowledgeProficiencyInterval
     gmeow:useWhen "Use to bind the temporal-scope player of a gmeow:KnowledgeProficiency relator when the period a depth held is itself first-class — and to record lapsed knowledge by CLOSING the interval rather than deleting the proficiency (Principle 10)."@x-gmeow-english .
 
 gmeow:knowledgeProficiencyLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "knowledge proficiency level"@x-gmeow-english ;
@@ -243,8 +241,7 @@ gmeow:knowledgeProficiencyLevel
     gmeow:useWhen "Use to bind the attained-depth player of a gmeow:KnowledgeProficiency relator — a gmeow:KnowledgeLevel value on whichever gmeow:knowledgeProficiencyScale the relator cites."@x-gmeow-english .
 
 gmeow:knowledgeProficiencyScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "knowledge proficiency scale"@x-gmeow-english ;
@@ -257,8 +254,7 @@ gmeow:knowledgeProficiencyScale
     gmeow:useWhen "Use to bind the rating-framework player of a gmeow:KnowledgeProficiency relator — the gmeow:ProficiencyScale (kernel) its level is read against, defaulting to the native gmeow:scaleKnowledgeDepth and switching to Bloom's revised / SOLO / Dreyfus when a stated taxonomy is cited."@x-gmeow-english .
 
 gmeow:knowledgeProficiencySubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "knowledge proficiency subject"@x-gmeow-english ;

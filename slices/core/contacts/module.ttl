@@ -168,8 +168,7 @@ gmeow:TelephoneNumber
     gmeow:useWhen "Use for a telephone contact point modelled as a first-class node — when its usage role, provider, or tenure must be recorded — rather than a bare number string."@x-gmeow-english .
 
 gmeow:addressHolder
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AddressTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address holder"@x-gmeow-english ;
@@ -223,8 +222,7 @@ gmeow:addressRegion
     gmeow:useWhen "Use for the state, province, or territory line of an address — a coarse, low-sensitivity component safe for broad projection."@x-gmeow-english .
 
 gmeow:addressValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address value"@x-gmeow-english ;
@@ -321,8 +319,7 @@ gmeow:deliversToAccount
     gmeow:useWhen "Use to cross from an email address (held by an agent) to the gmeow:OnlineAccount whose mailbox receives its messages — the contacts→accounts seam."@x-gmeow-english .
 
 gmeow:domainPart
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "domain part"@x-gmeow-english ;
@@ -439,8 +436,7 @@ gmeow:hasWorkedWith
     gmeow:useWhen "Use as the flat shortcut to record that two agents have worked together, when the bare symmetric fact (optionally with a period on the statement) suffices."@x-gmeow-english .
 
 gmeow:localPart
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "local part"@x-gmeow-english ;
@@ -470,8 +466,7 @@ gmeow:postOfficeBox
     gmeow:useWhen "Use for a post-office-box designation that stands in place of, or alongside, a street line in the surface form of an address."@x-gmeow-english .
 
 gmeow:postalAddressFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "postal address frame"@x-gmeow-english ;
@@ -559,8 +554,7 @@ gmeow:telephone
     gmeow:useWhen "Use as the flat shortcut for an agent's telephone number when only the string is needed and no role, provider, or tenure must be carried."@x-gmeow-english .
 
 gmeow:tenuredContactPoint
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AddressTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "tenured contact point"@x-gmeow-english ;

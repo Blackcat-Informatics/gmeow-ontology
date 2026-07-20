@@ -181,8 +181,7 @@ gmeow:Stream
     gmeow:useWhen "Use to group a time-ordered run of observations or samples about one entity from a sensor or platform — the canonical source a solver derives a continuous trajectory from (no list structure is asserted)."@x-gmeow-english .
 
 gmeow:bearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Quality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "bearer"@x-gmeow-english ;
@@ -195,8 +194,7 @@ gmeow:bearer
     gmeow:useWhen "Use to name the entity a persistent quality belongs to — the inherence anchor of the quality stratification, so the quality and its value-history travel with their bearer."@x-gmeow-english .
 
 gmeow:currency
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MonetaryAmount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "currency"@x-gmeow-english ;
@@ -210,8 +208,7 @@ gmeow:currency
     gmeow:useWhen "Use to name the currency reference frame of a gmeow:MonetaryAmount — the frame that makes its magnitude meaningful, the money-specific specialization of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english .
 
 gmeow:dimension
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Magnitude ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "dimension"@x-gmeow-english ;
@@ -335,8 +332,7 @@ gmeow:methodSurvey
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:monetaryValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MonetaryAmount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "monetary value"@x-gmeow-english ;
@@ -362,8 +358,7 @@ gmeow:observationEvent
     gmeow:useWhen "Use to link an Observation to the gufo:Event during which it was made — the survey, census, excavation, or trial — when the lightweight 'when did it happen' perspective is enough."@x-gmeow-english .
 
 gmeow:observationMethod
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation method"@x-gmeow-english ;
@@ -487,8 +482,7 @@ gmeow:observationTypeStreaming
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:observedAt
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observed at"@x-gmeow-english ;
@@ -501,8 +495,7 @@ gmeow:observedAt
     gmeow:useWhen "Use to date one observation in a persistent quality's value-history, so 'how did this value change over time?' resolves to an ordered series of dated results."@x-gmeow-english .
 
 gmeow:observedFeature
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observed feature"@x-gmeow-english ;
@@ -521,8 +514,7 @@ gmeow:pressure
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:quantityUncertainty
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantity uncertainty"@x-gmeow-english ;
@@ -538,8 +530,7 @@ gmeow:statementAbout
     rdfs:subPropertyOf gmeow:observedFeature .
 
 gmeow:streamInterval
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream interval"@x-gmeow-english ;
@@ -552,8 +543,7 @@ gmeow:streamInterval
     gmeow:useWhen "Use to bound a stream in time — the gmeow:TimeInterval over which its samples were produced — when the temporal extent is constitutive of which stream this is."@x-gmeow-english .
 
 gmeow:streamOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream of"@x-gmeow-english ;
@@ -605,8 +595,7 @@ gmeow:streamSensor
     gmeow:useWhen "Use to name the specific sensor or agent that reads the samples of a stream — the device doing the measuring."@x-gmeow-english .
 
 gmeow:trueQuantity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "true quantity"@x-gmeow-english ;
@@ -620,8 +609,7 @@ gmeow:trueQuantity
     gmeow:useWhen "Use to link a framed reading to the unit-independent magnitude it measures, so the true quantity round-trips across unit systems and the value-vs-quantity seam (Principle 11) is explicit."@x-gmeow-english .
 
 gmeow:unit
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "unit"@x-gmeow-english ;
     rdfs:range qudt:Unit ;

@@ -145,8 +145,7 @@ gmeow:seeksToKnow
     gmeow:useWhen "Use to record directed inquiry aimed at an epistemics resolution — the agent pursues the question specifically so as to come to gmeow:knowsThat its answer, tying the open inquiry to the epistemics spine."@x-gmeow-english .
 
 gmeow:tenureInquirer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InquiryTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenure inquirer"@x-gmeow-english ;
@@ -159,8 +158,7 @@ gmeow:tenureInquirer
     gmeow:useWhen "Use to bind a gmeow:InquiryTenure to the single agent whose holding-open of the question over time it records."@x-gmeow-english .
 
 gmeow:tenureQuestion
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InquiryTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenure question"@x-gmeow-english ;

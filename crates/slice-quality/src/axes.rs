@@ -1065,9 +1065,48 @@ fn collect_text(dir: &std::path::Path, buf: &mut String) {
     }
 }
 
+/// The meta-level reasoning-carrier class excluded from the testing-axis denominator
+/// (issue 1579). A `logic:PropertyCharacteristicAssertion` is not a competency-test
+/// target — it is a carrier record asserting a characteristic (e.g. functionality) of
+/// a property for the reasoner to consume. Competency/structural/example cells target
+/// domain terms, not characteristic carriers, so counting carriers as "untested" only
+/// dilutes the optimal-testing coverage of any slice that ships them.
+const TESTING_EXCLUDED_CARRIER_TYPE: &str =
+    "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion";
+
+/// True iff `iri` is typed as a meta-level reasoning carrier the testing axis excludes.
+///
+/// Carrier records (`logic:PropertyCharacteristicAssertion`) are reasoning assertions,
+/// not domain terms competency tests are written against; they are dropped from the
+/// testing-axis denominator so a slice is not penalised for "untested" carriers
+/// (issue 1579). The exclusion is deliberately **local to this axis** — `slice_terms`
+/// and every other axis still count these records (grounding, documentation, etc.
+/// legitimately assess them).
+fn is_testing_excluded_carrier(ctx: &ScoreContext, iri: &str) -> bool {
+    let ds = ctx.graph;
+    let (Some(type_p), Some(carrier_id)) = (
+        id(ds, graph::RDF_TYPE),
+        id(ds, TESTING_EXCLUDED_CARRIER_TYPE),
+    ) else {
+        return false;
+    };
+    id(ds, iri).is_some_and(|sid| graph::has(ds, sid, type_p, carrier_id))
+}
+
 /// Testing: fraction of the slice's terms named by at least one test cell / query.
+///
+/// Meta-level reasoning-carrier records (`logic:PropertyCharacteristicAssertion`) are
+/// excluded from both the denominator and the untested-term findings: competency tests
+/// target domain terms, not characteristic carriers, so counting carriers would only
+/// dilute this ratchet-gated coverage score (issue 1579). The exclusion is scoped to
+/// this axis; `slice_terms` and other axes still see the carriers.
 fn testing_axis(ctx: &ScoreContext) -> AxisScore {
-    if ctx.terms.is_empty() {
+    let scoreable: Vec<&String> = ctx
+        .terms
+        .iter()
+        .filter(|iri| !is_testing_excluded_carrier(ctx, iri))
+        .collect();
+    if scoreable.is_empty() {
         return AxisScore::clean(0.0);
     }
     let corpus = test_corpus(ctx);
@@ -1082,7 +1121,7 @@ fn testing_axis(ctx: &ScoreContext) -> AxisScore {
     }
     let mut reached = 0usize;
     let mut findings = Vec::new();
-    for iri in &ctx.terms {
+    for iri in &scoreable {
         let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
         // Word-boundary match, not a raw substring: an incidental hit (a term whose
         // local name is a prefix of another, e.g. `Foo` inside `FooBar`) must not
@@ -1099,7 +1138,7 @@ fn testing_axis(ctx: &ScoreContext) -> AxisScore {
         }
     }
     #[allow(clippy::cast_precision_loss)]
-    let score = reached as f64 / ctx.terms.len() as f64;
+    let score = reached as f64 / scoreable.len() as f64;
     AxisScore { score, findings }
 }
 
@@ -1947,6 +1986,68 @@ ASK {
         assert!(TEST_ARTIFACT.is_match("tests/thing.py behaviour"));
         assert!(TEST_ARTIFACT.is_match("Mirrors the fixture"));
         assert!(!TEST_ARTIFACT.is_match("a genuine ontological rationale"));
+    }
+
+    #[test]
+    fn testing_axis_excludes_property_characteristic_assertion_carriers() {
+        // A slice with two domain terms (one exercised by a test cell, one not) plus
+        // two meta-level `logic:PropertyCharacteristicAssertion` carrier records. The
+        // carriers must NOT count in the testing-axis denominator (issue 1579): with
+        // them the score would be 1/4, without them it is 1/2.
+        let ttl = "\
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+@prefix slice: <https://blackcatinformatics.ca/gmeow/slices/> .\n\
+@prefix ex: <https://blackcatinformatics.ca/ex/> .\n\
+ex:ExercisedTerm a owl:Class ; rdfs:isDefinedBy slice:demo .\n\
+ex:UntestedTerm a owl:Class ; rdfs:isDefinedBy slice:demo .\n\
+ex:CarrierOne a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:demo .\n\
+ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:demo .\n";
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("carrier-exclusion fixture parses as valid Turtle");
+
+        // A test corpus that names only the exercised domain term (and, adversarially,
+        // one carrier — which must still be excluded regardless of being "reached").
+        let dir =
+            std::env::temp_dir().join(format!("slice-quality-testing-axis-{}", std::process::id()));
+        let tests_dir = dir.join("tests");
+        std::fs::create_dir_all(&tests_dir).expect("create temp tests dir");
+        std::fs::write(
+            tests_dir.join("competency.rq"),
+            "ASK { ex:ExercisedTerm rdfs:subClassOf ex:CarrierOne . }\n",
+        )
+        .expect("write temp test cell");
+
+        let ctx = ScoreContext::new(
+            "https://blackcatinformatics.ca/gmeow/slices/demo".to_owned(),
+            dir.clone(),
+            &ds,
+            ScoringEnv::Repo,
+        );
+        // slice_terms is untouched: it still sees all four typed, owned subjects.
+        assert_eq!(ctx.terms.len(), 4, "slice_terms counts carriers globally");
+
+        let score = testing_axis(&ctx);
+        std::fs::remove_dir_all(&dir).ok();
+
+        // Denominator excludes the two carriers → 2 scoreable domain terms, 1 reached.
+        assert!(
+            (score.score - 0.5).abs() < 1e-9,
+            "carriers excluded from denominator: expected 1/2, got {}",
+            score.score
+        );
+        // The one untested finding is the domain term, never a carrier.
+        let msgs: Vec<&str> = score.findings.iter().map(|f| f.message.as_str()).collect();
+        assert!(
+            msgs.iter().any(|m| m.contains("UntestedTerm")),
+            "the untested domain term is still flagged"
+        );
+        assert!(
+            !msgs.iter().any(|m| m.contains("Carrier")),
+            "carriers are never flagged as untested"
+        );
     }
 
     #[test]

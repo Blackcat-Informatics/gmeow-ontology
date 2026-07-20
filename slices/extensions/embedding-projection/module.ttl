@@ -354,8 +354,7 @@ gmeow:declassifies
     gmeow:useWhen "Use to bind the reviewable declassification act to the exact projection it authorizes for lower-sensitivity disclosure."@x-gmeow-english .
 
 gmeow:effectiveOfFamily
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorSpaceContract ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "effective of family"@x-gmeow-english ;
@@ -407,8 +406,7 @@ gmeow:generationNormalizationContract
     gmeow:useWhen "Use to pin the generation-time normalization an embedding family applies when producing its stored matrix — a generation-contract component the family's digest covers, distinct from the per-prefix normalization of an effective space."@x-gmeow-english .
 
 gmeow:hasTargetSet
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "has target set"@x-gmeow-english ;
@@ -421,8 +419,7 @@ gmeow:hasTargetSet
     gmeow:useWhen "Use to bind a projection to the ordered target namespace its matrix rows realize."@x-gmeow-english .
 
 gmeow:hasVectorSpaceContract
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "has vector space contract"@x-gmeow-english ;
@@ -461,8 +458,7 @@ gmeow:indexNondeterminism
     gmeow:useWhen "Use to flag that a derived index's build is nondeterministic — run-to-run retrieval variance traces to the accelerator, never the projection."@x-gmeow-english .
 
 gmeow:indexOfProjection
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedVectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "index of projection"@x-gmeow-english ;
@@ -475,8 +471,7 @@ gmeow:indexOfProjection
     gmeow:useWhen "Use to bind a derived accelerator to the exact projection whose vectors it indexes."@x-gmeow-english .
 
 gmeow:indexOverSpace
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedVectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "index over space"@x-gmeow-english ;
@@ -502,8 +497,7 @@ gmeow:inferenceEngine
     gmeow:useWhen "Use to record the inference engine (and materially-relevant version/config) an embedding family runs its model under — a generation-contract component distinct from the model."@x-gmeow-english .
 
 gmeow:matryoshkaPolicy
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorSpaceContract ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "matryoshka policy"@x-gmeow-english ;
@@ -516,8 +510,7 @@ gmeow:matryoshkaPolicy
     gmeow:useWhen "Use to fix whether an effective space is the full family space or a declared leading-prefix of it."@x-gmeow-english .
 
 gmeow:normalizationKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorSpaceContract ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "normalization kind"@x-gmeow-english ;
@@ -530,8 +523,7 @@ gmeow:normalizationKind
     gmeow:useWhen "Use to fix the per-prefix normalization component of an effective vector space."@x-gmeow-english .
 
 gmeow:overVectorSpace
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "over vector space"@x-gmeow-english ;
@@ -544,8 +536,7 @@ gmeow:overVectorSpace
     gmeow:useWhen "Use to fix the vector space within which a similarity observation's proximity is meaningful."@x-gmeow-english .
 
 gmeow:withMetric
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "with metric"@x-gmeow-english ;
@@ -558,8 +549,7 @@ gmeow:withMetric
     gmeow:useWhen "Use to record the metric a similarity proximity was computed under, so the score is self-describing."@x-gmeow-english .
 
 gmeow:poolingKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingFamily ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "pooling kind"@x-gmeow-english ;
@@ -585,8 +575,7 @@ gmeow:preprocessingContract
     gmeow:useWhen "Use to pin the preprocessing configuration an embedding family commits to — one of the generation-contract components the family's digest covers."@x-gmeow-english .
 
 gmeow:projectionSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "projection source"@x-gmeow-english ;
@@ -625,8 +614,7 @@ gmeow:queryContext
     gmeow:useWhen "Use to record the retrieval/comparison context a similarity observation was made under — the intent that makes the pairwise claim interpretable."@x-gmeow-english .
 
 gmeow:reproducibilityLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "reproducibility level"@x-gmeow-english ;
@@ -639,8 +627,7 @@ gmeow:reproducibilityLevel
     gmeow:useWhen "Use to declare how deterministically a projection regenerates its vectors — the get-leg determinism axis, orthogonal to correspondence preservation."@x-gmeow-english .
 
 gmeow:reproducibilityTolerance
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "reproducibility tolerance"@x-gmeow-english ;
@@ -653,8 +640,7 @@ gmeow:reproducibilityTolerance
     gmeow:useWhen "Use to state the numeric bound under which a within-tolerance projection is deemed reproduced — the quantity that makes gmeow:reproducibleWithinTolerance checkable."@x-gmeow-english .
 
 gmeow:similarityScore
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "similarity score"@x-gmeow-english ;
@@ -745,8 +731,7 @@ gmeow:targetSetMember
     gmeow:useWhen "Use to enumerate the vector targets a target set contains — the rows a projection's matrix maps to."@x-gmeow-english .
 
 gmeow:targetsResource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "targets resource"@x-gmeow-english ;
@@ -784,8 +769,7 @@ gmeow:truncationContract
     gmeow:useWhen "Use to pin the input-truncation configuration an embedding family commits to — one of the generation-contract components the family's digest covers."@x-gmeow-english .
 
 gmeow:vectorByteOrder
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EmbeddingFamily ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "vector byte order"@x-gmeow-english ;
@@ -811,8 +795,7 @@ gmeow:vectorDtype
     gmeow:useWhen "Use to declare the element datatype an embedding family commits to — one of the generation-contract components the family's digest covers."@x-gmeow-english .
 
 gmeow:vectorTargetKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "vector target kind"@x-gmeow-english ;
@@ -1017,8 +1000,7 @@ gmeow:comparesRight
     gmeow:useWhen "Use to name the right projection of a pairwise similarity observation across two projections."@x-gmeow-english .
 
 gmeow:comparesLeftTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "compares left target"@x-gmeow-english ;
@@ -1031,8 +1013,7 @@ gmeow:comparesLeftTarget
     gmeow:useWhen "Use to bind a similarity score to the EXACT left vector row it scored, so the observation names its operand pair at row grain rather than only at projection grain."@x-gmeow-english .
 
 gmeow:comparesRightTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "compares right target"@x-gmeow-english ;
@@ -1133,8 +1114,7 @@ gmeow:surfaceManifest
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:profileSurfaceOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProfileSurface ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "profile surface of"@x-gmeow-english ;
@@ -1147,8 +1127,7 @@ gmeow:profileSurfaceOf
     gmeow:useWhen "Use to bind a profile surface to the projection whose shared-referent digests it records."@x-gmeow-english .
 
 gmeow:profileSurfaceKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProfileSurface ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "profile surface kind"@x-gmeow-english ;

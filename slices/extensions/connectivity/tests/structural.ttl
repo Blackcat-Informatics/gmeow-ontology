@@ -72,11 +72,11 @@ ex:saRouteKindProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:routeKind a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:routeKind a owl:ObjectProperty ;
         rdfs:domain gmeow:Route ;
         rdfs:range gmeow:RouteKind .
 }""" ;
-    gmeow:saRationale "gmeow:routeKind MUST be a functional owl:ObjectProperty with domain Route and range RouteKind." .
+    gmeow:saRationale "gmeow:routeKind MUST be an owl:ObjectProperty with domain Route and range RouteKind; its single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 5. Connection is a logic:Relator class (MUST) ----------------------------
 ex:saConnectionClass a gmeow:StructuralAssertion ;
@@ -92,7 +92,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Connection MUST be an owl:Class and a subclass of logic:Relator." .
 
-# --- 6. connectionSource and connectionTarget are functional with owl:Thing range (MUST) ---
+# --- 6. connectionSource and connectionTarget have owl:Thing range (MUST) ---
 ex:saConnectionEndpoints a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -100,16 +100,16 @@ ex:saConnectionEndpoints a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:connectionSource a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:connectionSource a owl:ObjectProperty ;
         rdfs:domain gmeow:Connection ;
         rdfs:range owl:Thing .
-    gmeow:connectionTarget a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:connectionTarget a owl:ObjectProperty ;
         rdfs:domain gmeow:Connection ;
         rdfs:range owl:Thing .
 }""" ;
-    gmeow:saRationale "gmeow:connectionSource and gmeow:connectionTarget MUST each be a functional owl:ObjectProperty with domain Connection and range owl:Thing (universal connectivity contract)." .
+    gmeow:saRationale "gmeow:connectionSource and gmeow:connectionTarget MUST each be an owl:ObjectProperty with domain Connection and range owl:Thing (universal connectivity contract); their single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
-# --- 7. routeStart and routeEnd are functional with owl:Thing range (MUST) ---
+# --- 7. routeStart and routeEnd have owl:Thing range (MUST) ---
 ex:saRouteEndpoints a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -117,14 +117,14 @@ ex:saRouteEndpoints a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:routeStart a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:routeStart a owl:ObjectProperty ;
         rdfs:domain gmeow:Route ;
         rdfs:range owl:Thing .
-    gmeow:routeEnd a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:routeEnd a owl:ObjectProperty ;
         rdfs:domain gmeow:Route ;
         rdfs:range owl:Thing .
 }""" ;
-    gmeow:saRationale "gmeow:routeStart and gmeow:routeEnd MUST each be a functional owl:ObjectProperty with domain Route and range owl:Thing." .
+    gmeow:saRationale "gmeow:routeStart and gmeow:routeEnd MUST each be an owl:ObjectProperty with domain Route and range owl:Thing; their single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 8a. routeVia shape (MUST) -----------------------------------------------
 ex:saRouteViaShape a gmeow:StructuralAssertion ;
@@ -145,8 +145,8 @@ ex:saRouteViaNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:routeVia a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:routeVia ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:routeVia MUST NOT be functional — multiple via points are possible on a route." .
 
 # --- 9. hasRouteSegment ⊑ hasPart, transitive (MUST) -------------------------

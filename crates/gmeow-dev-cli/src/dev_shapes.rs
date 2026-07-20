@@ -30,8 +30,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_logic_compile::ir::{
-    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
-    ShapeValue, ValidationShapeIr,
+    ConstraintComponent, PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue,
+    ValidationShapeIr,
 };
 use gmeow_logic_compile::projections::lift::{certify, lift};
 use gmeow_logic_compile::projections::subsumption::{enforcement_key, subsumes};
@@ -532,13 +532,15 @@ fn target_label(target: &ShapeTarget) -> String {
 }
 
 /// The shared read-only oracle context: the projected validation-shape surface (indexed by focus
-/// target), the functional-property max-count fold, and the set of target classes carrying a
-/// projected FOL constraint shape. Built once from the committed generated surfaces; reused by
-/// [`shape_equivalence`] (report) and [`shape_migrate`] (the prune phase), so the two share ONE
-/// equivalence judgment.
+/// target) and the set of target classes carrying a projected FOL constraint shape. Built once
+/// from the committed generated surfaces; reused by [`shape_equivalence`] (report) and
+/// [`shape_migrate`] (the prune phase), so the two share ONE equivalence judgment.
+///
+/// A functional-property maximum is NOT harvested from `sh:targetSubjectsOf` shapes: the projected
+/// CLASS surface must carry each cardinality cap it is credited with, so a property-scoped
+/// functional shape can no longer fold a dropped class-shape cap back into equivalence.
 struct OracleCtx {
     projected: BTreeMap<ShapeTarget, (String, ShapeRead)>,
-    functional_max: BTreeMap<String, u32>,
     formalized_shapes: std::collections::BTreeSet<String>,
     formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>>,
     object_properties: std::collections::BTreeSet<String>,
@@ -570,26 +572,6 @@ impl OracleCtx {
             return Err(proj_errors);
         }
 
-        // Functional-property max-counts ride a SEPARATE projected shape targeted at the property's
-        // SUBJECTS (`sh:targetSubjectsOf P`), because `owl:FunctionalProperty` constrains every
-        // subject of P, not only the instances of one class. A legacy shape authored the same bound
-        // per-path on its target CLASS, so a `targetClass C` comparison would miss it. A
-        // `SubjectsOf(P)` max bound covers every C instance's P (it is the stronger,
-        // class-independent form), so fold each such per-path max into the class comparison.
-        let mut functional_max: BTreeMap<String, u32> = BTreeMap::new();
-        for (target, (_, shape)) in &projected {
-            if matches!(target, ShapeTarget::SubjectsOf(_)) {
-                for pc in &shape.ir.properties {
-                    if let Some(m) = pc.max_count {
-                        functional_max
-                            .entry(pc.path.clone())
-                            .and_modify(|e| *e = (*e).min(m))
-                            .or_insert(m);
-                    }
-                }
-            }
-        }
-
         // The projected FOL-constraint surface: which legacy shapes have a `logic:`-backed
         // constraint shape (so a legacy shape's `sh:sparql` cross-node residue is grounded).
         let mut formalized_shapes = std::collections::BTreeSet::new();
@@ -607,7 +589,6 @@ impl OracleCtx {
 
         Ok(Self {
             projected,
-            functional_max,
             formalized_shapes,
             formalized_failure_classes,
             object_properties,
@@ -857,58 +838,22 @@ impl OracleCtx {
                 && self.formalized_shapes.contains(iri)
                 && formalized_failure_matches()
         };
-        // A legacy class shape whose every constraint is a functional max-count (+ credited
-        // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
-        // rides a `sh:targetSubjectsOf(P)` shape instead. Synthesize the projected enforcement
-        // for such a shape from the functional coverage of its own paths.
-        let synth_from_functional = |read: &ShapeRead| -> Option<ValidationShapeIr> {
-            let props: Vec<PropertyConstraintIr> = read
-                .ir
-                .properties
-                .iter()
-                .filter_map(|lp| {
-                    let max = self.functional_max.get(&lp.path).copied();
-                    max.is_some()
-                        .then(|| {
-                            PropertyConstraintIr::new(
-                                lp.path.clone(),
-                                None,
-                                max,
-                                Some(ConstraintProvenance::OwlRestriction),
-                                vec![],
-                            )
-                            .ok()
-                        })
-                        .flatten()
-                })
-                .collect();
-            if props.len() == read.ir.properties.len() && !props.is_empty() {
-                ValidationShapeIr::new(format!("synth:{iri}"), target.clone(), props, None).ok()
-            } else {
-                None
-            }
-        };
         match self.projected.get(target) {
-            None => match synth_from_functional(read) {
-                Some(synth) => {
-                    let v = oracle(read, &synth);
-                    if grounds(read, &synth, &v) && !v.residue_bearing {
-                        Verdict::Equiv
-                    } else if grounds(read, &synth, &v) {
-                        Verdict::EquivResidue(v.unsupported.clone())
-                    } else {
-                        Verdict::NoProjectedPeer
-                    }
-                }
-                None if sparql_only_residue_grounded(&read.unsupported)
-                    && formalized_failure_matches() =>
-                {
+            // No projected class-target peer. A legacy class shape whose only cardinality evidence
+            // is a property-scoped functional (`sh:targetSubjectsOf P`) shape is NOT synthesized
+            // into an equivalent here: the projected CLASS surface carries no cap for the target,
+            // so crediting the functional maximum would clear a class shape that dropped the facet
+            // — the same blind spot the fold in the `Some` branch no longer opens. The remaining
+            // clearances are all record-anchored (sh:sparql / structural residue, raw-SPARQL-target
+            // replication, or an enforcement-free record-grounded block); a pure functional-max
+            // class shape with no declarative peer is honestly `NoProjectedPeer`.
+            None => {
+                if sparql_only_residue_grounded(&read.unsupported) && formalized_failure_matches() {
                     // Pure procedural constraints intentionally have no declarative class-shape
                     // peer. An exact logic:formalizes link proves that the canonical constraint
                     // projects the legacy shape's only enforcement residue.
                     Verdict::EquivGroundedResidue
-                }
-                None if matches!(target, ShapeTarget::Sparql(s) if s != TARGETLESS_SELECT)
+                } else if matches!(target, ShapeTarget::Sparql(s) if s != TARGETLESS_SELECT)
                     && read.ir.properties.is_empty()
                     && read.ir.node_components.is_empty()
                     && !read.unsupported.is_empty()
@@ -922,7 +867,7 @@ impl OracleCtx {
                         .any(|p| p == RAW_SPARQL_TARGET_RESIDUE)
                     && self.formalized_shapes.contains(iri)
                     && formalized_failure_matches()
-                    && self.record_replicates_raw_sparql_block(iri, target, legacy_ds) =>
+                    && self.record_replicates_raw_sparql_block(iri, target, legacy_ds)
                 {
                     // A raw-SPARQL-target block whose ENTIRE enforcement is its raw target +
                     // `sh:sparql` constraints, replicated α-equivalently by its exact
@@ -931,9 +876,8 @@ impl OracleCtx {
                     // every graph), so the block is grounded without a witness plan — which
                     // cannot be synthesized for a join-shaped target skeleton anyway.
                     Verdict::EquivGroundedResidue
-                }
-                None if semantic_residue_grounded(&read.unsupported, true)
-                    && formalized_failure_matches() =>
+                } else if semantic_residue_grounded(&read.unsupported, true)
+                    && formalized_failure_matches()
                 {
                     // Structural residue with no declarative peer (a raw-SPARQL-target block, or
                     // sh:node/sh:xone on a target the projector carries no aggregate shape for):
@@ -942,30 +886,27 @@ impl OracleCtx {
                     // covered property fragment included (`include_covered`), because no peer
                     // carries it.
                     Verdict::EquivGroundedResidueSemantic
-                }
-                None if matches!(target, ShapeTarget::Sparql(s) if s == TARGETLESS_SELECT)
+                } else if matches!(target, ShapeTarget::Sparql(s) if s == TARGETLESS_SELECT)
                     && read.ir.properties.is_empty()
                     && read.ir.node_components.is_empty()
                     && read.ir.failure_class.is_none()
-                    && read.unsupported.is_empty() =>
+                    && read.unsupported.is_empty()
                 {
                     // A truly targetless documentation-only marker block: SHACL gives it an
                     // EMPTY focus set, so it enforces nothing — trivially reproduced by the
                     // (empty) projection and deletable as-is.
                     Verdict::Equiv
-                }
-                None if matches!(target, ShapeTarget::Sparql(_)) => {
+                } else if matches!(target, ShapeTarget::Sparql(_)) {
                     // A raw-SPARQL-target block is WHOLE-SHAPE residue by construction (its
                     // focus selection has no OWL/RDFS antecedent, so no declarative peer can
                     // exist): not yet grounded, but the honest verdict is its residue, not a
                     // missing peer.
                     Verdict::EquivResidue(read.unsupported.clone())
-                }
-                None if read.ir.properties.is_empty()
+                } else if read.ir.properties.is_empty()
                     && read.ir.node_components.is_empty()
                     && read.unsupported.is_empty()
                     && self.formalized_shapes.contains(iri)
-                    && formalized_failure_matches() =>
+                    && formalized_failure_matches()
                 {
                     // An enforcement-free class-target block whose obligation now rides its
                     // exact `logic:formalizes` record: the legacy block flags nothing over any
@@ -973,16 +914,16 @@ impl OracleCtx {
                     // canonical record carries the class's intended obligation onto the
                     // projected constraint surface, so the block's identity is record-grounded.
                     Verdict::EquivGroundedResidue
-                }
-                None if covered_construct_grounded() && formalized_failure_matches() => {
+                } else if covered_construct_grounded() && formalized_failure_matches() {
                     // A declarative covered construct (node-level `sh:or`, focus `sh:class`, or a
                     // per-property `sh:nodeKind` / `sh:uniqueLang` facet) with no declarative peer,
                     // grounded by its exact `logic:formalizes` procedural record: the witness
                     // cross-check verified the record reproduces every judgment.
                     Verdict::EquivGroundedResidueSemantic
+                } else {
+                    Verdict::NoProjectedPeer
                 }
-                None => Verdict::NoProjectedPeer,
-            },
+            }
             Some((_, proj)) => {
                 // A differing typed failure class is admissible ONLY through the record-anchored
                 // identity: an exact `logic:formalizes` record carrying the legacy class. Such a
@@ -997,28 +938,19 @@ impl OracleCtx {
                         read.ir.failure_class, proj.ir.failure_class
                     ));
                 }
-                // Fold only functional-property maxima. A legacy minimum is never invented here:
-                // it must already be present in the projected IR. This prevents a hand-authored
-                // `sh:minCount` from receiving credit merely because the legacy shape asserted it.
-                // The fold is CREDIT-ONLY: it fires only when the legacy shape authored the SAME
-                // per-path bound the functional shape carries. A legacy shape that authored NO max
-                // must never be compared against a folded one — the functional bound rides its own
-                // global `sh:targetSubjectsOf` shape whether or not the legacy block exists, so
-                // attributing it to the class comparison would manufacture a spurious tightening.
+                // The projected CLASS surface must itself carry every cardinality cap it is
+                // credited with. A `sh:maxCount` facet is NEVER folded back from a SEPARATE
+                // property-scoped functional (`sh:targetSubjectsOf P`) shape: that fold let a
+                // projected class shape which had DROPPED the facet still clear as equivalent,
+                // because the functional bound rides its own global shape whether or not the class
+                // shape reproduces it. Closing that blind spot, the functional maximum no longer
+                // touches the class comparison — when the projected class shape has un-capped a path the
+                // legacy caps, the oracle's cardinality-equality ([`grounds`]) and subsumption
+                // (`cardinality_contained`) legs both report the loss and the verdict is
+                // `NotEquiv`. A faithful projection that carries the cap on the class shape itself
+                // still matches directly and clears as `Equiv`.
                 let mut proj_ir = proj.ir.clone();
                 for pc in proj_ir.properties.iter_mut() {
-                    let legacy_max = read
-                        .ir
-                        .properties
-                        .iter()
-                        .find(|lp| lp.path == pc.path)
-                        .and_then(|lp| lp.max_count);
-                    if pc.max_count.is_none()
-                        && let Some(&m) = self.functional_max.get(&pc.path)
-                        && legacy_max == Some(m)
-                    {
-                        pc.max_count = Some(m);
-                    }
                     // Credit a legacy `sh:nodeKind` implied by a co-present projected component:
                     // a class-typed value is an IRI, a datatype-typed value is a literal.
                     let legacy_nk = read
@@ -1080,24 +1012,11 @@ impl OracleCtx {
                         }
                     }
                 }
-                // Add functional/existence-covered legacy paths the projected class shape omits
-                // ENTIRELY (a functional max-1 rides only its `sh:targetSubjectsOf` shape).
-                for lp in &read.ir.properties {
-                    if proj_ir.properties.iter().all(|pc| pc.path != lp.path) {
-                        let max = self.functional_max.get(&lp.path).copied();
-                        if max.is_some()
-                            && let Ok(p) = PropertyConstraintIr::new(
-                                lp.path.clone(),
-                                None,
-                                max,
-                                Some(ConstraintProvenance::OwlRestriction),
-                                vec![],
-                            )
-                        {
-                            proj_ir.properties.push(p);
-                        }
-                    }
-                }
+                // A legacy cardinality-capped path the projected class shape omits ENTIRELY is a
+                // cardinality-facet loss on the class surface. The functional `sh:targetSubjectsOf`
+                // maximum is NOT injected to paper over it — that is the same functional credit the
+                // fold above no longer applies. With no projected property on the path, the oracle's
+                // subsumption leg finds no counterpart for the legacy cap and reports `NotEquiv`.
                 // Drop node-level components the projection derives that the legacy shape did not
                 // carry — additional orthogonal enforcement, never a tightening.
                 proj_ir
@@ -2073,7 +1992,8 @@ fn reasoner_safe_emit(
         }
 
         // At-most-one is credited ONLY when the property is ALREADY declared owl:FunctionalProperty
-        // (the oracle folds its projected sh:targetSubjectsOf max bound). The migrator NEVER declares
+        // (the existing global declaration already entails the max-1, so the lift restates it rather
+        // than inventing a class-scoped tightening). The migrator NEVER declares
         // a NEW functional property: functionality is a GLOBAL semantic characteristic that a
         // class-scoped `sh:maxCount 1` does not entail, and mis-declaring it reds `make validate` (a
         // multi-valued datum on another class) or a domain test. A max-1 on a not-already-functional
@@ -2636,8 +2556,8 @@ fn splice_out_spans(text: &mut String, mut spans: Vec<(usize, usize)>) {
 pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
     let root = project_root();
     let class_owner = class_owner_modules(&root);
-    // A max-1 is credited only for properties ALREADY declared owl:FunctionalProperty (the oracle
-    // folds their projected bound). The migrator never introduces a NEW functional characteristic.
+    // A max-1 is credited only for properties ALREADY declared owl:FunctionalProperty (the existing
+    // global declaration entails the bound). The migrator never introduces a NEW functional characteristic.
     let functional_safe = already_functional(&root);
     let data = InstanceData::load(&root);
     let ctx = match OracleCtx::load(&root, "shape-migrate") {
@@ -2921,6 +2841,8 @@ fn short_iri(iri: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use gmeow_logic_compile::ir::ConstraintProvenance;
+
     use super::*;
 
     #[test]
@@ -3047,7 +2969,6 @@ mod tests {
         );
         let mut ctx = OracleCtx {
             projected,
-            functional_max: BTreeMap::new(),
             formalized_shapes: std::collections::BTreeSet::new(),
             formalized_failure_classes: BTreeMap::new(),
             object_properties: std::collections::BTreeSet::new(),
@@ -3080,6 +3001,148 @@ mod tests {
         assert!(
             matches!(v, Verdict::NotEquiv(_)),
             "a wrong-class record must not clear deletion: {}",
+            v.label()
+        );
+    }
+
+    // ── Functional-max credit no longer rescues a dropped class-surface cap ──────
+    //
+    // A projected CLASS shape that has DROPPED a `sh:maxCount` facet must not clear as equivalent
+    // just because a SEPARATE property-scoped `sh:targetSubjectsOf` functional shape still carries
+    // the cap: the projected class surface itself must carry every cap it is credited with. These
+    // drive the tightened `verdict` directly. `WIDGET`/`WP` are this block's own class/path.
+
+    const WIDGET: &str = "https://example.test/Widget";
+    const WP: &str = "https://example.test/wp";
+    const WQ: &str = "https://example.test/wq";
+
+    /// A legacy class-target read carrying the given per-path `(min, max)` bounds on `WIDGET`.
+    fn widget_read(bounds: &[(&str, Option<u32>, Option<u32>)]) -> ShapeRead {
+        let props = bounds
+            .iter()
+            .map(|(path, min, max)| {
+                PropertyConstraintIr::new(
+                    (*path).to_owned(),
+                    *min,
+                    *max,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )
+                .expect("legacy property builds")
+            })
+            .collect();
+        let ir = ValidationShapeIr::new(
+            "https://example.test/WidgetLegacy".to_owned(),
+            ShapeTarget::Class(WIDGET.to_owned()),
+            props,
+            None,
+        )
+        .expect("legacy shape builds");
+        ShapeRead {
+            ir,
+            unsupported: vec![],
+            extra_targets: vec![],
+        }
+    }
+
+    /// A property-scoped functional shape (`sh:targetSubjectsOf WP` with `sh:maxCount 1`), the
+    /// SEPARATE surface whose bound must NOT rescue a dropped class-shape cap.
+    const WP_FUNCTIONAL: &str = concat!(
+        "<https://example.test/wp-functional> a sh:NodeShape ;\n",
+        "    sh:targetSubjectsOf <https://example.test/wp> ;\n",
+        "    sh:property [ sh:path <https://example.test/wp> ; sh:maxCount 1 ] .\n"
+    );
+
+    #[test]
+    fn dropped_class_cap_is_not_rescued_by_functional_subjectsof_shape() {
+        // Projected class shape keeps min-1 on WP but DROPPED the max; the functional shape
+        // still carries max-1. The legacy class shape caps WP at 1. This is the R3 regression.
+        let projected = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://example.test/Widget-shape> a sh:NodeShape ;\n\
+                 sh:targetClass <https://example.test/Widget> ;\n\
+                 sh:property [ sh:path <https://example.test/wp> ; sh:minCount 1 ] .\n\
+             {WP_FUNCTIONAL}"
+        );
+        let ctx = ctx_from(&projected, &[]);
+        let target = ShapeTarget::Class(WIDGET.to_owned());
+        let read = widget_read(&[(WP, Some(1), Some(1))]);
+        let ds = parse_ttl("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+        let v = ctx.verdict("https://example.test/WidgetLegacy", &target, &read, &ds);
+        assert!(
+            matches!(v, Verdict::NotEquiv(_)),
+            "a class shape that dropped the cap must be NOT-EQUIV: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn class_shape_that_carries_the_cap_still_clears_equiv() {
+        // The faithful projection: the class shape itself carries min-1 AND max-1 on WP. The
+        // functional shape is present too, but the class cap stands on its own — still EQUIV.
+        let projected = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://example.test/Widget-shape> a sh:NodeShape ;\n\
+                 sh:targetClass <https://example.test/Widget> ;\n\
+                 sh:property [ sh:path <https://example.test/wp> ; sh:minCount 1 ; sh:maxCount 1 ] .\n\
+             {WP_FUNCTIONAL}"
+        );
+        let ctx = ctx_from(&projected, &[]);
+        let target = ShapeTarget::Class(WIDGET.to_owned());
+        let read = widget_read(&[(WP, Some(1), Some(1))]);
+        let ds = parse_ttl("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+        let v = ctx.verdict("https://example.test/WidgetLegacy", &target, &read, &ds);
+        assert!(
+            matches!(v, Verdict::Equiv),
+            "a class shape that carries the cap must still clear EQUIV: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn functional_capped_path_omitted_by_class_shape_is_not_equiv() {
+        // The projected class shape carries WQ but OMITS WP entirely; only the functional shape
+        // caps WP. The legacy shape requires WQ and caps WP at 1. The omitted cap is a loss on the
+        // class surface — the functional bound is no longer injected to paper over it.
+        let projected = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://example.test/Widget-shape> a sh:NodeShape ;\n\
+                 sh:targetClass <https://example.test/Widget> ;\n\
+                 sh:property [ sh:path <https://example.test/wq> ; sh:minCount 1 ] .\n\
+             {WP_FUNCTIONAL}"
+        );
+        let ctx = ctx_from(&projected, &[]);
+        let target = ShapeTarget::Class(WIDGET.to_owned());
+        let read = widget_read(&[(WQ, Some(1), None), (WP, None, Some(1))]);
+        let ds = parse_ttl("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+        let v = ctx.verdict("https://example.test/WidgetLegacy", &target, &read, &ds);
+        assert!(
+            matches!(v, Verdict::NotEquiv(_)),
+            "a functional-capped path the class shape omits must be NOT-EQUIV: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn functional_only_class_shape_with_no_peer_is_not_grounded() {
+        // No projected class shape for WIDGET at all — only the functional `sh:targetSubjectsOf`
+        // shape. A pure max-only legacy class shape is NO LONGER synthesized into an equivalent
+        // from that functional coverage; with no declarative peer it is `NO-PROJECTED-PEER` and
+        // does not clear the gate.
+        let projected = format!("@prefix sh: <http://www.w3.org/ns/shacl#> .\n{WP_FUNCTIONAL}");
+        let ctx = ctx_from(&projected, &[]);
+        let target = ShapeTarget::Class(WIDGET.to_owned());
+        let read = widget_read(&[(WP, None, Some(1))]);
+        let ds = parse_ttl("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+        let v = ctx.verdict("https://example.test/WidgetLegacy", &target, &read, &ds);
+        assert!(
+            !v.is_grounded(),
+            "a functional-only class shape with no declarative peer must not clear: {}",
+            v.label()
+        );
+        assert!(
+            matches!(v, Verdict::NoProjectedPeer),
+            "the honest verdict is NO-PROJECTED-PEER: {}",
             v.label()
         );
     }

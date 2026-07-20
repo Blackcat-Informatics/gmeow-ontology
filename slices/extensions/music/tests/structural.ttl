@@ -97,9 +97,9 @@ ex:saTimbreObservationResultProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:timbreObservationResult a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:timbreObservationResult a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:timbreObservationResult MUST be an owl:ObjectProperty and owl:FunctionalProperty — an Observation assigns exactly one timbre descriptor to the observed ToneEvent." .
+    gmeow:saRationale "gmeow:timbreObservationResult MUST be an owl:ObjectProperty — an Observation assigns a timbre descriptor to the observed ToneEvent; the single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # ── W1 frame-relativity fidelity guards (CONSTITUTION P11) ─────────────────────
 # The śruti-22 Raga Yaman port is frame-relative to gmeow:tuningSystemShruti22.

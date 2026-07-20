@@ -31,7 +31,6 @@ use rstest::rstest;
 
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const SKOS_EXACTMATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const MIMO: &str = "http://www.mimo-db.eu/InstrumentsKeywords/";
@@ -49,7 +48,10 @@ fn module() -> &'static GraphStore {
 
 #[test]
 fn configuration_properties_functional() {
-    let s = module();
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (in the logic slice), not by a local `owl:FunctionalProperty` marker on the music
+    // module — so this asserts over the merged ontology, not `module()`.
+    let s = GraphStore::ontology();
     for prop in [
         "configurationOf",
         "configurationInstrumentType",
@@ -57,17 +59,13 @@ fn configuration_properties_functional() {
         "configurationInterval",
     ] {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should be functional"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} should carry a logic: functionalProperty characteristic"
         );
     }
     // Modification is deliberately non-functional to allow compound modifications.
     assert!(
-        !s.has(
-            Some(&g("configurationModification")),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL)
-        ),
+        !s.is_functional_carrier(&g("configurationModification")),
         "configurationModification must not be functional"
     );
 }

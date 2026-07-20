@@ -100,8 +100,7 @@ gmeow:findingCategory
     gmeow:useWhen "Use to record the KIND of a finding so a consumer can separate genuine failures from coherent-but-noteworthy findings — chiefly a permitted, disclosed contradiction under a glut-admitting reasoning contract."@x-gmeow-english .
 
 gmeow:findingCode
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding code"@x-gmeow-english ;
@@ -141,8 +140,7 @@ gmeow:findingLocation
     gmeow:useWhen "Use to anchor a gmeow:Finding to the statement or term it diagnoses — typically the reified RDF 1.2 statement carrying the GTS wire coordinates."@x-gmeow-english .
 
 gmeow:findingMessage
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding message"@x-gmeow-english ;
@@ -155,8 +153,7 @@ gmeow:findingMessage
     gmeow:useWhen "Use to carry the human-readable explanation of a finding for display surfaces."@x-gmeow-english .
 
 gmeow:findingSeverity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding severity"@x-gmeow-english ;
@@ -705,8 +702,7 @@ gmeow:InventedWitness
     gmeow:useWhen "Use to mark the object of a reasoned head quad p(x, null) as a chase-invented existential null — the structured, queryable proof that the native existential chase fired to discharge a C ⊑ ∃p.D obligation."@x-gmeow-english .
 
 gmeow:existentialOrdinal
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:InventedWitness ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "existential ordinal"@x-gmeow-english ;

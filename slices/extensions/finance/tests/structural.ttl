@@ -93,8 +93,8 @@ ex:saAccountCurrencyNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:accountCurrency a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:accountCurrency ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:accountCurrency MUST NOT be owl:FunctionalProperty -- a single account may hold balances in several currencies; the functional constraint moves to Posting/Holding relators." .
 
 # --- 5. FinancialTransaction is a logic:Event subclass of Event (MUST) -----
@@ -219,30 +219,30 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:rolePayer, rolePayee, and roleIntermediary MUST exist as gmeow:ParticipantRole individuals -- transaction participants are reused from the Event/Participation substrate, never as hasPayer/hasPayee subproperties." .
 
-# --- 14. transactionAmount is functional (MUST) --------------------------------
+# --- 14. transactionAmount is an ObjectProperty (MUST) -------------------------
 ex:saTransactionAmountFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:transactionAmount a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:transactionAmount a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:transactionAmount MUST be owl:ObjectProperty and owl:FunctionalProperty -- a single transaction occurrence has one canonical amount; disputed amounts are standpoint-indexed claims on separate statements." .
+    gmeow:saRationale "gmeow:transactionAmount MUST be an owl:ObjectProperty -- disputed amounts are standpoint-indexed claims on separate statements." .
 
-# --- 15. Four posting properties are ObjectProperty and functional (MUST) -----
+# --- 15. Four posting properties are ObjectProperties (MUST) ------------------
 ex:saPostingPropertiesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:postingJournalEntry a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:postingAccount      a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:postingAmount       a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:postingDirection    a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:postingJournalEntry a owl:ObjectProperty .
+    gmeow:postingAccount      a owl:ObjectProperty .
+    gmeow:postingAmount       a owl:ObjectProperty .
+    gmeow:postingDirection    a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:postingJournalEntry, postingAccount, postingAmount, and postingDirection MUST each be owl:ObjectProperty and owl:FunctionalProperty -- a posting belongs to exactly one journal entry, affects exactly one ledger account, has exactly one amount, and is exactly one direction." .
+    gmeow:saRationale "gmeow:postingJournalEntry, postingAccount, postingAmount, and postingDirection MUST each be owl:ObjectProperty -- the four core roles bind a posting to its journal entry, ledger account, amount, and direction." .
 
 # --- 16. Payment is a subclass of FinancialTransaction (MUST) -----------------
 ex:saPaymentIsFinancialTransaction a gmeow:StructuralAssertion ;
@@ -380,17 +380,17 @@ ex:saWalletAddressNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:walletAddress a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:walletAddress ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:walletAddress MUST NOT be owl:FunctionalProperty -- a single HD wallet may have multiple addresses (derivation paths)." .
 
-# --- 28. walletScheme is ObjectProperty and functional (MUST) -----------------
+# --- 28. walletScheme is an ObjectProperty (MUST) -----------------------------
 ex:saWalletSchemeIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:walletScheme a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:walletScheme a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:walletScheme MUST be owl:ObjectProperty and owl:FunctionalProperty -- a wallet operates on exactly one blockchain scheme; a multi-scheme container is several wallets." .
+    gmeow:saRationale "gmeow:walletScheme MUST be an owl:ObjectProperty -- a wallet's blockchain scheme is a reified object value." .

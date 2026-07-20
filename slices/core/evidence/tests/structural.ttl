@@ -232,8 +232,8 @@ ex:saHasEvidenceClassNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasEvidenceClass a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasEvidenceClass ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasEvidenceClass MUST NOT be owl:FunctionalProperty -- competing evidence classifications coexist (Principle 9)." .
 
 # --- 15. sourceIndependence is an ObjectProperty with correct domain/range (MUST) ---
@@ -255,8 +255,8 @@ ex:saSourceIndependenceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:sourceIndependence a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:sourceIndependence ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:sourceIndependence MUST NOT be owl:FunctionalProperty -- competing assessments coexist (Principle 9)." .
 
 # --- 17. sourceTier is an ObjectProperty with correct domain/range (MUST) -----
@@ -278,8 +278,8 @@ ex:saSourceTierNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:sourceTier a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:sourceTier ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:sourceTier MUST NOT be owl:FunctionalProperty -- competing tier assessments coexist (Principle 9)." .
 
 # --- 19. coverageDepth is an ObjectProperty with correct domain/range (MUST) --
@@ -301,8 +301,8 @@ ex:saCoverageDepthNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:coverageDepth a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:coverageDepth ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:coverageDepth MUST NOT be owl:FunctionalProperty -- competing depth assessments coexist (Principle 9)." .
 
 # --- 21. supportsNotability is a DatatypeProperty with xsd:boolean range (MUST) ---

@@ -130,17 +130,17 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:AgenderPerson a owl:Class . }""" ;
     gmeow:saRationale "gmeow:AgenderPerson MUST NOT exist as an owl:Class — per-value Person subclasses are forbidden." .
 
-# --- 3a. genderValue and expressionValue are functional ObjectProperties (MUST)
+# --- 3a. genderValue and expressionValue are ObjectProperties (MUST)
 ex:saValuePropertiesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:genderValue    a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:expressionValue a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:genderValue    a owl:ObjectProperty .
+    gmeow:expressionValue a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:genderValue and gmeow:expressionValue MUST be owl:ObjectProperty and owl:FunctionalProperty (functional per facet)." .
+    gmeow:saRationale "gmeow:genderValue and gmeow:expressionValue MUST be owl:ObjectProperty." .
 
 # --- 3b. hasGenderIdentity is a non-functional ObjectProperty (MUST) ---------
 ex:saHasGenderIdentityShape a gmeow:StructuralAssertion ;
@@ -165,8 +165,8 @@ ex:saHasGenderIdentityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasGenderIdentity a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasGenderIdentity ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasGenderIdentity MUST NOT be functional — co-equal facets coexist (bigender/genderfluid)." .
 
 # --- 3e. hasGenderExpression is NOT functional (MUST-NOT) --------------------
@@ -174,8 +174,8 @@ ex:saHasGenderExpressionNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasGenderExpression a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:hasGenderExpression ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasGenderExpression MUST NOT be functional — co-equal facets coexist." .
 
 # --- 4a. gmeow:gender is NOT a DatatypeProperty (MUST-NOT) ------------------

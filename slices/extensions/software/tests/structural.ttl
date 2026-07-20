@@ -315,12 +315,11 @@ ASK {
     gmeow:pushTarget   rdfs:domain gmeow:Push .
     gmeow:mergeBase    rdfs:domain gmeow:Merge .
     gmeow:mergeSource  rdfs:domain gmeow:Merge .
-    gmeow:mergeTarget  rdfs:domain gmeow:Merge ;
-                       a owl:FunctionalProperty .
+    gmeow:mergeTarget  rdfs:domain gmeow:Merge .
     gmeow:reviewOf     rdfs:domain gmeow:CodeReview .
     gmeow:reviewCommit rdfs:domain gmeow:CodeReview .
 }""" ;
-    gmeow:saRationale "gmeow:pushTarget, mergeBase, mergeSource, mergeTarget, reviewOf, and reviewCommit MUST all have their respective event-class domains; mergeTarget MUST additionally be owl:FunctionalProperty (a merge has exactly one target branch)." .
+    gmeow:saRationale "gmeow:pushTarget, mergeBase, mergeSource, mergeTarget, reviewOf, and reviewCommit MUST all have their respective event-class domains. mergeTarget's single-valued character (a merge has exactly one target branch) now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 21. materializationDepth has correct domain and range (MUST) ------------
 ex:saMaterializationDepthPropertyExists a gmeow:StructuralAssertion ;

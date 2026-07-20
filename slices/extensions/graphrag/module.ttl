@@ -132,8 +132,7 @@ gmeow:VectorIndex
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:againstIndex
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RetrievalEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "against index"@x-gmeow-english ;
@@ -171,8 +170,7 @@ gmeow:corpusMember
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:distanceMetric
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "distance metric"@x-gmeow-english ;
     rdfs:range gmeow:DistanceMetric ;
@@ -210,8 +208,7 @@ gmeow:embeddingDimensions
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:embeddingModel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "embedding model"@x-gmeow-english ;
@@ -220,8 +217,7 @@ gmeow:embeddingModel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:embeddingOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "embedding of"@x-gmeow-english ;
@@ -239,8 +235,7 @@ gmeow:forQuery
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexAlgorithm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "index algorithm"@x-gmeow-english ;
@@ -288,8 +283,7 @@ gmeow:indexesCorpus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship source"@x-gmeow-english ;
@@ -299,8 +293,7 @@ gmeow:relationshipSource
         gmeow:boxRBox .
 
 gmeow:relationshipTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship target"@x-gmeow-english ;
@@ -325,8 +318,7 @@ gmeow:retrievedChunk
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:summarizesCommunity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CommunitySummary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizes community"@x-gmeow-english ;

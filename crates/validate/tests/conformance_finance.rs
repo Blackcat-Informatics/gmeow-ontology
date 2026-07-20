@@ -18,7 +18,6 @@ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
 
@@ -57,7 +56,10 @@ fn monetary_value_is_functional() {
     let g = GraphStore::ontology();
     let iri = format!("{GMEOW}monetaryValue");
     assert!(g.has(Some(&iri), Some(RDF_TYPE), Some(OWL_DATATYPE_PROPERTY)));
-    assert!(g.has(Some(&iri), Some(RDF_TYPE), Some(OWL_FUNCTIONAL_PROPERTY)));
+    assert!(
+        g.is_functional_carrier(&iri),
+        "gmeow:monetaryValue must carry a logic: functionalProperty characteristic"
+    );
 }
 
 #[test]
@@ -65,7 +67,10 @@ fn currency_is_functional() {
     let g = GraphStore::ontology();
     let iri = format!("{GMEOW}currency");
     assert!(g.has(Some(&iri), Some(RDF_TYPE), Some(OWL_OBJECT_PROPERTY)));
-    assert!(g.has(Some(&iri), Some(RDF_TYPE), Some(OWL_FUNCTIONAL_PROPERTY)));
+    assert!(
+        g.is_functional_carrier(&iri),
+        "gmeow:currency must carry a logic: functionalProperty characteristic"
+    );
 }
 
 #[test]

@@ -113,20 +113,20 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:segmentOf a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:partOf . }""" ;
     gmeow:saRationale "gmeow:segmentOf MUST be an owl:ObjectProperty and a subproperty of gmeow:partOf. Defined in the documents slice." .
 
-# --- 10. segmentType is functional (MUST) -------------------------------------
+# --- 10. segmentType is an ObjectProperty (MUST) ------------------------------
 ex:saSegmentTypeIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:segmentType a owl:ObjectProperty , owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:segmentType MUST be an owl:ObjectProperty and owl:FunctionalProperty. Defined in the documents slice." .
+ASK { gmeow:segmentType a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:segmentType MUST be an owl:ObjectProperty. Defined in the documents slice." .
 
-# --- 11. segmentIndex is functional (MUST) ------------------------------------
+# --- 11. segmentIndex is a DatatypeProperty (MUST) ----------------------------
 ex:saSegmentIndexIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:segmentIndex a owl:DatatypeProperty , owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:segmentIndex MUST be an owl:DatatypeProperty and owl:FunctionalProperty. Defined in the documents slice." .
+ASK { gmeow:segmentIndex a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:segmentIndex MUST be an owl:DatatypeProperty. Defined in the documents slice." .

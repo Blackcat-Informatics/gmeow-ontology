@@ -92,8 +92,7 @@ gmeow:importanceLevel
         gmeow:boxRBox .
 
 gmeow:ingestedAt
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ImportActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "ingested at"@x-gmeow-english ;

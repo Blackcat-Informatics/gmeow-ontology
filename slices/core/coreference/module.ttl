@@ -50,8 +50,7 @@ gmeow:counterpartOf
     gmeow:useWhen "Use to link two GMEOW entities that are the same thing across distinct realms, frames, datasets, or fictional/real boundaries — a fictional city and its real namesake, a record in two databases — while each keeps its own identity and context."@x-gmeow-english .
 
 gmeow:editionOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     rdfs:label "edition of"@x-gmeow-english ;
@@ -77,8 +76,7 @@ gmeow:supersedes
     gmeow:useWhen "Use to record that a newer entity, version, record, or claim replaces one or more prior ones — a revised policy over its draft, a merged record consolidating several predecessors — while the superseded items stay first-class and resolvable."@x-gmeow-english .
 
 gmeow:versionOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     rdfs:label "version of"@x-gmeow-english ;

@@ -260,8 +260,7 @@ gmeow:acceptanceOut
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:acceptanceStatus
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "acceptance status"@x-gmeow-english ;
@@ -296,8 +295,7 @@ gmeow:analogicalTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appliedRule
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InferenceApplication ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "applied rule"@x-gmeow-english ;
@@ -315,8 +313,7 @@ gmeow:appliedSubstitution
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:argumentConclusion
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argument conclusion"@x-gmeow-english ;
@@ -325,8 +322,7 @@ gmeow:argumentConclusion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:argumentInferenceStep
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argument inference step"@x-gmeow-english ;
@@ -335,8 +331,7 @@ gmeow:argumentInferenceStep
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attackKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Attack ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attack kind"@x-gmeow-english ;
@@ -361,8 +356,7 @@ gmeow:attackSource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attackTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Attack ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attack target"@x-gmeow-english ;
@@ -404,8 +398,7 @@ gmeow:competesWith
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:conclusion
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "conclusion"@x-gmeow-english ;
@@ -414,8 +407,7 @@ gmeow:conclusion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:correspondingSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "corresponding source"@x-gmeow-english ;
@@ -425,8 +417,7 @@ gmeow:correspondingSource
         gmeow:boxRBox .
 
 gmeow:correspondingTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "corresponding target"@x-gmeow-english ;
@@ -435,8 +426,7 @@ gmeow:correspondingTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:evaluatesArgument
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "evaluates argument"@x-gmeow-english ;
@@ -526,8 +516,7 @@ gmeow:inferenceMode
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inferenceModeOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inference mode of"@x-gmeow-english ;
@@ -608,8 +597,7 @@ gmeow:premise
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:premiseUsed
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PremiseUse ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "premise used"@x-gmeow-english ;
@@ -627,8 +615,7 @@ gmeow:supportSource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Support ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "support target"@x-gmeow-english ;
@@ -646,8 +633,7 @@ gmeow:systematicity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tenureOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InferenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "tenure of"@x-gmeow-english ;
@@ -656,8 +642,7 @@ gmeow:tenureOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:underSemantics
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "under semantics"@x-gmeow-english ;

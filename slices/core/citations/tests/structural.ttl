@@ -96,18 +96,18 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:ContributionDegree MUST be a subclass of logic:QualityValue — contribution degrees are an open value vocabulary (individuals, never subclasses) characterizing a Contribution (Principle 9)." .
 
-# --- 6a. citingEntity, citedEntity, citationIntent are functional object properties (MUST) ---
+# --- 6a. citingEntity, citedEntity, citationIntent are object properties (MUST) ---
 ex:saCitationActCorePropsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:citingEntity   a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:citedEntity    a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:citationIntent a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:citingEntity   a owl:ObjectProperty .
+    gmeow:citedEntity    a owl:ObjectProperty .
+    gmeow:citationIntent a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:citingEntity, citedEntity, and citationIntent MUST each be owl:ObjectProperty and owl:FunctionalProperty — one citing player, one cited work, and one intent per CitationAct (relator arity)." .
+    gmeow:saRationale "gmeow:citingEntity, citedEntity, and citationIntent MUST each be owl:ObjectProperty — one citing player, one cited work, and one intent per CitationAct (relator arity); the single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 6b. viaSelector and cites are non-functional object properties (MUST) ----
 ex:saCitationActOptionalPropsExist a gmeow:StructuralAssertion ;
@@ -126,10 +126,11 @@ ex:saCitationOptionalPropsNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:viaSelector gmeow:cites }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:viaSelector and gmeow:cites MUST NOT be owl:FunctionalProperty — a citation may pinpoint multiple selectors; an entity may cite many works." .
 

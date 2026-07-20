@@ -71,7 +71,6 @@ gmeow:GTSSegment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Segment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
-    owl:hasKey ( gmeow:gtsHeadId ) ;
     skos:definition "One complete header-plus-frames log inside a GTS document — the unit of independent integrity (spec §3.1): a segment has its own genesis hash, its own id/prev chain, its own profile, its own transform catalog, and its own signers. Segments compose by concatenation and never vouch for one another; a third-party segment keeps its third-party attestation. Itself a Manifestation: a segment is a complete, independently shippable artifact."@x-gmeow-english ;
     skos:example "ex:seg0 a gmeow:GTSSegment ; gmeow:gtsSegmentOf ex:bundle ; gmeow:gtsHeadId \"blake3:9f2c…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the whole file (use gmeow:GTSDocument) and for a single frame; never make one segment vouch for another — each keeps its own attestation by design."@x-gmeow-english ;
@@ -140,8 +139,7 @@ gmeow:codecBase85
         gmeow:boxConfigBox .
 
 gmeow:codecClass
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TransformCodec ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "codec class"@x-gmeow-english ;
@@ -224,14 +222,13 @@ gmeow:codecZstd
         gmeow:boxConfigBox .
 
 gmeow:gtsHeadId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS head id"@x-gmeow-english ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gmeow:versionFingerprint ;
-    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (owl:hasKey on the class): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). A datatype key is stated as owl:hasKey (OWL 2 DL) rather than owl:InverseFunctionalProperty (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
+    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion logic:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
     skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for byte-exact identity of the file or a blob (use gmeow:contentDigest) and avoid asserting more than one head per segment; the head is functional and commits transitively to the chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
@@ -240,8 +237,7 @@ gmeow:gtsHeadId
     gmeow:useWhen "Use to commit to a segment's entire history with a single chain head — the version-fingerprint identity used to cite a segment, build a document's composite identity, or keep a compaction source citable."@x-gmeow-english .
 
 gmeow:gtsProfile
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS profile"@x-gmeow-english ;
@@ -327,8 +323,7 @@ gmeow:gtsSegment
     gmeow:useWhen "Use in document-rooted projections and traversals — when enumerating a document's segments from the document side is the natural direction to state or query."@x-gmeow-english .
 
 gmeow:gtsSegmentIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment index"@x-gmeow-english ;
@@ -342,8 +337,7 @@ gmeow:gtsSegmentIndex
     gmeow:useWhen "Use to fix a segment's place in its document's append-only file order — the index that, taken over the segment heads, reconstructs the document's composite identity."@x-gmeow-english .
 
 gmeow:gtsSegmentOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment of"@x-gmeow-english ;
@@ -372,8 +366,7 @@ gmeow:opacityMissingKey
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:opacityReason
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opacity reason"@x-gmeow-english ;
@@ -394,8 +387,7 @@ gmeow:opacityUnknownCodec
         gmeow:boxConfigBox .
 
 gmeow:opaqueFrameIn
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opaque frame in"@x-gmeow-english ;

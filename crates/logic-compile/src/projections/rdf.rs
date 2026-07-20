@@ -132,6 +132,36 @@ fn owl_for_char(obj: &str) -> Option<String> {
     })
 }
 
+/// The object properties a `logic:PropertyCharacteristicAssertion` names functional, joining
+/// `logic:characterizes ?P` with `logic:characteristicSort logic:functionalProperty` on the
+/// record IRI. This central record is the CANONICAL carrier of the functional characteristic;
+/// the `owl:FunctionalProperty` rdf:type marker is its lossy projection and is no longer an
+/// authored slice source. The OWL grounding view re-emits `owl:FunctionalProperty` from this
+/// record (a valid lossy down-projection of the canonical characteristic), so functionality
+/// survives the removal of the direct `?P rdf:type owl:FunctionalProperty` marker — exactly as
+/// each carrier record's prose promises. Returned sorted (BTreeSet) for a deterministic view.
+fn functional_carrier_properties(program: &LogicProgram) -> std::collections::BTreeSet<String> {
+    let characterizes = logic("characterizes");
+    let characteristic_sort = logic("characteristicSort");
+    let functional_sort = logic("functionalProperty");
+    let mut rec_prop: BTreeMap<String, String> = BTreeMap::new();
+    let mut functional_recs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for ax in &program.axioms {
+        if ax.predicate == characterizes && !ax.obj_is_literal {
+            rec_prop.insert(ax.subject.clone(), ax.obj.clone());
+        } else if ax.predicate == characteristic_sort
+            && !ax.obj_is_literal
+            && ax.obj == functional_sort
+        {
+            functional_recs.insert(ax.subject.clone());
+        }
+    }
+    functional_recs
+        .iter()
+        .filter_map(|rec| rec_prop.get(rec).cloned())
+        .collect()
+}
+
 fn is_el_safe_pred(pred: &str) -> bool {
     matches!(
         pred.strip_prefix(LOGIC_NS),
@@ -638,6 +668,19 @@ pub fn project_owl_dl(
             attributed.insert(note.clone(), src);
         }
         actual_drops.push(note);
+    }
+
+    // Re-emit the deprecated `owl:FunctionalProperty` marker from the canonical functional
+    // carrier record. The direct `?P rdf:type owl:FunctionalProperty` marker is no longer an
+    // authored source, so the ONLY thing carrying functionality into this OWL grounding view is
+    // the `logic:PropertyCharacteristicAssertion` record; projecting `owl:FunctionalProperty` from
+    // it (a lossy down-projection of the canonical characteristic) is exactly what each carrier
+    // record's prose promises, and mirrors the `owl_for_char` emission for a direct marker
+    // (owl:FunctionalProperty + owl:ObjectProperty). The triple set is a set, so this is
+    // idempotent with any direct marker a raw-OWL corpus might still carry.
+    for prop in functional_carrier_properties(program) {
+        g.add_iri(&prop, RDF_TYPE, &owl("FunctionalProperty"));
+        g.add_iri(&prop, RDF_TYPE, &owl("ObjectProperty"));
     }
 
     project_formulas_owl_dl(&mut g, program);
