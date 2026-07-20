@@ -105,19 +105,6 @@ ASK {
 }""" ;
     gmeow:saRationale "An exemption is a dated, self-cleaning artifact, so each must name the axis it covers, a doctrine-anchored reason, the date it was minted, and the producer symbol whose landing retires it — an undated or producerless exemption would be permanent optionality." .
 
-# --- 7. axisWeight and axisContextScope are functional (MUST) ------------------
-ex:saAxisFunctionalProps a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:axisWeight a owl:FunctionalProperty .
-    gmeow:axisContextScope a owl:FunctionalProperty .
-    gmeow:tierRank a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "An axis has exactly one ranking weight and one read scope, and a tier has exactly one rank, so these properties are functional — multiple values would make the advice ordering and the lattice order ill-defined." .
-
 # --- 8b. An AxisFloorCommitment carries exactly one slice, axis, and value (MUST)
 ex:saAxisFloorCommitmentWellFormed a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -128,11 +115,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     gmeow:AxisFloorCommitment a owl:Class .
-    gmeow:floorSlice a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
-    gmeow:floorAxis  a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:QualityAxis .
-    gmeow:floorValue a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:decimal .
+    gmeow:floorSlice a owl:ObjectProperty ; rdfs:range gmeow:Slice .
+    gmeow:floorAxis  a owl:ObjectProperty ; rdfs:range gmeow:QualityAxis .
+    gmeow:floorValue a owl:DatatypeProperty ; rdfs:range xsd:decimal .
 }""" ;
-    gmeow:saRationale "A per-axis floor commitment is a raise-only ratchet cell pairing one slice, one axis, and one measured-score floor, so gmeow:floorSlice, gmeow:floorAxis, and gmeow:floorValue are all functional with their committed ranges — a commitment with two slices, two axes, or two floors would make the regression bar ill-defined." .
+    gmeow:saRationale "A per-axis floor commitment is a raise-only ratchet cell pairing one slice, one axis, and one measured-score floor, so gmeow:floorSlice, gmeow:floorAxis, and gmeow:floorValue each carry their committed ranges; their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module — a commitment with two slices, two axes, or two floors would make the regression bar ill-defined." .
 
 # --- 8c. A SliceTierFloor carries exactly one slice and one tier (MUST) ---------
 ex:saSliceTierFloorWellFormed a gmeow:StructuralAssertion ;
@@ -143,10 +130,10 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:SliceTierFloor a owl:Class .
-    gmeow:floorSlice a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
-    gmeow:floorTier  a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:QualityTier .
+    gmeow:floorSlice a owl:ObjectProperty ; rdfs:range gmeow:Slice .
+    gmeow:floorTier  a owl:ObjectProperty ; rdfs:range gmeow:QualityTier .
 }""" ;
-    gmeow:saRationale "A per-slice tier floor is a raise-only ratchet cell pairing one slice with one minimum roll-up tier, so gmeow:floorSlice and gmeow:floorTier are functional with their committed ranges — a floor naming two slices or two tiers would make the committed rung ill-defined over the lattice order." .
+    gmeow:saRationale "A per-slice tier floor is a raise-only ratchet cell pairing one slice with one minimum roll-up tier, so gmeow:floorSlice and gmeow:floorTier each carry their committed ranges; their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module — a floor naming two slices or two tiers would make the committed rung ill-defined over the lattice order." .
 
 # --- 8d. A ProjectionCeilingCommitment carries exactly one slice, vocabulary, and count (MUST)
 ex:saProjectionCeilingCommitmentWellFormed a gmeow:StructuralAssertion ;
@@ -158,11 +145,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     gmeow:ProjectionCeilingCommitment a owl:Class .
-    gmeow:ceilingSlice      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
-    gmeow:ceilingVocabulary a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:ProjectionVocabulary .
-    gmeow:ceilingCount      a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:ceilingSlice      a owl:ObjectProperty ; rdfs:range gmeow:Slice .
+    gmeow:ceilingVocabulary a owl:ObjectProperty ; rdfs:range gmeow:ProjectionVocabulary .
+    gmeow:ceilingCount      a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
 }""" ;
-    gmeow:saRationale "A projection-ceiling commitment is a lower-only ratchet cell pairing exactly one slice, one guarded projection vocabulary, and one measured residue ceiling, so gmeow:ceilingSlice, gmeow:ceilingVocabulary, and gmeow:ceilingCount are all functional with their committed ranges — a commitment with two slices, two vocabularies, or two counts would make the monotone lower-only bar ill-defined." .
+    gmeow:saRationale "A projection-ceiling commitment is a lower-only ratchet cell pairing exactly one slice, one guarded projection vocabulary, and one measured residue ceiling, so gmeow:ceilingSlice, gmeow:ceilingVocabulary, and gmeow:ceilingCount each carry their committed ranges; their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module — a commitment with two slices, two vocabularies, or two counts would make the monotone lower-only bar ill-defined." .
 
 # --- 8e. A ProjectionVocabulary names its join key and its recognition strategy (MUST)
 ex:saProjectionVocabularyWellFormed a gmeow:StructuralAssertion ;
@@ -174,10 +161,10 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     gmeow:ProjectionVocabulary a owl:Class .
-    gmeow:vocabularyPrefix    a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:string .
-    gmeow:vocabularyCountKind a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:string .
+    gmeow:vocabularyPrefix    a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:vocabularyCountKind a owl:DatatypeProperty ; rdfs:range xsd:string .
 }""" ;
-    gmeow:saRationale "A guarded projection vocabulary is looked up by exactly one short CURIE prefix and dispatches its residue-recognition strategy on exactly one closed-set count-kind literal, so gmeow:vocabularyPrefix and gmeow:vocabularyCountKind are functional — two prefixes would break the join key a ceiling commitment resolves against, and two count-kinds would leave the shared counter's dispatch ambiguous." .
+    gmeow:saRationale "A guarded projection vocabulary is looked up by exactly one short CURIE prefix and dispatches its residue-recognition strategy on exactly one closed-set count-kind literal, so gmeow:vocabularyPrefix and gmeow:vocabularyCountKind each carry their string range; their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module — two prefixes would break the join key a ceiling commitment resolves against, and two count-kinds would leave the shared counter's dispatch ambiguous." .
 
 # --- 8f. No ProjectionCeilingCommitment double-binds its slice, vocabulary, or count (MUST-NOT)
 ex:saProjectionCeilingNotDoubleSliced a gmeow:StructuralAssertion ;

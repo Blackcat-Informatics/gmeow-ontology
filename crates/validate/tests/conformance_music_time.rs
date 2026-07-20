@@ -16,7 +16,6 @@ use rstest::rstest;
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_SUBPROPERTYOF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 
@@ -59,7 +58,10 @@ fn has_musical_time_frame_subproperty() {
 
 #[test]
 fn ontology_properties_multi_source_functionality() {
-    let s = module();
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (which live in the logic slice), not by a local `owl:FunctionalProperty` marker
+    // on the music module — so this asserts over the merged ontology, not `module()`.
+    let s = GraphStore::ontology();
     let constitutive = [
         "timeMappingKind",
         "tempoMapSegmentOf",
@@ -90,14 +92,14 @@ fn ontology_properties_multi_source_functionality() {
     ];
     for prop in constitutive {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should be functional"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} should carry a logic: functionalProperty characteristic"
         );
     }
     for prop in ["tempoRatioApprox", "groupAccentWeight"] {
         assert!(
-            !s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should NOT be functional"
+            !s.is_functional_carrier(&g(prop)),
+            "{prop} should NOT carry a logic: functionalProperty characteristic"
         );
     }
 }

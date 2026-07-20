@@ -222,8 +222,7 @@ gmeow:versionFingerprint
     gmeow:useWhen "Use to fingerprint a versioned entity where the identity criterion is semantic rather than byte-exact — a SWHID, a normalized-form hash, a canonicalized-serialization digest."@x-gmeow-english .
 
 gmeow:versionMember
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version member"@x-gmeow-english ;
@@ -262,8 +261,7 @@ gmeow:versionScale
     gmeow:useWhen "Use to classify the magnitude of a version change — trivial, minor, major — for SemVer-style schemes and their non-software analogues."@x-gmeow-english .
 
 gmeow:versionSet
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version set"@x-gmeow-english ;

@@ -274,8 +274,7 @@ gmeow:notationSystemKind
     gmeow:useWhen "Use to tag a thing already typed gmeow:NotationSystem with its domain kind(s) — the narrower, intent-revealing form of gmeow:symbolicSystemKind for the structured-notation subkind."@x-gmeow-english .
 
 gmeow:notationSystemOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationProjectionProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notation system of"@x-gmeow-english ;
@@ -288,8 +287,7 @@ gmeow:notationSystemOf
     gmeow:useWhen "Use to name the single notation system a gmeow:NotationProjectionProfile describes — the anchor that ties a loss/parameter ledger to the concrete surface form it characterizes."@x-gmeow-english .
 
 gmeow:notationUsageInterval
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationSystemUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notation usage interval"@x-gmeow-english ;
@@ -302,8 +300,7 @@ gmeow:notationUsageInterval
     gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to scope the single period over which the notation usage is asserted to hold — the temporal frame of this observation."@x-gmeow-english .
 
 gmeow:notationUsageNotationSystem
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationSystemUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notation usage notation system"@x-gmeow-english ;
@@ -316,8 +313,7 @@ gmeow:notationUsageNotationSystem
     gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single notation system being used in this scoped, standpointed binding."@x-gmeow-english .
 
 gmeow:notationUsageRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationSystemUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notation usage role"@x-gmeow-english ;
@@ -330,8 +326,7 @@ gmeow:notationUsageRole
     gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single function the notation serves here — transcription, encoding, cipher, and so on — drawn from gmeow:NotationUsageRole."@x-gmeow-english .
 
 gmeow:notationUsageTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NotationSystemUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notation usage target"@x-gmeow-english ;

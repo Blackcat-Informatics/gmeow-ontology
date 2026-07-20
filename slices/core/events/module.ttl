@@ -288,8 +288,7 @@ gmeow:contains
     gmeow:useWhen "Use when one event's extent strictly contains another's — the Allen CONTAINS link, the inverse view of gmeow:during, asserting TEMPORAL nesting only."@x-gmeow-english .
 
 gmeow:durationValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Duration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "duration value"@x-gmeow-english ;
@@ -411,8 +410,7 @@ gmeow:eventSpacetime
     gmeow:useWhen "Use when an event needs full 4D placement — a location-plus-time slice carrying pose and optional velocity relative to an explicit reference frame — typically several slices tracing a moving occurrence."@x-gmeow-english .
 
 gmeow:eventTemporalFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "event temporal frame"@x-gmeow-english ;
@@ -1186,8 +1184,7 @@ gmeow:overlaps
     gmeow:useWhen "Use when one event begins before and ends during another so their extents partially overlap — the Allen OVERLAPS link."@x-gmeow-english .
 
 gmeow:participationEvent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Participation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "participation event"@x-gmeow-english ;
@@ -1274,8 +1271,7 @@ gmeow:precisionYear
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:recurrenceRuleText
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:RecurrenceRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "recurrence rule text"@x-gmeow-english ;

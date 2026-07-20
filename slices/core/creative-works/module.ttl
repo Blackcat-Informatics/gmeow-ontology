@@ -292,8 +292,7 @@ gmeow:conformsTo
     gmeow:useWhen "Use to name an established standard, specification, or profile a creative work conforms to (the dcterms:conformsTo bridge — a record conforming to a metadata schema, a score to a notation standard)."@x-gmeow-english .
 
 gmeow:contributionDegree
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution degree"@x-gmeow-english ;
@@ -306,8 +305,7 @@ gmeow:contributionDegree
     gmeow:useWhen "Use inside a gmeow:Contribution to weight a credit as lead, equal, or supporting — for credit ordering and first-author/lead-maintainer distinctions."@x-gmeow-english .
 
 gmeow:contributionRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution role"@x-gmeow-english ;
@@ -320,8 +318,7 @@ gmeow:contributionRole
     gmeow:useWhen "Use inside a gmeow:Contribution to name the single role the contributor played, drawn from the open gmeow:ContributionRole value vocabulary (author, translator, CRediT role, software role)."@x-gmeow-english .
 
 gmeow:contributionTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution target"@x-gmeow-english ;
@@ -334,8 +331,7 @@ gmeow:contributionTarget
     gmeow:useWhen "Use inside a gmeow:Contribution to name the single WEMI entity credited — choosing the tier that matches the credit (translation → an Expression, cover art → a Manifestation, authorship → a Work)."@x-gmeow-english .
 
 gmeow:contributor
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributor"@x-gmeow-english ;
@@ -362,8 +358,7 @@ gmeow:coverOf
     gmeow:useWhen "Use for the flat 80% case of asserting one work is a cover of another, when no segment, period, or provenance of the derivation needs recording."@x-gmeow-english .
 
 gmeow:derivationProduct
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CreativeDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivation product"@x-gmeow-english ;
@@ -376,8 +371,7 @@ gmeow:derivationProduct
     gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the single product work that resulted from the derivation, at the honest tier (a new Expression for a cover, a new Recording for a remix)."@x-gmeow-english .
 
 gmeow:derivationSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CreativeDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivation source"@x-gmeow-english ;
@@ -818,8 +812,7 @@ gmeow:hasLyricist
     gmeow:useWhen "Use for the flat 80% case of naming a lyricist — the agent who wrote a song's words."@x-gmeow-english .
 
 gmeow:hasManifestationFormat
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Manifestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has manifestation format"@x-gmeow-english ;
@@ -971,8 +964,7 @@ gmeow:quotesWork
     gmeow:useWhen "Use for the flat 80% case of asserting one work quotes material from another, when the quoted segment and provenance need not be recorded."@x-gmeow-english .
 
 gmeow:realizationMode
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Expression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "realization mode"@x-gmeow-english ;

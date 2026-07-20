@@ -35,19 +35,19 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:SkillProficiency rdfs:subClassOf logic:Relator . }""" ;
     gmeow:saRationale "gmeow:SkillProficiency MUST be a subclass of logic:Relator — the leveled skill-proficiency is a reified relator binding agent × skill × level × scale." .
 
-# --- 1b. Core roles of SkillProficiency are functional ObjectProperties (MUST) -
+# --- 1b. Core roles of SkillProficiency are ObjectProperties (MUST) ------------
 ex:saSkillProficiencyFunctionalRoles a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:skillProficiencyAgent  a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:skillProficiencyOf     a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:skillProficiencyLevel  a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:skillProficiencyScale  a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:skillProficiencyAgent  a owl:ObjectProperty .
+    gmeow:skillProficiencyOf     a owl:ObjectProperty .
+    gmeow:skillProficiencyLevel  a owl:ObjectProperty .
+    gmeow:skillProficiencyScale  a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "The four core roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale MUST each be both owl:ObjectProperty and owl:FunctionalProperty — each is constitutive of the relator's identity." .
+    gmeow:saRationale "The four core roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale MUST each be an owl:ObjectProperty — each is constitutive of the relator's identity." .
 
 # --- 2a. skillProficiencyInterval is an ObjectProperty (MUST) -----------------
 ex:saSkillProficiencyIntervalIsObjectProperty a gmeow:StructuralAssertion ;
@@ -63,8 +63,8 @@ ex:saSkillProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:skillProficiencyInterval a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:skillProficiencyInterval ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:skillProficiencyInterval MUST NOT be functional — proficiency may be temporally unbounded, and successive intervals coexist on a proficiency history." .
 
 # --- 3. Dreyfus scale and levels are defined in the expertise slice (MUST) ----
@@ -130,7 +130,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:occupationClassification MUST be an owl:DatatypeProperty with domain gmeow:Occupation — external codes (ESCO, SOC, O*NET) are open literals on the occupation (Principle 12)." .
 
-# --- 6. credentialIssuer has range Organization and is functional (MUST) ------
+# --- 6. credentialIssuer has range Organization (MUST) ------------------------
 ex:saCredentialIssuerRangeAndFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -138,10 +138,9 @@ ex:saCredentialIssuerRangeAndFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:credentialIssuer rdfs:range gmeow:Organization ;
-        a owl:FunctionalProperty .
+    gmeow:credentialIssuer rdfs:range gmeow:Organization .
 }""" ;
-    gmeow:saRationale "gmeow:credentialIssuer MUST have range gmeow:Organization and be an owl:FunctionalProperty — a different issuer is a constitutively different credential." .
+    gmeow:saRationale "gmeow:credentialIssuer MUST have range gmeow:Organization — a credential's issuer is an organization." .
 
 # --- 7. Banned value-vocabulary subclasses do not exist (MUST-NOT) ------------
 ex:saNoValueVocabSubclasses a gmeow:StructuralAssertion ;

@@ -94,8 +94,7 @@ gmeow:composedOf
     gmeow:useWhen "Use to model the internal structure of a compound concept — the concepts it is built from."@x-gmeow-english .
 
 gmeow:conceptHoldsFor
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConceptTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "concept holds for"@x-gmeow-english ;

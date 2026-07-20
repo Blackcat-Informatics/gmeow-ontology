@@ -1207,8 +1207,7 @@ gmeow:constraintHardnessSoft
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hardConstraintClass
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VerifierVerdict ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "hard constraint class"@x-gmeow-english ;
@@ -1235,8 +1234,7 @@ gmeow:verifierContract
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:verifierOutcome
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:VerifierVerdict ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifier outcome"@x-gmeow-english ;
@@ -1455,7 +1453,7 @@ gmeow:determinismNondeterministic a owl:NamedIndividual , gmeow:ProjectionDeterm
     skos:definition "A positively-declared nondeterministic projection: repeat runs may reorder; the non-determinism is disclosed, never silent."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:projectionKind
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionReceipt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "projection kind"@x-gmeow-english ;
@@ -1464,7 +1462,7 @@ gmeow:projectionKind
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectionDeterminism
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionReceipt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "projection determinism"@x-gmeow-english ;
@@ -2581,7 +2579,7 @@ gmeow:receiptKindEvaluation a owl:NamedIndividual , gmeow:ReceiptKind ;
     skos:definition "An evaluation decision: records an assessment without recommending advance or revert."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:receiptKind
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LifecycleReceipt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "receipt kind"@x-gmeow-english ;
@@ -2640,7 +2638,7 @@ gmeow:ConsumerImprovementGate
     gmeow:useWhen "Use for the authoritative consumer-improvement verdict whose held value alone permits activation of a learned change."@x-gmeow-english .
 
 gmeow:gateVerdict
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ConsumerImprovementGate ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "gate verdict"@x-gmeow-english ;

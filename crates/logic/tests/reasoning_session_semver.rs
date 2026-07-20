@@ -25,15 +25,31 @@ use session_common::*;
 /// digest folded into this descriptor. Re-blessed once more for the round-3 certifier
 /// hardening: the reordered soundness differential, the atomic authored-rule reader
 /// (non-resource ref / duplicate slot hard-fails), and the MSA critical-instance size cap
-/// all move the `physical/chase.rs` / `reason/dl.rs` content digest.
+/// all move the `physical/chase.rs` / `reason/dl.rs` content digest. Re-blessed for the
+/// functional-characteristic carrier migration: the foundation chase now derives
+/// `functionalProperty(?P,?P)` from the canonical `logic:PropertyCharacteristicAssertion`
+/// carrier (a new Datalog rule alongside the `owl:FunctionalProperty` marker rule), and
+/// `reason/dl.rs` unions the carrier into the functional-clash reader — both move the folded
+/// program/`reason/dl.rs` content digest. Re-blessed for the key carrier migration: `reason/dl.rs`
+/// now reads keys from the canonical `logic:KeyAssertion` carrier (`logic:keyClass` +
+/// `logic:keyProperty`) unioned into the key-agreement clash reader and coverage inventory
+/// alongside the `owl:hasKey` list, so the datatype/single-property key survives removal of the
+/// `owl:hasKey` slice declaration — moving the `reason/dl.rs` content digest folded here.
+/// Re-blessed once more for the stage-2 `cargo fmt` pass over the branch-modified reasoning
+/// core: reformatting `reason/dl.rs` / `physical/chase.rs` (behaviour-preserving — `reason-verify`
+/// stays green) moves the raw-source content digest folded into this descriptor. Re-blessed again
+/// for the merge of origin/main PR 1385: the public bilinear-form distance API (`bilinear_sqdist` /
+/// `compare_sqdist` / `BilinearFormError`) on the runtime engine surface (`physical/builtin_eval.rs`,
+/// `physical/mod.rs`) also folds into the runtime engine-source content digest, so the golden below
+/// is the merged value (both this branch's fmt and PR 1385's bilinear API move the digest).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "53f769341556ef2df634a391c33ccd4f2ac144dea1b1f241a19a9e2bc58bcee1";
+    "869cdbf2a93a73d0a2df08836d94f86ff8ec00e961e95379aa0ff128bc5ad8a9";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8610b18a7133b52ec73d8183ceb13212b4e9278bece10d8c5d7b857b74971237";
+    "f6ff18cf42c6b7db0dc0755c984cd112d75bd3fde829b1d5c37e383c1d61772c";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

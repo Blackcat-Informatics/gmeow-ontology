@@ -156,8 +156,7 @@ gmeow:expressionNeutral
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:expressionValue
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GenderExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "expression value"@x-gmeow-english ;
@@ -245,8 +244,7 @@ gmeow:genderTwoSpirit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:genderValue
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GenderIdentity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "gender value"@x-gmeow-english ;

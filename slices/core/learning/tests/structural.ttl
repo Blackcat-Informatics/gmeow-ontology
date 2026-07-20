@@ -119,8 +119,9 @@ ex:saLearningTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:learningType a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:learningType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:learningType MUST NOT be functional — several varieties may co-apply to one event." .
 
 # --- 6a. provenance / trajectory / product properties + domains (MUST) -------
@@ -144,17 +145,18 @@ ex:saProvenanceTrajectoryProductOpenRangeNotFunctional a gmeow:StructuralAsserti
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     VALUES ?p { gmeow:subjectTaught gmeow:learnedFrom gmeow:fromLevel gmeow:toLevel gmeow:produces }
     { ?p rdfs:range ?r . }
     UNION
-    { ?p a owl:FunctionalProperty . }
+    { ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty . }
 }""" ;
     gmeow:saRationale "OPEN-range (P13): none of gmeow:subjectTaught / gmeow:learnedFrom / gmeow:fromLevel / gmeow:toLevel / gmeow:produces MUST assert an rdfs:range (the targets are retired gmeow:Source or not-yet-built gmeow:Concept) and none MUST be functional." .
 
-# --- 7a. Teaching is a mediating Relator; teacher functional, learner not (MUST)
+# --- 7a. Teaching is a mediating Relator; teacher + learner ObjectProperties (MUST)
 ex:saTeachingIsMediatingRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -165,22 +167,23 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Teaching a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
-    gmeow:teacher a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:teacher a owl:ObjectProperty ;
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
     gmeow:learner a owl:ObjectProperty ;
         rdfs:domain gmeow:Teaching ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a logic:Kind, and a subClassOf logic:Relator; gmeow:teacher MUST be a FUNCTIONAL owl:ObjectProperty (one teacher) with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent." .
+    gmeow:saRationale "gmeow:Teaching is the reified mediating relator: it MUST be an owl:Class, a logic:Kind, and a subClassOf logic:Relator; gmeow:teacher MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent; gmeow:learner MUST be an owl:ObjectProperty with domain gmeow:Teaching and range gmeow:Agent." .
 
 # --- 7a'. learner is NOT functional (MUST-NOT) ------------------------------
 ex:saLearnerNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:learner a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:learner ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:learner MUST NOT be functional — several learners may be taught together in one Teaching." .
 
 # --- 7b. The EL someValuesFrom mediation restrictions on teacher + learner (MUST)

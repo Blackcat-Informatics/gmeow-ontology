@@ -128,15 +128,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:tenureStandpoint MUST be an owl:ObjectProperty with domain gmeow:StandpointTenure and range gmeow:Standpoint -- bridges the time-scoped situation to the named frame it records." .
 
-# --- 6. tenureStandpoint is functional (MUST) ---------------------------------
-ex:saTenureStandpointIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:tenureStandpoint a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:tenureStandpoint MUST be owl:FunctionalProperty -- each tenure records exactly one standpoint's position; a different frame's position is a separate tenure (Principle 9)." .
-
 # --- 7. sharpens is a TransitiveProperty (MUST) --------------------------------
 ex:saSharpenIsTransitive a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -196,7 +187,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:StandpointModality MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- a closed value vocabulary of abstract individuals (the GranularityLevel pattern, belief-value edition). Guards the DL-clean disjointness from gmeow:Entity." .
 
-# --- 12. standpointClaim is an ObjectProperty + FunctionalProperty (MUST) -----
+# --- 12. standpointClaim is an ObjectProperty (MUST) -------------------------
 ex:saStandpointClaimPropertyShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -204,13 +195,13 @@ ex:saStandpointClaimPropertyShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:standpointClaim a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:standpointClaim a owl:ObjectProperty ;
         rdfs:domain gmeow:StandpointTenure ;
         rdfs:range gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:standpointClaim MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:StandpointTenure and range gmeow:StandpointClaim -- a tenure generates exactly one standpoint-claim observation." .
+    gmeow:saRationale "gmeow:standpointClaim MUST be an owl:ObjectProperty with domain gmeow:StandpointTenure and range gmeow:StandpointClaim -- a tenure generates the standpoint-claim observation." .
 
-# --- 13. claimModality is an ObjectProperty + FunctionalProperty (MUST) -------
+# --- 13. claimModality is an ObjectProperty (MUST) ---------------------------
 ex:saClaimModalityPropertyShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -218,11 +209,11 @@ ex:saClaimModalityPropertyShape a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:claimModality a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:claimModality a owl:ObjectProperty ;
         rdfs:domain gmeow:StandpointClaim ;
         rdfs:range gmeow:StandpointModality .
 }""" ;
-    gmeow:saRationale "gmeow:claimModality MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:StandpointClaim and range gmeow:StandpointModality -- a standpoint claim carries exactly one belief-value." .
+    gmeow:saRationale "gmeow:claimModality MUST be an owl:ObjectProperty with domain gmeow:StandpointClaim and range gmeow:StandpointModality -- a standpoint claim carries its belief-value." .
 
 # --- 14. claimModality is NOT a subPropertyOf observationResult (MUST-NOT) ----
 ex:saClaimModalityNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
@@ -348,7 +339,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The seven flattened-statement annotation twins MUST be owl:AnnotationProperty with the matching axis range -- DL-clean annotation form mirroring gmeow:standpointModality; standpointCredence ranges xsd:decimal." .
 
-# --- 23. Six reified object twins are functional ObjectProperty domain StandpointClaim (MUST) ---
+# --- 23. Six reified object twins are ObjectProperty domain StandpointClaim (MUST) ---
 ex:saAxisReifiedObjectTwins a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -356,16 +347,16 @@ ex:saAxisReifiedObjectTwins a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:claimPolarity          a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:Polarity .
-    gmeow:claimModalForce        a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:ModalForce .
-    gmeow:claimCredenceLevel     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:CredenceLevel .
-    gmeow:claimAssertoricForce   a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:AssertoricForce .
-    gmeow:claimTruthDirectedness a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:TruthDirectedness .
-    gmeow:claimSupportStatus     a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:SupportStatus .
+    gmeow:claimPolarity          a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:Polarity .
+    gmeow:claimModalForce        a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:ModalForce .
+    gmeow:claimCredenceLevel     a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:CredenceLevel .
+    gmeow:claimAssertoricForce   a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:AssertoricForce .
+    gmeow:claimTruthDirectedness a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:TruthDirectedness .
+    gmeow:claimSupportStatus     a owl:ObjectProperty ; rdfs:domain gmeow:StandpointClaim ; rdfs:range gmeow:SupportStatus .
 }""" ;
-    gmeow:saRationale "The six reified object twins MUST be functional owl:ObjectProperty with domain gmeow:StandpointClaim and the matching axis range -- the StandpointClaim authoring form mirroring gmeow:claimModality." .
+    gmeow:saRationale "The six reified object twins MUST be owl:ObjectProperty with domain gmeow:StandpointClaim and the matching axis range -- the StandpointClaim authoring form mirroring gmeow:claimModality." .
 
-# --- 24. claimCredence is a functional DatatypeProperty range xsd:decimal (MUST) ---
+# --- 24. claimCredence is a DatatypeProperty range xsd:decimal (MUST) ---
 ex:saClaimCredenceDatatypeShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -374,11 +365,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:claimCredence a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:claimCredence a owl:DatatypeProperty ;
         rdfs:domain gmeow:StandpointClaim ;
         rdfs:range xsd:decimal .
 }""" ;
-    gmeow:saRationale "gmeow:claimCredence MUST be a functional owl:DatatypeProperty with domain gmeow:StandpointClaim and range xsd:decimal -- the precise numeric credence surface (0..1), paired with the qualitative gmeow:claimCredenceLevel the projection keys on." .
+    gmeow:saRationale "gmeow:claimCredence MUST be an owl:DatatypeProperty with domain gmeow:StandpointClaim and range xsd:decimal -- the precise numeric credence surface (0..1), paired with the qualitative gmeow:claimCredenceLevel the projection keys on." .
 
 # --- 25. Reified axis twins are NOT subPropertyOf observationResult (MUST-NOT) ---
 ex:saAxisTwinsNotSubpropertyObservationResult a gmeow:StructuralAssertion ;

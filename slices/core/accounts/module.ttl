@@ -73,8 +73,7 @@ gmeow:accountName
     gmeow:useWhen "Use for the human-readable handle or user name an account is known by on its service — the screen name a reader would type or recognize."@x-gmeow-english .
 
 gmeow:accountService
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account service"@x-gmeow-english ;
@@ -87,8 +86,7 @@ gmeow:accountService
     gmeow:useWhen "Use to link an account to the single service or platform it is held with — the account-to-service edge that places a handle on its network, forge, or federated instance."@x-gmeow-english .
 
 gmeow:accountServiceHomepage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account service homepage"@x-gmeow-english ;
@@ -188,8 +186,7 @@ gmeow:nostrPubkey
     gmeow:useWhen "Use for the Nostr public key (npub or hex form) that cryptographically identifies a decentralized-identity account, independent of any single relay or service."@x-gmeow-english .
 
 gmeow:serviceShutdownDate
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:OnlineService ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "service shutdown date"@x-gmeow-english ;

@@ -79,8 +79,7 @@ gmeow:Note
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:annotationBody
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Annotation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotation body"@x-gmeow-english ;
@@ -89,8 +88,7 @@ gmeow:annotationBody
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:annotationMotivation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Annotation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotation motivation"@x-gmeow-english ;
@@ -99,8 +97,7 @@ gmeow:annotationMotivation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:annotationTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Annotation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotation target"@x-gmeow-english ;

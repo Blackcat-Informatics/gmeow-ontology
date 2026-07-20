@@ -583,8 +583,7 @@ gmeow:honorificMx
     gmeow:honorificPosition gmeow:honorificPositionPrefix .
 
 gmeow:honorificPosition
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Honorific ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorific position"@x-gmeow-english ;
@@ -683,8 +682,7 @@ gmeow:honorificSri
     gmeow:honorificPosition gmeow:honorificPositionPrefix .
 
 gmeow:nameLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name language"@x-gmeow-english ;
@@ -936,8 +934,7 @@ gmeow:namePartTeknonym
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:namePartType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name part type"@x-gmeow-english ;
@@ -1094,8 +1091,7 @@ gmeow:partExpansion
     gmeow:useWhen "Use to carry the full word an abbreviated name part stands for — e.g. the expansion of a South-Indian (Tamil) initial — alongside the abbreviated gmeow:partText."@x-gmeow-english .
 
 gmeow:partOrder
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "part order"@x-gmeow-english ;
@@ -1263,8 +1259,7 @@ gmeow:pronounNeNem
     gmeow:pronounSubject "ne" .
 
 gmeow:pronounObject
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun object"@x-gmeow-english ;
@@ -1301,8 +1296,7 @@ gmeow:pronounPerPer
     gmeow:pronounSubject "per" .
 
 gmeow:pronounPossessive
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun possessive"@x-gmeow-english ;
@@ -1315,8 +1309,7 @@ gmeow:pronounPossessive
     gmeow:useWhen "Use to carry the possessive pronoun form of a gmeow:PronounSet — one of the five forms that define a custom set ('the book is theirs')."@x-gmeow-english .
 
 gmeow:pronounPossessiveDeterminer
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun possessive determiner"@x-gmeow-english ;
@@ -1329,8 +1322,7 @@ gmeow:pronounPossessiveDeterminer
     gmeow:useWhen "Use to carry the possessive determiner form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english .
 
 gmeow:pronounReflexive
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun reflexive"@x-gmeow-english ;
@@ -1355,8 +1347,7 @@ gmeow:pronounSheHer
     gmeow:pronounSubject "she" .
 
 gmeow:pronounSubject
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun subject"@x-gmeow-english ;
@@ -1507,8 +1498,7 @@ gmeow:romanization
     gmeow:useWhen "Use to carry a Latin-script transliteration of THE SAME appellation in another script — pinyin for a Chinese name, Hepburn for a Japanese one — for indexing and accessible rendering."@x-gmeow-english .
 
 gmeow:usageAppellation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage appellation"@x-gmeow-english ;
@@ -1560,8 +1550,7 @@ gmeow:usageInterval
     gmeow:useWhen "Use to carry the period over which a gmeow:NameUsage held — a former, historical, or life-stage-scoped name use that needs an explicit interval."@x-gmeow-english .
 
 gmeow:usageNamed
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage named"@x-gmeow-english ;
@@ -1587,8 +1576,7 @@ gmeow:usageNamer
     gmeow:useWhen "Use to record who actually uses the appellation — the speaker or perspective-holder behind a gmeow:NameUsage."@x-gmeow-english .
 
 gmeow:usageRegister
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage register"@x-gmeow-english ;
@@ -1601,8 +1589,7 @@ gmeow:usageRegister
     gmeow:useWhen "Use to record the social register of a gmeow:NameUsage — whether the name is used formally, intimately, professionally, or casually."@x-gmeow-english .
 
 gmeow:usageRelationshipScope
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage relationship scope"@x-gmeow-english ;

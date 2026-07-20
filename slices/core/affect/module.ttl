@@ -209,6 +209,20 @@ gmeow:AffectVectorObservation
     gmeow:howToUse "Mint the vector observation, name its basis with gmeow:vectorProfile, and attach one dimensional gmeow:Appraisal per axis via gmeow:vectorComponent; share vantage/target/elicitor/time across the cells."@x-gmeow-english ;
     gmeow:useWhen "Use to give a multi-axis affect reading one queryable identity — the stable handle for the vector, distinct from its per-axis cells and from any derived intensity."@x-gmeow-english .
 
+gmeow:AffectPrototype
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Prototype"@x-gmeow-english ;
+    logic:subClassOf gmeow:AffectVectorObservation ;
+    skos:definition "A named-emotion PROTOTYPE / region — a typical, idealized core-affect appraisal SIGNATURE labelling one gmeow:EmotionType, expressed in the canonical core-affect basis (gmeow:coreAffectMetricPAD, so every prototype shares one metric basis). 'Model up, don't mint': a named emotion is canonically a prototype/region (this) or a gmeow:AffectComposite, never an unanalyzed primitive. A prototype is a communication/bridging anchor and a classification LANDMARK, NOT ground truth — named emotions stay OPEN and CONTESTED (Principle 9), and nearest-prototype classification is a vantage-relative claim under a declared metric, never a stored label (Principle 12). Distinct from an episodic gmeow:AffectVectorObservation of a felt state: its gmeow:vantage is the naming TRADITION (gmeow:prototypeAuthority), not a real bearer, and its gmeow:observedFeature is the gmeow:EmotionType, not an occurrent episode."@x-gmeow-english ;
+    skos:example "gmeow:joyPrototype a gmeow:AffectPrototype ; gmeow:prototypeFor gmeow:emotionJoy ; gmeow:vantage gmeow:prototypeAuthority ; gmeow:observedFeature gmeow:emotionJoy ; gmeow:vectorProfile gmeow:coreAffectMetricPAD ; gmeow:vectorComponent gmeow:joyPrototypeValenceCell , gmeow:joyPrototypeArousalCell ."@x-gmeow-english ;
+    skos:scopeNote "Its vectorComponent cells read the CORE-AFFECT axes only (valence 0, arousal 1, dominance 2, unpredictability 3 — gmeow:coreAxisIndex), never the cognitive gmeow:AppraisalDimension axes (agency, norm, …), which differentiate composites but are not the metric basis. Two further invariants are NUMERIC and enforced OUTSIDE the logic at classification time (Principle 12), not as OWL/SHACL: every cell magnitude lies in the profile's bipolar [-1,1] range, and the authored prototypes are PAIRWISE DISTINCT under gmeow:coreAffectGram (coincident signatures are an authoring error and make the nearest-prototype margin bisector undefined)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a felt EPISODE (that is an ordinary gmeow:AffectVectorObservation with a real bearer/vantage) and for a named compound bound by relations to a specific elicitor/target (that is a gmeow:AffectComposite). Never treat the nearest prototype as ground truth — classification is metric- and vantage-relative."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:AffectPrototype per named gmeow:EmotionType, link it with gmeow:prototypeFor, hold it from gmeow:prototypeAuthority (gmeow:vantage) over that EmotionType (gmeow:observedFeature), name its basis gmeow:vectorProfile gmeow:coreAffectMetricPAD, and attach one core-affect gmeow:Appraisal cell per axis via gmeow:vectorComponent. Classification (gmeow affect classify) computes the nearest prototype under a declared vantage metric OUTSIDE the logic (Principle 12)."@x-gmeow-english ;
+    gmeow:useWhen "Use to author the canonical typical signature of a named emotion so an arbitrary affect vector can be classified by nearest labelled prototype under the declared core-affect metric (competency Q9: is this vector a schadenfreude?)."@x-gmeow-english .
+
 gmeow:DerivedAffectIntensityObservation
     a logic:SubKind ,
         owl:Class ;
@@ -388,8 +402,7 @@ gmeow:appraisalDimension
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal of"@x-gmeow-english ;
@@ -407,8 +420,7 @@ gmeow:appraisalQuality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalScaleProfile
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal scale profile"@x-gmeow-english ;
@@ -439,8 +451,7 @@ gmeow:dimensionFamily
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileMidpoint
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile midpoint"@x-gmeow-english ;
@@ -449,8 +460,7 @@ gmeow:profileMidpoint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profilePolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile polarity"@x-gmeow-english ;
@@ -459,8 +469,7 @@ gmeow:profilePolarity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMax
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range max"@x-gmeow-english ;
@@ -469,8 +478,7 @@ gmeow:profileRangeMax
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range min"@x-gmeow-english ;
@@ -479,8 +487,7 @@ gmeow:profileRangeMin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileTransform
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile transform"@x-gmeow-english ;
@@ -510,8 +517,7 @@ gmeow:derivedByFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:intensityBasis
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "intensity basis"@x-gmeow-english ;
@@ -520,8 +526,7 @@ gmeow:intensityBasis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricProfile
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric profile"@x-gmeow-english ;
@@ -530,8 +535,7 @@ gmeow:metricProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:normFunction
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "norm function"@x-gmeow-english ;
@@ -540,8 +544,7 @@ gmeow:normFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:labelSetDecision
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "label set decision"@x-gmeow-english ;
@@ -559,8 +562,7 @@ gmeow:impliesLabelSetDecision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decidedLabel
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decided label"@x-gmeow-english ;
@@ -569,8 +571,7 @@ gmeow:decidedLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionCrossedThreshold
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
@@ -579,14 +580,25 @@ gmeow:decisionCrossedThreshold
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision margin"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
     skos:definition "The top1−top2 score gap of a gmeow:AffectDecision — the derived confidence of the argmax call ('joy at 0.45 in a 7-way set' is a low-margin decision the boolean gmeow:decisionCrossedThreshold alone would discard). A derived view (Principle 12), recomputable from the scores, computed by gmeow:fnArgmax. OPTIONAL (functional, NO minCardinality): a run emitting a single top-1 score has no runner-up, so a legitimate single-score argmax decision carries no margin and is never a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:prototypeFor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "prototype for"@x-gmeow-english ;
+    rdfs:range gmeow:EmotionType ;
+    skos:definition "The gmeow:EmotionType a gmeow:AffectPrototype is the typical signature OF — the named emotion this prototype/region labels. Functional and mandatory: one prototype names exactly one emotion type. This LINK, not a stored classification verdict, is how a prototype carries its name; the nearest-prototype match against an arbitrary vector is a DERIVED, vantage-relative view (Principle 12), never written back onto the classified state."@x-gmeow-english ;
+    skos:example "gmeow:joyPrototype gmeow:prototypeFor gmeow:emotionJoy ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it on an episodic gmeow:AffectVectorObservation of a felt state (only a gmeow:AffectPrototype labels an emotion type) and avoid pointing it at a gmeow:AffectClassifierLabel (external labels are not gmeow:EmotionType — a category error)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "From a gmeow:AffectPrototype, point gmeow:prototypeFor at the single gmeow:EmotionType it is the typical signature of."@x-gmeow-english ;
+    gmeow:useWhen "Use to name which emotion a prototype/region labels, so nearest-prototype classification can report the winning emotion type."@x-gmeow-english .
 
 gmeow:vectorComponent
     a owl:ObjectProperty ;
@@ -602,8 +614,7 @@ gmeow:vectorComponent
     gmeow:useWhen "Use to group the per-axis appraisal cells that make up a vector reading under one queryable identity."@x-gmeow-english .
 
 gmeow:vectorProfile
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectVectorObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vector profile"@x-gmeow-english ;
@@ -612,8 +623,7 @@ gmeow:vectorProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:weightingPolicy
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weighting policy"@x-gmeow-english ;
@@ -622,8 +632,7 @@ gmeow:weightingPolicy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricGram
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric Gram matrix"@x-gmeow-english ;
@@ -632,8 +641,7 @@ gmeow:metricGram
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:coreAxisIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoreAffectDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "core axis index"@x-gmeow-english ;
@@ -642,8 +650,7 @@ gmeow:coreAxisIndex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sparseAxisCompletion
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sparse-axis completion"@x-gmeow-english ;
@@ -720,7 +727,7 @@ gmeow:modelFramework
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelIdentifier
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model identifier"@x-gmeow-english ;
@@ -729,7 +736,7 @@ gmeow:modelIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelRevision
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model revision"@x-gmeow-english ;
@@ -746,8 +753,7 @@ gmeow:modelTask
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producedBy
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "produced by"@x-gmeow-english ;
@@ -764,7 +770,7 @@ gmeow:scoreCalibration
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:scoreSemantics
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "score semantics"@x-gmeow-english ;
@@ -1178,8 +1184,7 @@ gmeow:emotionAnticipation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emotion bearer"@x-gmeow-english ;
@@ -1330,6 +1335,632 @@ gmeow-labelset:SST2
     rdfs:label "SST-2 binary sentiment"@x-gmeow-english ;
     skos:definition "The SST-2 binary sentiment label set (POSITIVE/NEGATIVE) — the default text-classification sentiment pipeline."@x-gmeow-english ;
     gmeow:labelSetDecision gmeow:decisionArgmax ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Canonical named-emotion PROTOTYPES (shipped A-Box) ─────────────────────────
+# 'Model up, don't mint': each named gmeow:EmotionType carries a TYPICAL core-affect
+# appraisal SIGNATURE as a gmeow:AffectPrototype in the canonical basis
+# (gmeow:coreAffectMetricPAD / gmeow:coreAffectGram), so an arbitrary affect vector can
+# be classified by nearest labelled prototype (competency Q9). The signatures are
+# idealized landmarks held from the naming TRADITION (gmeow:prototypeAuthority), open
+# and contested (Principle 9), never ground truth. Nearest-prototype classification is a
+# DERIVED, vantage-relative view computed OUTSIDE the logic over exact rationals through
+# the native bilinear-form builtin (Principle 12), never a stored label. Each cell reads
+# (gmeow:appraisalOf) its named gmeow:EmotionType — the emotion the prototype typifies.
+# Signatures are principled from the axis semantics of AFFECT-DESIGN.md (e.g.
+# unpredictability separates fear from anger at equal valence/arousal; pride/joy differ
+# on self-agency); the schadenfreude prototype reuses the shipped schadenfreudeComposite
+# core vector.
+
+gmeow:prototypeAuthority
+    a gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the affect prototype authority"@x-gmeow-english ;
+    skos:definition "The naming-TRADITION standpoint from which the canonical named-emotion prototypes are held — a gmeow:Standpoint (Principle 9), NOT a real bearer feeling the affect. The prototype signatures are typical/idealized landmarks authored from this vantage for human communication, external bridging, and classification; they remain open and contested, and a nearest-prototype match is a claim relative to THIS vantage and the declared metric, never ground truth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:joyPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the joy prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the joy prototype signature (0.8 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.8 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:joyPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the joy prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the joy prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:joyPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the joy prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the joy prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:joyPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the joy prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the joy prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionJoy ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue -0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:joyPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the joy prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of joy (Plutchik primary): strongly positive valence, moderate arousal, in-control dominance, low unpredictability."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionJoy ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionJoy ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:joyPrototypeValenceCell ,
+        gmeow:joyPrototypeArousalCell ,
+        gmeow:joyPrototypeDominanceCell ,
+        gmeow:joyPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the trust prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the trust prototype signature (0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.5 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the trust prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the trust prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue -0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the trust prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the trust prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the trust prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the trust prototype signature (-0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionTrust ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue -0.3 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the trust prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of trust (Plutchik primary): positive valence, calm low arousal, mildly in-control, low unpredictability."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionTrust ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionTrust ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:trustPrototypeValenceCell ,
+        gmeow:trustPrototypeArousalCell ,
+        gmeow:trustPrototypeDominanceCell ,
+        gmeow:trustPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fearPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the fear prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the fear prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.6 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fearPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the fear prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the fear prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fearPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the fear prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the fear prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue -0.6 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fearPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the fear prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the fear prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionFear ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fearPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the fear prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of fear (Plutchik primary): negative valence, high arousal, low control (dominated), HIGH unpredictability — the axis that separates fear from anger at equal valence/arousal."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionFear ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionFear ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:fearPrototypeValenceCell ,
+        gmeow:fearPrototypeArousalCell ,
+        gmeow:fearPrototypeDominanceCell ,
+        gmeow:fearPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surprisePrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the surprise prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the surprise prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surprisePrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the surprise prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the surprise prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surprisePrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the surprise prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the surprise prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue -0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surprisePrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the surprise prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the surprise prototype signature (0.9 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSurprise ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue 0.9 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:surprisePrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the surprise prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of surprise (Plutchik primary): near-neutral valence, high arousal, low control, MAXIMAL unpredictability (the startle axis)."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionSurprise ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionSurprise ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:surprisePrototypeValenceCell ,
+        gmeow:surprisePrototypeArousalCell ,
+        gmeow:surprisePrototypeDominanceCell ,
+        gmeow:surprisePrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sadnessPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the sadness prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the sadness prototype signature (-0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sadnessPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the sadness prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the sadness prototype signature (-0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue -0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sadnessPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the sadness prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the sadness prototype signature (-0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue -0.5 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sadnessPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the sadness prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the sadness prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSadness ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue -0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sadnessPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the sadness prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of sadness (Plutchik primary): strongly negative valence, low arousal, low control, low unpredictability."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionSadness ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionSadness ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:sadnessPrototypeValenceCell ,
+        gmeow:sadnessPrototypeArousalCell ,
+        gmeow:sadnessPrototypeDominanceCell ,
+        gmeow:sadnessPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:disgustPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the disgust prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the disgust prototype signature (-0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.6 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:disgustPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the disgust prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the disgust prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:disgustPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the disgust prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the disgust prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:disgustPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the disgust prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the disgust prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionDisgust ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue -0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:disgustPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the disgust prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of disgust (Plutchik primary): negative valence, mild arousal, mild control (rejecting), low unpredictability."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionDisgust ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionDisgust ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:disgustPrototypeValenceCell ,
+        gmeow:disgustPrototypeArousalCell ,
+        gmeow:disgustPrototypeDominanceCell ,
+        gmeow:disgustPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:angerPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anger prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the anger prototype signature (-0.5 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.5 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:angerPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anger prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the anger prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:angerPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anger prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the anger prototype signature (0.6 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.6 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:angerPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anger prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the anger prototype signature (0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnger ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue 0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:angerPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anger prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of anger (Plutchik primary): negative valence, high arousal, HIGH control (in-control), LOW unpredictability — the dominance/unpredictability contrast with fear at equal valence/arousal."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionAnger ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionAnger ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:angerPrototypeValenceCell ,
+        gmeow:angerPrototypeArousalCell ,
+        gmeow:angerPrototypeDominanceCell ,
+        gmeow:angerPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anticipationPrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anticipation prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the anticipation prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anticipationPrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anticipation prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the anticipation prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anticipationPrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anticipation prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the anticipation prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anticipationPrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anticipation prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the anticipation prototype signature (0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionAnticipation ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue 0.3 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anticipationPrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the anticipation prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of anticipation (Plutchik primary): mildly positive valence, moderate arousal, mild control, moderately raised unpredictability (a prospective, forward-leaning quality)."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionAnticipation ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionAnticipation ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:anticipationPrototypeValenceCell ,
+        gmeow:anticipationPrototypeArousalCell ,
+        gmeow:anticipationPrototypeDominanceCell ,
+        gmeow:anticipationPrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:saudadePrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the saudade prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the saudade prototype signature (-0.1 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.1 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:saudadePrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the saudade prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the saudade prototype signature (0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:saudadePrototypeDominanceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the saudade prototype dominance reading"@x-gmeow-english ;
+    skos:definition "The typical dominance core-affect magnitude of the saudade prototype signature (-0.3 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue -0.3 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:saudadePrototypeUnpredictabilityCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the saudade prototype unpredictability reading"@x-gmeow-english ;
+    skos:definition "The typical unpredictability core-affect magnitude of the saudade prototype signature (-0.2 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSaudade ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue -0.2 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:saudadePrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the saudade prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of saudade (a named composite prototype): net bittersweet mixed valence (the aching edging out the warmth), gentle arousal, yielding low control, low unpredictability. Its distinctive past/absent temporal orientation is a COGNITIVE appraisal axis carried by the gmeow:AffectComposite, not part of this core-affect signature."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionSaudade ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionSaudade ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:saudadePrototypeValenceCell ,
+        gmeow:saudadePrototypeArousalCell ,
+        gmeow:saudadePrototypeDominanceCell ,
+        gmeow:saudadePrototypeUnpredictabilityCell ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudePrototypeValenceCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude prototype valence reading"@x-gmeow-english ;
+    skos:definition "The typical valence core-affect magnitude of the schadenfreude prototype signature (0.7 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSchadenfreude ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.7 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudePrototypeArousalCell
+    a gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude prototype arousal reading"@x-gmeow-english ;
+    skos:definition "The typical arousal core-affect magnitude of the schadenfreude prototype signature (0.4 on the bipolar PAD unit scale) — a typical/idealized landmark held from the naming tradition, never a felt reading of a real bearer."@x-gmeow-english ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:appraisalOf gmeow:emotionSchadenfreude ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:schadenfreudePrototype
+    a gmeow:AffectPrototype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "the schadenfreude prototype"@x-gmeow-english ;
+    skos:definition "The typical core-affect signature of schadenfreude (a named composite prototype), reusing the shipped gmeow:schadenfreudeComposite core vector: positive valence with moderate arousal; its other-directed agency and deservingness/norm structure are COGNITIVE appraisal axes carried by the gmeow:AffectComposite, not part of this core-affect signature. Dominance and unpredictability are zero-completed (gmeow:sparseAxisCompletion)."@x-gmeow-english ;
+    gmeow:prototypeFor gmeow:emotionSchadenfreude ;
+    gmeow:vantage gmeow:prototypeAuthority ;
+    gmeow:observedFeature gmeow:emotionSchadenfreude ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent gmeow:schadenfreudePrototypeValenceCell ,
+        gmeow:schadenfreudePrototypeArousalCell ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── Canonical schadenfreude worked instance (shipped A-Box) ───────────────────
@@ -1756,7 +2387,7 @@ gmeow:Appraisal rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AffectScaleProfile ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/emotionBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Appraisal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/appraisalOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -1827,8 +2458,60 @@ logic:arsDim a logic:Formula ; logic:relation gmeow:appraisalDimension ;
 logic:arsVal a logic:Formula ; logic:relation gmeow:appraisalValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .
 
+# Every gmeow:AffectPrototype names the gmeow:EmotionType it is the typical signature of:
+# gmeow:prototypeFor is mandatory (min-1). With owl:FunctionalProperty + rdfs:range
+# gmeow:EmotionType this is exactly-one-of-the-right-type. Authored as a GROUNDED
+# logic:Constraint (not a hand-authored owl:Restriction) so the min-1 obligation projects
+# through the Principle-17 SHACL-derive path, OFF the ungrounded-rdfs residue ledger.
+gmeow:AffectPrototypePrototypeForPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectPrototype prototypeFor-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectPrototype declares the gmeow:EmotionType it is the typical signature of via gmeow:prototypeFor."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectPrototype , gmeow:AffectPrototypeShape ;
+    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:prototypeFor — a prototype OF no named gmeow:EmotionType is meaningless. With owl:FunctionalProperty + rdfs:range gmeow:EmotionType this is exactly-one EmotionType." ;
+    logic:integrity logic:pfpForall .
+logic:pfpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pfpImpl .
+logic:pfpImpl a logic:Formula ; logic:antecedent logic:pfpGuard ; logic:consequent logic:pfpExists .
+logic:pfpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectPrototype ] .
+logic:pfpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:pfpAtom .
+logic:pfpAtom a logic:Formula ; logic:relation gmeow:prototypeFor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+# Every gmeow:AffectPrototype carries at least one gmeow:vectorComponent cell (min-1): a
+# prototype with no readable core-affect cell is an empty signature. The classify runtime
+# `load_cells` already hard-fails it, but validation belongs in logic: — this GROUNDED
+# logic:Constraint restores the ontology-level obligation (projected to SHACL, off the
+# residue ledger) so `make validate` catches a cell-less prototype too.
+gmeow:AffectPrototypeVectorComponentPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectPrototype vectorComponent-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectPrototype declares at least one gmeow:vectorComponent core-affect cell."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectPrototype , gmeow:AffectPrototypeShape ;
+    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:vectorComponent cell — a prototype with no core-affect signature cell is an empty vector." ;
+    logic:integrity logic:vcpForall .
+logic:vcpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:vcpImpl .
+logic:vcpImpl a logic:Formula ; logic:antecedent logic:vcpGuard ; logic:consequent logic:vcpExists .
+logic:vcpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectPrototype ] .
+logic:vcpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:vcpAtom .
+logic:vcpAtom a logic:Formula ; logic:relation gmeow:vectorComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the affect-domain closed-world shapes  #
+# Migrated procedural constraints: the affect-domain closed-world shapes          #
 # from shapes/gmeow-shapes.ttl, re-authored as logic:Constraint integrity trees   #
 # and projected to generated/shapes/procedural-constraints.ttl (Principle 17).     #
 # =========================================================================== #
@@ -2414,7 +3097,7 @@ gmeow:AppraisalValueRequiresDimensionConstraint
     logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world Emotion              #
+# Migrated procedural constraints: the closed-world Emotion                      #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
 # =========================================================================== #
 

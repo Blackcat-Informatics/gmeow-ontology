@@ -547,8 +547,7 @@ gmeow:extent
     gmeow:useWhen "Use for a human-readable size or duration of a creative work — '635 pages', '47 minutes', '2.3 MB' — captured as a literal."@x-gmeow-english .
 
 gmeow:feedPostingKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:FeedPosting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "posting kind"@x-gmeow-english ;
@@ -622,8 +621,7 @@ gmeow:identifier
     gmeow:useWhen "Use for a formal external identifier of a creative work — a DOI, ISBN, patent number, or accession; non-functional, so a work may carry several identifier schemes."@x-gmeow-english .
 
 gmeow:imageOrientation
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "image orientation"@x-gmeow-english ;
@@ -636,8 +634,7 @@ gmeow:imageOrientation
     gmeow:useWhen "Use for the clockwise EXIF rotation of an image from its normal orientation, in degrees (0/90/180/270); functional, one orientation per manifestation."@x-gmeow-english .
 
 gmeow:mediaType
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "media type"@x-gmeow-english ;
@@ -664,8 +661,7 @@ gmeow:pageOfSite
     gmeow:useWhen "Use to record that a web page belongs to a web site — the page→site membership a breadcrumb trail walks; rides the universal gmeow:partOf spine."@x-gmeow-english .
 
 gmeow:pagePrincipalSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:WebPage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "page main entity"@x-gmeow-english ;
@@ -679,8 +675,7 @@ gmeow:pagePrincipalSubject
     gmeow:useWhen "Use to name the one entity a web page is primarily about — the subject of a profile or about page; functional, a page has at most one principal subject."@x-gmeow-english .
 
 gmeow:pixelHeight
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixel height"@x-gmeow-english ;
@@ -693,8 +688,7 @@ gmeow:pixelHeight
     gmeow:useWhen "Use for the pixel height of a media object — an image or video frame; functional, one height per manifestation."@x-gmeow-english .
 
 gmeow:pixelWidth
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixel width"@x-gmeow-english ;
@@ -733,8 +727,7 @@ gmeow:quotesContent
     gmeow:useWhen "Use to link a work to another resource it quotes — a quoted post, cited passage, or external page; non-functional, so a work may quote several sources."@x-gmeow-english .
 
 gmeow:segmentIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segment index"@x-gmeow-english ;
@@ -763,8 +756,7 @@ gmeow:segmentOf
     gmeow:useWhen "Use from the part's side to say a gmeow:ContentSegment belongs to a larger whole — a scene in a chapter, a chapter in a work; transitive, so nested structure closes up the spine."@x-gmeow-english .
 
 gmeow:segmentType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segment type"@x-gmeow-english ;

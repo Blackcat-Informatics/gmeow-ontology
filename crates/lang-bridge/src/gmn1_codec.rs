@@ -141,6 +141,13 @@ const BLANK_PREFIX: &str = "_b";
 /// literal lexical form is never allowed to collide with a reference key (see
 /// [`classify_literal`]).
 const REF_PREFIX: &str = "r_";
+/// The by-reference raw-external-IRI-key token prefix: reserved so an external IRI under
+/// no registered namespace (an arbitrary URL like `<https://mastodon.social>`) rides
+/// LOSSLESSLY by reference — content-addressed as `x_<digest16>`, its full IRI carried
+/// out-of-band in the reference table, exactly mirroring the `r_` literal-by-reference
+/// machinery. Disjoint from every other token shape (see [`intern_iri_ref`] /
+/// [`decode_reference`]).
+const REF_IRI_PREFIX: &str = "x_";
 
 const DIALECT_VERSION: &str = "1";
 const DICTIONARY_VERSION: &str = "3";
@@ -624,6 +631,7 @@ impl GmnGlyphRegistry {
             if !is_identifier(fallback)
                 || fallback.starts_with(BLANK_PREFIX)
                 || fallback.starts_with(REF_PREFIX)
+                || fallback.starts_with(REF_IRI_PREFIX)
             {
                 return Err(GlyphRegistryError(format!(
                     "adopted glyph candidate {candidate} has non-executable ASCII fallback {fallback:?}"
@@ -1353,7 +1361,10 @@ impl GmnDictionary {
             let alias = aliases.get(entry).ok_or_else(|| {
                 DictionaryError(format!("dictionary entry {entry} has a term but no alias"))
             })?;
-            if alias.starts_with(BLANK_PREFIX) || alias.starts_with(REF_PREFIX) {
+            if alias.starts_with(BLANK_PREFIX)
+                || alias.starts_with(REF_PREFIX)
+                || alias.starts_with(REF_IRI_PREFIX)
+            {
                 return Err(DictionaryError(format!(
                     "dictionary alias {alias:?} for {term} collides with a reserved token shape"
                 )));
@@ -1656,6 +1667,15 @@ pub enum Gmn1ConstructCategory {
     IriPrefixMangledSlashEscaped,
     /// An IRI that IS a registered namespace's own bare root (empty local part).
     IriBareNamespaceRoot,
+    /// An IRI under NO registered namespace (an arbitrary external URL like
+    /// `<https://mastodon.social>`) riding LOSSLESSLY by reference as an `x_<hash>` token,
+    /// its full IRI carried out-of-band in the document's reference table — the mirror of
+    /// [`Self::LiteralByReference`] for reference-position external IRIs. Deliberately
+    /// OUTSIDE [`Self::ALL`] (see its doc), exactly like [`Self::TripleTerm`]: the grounding
+    /// slices carry no external IRIs, so demanding the corpus-completeness audit exercise
+    /// one would red the grounding completeness gate. Its round-trip is proven by the
+    /// codec's own fixtures.
+    IriExternalByReference,
     /// A blank node in a reference-position slot.
     BlankNode,
     /// An `xsd:string` literal, identifier-shaped, inlined directly as a GMN-1
@@ -1716,6 +1736,7 @@ impl Gmn1ConstructCategory {
             | Self::IriPrefixMangled
             | Self::IriPrefixMangledSlashEscaped
             | Self::IriBareNamespaceRoot
+            | Self::IriExternalByReference
             | Self::BlankNode
             | Self::LiteralIdentifier
             | Self::LiteralInteger
@@ -1728,13 +1749,28 @@ impl Gmn1ConstructCategory {
 
 // ── Term ⇄ token codec (shared by every record field position) ─────────────────────
 
-/// A by-reference literal payload the reference table carries (langString, arbitrary
-/// prose, or any non-integer/decimal datatype).
+/// A by-reference payload the reference table carries out-of-band, keyed by a reserved
+/// content-addressed token. Two disjoint payload kinds share the one table:
+///
+/// * [`Self::Literal`] — a literal the text names via an `r_<hash>` key (langString,
+///   arbitrary prose, or any non-integer/decimal datatype).
+/// * [`Self::Iri`] — a raw external IRI under no registered namespace the text names via
+///   an `x_<hash>` key (an arbitrary URL like `<https://mastodon.social>`), carried
+///   losslessly rather than hard-failing as `lang:GmnUncoveredTerm`.
+///
+/// The reserved prefixes (`r_` vs `x_`) keep the two kinds disjoint in the text, and the
+/// value/reference position of the naming slot keeps them disjoint on decode (a value slot
+/// only accepts a [`Self::Literal`]; a reference slot only accepts a [`Self::Iri`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct RefPayload {
-    lexical: String,
-    datatype: Option<String>,
-    language: Option<String>,
+enum RefPayload {
+    /// A literal payload, named by an `r_<hash>` value-position token.
+    Literal {
+        lexical: String,
+        datatype: Option<String>,
+        language: Option<String>,
+    },
+    /// A raw external IRI, named by an `x_<hash>` reference-position token.
+    Iri(String),
 }
 
 /// The GMN-1 artifact this codec's writer produces: the record TEXT plus the
@@ -1788,8 +1824,7 @@ fn classify_reference(
     sigil: &str,
 ) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
-        RdfTerm::Iri(iri) => classify_iri(iri, dict, ns_to_prefix, sigil)
-            .ok_or_else(|| UncoveredTerm(format!("IRI under no registered namespace: {iri}"))),
+        RdfTerm::Iri(iri) => Ok(classify_iri(iri, dict, ns_to_prefix, refs, sigil)),
         RdfTerm::BlankNode(label) => {
             if !is_safe_token_body(label) {
                 return Err(UncoveredTerm(format!(
@@ -1926,17 +1961,23 @@ fn encode_value(
 /// resolution took, for [`classify_reference`]/[`classify_model`]'s audit use — the
 /// classification is computed inline (never a second, drift-prone re-derivation of the
 /// same branches).
+///
+/// An IRI under NO registered namespace no longer hard-fails: it rides LOSSLESSLY by
+/// reference as an `x_<hash>` token ([`Gmn1ConstructCategory::IriExternalByReference`]),
+/// its full IRI carried out-of-band in `refs`, exactly mirroring the literal-by-reference
+/// machinery. The function is therefore TOTAL over any IRI (no `None` residual).
 fn classify_iri(
     iri: &str,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
+    refs: &mut BTreeMap<String, RefPayload>,
     sigil: &str,
-) -> Option<(String, Gmn1ConstructCategory)> {
+) -> (String, Gmn1ConstructCategory) {
     if let Some(glyph) = dict.glyph_for(iri, sigil) {
-        return Some((glyph.to_owned(), Gmn1ConstructCategory::IriGlyph));
+        return (glyph.to_owned(), Gmn1ConstructCategory::IriGlyph);
     }
     if let Some(alias) = dict.alias_for(iri) {
-        return Some((alias.to_owned(), Gmn1ConstructCategory::IriDictAlias));
+        return (alias.to_owned(), Gmn1ConstructCategory::IriDictAlias);
     }
     for (ns, prefix) in ns_to_prefix {
         if let Some(local) = iri.strip_prefix(ns.as_str())
@@ -1949,17 +1990,22 @@ fn classify_iri(
             } else {
                 Gmn1ConstructCategory::IriPrefixMangled
             };
-            return Some((format!("{prefix}{SEP}{mangled}"), category));
+            return (format!("{prefix}{SEP}{mangled}"), category);
         }
         // The bare namespace root itself (e.g. the ontology's own base IRI, used as an
         // `owl:imports` object with no trailing slash): the local part is empty, so
         // there is nothing to mangle — the prefix ALONE is the token (still injective:
         // it is disjoint from every `prefix__local` token, which always contains SEP).
         if iri == ns.trim_end_matches('/') {
-            return Some((prefix.clone(), Gmn1ConstructCategory::IriBareNamespaceRoot));
+            return (prefix.clone(), Gmn1ConstructCategory::IriBareNamespaceRoot);
         }
     }
-    None
+    // No registered namespace covers this IRI: carry it LOSSLESSLY by reference as an
+    // `x_<hash>` token rather than hard-failing as `lang:GmnUncoveredTerm`.
+    (
+        intern_iri_ref(iri, refs),
+        Gmn1ConstructCategory::IriExternalByReference,
+    )
 }
 
 /// The reversible escape for a literal `/` inside a mangled local name — an external
@@ -2078,6 +2124,7 @@ fn classify_literal(
         && is_identifier(&lit.lexical_form)
         && !lit.lexical_form.starts_with(BLANK_PREFIX)
         && !lit.lexical_form.starts_with(REF_PREFIX)
+        && !lit.lexical_form.starts_with(REF_IRI_PREFIX)
     {
         return (
             lit.lexical_form.clone(),
@@ -2128,11 +2175,25 @@ fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>)
             )
         )
     );
-    refs.entry(key.clone()).or_insert_with(|| RefPayload {
-        lexical: lit.lexical_form.clone(),
-        datatype: lit.datatype.clone(),
-        language: lit.language.clone(),
-    });
+    refs.entry(key.clone())
+        .or_insert_with(|| RefPayload::Literal {
+            lexical: lit.lexical_form.clone(),
+            datatype: lit.datatype.clone(),
+            language: lit.language.clone(),
+        });
+    key
+}
+
+/// Mint (or reuse) the content-addressed `x_<hash>` by-reference key for a raw external
+/// IRI under no registered namespace, and register its full IRI in `refs`. The mirror of
+/// [`intern_literal_ref`] for reference-position external IRIs — interned first-wins via
+/// the entry API so two occurrences of the same IRI share one reference-table entry, and
+/// content-addressed with a domain seed (`gmn1-external-iri`) distinct from the literal
+/// table's (`gmn1-literal`) so the two content-address spaces never alias.
+fn intern_iri_ref(iri: &str, refs: &mut BTreeMap<String, RefPayload>) -> String {
+    let key = format!("{REF_IRI_PREFIX}{}", digest16("gmn1-external-iri", iri));
+    refs.entry(key.clone())
+        .or_insert_with(|| RefPayload::Iri(iri.to_owned()));
     key
 }
 
@@ -2165,6 +2226,23 @@ fn decode_reference(
             )));
         }
         return Ok(RdfTerm::BlankNode(label.to_owned()));
+    }
+    // A raw-external-IRI by-reference token (`x_<hash>`): the two-sided inverse of
+    // [`intern_iri_ref`]. Placed BEFORE the dictionary/glyph lookups so a forged `x_`-shaped
+    // dictionary alias or glyph could never shadow it (the reserved-prefix guards already
+    // forbid such an alias/glyph/fallback, so this ordering is a belt-and-suspenders). A
+    // dangling token with no reference-table entry is `lang:GmnUncoveredTerm`, never a
+    // silent drop — the same stance the `r_` value-table dangling case takes.
+    if token.starts_with(REF_IRI_PREFIX) {
+        return match refs.get(token) {
+            Some(RefPayload::Iri(iri)) => Ok(RdfTerm::Iri(iri.clone())),
+            Some(RefPayload::Literal { .. }) => Err(non_decodable(format!(
+                "by-reference IRI key {token} resolved to a literal payload in reference position"
+            ))),
+            None => Err(Gmn1Error::Uncovered(UncoveredTerm(format!(
+                "dangling by-reference IRI token with no reference-table entry: {token}"
+            )))),
+        };
     }
     if let Some(term) = dict.term_for(token) {
         return Ok(RdfTerm::Iri(term.to_owned()));
@@ -2206,7 +2284,12 @@ fn decode_value(token: &str, refs: &BTreeMap<String, RefPayload>) -> Result<RdfT
     }
     if token.starts_with(REF_PREFIX) {
         return match refs.get(token) {
-            Some(payload) => Ok(payload_to_term(payload)),
+            Some(payload @ RefPayload::Literal { .. }) => Ok(payload_to_term(payload)),
+            // An `x_<hash>` IRI payload is a REFERENCE-position construct; it can never
+            // legitimately appear in a value slot (`v`/`q`), which only carries a literal.
+            Some(RefPayload::Iri(_)) => Err(non_decodable(format!(
+                "by-reference literal key {token} resolved to an IRI payload in value position"
+            ))),
             None => Err(Gmn1Error::Uncovered(UncoveredTerm(format!(
                 "dangling by-reference token with no reference-table entry: {token}"
             )))),
@@ -2231,12 +2314,22 @@ fn decode_value(token: &str, refs: &BTreeMap<String, RefPayload>) -> Result<RdfT
 }
 
 fn payload_to_term(payload: &RefPayload) -> RdfTerm {
-    RdfTerm::Literal(RdfLiteral {
-        lexical_form: payload.lexical.clone(),
-        datatype: payload.datatype.clone(),
-        language: payload.language.clone(),
-        direction: None,
-    })
+    match payload {
+        RefPayload::Literal {
+            lexical,
+            datatype,
+            language,
+        } => RdfTerm::Literal(RdfLiteral {
+            lexical_form: lexical.clone(),
+            datatype: datatype.clone(),
+            language: language.clone(),
+            direction: None,
+        }),
+        // Unreachable in practice: the sole caller ([`decode_value`]) matches
+        // `RefPayload::Literal` before delegating here, so an IRI payload never reaches
+        // this function. An IRI payload is a REFERENCE-position construct, never a literal.
+        RefPayload::Iri(iri) => RdfTerm::Iri(iri.clone()),
+    }
 }
 
 /// Decode a `( s p o )` triple-term token back to an [`RdfTriple`] — the two-sided inverse
@@ -4331,20 +4424,78 @@ ex:fixtureDenotation a lang:Denotation ;
     }
 
     #[test]
-    fn iri_under_no_registered_namespace_is_uncovered() {
+    fn iri_under_no_registered_namespace_rides_by_reference() {
+        // G11 (issue 1579): an IRI under no registered namespace no longer hard-fails as
+        // `lang:GmnUncoveredTerm` — it rides LOSSLESSLY by reference as an `x_<hash>` token,
+        // its full IRI carried out-of-band in the reference table. This mirrors the
+        // literal-by-reference machinery and lets realistic external URLs round-trip.
+        let external = "https://mastodon.social";
         let mut b = RdfDatasetBuilder::new();
-        let s = b.intern_iri("https://not-registered.example/subject");
-        let p = b.intern_iri(&format!("{GMEOW_NS}hasState"));
-        let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
+        let s = b.intern_iri(&format!("{GMEOW_NS}account1"));
+        let p = b.intern_iri(&format!("{GMEOW_NS}accountServiceHomepage"));
+        let o = b.intern_iri(external);
         b.push_quad(s, p, o, None);
         let ds = b.freeze().expect("freeze");
         let model = Gmn0Model::from_dataset(&ds);
         let dict = empty_dict();
-        let err = round_trip_check(&model, &dict).expect_err("must hard-fail, not drop");
-        match err {
-            Gmn1Error::Uncovered(_) => {}
-            other => panic!("expected Uncovered, got {other:?}"),
-        }
+
+        // It round-trips losslessly (no hard fail, canonical equality holds).
+        round_trip_check(&model, &dict).expect("an external IRI rides by reference losslessly");
+
+        // The surface text names the IRI via an `x_` token and NEVER inlines the raw URL.
+        let doc = gmn1_write(&model, &dict).expect("write");
+        assert!(
+            doc.text.contains("x_"),
+            "the surface must carry an x_ by-reference IRI token: {}",
+            doc.text
+        );
+        assert!(
+            !doc.text.contains("mastodon.social"),
+            "the raw external URL must never appear inline in the surface text: {}",
+            doc.text
+        );
+
+        // The object classifies as the new IriExternalByReference category.
+        let classes = classify_model(&model, &dict);
+        assert!(
+            classes.iter().any(|c| matches!(
+                c,
+                QuadCoverage::Covered {
+                    object: Gmn1ConstructCategory::IriExternalByReference,
+                    ..
+                }
+            )),
+            "the external-IRI object must classify as IriExternalByReference: {classes:?}"
+        );
+    }
+
+    #[test]
+    fn distinct_external_iris_mint_distinct_tokens() {
+        // The collision assumption: two DIFFERENT external IRIs must mint two DIFFERENT
+        // `x_<hash>` tokens (a digest collision would surface as a round-trip mismatch).
+        let dict = empty_dict();
+        let one = "https://mastodon.social";
+        let two = "https://bsky.app";
+        let mut refs = BTreeMap::new();
+        let (tok_one, cat_one) = classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        let (tok_two, cat_two) = classify_iri(two, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        assert_eq!(cat_one, Gmn1ConstructCategory::IriExternalByReference);
+        assert_eq!(cat_two, Gmn1ConstructCategory::IriExternalByReference);
+        assert_ne!(
+            tok_one, tok_two,
+            "distinct external IRIs must mint distinct x_ tokens"
+        );
+        // Both payloads coexist in the one out-of-band table, each resolving to its IRI.
+        assert_eq!(refs.get(&tok_one), Some(&RefPayload::Iri(one.to_owned())));
+        assert_eq!(refs.get(&tok_two), Some(&RefPayload::Iri(two.to_owned())));
+        // Interning the same IRI again is first-wins (one shared entry, stable token).
+        let (tok_one_again, _) = classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        assert_eq!(tok_one, tok_one_again);
+        assert_eq!(
+            refs.len(),
+            2,
+            "first-wins interning shares one entry per IRI"
+        );
     }
 
     #[test]
@@ -4401,18 +4552,24 @@ ex:fixtureDenotation a lang:Denotation ;
 
     #[test]
     fn measure_coverage_counts_an_uncovered_quad_without_hard_failing() {
-        let mut b = RdfDatasetBuilder::new();
-        let s1 = b.intern_iri(&format!("{GMEOW_NS}gate1"));
-        let p1 = b.intern_iri(&format!("{GMEOW_NS}hasState"));
-        let o1 = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
-        b.push_quad(s1, p1, o1, None);
-        // A second, deliberately uncovered quad: an IRI under no registered namespace.
-        let s2 = b.intern_iri("https://not-registered.example/subject");
-        let p2 = b.intern_iri(&format!("{GMEOW_NS}hasState"));
-        let o2 = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
-        b.push_quad(s2, p2, o2, None);
-        let ds = b.freeze().expect("freeze");
-        let model = Gmn0Model::from_dataset(&ds);
+        // A first, fully covered quad (registered-namespace IRIs).
+        let covered = RdfQuad::new(
+            RdfTerm::Iri(format!("{GMEOW_NS}gate1")),
+            format!("{GMEOW_NS}hasState"),
+            RdfTerm::Iri(format!("{GMEOW_NS}doorGate1")),
+        );
+        // A second, deliberately uncovered quad: a blank-node subject whose label carries
+        // the `__` separator, so `is_safe_token_body` rejects it and the blank arm raises
+        // UncoveredTerm. (An external-namespace IRI is NO LONGER uncovered — it now rides
+        // by reference — so the still-uncovered witness must be an unsafe blank label.)
+        let uncovered = RdfQuad::new(
+            RdfTerm::BlankNode("a__b".to_owned()),
+            format!("{GMEOW_NS}hasState"),
+            RdfTerm::Iri(format!("{GMEOW_NS}doorGate1")),
+        );
+        let model = Gmn0Model {
+            quads: vec![covered, uncovered],
+        };
         let dict = empty_dict();
         let report = measure_coverage(&model, &dict);
         assert_eq!(report.total, 2, "both quads are measured");

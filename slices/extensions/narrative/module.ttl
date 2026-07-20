@@ -205,8 +205,7 @@ gmeow:arcEvidence
         gmeow:boxRBox .
 
 gmeow:arcFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "arc frame"@x-gmeow-english ;
@@ -225,8 +224,7 @@ gmeow:arcSample
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:arcSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "arc subject"@x-gmeow-english ;
@@ -235,8 +233,7 @@ gmeow:arcSubject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:arcType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "arc type"@x-gmeow-english ;
@@ -335,8 +332,7 @@ gmeow:developmentSignalText
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:discourseTimeOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeTimeFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "discourse time of"@x-gmeow-english ;
@@ -435,8 +431,7 @@ gmeow:motifOccursIn
     gmeow:pairsWith gmeow:NarrationUsage .
 
 gmeow:mythFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Myth ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "myth frame"@x-gmeow-english ;
@@ -515,8 +510,7 @@ gmeow:narrationMode
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrationSegment
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrationUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narration segment"@x-gmeow-english ;
@@ -525,8 +519,7 @@ gmeow:narrationSegment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrationSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrationUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narration subject"@x-gmeow-english ;
@@ -541,8 +534,7 @@ gmeow:narrationUnreliable
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:narrativeFrameLinkRelation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative frame link relation"@x-gmeow-english ;
@@ -551,8 +543,7 @@ gmeow:narrativeFrameLinkRelation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrativeFrameLinkSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative frame link source"@x-gmeow-english ;
@@ -562,8 +553,7 @@ gmeow:narrativeFrameLinkSource
         gmeow:boxRBox .
 
 gmeow:narrativeFrameLinkTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative frame link target"@x-gmeow-english ;
@@ -572,8 +562,7 @@ gmeow:narrativeFrameLinkTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrativeRoleBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RoleInNarrative ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative role bearer"@x-gmeow-english ;
@@ -582,8 +571,7 @@ gmeow:narrativeRoleBearer
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrativeRoleScope
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RoleInNarrative ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative role scope"@x-gmeow-english ;
@@ -592,8 +580,7 @@ gmeow:narrativeRoleScope
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrativeRoleValue
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RoleInNarrative ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative role value"@x-gmeow-english ;
@@ -602,8 +589,7 @@ gmeow:narrativeRoleValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrativeTimeAxis
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeTimeFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrative time axis"@x-gmeow-english ;
@@ -612,8 +598,7 @@ gmeow:narrativeTimeAxis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:positionFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativePosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "position frame"@x-gmeow-english ;
@@ -631,8 +616,7 @@ gmeow:positionLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:positionOrdinal
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:NarrativePosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "position ordinal"@x-gmeow-english ;
@@ -768,8 +752,7 @@ gmeow:roleTrickster
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:samplePosition
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArcSample ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "sample position"@x-gmeow-english ;
@@ -778,8 +761,7 @@ gmeow:samplePosition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sampleState
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArcSample ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "sample state"@x-gmeow-english ;
@@ -787,8 +769,7 @@ gmeow:sampleState
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sampleSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ArcSample ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "sample subject"@x-gmeow-english ;
@@ -808,8 +789,7 @@ gmeow:sourceFor
         gmeow:boxRBox .
 
 gmeow:storyTimeOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeTimeFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "story time of"@x-gmeow-english ;

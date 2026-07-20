@@ -676,8 +676,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:scheduleTemplateEvent rdfs:domain gmeow:EventSchedule ;
-        rdfs:range gmeow:Event ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:Event .
     gmeow:scheduleRecurrenceRule rdfs:domain gmeow:EventSchedule ;
         rdfs:range gmeow:RecurrenceRule .
     gmeow:scheduleTimeZone rdfs:domain gmeow:EventSchedule ;
@@ -685,7 +684,7 @@ ASK {
     gmeow:scheduleOccurrence rdfs:domain gmeow:EventSchedule ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule." .
+    gmeow:saRationale "gmeow:scheduleTemplateEvent, scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain and range — these are the four mediating properties of EventSchedule." .
 
 # --- 44. EventInvitation properties are well-typed (MUST) --------------------
 ex:saInvitationPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -696,8 +695,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:invitationEvent rdfs:domain gmeow:EventInvitation ;
-        rdfs:range gmeow:Event ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:Event .
     gmeow:invitationInvitee rdfs:domain gmeow:EventInvitation ;
         rdfs:range gmeow:Agent .
     gmeow:invitationStatus rdfs:domain gmeow:EventInvitation ;
@@ -705,7 +703,7 @@ ASK {
     gmeow:rsvpStatus rdfs:domain gmeow:EventInvitation ;
         rdfs:range gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range." .
+    gmeow:saRationale "gmeow:invitationEvent, invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range." .
 
 # --- 45. Availability properties are well-typed (MUST) -----------------------
 ex:saAvailabilityPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -718,12 +716,11 @@ ASK {
     gmeow:availabilityAgent rdfs:domain gmeow:Availability ;
         rdfs:range gmeow:Agent .
     gmeow:availabilitySlot rdfs:domain gmeow:Availability ;
-        rdfs:range gmeow:TimeInterval ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:TimeInterval .
     gmeow:availabilityStatus rdfs:domain gmeow:Availability ;
         rdfs:range gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range." .
+    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot, and availabilityStatus MUST all have the correct domain and range." .
 
 # --- 46. Reminder properties are well-typed (MUST) ---------------------------
 ex:saReminderPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -737,10 +734,9 @@ ASK {
     gmeow:reminderAction rdfs:domain gmeow:Reminder ;
         rdfs:range gmeow:ReminderAction .
     gmeow:reminderTarget rdfs:domain gmeow:Reminder ;
-        rdfs:range gmeow:Event ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range." .
+    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget MUST all have the correct domain and range." .
 
 # --- 47. Task properties are well-typed (MUST) --------------------------------
 ex:saTaskPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -772,13 +768,11 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     gmeow:timeZoneIanaId rdfs:domain gmeow:TimeZone ;
-        rdfs:range xsd:string ;
-        a owl:FunctionalProperty .
+        rdfs:range xsd:string .
     gmeow:eventTimeZone rdfs:domain gmeow:Event ;
-        rdfs:range gmeow:TimeZone ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:TimeZone .
 }""" ;
-    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid." .
+    gmeow:saRationale "gmeow:timeZoneIanaId and gmeow:eventTimeZone MUST have the correct domain and range — each event carries a civil offset and each zone has an IANA tzid." .
 
 # --- 49. Calendar collection properties are well-typed (MUST) ----------------
 ex:saCalendarCollectionPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -789,12 +783,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:calendarTimeZone rdfs:domain gmeow:Calendar ;
-        rdfs:range gmeow:TimeZone ;
-        a owl:FunctionalProperty .
+        rdfs:range gmeow:TimeZone .
     gmeow:calendarMember rdfs:domain gmeow:Calendar ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional." .
+    gmeow:saRationale "gmeow:calendarTimeZone and gmeow:calendarMember MUST have the correct domain and range — a default zone per calendar, membership by event." .
 
 # --- 50. ScheduleException properties are well-typed (MUST) ------------------
 ex:saScheduleExceptionPropertiesWellTyped a gmeow:StructuralAssertion ;

@@ -53,14 +53,14 @@ ex:saAgenticObjectPropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:calledByInvocation a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:calledByInvocation a owl:ObjectProperty ;
         rdfs:domain gmeow:ToolCall ;
         rdfs:range gmeow:ModelInvocation .
-    gmeow:usedTool a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:usedTool a owl:ObjectProperty ;
         rdfs:domain gmeow:ToolCall ;
         rdfs:range gmeow:SoftwareAgent .
 }""" ;
-    gmeow:saRationale "gmeow:calledByInvocation and gmeow:usedTool MUST each be an owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:ToolCall and the declared range -- functional: one requesting invocation per call, one tool per call." .
+    gmeow:saRationale "gmeow:calledByInvocation and gmeow:usedTool MUST each be an owl:ObjectProperty with domain gmeow:ToolCall and the declared range -- one requesting invocation per call, one tool per call. Their functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 3. Datatype-property ends: toolArguments and toolResult (MUST) ----------
 ex:saAgenticDatatypePropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;
@@ -70,14 +70,14 @@ ex:saAgenticDatatypePropertiesEndsAndFunctionality a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:toolArguments a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:toolArguments a owl:DatatypeProperty ;
         rdfs:domain gmeow:ToolCall ;
         rdfs:range rdfs:Literal .
-    gmeow:toolResult a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:toolResult a owl:DatatypeProperty ;
         rdfs:domain gmeow:ToolCall ;
         rdfs:range rdfs:Literal .
 }""" ;
-    gmeow:saRationale "gmeow:toolArguments and gmeow:toolResult MUST each be an owl:DatatypeProperty and owl:FunctionalProperty with domain gmeow:ToolCall and range rdfs:Literal -- verbatim-or-digest payloads, one per call." .
+    gmeow:saRationale "gmeow:toolArguments and gmeow:toolResult MUST each be an owl:DatatypeProperty with domain gmeow:ToolCall and range rdfs:Literal -- verbatim-or-digest payloads, one per call. Their functional character now rides on a logic:PropertyCharacteristicAssertion, DL-enforced, no longer a bare OWL property-type declaration." .
 
 # --- 4. No unexpected ObjectProperty in the agentic module (MUST-NOT) --------
 #

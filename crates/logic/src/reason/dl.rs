@@ -106,6 +106,25 @@ const OWL_BOTTOM_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomOb
 const OWL_BOTTOM_DATA_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomDataProperty";
 const OWL_HAS_KEY: &str = "http://www.w3.org/2002/07/owl#hasKey";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+// The canonical `logic:` functional-characteristic carrier: a central
+// `logic:PropertyCharacteristicAssertion` record joins `logic:characterizes ?P` +
+// `logic:characteristicSort logic:functionalProperty`. It is the greenfield source of the
+// functional characteristic (the `owl:FunctionalProperty` type marker above is its lossy
+// projection), so the functional-cardinality clash reads BOTH carriers — the marker keeps
+// deciding raw external/conformance OWL inputs, the record keeps deciding the object-level
+// reasoning EDB after the `owl:FunctionalProperty` slice source declarations are removed.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_FUNCTIONAL_PROPERTY: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
+// The canonical `logic:` key carrier: a central `logic:KeyAssertion` record joins
+// `logic:keyClass ?C` (the identified class) + `logic:keyProperty ?P` (its single key property).
+// It is the greenfield source of a datatype/single-property key (the `owl:hasKey` axiom is its lossy
+// OWL-DL view), so the key-agreement clash reads BOTH carriers — the `owl:hasKey` list keeps
+// deciding raw external/conformance OWL inputs, the record keeps deciding the object-level reasoning
+// EDB after the `owl:hasKey` slice source declaration is migrated to the carrier.
+const LOGIC_KEY_ASSERTION: &str = "https://blackcatinformatics.ca/logic/KeyAssertion";
+const LOGIC_KEY_CLASS: &str = "https://blackcatinformatics.ca/logic/keyClass";
+const LOGIC_KEY_PROPERTY: &str = "https://blackcatinformatics.ca/logic/keyProperty";
 const OWL_NEGATIVE_PROPERTY_ASSERTION: &str =
     "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
 const OWL_SOURCE_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#sourceIndividual";
@@ -238,6 +257,11 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "bottomDataProperty",
     ),
     (OWL_HAS_KEY, "owl:hasKey", "hasKey"),
+    // The greenfield `logic:KeyAssertion` carrier is the canonical source of a key (the `owl:hasKey`
+    // marker above is its lossy OWL-DL view). It maps to the same `hasKey` family suffix, so a key
+    // authored only on the carrier — as the object-level reasoning EDB carries it after the
+    // `owl:hasKey` slice declaration is migrated — still counts the `hasKey` family present.
+    (LOGIC_KEY_ASSERTION, "logic:KeyAssertion", "hasKey"),
     (
         OWL_NEGATIVE_PROPERTY_ASSERTION,
         "owl:NegativePropertyAssertion",
@@ -2535,15 +2559,14 @@ fn augment_with_extra_dl_clashes(
     }
 
     // ── 4. Functional property with two provably-distinct values ──────────────
-    // For every owl:FunctionalProperty p and subject x, if x has two values on p
-    // that are provably distinct (distinct literals, or distinct named
-    // individuals under the identity stance), x is forced into owl:Nothing.
-    let functional_props: BTreeSet<(String, String)> = facts
-        .iter()
-        .filter(|f| f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY)
-        .map(|f| (f.world.clone(), f.subject.clone()))
-        .collect();
-    for (world, property) in &functional_props {
+    // For every functional property p and subject x, if x has two values on p that
+    // are provably distinct (distinct literals, or distinct named individuals under
+    // the identity stance), x is forced into owl:Nothing. Functionality is read from
+    // BOTH carriers (the `owl:FunctionalProperty` marker AND the canonical
+    // `logic:PropertyCharacteristicAssertion` record), keyed per-world with the
+    // provenance premise that declares it — see `functional_property_sources`.
+    let functional_sources = functional_property_sources(facts);
+    for ((world, property), premises) in &functional_sources {
         // Group this property's (subject -> distinct value-keys) in this world.
         let mut by_subject: BTreeMap<String, BTreeMap<String, RdfTerm>> = BTreeMap::new();
         for (key, terms) in &value_index {
@@ -2571,11 +2594,7 @@ fn augment_with_extra_dl_clashes(
                         world.clone(),
                     ),
                     "dl:functional-property-clash",
-                    vec![(
-                        property.clone(),
-                        RDF_TYPE.to_owned(),
-                        OWL_FUNCTIONAL_PROPERTY.to_owned(),
-                    )],
+                    premises.clone(),
                 );
             }
         }
@@ -3007,6 +3026,80 @@ fn build_value_index(
 /// resources related by an explicit `owl:differentFrom`. Named resources spelled
 /// differently are NOT assumed distinct (no unique-name assumption), so a
 /// functional property with two merely-named fillers is consistent.
+/// Every property that is functional in a world, keyed `(world, property)`, mapped to the
+/// provenance premise triples that declare it so — the UNION of both carriers:
+///
+/// * the deprecated `owl:FunctionalProperty` type marker (`?P rdf:type owl:FunctionalProperty`),
+///   still authored on raw external/conformance OWL inputs and re-emitted by the OWL grounding
+///   VIEW; and
+/// * the canonical central `logic:PropertyCharacteristicAssertion` record
+///   (`?rec logic:characterizes ?P`, `?rec logic:characteristicSort logic:functionalProperty`),
+///   the greenfield source that survives removal of the `owl:FunctionalProperty` slice
+///   declarations from the object-level reasoning EDB.
+///
+/// Unioning the two carriers here mirrors the foundation `collect_characteristics` pass, so
+/// functional-cardinality enforcement does not regress after the source removal. Both carriers
+/// are joined per-world (a marker/record and the clashing values must share a world, exactly as
+/// the OWL-only reader required). When BOTH declare a property functional in a world the OWL
+/// marker premise is preferred, so provenance is byte-identical to the pre-migration derivation.
+///
+/// `(world, property)` → the provenance premise triples that declare it functional.
+type FunctionalSources = BTreeMap<(String, String), Vec<(String, String, String)>>;
+
+fn functional_property_sources(facts: &BTreeSet<Fact>) -> FunctionalSources {
+    let mut out: FunctionalSources = BTreeMap::new();
+
+    // Carrier records: join `characterizes` + `characteristicSort=logic:functionalProperty` on
+    // the record IRI within one world. Recorded first so a later OWL marker overwrites the
+    // premise (marker preferred, keeping legacy provenance stable).
+    let mut rec_prop: BTreeMap<(String, String), String> = BTreeMap::new();
+    let mut functional_recs: BTreeSet<(String, String)> = BTreeSet::new();
+    for f in facts {
+        if f.predicate == LOGIC_CHARACTERIZES {
+            rec_prop.insert((f.world.clone(), f.subject.clone()), f.object.clone());
+        } else if f.predicate == LOGIC_CHARACTERISTIC_SORT && f.object == LOGIC_FUNCTIONAL_PROPERTY
+        {
+            functional_recs.insert((f.world.clone(), f.subject.clone()));
+        }
+    }
+    for (world, rec) in &functional_recs {
+        let Some(property) = rec_prop.get(&(world.clone(), rec.clone())) else {
+            continue;
+        };
+        out.entry((world.clone(), property.clone()))
+            .or_insert_with(|| {
+                vec![
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERIZES.to_owned(),
+                        property.clone(),
+                    ),
+                    (
+                        rec.clone(),
+                        LOGIC_CHARACTERISTIC_SORT.to_owned(),
+                        LOGIC_FUNCTIONAL_PROPERTY.to_owned(),
+                    ),
+                ]
+            });
+    }
+
+    // OWL type markers (preferred provenance): overwrite any carrier premise for the same key.
+    for f in facts {
+        if f.predicate == RDF_TYPE && f.object == OWL_FUNCTIONAL_PROPERTY {
+            out.insert(
+                (f.world.clone(), f.subject.clone()),
+                vec![(
+                    f.subject.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_FUNCTIONAL_PROPERTY.to_owned(),
+                )],
+            );
+        }
+    }
+
+    out
+}
+
 fn functional_values_clash(
     facts: &BTreeSet<Fact>,
     world: &str,
@@ -3042,8 +3135,17 @@ fn functional_values_clash(
     false
 }
 
-/// Reify every `owl:hasKey(C, list)` axiom into `(world, class, key_props)`,
-/// resolving the key-property RDF list. A dangling/empty list yields no axiom.
+/// Reify every key axiom into `(world, class, key_props)` — the UNION of both carriers:
+///
+/// * the deprecated `owl:hasKey(C, list)` axiom, resolving the key-property RDF list (a
+///   dangling/empty list yields no axiom); still authored on raw external/conformance OWL
+///   inputs and re-projected onto the OWL grounding view; and
+/// * the canonical central `logic:KeyAssertion` record (`?rec logic:keyClass ?C`,
+///   `?rec logic:keyProperty ?P`), the greenfield source that survives removal of the
+///   `owl:hasKey` slice declaration from the object-level reasoning EDB.
+///
+/// Unioning the two here mirrors [`functional_property_sources`] for the functional
+/// characteristic, so key-agreement enforcement does not regress after the source migration.
 fn read_key_axioms(
     edb: &RdfDataset,
     lists: &HashMap<(String, String), Vec<String>>,
@@ -3064,7 +3166,86 @@ fn read_key_axioms(
         }
         out.push((world, subject, members.clone()));
     }
+    for ((world, _rec), resolved) in key_assertion_records(edb) {
+        if let Some((class, key_props)) = resolved {
+            out.push((world, class, key_props));
+        }
+    }
     out
+}
+
+/// Every `logic:KeyAssertion` record keyed `(world, record)` → the resolved `(class, key_props)`
+/// when well-formed, or `None` when the record is present but malformed.
+type KeyAssertionRecords = BTreeMap<(String, String), Option<(String, Vec<String>)>>;
+
+/// Every `logic:KeyAssertion` record in `edb`, keyed `(world, record)`, mapped to the resolved
+/// `Some((class, key_props))` when well-formed — a `logic:keyClass` naming the identified class
+/// and at least one `logic:keyProperty` — or `None` when a record is present but malformed
+/// (no class, or no key property). Recording malformed records as `None` (rather than dropping
+/// them) lets the coverage guard withhold `hasKey` honestly instead of silently deciding it.
+fn key_assertion_records(edb: &RdfDataset) -> KeyAssertionRecords {
+    let mut records: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut class_of: BTreeMap<(String, String), String> = BTreeMap::new();
+    let mut props_of: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        let key = (world, subject);
+        if predicate == RDF_TYPE
+            && term_resource_key(&object).as_deref() == Some(LOGIC_KEY_ASSERTION)
+        {
+            records.insert(key);
+        } else if predicate == LOGIC_KEY_CLASS
+            && let Some(class) = term_resource_key(&object)
+        {
+            class_of.insert(key, class);
+        } else if predicate == LOGIC_KEY_PROPERTY
+            && let Some(prop) = term_resource_key(&object)
+        {
+            props_of.entry(key).or_default().push(prop);
+        }
+    }
+    let mut out: KeyAssertionRecords = BTreeMap::new();
+    for rec in records {
+        let resolved = match (class_of.get(&rec), props_of.get(&rec)) {
+            (Some(class), Some(props)) if !props.is_empty() => Some((class.clone(), props.clone())),
+            _ => None,
+        };
+        out.insert(rec, resolved);
+    }
+    out
+}
+
+/// True iff at least one key axiom is present — an `owl:hasKey` list OR a `logic:KeyAssertion`
+/// carrier record — and every one resolves (a non-empty `owl:hasKey` list; a `logic:KeyAssertion`
+/// naming a class and ≥1 key property). Unioning both carriers mirrors
+/// [`functional_property_sources`], so `hasKey` stays decided over the object-level reasoning EDB
+/// after the `owl:hasKey` slice declaration is migrated to the carrier. A present-but-malformed
+/// axiom of either carrier withholds the family (returns `false`), exactly as
+/// [`all_list_instances_resolve`] does for the `owl:hasKey` list alone.
+fn key_axioms_all_resolve(
+    edb: &RdfDataset,
+    lists: &HashMap<(String, String), Vec<String>>,
+) -> bool {
+    let mut saw_instance = false;
+    for (_subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != OWL_HAS_KEY {
+            continue;
+        }
+        let Some(root) = term_resource_key(&object) else {
+            return false;
+        };
+        saw_instance = true;
+        match lists.get(&(world, root)) {
+            Some(members) if !members.is_empty() => {}
+            _ => return false,
+        }
+    }
+    for (_rec, resolved) in key_assertion_records(edb) {
+        saw_instance = true;
+        if resolved.is_none() {
+            return false;
+        }
+    }
+    saw_instance
 }
 
 /// Collect the candidate key subjects for a key on `class` in `world`: the
@@ -3819,9 +4000,10 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         }
     }
 
-    // owl:hasKey: two key-agreeing instances asserted owl:differentFrom clash.
-    // Decided iff every key axiom resolves to a non-empty key-property list.
-    if present_set.contains("hasKey") && all_list_instances_resolve(edb, OWL_HAS_KEY, &lists) {
+    // owl:hasKey / logic:KeyAssertion: two key-agreeing instances asserted owl:differentFrom clash.
+    // Decided iff every key axiom (an owl:hasKey list OR a logic:KeyAssertion carrier record)
+    // resolves to a non-empty key-property set — see `key_axioms_all_resolve`.
+    if present_set.contains("hasKey") && key_axioms_all_resolve(edb, &lists) {
         decided.insert("hasKey".to_owned());
     }
 
@@ -5589,6 +5771,42 @@ mod tests {
         assert!(verdict_ok.consistent, "a single value is consistent");
     }
 
+    /// Functionality declared ONLY by the canonical `logic:PropertyCharacteristicAssertion`
+    /// carrier record (no `owl:FunctionalProperty` marker) still forces owl:Nothing on a subject
+    /// with two distinct literal values — the derivation source the object-level reasoning EDB
+    /// relies on once the `owl:FunctionalProperty` slice source declarations are removed. Coverage
+    /// stays honest: with no OWL functional construct in the EDB, `functionalProperty` is not
+    /// reported present, yet the clash is still decided from the carrier.
+    #[test]
+    fn functional_data_property_carrier_record_two_literals_clash() {
+        let peter = "http://gmeow.example/Peter";
+        let has_name = "http://gmeow.example/hasName";
+        let rec = "http://gmeow.example/hasName-functional-record";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let store = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+            literal_quad(peter, has_name, "Kichwa-Tembo", str_ty),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two distinct literal values on a carrier-declared functional property clash"
+        );
+
+        let store_ok = dataset(vec![
+            quad(rec, LOGIC_CHARACTERIZES, has_name),
+            quad(rec, LOGIC_CHARACTERISTIC_SORT, LOGIC_FUNCTIONAL_PROPERTY),
+            literal_quad(peter, has_name, "Peter", str_ty),
+        ]);
+        let verdict_ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict_ok.consistent,
+            "a single value under the carrier record is consistent"
+        );
+    }
+
     // ── owl:hasKey ────────────────────────────────────────────────────────────
 
     /// hasKey(owl:Thing, [hasSSN]); two differentFrom individuals sharing the key
@@ -5647,6 +5865,74 @@ mod tests {
         assert!(
             verdict.consistent,
             "without differentFrom, key agreement just merges the two (sameAs) — consistent"
+        );
+    }
+
+    /// The gtsHeadId / GTSSegment key expressed ONLY through the greenfield `logic:KeyAssertion`
+    /// carrier (no `owl:hasKey`) still DECIDES the DL verdict: two GTSSegment individuals asserted
+    /// `owl:differentFrom` yet sharing one gtsHeadId content-id are forced into owl:Nothing, and the
+    /// `hasKey` family is reported present + decided from the carrier. This is the falsifiable
+    /// no-regression guard after the `owl:hasKey ( gmeow:gtsHeadId )` slice declaration is migrated
+    /// to `logic:gtsSegmentHeadKey` — the object-level reasoning EDB carries the key on the carrier,
+    /// not on an `owl:hasKey` triple, exactly as the shipped gts slice now authors it.
+    #[test]
+    fn gts_segment_head_key_carrier_decides_and_clashes() {
+        let seg_a = "https://blackcatinformatics.ca/gmeow/segA";
+        let seg_b = "https://blackcatinformatics.ca/gmeow/segB";
+        let gts_segment = "https://blackcatinformatics.ca/gmeow/GTSSegment";
+        let gts_head_id = "https://blackcatinformatics.ca/gmeow/gtsHeadId";
+        let key_rec = "https://blackcatinformatics.ca/logic/gtsSegmentHeadKey";
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let head = "blake3:9f2c";
+        let store = dataset(vec![
+            // logic:KeyAssertion carrier: a GTSSegment is keyed by its gtsHeadId.
+            quad(key_rec, TYPE, LOGIC_KEY_ASSERTION),
+            quad(key_rec, LOGIC_KEY_CLASS, gts_segment),
+            quad(key_rec, LOGIC_KEY_PROPERTY, gts_head_id),
+            // Two distinct segments sharing one content-id head — a full-history BLAKE3 collision.
+            quad(seg_a, TYPE, gts_segment),
+            quad(seg_b, TYPE, gts_segment),
+            literal_quad(seg_a, gts_head_id, head, str_ty),
+            literal_quad(seg_b, gts_head_id, head, str_ty),
+            quad(seg_a, OWL_DIFFERENT_FROM, seg_b),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "two differentFrom segments sharing a gtsHeadId key clash under the carrier"
+        );
+        assert!(
+            verdict.coverage.present.contains(&"hasKey".to_owned()),
+            "the logic:KeyAssertion carrier makes the hasKey family present"
+        );
+        assert!(
+            verdict.coverage.decided.contains(&"hasKey".to_owned()),
+            "the carrier keeps hasKey decided after the owl:hasKey source is migrated"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "hasKey is decided from the carrier, not a gap"
+        );
+
+        // Consistency guard: WITHOUT the owl:differentFrom, the shared key merely merges the two
+        // (owl:sameAs, no unique-name assumption) — consistent, yet still decided from the carrier.
+        let store_ok = dataset(vec![
+            quad(key_rec, TYPE, LOGIC_KEY_ASSERTION),
+            quad(key_rec, LOGIC_KEY_CLASS, gts_segment),
+            quad(key_rec, LOGIC_KEY_PROPERTY, gts_head_id),
+            quad(seg_a, TYPE, gts_segment),
+            quad(seg_b, TYPE, gts_segment),
+            literal_quad(seg_a, gts_head_id, head, str_ty),
+            literal_quad(seg_b, gts_head_id, head, str_ty),
+        ]);
+        let ok = dl_consistency(store_ok.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            ok.consistent,
+            "without owl:differentFrom the shared gtsHeadId key merges the segments — consistent"
+        );
+        assert!(
+            ok.coverage.decided.contains(&"hasKey".to_owned()),
+            "hasKey stays decided from the carrier even with no clash"
         );
     }
 
