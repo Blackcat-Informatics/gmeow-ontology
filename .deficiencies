@@ -1745,3 +1745,28 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   is green). FORWARD PATH: add gmeow:expectedSourceShape (the specific *ConstraintShape IRI) to
   each preference example-conformance cell so the harness itself proves gate-specificity rather
   than relying on a manual audit.
+
+=============================================================================
+## From #1618 — upgrade purrdf 0.7.0 -> 0.8.0 (parallel SHACL) + de-dup sweep (recorded 2026-07-20)
+branch paudley/1618-purrdf-080-parallel-shacl — de-dup sweep scoped down for one target.
+
+D1. `materialize_subclass_type_closure` (crates/validate/src/validate_all.rs) was a target of the
+    issue's "remove ALL SHACL code duplicated by purrdf" sweep but is RETAINED, so the sweep is a
+    strict subset of the maximal ask.
+    Why less than maximal: purrdf 0.8.0's SHACL engine now resolves the transitive asserted
+    `rdfs:subClassOf` closure INTERNALLY, but ONLY for `sh:class` value-node membership and
+    `sh:targetClass` focus selection. It injects no `rdf:type` into the data graph, so every OTHER
+    constraint mechanism still reads only asserted type. An a-priori scan of the validated shape
+    union found SEVEN constraints that read `rdf:type` via `sh:sparql`/`sh:SPARQLTarget`/SPARQL body
+    over subclass-bearing classes — organization-shapes.ttl (gmeow:Event), diagnostics
+    GateFatalUpset (gmeow:Finding), ai ClaimNeedsEvidence (gmeow:StandpointClaim), lang Frege
+    disjointness (lang:Form), inference AttackKindTarget (aktTypeSC, a false-POSITIVE flip at
+    sh:Violation severity), lang fds/fdd twins, and profiles ProfileOpenValueUse. Removing the pass
+    would silently narrow coverage for any subclass-only-typed instance of these (no-silent-
+    degradation forbids it). The current committed corpus types every such instance with the exact
+    superclass directly, so an empirical report-parity gate alone would NOT catch this — the a-priori
+    structural proof did.
+    Forward path: filed upstream purrdf issue requesting the engine close `rdf:type` for
+    SPARQL-based constraint/target mechanisms too (or expose an opt-in data-graph subclass
+    materialization); once purrdf subsumes ALL constraint mechanisms, delete this pass and prove
+    report parity. Tracked on the purrdf repo (see PR #1618 body for the filed issue URL).

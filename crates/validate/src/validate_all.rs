@@ -1682,6 +1682,22 @@ fn example_shacl_key(
 ///
 /// # Why this exists — READ BEFORE TOUCHING THE SHACL PHASES (this WILL resurface)
 ///
+/// # Why the engine's own closure does NOT replace this pass
+///
+/// A SHACL engine that resolves `sh:class` value-node membership AND `sh:targetClass`
+/// focus selection through the asserted `rdfs:subClassOf` closure still reads only
+/// ASSERTED `rdf:type` for every OTHER constraint mechanism. In particular,
+/// `sh:sparql`/`sh:SPARQLConstraint`/`sh:SPARQLTarget` bodies that match `?this a C`
+/// see a subclass-only-typed node as NOT a `C`. gmeow validates several such
+/// SPARQL-based constraints over subclass-bearing classes (e.g. `gmeow:Event`,
+/// `gmeow:Finding`, `gmeow:StandpointClaim`, `lang:Form`, and profile open-value
+/// classes); without this pass, a node typed only as a subclass would silently
+/// escape those checks — and for the attack-kind/target constraint would flip a
+/// `sh:Violation`. So even where the engine now closes `sh:class`/`sh:targetClass`
+/// itself, this materialization remains load-bearing for the SPARQL surfaces and is
+/// the single closed-world closure every constraint kind sees. Do NOT delete it on
+/// the assumption the engine subsumes it — it subsumes only two of the mechanisms.
+///
 /// SHACL's `sh:class C` is satisfied when the value node is a *SHACL instance* of
 /// `C`: it carries `rdf:type C`, or `rdf:type D` for some `D` that reaches `C`
 /// through `rdfs:subClassOf` (SHACL spec §2.1.4, the definition of "SHACL
