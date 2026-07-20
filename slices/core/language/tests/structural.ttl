@@ -68,8 +68,8 @@ ex:saLanguageCodeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:languageCode a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:languageCode ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:languageCode MUST NOT be owl:FunctionalProperty — a language carries codes across several registries simultaneously, so the registry alignment is optional and multi-valued." .
 
 # --- 9. No cardinality restriction forces a language to carry a code (MUST-NOT)

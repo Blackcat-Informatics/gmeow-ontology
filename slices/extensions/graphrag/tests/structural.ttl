@@ -46,7 +46,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:DistanceMetric and gmeow:IndexAlgorithm MUST be QualityValue vocabularies with their seeds present: distance metrics {cosine, dot-product, euclidean} and ANN index algorithms {flat, HNSW, IVF}." .
 
-# --- 3. The functional retrieval edges (MUST hold) ---------------------------
+# --- 3. The single-valued retrieval edges' declared shapes (MUST hold) -------
 ex:saGraphRagFunctionalEdges a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -54,14 +54,14 @@ ex:saGraphRagFunctionalEdges a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:embeddingOf a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:InformationObject .
-    gmeow:embeddingModel a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .
-    gmeow:relationshipSource a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
-    gmeow:relationshipTarget a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
-    gmeow:summarizesCommunity a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:CommunitySummary ; rdfs:range gmeow:Community .
-    gmeow:indexAlgorithm a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:VectorIndex ; rdfs:range gmeow:IndexAlgorithm .
+    gmeow:embeddingOf a owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:InformationObject .
+    gmeow:embeddingModel a owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .
+    gmeow:relationshipSource a owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:relationshipTarget a owl:ObjectProperty ; rdfs:domain gmeow:ExtractedRelationship ; rdfs:range gmeow:ExtractedEntity .
+    gmeow:summarizesCommunity a owl:ObjectProperty ; rdfs:domain gmeow:CommunitySummary ; rdfs:range gmeow:Community .
+    gmeow:indexAlgorithm a owl:ObjectProperty ; rdfs:domain gmeow:VectorIndex ; rdfs:range gmeow:IndexAlgorithm .
 }""" ;
-    gmeow:saRationale "The single-valued retrieval edges MUST be functional with their declared domains/ranges: an embedding embeds one object and one model; an extracted relationship has one source and one target; a summary summarizes one community; a vector index uses one algorithm." .
+    gmeow:saRationale "The single-valued retrieval edges MUST carry their declared domains/ranges: an embedding embeds one object and one model; an extracted relationship has one source and one target; a summary summarizes one community; a vector index uses one algorithm. Their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module." .
 
 # --- 4. Value vocabularies are individuals, never subclasses (MUST-NOT hold) --
 ex:saGraphRagVocabsNotSubclassed a gmeow:StructuralAssertion ;

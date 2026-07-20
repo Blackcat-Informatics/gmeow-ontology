@@ -37,8 +37,7 @@ gmeow:ToolCall
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:calledByInvocation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "called by invocation"@x-gmeow-english ;
@@ -47,8 +46,7 @@ gmeow:calledByInvocation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:toolArguments
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool arguments"@x-gmeow-english ;
@@ -57,8 +55,7 @@ gmeow:toolArguments
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:toolResult
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool result"@x-gmeow-english ;
@@ -67,8 +64,7 @@ gmeow:toolResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usedTool
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "used tool"@x-gmeow-english ;

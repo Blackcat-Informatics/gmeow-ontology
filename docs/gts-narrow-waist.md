@@ -86,8 +86,7 @@ Exporters that each re-read and re-interpret the sources drift from one
 another; exporters that consume one verified fold cannot. The remaining
 export tiers shipped this way: N-Quads/TriG, the statements JSONL
 bundle, SKOS, OBO Graphs, and ShEx are emitters inside the sealed `exports`
-generator, and Parquet is its own sealed `parquet` generator over the
-`gts_db` relational schema — `GTS → *` shims over `gts_views`: no parser, no
+generator — `GTS → *` shims: no parser, no
 drift surface, the same fold the published `gts`/`gmeow` packages read.
 (OFN/OWX/OMN are release-tier ROBOT conversions in `gmeow build`; HDT was
 refused — no maintained writer to pin.)

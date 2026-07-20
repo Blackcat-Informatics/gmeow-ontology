@@ -163,8 +163,7 @@ gmeow:hasCapability
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stageImpl
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage impl"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -179,8 +178,8 @@ gmeow:producesFormat
     rdfs:label "produces format"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range xsd:string ;
-    skos:definition "An output format tag a stage emits — typically on a gmeow:kindExportLeaf, which folds one artifact of this format into the bundle. Non-functional: a leaf may emit several formats. Stable identifiers (e.g. \"parquet\", \"linkml\"), not localizable prose."@x-gmeow-english ;
-    skos:example "gmeow:stage-export-parquet gmeow:producesFormat \"parquet\" ."@x-gmeow-english ;
+    skos:definition "An output format tag a stage emits — typically on a gmeow:kindExportLeaf, which folds one artifact of this format into the bundle. Non-functional: a leaf may emit several formats. Stable identifiers (e.g. \"shacl\", \"linkml\"), not localizable prose."@x-gmeow-english ;
+    skos:example "gmeow:stage-export-schemas gmeow:producesFormat \"linkml\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:requiresResource
@@ -524,7 +523,6 @@ gmeow:pipeline-build
         gmeow:stage-export-schemas ,
         gmeow:stage-export-catalog ,
         gmeow:stage-export-profiles ,
-        gmeow:stage-export-parquet ,
         gmeow:stage-export-export ,
         gmeow:stage-export-okf ,
         gmeow:stage-export-apache ,
@@ -832,18 +830,6 @@ gmeow:stage-export-profiles
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "profiles" ;
     gmeow:producesFormat "profile-ttl" .
-
-gmeow:stage-export-parquet
-    a gmeow:PipelineStage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "export: parquet"@x-gmeow-english ;
-    skos:definition "Project the WHOLE composed carrier (terms/quads/reifiers/annotations/blobs of every named graph, never scoped to one graph) to the five-table Parquet columnar form via purrdf's native columnar codec (purrdf::columnar::write), retiring gmeow's hand-rolled Arrow record-batch builders and parquet-crate writer. purrdf owns the dictionary encoding and the byte-deterministic Parquet Data Page V2 physical layout; the carrier's blob store is always empty (blob payloads live in the gts archive by reference, never the in-memory carrier). A fold-reading export leaf: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    logic:precondition gmeow:stageInputsAvailable ;
-    logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "parquet" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "parquet" .
 
 gmeow:stage-export-export
     a gmeow:PipelineStage ;

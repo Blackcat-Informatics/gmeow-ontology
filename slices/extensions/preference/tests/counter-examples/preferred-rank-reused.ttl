@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the winner-slot ban (charter Hard Rule 4, ex:saNoWinnerSlotTerm): a fixture
+# that MINTS gmeow:preferredRank as an owl:ObjectProperty — exactly the forbidden "single slot to
+# win" the slice mints NO term for (Principle 9). Unioned with the preference module by the
+# gmeow:saFailWitness teeth check, it makes the ∃-banned-term ASK HOLD, proving the mustNot ban
+# actually catches a re-minted winner-slot rather than passing vacuously. The real module must
+# never carry this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+gmeow:preferredRank a owl:ObjectProperty .

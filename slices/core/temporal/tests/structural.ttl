@@ -321,15 +321,6 @@ ASK {
 }""" ;
     gmeow:saRationale "The seed civil frame gmeow:temporalFrameUTCGregorian MUST be a gmeow:TemporalFrame decomposed into its UTC time scale and Gregorian calendar, and tagged with the temporal realm and kind — the canonical worked frame every crisp civil timestamp resolves against." .
 
-# --- 22. frameTimeScale is functional (MUST) ---------------------------------
-ex:saFrameTimeScaleIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:frameTimeScale a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:frameTimeScale MUST be an owl:FunctionalProperty — a temporal frame has exactly one underlying time scale (the mandatory 'which clock' component)." .
-
 # --- 23. hasTemporalFrame is a subproperty of hasReferenceFrame (MUST) -------
 ex:saHasTemporalFrameSubpropertyOfReferenceFrame a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -390,15 +381,6 @@ ASK {
     gmeow:datingMethodUraniumLead a gmeow:DatingMethod .
 }""" ;
     gmeow:saRationale "The five seed dating-method individuals (radiocarbon, dendrochronology, thermoluminescence, potassium-argon, uranium-lead) MUST exist as gmeow:DatingMethod individuals — the bootstrap value vocabulary for how a temporal measurement was derived, minted as individuals never subclasses." .
-
-# --- 27. measurementMethod is functional (MUST) ------------------------------
-ex:saMeasurementMethodIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:measurementMethod a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:measurementMethod MUST be an owl:FunctionalProperty — a single temporal measurement was derived by exactly one dating method." .
 
 # --- 28. measuredAge ranges over xsd:decimal (MUST) --------------------------
 ex:saMeasuredAgeRangeIsDecimal a gmeow:StructuralAssertion ;

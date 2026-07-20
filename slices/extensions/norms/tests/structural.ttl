@@ -111,7 +111,8 @@ ex:saNormIssuerNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:normIssuer a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:normIssuer ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:normIssuer MUST NOT be owl:FunctionalProperty — co-issued norms (a treaty, a joint policy) carry several issuers and those claims coexist (Principle 9)." .
 
 # --- 9. normIssuer is NOT a subPropertyOf accordingTo (MUST-NOT) ---
@@ -204,7 +205,8 @@ ex:saHasAuthorityLevelNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:hasAuthorityLevel a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:hasAuthorityLevel ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:hasAuthorityLevel MUST NOT be owl:FunctionalProperty — in a multi-source merge sources may grade the same norm differently, and those claims coexist (Principle 9, the kernel-axis convention)." .
 
 # --- 18. PrecedenceTenure is a logic:Situation subclass of TimeScopedRelation (MUST) ---
@@ -221,19 +223,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10)." .
 
-# --- 19. precedenceHigher, precedenceLower, precedenceScope are functional (MUST) ---
-ex:saPrecedenceTenurePropertiesFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:precedenceHigher a owl:FunctionalProperty .
-    gmeow:precedenceLower  a owl:FunctionalProperty .
-    gmeow:precedenceScope  a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:precedenceHigher, precedenceLower, and precedenceScope MUST all be owl:FunctionalProperty — each tenure binds exactly one prevailing norm, one yielding norm, and one normative system." .
-
 # --- 20. Condition subclasses InformationObject; ConditionGroup subclasses Condition (MUST) ---
 ex:saConditionIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -246,22 +235,14 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Condition MUST be a subclass of gmeow:InformationObject and gmeow:ConditionGroup MUST be a subclass of gmeow:Condition — conditions are stored information objects, never entailed (Principle 12)." .
 
-# --- 21. conditionText is functional (MUST) ---
-ex:saConditionTextIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:conditionText a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:conditionText MUST be owl:FunctionalProperty — one canonical prose text per condition." .
-
 # --- 22. formalizedAs is NOT functional (MUST-NOT) ---
 ex:saFormalizedAsNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:formalizedAs a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:formalizedAs ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:formalizedAs MUST NOT be owl:FunctionalProperty — one condition may carry several formalizations (one per engine), each a separate equivalence claim." .
 
 # --- 23. GroupOperator three seeds exist (MUST) ---
@@ -365,7 +346,8 @@ ex:saViolatesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:violates a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:violates ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:violates MUST NOT be owl:FunctionalProperty — violation is always somebody's judgement; no inferential machinery (Principles 1, 9, 12)." .
 
 # --- 32. complies is NOT functional (MUST-NOT) ---
@@ -374,7 +356,8 @@ ex:saCompliesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:complies a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:complies ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:complies MUST NOT be owl:FunctionalProperty — compliance is always somebody's judgement; no inferential machinery (Principles 1, 9, 12)." .
 
 # --- 33. violates has no owl:propertyChainAxiom (MUST-NOT) ---
@@ -452,14 +435,13 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Exemplar a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:CitationAct .
-    gmeow:exemplarPolarity a owl:FunctionalProperty .
     gmeow:polarityPositive   a gmeow:ExemplarPolarity .
     gmeow:polarityNegative   a gmeow:ExemplarPolarity .
     gmeow:polarityCautionary a gmeow:ExemplarPolarity .
 }""" ;
-    gmeow:saRationale "gmeow:Exemplar MUST be a logic:SubKind of CitationAct with functional polarity and the three canonical polarity individuals. Replaces the stale gufo:SubKind assertion." .
+    gmeow:saRationale "gmeow:Exemplar MUST be a logic:SubKind of CitationAct with the three canonical polarity individuals. Replaces the stale gufo:SubKind assertion." .
 
-# --- 40. Persona is a logic:Kind relator with one bearer (MUST) --------------
+# --- 40. Persona is a logic:Kind relator with an Agent bearer (MUST) ---------
 ex:saPersonaIsRelatorWithBearer a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -470,10 +452,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Persona a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
-    gmeow:personaBearer a owl:FunctionalProperty ;
-        rdfs:range gmeow:Agent .
+    gmeow:personaBearer rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator with one bearer. Replaces stale gufo:Kind/Relator assertions." .
+    gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator whose bearer ranges over gmeow:Agent. Replaces stale gufo:Kind/Relator assertions." .
 # test append
 
 # --- 41. Criterion and CriterionPole are InformationObjects with named poles (MUST)
@@ -486,10 +467,10 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Criterion rdfs:subClassOf gmeow:InformationObject .
     gmeow:CriterionPole rdfs:subClassOf gmeow:InformationObject .
-    gmeow:rewardPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
-    gmeow:penaltyPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
+    gmeow:rewardPole rdfs:range gmeow:CriterionPole .
+    gmeow:penaltyPole rdfs:range gmeow:CriterionPole .
 }""" ;
-    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST be functional object properties ranging over gmeow:CriterionPole." .
+    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST range over gmeow:CriterionPole." .
 
 # --- 42. exemplarSubject is an open, optional ObjectProperty (MUST / MUST-NOT)
 ex:saExemplarSubjectIsOpenAndOptional a gmeow:StructuralAssertion ;
@@ -498,10 +479,11 @@ ex:saExemplarSubjectIsOpenAndOptional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:exemplarSubject a owl:ObjectProperty .
     FILTER NOT EXISTS { gmeow:exemplarSubject rdfs:range ?r }
-    FILTER NOT EXISTS { gmeow:exemplarSubject a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:exemplarSubject ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale "gmeow:exemplarSubject MUST be an owl:ObjectProperty with no rdfs:range and MUST NOT be functional, so entity-pattern exemplars stay open and may coexist with selector-pinned exemplars." .
 
@@ -512,18 +494,17 @@ ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:Assessment rdfs:subClassOf gmeow:Observation .
     gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
-    gmeow:assessmentCriterion a owl:FunctionalProperty .
-    gmeow:assessmentRubric a owl:FunctionalProperty .
     FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
     FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
-    FILTER NOT EXISTS { gmeow:anchorMeaning a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:exemplarRationale a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:anchorMeaning ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?rec2 logic:characterizes gmeow:exemplarRationale ; logic:characteristicSort logic:functionalProperty }
     gmeow:assessmentScoreValue a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST be functional without being subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property." .
+    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property." .
 
 # --- 44. Persona expression machinery is open and plural (MUST / MUST-NOT)
 ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;
@@ -532,12 +513,13 @@ ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:personaRegister a owl:ObjectProperty ; rdfs:range gmeow:Register .
     gmeow:expressesNorm a owl:ObjectProperty ; rdfs:range gmeow:Norm .
-    FILTER NOT EXISTS { gmeow:personaRegister a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:expressesNorm a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:activatedIn a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:personaRegister ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?rec2 logic:characterizes gmeow:expressesNorm ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?rec3 logic:characterizes gmeow:activatedIn ; logic:characteristicSort logic:functionalProperty }
     FILTER NOT EXISTS { gmeow:activatedIn rdfs:range ?r }
 }""" ;
     gmeow:saRationale "gmeow:personaRegister and gmeow:expressesNorm MUST be object properties with ranges gmeow:Register and gmeow:Norm respectively, and neither gmeow:personaRegister, gmeow:expressesNorm, nor gmeow:activatedIn MUST be functional; gmeow:activatedIn MUST remain range-open." .
@@ -549,12 +531,13 @@ ex:saStyleGuideVoiceDoctrine a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:StyleGuide rdfs:subClassOf gmeow:InformationObject .
     gmeow:voiceExemplifiedBy a owl:ObjectProperty ; rdfs:range gmeow:Document .
     FILTER NOT EXISTS { gmeow:styleGuideFor rdfs:range ?r }
-    FILTER NOT EXISTS { gmeow:styleGuideFor a owl:FunctionalProperty }
-    FILTER NOT EXISTS { gmeow:voiceExemplifiedBy a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:styleGuideFor ; logic:characteristicSort logic:functionalProperty }
+    FILTER NOT EXISTS { ?rec2 logic:characterizes gmeow:voiceExemplifiedBy ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale "gmeow:StyleGuide MUST subclass gmeow:InformationObject, gmeow:voiceExemplifiedBy MUST range over gmeow:Document, gmeow:styleGuideFor MUST remain range-open, and neither gmeow:styleGuideFor nor gmeow:voiceExemplifiedBy MUST be functional." .
 

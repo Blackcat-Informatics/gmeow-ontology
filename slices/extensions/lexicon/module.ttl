@@ -117,8 +117,7 @@ gmeow:UsageAttestation
     gmeow:useWhen "Use to record that a form was OBSERVED in a source or context — an evidence node, not a truth claim about whether an interpretation is correct."@x-gmeow-english .
 
 gmeow:attestationInterval
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attestation interval"@x-gmeow-english ;
@@ -132,8 +131,7 @@ gmeow:attestationInterval
     gmeow:useWhen "Use on a UsageAttestation to carry the time span over which the usage was observed — a corpus span, inscription period, or usage era — as a first-class interval on the relator."@x-gmeow-english .
 
 gmeow:attestedForm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested form"@x-gmeow-english ;
@@ -312,8 +310,7 @@ gmeow:derivationSoundChange
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:etymonSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "etymon source"@x-gmeow-english ;
@@ -334,8 +331,7 @@ gmeow:derivationSpellingChange
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:derivationTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivation target"@x-gmeow-english ;
@@ -391,8 +387,7 @@ gmeow:formRendered
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:formRepresentation
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "form representation"@x-gmeow-english ;
@@ -479,8 +474,7 @@ gmeow:hasLexicalForm
     gmeow:useWhen "Use to link a lexical item to its concrete surface forms — written, spoken, signed, reconstructed, and so on."@x-gmeow-english .
 
 gmeow:lexicalItemLanguage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LexicalItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "lexical item language"@x-gmeow-english ;

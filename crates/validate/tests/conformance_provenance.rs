@@ -12,7 +12,6 @@ mod conformance_support;
 use conformance_support::*;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
@@ -31,11 +30,7 @@ fn carrier_and_ingestion_props() {
 
     let src_modified = gm("sourceModifiedAt");
     assert!(
-        !g.has(
-            Some(&src_modified),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL_PROPERTY)
-        ),
+        !g.is_functional_carrier(&src_modified),
         "gmeow:sourceModifiedAt must NOT be functional (copies may report differing mtimes)"
     );
     assert!(
@@ -48,20 +43,12 @@ fn carrier_and_ingestion_props() {
     );
 
     assert!(
-        g.has(
-            Some(&gm("ingestedAt")),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL_PROPERTY)
-        ),
+        g.is_functional_carrier(&gm("ingestedAt")),
         "gmeow:ingestedAt (transaction time) must be functional"
     );
 
     assert!(
-        !g.has(
-            Some(&gm("contentDigest")),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL_PROPERTY)
-        ),
+        !g.is_functional_carrier(&gm("contentDigest")),
         "gmeow:contentDigest must NOT be functional (several algorithms may coexist)"
     );
 }

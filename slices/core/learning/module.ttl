@@ -185,8 +185,7 @@ gmeow:subjectTaught
     gmeow:useWhen "Use to record what a gmeow:Teaching conveyed — the topic, skill, or proposition taught — so instruction can be queried by subject."@x-gmeow-english .
 
 gmeow:teacher
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Teaching ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "teacher"@x-gmeow-english ;

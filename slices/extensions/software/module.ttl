@@ -410,8 +410,7 @@ gmeow:TreeEntry
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:authorIdentityString
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AuthorIdentity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "author identity string"@x-gmeow-english ;
@@ -446,8 +445,7 @@ gmeow:bugDatabase
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:buildConfigUri
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:BuildActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "build config URI"@x-gmeow-english ;
@@ -508,8 +506,7 @@ gmeow:commitAncestor
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitAuthorIdentity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit author identity"@x-gmeow-english ;
@@ -518,8 +515,7 @@ gmeow:commitAuthorIdentity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitCommitterIdentity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit committer identity"@x-gmeow-english ;
@@ -539,8 +535,7 @@ gmeow:commitDescendant
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitInRepository
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit in repository"@x-gmeow-english ;
@@ -549,8 +544,7 @@ gmeow:commitInRepository
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitTree
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit tree"@x-gmeow-english ;
@@ -577,8 +571,7 @@ gmeow:committerTime
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:diffFrom
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Diff ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diff from"@x-gmeow-english ;
@@ -587,8 +580,7 @@ gmeow:diffFrom
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:diffTo
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Diff ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diff to"@x-gmeow-english ;
@@ -737,8 +729,7 @@ gmeow:maintenanceStatus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:materializationDepth
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "materialization depth"@x-gmeow-english ;
@@ -766,8 +757,7 @@ gmeow:mergeSource
         gmeow:boxRBox .
 
 gmeow:mergeTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Merge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "merge target"@x-gmeow-english ;
@@ -815,8 +805,7 @@ gmeow:programmingLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectHomepage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "project homepage"@x-gmeow-english ;
@@ -863,8 +852,7 @@ gmeow:releaseDoi
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Release ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release of"@x-gmeow-english ;
@@ -933,8 +921,7 @@ gmeow:repoTypeSVN
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:repositoryType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "repository type"@x-gmeow-english ;
@@ -1024,8 +1011,7 @@ gmeow:statusMaintained
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:treeEntryMode
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry mode"@x-gmeow-english ;
@@ -1034,8 +1020,7 @@ gmeow:treeEntryMode
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryName
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry name"@x-gmeow-english ;
@@ -1044,8 +1029,7 @@ gmeow:treeEntryName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryObject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry object"@x-gmeow-english ;

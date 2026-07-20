@@ -90,8 +90,8 @@ ex:saEventTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:eventType a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:eventType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:eventType MUST NOT be owl:FunctionalProperty -- an occurrence may bear several types; competing standpoint-indexed type claims coexist (Principle 9)." .
 
 # --- 4. participationRole is an ObjectProperty ranging over ParticipantRole ----
@@ -198,8 +198,8 @@ ex:saEventTrajectoryNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:eventTrajectory a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:eventTrajectory ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:eventTrajectory MUST NOT be owl:FunctionalProperty -- competing trajectory claims from different sources coexist." .
 
 # --- 13. eventSpacetime shape and non-functional (MUST + MUST-NOT) -------------
@@ -221,8 +221,8 @@ ex:saEventSpacetimeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:eventSpacetime a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:eventSpacetime ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:eventSpacetime MUST NOT be owl:FunctionalProperty -- multiple spacetime slices may coexist for the same event." .
 
 # --- 15. Spacetime/trajectory axes are orthogonal -- no subPropertyOf (MUST-NOT)
@@ -434,8 +434,8 @@ ex:saSubEventOfNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:subEventOf a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:subEventOf ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:subEventOf MUST NOT be owl:FunctionalProperty -- non-simple (transitive) properties are forbidden in OWL 2 DL cardinality/functional axioms (regularity)." .
 
 # --- 30. No primary/preferred event terms exist (MUST-NOT) --------------------
@@ -524,7 +524,7 @@ ex:saAllenRelationsNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p {
         gmeow:before gmeow:after gmeow:meets gmeow:metBy
@@ -532,7 +532,7 @@ ASK {
         gmeow:during gmeow:contains gmeow:finishes gmeow:finishedBy
         gmeow:coincidesWith
     }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "No Allen relation MUST NOT be owl:FunctionalProperty -- non-simple (transitive or symmetric) properties violate OWL 2 DL regularity in cardinality axioms." .
 
@@ -641,8 +641,8 @@ ex:saGeneratedObservationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:generatedObservation a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:generatedObservation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:FunctionalProperty -- an observational activity may produce many observations." .
 
 # --- 46. eventObservation shape and inverse of observationEvent (MUST) --------
@@ -666,8 +666,8 @@ ex:saEventObservationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:eventObservation a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:eventObservation ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:eventObservation MUST NOT be owl:FunctionalProperty -- an event may have many observations; competing standpoint-indexed observations coexist (Principle 9)." .
 
 # --- 48. Observational event type value individuals exist (MUST) ---------------

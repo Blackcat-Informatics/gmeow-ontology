@@ -37,8 +37,7 @@ gmeow:RouteKind
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:connectionSource
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Connection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connection source"@x-gmeow-english ;
@@ -48,8 +47,7 @@ gmeow:connectionSource
         gmeow:boxRBox .
 
 gmeow:connectionTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Connection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connection target"@x-gmeow-english ;
@@ -92,8 +90,7 @@ gmeow:referenceFrameNetworkGraph
     gmeow:requiresHost false .
 
 gmeow:routeEnd
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route end"@x-gmeow-english ;
@@ -102,8 +99,7 @@ gmeow:routeEnd
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:routeKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route kind"@x-gmeow-english ;
@@ -168,8 +164,7 @@ gmeow:routeKindWalking
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:routeStart
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route start"@x-gmeow-english ;

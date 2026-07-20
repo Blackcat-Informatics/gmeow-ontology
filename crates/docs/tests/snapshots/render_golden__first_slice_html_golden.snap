@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 325
 expression: "to_html(&model, &Page::Slice(slug))"
 ---
 <!doctype html>
@@ -57,11 +58,11 @@ expression: "to_html(&model, &Page::Slice(slug))"
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>06d16d51d480</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>f16507ba3529</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>tests/structural.ttl</code></td><td><code>text/turtle</code></td><td><code>6b4491bb3bb1</code></td></tr>
+<tr><td><code>tests/structural.ttl</code></td><td><code>text/turtle</code></td><td><code>7024bdab47ba</code></td></tr>
 </tbody></table>
 <h2>Terms (9)</h2>
 <ul>

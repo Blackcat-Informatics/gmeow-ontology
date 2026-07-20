@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Two localizable terms defined by the fixture slice. `Alpha` is fully covered
+# in fr and zh; `Beta` is covered in fr but NOT zh — so batch-0 always carries
+# at least one explicit-absent groundingZh incidence.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture/Alpha>
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture> ;
+    rdfs:label "Alpha"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture/Beta>
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture> ;
+    rdfs:label "Beta"@x-gmeow-english .

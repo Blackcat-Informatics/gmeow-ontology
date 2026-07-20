@@ -50,7 +50,6 @@ use rstest::rstest;
 
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
 const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 
@@ -159,7 +158,10 @@ fn value_vocabularies_exist() {
 
 #[test]
 fn performance_functional_properties() {
-    let s = module();
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (in the logic slice), not by a local `owl:FunctionalProperty` marker on the music
+    // module — so this asserts over the merged ontology, not `module()`.
+    let s = GraphStore::ontology();
     for prop in [
         "dofWork",
         "dofExpression",
@@ -174,8 +176,8 @@ fn performance_functional_properties() {
         "ornamentReferenceFrame",
     ] {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should be functional"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} should carry a logic: functionalProperty characteristic"
         );
     }
     for prop in [
@@ -192,8 +194,8 @@ fn performance_functional_properties() {
         "ornamentDescription",
     ] {
         assert!(
-            !s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should NOT be functional"
+            !s.is_functional_carrier(&g(prop)),
+            "{prop} should NOT carry a logic: functionalProperty characteristic"
         );
     }
 }

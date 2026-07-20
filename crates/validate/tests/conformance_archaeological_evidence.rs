@@ -16,7 +16,6 @@ use conformance_support::*;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
@@ -35,8 +34,8 @@ fn attested_on_carrier_exists() {
         "gmeow:attestedOnCarrier must be an owl:ObjectProperty"
     );
     assert!(
-        !g.has(Some(&prop), Some(RDF_TYPE), Some(OWL_FUNCTIONAL_PROPERTY)),
-        "gmeow:attestedOnCarrier must NOT be functional (one usage may cite several carriers)"
+        !g.is_functional_carrier(&prop),
+        "gmeow:attestedOnCarrier must NOT carry a logic: functionalProperty characteristic (one usage may cite several carriers)"
     );
     assert!(
         g.has(

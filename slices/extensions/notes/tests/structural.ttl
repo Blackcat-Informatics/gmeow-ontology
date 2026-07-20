@@ -96,38 +96,38 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Comment rdfs:subClassOf gmeow:Note . }""" ;
     gmeow:saRationale "gmeow:Comment MUST be rdfs:subClassOf gmeow:Note -- a comment is a note that replies to an annotation or another comment." .
 
-# --- 6. annotationBody is a functional ObjectProperty (MUST) -----------------
+# --- 6. annotationBody is an ObjectProperty (MUST) -----------------
 ex:saAnnotationBodyIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:annotationBody a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:annotationBody a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:annotationBody MUST be an owl:ObjectProperty and owl:FunctionalProperty -- one body per Annotation (functional per relator)." .
+    gmeow:saRationale "gmeow:annotationBody MUST be an owl:ObjectProperty -- one body per Annotation." .
 
-# --- 7. annotationTarget is a functional ObjectProperty (MUST) ---------------
+# --- 7. annotationTarget is an ObjectProperty (MUST) ---------------
 ex:saAnnotationTargetIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:annotationTarget a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:annotationTarget a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:annotationTarget MUST be an owl:ObjectProperty and owl:FunctionalProperty -- one target per Annotation (functional per relator)." .
+    gmeow:saRationale "gmeow:annotationTarget MUST be an owl:ObjectProperty -- one target per Annotation." .
 
-# --- 8. annotationMotivation is a functional ObjectProperty (MUST) -----------
+# --- 8. annotationMotivation is an ObjectProperty (MUST) -----------
 ex:saAnnotationMotivationIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:annotationMotivation a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:annotationMotivation a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:annotationMotivation MUST be an owl:ObjectProperty and owl:FunctionalProperty -- one motivation per Annotation (functional per relator)." .
+    gmeow:saRationale "gmeow:annotationMotivation MUST be an owl:ObjectProperty -- one motivation per Annotation." .
 
 # --- 9. annotationTargetSpan is an ObjectProperty (MUST) ---------------------
 ex:saAnnotationTargetSpanIsObjectProperty a gmeow:StructuralAssertion ;
@@ -144,7 +144,8 @@ ex:saAnnotationTargetSpanNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:annotationTargetSpan a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:annotationTargetSpan ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:annotationTargetSpan MUST NOT be owl:FunctionalProperty -- an annotation may reference multiple disjoint spans in the same document." .
 
 # --- 11. commentParent is an ObjectProperty (MUST) ---------------------------
@@ -162,7 +163,8 @@ ex:saCommentParentNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:commentParent a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:commentParent ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:commentParent MUST NOT be owl:FunctionalProperty -- hasReply is transitive, and in OWL 2 DL a transitive property and its inverse are non-simple and cannot be functional; the one-parent constraint is enforced by SHACL sh:maxCount 1." .
 
 # --- 13. hasDirectReply is inverse of commentParent (MUST) -------------------

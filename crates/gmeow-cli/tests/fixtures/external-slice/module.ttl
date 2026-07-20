@@ -10,9 +10,12 @@
 # GMN-1 coverage: every quad below is under a registered namespace (gmeow:,
 # rdfs:, skos:, owl:, logic:) with a literal or registered-IRI object, so the
 # codec covers it — EXCEPT the single rdfs:seeAlso quad on FixtureExternalWidget
-# whose object lives under the unregistered http://uncovered.test/ namespace
-# (an "IRI under no registered namespace"). That one uncovered quad drives the
-# gmn1_coverage axis strictly below 1.0 while the rest stay covered.
+# whose object is a blank node whose label carries the GMN-1 record separator
+# "__" (an unsafe blank-node label the codec cannot tokenize). That one uncovered
+# quad drives the gmn1_coverage axis strictly below 1.0 while the rest stay
+# covered. (External IRIs under no registered namespace now ride the codec's
+# x_<hash> by-reference token and are covered, so this fixture uses an
+# unsafe blank label — still genuinely uncovered — to exercise the advisory.)
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -30,7 +33,7 @@ gmeow:FixtureExternalWidget
     gmeow:useWhen "Use as the primary demonstrator term when exercising the wheel's external-slice scoring path over a foreign slice."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating this fixture class as a real ontology term; it exists only to exercise the scoring engine."@x-gmeow-english ;
     gmeow:howToUse "Score the enclosing slice with gmeow_slice_quality::score_external_slice against the embedded bundle standards." ;
-    rdfs:seeAlso <http://uncovered.test/not-registered/external-reference> .
+    rdfs:seeAlso _:external__reference .
 
 gmeow:FixtureExternalGadget
     a logic:Kind ,

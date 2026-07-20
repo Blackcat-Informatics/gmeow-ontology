@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
-  "slice_count": 84,
-  "term_count": 5549,
-  "dependency_edge_count": 1244,
+  "slice_count": 85,
+  "term_count": 6402,
+  "dependency_edge_count": 1346,
   "term_count_by_category": {
-    "Class": 1756,
+    "Class": 1799,
     "Datatype": 1,
-    "Individual": 808,
-    "Property": 2984
+    "Individual": 1546,
+    "Property": 3056
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -80,6 +80,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/organization",
     "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/preference",
     "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
     "https://blackcatinformatics.ca/gmeow/slices/provenance",
@@ -150,15 +151,15 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "06d16d51d48025b272755518c3421b877c1eef396095347a2d0324e93067f17e",
-        "semantic_digest": "7624f4c2c37e493284cd977f7d0e24e4d168a81282c7b3e6eecf1650ced90ecf"
+        "raw_digest": "f16507ba35295331d9af45bbab99108caead1ad1e320d5de70057f71a7080a91",
+        "semantic_digest": "11f50c2a2992170914be4b588cc12970b10652f55dd29f4856a9f07263e3f0a2"
       },
       {
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "6b4491bb3bb19bd71b398d870bc523defccf0f988e8f61b93dcbc97a6c14d83b",
-        "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
+        "raw_digest": "7024bdab47ba22c73d99128cadd8b468891a7c66c51de876eca6f80a1290b59d",
+        "semantic_digest": "ad849f1d8a4438cfdf099bcc6b595a717113e84da076dd881658569517b4dbb6"
       }
     ],
     "has_thesis_sentence": true,
@@ -308,9 +309,9 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 99,
-  "linkage_count": 2114,
-  "example_count": 179,
+  "mapping_set_count": 100,
+  "linkage_count": 2125,
+  "example_count": 188,
   "concern_count": 7,
   "external_term_count": 1800,
   "sample_mapping_set": {
@@ -428,7 +429,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 270,
+  "competency_count": 293,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

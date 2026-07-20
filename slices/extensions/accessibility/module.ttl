@@ -52,8 +52,7 @@ gmeow:AccessibilityPolarity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:assertionFacet
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion facet"@x-gmeow-english ;
@@ -63,8 +62,7 @@ gmeow:assertionFacet
         gmeow:boxRBox .
 
 gmeow:assertionPolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion polarity"@x-gmeow-english ;
@@ -74,8 +72,7 @@ gmeow:assertionPolarity
         gmeow:boxRBox .
 
 gmeow:assertionSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion subject"@x-gmeow-english ;

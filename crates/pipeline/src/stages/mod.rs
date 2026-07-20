@@ -76,7 +76,6 @@ pub mod meta_findings;
 pub mod metadata;
 pub mod native_query;
 pub mod okf;
-pub mod parquet;
 pub mod profiles;
 pub mod provenance_graph;
 // The SHACL-derived Pydantic v2 package emitter (`gmeow_models/<slice>.py`),
@@ -184,7 +183,6 @@ pub fn register_default(registry: &mut StageRegistry) {
         "research-objects",
         Arc::new(research_objects::ResearchObjectsStage::new()),
     );
-    registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
     registry.register("okf", Arc::new(okf::OkfStage::new()));
     registry.register("export", Arc::new(export::ExportStage::new()));
     registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));

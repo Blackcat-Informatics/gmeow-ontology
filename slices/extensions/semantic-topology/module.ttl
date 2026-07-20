@@ -185,8 +185,7 @@ gmeow:TopologyComputation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:computationOverCompilation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TopologyComputation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "computation over compilation"@x-gmeow-english ;
@@ -257,8 +256,7 @@ gmeow:TopologyClaim
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:claimResult
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "claim result"@x-gmeow-english ;

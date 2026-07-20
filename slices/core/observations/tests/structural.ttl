@@ -52,7 +52,7 @@ ASK {
         rdfs:domain gmeow:Observation ;
         rdfs:range logic:Individual .
     gmeow:isResultOf rdfs:domain logic:Individual .
-    FILTER NOT EXISTS { gmeow:observationResult a owl:FunctionalProperty }
+    FILTER NOT EXISTS { ?rec logic:characterizes gmeow:observationResult ; logic:characteristicSort logic:functionalProperty }
 }""" ;
     gmeow:saRationale "Observation results span concrete entities and abstract values, so the carrier ranges over logic:Individual and is non-functional: multiple frame- or standpoint-indexed results coexist." .
 
@@ -104,7 +104,7 @@ PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:quantityUncertainty a owl:DatatypeProperty , owl:FunctionalProperty ;
+    gmeow:quantityUncertainty a owl:DatatypeProperty ;
         rdfs:domain math:Quantity .
 }""" ;
     gmeow:saRationale "Observations owns only the uncertainty qualifier; its domain is the sole math:Quantity authority." .
@@ -172,15 +172,15 @@ ASK {
 }""" ;
     gmeow:saRationale "The six Stream object properties MUST exist." .
 
-# --- 13. streamOf is functional with Stream domain / Entity range (MUST) ----
+# --- 13. streamOf has Stream domain / Entity range (MUST) ----
 ex:saStreamOfFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:streamOf a owl:FunctionalProperty ; rdfs:domain gmeow:Stream ; rdfs:range gmeow:Entity . }""" ;
-    gmeow:saRationale "gmeow:streamOf MUST be functional with domain Stream and range Entity." .
+ASK { gmeow:streamOf rdfs:domain gmeow:Stream ; rdfs:range gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:streamOf MUST have domain Stream and range Entity; its single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 14. hasStream is the inverse of streamOf (MUST) ------------------------
 ex:saHasStreamInverseStreamOf a gmeow:StructuralAssertion ;
@@ -207,7 +207,8 @@ ex:saStreamSampleNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:streamSample a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:streamSample ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:streamSample MUST NOT be functional (a stream has many samples)." .
 
 # --- 16a. streamPlatform shape (MUST) --------------------------------------
@@ -226,7 +227,8 @@ ex:saStreamPlatformNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:streamPlatform a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:streamPlatform ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:streamPlatform MUST NOT be functional." .
 
 # --- 17a. streamSensor shape (MUST) ----------------------------------------
@@ -245,18 +247,19 @@ ex:saStreamSensorNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:streamSensor a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?fpRec logic:characterizes gmeow:streamSensor ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:streamSensor MUST NOT be functional." .
 
-# --- 18. streamInterval is functional with Stream domain / TimeInterval range (MUST) ---
+# --- 18. streamInterval has Stream domain / TimeInterval range (MUST) ---
 ex:saStreamIntervalFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:streamInterval a owl:FunctionalProperty ; rdfs:domain gmeow:Stream ; rdfs:range gmeow:TimeInterval . }""" ;
-    gmeow:saRationale "gmeow:streamInterval MUST be functional with domain Stream and range TimeInterval." .
+ASK { gmeow:streamInterval rdfs:domain gmeow:Stream ; rdfs:range gmeow:TimeInterval . }""" ;
+    gmeow:saRationale "gmeow:streamInterval MUST have domain Stream and range TimeInterval; its single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 19. The streaming ObservationType seed exists (MUST) ------------------
 ex:saStreamingObservationType a gmeow:StructuralAssertion ;
@@ -287,7 +290,7 @@ ASK {
     gmeow:Quality a owl:Class ; rdfs:subClassOf logic:Quality .
     gmeow:Magnitude a owl:Class .
     gmeow:GenericQuality a owl:Class .
-    gmeow:bearer a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:bearer a owl:ObjectProperty .
     gmeow:observationOf a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:observedFeature .
     gmeow:observedAt a owl:DatatypeProperty .
     gmeow:dimension a owl:ObjectProperty .

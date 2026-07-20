@@ -76,7 +76,7 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
   PHP/Lua/Swift/Ruby/R/Julia wrappers, full RDF-1.2 losslessness, and formats
-  N-Quads / TriG / JSON-LD-star / YAML-LD-star + relational exports (SQLite/DuckDB/Parquet). It is
+  N-Quads / TriG / JSON-LD-star / YAML-LD-star + relational exports (SQLite/DuckDB). It is
   **not** a query engine/reasoner/store by charter.
 
 ## Architecture

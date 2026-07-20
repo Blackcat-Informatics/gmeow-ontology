@@ -485,8 +485,7 @@ gmeow:bearsDigitalSubject
         gmeow:boxRBox .
 
 gmeow:configurationEmbodiment
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration embodiment"@x-gmeow-english ;
@@ -508,8 +507,7 @@ gmeow:configurationFacet
         gmeow:boxRBox .
 
 gmeow:configurationOfTenure
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration of tenure"@x-gmeow-english ;
@@ -730,8 +728,7 @@ gmeow:hasTransferManifest
         gmeow:boxRBox .
 
 gmeow:inhabitationLocusKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation locus kind"@x-gmeow-english ;
@@ -741,8 +738,7 @@ gmeow:inhabitationLocusKind
         gmeow:boxRBox .
 
 gmeow:inhabitationSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation subject"@x-gmeow-english ;
@@ -753,8 +749,7 @@ gmeow:inhabitationSubject
         gmeow:boxRBox .
 
 gmeow:inhabitedHost
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabited host"@x-gmeow-english ;

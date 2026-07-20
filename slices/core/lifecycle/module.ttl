@@ -51,8 +51,7 @@ gmeow:existenceDestructionEvent
     gmeow:useWhen "Use on an EntityExistence to name its destruction event when the existence claim is reified and the entity has ceased to exist."@x-gmeow-english .
 
 gmeow:existenceEntity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EntityExistence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existence entity"@x-gmeow-english ;

@@ -83,7 +83,10 @@ fn kind_rank(kind: &str) -> usize {
 /// (the multi-message checks — the graphBoxRole quartet, the two language-tag passes,
 /// the three RenderingAsIdentity arms, the dimensional-inhomogeneity arms) are kept
 /// apart by their code.
-mod codes {
+///
+/// Public so conformance tests can isolate findings by their stable code rather
+/// than by matching message text.
+pub mod codes {
     pub const MISSING_LABEL: &str = "validate.lint.missing-label";
     pub const MISSING_DEFINITION: &str = "validate.lint.missing-definition";
     pub const MISSING_IS_DEFINED_BY: &str = "validate.lint.missing-is-defined-by";

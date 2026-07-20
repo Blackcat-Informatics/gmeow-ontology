@@ -13,4 +13,4 @@ expression: head
   <g stroke="#7a8aa0" stroke-width="1.5" fill="none">
     <line x1="134" y1="46" x2="1004" y2="46" marker-end="url(#arrow)" />
     <line x1="134" y1="46" x2="1004" y2="346" marker-end="url(#arrow)" />
-    <line x1="134" y1="46" x2="1004" y2="546" marker-end="url(#arrow)" />
+    <line x1="134" y1="46" x2="714" y2="546" marker-end="url(#arrow)" />

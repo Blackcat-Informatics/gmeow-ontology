@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (AC4): every lossy projection names what it dropped. Over the
+# projection-receipts-worked pass scene this returns each receipt that discloses a loss together
+# with the raw math:Relation it dropped — four rows (listwise, DAG, Pareto, scalarized); the
+# exact pairwise receipt discloses nothing and does not appear, proving disclosure is complete.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?receipt ?lossEntry ?droppedRelation WHERE {
+    ?receipt a gmeow:ProjectionReceipt ;
+        gmeow:disclosesLoss ?lossEntry .
+    ?lossEntry gmeow:droppedRelation ?droppedRelation .
+}
+ORDER BY ?receipt

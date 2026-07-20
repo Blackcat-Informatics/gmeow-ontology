@@ -1,0 +1,132 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: a genuine cross-vantage Condorcet 3-cycle.
+# Three candidates A, B, C are compared under ONE gmeow:ComparisonContext by three
+# distinct evaluators, each its own gmeow:vantage. The three vantage-indexed,
+# reified gmeow:PreferenceObservations glue into a cycle — eval1 sees A≻B, eval2 sees
+# B≻C, eval3 sees C≻A — so the per-vantage local orders do NOT assemble into a global
+# winner. This is the LEGAL H1 obstruction (a non-vanishing math:GluingObstruction,
+# equivalently non-trivial holonomy of the preference math:connectionOfSheaf), not an
+# error. FLAG-1 is honored: the disagreement lives in reified, vantage-indexed
+# observations (each obs carries its own gmeow:vantage and gmeow:strictlyOver → its
+# winning candidate), NEVER as bare candidate→candidate gmeow:strictlyOver triples in
+# one graph. The gmeow:DisagreementObstruction is present and is NOT discharged, and no
+# resource asserts a global winner.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field (Principle 9: a complete, unordered roster) --- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A — the concise draft"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B — the complete draft"@en .
+ex:candC a gmeow:InformationObject ; rdfs:label "candidate C — the vivid draft"@en .
+
+ex:candidates a gmeow:CandidateSet ;
+    rdfs:label "the three summary drafts"@en ;
+    gmeow:hasCandidate ex:candA , ex:candB , ex:candC .
+
+# --- The three co-equal evaluator vantages (no vantage is privileged) --------- #
+ex:evalConcision a gmeow:Standpoint ; rdfs:label "the concision reviewer"@en .
+ex:evalCoverage  a gmeow:Standpoint ; rdfs:label "the coverage reviewer"@en .
+ex:evalVoice     a gmeow:Standpoint ; rdfs:label "the voice reviewer"@en .
+
+ex:confHigh a logic:QualityValue ; rdfs:label "high confidence"@en .
+
+# --- The shared, content-addressed comparison context ------------------------- #
+# It registers the WHOLE closed vantage base (F2): every observation made under it.
+ex:goalSummarize a gmeow:Goal ; rdfs:label "produce the best field summary"@en .
+ex:panelStandpoint a gmeow:Standpoint ; rdfs:label "the review panel standpoint"@en .
+
+ex:ctx a gmeow:ComparisonContext ;
+    rdfs:label "summary review, 2026-Q3"@en ;
+    gmeow:contextTask ex:goalSummarize ;
+    gmeow:contextStandpoint ex:panelStandpoint ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9" ;
+    gmeow:registersObservation ex:obsAB , ex:obsBC , ex:obsCA .
+
+# --- The three reified, vantage-indexed observations (the FLAG-1 carriers) ---- #
+# Each observation names the compared pair via gmeow:observedFeature and marks its
+# WINNER via gmeow:strictlyOver; the direction is carried INSIDE the reified,
+# vantage-indexed observation, so no bare candidate→candidate edge exists.
+ex:featAB a gmeow:InformationObject ;
+    rdfs:label "pairwise comparison of A and B"@en ;
+    gmeow:hasPart ex:candA , ex:candB .
+ex:obsAB a gmeow:PreferenceObservation ;
+    rdfs:label "A ≻ B, per the concision reviewer"@en ;
+    gmeow:vantage ex:evalConcision ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:featAB ;
+    gmeow:observationPrefers ex:candA ;
+    gmeow:confidence ex:confHigh .
+
+ex:featBC a gmeow:InformationObject ;
+    rdfs:label "pairwise comparison of B and C"@en ;
+    gmeow:hasPart ex:candB , ex:candC .
+ex:obsBC a gmeow:PreferenceObservation ;
+    rdfs:label "B ≻ C, per the coverage reviewer"@en ;
+    gmeow:vantage ex:evalCoverage ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:featBC ;
+    gmeow:observationPrefers ex:candB ;
+    gmeow:confidence ex:confHigh .
+
+ex:featCA a gmeow:InformationObject ;
+    rdfs:label "pairwise comparison of C and A"@en ;
+    gmeow:hasPart ex:candC , ex:candA .
+ex:obsCA a gmeow:PreferenceObservation ;
+    rdfs:label "C ≻ A, per the voice reviewer"@en ;
+    gmeow:vantage ex:evalVoice ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:featCA ;
+    gmeow:observationPrefers ex:candC ;
+    gmeow:confidence ex:confHigh .
+
+# --- The topological carrier: the observations compile into a cell complex ---- #
+# 0-cells are candidates, 1-cells are the preference edges; the sheaf's restriction
+# maps ARE the preference connection, and the cycle is its non-trivial holonomy.
+ex:complex a math:CellComplex ;
+    rdfs:label "the preference cell complex over {A,B,C}"@en .
+ex:sheaf a math:CellularSheaf ;
+    rdfs:label "the preference sheaf carrying the cyclic orders"@en ;
+    math:sheafBaseComplex ex:complex ;
+    math:connectionOfSheaf ex:prefConnection .
+ex:prefConnection a math:Connection ;
+    rdfs:label "the preference connection (restriction maps as transport)"@en .
+
+ex:corr a gmeow:CandidateSourceCorrespondence ;
+    rdfs:label "cell↔observation audit trail"@en ;
+    gmeow:correspondsToCell ex:cellA , ex:cellB , ex:cellC .
+ex:cellA a math:Cell ; gmeow:cellObservation ex:obsAB .
+ex:cellB a math:Cell ; gmeow:cellObservation ex:obsBC .
+ex:cellC a math:Cell ; gmeow:cellObservation ex:obsCA .
+
+ex:pres a gmeow:ProjectionPreservationRecord ;
+    rdfs:label "compilation preservation judgment (lossless assembly)"@en ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:compile a gmeow:ComparisonCompilation ;
+    rdfs:label "compile the three vantage orders into the preference sheaf"@en ;
+    gmeow:compilesComparison ex:candidates ;
+    gmeow:compilesToPreferenceComplex ex:complex ;
+    gmeow:carriedBySheaf ex:sheaf ;
+    gmeow:recordsCandidateCorrespondence ex:corr ;
+    gmeow:recordsProjectionPreservation ex:pres .
+
+# --- The LEGAL H1 obstruction: NOT discharged, no global winner asserted ------ #
+# A Condorcet cycle IS the non-vanishing math:GluingObstruction; recording it is
+# correct behaviour, and no gmeow:PreferenceClaim asserts a winner over this field.
+ex:h1class a math:GluingObstruction ;
+    rdfs:label "the non-vanishing H1 gluing obstruction"@en ;
+    math:obstructionOf ex:sheaf .
+ex:cycleHolonomy a math:Holonomy ;
+    rdfs:label "non-trivial holonomy around the A→B→C→A loop (curvature)"@en .
+
+ex:obstruction a gmeow:DisagreementObstruction ;
+    rdfs:label "the cross-vantage disagreement: an undischarged Condorcet cycle"@en ;
+    gmeow:obstructionClass ex:h1class ;
+    gmeow:obstructionHolonomy ex:cycleHolonomy .

@@ -18,7 +18,6 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
@@ -86,8 +85,8 @@ fn membership_relator_completed() {
             "gmeow:{role} range must be gmeow:{rng}"
         );
         assert!(
-            g.has(Some(&node), Some(RDF_TYPE), Some(OWL_FUNCTIONAL_PROPERTY)),
-            "gmeow:{role} must be an owl:FunctionalProperty"
+            g.is_functional_carrier(&node),
+            "gmeow:{role} must carry a logic: functionalProperty characteristic"
         );
     }
 }

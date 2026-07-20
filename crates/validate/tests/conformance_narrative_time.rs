@@ -45,7 +45,6 @@ const EX_SHAPES: &str = "https://example.org/shapes/";
 
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 
 fn gm(local: &str) -> String {
@@ -68,12 +67,8 @@ fn frame_properties_are_functional_with_correct_anchors() {
         ("positionFrame", "NarrativeTimeFrame"),
     ] {
         assert!(
-            g.has(
-                Some(&gm(prop)),
-                Some(RDF_TYPE),
-                Some(OWL_FUNCTIONAL_PROPERTY)
-            ),
-            "gmeow:{prop} must be an OWL FunctionalProperty"
+            g.is_functional_carrier(&gm(prop)),
+            "gmeow:{prop} must carry a logic: functionalProperty characteristic"
         );
         assert!(
             g.has(Some(&gm(prop)), Some(RDFS_RANGE), Some(&gm(range))),
@@ -97,11 +92,7 @@ fn at_narrative_position_is_domain_free_and_not_functional() {
         g.objects(&gm("atNarrativePosition"), RDFS_DOMAIN)
             .is_empty()
     );
-    assert!(!g.has(
-        Some(&gm("atNarrativePosition")),
-        Some(RDF_TYPE),
-        Some(OWL_FUNCTIONAL_PROPERTY)
-    ));
+    assert!(!g.is_functional_carrier(&gm("atNarrativePosition")));
     assert!(g.has(
         Some(&gm("atNarrativePosition")),
         Some(RDFS_RANGE),

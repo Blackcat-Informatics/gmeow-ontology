@@ -202,8 +202,7 @@ gmeow:romanticHomoromantic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:romanticOrientationValue
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RomanticOrientation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "romantic orientation value"@x-gmeow-english ;
@@ -237,8 +236,7 @@ gmeow:romanticQuestioning
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sexualOrientationValue
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SexualOrientation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "sexual orientation value"@x-gmeow-english ;

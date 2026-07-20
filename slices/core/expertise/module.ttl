@@ -86,8 +86,7 @@ gmeow:credentialFor
     gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english .
 
 gmeow:credentialIssuer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Credential ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "credential issuer"@x-gmeow-english ;
@@ -199,8 +198,7 @@ gmeow:scaleDreyfus
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:skillProficiencyAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency agent"@x-gmeow-english ;
@@ -226,8 +224,7 @@ gmeow:skillProficiencyInterval
     gmeow:useWhen "Use to bound a gmeow:SkillProficiency in time when the span over which a level held is itself a first-class gmeow:TimeInterval — a proficiency that rose and then lapsed over a career."@x-gmeow-english .
 
 gmeow:skillProficiencyLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency level"@x-gmeow-english ;
@@ -240,8 +237,7 @@ gmeow:skillProficiencyLevel
     gmeow:useWhen "Use to record the attained level of a gmeow:SkillProficiency — a gmeow:ProficiencyLevel value such as dreyfusExpert or assessedCompetent — read against the scale named by gmeow:skillProficiencyScale."@x-gmeow-english .
 
 gmeow:skillProficiencyOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency of"@x-gmeow-english ;
@@ -254,8 +250,7 @@ gmeow:skillProficiencyOf
     gmeow:useWhen "Use to name the single gmeow:Skill a gmeow:SkillProficiency relator rates — the competency the level is attained in."@x-gmeow-english .
 
 gmeow:skillProficiencyScale
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "skill proficiency scale"@x-gmeow-english ;

@@ -180,8 +180,7 @@ gmeow:SupportPolarity
     gmeow:useWhen "Use as the closed three-value vocabulary (supports / refutes / neutral) that gmeow:supportPolarity draws from for a span's stance toward its claim."@x-gmeow-english .
 
 gmeow:chunkOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Chunk ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunk of"@x-gmeow-english ;
@@ -195,8 +194,7 @@ gmeow:chunkOf
     gmeow:useWhen "Use to bind a gmeow:Chunk to the single source information object it was cut from — the parthood seam that makes 'where in the source?' answerable."@x-gmeow-english .
 
 gmeow:contradictionKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Contradiction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "contradiction kind"@x-gmeow-english ;
@@ -251,8 +249,7 @@ gmeow:contradictsClaim
     gmeow:useWhen "Use to bind a gmeow:Contradiction to each claim node in conflict — at least two, since a contradiction needs both sides to be a conflict."@x-gmeow-english .
 
 gmeow:describesModel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "describes model"@x-gmeow-english ;
@@ -278,8 +275,7 @@ gmeow:detectedBy
     gmeow:useWhen "Use to attribute a gmeow:Contradiction to the agent that surfaced it — a person, an NLI model, or an eval run's judge — because detection is itself contestable."@x-gmeow-english .
 
 gmeow:filledFrom
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Prompt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "filled from"@x-gmeow-english ;
@@ -320,8 +316,7 @@ gmeow:hasPrompt
     gmeow:useWhen "Use to link a gmeow:ModelInvocation to each gmeow:Prompt presented in it — assert several, in their conversational roles, for a multi-turn chat invocation."@x-gmeow-english .
 
 gmeow:memoryKind
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MemoryItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "memory kind"@x-gmeow-english ;
@@ -463,8 +458,7 @@ gmeow:polaritySupports
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:promptRole
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Prompt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "prompt role"@x-gmeow-english ;
@@ -556,8 +550,7 @@ gmeow:spanEnd
     gmeow:useWhen "Use to pin the exclusive end offset of a span in unicode code points, completing the half-open range opened by gmeow:spanStart."@x-gmeow-english .
 
 gmeow:spanOfChunk
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "span of chunk"@x-gmeow-english ;
@@ -582,8 +575,7 @@ gmeow:spanStart
     gmeow:useWhen "Use to pin the inclusive start offset of a span in unicode code points — a Chunk within its source or an EvidenceSpan within a chunk — when mechanical re-anchoring needs an integer, not prose."@x-gmeow-english .
 
 gmeow:supportPolarity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "support polarity"@x-gmeow-english ;
@@ -596,8 +588,7 @@ gmeow:supportPolarity
     gmeow:useWhen "Use to record the NLI/AIS stance of a grounding span toward its claim — supports, refutes, or neutral — so faithfulness and contradiction audits read the verdict as data."@x-gmeow-english .
 
 gmeow:usedModel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "used model"@x-gmeow-english ;

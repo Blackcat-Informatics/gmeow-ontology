@@ -83,7 +83,6 @@ const EX_TEST: &str = "https://example.org/test/";
 const RDFS_SUB_PROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
 const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 
@@ -260,11 +259,7 @@ fn no_preferred_or_primary_term_is_declared() {
 #[test]
 fn contested_places_cannot_force_inconsistency() {
     let g = GraphStore::ontology();
-    assert!(!g.has(
-        Some(&gmeow("containedInPlace")),
-        Some(RDF_TYPE),
-        Some(OWL_FUNCTIONAL_PROPERTY)
-    ));
+    assert!(!g.is_functional_carrier(&gmeow("containedInPlace")));
     assert!(g.has(Some(&gmeow("Place")), Some(RDF_TYPE), Some(OWL_CLASS)));
     assert!(!g.has(
         Some(&gmeow("Place")),

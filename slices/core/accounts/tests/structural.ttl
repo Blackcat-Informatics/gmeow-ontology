@@ -53,7 +53,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The seeded status individuals MUST be present and typed: AccountStatus {active, dormant, historical} and ServiceStatus {live, shut-down}. These are seeds of an OPEN value vocabulary (extended by new individuals, never subclasses), so presence is asserted but closure is deliberately NOT." .
 
-# --- 4. accountService / serviceShutdownDate are functional (MUST hold) -------
+# --- 4. accountService / serviceShutdownDate declared shapes (MUST hold) ------
 ex:saAccountFunctionalShapes a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -62,14 +62,14 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:accountService a owl:FunctionalProperty , owl:ObjectProperty ;
+    gmeow:accountService a owl:ObjectProperty ;
         rdfs:domain gmeow:OnlineAccount ; rdfs:range gmeow:OnlineService .
-    gmeow:serviceShutdownDate a owl:FunctionalProperty , owl:DatatypeProperty ;
+    gmeow:serviceShutdownDate a owl:DatatypeProperty ;
         rdfs:domain gmeow:OnlineService ; rdfs:range xsd:dateTime .
     gmeow:holdsAccount a owl:ObjectProperty ;
         rdfs:domain gmeow:Agent ; rdfs:range gmeow:OnlineAccount .
 }""" ;
-    gmeow:saRationale "gmeow:accountService (an account is on one service) and gmeow:serviceShutdownDate (one shutdown date) MUST be functional with their declared domains/ranges; gmeow:holdsAccount MUST link gmeow:Agent to gmeow:OnlineAccount." .
+    gmeow:saRationale "gmeow:accountService (an account is on one service) and gmeow:serviceShutdownDate (one shutdown date) MUST carry their declared domains/ranges; their single-valued (functional) characteristic is now asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module. gmeow:holdsAccount MUST link gmeow:Agent to gmeow:OnlineAccount." .
 
 # --- 5. Status object properties are NOT functional (MUST-NOT hold) ----------
 ex:saStatusPropertiesNotFunctional a gmeow:StructuralAssertion ;
@@ -77,8 +77,9 @@ ex:saStatusPropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:accountStatus gmeow:serviceStatus }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:accountStatus and gmeow:serviceStatus MUST NOT be owl:FunctionalProperty (Principle 9): competing source- or standpoint-asserted statuses coexist. A functional object property would force the distinct status values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning. VALUES here ranges over the two status object properties the slice declares — a closed, finite set, not a stand-in for an open universal." .

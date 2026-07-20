@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:GeometricBindingConstraint (gmeow:GeometryDimensionMismatch): a
+# candidate declares gmeow:candidateGeometry into a math:CliffordAlgebra whose math:spaceDimension
+# is 2048 instead of 4096 = 2^12 (the exact Cl(12) carrier dimension). The signature is a valid
+# (11, 1) so p + q = 12 (the signature arm is satisfied), isolating the carrier-dimension arm: the
+# ∀→(¬∃ signature-mismatch ∧ ¬∃ dimension-mismatch) SPARQL constraint MUST reject it with
+# shacl.SPARQLConstraintComponent and NO other finding. The math:MetricSignature carries no
+# metric-tensor / manifold chain, so the grounding math:MetricSignatureDimensionConstraint's guard
+# never fires — the preference-side Cl(12)/4096-d binding gate is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candGeom a gmeow:InformationObject ;
+    rdfs:label "a candidate whose geometry miscounts the Cl(12)/4096-d carrier"@en ;
+    gmeow:candidateGeometry ex:mv .
+
+ex:mv a math:Multivector ;
+    rdfs:label "the candidate's multivector"@en ;
+    gmeow:geometryAlgebra ex:cl .
+
+ex:sig a math:MetricSignature ;
+    rdfs:label "signature (11, 1): p + q = 12 (valid)"@en ;
+    math:signaturePositive 11 ;
+    math:signatureNegative 1 .
+
+# The DEFECT: spaceDimension is 2048, not 4096 = 2^12.
+ex:cl a math:CliffordAlgebra ;
+    rdfs:label "an algebra whose carrier dimension is the wrong 2048"@en ;
+    math:metricSignature ex:sig ;
+    math:spaceDimension 2048 .                          # <-- must be 4096 for Cl(12)

@@ -42,17 +42,6 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Hazard MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Disposition and gmeow:RiskFactor — a hazard that never manifests is fully real as a disposition; first logic:Disposition use in GMEOW." .
 
-# --- 2. hazardBearer is functional (MUST) ------------------------------------
-ex:saHazardBearerIsFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:hazardBearer a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:hazardBearer MUST be owl:FunctionalProperty — a disposition has exactly one bearer; the same danger borne by two systems is two hazards (gUFO inherence doctrine, Principle 5)." .
-
 # --- 3. manifestedAsType range is EventType (MUST) ---------------------------
 ex:saManifestedAsTypeRangeEventType a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -96,10 +85,10 @@ ex:saCausalPropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:typeCauses gmeow:typeEnables gmeow:typePrevents gmeow:typeMitigates gmeow:linkNext }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "None of gmeow:typeCauses, typeEnables, typePrevents, typeMitigates, linkNext MUST NOT be owl:FunctionalProperty — each event type may cause many others; gmeow:linkNext branches (diverging failure trees)." .
 
@@ -130,28 +119,15 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:CausalLink MUST be a subclass of logic:Relator and gmeow:RiskFactor — reified causal claims are relators (binding antecedent and consequent kinds) and are also risk factors so gmeow:mitigationCounters can reach them." .
 
-# --- 9. linkAntecedent, linkConsequent, causalModality are functional (MUST) -
-ex:saCausalLinkCorePropertiesFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:linkAntecedent a owl:FunctionalProperty .
-    gmeow:linkConsequent  a owl:FunctionalProperty .
-    gmeow:causalModality  a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:linkAntecedent, linkConsequent, and causalModality MUST be owl:FunctionalProperty — if you reified a causal claim you must state exactly one antecedent kind, one consequent kind, and one modality (SHACL-mandatory)." .
-
 # --- 10. Source-variable properties are NOT functional (MUST-NOT) ------------
 ex:saSourceVariablePropertiesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:linkStrength gmeow:cascadeSeverity gmeow:hazardSeverity gmeow:mitigationStatus }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:linkStrength, cascadeSeverity, hazardSeverity, and mitigationStatus MUST NOT be owl:FunctionalProperty — divergent estimates/grades/statuses coexist via the statement layer; single-valuedness per base graph is SHACL's job (hasAuthorityLevel convention)." .
 
@@ -160,9 +136,9 @@ ex:saLinkMechanismNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:linkMechanism a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:linkMechanism ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:linkMechanism MUST NOT be owl:FunctionalProperty — mechanism prose is localizable; one account per language tag is allowed (localizable-prose convention)." .
 

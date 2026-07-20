@@ -16,7 +16,7 @@ registered from `mod.rs` under the `gmeow:stageImpl` key read from the ontology.
 | Ingestion and carrier | `source_load`, `carrier`, `fold_arena`, `gts_compose`, `gts_sink` | Assemble authored inputs into the native RDF carrier and terminal GTS bundle. |
 | Canonical compilers | `statements`, `mappings`, `compile_logic`, `correspondence_lower`, `reason`, `validate`, `conformance` | Compile authored source layers and prove drift/conformance invariants. |
 | Documentation and reports | `docs_render`, `diag_render`, `matrix`, `metadata`, `provenance_graph`, `references`, `bench`, `evals` | Emit committed documentation, status matrices, diagnostics, metadata, and evidence graphs. |
-| Export leaves | `apache`, `catalog`, `profiles`, `frame_shapes`, `result_shapes`, `json_schema`, `lpg`, `schemas`, `research_objects`, `parquet`, `okf`, `export`, `yaml_ld` | Project the terminal carrier into release and consumer-facing formats. |
+| Export leaves | `apache`, `catalog`, `profiles`, `frame_shapes`, `result_shapes`, `json_schema`, `lpg`, `schemas`, `research_objects`, `okf`, `export`, `yaml_ld` | Project the terminal carrier into release and consumer-facing formats. |
 
 ## Stage Contract
 

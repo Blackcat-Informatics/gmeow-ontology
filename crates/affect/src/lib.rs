@@ -22,7 +22,7 @@
 //! digits, round-half-up at the seventh digit, via an integer floor-sqrt — never
 //! `f64::sqrt`. Given the same inputs the output strings are byte-identical.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::gts::model::Graph;
 
@@ -36,6 +36,10 @@ use gmeow_math::{
     MAX_BASIS_DIM, TripleIndex, all_iris, bounded_index, first_i128, first_iri, first_literal,
     has_type, index_graph, load_gram, sqrt_rational_decimal, subjects,
 };
+// The native bilinear-form distance authority: Q9 classification computes its exact-ℚ
+// squared distances THROUGH this governed moded-builtin family, never a private path
+// (the affect classifier). `compare_sqdist` is the overflow-safe ordering the ranking rides.
+use gmeow_logic::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 
 use gmeow_errors::Diag;
 
@@ -125,6 +129,7 @@ fn load_cells(
         }));
     }
     let mut cells = Vec::new();
+    let mut seen_axes = BTreeSet::new();
     for cell in component_iris {
         let dimension = first_iri(index, &cell, &gm("appraisalDimension")).ok_or_else(|| {
             Diag::of_kind(error::MissingAffectProperty {
@@ -139,6 +144,16 @@ fn load_cells(
             })
         })?;
         let axis = bounded_index(axis, "core axis")?;
+        // One cell per core axis: a second cell on the same axis would silently
+        // overwrite the first (an order-dependent, wrong vector) — hard-fail instead.
+        if !seen_axes.insert(axis) {
+            return Err(Diag::of_kind(error::DuplicateCoordinateAxis {
+                detail: format!(
+                    "{vector_iri} declares more than one gmeow:vectorComponent cell on core \
+                     axis {axis} ({dimension}); exactly one cell per axis is required"
+                ),
+            }));
+        }
         let value = Rational::parse_decimal(
             &first_literal(index, &cell, &gm("appraisalValue")).ok_or_else(|| {
                 Diag::of_kind(error::MissingAffectProperty {
@@ -226,9 +241,16 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
     if dim == 0 {
         return Err(Diag::of_kind(error::EmptyAffectBasis {}));
     }
-    // Every contributing index was bounded below `MAX_BASIS_DIM`, so the
-    // derived dimension is bounded too; assert it before it sizes the matrix.
-    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
+    // Every contributing index was bounded below `MAX_BASIS_DIM`, so the derived
+    // dimension is bounded too; enforce it in ALL build profiles before it sizes
+    // the matrix (a debug_assert would compile out of release).
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "derived affect basis dimension {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
 
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in gram_cells {
@@ -369,7 +391,15 @@ pub fn crosscheck_authored_definiteness(
                 gram_iri: gram_iri.to_owned(),
             })
         })?;
-    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
+    // Enforced in ALL build profiles (a debug_assert would compile out of release);
+    // every Gram index is bounded below `MAX_BASIS_DIM` upstream, so this cannot fire.
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "Gram matrix {gram_iri} order {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in cells {
         gram[row][col] = value;
@@ -431,116 +461,447 @@ pub fn distance_and_cosine(
     Ok((distance, cosine))
 }
 
-/// The winning prototype of a nearest-prototype classification, selected by EXACT
-/// squared metric distance.
+// ---------------------------------------------------------------------------
+// Nearest-prototype classification (competency Q9) — a vantage-relative ranked
+// judgment under an EXPLICIT vantage Gram, dispatched through the native builtin family.
+// ---------------------------------------------------------------------------
+
+/// The metric lens a classification ranks prototypes under.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MetricLens {
+    /// Exact G-distance: rank by ASCENDING squared metric distance
+    /// `(x − p)ᵀG(x − p)`. Answers "which prototype, INCLUDING intensity".
+    GDistance,
+    /// G-cosine alignment: rank by DESCENDING `⟨x,p⟩_G / (‖x‖‖p‖)`. Answers "which
+    /// QUALITY / direction" — deliberately collapses gradation (annoyance→anger→rage
+    /// is one direction at growing magnitude; AFFECT-DESIGN §"Magnitudes, intensity,
+    /// and gradation").
+    Cosine,
+}
+
+impl MetricLens {
+    /// The greppable output tag naming the lens (`distance` / `cosine`).
+    #[must_use]
+    pub fn tag(self) -> &'static str {
+        match self {
+            MetricLens::GDistance => "distance",
+            MetricLens::Cosine => "cosine",
+        }
+    }
+}
+
+/// One ranked prototype in a classification profile.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NearestPrototype {
-    /// The argmin prototype observation IRI.
+pub struct RankedPrototype {
+    /// The prototype observation IRI.
     pub prototype: String,
-    /// Its EXACT squared metric distance `‖x − p‖²_G = (x − p)ᵀG(x − p)` to the
-    /// state, as a printable ratio (e.g. `"19/50"`). This is the value the argmin
-    /// is decided on — an exact `Rational`, never the √ decimal.
+    /// The EXACT squared G-distance `(x − p)ᵀG(x − p)` as a printable ratio — the value
+    /// the G-distance ranking decides on, computed through the native bilinear builtin.
     pub squared_distance: String,
-    /// The winning `√(squared_distance)` distance as a fixed-precision decimal
-    /// string. This crosses the solver seam (the only approximation) and is emitted
-    /// for display/report ONLY — never for selection.
+    /// `√(squared_distance)` as a fixed-precision decimal — the display seam, never
+    /// used for selection.
     pub distance: String,
+    /// The signed G-cosine as a fixed-precision decimal — `Some` only under the cosine
+    /// lens (where it is the selection basis), `None` under the G-distance lens.
+    pub cosine: Option<String>,
 }
 
-/// The exact per-coordinate difference `x − y`, zero-completing the shorter vector.
-/// Exact `Rational` subtraction; hard-fails on `i128` overflow (never a wraparound).
-fn vector_difference(x: &[Rational], y: &[Rational]) -> gmeow_errors::Result<Vec<Rational>> {
-    let n = x.len().max(y.len());
-    (0..n)
-        .map(|i| {
-            let xi = x.get(i).copied().unwrap_or_else(Rational::zero);
-            let yi = y.get(i).copied().unwrap_or_else(Rational::zero);
-            xi.checked_sub(yi)
-        })
-        .collect()
+/// A vantage-relative nearest-prototype classification: a total-order ranked prototype
+/// profile under a chosen [`MetricLens`] and an EXPLICIT vantage Gram, plus the exact
+/// rank-1/rank-2 margin. Swapping the vantage Gram or the lens can flip the winner —
+/// classification is a computed, vantage-relative claim, never ground truth (Q9).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Classification {
+    /// The lens the ranking was selected under.
+    pub metric: MetricLens,
+    /// The vantage `gmeow:AffectScaleProfile` whose `gmeow:metricGram` was imposed on
+    /// every coordinate vector.
+    pub vantage_profile: String,
+    /// The ranked prototypes, best-first (ascending G-distance, or descending cosine),
+    /// truncated to the requested `top_k`.
+    pub ranked: Vec<RankedPrototype>,
+    /// The EXACT perpendicular Voronoi margin² between the top-two SELECTED prototypes,
+    /// `Δ² / (4‖p₁−p₂‖²_G)` (with `Δ` their squared-distance gap to the state), as a
+    /// printable ratio — the honest "how contested" number. `"0"` when fewer than two
+    /// prototypes or an exact first-place tie (maximally contested).
+    pub margin_squared: String,
+    /// `√(margin_squared)` as a fixed-precision decimal — the display seam.
+    pub margin: String,
 }
 
-/// Classify a state observation to its nearest named-emotion prototype by argmin
-/// over the EXACT squared metric distance `‖x − pᵢ‖²_G = (x − pᵢ)ᵀG(x − pᵢ)`,
-/// reusing the shared exact-ℚ [`InnerProductSpace`] of the state's metric basis.
+/// The dense zero vector of length `dim` (the metric origin).
+fn origin(dim: usize) -> Vec<Rational> {
+    vec![Rational::zero(); dim]
+}
+
+/// The exact sign of a rational: `-1`, `0`, or `+1`.
+fn rsign(r: Rational) -> i32 {
+    if r.is_zero() {
+        0
+    } else if r.is_non_positive() {
+        -1
+    } else {
+        1
+    }
+}
+
+/// Map a native [`BilinearFormError`] to a typed affect diagnostic.
+fn map_bilinear(e: BilinearFormError) -> Diag {
+    match e {
+        BilinearFormError::DimensionMismatch => Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: "coordinate vectors differ in dimension under the vantage metric form"
+                .to_owned(),
+        }),
+        BilinearFormError::Overflow => Diag::of_kind(error::BilinearDistanceFailed {
+            detail: "exact-rational overflow computing the bilinear-form squared distance"
+                .to_owned(),
+        }),
+        BilinearFormError::MetricForm => Diag::of_kind(error::BilinearDistanceFailed {
+            detail: "malformed vantage metric form (Gram/vector) in the bilinear-form builtin"
+                .to_owned(),
+        }),
+    }
+}
+
+/// Load one affect vector observation's dense exact-ℚ coordinate vector over the
+/// core-affect basis, sized to the vantage form order `dim`, validating every cell
+/// magnitude against the vantage profile's declared `[range_min, range_max]`.
 ///
-/// # Exactness contract
+/// A cell whose axis index reaches or exceeds `dim` is a HARD fail (the vantage form
+/// would silently truncate it); an out-of-range magnitude is a HARD fail (the scale
+/// does not define it). Both are numeric invariants, enforced OUTSIDE the logic here
+/// (Principle 12).
+fn load_coordinate_vector(
+    index: &TripleIndex,
+    obs_iri: &str,
+    dim: usize,
+    range_min: Rational,
+    range_max: Rational,
+) -> gmeow_errors::Result<Vec<Rational>> {
+    let cells = load_cells(index, obs_iri)?;
+    let mut vector = origin(dim);
+    for (axis, dimension, value) in &cells {
+        if *axis >= dim {
+            return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+                detail: format!(
+                    "{obs_iri} cell on axis {axis} ({dimension}) exceeds the vantage form order {dim}"
+                ),
+            }));
+        }
+        if *value < range_min || *value > range_max {
+            return Err(Diag::of_kind(error::ValueOutOfRange {
+                detail: format!(
+                    "{obs_iri} cell on axis {axis} ({dimension}) magnitude {} is outside the \
+                     vantage profile range [{}, {}]",
+                    value.ratio_string(),
+                    range_min.ratio_string(),
+                    range_max.ratio_string()
+                ),
+            }));
+        }
+        vector[*axis] = *value;
+    }
+    Ok(vector)
+}
+
+/// A loaded prototype candidate: its IRI, coordinate vector, exact squared G-distance
+/// to the state, and (cosine lens only) the exact `(⟨x,p⟩_G, ‖p‖²_G)` selection key.
+struct Candidate {
+    iri: String,
+    vector: Vec<Rational>,
+    squared_distance: Rational,
+    /// `(inner, proto_norm_sq)` under the vantage G — `Some` only in cosine mode.
+    cosine_key: Option<(Rational, Rational)>,
+}
+
+/// True when `a` ranks strictly before `b` under `metric` (best-first), with a
+/// deterministic lexicographically-least-IRI tie-break. Ordering rides the the native builtin
+/// family's overflow-safe exact compare, never `Rational` ordering (which panics on
+/// overflow); the only bare comparisons are on axis signs (`i32`) and IRIs.
+fn ranks_before(a: &Candidate, b: &Candidate, metric: MetricLens) -> gmeow_errors::Result<bool> {
+    let order = match metric {
+        MetricLens::GDistance => {
+            // Ascending exact squared distance.
+            compare_sqdist(&a.squared_distance, &b.squared_distance).map_err(map_bilinear)?
+        }
+        MetricLens::Cosine => {
+            // Descending exact cosine, sign-first then squared-magnitude (any positive
+            // cosine beats any negative — squaring alone is wrong).
+            let (ia, qa) = a.cosine_key.expect("cosine key present in cosine mode");
+            let (ib, qb) = b.cosine_key.expect("cosine key present in cosine mode");
+            let (sa, sb) = (rsign(ia), rsign(ib));
+            if sa != sb {
+                // Higher cosine sign sorts first (best-first).
+                if sa > sb {
+                    std::cmp::Ordering::Less
+                } else {
+                    std::cmp::Ordering::Greater
+                }
+            } else {
+                // Same sign: compare inner² · other_norm² (exact, overflow-safe). For
+                // both-positive the LARGER product is the higher cosine (sorts first);
+                // for both-negative the SMALLER product is the higher (less negative).
+                let lhs = ia.checked_mul(ia)?.checked_mul(qb)?;
+                let rhs = ib.checked_mul(ib)?.checked_mul(qa)?;
+                let mag = compare_sqdist(&lhs, &rhs).map_err(map_bilinear)?;
+                if sa >= 0 { mag.reverse() } else { mag }
+            }
+        }
+    };
+    Ok(match order {
+        std::cmp::Ordering::Less => true,
+        std::cmp::Ordering::Greater => false,
+        std::cmp::Ordering::Equal => a.iri.as_str() < b.iri.as_str(),
+    })
+}
+
+/// Classify a state affect vector to its nearest named-emotion prototype(s) under an
+/// EXPLICIT vantage metric, dispatching every exact-ℚ squared distance THROUGH the
+/// native bilinear-form builtin family ([`gmeow_logic::bilinear_sqdist`]) — never a
+/// private numeric path (the maintainer routing mandate). Answers competency Q9
+/// ("is this vector a schadenfreude?").
 ///
-/// Selection is decided ENTIRELY on the exact-rational squared distance
-/// ([`InnerProductSpace::quadratic_form`] of the coordinate difference), compared as
-/// exact [`Rational`]s. Because `√` is monotonically increasing, the order of the
-/// squared distances is identical to the order of the true distances, so the argmin
-/// is the same — but computed WITHOUT ever crossing the solver seam. The `√` decimal
-/// is derived once, for the winner, purely for display in the returned
-/// [`NearestPrototype::distance`]; it is NEVER used to select.
+/// # Explicit vantage-Gram (the decoupled metric)
 ///
-/// Squared Mahalanobis distance is an order-equivalent *divergence*, not a metric:
-/// it obeys no triangle inequality, so it may not be composed as a true distance.
-/// True-metric composition needs the `√` (the [`NearestPrototype::distance`] decimal),
-/// which crosses the seam and is an approximation.
+/// The `vantage_profile_iri`'s `gmeow:metricGram` `G` is imposed on the state AND every
+/// prototype coordinate vector, regardless of each observation's own declared profile.
+/// Swapping the vantage profile re-measures everyone under a different `G` and can flip
+/// the winner — vantage-relativity is a function, not a caveat.
 ///
-/// Ties are broken deterministically to the lexicographically-least prototype IRI.
+/// # Exactness & routing
+///
+/// The squared distance `(x − p)ᵀG(x − p)` and (cosine lens) the inner product via the
+/// polarization identity `⟨x,p⟩ = (‖x‖² + ‖p‖² − ‖x−p‖²)/2` are ALL computed through the
+/// native builtin; ordering rides [`gmeow_logic::compare_sqdist`] (overflow-safe). The
+/// `√` decimals and the cosine display string cross the solver seam for DISPLAY only,
+/// never selection. Ties break to the lexicographically-least prototype IRI.
 ///
 /// # Failure (no-optionality)
 ///
-/// Every prototype MUST share the state's metric basis (identical Gram + axis map),
-/// exactly as [`distance_and_cosine`] requires; a mismatch is a HARD fail, never a
-/// silently zero-padded number. An EMPTY prototype set is a HARD fail — there is no
-/// candidate to argmin over.
-pub fn nearest_prototype(
+/// HARD fails on: an EMPTY prototype set; a missing vantage `metricGram`/range; a
+/// NON-positive-definite vantage Gram (the builtin trusts PD, so an indefinite form
+/// would make distances negative and the argmin garbage); a coordinate axis wider than
+/// the form (`DimensionMismatch`); an out-of-range magnitude; COINCIDENT prototype
+/// signatures under `G`; and a zero-G-norm state or prototype under the cosine lens.
+pub fn classify(
     graph: &Graph,
     state_iri: &str,
     prototype_iris: &[String],
-) -> gmeow_errors::Result<NearestPrototype> {
+    vantage_profile_iri: &str,
+    metric: MetricLens,
+    top_k: Option<usize>,
+) -> gmeow_errors::Result<Classification> {
     if prototype_iris.is_empty() {
         return Err(Diag::of_kind(error::EmptyPrototypeSet {}));
     }
     let index = index_graph(graph);
-    let state = load_inputs(&index, state_iri)?;
 
-    // The running argmin: (prototype IRI, exact squared distance).
-    let mut best: Option<(String, Rational)> = None;
-    for proto_iri in prototype_iris {
-        let proto = load_inputs(&index, proto_iri)?;
-        // Both vectors must be measured with the state's metric; a differing Gram or
-        // axis map would otherwise be silently zero-padded/truncated into a
-        // well-formed but meaningless number. Hard-fail instead (mirrors
-        // `distance_and_cosine`).
-        if proto.space != state.space || proto.axis_to_dim != state.axis_to_dim {
-            return Err(Diag::of_kind(error::MetricBasisMismatch {
-                detail: format!(
-                    "nearest-prototype requires every prototype to share the state's metric \
-                     basis; state {state_iri} and prototype {proto_iri} differ in Gram matrix \
-                     / axis map"
-                ),
-            }));
+    // ── The explicit vantage Gram + its declared coordinate range ───────────────
+    let gram_iri = first_iri(&index, vantage_profile_iri, &gm("metricGram")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("vantage profile {vantage_profile_iri}"),
+            property: "gmeow:metricGram".to_owned(),
+        })
+    })?;
+    let gram_cells = load_gram(&index, &gram_iri)?;
+    let range_min = Rational::parse_decimal(
+        &first_literal(&index, vantage_profile_iri, &gm("profileRangeMin")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: format!("vantage profile {vantage_profile_iri}"),
+                property: "gmeow:profileRangeMin".to_owned(),
+            })
+        })?,
+    )?;
+    let range_max = Rational::parse_decimal(
+        &first_literal(&index, vantage_profile_iri, &gm("profileRangeMax")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: format!("vantage profile {vantage_profile_iri}"),
+                property: "gmeow:profileRangeMax".to_owned(),
+            })
+        })?,
+    )?;
+
+    let dim = gram_cells
+        .iter()
+        .flat_map(|(r, c, _)| [*r, *c])
+        .max()
+        .map(|m| m + 1)
+        .ok_or_else(|| {
+            Diag::of_kind(error::GramHasNoEntries {
+                gram_iri: gram_iri.clone(),
+            })
+        })?;
+    // Enforced in ALL build profiles (a debug_assert would compile out of release);
+    // every vantage-Gram index is bounded below `MAX_BASIS_DIM` upstream.
+    if dim > MAX_BASIS_DIM {
+        return Err(Diag::of_kind(error::CoordinateDimensionMismatch {
+            detail: format!(
+                "vantage Gram {gram_iri} order {dim} exceeds the maximum basis order {MAX_BASIS_DIM}"
+            ),
+        }));
+    }
+
+    // ── PD-certify the vantage Gram: the builtin TRUSTS positive-definiteness, so a
+    //    non-PD vantage would make the "distances" negative and the argmin garbage. ─
+    let mut matrix = vec![vec![Rational::zero(); dim]; dim];
+    for (row, col, value) in &gram_cells {
+        matrix[*row][*col] = *value;
+        matrix[*col][*row] = *value; // declared symmetric fill
+    }
+    let space = InnerProductSpace::new(matrix)?;
+    space.ldlt_pivots().map_err(|e| {
+        Diag::of_kind(error::NonPositiveDefiniteVantage {
+            detail: format!(
+                "vantage Gram {gram_iri} is not positive-definite ({}); classification needs a \
+                 metric, not an indefinite form",
+                e.message()
+            ),
+        })
+    })?;
+
+    // ── The state coordinate vector, and (cosine mode) its exact G-norm² ────────
+    let state = load_coordinate_vector(&index, state_iri, dim, range_min, range_max)?;
+    let state_norm_sq = match metric {
+        MetricLens::Cosine => {
+            let q = bilinear_sqdist(&gram_cells, &state, &origin(dim)).map_err(map_bilinear)?;
+            if q.is_zero() {
+                return Err(Diag::of_kind(error::ZeroNormCosine {
+                    detail: format!("state {state_iri} has zero G-norm; its cosine is undefined"),
+                }));
+            }
+            Some(q)
         }
-        let diff = vector_difference(&state.vector, &proto.vector)?;
-        // EXACT squared distance — the value the argmin is decided on.
-        let squared = state.space.quadratic_form(&diff)?;
-        let replace = match &best {
-            None => true,
-            // Exact `Rational` comparison; on an exact tie, the lexicographically-least
-            // prototype IRI wins (deterministic).
-            Some((best_iri, best_squared)) => match squared.cmp(best_squared) {
-                std::cmp::Ordering::Less => true,
-                std::cmp::Ordering::Equal => proto_iri.as_str() < best_iri.as_str(),
-                std::cmp::Ordering::Greater => false,
-            },
+        MetricLens::GDistance => None,
+    };
+
+    // ── Load + measure every prototype THROUGH the native bilinear builtin ───────
+    let two = Rational::from_i128(2)?;
+    let mut candidates: Vec<Candidate> = Vec::with_capacity(prototype_iris.len());
+    for proto_iri in prototype_iris {
+        let vector = load_coordinate_vector(&index, proto_iri, dim, range_min, range_max)?;
+        let squared_distance =
+            bilinear_sqdist(&gram_cells, &state, &vector).map_err(map_bilinear)?;
+        let cosine_key = match (metric, state_norm_sq) {
+            (MetricLens::Cosine, Some(x_norm_sq)) => {
+                let p_norm_sq =
+                    bilinear_sqdist(&gram_cells, &vector, &origin(dim)).map_err(map_bilinear)?;
+                if p_norm_sq.is_zero() {
+                    return Err(Diag::of_kind(error::ZeroNormCosine {
+                        detail: format!(
+                            "prototype {proto_iri} has zero G-norm; its cosine is undefined"
+                        ),
+                    }));
+                }
+                // ⟨x,p⟩_G = (‖x‖² + ‖p‖² − ‖x−p‖²) / 2 — polarization, all via the native builtin.
+                let inner = x_norm_sq
+                    .checked_add(p_norm_sq)?
+                    .checked_sub(squared_distance)?
+                    .checked_div(two)?;
+                Some((inner, p_norm_sq))
+            }
+            _ => None,
         };
-        if replace {
-            best = Some((proto_iri.clone(), squared));
+        candidates.push(Candidate {
+            iri: proto_iri.clone(),
+            vector,
+            squared_distance,
+            cosine_key,
+        });
+    }
+
+    // ── Pairwise-distinctness: coincident signatures are an authoring error that
+    //    makes the margin bisector undefined (numeric invariant, enforced per P12). ─
+    for i in 0..candidates.len() {
+        for j in (i + 1)..candidates.len() {
+            let sep = bilinear_sqdist(&gram_cells, &candidates[i].vector, &candidates[j].vector)
+                .map_err(map_bilinear)?;
+            if sep.is_zero() {
+                return Err(Diag::of_kind(error::CoincidentPrototypes {
+                    detail: format!(
+                        "prototypes {} and {} are coincident under the vantage metric \
+                         (zero G-distance apart)",
+                        candidates[i].iri, candidates[j].iri
+                    ),
+                }));
+            }
         }
     }
 
-    // The prototype set is non-empty, so the loop set `best` at least once.
-    let (prototype, squared) = best.ok_or_else(|| Diag::of_kind(error::EmptyPrototypeSet {}))?;
-    Ok(NearestPrototype {
-        prototype,
-        squared_distance: squared.ratio_string(),
-        // The √ decimal crosses the solver seam — display only, never selection.
-        distance: sqrt_rational_decimal(squared)?,
+    // ── Total-order ranking, best-first, via selection over the governed compare ─
+    let mut ranked_candidates: Vec<Candidate> = Vec::with_capacity(candidates.len());
+    while !candidates.is_empty() {
+        let mut best = 0usize;
+        for i in 1..candidates.len() {
+            if ranks_before(&candidates[i], &candidates[best], metric)? {
+                best = i;
+            }
+        }
+        ranked_candidates.push(candidates.swap_remove(best));
+    }
+
+    // ── The exact perpendicular Voronoi margin between the top-two ──────────────
+    let (margin_squared, margin) = if ranked_candidates.len() >= 2 {
+        let p1 = &ranked_candidates[0];
+        let p2 = &ranked_candidates[1];
+        let separation =
+            bilinear_sqdist(&gram_cells, &p1.vector, &p2.vector).map_err(map_bilinear)?;
+        if separation.is_zero() {
+            return Err(Diag::of_kind(error::CoincidentPrototypes {
+                detail: format!(
+                    "top-two prototypes {} and {} are coincident under the vantage metric",
+                    p1.iri, p2.iri
+                ),
+            }));
+        }
+        let delta = p2.squared_distance.checked_sub(p1.squared_distance)?;
+        let margin_sq = delta
+            .checked_mul(delta)?
+            .checked_div(Rational::from_i128(4)?.checked_mul(separation)?)?;
+        (margin_sq.ratio_string(), sqrt_rational_decimal(margin_sq)?)
+    } else {
+        (
+            Rational::zero().ratio_string(),
+            sqrt_rational_decimal(Rational::zero())?,
+        )
+    };
+
+    // ── Project to the report: cosine display via the shared space, top-k clamp ──
+    let keep = top_k.map_or(ranked_candidates.len(), |k| k.min(ranked_candidates.len()));
+    let mut ranked = Vec::with_capacity(keep);
+    for cand in ranked_candidates.iter().take(keep) {
+        let cosine = match metric {
+            MetricLens::Cosine => Some(space.cosine(&state, &cand.vector)?),
+            MetricLens::GDistance => None,
+        };
+        ranked.push(RankedPrototype {
+            prototype: cand.iri.clone(),
+            squared_distance: cand.squared_distance.ratio_string(),
+            distance: sqrt_rational_decimal(cand.squared_distance)?,
+            cosine,
+        });
+    }
+
+    Ok(Classification {
+        metric,
+        vantage_profile: vantage_profile_iri.to_owned(),
+        ranked,
+        margin_squared,
+        margin,
     })
+}
+
+/// Enumerate every `gmeow:AffectPrototype` individual in `graph`, in deterministic
+/// ascending-IRI order — the default canonical prototype set the `gmeow affect classify`
+/// CLI ranks against when no explicit `--prototype` is given.
+pub fn affect_prototypes(graph: &Graph) -> Vec<String> {
+    let index = index_graph(graph);
+    let class = gm("AffectPrototype");
+    let mut prototypes = subjects(&index)
+        .filter(|subject| has_type(&index, subject, &class))
+        .cloned()
+        .collect::<Vec<_>>();
+    prototypes.sort();
+    prototypes
 }
 
 #[cfg(test)]
@@ -649,6 +1010,28 @@ mod tests {
         );
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
         assert!(err.message().contains("core axis"), "{err}");
+    }
+
+    // Two vectorComponent cells on the SAME core axis is a hard fail, not a
+    // silent last-writer-wins overwrite (no-optionality; reviewer r3611415426).
+    #[test]
+    fn duplicate_core_axis_cell_hard_fails() {
+        let turtle = observation_turtle(
+            "gmeow:affectMetricTensorNorm",
+            "gmeow:weightingValenceDominant",
+        )
+        .replace(
+            "gmeow:vectorComponent ex:valenceCell , ex:arousalCell .",
+            "gmeow:vectorComponent ex:valenceCell , ex:arousalCell , ex:valenceCellDup .\n\
+             ex:valenceCellDup a gmeow:Appraisal ;\n    \
+             gmeow:appraisalDimension gmeow:dimensionValence ;\n    \
+             gmeow:appraisalValue \"0.2\"^^xsd:decimal .",
+        );
+        let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
+        assert!(
+            err.message().contains("more than one") && err.message().contains("core axis 0"),
+            "{err}"
+        );
     }
 
     // Graph-parse path is load-bearing: intensity + dominant axis from turtle.
@@ -913,48 +1296,65 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
         assert!(err.message().contains("Gram matrix / axis map"), "{err}");
     }
 
-    // ── nearest-prototype classification (Q… production surface) ─────────────
+    // ── nearest-prototype classification (Q9 production surface) ─────────────
+    //
+    // The classifier reads AffectVectorObservation coordinate vectors and imposes an
+    // EXPLICIT vantage Gram (the chosen profile's metricGram) on all of them, routing
+    // every squared distance through the native bilinear builtin.
 
-    const NEAREST_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/affect/nearest/";
+    const CLS_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/affect/classify/";
+    const VANT_PROFILE: &str =
+        "https://blackcatinformatics.ca/gmeow/examples/affect/classify/vantMetric";
 
-    /// One `gmeow:DerivedAffectIntensityObservation` named `suffix`, over the SHARED
-    /// diag(off_diag=0 always) metric — a `metricProfile` pointing at the caller's
-    /// Gram — with vector `(v0/10, v1/10)`. All observation-local IRIs are suffixed;
-    /// the metric profile + Gram are shared so every block shares one metric basis.
-    fn nearest_observation(suffix: &str, v0_tenths: i128, v1_tenths: i128) -> String {
+    /// An `AffectVectorObservation` named `suffix` with a valence + arousal cell
+    /// (decimal strings, signed OK). It declares NO metric profile — classification
+    /// imposes the explicit vantage Gram.
+    fn cls_vec(suffix: &str, valence: &str, arousal: &str) -> String {
         let mut out = String::new();
         let _ = write!(
             out,
             r#"ex:vec{suffix} a gmeow:AffectVectorObservation ;
-    gmeow:vectorComponent ex:valence{suffix} , ex:arousal{suffix} .
-
-ex:valence{suffix} a gmeow:Appraisal ;
-    gmeow:appraisalDimension gmeow:dimensionValence ;
-    gmeow:appraisalValue "0.{v0_tenths}"^^xsd:decimal .
-
-ex:arousal{suffix} a gmeow:Appraisal ;
-    gmeow:appraisalDimension gmeow:dimensionArousal ;
-    gmeow:appraisalValue "0.{v1_tenths}"^^xsd:decimal .
-
-ex:obs{suffix} a gmeow:DerivedAffectIntensityObservation ;
-    gmeow:intensityBasis ex:vec{suffix} ;
-    gmeow:metricProfile ex:vdMetric ;
-    gmeow:weightingPolicy gmeow:weightingValenceDominant ;
-    gmeow:normFunction gmeow:affectMetricTensorNorm ;
-    gmeow:derivedByFunction gmeow:fnAffectiveIntensity .
+    gmeow:vectorComponent ex:val{suffix} , ex:aro{suffix} .
+ex:val{suffix} a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionValence ; gmeow:appraisalValue "{valence}"^^xsd:decimal .
+ex:aro{suffix} a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionArousal ; gmeow:appraisalValue "{arousal}"^^xsd:decimal .
 "#
         );
         out
     }
 
-    /// A graph with the diag(2, 1) valence-dominant Gram and three observations —
-    /// the state `(0.5, 0.0)`, the contentment prototype `(0.2, 0.5)`, and the elation
-    /// prototype `(0.6, 0.6)` — every one sharing the one metric basis.
-    fn nearest_graph() -> Graph {
+    fn cls_iri(suffix: &str) -> String {
+        format!("{CLS_NS}vec{suffix}")
+    }
+
+    /// The diag(2, 1) valence-dominant vantage Gram entries (no `math:definiteness` —
+    /// classification computes positive-definiteness itself).
+    fn diag21_entries() -> &'static str {
+        r#"ex:vantGram a math:GramMatrix ; math:hasEntry ex:vg00 , ex:vg11 .
+ex:vg00 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratTwo .
+ex:vg11 a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne .
+ex:ratTwo a math:RationalValue ; math:numerator "2"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+"#
+    }
+
+    /// A NON-positive-definite vantage Gram `[[1, 2], [2, 1]]` (det = −3 < 0).
+    fn non_pd_entries() -> &'static str {
+        r#"ex:vantGram a math:GramMatrix ; math:hasEntry ex:vg00 , ex:vg01 , ex:vg11 .
+ex:vg00 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratOne .
+ex:vg01 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratTwo .
+ex:vg11 a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne .
+ex:ratTwo a math:RationalValue ; math:numerator "2"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+"#
+    }
+
+    /// Build a classify graph: the core-affect dimensions, a vantage profile
+    /// `ex:vantMetric` whose Gram is `gram_entries`, and the observation blocks.
+    fn cls_graph(gram_entries: &str, add_dominance_dim: bool, obs: &[String]) -> Graph {
         let mut turtle = String::new();
         let _ = writeln!(
             turtle,
-            "@prefix gmeow: <{GM}> .\n@prefix math: <{MATH}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <{NEAREST_NS}> ."
+            "@prefix gmeow: <{GM}> .\n@prefix math: <{MATH}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <{CLS_NS}> ."
         );
         turtle.push_str(
             "gmeow:dimensionValence a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"0\"^^xsd:nonNegativeInteger .\n",
@@ -962,111 +1362,409 @@ ex:obs{suffix} a gmeow:DerivedAffectIntensityObservation ;
         turtle.push_str(
             "gmeow:dimensionArousal a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"1\"^^xsd:nonNegativeInteger .\n",
         );
+        if add_dominance_dim {
+            turtle.push_str(
+                "gmeow:dimensionDominance a gmeow:CoreAffectDimension ; gmeow:coreAxisIndex \"2\"^^xsd:nonNegativeInteger .\n",
+            );
+        }
         turtle.push_str(
-            r#"ex:vdMetric a gmeow:AffectScaleProfile ;
-    gmeow:profileRangeMin "-1.0"^^xsd:decimal ;
-    gmeow:profileRangeMax "1.0"^^xsd:decimal ;
-    gmeow:metricGram ex:vdGram .
-
-ex:vdGram a math:GramMatrix ;
-    math:definiteness math:positiveDefinite ;
-    math:hasEntry ex:vdG00 , ex:vdG11 .
-
-ex:vdG00 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratTwo .
-ex:vdG11 a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne .
-
-ex:ratTwo a math:RationalValue ; math:numerator "2"^^xsd:integer ; math:denominator "1"^^xsd:integer .
-ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
-
-"#,
+            "ex:vantMetric a gmeow:AffectScaleProfile ; gmeow:profileRangeMin \"-1.0\"^^xsd:decimal ; gmeow:profileRangeMax \"1.0\"^^xsd:decimal ; gmeow:metricGram ex:vantGram .\n",
         );
-        turtle.push_str(&nearest_observation("State", 5, 0)); // state (0.5, 0.0)
-        turtle.push_str(&nearest_observation("Contentment", 2, 5)); // (0.2, 0.5)
-        turtle.push_str(&nearest_observation("Elation", 6, 6)); // (0.6, 0.6)
+        turtle.push_str(gram_entries);
+        for block in obs {
+            turtle.push_str(block);
+            turtle.push('\n');
+        }
         let bytes = turtle_to_gts(&turtle);
         purrdf::gts::reader::read(&bytes, false, None)
     }
 
-    fn nearest_obs_iri(suffix: &str) -> String {
-        format!("{NEAREST_NS}obs{suffix}")
-    }
-
     // The metric-nearest prototype under diag(2, 1) is ELATION, though the raw-L²
-    // nearest is CONTENTMENT — the exact squared-distance order flips vs bare L².
+    // nearest is CONTENTMENT — the exact squared-distance order flips vs bare L². The
+    // ranked profile carries the exact perpendicular Voronoi margin.
     #[test]
-    fn nearest_prototype_selects_metric_nearest_not_euclidean() {
-        let graph = nearest_graph();
-        let state = nearest_obs_iri("State");
-        let contentment = nearest_obs_iri("Contentment");
-        let elation = nearest_obs_iri("Elation");
-        let prototypes = vec![contentment.clone(), elation.clone()];
+    fn classify_selects_metric_nearest_with_ranked_margin() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("Cont", "0.2", "0.5"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
+        );
+        let protos = vec![cls_iri("Cont"), cls_iri("Elat")];
+        let c = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect("classify");
 
-        let nearest = nearest_prototype(&graph, &state, &prototypes).expect("classify");
-        // Elation wins: metric squared 38/100 = 19/50 < contentment 43/100.
-        assert_eq!(nearest.prototype, elation);
-        assert_eq!(nearest.squared_distance, "19/50");
-        // The √ decimal is the display seam value: √(38/100) = √0.38.
-        assert_eq!(nearest.distance, sqrt_rational_decimal(r(38, 100)).unwrap());
-
-        // Selection is by EXACT squared distance, NOT raw L²: under bare L²
-        // contentment (0.34) would beat elation (0.37), so the winner would differ.
-        // Verify the exact squared distances are the ones we reasoned about.
-        let space =
-            InnerProductSpace::new(vec![vec![r(2, 1), r(0, 1)], vec![r(0, 1), r(1, 1)]]).unwrap();
-        let x = [r(1, 2), r(0, 1)];
-        let cont = [r(1, 5), r(1, 2)];
-        let elat = [r(3, 5), r(3, 5)];
-        let sq_cont = space
-            .quadratic_form(&vector_difference(&x, &cont).unwrap())
-            .unwrap();
-        let sq_elat = space
-            .quadratic_form(&vector_difference(&x, &elat).unwrap())
-            .unwrap();
-        assert_eq!(sq_cont.ratio_string(), "43/100");
-        assert_eq!(sq_elat.ratio_string(), "19/50");
-        assert!(sq_elat < sq_cont, "elation is the exact metric-nearest");
+        assert_eq!(c.metric, MetricLens::GDistance);
+        assert_eq!(c.vantage_profile, VANT_PROFILE);
+        assert_eq!(c.ranked.len(), 2);
+        // Elation nearest (19/50 < 43/100), contentment second.
+        assert_eq!(c.ranked[0].prototype, cls_iri("Elat"));
+        assert_eq!(c.ranked[0].squared_distance, "19/50");
+        assert_eq!(
+            c.ranked[0].distance,
+            sqrt_rational_decimal(r(19, 50)).unwrap()
+        );
+        assert!(c.ranked[0].cosine.is_none()); // no cosine under the distance lens
+        assert_eq!(c.ranked[1].prototype, cls_iri("Cont"));
+        assert_eq!(c.ranked[1].squared_distance, "43/100");
+        // Exact perpendicular Voronoi margin² = Δ²/(4‖p₁−p₂‖²) = (1/20)²/(4·33/100) = 1/528.
+        assert_eq!(c.margin_squared, "1/528");
+        assert_eq!(c.margin, sqrt_rational_decimal(r(1, 528)).unwrap());
 
         // Deterministic: same call twice → identical result.
+        let again = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .unwrap();
+        assert_eq!(again, c);
+    }
+
+    // The cosine lens (direction) and the G-distance lens (distance incl. intensity)
+    // pick DIFFERENT winners — vantage-relativity is a function of the lens.
+    #[test]
+    fn classify_cosine_and_distance_pick_different_winners() {
+        // state (0.5, 0); A (0.5, 0.3) is distance-nearest; B (0.9, 0) is direction-nearest.
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("A", "0.5", "0.3"),
+                cls_vec("B", "0.9", "0.0"),
+            ],
+        );
+        let protos = vec![cls_iri("A"), cls_iri("B")];
+        let dist = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .unwrap();
+        assert_eq!(dist.ranked[0].prototype, cls_iri("A")); // 9/100 < 8/25
+
+        let cos = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::Cosine,
+            None,
+        )
+        .unwrap();
+        assert_eq!(cos.ranked[0].prototype, cls_iri("B")); // better-aligned direction
+        assert!(cos.ranked[0].cosine.is_some());
+    }
+
+    // Cosine selection is SIGN-FIRST: any positive cosine beats any negative, even a
+    // tiny-positive against a strong-negative (squaring magnitude alone would be wrong).
+    #[test]
+    fn classify_cosine_sign_first_small_positive_beats_large_negative() {
+        // state (1, 0); Pos (0.1, 0) → +cosine; Neg (−0.9, 0) → −cosine.
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "1.0", "0.0"),
+                cls_vec("Pos", "0.1", "0.0"),
+                cls_vec("Neg", "-0.9", "0.0"),
+            ],
+        );
+        let cos = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("Pos"), cls_iri("Neg")],
+            VANT_PROFILE,
+            MetricLens::Cosine,
+            None,
+        )
+        .unwrap();
         assert_eq!(
-            nearest_prototype(&graph, &state, &prototypes).unwrap(),
-            nearest
+            cos.ranked[0].prototype,
+            cls_iri("Pos"),
+            "any positive cosine outranks any negative cosine"
         );
     }
 
-    // An exact tie breaks to the lexicographically-least prototype IRI.
+    // The honest asymmetry: a flat (zero-G-norm) state classifies fine under G-distance
+    // but hard-fails under cosine (its direction is undefined).
     #[test]
-    fn nearest_prototype_tie_breaks_to_least_iri() {
-        let graph = nearest_graph();
-        let state = nearest_obs_iri("State");
-        let elation = nearest_obs_iri("Elation");
-        // The SAME prototype IRI passed under two spellings would be a lex tie; instead
-        // pass elation twice (identical squared distance) and confirm the stable pick.
-        let prototypes = vec![elation.clone(), elation.clone()];
-        let nearest = nearest_prototype(&graph, &state, &prototypes).expect("classify");
-        assert_eq!(nearest.prototype, elation);
-        assert_eq!(nearest.squared_distance, "19/50");
+    fn classify_zero_norm_state_cosine_fails_but_distance_ok() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.0", "0.0"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
+        );
+        let state = cls_iri("State");
+        let protos = vec![cls_iri("Elat")];
+        let dist = classify(
+            &graph,
+            &state,
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .unwrap();
+        assert_eq!(dist.ranked[0].prototype, cls_iri("Elat"));
+
+        let err = classify(
+            &graph,
+            &state,
+            &protos,
+            VANT_PROFILE,
+            MetricLens::Cosine,
+            None,
+        )
+        .expect_err("zero-norm state has undefined cosine");
+        assert!(err.message().contains("zero G-norm"), "{err}");
     }
 
-    // An empty prototype set is a hard fail — there is nothing to argmin over.
+    // A zero-G-norm PROTOTYPE under the cosine lens is a hard fail (undefined direction).
     #[test]
-    fn nearest_prototype_empty_set_hard_fails() {
-        let graph = nearest_graph();
-        let state = nearest_obs_iri("State");
-        let err = nearest_prototype(&graph, &state, &[]).expect_err("empty set must hard fail");
+    fn classify_zero_norm_prototype_cosine_fails() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.5"),
+                cls_vec("Zero", "0.0", "0.0"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
+        );
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("Zero"), cls_iri("Elat")],
+            VANT_PROFILE,
+            MetricLens::Cosine,
+            None,
+        )
+        .expect_err("zero-norm prototype has undefined cosine");
+        assert!(err.message().contains("zero G-norm"), "{err}");
+    }
+
+    // A non-positive-definite vantage Gram is a hard fail — the builtin trusts PD, so an
+    // indefinite form would make "distances" negative and the argmin garbage.
+    #[test]
+    fn classify_non_pd_vantage_hard_fails() {
+        let graph = cls_graph(
+            non_pd_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
+        );
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("Elat")],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect_err("indefinite vantage Gram must hard fail");
+        assert!(err.message().contains("positive-definite"), "{err}");
+    }
+
+    // Two coincident prototype signatures (identical under G) are an authoring error.
+    #[test]
+    fn classify_coincident_prototypes_hard_fails() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("A", "0.2", "0.5"),
+                cls_vec("B", "0.2", "0.5"), // identical to A
+            ],
+        );
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("A"), cls_iri("B")],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect_err("coincident prototypes must hard fail");
+        assert!(err.message().contains("coincident"), "{err}");
+    }
+
+    // A coordinate axis wider than the vantage form is a hard fail, not a silent
+    // truncation: the diag(2,1) form is 2-D but a prototype declares a dominance (axis 2)
+    // cell.
+    #[test]
+    fn classify_dimension_mismatch_hard_fails() {
+        let proto_with_dominance = r#"ex:vecD a gmeow:AffectVectorObservation ;
+    gmeow:vectorComponent ex:valD , ex:aroD , ex:domD .
+ex:valD a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionValence ; gmeow:appraisalValue "0.5"^^xsd:decimal .
+ex:aroD a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionArousal ; gmeow:appraisalValue "0.5"^^xsd:decimal .
+ex:domD a gmeow:Appraisal ; gmeow:appraisalDimension gmeow:dimensionDominance ; gmeow:appraisalValue "0.5"^^xsd:decimal .
+"#
+        .to_owned();
+        let graph = cls_graph(
+            diag21_entries(),
+            true,
+            &[cls_vec("State", "0.5", "0.0"), proto_with_dominance],
+        );
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("D")],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect_err("axis wider than the form must hard fail");
+        assert!(
+            err.message().contains("exceeds the vantage form order"),
+            "{err}"
+        );
+    }
+
+    // An empty prototype set is a hard fail — there is nothing to rank over.
+    #[test]
+    fn classify_empty_set_hard_fails() {
+        let graph = cls_graph(diag21_entries(), false, &[cls_vec("State", "0.5", "0.0")]);
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect_err("empty set must hard fail");
         assert!(err.message().contains("at least one prototype"), "{err}");
     }
 
-    // A prototype whose metric basis differs from the state's is a hard fail — never
-    // a silently zero-padded meaningless number.
+    // An out-of-range coordinate magnitude (1.5 outside [−1, 1]) is a hard fail.
     #[test]
-    fn nearest_prototype_mismatched_basis_hard_fails() {
-        // Build a state over the diag(2,1) metric and a prototype over the correlated
-        // off-diag-1/4 metric (a different Gram) — the bases do not match.
-        let state_block = distinct_observation_turtle("S", 0, 1, 5, 0); // diag(1,1)-ish, off 0
-        let proto_block = distinct_observation_turtle("P", 1, 4, 2, 5); // off 1/4 → different metric
-        let graph = two_observation_graph(&state_block, &proto_block);
-        let err = nearest_prototype(&graph, &obs_iri("S"), &[obs_iri("P")])
-            .expect_err("mismatched basis must hard fail");
-        assert!(err.message().contains("metric basis"), "{err}");
+    fn classify_out_of_range_value_hard_fails() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[cls_vec("State", "0.5", "0.0"), cls_vec("Big", "1.5", "0.0")],
+        );
+        let err = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("Big")],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .expect_err("out-of-range magnitude must hard fail");
+        assert!(
+            err.message().contains("outside the vantage profile range"),
+            "{err}"
+        );
+    }
+
+    // `top_k` truncates the reported ranking, but the margin still uses the TRUE top-two.
+    #[test]
+    fn classify_top_k_truncates_but_margin_uses_true_top_two() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "0.5", "0.0"),
+                cls_vec("Cont", "0.2", "0.5"),
+                cls_vec("Elat", "0.6", "0.6"),
+            ],
+        );
+        let protos = vec![cls_iri("Cont"), cls_iri("Elat")];
+        let one = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            Some(1),
+        )
+        .unwrap();
+        assert_eq!(one.ranked.len(), 1);
+        assert_eq!(one.ranked[0].prototype, cls_iri("Elat"));
+        assert_eq!(one.margin_squared, "1/528"); // margin over the true top-two
+
+        // top_k > count clamps (not an error).
+        let all = classify(
+            &graph,
+            &cls_iri("State"),
+            &protos,
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            Some(99),
+        )
+        .unwrap();
+        assert_eq!(all.ranked.len(), 2);
+    }
+
+    // Negative coordinate magnitudes round-trip through exact ℚ and classify correctly.
+    #[test]
+    fn classify_negative_valued_prototype_round_trips() {
+        let graph = cls_graph(
+            diag21_entries(),
+            false,
+            &[
+                cls_vec("State", "-0.5", "0.0"),
+                cls_vec("Neg", "-0.6", "0.2"),
+                cls_vec("Pos", "0.6", "0.2"),
+            ],
+        );
+        let c = classify(
+            &graph,
+            &cls_iri("State"),
+            &[cls_iri("Neg"), cls_iri("Pos")],
+            VANT_PROFILE,
+            MetricLens::GDistance,
+            None,
+        )
+        .unwrap();
+        // state (−0.5, 0) → Neg (−0.6, 0.2): 2·(0.1)² + (0.2)² = 3/50; the nearer one.
+        assert_eq!(c.ranked[0].prototype, cls_iri("Neg"));
+        assert_eq!(c.ranked[0].squared_distance, "3/50");
+    }
+
+    // Enumeration returns every `gmeow:AffectPrototype` individual, ascending, and only
+    // those (not plain vector observations).
+    #[test]
+    fn affect_prototypes_enumerates_sorted() {
+        let mut turtle = String::new();
+        let _ = writeln!(
+            turtle,
+            "@prefix gmeow: <{GM}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <{CLS_NS}> ."
+        );
+        turtle.push_str("ex:zProto a gmeow:AffectPrototype .\n");
+        turtle.push_str("ex:aProto a gmeow:AffectPrototype .\n");
+        turtle.push_str("ex:notProto a gmeow:AffectVectorObservation .\n");
+        let bytes = turtle_to_gts(&turtle);
+        let graph = purrdf::gts::reader::read(&bytes, false, None);
+        assert_eq!(
+            affect_prototypes(&graph),
+            vec![format!("{CLS_NS}aProto"), format!("{CLS_NS}zProto")]
+        );
     }
 }

@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:DeterministicProjectionConstraint (AC4): a gmeow:ProjectionReceipt
+# declared gmeow:determinismDeterministic carries NO gmeow:tieBreakRule — a deterministic
+# ranking with no disclosed tie-break rule cannot in fact be deterministic over ties. The ∀→∃
+# SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent and NO other finding.
+# The receipt is otherwise well-formed (content-addressed, exact preservation so no loss
+# disclosure is owed, not scalarized), isolating the missing tie-break rule.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# The DEFECT: a deterministic receipt with no gmeow:tieBreakRule.
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a deterministic projection with no disclosed tie-break rule"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;   # <-- deterministic...
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:09a409a409a409a409a409a409a409a409a409a409a409a409a409a409a409a4" .
+                                                        # <-- ...but NO gmeow:tieBreakRule

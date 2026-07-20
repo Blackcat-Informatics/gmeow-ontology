@@ -95,8 +95,7 @@ gmeow:SourceRole
     gmeow:useWhen "Use (sparingly) when source-hood needs a named handle — to type a gmeow:CreativeWork as contingently playing the source role for queries or display — beyond the relator-mediated citation it normally rides on."@x-gmeow-english .
 
 gmeow:citationIntent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citation intent"@x-gmeow-english ;
@@ -109,8 +108,7 @@ gmeow:citationIntent
     gmeow:useWhen "Use to type WHY a gmeow:CitationAct cites — data source, method, extension, agreement, disagreement — by referencing a gmeow:CitationIntent value, the axis that projects to CiTO sub-properties."@x-gmeow-english .
 
 gmeow:citedEntity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "cited entity"@x-gmeow-english ;
@@ -140,8 +138,7 @@ gmeow:cites
     gmeow:useWhen "Use for the flat, direct case where an entity simply cites a creative work and the intent, locus, provenance, and standpoint of the citation need not be first-class."@x-gmeow-english .
 
 gmeow:citingEntity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citing entity"@x-gmeow-english ;

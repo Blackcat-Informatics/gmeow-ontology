@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example (competency Q9): the VANTAGE METRIC decides which named-emotion
+# prototype a felt state is nearest to — "is this vector an anger, or a disgust?" is a
+# vantage-relative claim, not ground truth (Principle 9 / Principle 12).
+#
+# A strongly-negative, activated, in-control state is classified by NEAREST canonical
+# gmeow:AffectPrototype (module.ttl) under an EXPLICIT vantage Gram:
+#
+#   state x = (valence -0.8, arousal 0.4, dominance 0.6, unpredictability 0.0)
+#
+#   under gmeow:coreAffectMetricPAD (diagonal 1, valence–arousal coupling 1/4):
+#       ‖x − anger‖²_G   = 47/200 = 0.235   ← NEAREST
+#       ‖x − disgust‖²_G = 13/50  = 0.260
+#     → nearest prototype: ANGER (the balanced metric weighs all axes ~evenly, and the
+#       high-arousal in-control profile reads as anger).
+#
+#   under ex:valenceDominantProfile (Gram diag(4, 1, 1, 1) — valence weighted 4×):
+#       ‖x − disgust‖²_G = 2/5   = 0.400   ← NEAREST
+#       ‖x − anger‖²_G   = 23/50  = 0.460
+#     → nearest prototype: DISGUST (a hedonic-tone-dominant vantage pulls the state
+#       toward the prototype whose valence sits nearer, flipping the winner).
+#
+# The winner FLIPS anger ↔ disgust with the vantage swap: metric-nearest is not
+# Euclidean-nearest and not vantage-free. The classifier (`gmeow affect classify`)
+# computes every exact-ℚ squared distance THROUGH the native bilinear-form builtin; the √
+# decimals are display only, the selection rides the exact rational order. The state and
+# both vantages share the canonical core-affect basis {valence 0, arousal 1, dominance 2,
+# unpredictability 3}.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/classify/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:analyst a gmeow:Person ; rdfs:label "the analyst"@en .
+ex:contestedEpisode rdfs:label "the appraised affective episode under contested classification"@en .
+
+# ── The state to classify: (valence -0.8, arousal 0.4, dominance 0.6, unpredictability 0.0) ──
+# An AffectVectorObservation in the canonical core-affect basis; its declared basis is
+# gmeow:coreAffectMetricPAD, but classification imposes an EXPLICIT vantage Gram
+# (decoupled), so the same coordinates measure differently under a different vantage.
+ex:contestedState a gmeow:AffectVectorObservation ;
+    rdfs:label "the contested felt state to classify"@en ;
+    gmeow:vantage ex:analyst ;
+    gmeow:observedFeature ex:contestedEpisode ;
+    gmeow:vectorProfile gmeow:coreAffectMetricPAD ;
+    gmeow:vectorComponent
+        ex:contestedValenceCell ,
+        ex:contestedArousalCell ,
+        ex:contestedDominanceCell ,
+        ex:contestedUnpredictabilityCell .
+
+ex:contestedValenceCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:contestedEpisode ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.8 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD .
+
+ex:contestedArousalCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:contestedEpisode ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.4 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD .
+
+ex:contestedDominanceCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:contestedEpisode ;
+    gmeow:appraisalDimension gmeow:dimensionDominance ;
+    gmeow:appraisalValue 0.6 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD .
+
+ex:contestedUnpredictabilityCell a gmeow:Appraisal ;
+    gmeow:vantage ex:analyst ;
+    gmeow:appraisalOf ex:contestedEpisode ;
+    gmeow:appraisalDimension gmeow:dimensionUnpredictability ;
+    gmeow:appraisalValue 0.0 ;
+    gmeow:appraisalScaleProfile gmeow:coreAffectMetricPAD .
+
+# ── The alternative VANTAGE: a valence-dominant metric Gram diag(4, 1, 1, 1) ──────────
+# Valence weighted four times the other core-affect axes. Positive-definite (all
+# diagonal entries > 0, no off-diagonal). Exact rational entries, never decimals. Passing
+# `--metric-profile ex:valenceDominantProfile` re-measures every prototype under this G.
+ex:valenceDominantProfile a gmeow:AffectScaleProfile ;
+    rdfs:label "valence-dominant PAD metric profile (Gram diag 4, 1, 1, 1)"@en ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar ;
+    gmeow:sparseAxisCompletion true ;
+    gmeow:metricGram ex:valenceDominantGram .
+
+ex:valenceDominantForm a math:SymmetricBilinearForm ;
+    rdfs:label "the positive-definite valence-dominant form (diagonal 4, 1, 1, 1)"@en ;
+    math:definiteness math:positiveDefinite .
+
+ex:valenceDominantBasis a math:Basis ;
+    rdfs:label "the (valence, arousal, dominance, unpredictability) coordinate basis"@en .
+
+ex:valenceDominantGram a math:GramMatrix ;
+    rdfs:label "the Gram matrix G = diag(4, 1, 1, 1)"@en ;
+    math:definiteness math:positiveDefinite ;
+    math:representsForm ex:valenceDominantForm ;
+    math:inBasis ex:valenceDominantBasis ;
+    math:hasEntry ex:vdG00 , ex:vdG11 , ex:vdG22 , ex:vdG33 .
+
+ex:vdG00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratFour .
+ex:vdG11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue ex:ratUnit .
+ex:vdG22 a math:MatrixEntry ; math:atRow 2 ; math:atColumn 2 ; math:entryValue ex:ratUnit .
+ex:vdG33 a math:MatrixEntry ; math:atRow 3 ; math:atColumn 3 ; math:entryValue ex:ratUnit .
+
+ex:ratFour a math:RationalValue ; math:numerator 4 ; math:denominator 1 .
+ex:ratUnit a math:RationalValue ; math:numerator 1 ; math:denominator 1 .

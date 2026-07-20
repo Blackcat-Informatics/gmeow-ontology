@@ -301,8 +301,7 @@ gmeow:VerificationStatus
     gmeow:useWhen "Use as the value vocabulary behind gmeow:hasVerificationStatus — the open set of individuals naming a verification verdict (verified, failed, unverified, expired, revoked, policy-failed, finality-pending)."@x-gmeow-english .
 
 gmeow:artifactMediaType
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AttestationArtifact ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "artifact media type"@x-gmeow-english ;
@@ -522,8 +521,7 @@ gmeow:attestedSubject
     gmeow:useWhen "Use to name the bare entity an attestation vouches for — an artifact, a key↔identity binding, a release — when the subject is a thing rather than a reified claim."@x-gmeow-english .
 
 gmeow:attester
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attester"@x-gmeow-english ;
@@ -537,8 +535,7 @@ gmeow:attester
     gmeow:useWhen "Use to name the single agent that issued an attestation — the party doing the vouching, a person, organization, or software agent — the WHO of the envelope."@x-gmeow-english .
 
 gmeow:blockHash
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "block hash"@x-gmeow-english ;
@@ -552,8 +549,7 @@ gmeow:blockHash
     gmeow:useWhen "Use to carry the hash identifying a gmeow:Block on its chain — the content-addressed identity that anchors the block independent of its sequential number."@x-gmeow-english .
 
 gmeow:blockNumber
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "block number"@x-gmeow-english ;
@@ -567,8 +563,7 @@ gmeow:blockNumber
     gmeow:useWhen "Use to carry the height/ordinal number of a gmeow:Block — its position in the chain, the figure confirmation depth is measured against."@x-gmeow-english .
 
 gmeow:chainId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:BlockchainNetwork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "chain id"@x-gmeow-english ;
@@ -595,8 +590,7 @@ gmeow:confirmationDepth
     gmeow:useWhen "Use to record how many blocks have confirmed a transaction or log entry since inclusion — the depth a consumer weighs when judging settlement risk."@x-gmeow-english .
 
 gmeow:contractAddress
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:SmartContract ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "contract address"@x-gmeow-english ;
@@ -705,8 +699,7 @@ gmeow:hasVerificationStatus
     gmeow:useWhen "Use to attach the categorical verdict — verified, failed, expired, revoked, policy-failed, finality-pending — to a gmeow:VerificationResult, naming one or more gmeow:VerificationStatus individuals."@x-gmeow-english .
 
 gmeow:issuedAt
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "issued at"@x-gmeow-english ;
@@ -733,8 +726,7 @@ gmeow:ledgerInclusionProof
     gmeow:useWhen "Use to carry the cryptographic inclusion proof (e.g. a Merkle proof) for a ledger transaction, event, block, or transparency-log entry — the domain-free evidence that the record is present in its log or chain."@x-gmeow-english .
 
 gmeow:logEntryIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TransparencyLogEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "log entry index"@x-gmeow-english ;
@@ -762,8 +754,7 @@ gmeow:logEntryUrl
     gmeow:useWhen "Use to record a retrieval URL for a gmeow:TransparencyLogEntry so a consumer can fetch and re-check the logged record; assert one per mirror."@x-gmeow-english .
 
 gmeow:logIndex
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:LedgerEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "log index"@x-gmeow-english ;
@@ -844,8 +835,7 @@ gmeow:signatureSchemeRSASHA256
         gmeow:boxCBox .
 
 gmeow:transactionHash
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:LedgerTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "transaction hash"@x-gmeow-english ;

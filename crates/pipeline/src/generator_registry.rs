@@ -173,12 +173,6 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &[],
     },
     GeneratorInfo {
-        name: "parquet",
-        sources: &["generated/dist/gmeow.gts"],
-        outputs: &["generated/parquet/"],
-        dependencies: &["gts"],
-    },
-    GeneratorInfo {
         name: "profiles",
         sources: &["slices/"],
         outputs: &["generated/profiles/"],

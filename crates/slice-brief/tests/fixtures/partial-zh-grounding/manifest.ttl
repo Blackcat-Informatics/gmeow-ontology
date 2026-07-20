@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Test-only fixture slice for gmeow-slice-brief. It exists to exercise the
+# sparse EXPLICIT-ABSENT grounding encoding with a *guaranteed* per-attribute
+# gap: its fr catalog covers both terms, but its zh catalog deliberately omits
+# one term's label. Unlike a shipped slice, this fixture is never a translation
+# target, so the "at least one absent zh incidence" property is durable and does
+# not depend on any real slice's evolving coverage.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture>
+    a gmeow:Slice ;
+    rdfs:label "partial-zh-grounding-fixture"@x-gmeow-english ;
+    skos:definition "Test-only fixture: two terms, fr fully covered, zh missing one label — exercises the sparse absent-zh encoding."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture> .
