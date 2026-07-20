@@ -218,7 +218,9 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
         .iter()
         .find(|a| a.code.contains("EndurantAsEventAdviceConstraint"))
         .unwrap_or_else(|| {
-            panic!("gmeow:EndurantAsEventAdviceConstraint must fire on the fixture: {advisories:#?}")
+            panic!(
+                "gmeow:EndurantAsEventAdviceConstraint must fire on the fixture: {advisories:#?}"
+            )
         });
     assert_eq!(
         eae.subject_iri.as_deref(),
