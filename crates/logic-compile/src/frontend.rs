@@ -2862,9 +2862,7 @@ const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
 /// Every functional carrier record's `logic:characterizes` target, as a property → carrier-count
 /// multiset over the store. A property named functional by two distinct
 /// `logic:PropertyCharacteristicAssertion` records appears with count 2 (the duplicate signal).
-fn functional_carrier_multiset(
-    store: &RdfDataset,
-) -> std::collections::BTreeMap<String, usize> {
+fn functional_carrier_multiset(store: &RdfDataset) -> std::collections::BTreeMap<String, usize> {
     let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
     let functional_sort = Node::iri(logic_iri("functionalProperty"));
     let p_characterizes = nn(&logic_iri("characterizes"));
@@ -2883,9 +2881,7 @@ fn functional_carrier_multiset(
 /// The set of properties bearing at least one functional carrier record — the exact set the
 /// completeness ledger pins. Sorted and deterministic; this is the generator a re-bless copies
 /// into `frontend/functional_carrier_ledger.txt`.
-pub fn functional_carrier_property_iris(
-    store: &RdfDataset,
-) -> std::collections::BTreeSet<String> {
+pub fn functional_carrier_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
     functional_carrier_multiset(store).into_keys().collect()
 }
 

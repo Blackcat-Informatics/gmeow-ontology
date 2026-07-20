@@ -149,7 +149,9 @@ fn functional_carrier_properties(program: &LogicProgram) -> std::collections::BT
     for ax in &program.axioms {
         if ax.predicate == characterizes && !ax.obj_is_literal {
             rec_prop.insert(ax.subject.clone(), ax.obj.clone());
-        } else if ax.predicate == characteristic_sort && !ax.obj_is_literal && ax.obj == functional_sort
+        } else if ax.predicate == characteristic_sort
+            && !ax.obj_is_literal
+            && ax.obj == functional_sort
         {
             functional_recs.insert(ax.subject.clone());
         }

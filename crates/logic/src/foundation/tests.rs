@@ -2044,7 +2044,12 @@ fn functional_carrier_materializes_marker_and_clears_disagreement() {
     );
     let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
     assert!(
-        has_edge(&quads, &p, RDF_TYPE_P, &format!("{LOGIC}functionalProperty")),
+        has_edge(
+            &quads,
+            &p,
+            RDF_TYPE_P,
+            &format!("{LOGIC}functionalProperty")
+        ),
         "the closure must materialize the logic:functionalProperty type marker from the carrier"
     );
     assert!(
@@ -2069,7 +2074,12 @@ fn transitive_carrier_without_marker_still_fires_disagreement() {
     );
     let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
     assert!(
-        !has_edge(&quads, &p, RDF_TYPE_P, &format!("{LOGIC}transitiveProperty")),
+        !has_edge(
+            &quads,
+            &p,
+            RDF_TYPE_P,
+            &format!("{LOGIC}transitiveProperty")
+        ),
         "the closure must NOT materialize a transitive marker (transitive stays dual-authored)"
     );
     assert!(

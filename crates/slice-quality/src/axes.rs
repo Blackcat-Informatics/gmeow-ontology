@@ -2010,10 +2010,8 @@ ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:d
 
         // A test corpus that names only the exercised domain term (and, adversarially,
         // one carrier — which must still be excluded regardless of being "reached").
-        let dir = std::env::temp_dir().join(format!(
-            "slice-quality-testing-axis-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("slice-quality-testing-axis-{}", std::process::id()));
         let tests_dir = dir.join("tests");
         std::fs::create_dir_all(&tests_dir).expect("create temp tests dir");
         std::fs::write(

@@ -927,13 +927,15 @@ impl GraphStore {
     /// type triple now lives only in the generated OWL view). Conformance tests
     /// assert this carrier instead of the deprecated source marker.
     pub fn is_functional_carrier(&self, prop_iri: &str) -> bool {
-        self.subjects(LOGIC_CHARACTERIZES, prop_iri).iter().any(|rec| {
-            self.has(
-                Some(rec),
-                Some(LOGIC_CHARACTERISTIC_SORT),
-                Some(LOGIC_FUNCTIONAL_PROPERTY),
-            )
-        })
+        self.subjects(LOGIC_CHARACTERIZES, prop_iri)
+            .iter()
+            .any(|rec| {
+                self.has(
+                    Some(rec),
+                    Some(LOGIC_CHARACTERISTIC_SORT),
+                    Some(LOGIC_FUNCTIONAL_PROPERTY),
+                )
+            })
     }
 
     /// The reflexive-transitive closure over `rdfs:subClassOf` edges from `start`

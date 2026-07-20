@@ -30,8 +30,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_logic_compile::ir::{
-    ConstraintComponent, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
-    ShapeValue, ValidationShapeIr,
+    ConstraintComponent, PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue,
+    ValidationShapeIr,
 };
 use gmeow_logic_compile::projections::lift::{certify, lift};
 use gmeow_logic_compile::projections::subsumption::{enforcement_key, subsumes};

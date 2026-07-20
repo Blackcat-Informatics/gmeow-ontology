@@ -3206,9 +3206,7 @@ fn key_assertion_records(edb: &RdfDataset) -> KeyAssertionRecords {
     let mut out: KeyAssertionRecords = BTreeMap::new();
     for rec in records {
         let resolved = match (class_of.get(&rec), props_of.get(&rec)) {
-            (Some(class), Some(props)) if !props.is_empty() => {
-                Some((class.clone(), props.clone()))
-            }
+            (Some(class), Some(props)) if !props.is_empty() => Some((class.clone(), props.clone())),
             _ => None,
         };
         out.insert(rec, resolved);
@@ -5911,7 +5909,10 @@ mod tests {
             verdict.coverage.decided.contains(&"hasKey".to_owned()),
             "the carrier keeps hasKey decided after the owl:hasKey source is migrated"
         );
-        assert!(verdict.gaps.is_empty(), "hasKey is decided from the carrier, not a gap");
+        assert!(
+            verdict.gaps.is_empty(),
+            "hasKey is decided from the carrier, not a gap"
+        );
 
         // Consistency guard: WITHOUT the owl:differentFrom, the shared key merely merges the two
         // (owl:sameAs, no unique-name assumption) — consistent, yet still decided from the carrier.

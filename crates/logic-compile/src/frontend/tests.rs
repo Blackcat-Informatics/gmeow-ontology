@@ -2107,8 +2107,12 @@ fn derive_functional_carrier_caps_domain_class_node_shape() {
     assert!(!pc.inverse, "a forward functional cap, not inverse");
     // And the property-scoped cap is still present.
     assert!(
-        shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("primaryAuthor"))
-            && s.properties.iter().any(|p| p.path.ends_with("primaryAuthor") && p.max_count == Some(1))),
+        shapes.iter().any(
+            |s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("primaryAuthor"))
+                && s.properties
+                    .iter()
+                    .any(|p| p.path.ends_with("primaryAuthor") && p.max_count == Some(1))
+        ),
         "the property-scoped SubjectsOf(primaryAuthor) cap is still emitted: {shapes:?}"
     );
 }
@@ -2124,11 +2128,15 @@ fn derive_functional_carrier_no_domain_fabricates_no_class() {
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     assert!(
-        shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("unit"))),
+        shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("unit"))),
         "the property-scoped SubjectsOf(unit) cap is emitted"
     );
     assert!(
-        !shapes.iter().any(|s| matches!(&s.target, ShapeTarget::Class(_))),
+        !shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::Class(_))),
         "no class node shape is fabricated for a domain-less functional property: {shapes:?}"
     );
 }
@@ -2188,7 +2196,9 @@ fn derive_colourspace_maxqualified_thing_idiom_unchanged_by_carrier() {
     assert!(!pc.inverse, "the restriction cap is a forward path");
     // No functional carrier record exists, so no property-scoped SubjectsOf cap is spuriously added.
     assert!(
-        !shapes.iter().any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("availabilityStatus"))),
+        !shapes.iter().any(
+            |s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("availabilityStatus"))
+        ),
         "the non-functional property gets no SubjectsOf cap: {shapes:?}"
     );
 }
@@ -2697,7 +2707,10 @@ fn derive_single_property_has_key_emits_inverse_functional_shape() {
         .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("gtsHeadId")))
         .expect("an ObjectsOf(gtsHeadId) shape from the logic:KeyAssertion carrier");
     let prop = &shape.properties[0];
-    assert!(prop.inverse, "a single-property key must derive an inverse-path shape");
+    assert!(
+        prop.inverse,
+        "a single-property key must derive an inverse-path shape"
+    );
     assert_eq!(
         prop.max_count,
         Some(1),

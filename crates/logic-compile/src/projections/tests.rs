@@ -1344,7 +1344,9 @@ fn functional_carrier_record_projects_owl_functional_property() {
     let prop = "https://example.org/test/hasLead";
     assert!(
         triples.iter().any(|t| {
-            t == &format!("<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#FunctionalProperty>")
+            t == &format!(
+                "<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#FunctionalProperty>"
+            )
         }),
         "the owl view must project owl:FunctionalProperty on the characterized property from the \
          carrier record:\n{}",
@@ -1661,14 +1663,15 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
 fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
     // Locate the real slice source relative to the crate manifest, mirroring
     // `crates/logic-compile/src/ir/tests.rs` and `clif/tests.rs`.
-    let module_ttl = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/module.ttl");
+    let module_ttl =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
     // Same production parse path the `parse` helper uses (frontend `parse_logic_str`).
-    let (program, _diags) = parse_logic_str(&text, Some("urn:gmeow:slices/grounding/logic".to_owned()))
-        .expect("parse real module.ttl");
+    let (program, _diags) =
+        parse_logic_str(&text, Some("urn:gmeow:slices/grounding/logic".to_owned()))
+            .expect("parse real module.ttl");
 
     // Fully-qualified logic: IRIs (the `logic()` helper in rdf.rs is private; reproduce
     // its tiny join here rather than touch production code).
@@ -1678,7 +1681,8 @@ fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
 
     // Reproduce `functional_carrier_properties`: join `characterizes ?P` with the
     // `characteristicSort logic:functionalProperty` sort on the carrier record IRI.
-    let mut rec_prop: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    let mut rec_prop: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
     let mut functional_recs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     // Independent count of the carrier triples (`characteristicSort logic:functionalProperty`),
     // NOT going through the join — a second, orthogonal witness of the corpus size.

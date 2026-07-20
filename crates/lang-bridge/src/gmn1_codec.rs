@@ -2175,11 +2175,12 @@ fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>)
             )
         )
     );
-    refs.entry(key.clone()).or_insert_with(|| RefPayload::Literal {
-        lexical: lit.lexical_form.clone(),
-        datatype: lit.datatype.clone(),
-        language: lit.language.clone(),
-    });
+    refs.entry(key.clone())
+        .or_insert_with(|| RefPayload::Literal {
+            lexical: lit.lexical_form.clone(),
+            datatype: lit.datatype.clone(),
+            language: lit.language.clone(),
+        });
     key
 }
 
@@ -4476,10 +4477,8 @@ ex:fixtureDenotation a lang:Denotation ;
         let one = "https://mastodon.social";
         let two = "https://bsky.app";
         let mut refs = BTreeMap::new();
-        let (tok_one, cat_one) =
-            classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
-        let (tok_two, cat_two) =
-            classify_iri(two, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        let (tok_one, cat_one) = classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        let (tok_two, cat_two) = classify_iri(two, &dict, &ns_to_prefix_table(), &mut refs, "@c");
         assert_eq!(cat_one, Gmn1ConstructCategory::IriExternalByReference);
         assert_eq!(cat_two, Gmn1ConstructCategory::IriExternalByReference);
         assert_ne!(
@@ -4490,10 +4489,13 @@ ex:fixtureDenotation a lang:Denotation ;
         assert_eq!(refs.get(&tok_one), Some(&RefPayload::Iri(one.to_owned())));
         assert_eq!(refs.get(&tok_two), Some(&RefPayload::Iri(two.to_owned())));
         // Interning the same IRI again is first-wins (one shared entry, stable token).
-        let (tok_one_again, _) =
-            classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
+        let (tok_one_again, _) = classify_iri(one, &dict, &ns_to_prefix_table(), &mut refs, "@c");
         assert_eq!(tok_one, tok_one_again);
-        assert_eq!(refs.len(), 2, "first-wins interning shares one entry per IRI");
+        assert_eq!(
+            refs.len(),
+            2,
+            "first-wins interning shares one entry per IRI"
+        );
     }
 
     #[test]

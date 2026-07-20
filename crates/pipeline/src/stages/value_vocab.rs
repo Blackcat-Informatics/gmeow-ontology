@@ -341,8 +341,8 @@ pub(crate) fn enrich_value_vocab_enums(
         // Functional-ness is a property-global fact from the carrier, independent of the
         // class schema the field appears on: a functional property narrows to a scalar
         // `$ref` on EVERY class, even one whose node shape never carried the cap.
-        let functional = expand_ecosystem_curie(&prop_key)
-            .is_some_and(|iri| functional_props.contains(&iri));
+        let functional =
+            expand_ecosystem_curie(&prop_key).is_some_and(|iri| functional_props.contains(&iri));
         if let Some(pv) = defs
             .get_mut(&def_key)
             .and_then(Value::as_object_mut)

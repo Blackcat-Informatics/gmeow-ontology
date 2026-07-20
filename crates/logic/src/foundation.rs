@@ -440,11 +440,7 @@ const STRATUM_1: &[Rule] = &[
             var("?P"),
         ),
         body: &[
-            pos(
-                var("?rec"),
-                TermPat::Const(LOGIC_CHARACTERIZES),
-                var("?P"),
-            ),
+            pos(var("?rec"), TermPat::Const(LOGIC_CHARACTERIZES), var("?P")),
             pos(
                 var("?rec"),
                 TermPat::Const(LOGIC_CHARACTERISTIC_SORT),
@@ -487,11 +483,7 @@ const STRATUM_1: &[Rule] = &[
             TermPat::Const(logic_iri!("functionalProperty")),
         ),
         body: &[
-            pos(
-                var("?rec"),
-                TermPat::Const(LOGIC_CHARACTERIZES),
-                var("?P"),
-            ),
+            pos(var("?rec"), TermPat::Const(LOGIC_CHARACTERIZES), var("?P")),
             pos(
                 var("?rec"),
                 TermPat::Const(LOGIC_CHARACTERISTIC_SORT),
