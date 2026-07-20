@@ -85,8 +85,11 @@ use session_common::*;
 /// digest, so the engine descriptor moves. The kernel stays inert on this fixed
 /// edge-only input (its steady state is `NoDeciderEngaged`, which emits nothing), so no
 /// reasoning verdict changes — only the source-content digest.
+/// Re-blessed once more when the coverage-gate determinism/refusal `#[cfg(test)]` tests were
+/// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
+/// byte content moves the engine descriptor; no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4747c69f8868a79a0862c9a659714ef08011494211d7ee862d0e6b93cab5551e";
+    "97fce16e2924e8652f56cc64e1c9116b157039d20bb4cf495039c125581e74b9";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -109,8 +112,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// the native contract hash is one of the seven folded identity axes and moves with the
 /// changed `reason/refute.rs` + `reason/dl.rs` engine source, while the fixed edge-only
 /// input's reasoning verdict is unchanged.
+/// Re-blessed once more when the coverage-gate determinism/refusal `#[cfg(test)]` tests were
+/// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
+/// byte content (folded into the session identity axis) moves; the fixed edge-only input's
+/// reasoning verdict is unchanged and the engine descriptor hash is untouched.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "d1e9f8fc49a12d4e4228d3a6547554cba932cb6b691aa6d55e0e395360d7c78b";
+    "6cf3fb7b4a6a16936b31fd5389515dc864f91343d6357deabc43ca5e506801db";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

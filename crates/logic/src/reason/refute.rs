@@ -971,8 +971,7 @@ mod tests {
         // (2) `logic:DecidedFragment` individuals ≡ `decided_fragments()`: id set,
         // deciding pattern per id, and completeness bound per id — bidirectionally.
         let rust_fragments = decided_fragments();
-        let rust_ids: BTreeSet<String> =
-            rust_fragments.iter().map(|f| f.id.to_owned()).collect();
+        let rust_ids: BTreeSet<String> = rust_fragments.iter().map(|f| f.id.to_owned()).collect();
         assert_eq!(
             ttl_decided_subjects, rust_ids,
             "logic:DecidedFragment individuals must match decided_fragments() ids"
@@ -1023,6 +1022,182 @@ mod tests {
             reason.keys().cloned().collect::<BTreeSet<_>>(),
             rust_boundary_ids,
             "no logic:fragmentBoundaryReason outside the retained-boundary set"
+        );
+    }
+
+    // ── (R2) Determinism: the kernel is byte-stable on real decided inputs ────────
+
+    /// Read one committed conformance `input.nq` (relative to this crate's manifest
+    /// dir) into a frozen dataset.
+    fn read_case_edb(rel: &str) -> std::sync::Arc<RdfDataset> {
+        use purrdf::{NativeRdfFormat, dataset_from_bytes};
+        let path = format!("{}/{rel}", env!("CARGO_MANIFEST_DIR"));
+        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
+        dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
+            .unwrap_or_else(|e| panic!("parse {path}: {e}"))
+    }
+
+    /// (R2) DETERMINISM — running the kernel on a fixed input TWICE yields
+    /// byte-identical certificate / witness output. This exercises the DATATYPE
+    /// value-space decider (the length-facet fixture) and the COUNTING decider (the
+    /// `owl:hasSelf` fixture) on real committed production inputs, complementing the
+    /// per-decider `determinism_byte_stable` unit tests in `datatype`/`counting`/
+    /// `casesplit`. Both fixtures land IN-FRAGMENT, so this pins the witness output
+    /// (clashes + structured evidence), not merely an empty boundary. The structured
+    /// types order their collections with `BTreeSet`/`BTreeMap`, so the byte-stable
+    /// `Debug` rendering is the observable pin on that determinism.
+    #[test]
+    fn kernel_output_is_byte_stable_on_datatype_and_counting_inputs() {
+        for rel in [
+            // Family 5 — datatype value-space (length-facet emptiness) decider.
+            "../../conformance/logic/cases/datatype-value-space/length-facet-empty/input.nq",
+            // Family 7 — the counting decider's owl:hasSelf refutation witness.
+            "../../conformance/logic/cases/external/w3c-owl2-full-decided/\
+             footnote-not-about-self/input.nq",
+        ] {
+            let edb = read_case_edb(rel);
+            let first = format!("{:?}", refute(edb.as_ref()));
+            let second = format!("{:?}", refute(edb.as_ref()));
+            assert_eq!(
+                first, second,
+                "kernel certificate must be byte-stable for {rel}"
+            );
+            assert!(
+                first.contains("InFragment"),
+                "{rel} must be DECIDED in-fragment so the pin covers real witness output: {first}"
+            );
+        }
+    }
+
+    // ── (R3) Refusal: the kernel withholds at its certified-fragment edge ─────────
+
+    /// (R3) REFUSAL — an adversarial input that EXCEEDS the kernel's certified
+    /// fragment bound must be REFUSED (`OutOfFragment`), never decided. Here a
+    /// (populated) cardinality restriction is ENTANGLED with an `owl:someValuesFrom`
+    /// existential on the same property: the counting decider certifies cardinality
+    /// counting only in ISOLATION, so the entangled full-DL configuration lies
+    /// outside its certified-complete fragment (the shipped
+    /// `entangled-existential-cardinality` retained boundary). The kernel must
+    /// WITHHOLD with a structured, family-scoped boundary rather than hang, loop, or
+    /// truncate to a wrong decided verdict — the soundness-by-construction edge. The
+    /// withhold must ALSO route to a real production finding via
+    /// `production_boundary_findings`, so the honest "outside the fragment" is tied
+    /// to the reasoner output rather than dark.
+    #[test]
+    fn entangled_cardinality_exceeds_fragment_bound_and_is_refused() {
+        use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+
+        const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+        const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
+        const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+        const OWL_MIN_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#minCardinality";
+        const OWL_SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
+        const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+        const W: &str = "http://ex/w";
+
+        let iri_q = |s: &str, p: &str, o: &str| {
+            RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
+        };
+
+        let mut b = RdfDatasetBuilder::new();
+        for q in [
+            // A populated class C with a min-1 cardinality restriction on p …
+            iri_q("http://ex/C", RDF_TYPE, OWL_CLASS),
+            iri_q("http://ex/i", RDF_TYPE, "http://ex/C"),
+            iri_q("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r1"),
+            iri_q("http://ex/r1", RDF_TYPE, OWL_RESTRICTION),
+            iri_q("http://ex/r1", OWL_ON_PROPERTY, "http://ex/p"),
+            // … ENTANGLED with a someValuesFrom existential on the SAME property.
+            iri_q("http://ex/C", RDFS_SUBCLASSOF, "http://ex/r2"),
+            iri_q("http://ex/r2", RDF_TYPE, OWL_RESTRICTION),
+            iri_q("http://ex/r2", OWL_ON_PROPERTY, "http://ex/p"),
+            iri_q("http://ex/r2", OWL_SOME_VALUES_FROM, "http://ex/D"),
+        ] {
+            b.push_owned_quad(&q);
+        }
+        b.push_owned_quad(
+            &RdfQuad::new(
+                RdfTerm::iri("http://ex/r1"),
+                OWL_MIN_CARDINALITY,
+                RdfTerm::Literal(RdfLiteral::typed("1", XSD_NNI)),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        );
+        let edb = b.freeze().expect("freeze the entangled edb");
+
+        let certificate = refute(edb.as_ref());
+        assert!(
+            matches!(certificate, RefutationCertificate::OutOfFragment { .. }),
+            "the kernel MUST refuse (withhold) at its certified-fragment edge, never decide: \
+             {certificate:?}"
+        );
+
+        // The refusal is a FAMILY-SCOPED boundary (a shape engaged but its
+        // completeness bound did not close), so it routes to a real production
+        // finding rather than the dark `NoDeciderEngaged` steady state.
+        let findings = production_boundary_findings(edb.as_ref());
+        assert!(
+            !findings.is_empty(),
+            "an entangled-cardinality withhold must surface a family-scoped boundary finding"
+        );
+    }
+
+    // ── No process references in the kernel registry itself (R: acceptance) ───────
+
+    /// The kernel registry's OWN technical strings — every `decided_fragments()`
+    /// completeness bound and every `retained_boundaries()` reason — are free of any
+    /// PROCESS REFERENCE (`#<digit>`, `issue`, a bare `PR` token, or `per #`,
+    /// case-insensitive). The conformance gate proves the same over the shipped
+    /// `module.ttl` projection; this pins the source registry directly, so a process
+    /// reference can enter neither the kernel nor its manifest.
+    #[test]
+    fn kernel_registry_strings_carry_no_process_reference() {
+        fn process_reference(text: &str) -> Option<&'static str> {
+            let lower = text.to_ascii_lowercase();
+            let bytes = lower.as_bytes();
+            for i in 0..bytes.len() {
+                if bytes[i] == b'#' && bytes.get(i + 1).is_some_and(u8::is_ascii_digit) {
+                    return Some("#<digit>");
+                }
+            }
+            if lower.contains("issue") {
+                return Some("issue");
+            }
+            if lower.contains("per #") {
+                return Some("per #");
+            }
+            let is_word = |c: u8| c.is_ascii_alphanumeric();
+            for i in 0..bytes.len().saturating_sub(1) {
+                if bytes[i] == b'p'
+                    && bytes[i + 1] == b'r'
+                    && (i == 0 || !is_word(bytes[i - 1]))
+                    && (i + 2 >= bytes.len() || !is_word(bytes[i + 2]))
+                {
+                    return Some("PR");
+                }
+            }
+            None
+        }
+
+        let mut failures: Vec<String> = Vec::new();
+        for f in decided_fragments() {
+            if let Some(pat) = process_reference(f.bound) {
+                failures.push(format!("decided fragment {:?} bound carries {pat:?}", f.id));
+            }
+        }
+        for boundary in retained_boundaries() {
+            if let Some(pat) = process_reference(boundary.reason) {
+                failures.push(format!(
+                    "retained boundary {:?} reason carries {pat:?}",
+                    boundary.id
+                ));
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "kernel registry technical strings must be free of process references:\n  • {}",
+            failures.join("\n  • ")
         );
     }
 }
