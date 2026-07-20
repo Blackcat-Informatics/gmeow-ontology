@@ -25,9 +25,12 @@
 
 mod conformance_support;
 
+use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use conformance_support::*;
+use gmeow_validate::lint::{LintConfig, default_annotation_predicates, structural_lint_dataset};
+use gmeow_validate::store::dataset_from_paths;
 use purrdf::slice::rdf_query::{Object, Subject};
 
 // ── Namespaces ────────────────────────────────────────────────────────────────
@@ -354,5 +357,107 @@ fn flagship_example_parses_nonempty() {
     assert!(
         store.triple_count() > 0,
         "the flagship epistemic ledger must parse to a non-empty graph"
+    );
+}
+
+// ── Task 3: annotation completeness ────────────────────────────────────────────
+
+/// The named justification terms and the doxastic spine whose annotation
+/// completeness the deleted pytest pinned explicitly (`test_justification_terms_are_annotated`
+/// + `test_every_term_is_annotated`).
+const NAMED_TERMS: &[&str] = &[
+    "DoxasticStandpointClaim",
+    "claimOfBelief",
+    "hasAvailableEvidence",
+    "basesBeliefOn",
+    "defeatedBy",
+    "hasDefeatStatus",
+    "JustificationStatus",
+    "JustificationSubject",
+    "JustificationGround",
+    "Defeater",
+    "Proposition",
+    "believes",
+    "doubts",
+    "suspendsJudgementOn",
+    "accepts",
+    "knowsThat",
+];
+
+/// The epistemics slice TBox module.
+fn module_path() -> PathBuf {
+    repo_root().join("slices/core/epistemics/module.ttl")
+}
+
+/// The production annotation lint's config, seeded from the crate's own
+/// single-source-of-truth predicate set — so this test names no annotation IRI.
+fn epistemics_lint_config() -> LintConfig {
+    const NS: &str = GMEOW;
+    LintConfig {
+        namespace: NS.to_owned(),
+        ontology_iri: NS.trim_end_matches('/').to_owned(),
+        selector_tokens: BTreeSet::new(),
+        core_slice_iris: HashSet::new(),
+        annotation_predicates: default_annotation_predicates().into_iter().collect(),
+    }
+}
+
+/// Every GMEOW term the epistemics slice defines — the doxastic spine, the named
+/// justification terms, and every `JustificationStatus` individual — carries its
+/// required annotations. Drives the production `structural_lint_dataset` (the same
+/// engine the in-gate corpus annotation sweep runs) and isolates its
+/// required-annotation findings (label / definition / isDefinedBy): the per-term
+/// "is missing" findings whose predicate lives in a standard vocabulary rather
+/// than `gmeow:`. The lint's cross-slice checks (graph-box-role registration,
+/// dangling subterm targets) need the merged corpus and are deliberately excluded
+/// here — the whole-corpus run in `label_completeness.rs` covers them in-gate.
+#[test]
+fn epistemics_terms_carry_required_annotations() {
+    // The named terms must exist as defined subjects before their annotations can
+    // be policed — pins the roster the deleted pytest enumerated against renames.
+    let store = GraphStore::parse_ttl_file(&module_path());
+    for term in NAMED_TERMS {
+        let iri = gmeow(term);
+        assert!(
+            store.has(Some(&iri), None, None),
+            "named epistemics term {iri} is no longer defined in the slice"
+        );
+    }
+
+    let dataset = dataset_from_paths(&[module_path()]).expect("epistemics module must parse");
+    let report = structural_lint_dataset(&dataset, &epistemics_lint_config());
+    let missing_annotations: Vec<String> = report
+        .errors()
+        .into_iter()
+        .filter(|message| message.contains("is missing") && !message.contains("gmeow:"))
+        .collect();
+    assert!(
+        missing_annotations.is_empty(),
+        "epistemics terms missing required annotations:\n{}",
+        missing_annotations.join("\n")
+    );
+}
+
+/// Pin the `JustificationStatus` roster: exactly these five solver-set defeat
+/// verdicts, discovered dynamically from the live graph — guarding the roster
+/// itself against silent addition/removal (annotation completeness for each is
+/// covered by `epistemics_terms_carry_required_annotations`).
+#[test]
+fn justification_status_roster_is_exact() {
+    let store = GraphStore::parse_ttl_file(&module_path());
+    let roster = store.subjects_of_type(&gmeow("JustificationStatus"));
+    let expected: BTreeSet<String> = [
+        "justificationStatusDefeated",
+        "justificationStatusGettier",
+        "justificationStatusRebutted",
+        "justificationStatusUndercut",
+        "justificationStatusUndermined",
+    ]
+    .into_iter()
+    .map(gmeow)
+    .collect();
+    assert_eq!(
+        roster, expected,
+        "the JustificationStatus individual roster drifted"
     );
 }
