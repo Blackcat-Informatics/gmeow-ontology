@@ -4692,6 +4692,14 @@ logic:candidateProperPartOfAsymmetric
 # gmeow:deonticRecommendation, domain-correct). logic:formalizes ties each to the term it
 # advises. Advice fires from a DATA MATCH, never merely because a rule exists; the
 # advice-coverage slice-quality axis counts terms with such a realized constraint.
+#
+# The advice PROSE is machine-active, not paraphrased: each constraint's logic:message is
+# the VERBATIM gmeow:avoidWhen text of its logic:formalizes term, and logic:adviceSourceField
+# logic:ProseFieldAvoidWhen declares that binding. The native verify gate
+# (check_advice_message_prose_binding) resolves the term's current @x-gmeow-english prose for
+# the named field and hard-fails on any divergence, so the surfaced advice can never silently
+# drift from the prose it formalizes — the soft-advice peer of the hard-axiom candidateSourceHash
+# discipline, but a direct string binding (no stored digest) because the message IS the prose.
 
 gmeow:BareEntitySortalAdviceConstraint
     a logic:Constraint ;
@@ -4700,7 +4708,8 @@ gmeow:BareEntitySortalAdviceConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Info" ;
     logic:formalizes gmeow:Entity ;
-    logic:message "This individual is typed gmeow:Entity but no more-specific top sortal (gmeow:Agent / InformationObject / PhysicalObject / SocialObject) — a more specific sortal applies; type it as its most specific kind and let it inherit Entity." ;
+    logic:adviceSourceField logic:ProseFieldAvoidWhen ;
+    logic:message "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies; reserve the unqualified type for genuinely category-neutral resources, and never use it for occurrents (those are gufo:Event, not endurants)." ;
     logic:integrity logic:besForall .
 logic:besForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -4725,7 +4734,8 @@ gmeow:EndurantAsEventAdviceConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Info" ;
     logic:formalizes gmeow:Event ;
-    logic:message "This individual is typed both gmeow:Event and gmeow:Entity — an endurant (person / document / place) is a gmeow:Entity, not an occurrence; reach for gmeow:Activity when it is an agent-driven provenance act, and do not type an endurant as an Event." ;
+    logic:adviceSourceField logic:ProseFieldAvoidWhen ;
+    logic:message "Avoid typing an endurant as an Event (a person/document/place is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an agent-driven provenance act with inputs and outputs." ;
     logic:integrity logic:eaeForall .
 logic:eaeForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -5927,6 +5937,16 @@ logic:candidateSourceField
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate source field"@x-gmeow-english ;
     skos:definition "Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:adviceSourceField
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "advice source field"@x-gmeow-english ;
+    skos:definition "The soft-advice peer of logic:candidateSourceField, borne by a realized advisory logic:Constraint rather than a governance candidate: names which annotation field of the constraint's logic:formalizes term (a logic:ProseField from the closed set — here logic:ProseFieldAvoidWhen) the constraint's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Single-valued. Domain logic:Constraint, range logic:ProseField."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:candidateDeliberateNonAssertion

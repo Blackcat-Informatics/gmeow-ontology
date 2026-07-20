@@ -268,7 +268,7 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
     matches!(
         prop_local,
         // Core logic:Constraint annotations.
-        "integrity" | "severity" | "message" | "formalizes"
+        "integrity" | "severity" | "message" | "formalizes" | "adviceSourceField"
             // Shared sugar target.
             | "onClass"
             // P1 choice-group.

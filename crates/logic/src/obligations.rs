@@ -586,6 +586,11 @@ struct HarvestHash {
 /// language, recomputes the `sha256:` digest, and emits an error `Finding` on any mismatch.
 /// It is the recompute the SHACL `sh:minCount 1` presence shape structurally cannot express.
 ///
+/// The soft-advice peer — an advisory `logic:Constraint` whose `logic:message` mirrors a term's
+/// `gmeow:avoidWhen` prose — is guarded by [`check_advice_message_prose_binding`], a direct
+/// string binding rather than a stored digest (the message *is* the prose, so equality is the
+/// check).
+///
 /// A candidate carrying neither back-link leg (e.g. a doc-section harvest with no single
 /// source triple) has nothing to recompute against and never enters the inner join, so it
 /// is skipped; a candidate carrying exactly one leg is a half-link already hard-failed by
@@ -692,6 +697,134 @@ pub fn check_candidate_source_hash_drift(
             finding.tags = vec![
                 "formalization-governance".to_owned(),
                 "source-hash-drift".to_owned(),
+            ];
+            findings.push(finding);
+        }
+    }
+    findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
+    Ok(findings)
+}
+
+/// Enforce the soft-advice message↔prose binding over the reasoned store.
+///
+/// A realized advisory `logic:Constraint` surfaces guidance whose text must be the term's own
+/// prose, not a hand-authored paraphrase (making "the advice prose machine-active" literal).
+/// A constraint that declares `logic:adviceSourceField ?field` binds its `logic:message` to
+/// the `logic:formalizes` term's prose for the annotation that field names (`?field
+/// logic:proseFieldProperty ?prop`, the same closed `logic:ProseField` → property map the
+/// candidate drift gate uses), read in the canonical source language. The message must equal
+/// that prose exactly; any divergence is an error `Finding` — the soft-advice peer of
+/// [`check_candidate_source_hash_drift`], a direct string binding because the message *is* the
+/// prose (no stored digest to recompute). A constraint carrying neither an `adviceSourceField`
+/// nor a message never enters the join, so a non-advisory constraint is untouched. Zero or
+/// multiple distinct source-language prose literals for the resolved field is itself a binding
+/// error (a dangling or ambiguous advice link).
+///
+/// # Errors
+///
+/// Returns `Err` if the governance query fails to parse or evaluate.
+pub fn check_advice_message_prose_binding(
+    store: &Arc<RdfDataset>,
+) -> gmeow_errors::Result<Vec<Finding>> {
+    let rows = select(
+        store,
+        "PREFIX logic: <https://blackcatinformatics.ca/logic/>
+         SELECT ?c ?term ?prop ?msg ?prose WHERE {
+           ?c a logic:Constraint ;
+              logic:formalizes ?term ;
+              logic:adviceSourceField ?field ;
+              logic:message ?msg .
+           ?field logic:proseFieldProperty ?prop .
+           ?term ?prop ?prose .
+         }",
+    )?;
+
+    // Accumulate per constraint: its declared message and the distinct source-language prose
+    // literals resolved for the named field (should be exactly one), so the cardinality and
+    // language checks run once per constraint regardless of row fan-out.
+    struct AdviceBinding {
+        term: String,
+        message: String,
+        prose: BTreeSet<String>,
+    }
+    let mut by_constraint: BTreeMap<String, AdviceBinding> = BTreeMap::new();
+    for row in rows {
+        let (Some(c), Some(term), Some(msg)) = (row.get("c"), row.get("term"), row.get("msg"))
+        else {
+            continue;
+        };
+        let entry = by_constraint
+            .entry(term_value(c))
+            .or_insert_with(|| AdviceBinding {
+                term: term_value(term),
+                message: term_value(msg),
+                prose: BTreeSet::new(),
+            });
+        // Only the canonical source-language literal is the bound prose; projected public-language
+        // translations (@en/@zh/@fr) are never the binding target.
+        if let Some(TermValue::Literal {
+            lexical_form,
+            language,
+            ..
+        }) = row.get("prose")
+            && language.as_deref() == Some(SOURCE_LANG)
+        {
+            entry.prose.insert(lexical_form.clone());
+        }
+    }
+
+    let mut findings = Vec::new();
+    for (constraint, binding) in &by_constraint {
+        let prose = match binding.prose.len() {
+            1 => binding.prose.iter().next().expect("len == 1"),
+            0 => {
+                findings.push(
+                    Finding::new(
+                        Severity::Error,
+                        "verify.advice-message.no-source-prose",
+                        format!(
+                            "advisory constraint <{constraint}> declares logic:adviceSourceField for \
+                             <{}> but that term carries no @{SOURCE_LANG} prose for the named field; \
+                             the advice message cannot be bound (dangling advice link)",
+                            binding.term
+                        ),
+                    )
+                    .with_tool("verify"),
+                );
+                continue;
+            }
+            _ => {
+                findings.push(
+                    Finding::new(
+                        Severity::Error,
+                        "verify.advice-message.ambiguous-source-prose",
+                        format!(
+                            "advisory constraint <{constraint}> binding to <{}> resolves to multiple \
+                             distinct @{SOURCE_LANG} prose literals for its field; the advice source \
+                             is ambiguous",
+                            binding.term
+                        ),
+                    )
+                    .with_tool("verify"),
+                );
+                continue;
+            }
+        };
+        if &binding.message != prose {
+            let mut finding = Finding::new(
+                Severity::Error,
+                "verify.advice-message.drift",
+                format!(
+                    "advisory constraint <{constraint}> is stale: its logic:message diverges from \
+                     the current @{SOURCE_LANG} prose of <{term}> — the advice must surface the \
+                     term's own prose verbatim, so re-copy the edited prose into the message",
+                    term = binding.term,
+                ),
+            )
+            .with_tool("verify");
+            finding.tags = vec![
+                "formalization-governance".to_owned(),
+                "advice-message-drift".to_owned(),
             ];
             findings.push(finding);
         }
@@ -1057,6 +1190,54 @@ mod tests {
         assert!(
             findings.is_empty(),
             "a candidate with no harvest back-link must be skipped, not flagged: {findings:?}"
+        );
+    }
+
+    /// An advisory `logic:Constraint` whose `logic:message` equals the current
+    /// `gmeow:avoidWhen` prose of its `logic:formalizes` term (for the field named by
+    /// `logic:adviceSourceField`) is silent; a message that diverges from that prose is a
+    /// hard binding error naming the term. This is the soft-advice peer of the
+    /// candidateSourceHash drift gate — a direct string binding, so the surfaced advice can
+    /// never silently drift from the prose it formalizes.
+    #[test]
+    fn advisory_constraint_message_binds_avoidwhen_prose() {
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let avoid_when = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+        let field = "https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen";
+        let term = "https://blackcatinformatics.ca/gmeow/Entity";
+        let prose = "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies.";
+        let constraint_store = |message: &str| {
+            let ntriples = format!(
+                "<https://ex/adviceConstraint> <{rdf_type}> <{logic}Constraint> .\n\
+                 <https://ex/adviceConstraint> <{logic}formalizes> <{term}> .\n\
+                 <https://ex/adviceConstraint> <{logic}adviceSourceField> <{field}> .\n\
+                 <https://ex/adviceConstraint> <{logic}message> \"{message}\" .\n\
+                 <{field}> <{logic}proseFieldProperty> <{avoid_when}> .\n\
+                 <{term}> <{avoid_when}> \"{prose}\"@{SOURCE_LANG} .\n"
+            );
+            store_from_ntriples(&ntriples)
+        };
+
+        // Message == current avoidWhen prose → silent.
+        let findings =
+            check_advice_message_prose_binding(&constraint_store(prose)).expect("check runs");
+        assert!(
+            findings.is_empty(),
+            "an advisory constraint whose message equals its term's avoidWhen prose must not drift: {findings:?}"
+        );
+
+        // Message diverges from the prose → hard binding error naming the term.
+        let drift =
+            check_advice_message_prose_binding(&constraint_store("A stale, paraphrased message."))
+                .expect("check runs")
+                .into_iter()
+                .find(|f| f.code == "verify.advice-message.drift")
+                .expect("a diverged advisory message must surface as a binding error");
+        assert_eq!(drift.severity, Severity::Error);
+        assert!(
+            drift.message.contains(term),
+            "the binding finding must name the formalized term: {drift:?}"
         );
     }
 
