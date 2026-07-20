@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (F4): every gmeow:ProjectionReceipt carries a content-addressed gmeow:contentDigest
+# identity over its inputs, so same inputs yield the same digest. Over the
+# projection-receipts-worked pass scene this returns each of the five receipts with its digest,
+# proving each derived ranking is content-addressed and deterministically identified.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?receipt ?digest WHERE {
+    ?receipt a gmeow:ProjectionReceipt ;
+        gmeow:contentDigest ?digest .
+}
+ORDER BY ?receipt

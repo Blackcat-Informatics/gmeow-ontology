@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:DpoNotCanonicalConstraint (AC4): a gmeow:DpoView carries the
+# forbidden gmeow:derivesCanonicalObservation edge, sourcing a canonical
+# gmeow:PreferenceObservation FROM the training view — inverting the canonical→projection
+# direction. DPO is a derived-only consumer of the canonical preference, never its source, so
+# the forbidden-pattern SPARQL constraint (the PRESENCE of gmeow:derivesCanonicalObservation on
+# a gmeow:DpoView) MUST reject it with shacl.SPARQLConstraintComponent and NO other finding. The
+# DpoView is otherwise a fully well-formed projection receipt (content-addressed, deterministic
+# with a tie-break rule, exact preservation) and the observation carries its mandatory
+# gmeow:comparisonContext and observed feature, isolating the inverted derivation edge.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# A well-formed canonical observation (the thing DPO must never be the source of).
+ex:eval a gmeow:Standpoint ; rdfs:label "evaluator"@en .
+ex:goal a gmeow:Goal ; rdfs:label "select the strongest draft"@en .
+ex:ctx a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal ;
+    gmeow:contentDigest "blake3:0aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa5" ;
+    gmeow:registersObservation ex:obs .
+ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obs a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval ; gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:feat ; gmeow:observationPrefers ex:candA .
+
+# The DEFECT: a DPO training view sourcing the canonical observation.
+ex:dpo a gmeow:DpoView ;
+    rdfs:label "a DPO view illegally deriving a canonical observation"@en ;
+    gmeow:projectionKind gmeow:projectionPairwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "chosen-over-rejected-stable" ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:0ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba5" ;
+    gmeow:derivesCanonicalObservation ex:obs .         # <-- forbidden: DPO is derived-only

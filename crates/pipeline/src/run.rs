@@ -2121,22 +2121,34 @@ ex:RequiredShape a sh:NodeShape ;
             "a triggered SHACL violation must change the shacl.nq artifact"
         );
         // And the run-ledger node set differs: the violation contributes real finding
-        // nodes; the conforming run contributes exactly the one informational
-        // `shacl.clean` record that keeps stage-validate's graph/diagnostics attach delta
-        // stable on a clean corpus (a zero-findings validation is a report, not an absence).
+        // nodes; the conforming run contributes exactly the informational `shacl.clean`
+        // record (keeps stage-validate's graph/diagnostics attach delta stable on a
+        // clean corpus — a zero-findings validation is a report, not an absence) PLUS
+        // the unconditional advisory-tier demonstrator (D1/D4): every run, conforming
+        // or not, contributes the `advice.tier.active` Note.
         assert!(
             !violating.diags.is_empty(),
             "the violating run must contribute run-ledger nodes"
         );
         assert_eq!(
             conforming.diags.len(),
-            1,
-            "the conforming run contributes exactly the shacl.clean record"
+            2,
+            "the conforming run contributes exactly the shacl.clean record plus the \
+             unconditional advisory demonstrator"
         );
         assert_eq!(
             conforming.diags[0].grade.severity,
             gmeow_errors::Severity::Info,
-            "the conforming run's sole node is the informational shacl.clean record"
+            "the conforming run's first node is the informational shacl.clean record"
+        );
+        assert_eq!(
+            conforming.diags[1].code, "advice.tier.active",
+            "the conforming run's second node is the unconditional advisory demonstrator"
+        );
+        assert_eq!(
+            conforming.diags[1].grade.severity,
+            gmeow_errors::Severity::Note,
+            "the advisory demonstrator is a Note-severity finding"
         );
         assert_ne!(
             violating.diags, conforming.diags,

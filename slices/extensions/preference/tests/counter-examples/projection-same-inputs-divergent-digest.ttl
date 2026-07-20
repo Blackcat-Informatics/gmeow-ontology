@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:DeterministicDigestConstraint (AC4/F4): two
+# gmeow:ProjectionReceipts share an IDENTICAL identity tuple — the same
+# gmeow:projectionSourceSet (ex:candidates), gmeow:projectionKind (gmeow:projectionPairwise),
+# and gmeow:tieBreakRule ("lexicographic-by-iri") — yet carry DIFFERENT gmeow:contentDigest
+# values. Same inputs must yield the same digest, so the ∀→¬∃ SPARQL constraint MUST reject
+# them with shacl.SPARQLConstraintComponent and NO other finding. Both receipts are otherwise
+# well-formed (content-addressed, deterministic + tie-break, exact preservation, no selected
+# candidate); the symmetric formula flags each same-input receipt against the other, so the
+# sole gate that fires is gmeow:DeterministicDigestConstraint (F4) — and no other gate.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# Two receipts, identical inputs, DIVERGENT digests.
+ex:receiptOne a gmeow:ProjectionReceipt ;
+    rdfs:label "pairwise projection, digest #1"@en ;
+    gmeow:projectionKind gmeow:projectionPairwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:1111111111111111111111111111111111111111111111111111111111111111" .
+
+ex:receiptTwo a gmeow:ProjectionReceipt ;
+    rdfs:label "pairwise projection, same inputs but digest #2"@en ;
+    gmeow:projectionKind gmeow:projectionPairwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:2222222222222222222222222222222222222222222222222222222222222222" .

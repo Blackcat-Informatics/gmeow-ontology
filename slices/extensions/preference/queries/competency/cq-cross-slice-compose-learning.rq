@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — learning): gmeow:PreferenceLearningEvent is the by-reference
+# specialization of the learning slice's gmeow:LearningEvent (Principle 16). Over the
+# model-delta-worked pass scene this returns exactly one row — the learning run consuming a
+# gmeow:DpoView projection receipt and producing the gmeow:ModelConfigDelta — proving the
+# preference learning event composes the learning-slice event with the projection and delta.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?learningEvent ?consumedReceipt ?producedDelta WHERE {
+    ?learningEvent a gmeow:PreferenceLearningEvent ;
+        gmeow:wasDerivedFrom ?consumedReceipt .
+    ?consumedReceipt a gmeow:DpoView .
+    ?producedDelta a gmeow:ModelConfigDelta ;
+        gmeow:wasGeneratedBy ?learningEvent .
+}
+ORDER BY ?learningEvent

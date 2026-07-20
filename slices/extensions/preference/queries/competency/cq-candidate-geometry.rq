@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (geometry): a candidate binds by reference to the Cl(12)/4096-d substrate. Over the
+# model-delta-worked pass scene this returns exactly one row — the candidate, its math:Multivector,
+# the math:CliffordAlgebra it lives in, and that algebra's math:MetricSignature — with the
+# 4096-dimensional carrier bound in the query, proving the geometric seam is a well-formed
+# Cl(12) binding.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+SELECT ?candidate ?multivector ?algebra ?signature WHERE {
+    ?candidate gmeow:candidateGeometry ?multivector .
+    ?multivector gmeow:geometryAlgebra ?algebra .
+    ?algebra math:metricSignature ?signature ;
+        math:spaceDimension 4096 .
+}
+ORDER BY ?candidate

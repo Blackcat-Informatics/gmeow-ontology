@@ -619,14 +619,63 @@ fn run_structural_cell(
     let holds = run_ask(&store, pattern)?;
 
     match (sa.polarity, holds) {
-        (Polarity::Must, false) => Err(Diag::of_kind(StructuralCell {
-            detail: "polarity 'must' but the ASK pattern did NOT hold".to_owned(),
-        })),
-        (Polarity::MustNot, true) => Err(Diag::of_kind(StructuralCell {
-            detail: "polarity 'mustNot' but the ASK pattern HELD".to_owned(),
-        })),
-        _ => Ok(()),
+        (Polarity::Must, false) => {
+            return Err(Diag::of_kind(StructuralCell {
+                detail: "polarity 'must' but the ASK pattern did NOT hold".to_owned(),
+            }));
+        }
+        (Polarity::MustNot, true) => {
+            return Err(Diag::of_kind(StructuralCell {
+                detail: "polarity 'mustNot' but the ASK pattern HELD".to_owned(),
+            }));
+        }
+        _ => {}
     }
+
+    // Teeth check (gmeow:saFailWitness): a `scopeModule` ban is an ASK over the slice's
+    // own module, which by construction never carries the banned triple — so the ban
+    // could be a typo or a dead pattern and still pass vacuously. When a fail-witness
+    // fixture is declared, run the SAME pattern over module ∪ fixture and REQUIRE the
+    // polarity to be violated there (a `mustNot` ban must now HOLD; a `must` ban must
+    // now FAIL). The fixture supplies exactly the banned pattern the real module must
+    // never hold; if it fails to trip the ban, the ban is vacuous and this is a hard
+    // fail. This is deliberately independent of `sa.scope`: the witness is always
+    // unioned with the module only (never examples), isolating the injected violation.
+    if let Some(witness_rel) = &sa.fail_witness {
+        let witness_path = slice_dir.join(witness_rel);
+        let witnessed = native_query::dataset_from_files(&[
+            paths::module_file(slice_dir),
+            witness_path.clone(),
+        ])
+        .map_err(|e| {
+            Diag::of_kind(DatasetRead {
+                detail: format!(
+                    "building module+fail-witness dataset ({}): {e}",
+                    witness_path.display()
+                ),
+            })
+        })?;
+        let witness_holds = run_ask(&witnessed, pattern)?;
+        let tripped = match sa.polarity {
+            Polarity::Must => !witness_holds,
+            Polarity::MustNot => witness_holds,
+        };
+        if !tripped {
+            let pol = match sa.polarity {
+                Polarity::Must => "must",
+                Polarity::MustNot => "mustNot",
+            };
+            return Err(Diag::of_kind(StructuralCell {
+                detail: format!(
+                    "fail-witness {witness_rel} did NOT trip the '{pol}' ban — the assertion \
+                     is vacuous: the fixture must supply the banned pattern so the ban \
+                     demonstrably has teeth"
+                ),
+            }));
+        }
+    }
+
+    Ok(())
 }
 
 fn run_ask(store: &Arc<RdfDataset>, query: &str) -> Result<bool> {
@@ -1065,6 +1114,71 @@ mod tests {
         assert!(
             !run_ask(&store, pattern).expect("the GMN non-lexical ASK executes"),
             "a directly situated GMN form must still be rejected when its specific type is a WordForm subclass"
+        );
+    }
+
+    /// A `gmeow:saFailWitness` must actually TRIP the ban: over module ∪ fixture the
+    /// assertion's pattern is required to be violated. A fixture that supplies the banned
+    /// triple passes the teeth check; a fixture that does NOT supply it hard-fails — proving
+    /// the teeth check is not itself vacuous (a `scopeModule` ban whose ASK is a typo or is
+    /// dead would otherwise pass forever, since the real module never carries the banned
+    /// pattern). This is the teeth of the teeth check.
+    #[test]
+    fn structural_fail_witness_requires_the_ban_to_trip() {
+        let dir =
+            std::env::temp_dir().join(format!("slicetest-failwitness-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("temp slice dir");
+        // The real module never carries the banned triple.
+        std::fs::write(
+            dir.join("module.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+        )
+        .expect("write module");
+        // A witness that DOES supply the banned pattern.
+        std::fs::write(
+            dir.join("witness-trips.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:preferredRank a owl:ObjectProperty .\n",
+        )
+        .expect("write tripping witness");
+        // A witness that does NOT supply it (an unrelated triple).
+        std::fs::write(
+            dir.join("witness-inert.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:somethingElse a owl:ObjectProperty .\n",
+        )
+        .expect("write inert witness");
+
+        let pattern = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> \
+                       PREFIX owl: <http://www.w3.org/2002/07/owl#> \
+                       ASK { gmeow:preferredRank a owl:ObjectProperty }";
+        let tripping = StructuralAssertion {
+            iri: "https://example.org/saBanned".to_owned(),
+            polarity: Polarity::MustNot,
+            pattern: Some(pattern.to_owned()),
+            shape: None,
+            scope: Scope::Module,
+            fail_witness: Some("witness-trips.ttl".to_owned()),
+            rationale: None,
+        };
+        // A tripping witness: normal check passes (module clean) AND the teeth check passes.
+        let (mut mo, mut mae) = (None, None);
+        run_structural_cell(&tripping, &dir, &mut mo, &mut mae)
+            .expect("a witness that supplies the banned pattern trips the mustNot ban");
+
+        // An inert witness: the teeth check must hard-fail.
+        let inert = StructuralAssertion {
+            fail_witness: Some("witness-inert.ttl".to_owned()),
+            ..tripping.clone()
+        };
+        let (mut mo2, mut mae2) = (None, None);
+        let err = run_structural_cell(&inert, &dir, &mut mo2, &mut mae2)
+            .expect_err("a witness that fails to supply the banned pattern must hard-fail");
+        assert!(
+            err.message().contains("did NOT trip") && err.message().contains("vacuous"),
+            "unexpected error: {err}"
         );
     }
 
