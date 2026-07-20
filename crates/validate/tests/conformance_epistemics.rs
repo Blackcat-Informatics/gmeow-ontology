@@ -284,7 +284,11 @@ fn assert_belief_revision_spine(
         pair.revised_state
     );
     assert!(
-        store.has(Some(&pair.revised_state), Some(&gmeow("epistemicAgent")), None),
+        store.has(
+            Some(&pair.revised_state),
+            Some(&gmeow("epistemicAgent")),
+            None
+        ),
         "revised state must carry an epistemicAgent"
     );
     assert!(
@@ -484,8 +488,8 @@ fn justification_status_roster_is_exact() {
 fn sssom_subject_ids() -> BTreeSet<String> {
     let dir = repo_root().join("generated").join("mappings");
     let mut subjects = BTreeSet::new();
-    for entry in
-        std::fs::read_dir(&dir).unwrap_or_else(|e| panic!("read mappings dir {}: {e}", dir.display()))
+    for entry in std::fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("read mappings dir {}: {e}", dir.display()))
     {
         let path = entry.expect("dir entry").path();
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");

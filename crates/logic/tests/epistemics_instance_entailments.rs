@@ -234,19 +234,17 @@ const EXPECTED_UNION_MEMBERSHIP: &[(&str, &[&str])] = &[
 fn epistemics_class_universe(quads: &[RdfQuad]) -> BTreeSet<String> {
     let mut classes = BTreeSet::new();
     for quad in quads {
-        if quad.predicate == RDFS_SUBCLASS_OF {
-            if let RdfTerm::Iri(subject) = &quad.subject {
-                if subject.starts_with(GMEOW) {
-                    classes.insert(subject.clone());
-                }
-            }
+        if quad.predicate == RDFS_SUBCLASS_OF
+            && let RdfTerm::Iri(subject) = &quad.subject
+            && subject.starts_with(GMEOW)
+        {
+            classes.insert(subject.clone());
         }
-        if quad.predicate == RDF_FIRST {
-            if let RdfTerm::Iri(object) = &quad.object {
-                if object.starts_with(GMEOW) {
-                    classes.insert(object.clone());
-                }
-            }
+        if quad.predicate == RDF_FIRST
+            && let RdfTerm::Iri(object) = &quad.object
+            && object.starts_with(GMEOW)
+        {
+            classes.insert(object.clone());
         }
     }
     classes
@@ -280,7 +278,10 @@ fn union_membership_extensions_are_exact() {
     // Open-universe guard: every class in the module's class universe MUST be
     // classified in the map, and the map MUST NOT carry a class the module no longer
     // mentions.
-    let unmapped: Vec<&String> = universe.iter().filter(|c| !expected.contains_key(*c)).collect();
+    let unmapped: Vec<&String> = universe
+        .iter()
+        .filter(|c| !expected.contains_key(*c))
+        .collect();
     assert!(
         unmapped.is_empty(),
         "epistemics classes with no union-membership expectation (classify each in EXPECTED_UNION_MEMBERSHIP): {unmapped:?}"
@@ -310,7 +311,8 @@ fn union_membership_extensions_are_exact() {
             let classified = has_type(&closure, individual, &gmeow(union));
             let should = expected_unions.contains(&gmeow(union));
             assert_eq!(
-                classified, should,
+                classified,
+                should,
                 "a {class} instance {} classify as gmeow:{union}",
                 if should { "MUST" } else { "must NOT" }
             );
