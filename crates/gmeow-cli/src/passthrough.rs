@@ -10,7 +10,11 @@ use std::path::{Path, PathBuf};
 use gmeow_cli_core::Reporter;
 
 use crate::commands::{fail, fail_code};
-use crate::{AffectCommands, BUNDLE_GTS, MusicCommands};
+use crate::{AffectCommands, BUNDLE_GTS, ClassifyMetric, MusicCommands};
+
+/// The canonical core-affect metric profile — the default `gmeow affect classify`
+/// vantage (bipolar [-1, 1] PAD, `gmeow:coreAffectGram`).
+const CORE_AFFECT_METRIC_PAD: &str = "https://blackcatinformatics.ca/gmeow/coreAffectMetricPAD";
 
 /// The install hint printed when the external `gts` binary cannot be found.
 pub(crate) const GTS_INSTALL_HINT: &str = "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
@@ -228,11 +232,21 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                 }
             }
         }
-        AffectCommands::Nearest {
+        AffectCommands::Classify {
             source,
             observation,
             prototype,
+            metric,
+            metric_profile,
+            top_k,
         } => {
+            if *top_k == Some(0) {
+                return fail(
+                    reporter,
+                    "gmeow-cli.affect.classify",
+                    "Error: --top-k must be at least 1".to_owned(),
+                );
+            }
             let bytes = match std::fs::read(source) {
                 Ok(bytes) => bytes,
                 Err(e) => {
@@ -244,16 +258,59 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                 }
             };
             let graph = purrdf::gts::reader::read(&bytes, false, None);
-            match gmeow_affect::nearest_prototype(&graph, observation, prototype) {
-                Ok(nearest) => {
-                    println!("nearest {}", nearest.prototype);
-                    println!("squared-distance {}", nearest.squared_distance);
-                    println!("distance {}", nearest.distance);
+            // Default to the full canonical prototype set when none is named.
+            let prototypes = if prototype.is_empty() {
+                gmeow_affect::affect_prototypes(&graph)
+            } else {
+                prototype.clone()
+            };
+            let lens = match metric {
+                ClassifyMetric::Distance => gmeow_affect::MetricLens::GDistance,
+                ClassifyMetric::Cosine => gmeow_affect::MetricLens::Cosine,
+            };
+            let profile = metric_profile
+                .clone()
+                .unwrap_or_else(|| CORE_AFFECT_METRIC_PAD.to_owned());
+            match gmeow_affect::classify(&graph, observation, &prototypes, &profile, lens, *top_k) {
+                Ok(classification) => {
+                    println!("metric {}", classification.metric.tag());
+                    println!("vantage {}", classification.vantage_profile);
+                    for (rank, ranked) in classification.ranked.iter().enumerate() {
+                        match &ranked.cosine {
+                            Some(cosine) => println!(
+                                "rank {} {} squared-distance {} distance {} cosine {}",
+                                rank + 1,
+                                ranked.prototype,
+                                ranked.squared_distance,
+                                ranked.distance,
+                                cosine
+                            ),
+                            None => println!(
+                                "rank {} {} squared-distance {} distance {}",
+                                rank + 1,
+                                ranked.prototype,
+                                ranked.squared_distance,
+                                ranked.distance
+                            ),
+                        }
+                    }
+                    if let Some(best) = classification.ranked.first() {
+                        // "nearest" (distance) vs "most-aligned" (cosine) — the two
+                        // lenses rank different quantities; the winner line names which.
+                        match metric {
+                            ClassifyMetric::Distance => println!("nearest {}", best.prototype),
+                            ClassifyMetric::Cosine => println!("most-aligned {}", best.prototype),
+                        }
+                    }
+                    println!(
+                        "margin {} {}",
+                        classification.margin_squared, classification.margin
+                    );
                     0
                 }
                 Err(message) => fail(
                     reporter,
-                    "gmeow-cli.affect.nearest",
+                    "gmeow-cli.affect.classify",
                     format!("Error: {message}"),
                 ),
             }

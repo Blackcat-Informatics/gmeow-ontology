@@ -502,14 +502,84 @@ fn affect_fixture_gts() -> PathBuf {
 
 /// Build a fixture `.gts` from the canonical `module.ttl` (carries the core-affect
 /// axis indices) merged with the committed nearest-prototype worked example.
-fn affect_nearest_fixture_gts() -> PathBuf {
+fn affect_classify_fixture_gts() -> PathBuf {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
 
+    // The canonical affect module carries the 10 named-emotion prototypes, the
+    // coreAffectMetricPAD vantage, and the schadenfreude core vector — everything a
+    // Q9 classification needs, with no throwaway example fixture.
+    let mut builder = SnapshotBuilder::default();
+    let text = std::fs::read(slice_path("core/affect/module.ttl")).expect("read slice file");
+    let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
+        .unwrap_or_else(|e| panic!("parse module.ttl: {e}"));
+    builder.add_dataset(&dataset).expect("add dataset");
+    let bytes = emit_gts(
+        &builder,
+        "dist",
+        None,
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .expect("emit gts");
+
+    let dir = scratch("affect-classify-fixture");
+    let path = dir.join("affect-classify.gts");
+    std::fs::write(&path, bytes).expect("write fixture gts");
+    path
+}
+
+#[test]
+fn affect_classify_finds_schadenfreude_prototype() {
+    // Q9 on the production CLI surface: with no explicit `--prototype`, the schadenfreude
+    // core vector is classified against the FULL canonical prototype set and its nearest
+    // labelled prototype is the schadenfreude prototype (exact squared distance 0) —
+    // "is this vector a schadenfreude?" answered yes, as a derived vantage-relative view.
+    let fixture = affect_classify_fixture_gts();
+    let gm = "https://blackcatinformatics.ca/gmeow/";
+    gmeow()
+        .args(["affect", "classify"])
+        .arg(&fixture)
+        .args(["--observation", &format!("{gm}schadenfreudeCoreVector")])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains(format!("nearest {gm}schadenfreudePrototype"))
+                .and(predicate::str::contains("squared-distance 0 distance"))
+                .and(predicate::str::contains("metric distance")),
+        );
+}
+
+#[test]
+fn affect_classify_missing_source_is_a_runtime_error() {
+    gmeow()
+        .args([
+            "affect",
+            "classify",
+            "/nonexistent-affect-fixture.gts",
+            "--observation",
+            "urn:x",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Error:"));
+}
+
+fn affect_classify_worked_fixture_gts() -> PathBuf {
+    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+    use purrdf::{NativeRdfFormat, parse_dataset};
+
+    // The canonical module (10 prototypes + coreAffectMetricPAD) PLUS the worked example
+    // (the contested state + a valence-dominant vantage) — everything the vantage-flip
+    // demonstration needs.
     let mut builder = SnapshotBuilder::default();
     for relative in [
         "core/affect/module.ttl",
-        "core/affect/examples/nearest-prototype-metric.ttl",
+        "core/affect/examples/classify-canonical-prototype.ttl",
     ] {
         let text = std::fs::read(slice_path(relative)).expect("read slice file");
         let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
@@ -529,61 +599,62 @@ fn affect_nearest_fixture_gts() -> PathBuf {
     )
     .expect("emit gts");
 
-    let dir = scratch("affect-nearest-fixture");
-    let path = dir.join("affect-nearest.gts");
+    let dir = scratch("affect-classify-worked-fixture");
+    let path = dir.join("affect-classify-worked.gts");
     std::fs::write(&path, bytes).expect("write fixture gts");
     path
 }
 
 #[test]
-fn affect_nearest_selects_metric_nearest_prototype() {
-    // Under the valence-dominant metric diag(2, 1) the state (0.5, 0.0) is classified
-    // to ELATION (exact squared 19/50) — NOT the raw-L²-nearest contentment (0.34).
-    // Selection is by exact Rational squared distance; the CLI prints the winner, the
-    // exact squared distance, and the display √ decimal.
-    let fixture = affect_nearest_fixture_gts();
-    let ns = "https://blackcatinformatics.ca/gmeow/examples/affect/nearest/";
+fn affect_classify_vantage_swap_flips_the_winner() {
+    // R4 made computable (competency Q9): the SAME contested state (valence -0.8, arousal
+    // 0.4, dominance 0.6, unpredictability 0.0) classifies to a DIFFERENT nearest canonical
+    // prototype depending on the vantage Gram — anger under coreAffectMetricPAD, disgust
+    // under a valence-dominant vantage. Nearest-prototype is a vantage-relative claim, not
+    // ground truth; swapping --metric-profile flips the winner.
+    let fixture = affect_classify_worked_fixture_gts();
+    let gm = "https://blackcatinformatics.ca/gmeow/";
+    let state = format!("{gm}examples/affect/classify/contestedState");
+    let valence_dominant = format!("{gm}examples/affect/classify/valenceDominantProfile");
+
+    // Default vantage (coreAffectMetricPAD): nearest is ANGER.
     gmeow()
-        .args(["affect", "nearest"])
+        .args(["affect", "classify"])
         .arg(&fixture)
-        .args(["--observation", &format!("{ns}stateObservation")])
-        .args(["--prototype", &format!("{ns}contentmentPrototype")])
-        .args(["--prototype", &format!("{ns}elationPrototype")])
+        .args(["--observation", &state])
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains(format!("nearest {ns}elationPrototype"))
-                .and(predicate::str::contains("squared-distance 19/50")),
-        );
+        .stdout(predicate::str::contains(format!(
+            "nearest {gm}angerPrototype"
+        )));
+
+    // Valence-dominant vantage: the winner FLIPS to DISGUST.
+    gmeow()
+        .args(["affect", "classify"])
+        .arg(&fixture)
+        .args(["--observation", &state])
+        .args(["--metric-profile", &valence_dominant])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(format!(
+            "nearest {gm}disgustPrototype"
+        )));
 }
 
 #[test]
-fn affect_nearest_missing_source_is_a_runtime_error() {
+fn affect_classify_top_k_zero_is_rejected() {
+    // A top-0 ranking is meaningless — the empty ranking is a hard fail, not a silent
+    // empty result.
+    let fixture = affect_classify_fixture_gts();
+    let gm = "https://blackcatinformatics.ca/gmeow/";
     gmeow()
-        .args([
-            "affect",
-            "nearest",
-            "/nonexistent-affect-fixture.gts",
-            "--observation",
-            "urn:x",
-            "--prototype",
-            "urn:p",
-        ])
+        .args(["affect", "classify"])
+        .arg(&fixture)
+        .args(["--observation", &format!("{gm}schadenfreudeCoreVector")])
+        .args(["--top-k", "0"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Error:"));
-}
-
-#[test]
-fn affect_nearest_without_prototype_is_a_clap_usage_error() {
-    // `--prototype` is `required = true`, so omitting it fails with a usage error
-    // (exit 2) before the source is read.
-    gmeow()
-        .args(["affect", "nearest", "/dev/null", "--observation", "urn:x"])
-        .assert()
-        .failure()
-        .code(2)
-        .stderr(predicate::str::contains("--prototype").and(predicate::str::contains("Usage:")));
+        .stderr(predicate::str::contains("--top-k must be at least 1"));
 }
 
 #[test]

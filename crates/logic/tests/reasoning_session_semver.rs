@@ -37,15 +37,19 @@ use session_common::*;
 /// `owl:hasKey` slice declaration — moving the `reason/dl.rs` content digest folded here.
 /// Re-blessed once more for the stage-2 `cargo fmt` pass over the branch-modified reasoning
 /// core: reformatting `reason/dl.rs` / `physical/chase.rs` (behaviour-preserving — `reason-verify`
-/// stays green) moves the raw-source content digest folded into this descriptor.
+/// stays green) moves the raw-source content digest folded into this descriptor. Re-blessed again
+/// for the merge of origin/main #1385: the public bilinear-form distance API (`bilinear_sqdist` /
+/// `compare_sqdist` / `BilinearFormError`) on the runtime engine surface (`physical/builtin_eval.rs`,
+/// `physical/mod.rs`) also folds into the runtime engine-source content digest, so the golden below
+/// is the merged value (both this branch's fmt and #1385's bilinear API move the digest).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "2936573199d260d8233f759544d755315b6e303e0c3b006d8c940b03e5d089c7";
+    "869cdbf2a93a73d0a2df08836d94f86ff8ec00e961e95379aa0ff128bc5ad8a9";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f9e288179252c68b3a64a8ebdad5096dba8eaaacdb47918144e7223acc0ae1ce";
+    "f6ff18cf42c6b7db0dc0755c984cd112d75bd3fde829b1d5c37e383c1d61772c";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

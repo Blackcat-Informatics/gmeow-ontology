@@ -23,3 +23,8 @@ gmeow-errors = { path = "../errors" }
 # The reusable exact-rational inner-product-space + pure math: graph loaders. The
 # affect-specific readers compute THROUGH this shared engine rather than owning it.
 gmeow-math = { path = "../math" }
+# The native bilinear-form distance authority. Q9 nearest-prototype
+# classification computes its exact-ℚ metric distances THROUGH the governed
+# moded-builtin family here, never a private numeric path. No cycle:
+# gmeow-logic depends only on errors/math/logic-compile/lang-form, never on affect.
+gmeow-logic = { path = "../logic" }
