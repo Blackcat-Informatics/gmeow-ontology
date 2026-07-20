@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — evidence): the preference gmeow:deltaEvaluationEvidence leg
+# composes a gmeow:ModelConfigDelta with the evidence gmeow:EvidenceSpan reused by reference
+# (Principle 16). Over the model-delta-worked pass scene this returns exactly one row joining the
+# delta to its evaluation evidence span typed gmeow:EvidenceSpan.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?evidenceSpan WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:deltaEvaluationEvidence ?evidenceSpan .
+    ?evidenceSpan a gmeow:EvidenceSpan .
+}
+ORDER BY ?delta

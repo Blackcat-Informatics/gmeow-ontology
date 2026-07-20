@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: a complete gmeow:ModelConfigDelta + the Cl(12)/E8 geometric seam.
+# A preference-learning run produces one gmeow:ModelConfigDelta binding ALL ELEVEN
+# identity legs (base artifact, tokenizer, codebook, dataset projection, selection
+# query, prompt, rubric, engine, optimizer, seed, evaluation evidence), so its
+# gmeow:contentDigest is over the whole reproducible tuple (AC5,
+# gmeow:ModelConfigDeltaCompletenessConstraint). The dataset-projection leg is itself a
+# disclosed gmeow:DpoView (⊑ gmeow:ProjectionReceipt), dogfooding the projection ledger.
+# The geometric seam binds a candidate by reference to the Cl(12)-over-4096-d substrate:
+# a math:Multivector in a math:CliffordAlgebra whose math:metricSignature is (11, 1)
+# — p + q = 12 — and whose math:spaceDimension is 4096 = 2^12
+# (gmeow:GeometricBindingConstraint holds).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The eleven identity legs (each a first-class, addressable contract) ------- #
+# base artifact — model-serving gmeow:ModelArtifact reused at the instance level.
+ex:baseCkpt a gmeow:ModelArtifact ;
+    rdfs:label "base checkpoint the delta is a change from"@en ;
+    gmeow:contentDigest "blake3:0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9" .
+
+ex:tok1 a gmeow:TokenizerContract ;
+    rdfs:label "tokenizer recipe leg"@en ;
+    gmeow:contentDigest "blake3:1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a" .
+
+ex:cb1 a gmeow:CodebookContract ;
+    rdfs:label "codebook / quantization recipe leg"@en ;
+    gmeow:contentDigest "blake3:2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b" .
+
+# dataset projection — an own-slice gmeow:DpoView (derived-only training view).
+ex:dpoLoss a gmeow:DisclosedLossEntry ;
+    rdfs:label "dropped: non-pairwise structure flattened into chosen/rejected pairs"@en ;
+    gmeow:droppedRelation ex:flattenedEdge .
+ex:flattenedEdge a math:Relation ; rdfs:label "a listwise edge flattened by DPO pairing"@en .
+ex:dpoSet a gmeow:CandidateSet ;
+    rdfs:label "the preference field the DPO view projects"@en ;
+    gmeow:hasCandidate ex:baseCkpt .
+ex:rec1 a gmeow:DpoView ;
+    rdfs:label "dataset-projection leg — a DPO chosen/rejected training view"@en ;
+    gmeow:projectionKind gmeow:projectionPairwise ;
+    gmeow:projectionSourceSet ex:dpoSet ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "chosen-over-rejected-stable" ;
+    gmeow:disclosesLoss ex:dpoLoss ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    gmeow:contentDigest "blake3:3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c" .
+
+ex:sq1 a gmeow:SelectionQuery ;
+    rdfs:label "stored-not-executed data-selection query leg"@en ;
+    gmeow:contentDigest "blake3:4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d" .
+
+# prompt — core ai gmeow:Prompt reused at the instance level.
+ex:sysPrompt a gmeow:Prompt ;
+    rdfs:label "system prompt identity leg"@en ;
+    gmeow:contentDigest "blake3:5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e" .
+
+# rubric — norms gmeow:Rubric reused at the instance level.
+ex:rubric1 a gmeow:Rubric ;
+    rdfs:label "evaluation rubric identity leg"@en ;
+    gmeow:contentDigest "blake3:60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f" .
+
+ex:eng1 a gmeow:EngineContract ;
+    rdfs:label "execution engine / precision leg"@en ;
+    gmeow:contentDigest "blake3:718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60" .
+
+ex:opt1 a gmeow:OptimizerContract ;
+    rdfs:label "optimizer (DPO objective + beta) leg"@en ;
+    gmeow:contentDigest "blake3:8293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6071" .
+
+# evaluation evidence — core gmeow:EvidenceSpan reused at the instance level.
+ex:span1 a gmeow:EvidenceSpan ;
+    rdfs:label "evaluation evidence span leg"@en .
+
+# --- The complete, content-addressed delta (all eleven legs bound) ------------- #
+ex:delta1 a gmeow:ModelConfigDelta ;
+    rdfs:label "the reproducible model/config delta identity tuple"@en ;
+    gmeow:deltaBaseArtifact ex:baseCkpt ;
+    gmeow:deltaTokenizer ex:tok1 ;
+    gmeow:deltaCodebook ex:cb1 ;
+    gmeow:deltaDatasetProjection ex:rec1 ;
+    gmeow:deltaSelectionQuery ex:sq1 ;
+    gmeow:deltaPromptIdentity ex:sysPrompt ;
+    gmeow:deltaRubricIdentity ex:rubric1 ;
+    gmeow:deltaEngine ex:eng1 ;
+    gmeow:deltaOptimizer ex:opt1 ;
+    gmeow:deltaSeed 42 ;
+    gmeow:deltaEvaluationEvidence ex:span1 ;
+    gmeow:contentDigest "blake3:93a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607182" .
+
+# --- The learning run that produced the delta --------------------------------- #
+ex:opusInvocation a gmeow:ModelInvocation ; rdfs:label "the DPO training invocation"@en .
+ex:learn1 a gmeow:PreferenceLearningEvent ;
+    rdfs:label "the preference-learning run"@en ;
+    gmeow:usedModel ex:opusInvocation ;
+    gmeow:wasDerivedFrom ex:rec1 .
+ex:delta1 gmeow:wasGeneratedBy ex:learn1 .
+
+# --- The Cl(12)/E8 geometric seam (referenced by content digest, not re-grounded) #
+# A candidate binds to a math:Multivector in a Cl(11,1) algebra over 4096 dimensions.
+ex:candGeom a gmeow:InformationObject ;
+    rdfs:label "a candidate carrying its geometric representation"@en ;
+    gmeow:candidateGeometry ex:mvGeom .
+
+ex:mvGeom a math:Multivector ;
+    rdfs:label "the candidate's multivector in the Cl(12) fiber"@en ;
+    gmeow:geometryAlgebra ex:cl12 .
+
+ex:sig12 a math:MetricSignature ;
+    rdfs:label "signature (11, 1): p + q = 12"@en ;
+    math:signaturePositive 11 ;
+    math:signatureNegative 1 .
+
+ex:cl12 a math:CliffordAlgebra ;
+    rdfs:label "Cl(11,1) — the 4096-dimensional geometric carrier"@en ;
+    math:metricSignature ex:sig12 ;
+    math:spaceDimension 4096 .
+
+# The candidate's geometry seams to the same E8-organized base the sheaf lives over.
+ex:e8Root a math:RootSystem ; rdfs:label "the E8 root system organizing the base complex"@en .
+ex:e8Lattice a math:Lattice ; rdfs:label "the E8 lattice"@en .

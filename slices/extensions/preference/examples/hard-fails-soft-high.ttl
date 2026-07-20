@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: a HIGH soft score coexists with a HARD verifier failure.
+# Candidate H scores very high on the soft aggregate (a norms gmeow:Assessment with
+# gmeow:assessmentScoreValue 0.96, reused at the instance level), yet a HARD verifier
+# verdict on H holds gmeow:verifierOutcome gmeow:verdictNotHeld under a hard-hardness
+# safety contract. The two axes are structurally disjoint: the hard failure is NOT
+# overridden by the high soft score. The scene is LEGAL precisely because it makes NO
+# winner claim — H is simply never bound as a gmeow:selectedCandidate. A rival
+# candidate G passes the hard gate, and the graph shows the coexistence without any
+# global-winner assertion (so nothing is routed through the consensus gate here).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ----------------------------------------------- #
+ex:candH a gmeow:InformationObject ; rdfs:label "candidate H — high soft score, hard-fails safety"@en .
+ex:candG a gmeow:InformationObject ; rdfs:label "candidate G — passes the hard gate"@en .
+
+ex:candidates a gmeow:CandidateSet ;
+    rdfs:label "the two response candidates"@en ;
+    gmeow:hasCandidate ex:candH , ex:candG .
+
+# --- The soft axis: a HIGH norms assessment of H (reused at instance level) ---- #
+ex:helpfulness a gmeow:Criterion ; rdfs:label "criterion — helpfulness"@en .
+ex:softJudge a gmeow:Standpoint ; rdfs:label "the soft LLM-judge vantage"@en .
+
+ex:assessH a gmeow:Assessment ;
+    rdfs:label "soft assessment of H — very high helpfulness"@en ;
+    gmeow:vantage ex:softJudge ;
+    gmeow:assessmentTarget ex:candH ;
+    gmeow:assessmentCriterion ex:helpfulness ;
+    gmeow:assessmentScoreValue 0.96 .
+
+ex:assessG a gmeow:Assessment ;
+    rdfs:label "soft assessment of G — solid helpfulness"@en ;
+    gmeow:vantage ex:softJudge ;
+    gmeow:assessmentTarget ex:candG ;
+    gmeow:assessmentCriterion ex:helpfulness ;
+    gmeow:assessmentScoreValue 0.71 .
+
+# --- The hard axis: a HARD verifier verdict of NOT-HELD on H ------------------- #
+# The contract REUSES the core gmeow:InformationObject (norms gmeow:Condition by
+# reference); the outcome REUSES the norms gmeow:EvaluationVerdict vocabulary.
+ex:noPiiContract a gmeow:Condition ;
+    rdfs:label "hard contract — output must contain no PII"@en .
+ex:safetyChecker a gmeow:Standpoint ; rdfs:label "the safety verifier vantage"@en .
+
+ex:vvHardH a gmeow:VerifierVerdict ;
+    rdfs:label "HARD verdict on H: PII contract NOT held"@en ;
+    gmeow:vantage ex:safetyChecker ;
+    gmeow:verifiesCandidate ex:candH ;
+    gmeow:verifierContract ex:noPiiContract ;
+    gmeow:hardConstraintClass gmeow:constraintHardnessHard ;
+    gmeow:verifierOutcome gmeow:verdictNotHeld .
+
+# G passes the same hard contract.
+ex:vvHardG a gmeow:VerifierVerdict ;
+    rdfs:label "HARD verdict on G: PII contract held"@en ;
+    gmeow:vantage ex:safetyChecker ;
+    gmeow:verifiesCandidate ex:candG ;
+    gmeow:verifierContract ex:noPiiContract ;
+    gmeow:hardConstraintClass gmeow:constraintHardnessHard ;
+    gmeow:verifierOutcome gmeow:verdictHeld .
+
+# --- The point: no winner claim is made. H's high soft score does not, and may
+#     not, override its hard failure; H is simply not selected. There is NO
+#     gmeow:selectedCandidate = H and NO gmeow:assertsGlobalWinner anywhere, so the
+#     hard and soft axes coexist without any override.

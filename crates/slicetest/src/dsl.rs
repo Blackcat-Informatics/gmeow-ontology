@@ -112,6 +112,15 @@ pub struct StructuralAssertion {
     pub shape: Option<String>,
     /// `gmeow:saScope` — defaults to [`Scope::ModuleAndExamples`] when omitted.
     pub scope: Scope,
+    /// `gmeow:saFailWitness` — OPTIONAL SLICE-relative fixture whose triples SUPPLY
+    /// the banned pattern, so the assertion has demonstrable teeth. When present, the
+    /// harness runs the assertion's `pattern` a SECOND time over module ∪ fixture and
+    /// requires the polarity to be VIOLATED there (a `mustNot` ban must now HOLD; a
+    /// `must` ban must now FAIL). A fixture that does not trip the ban is a hard fail —
+    /// it proves the ban is vacuous. This is how a `scopeModule` ban (an ASK over the
+    /// slice's own module, which by construction never carries the banned triple) gets
+    /// a fail-witness: the fixture injects the violation the real module must never hold.
+    pub fail_witness: Option<String>,
     pub rationale: Option<String>,
 }
 
@@ -214,12 +223,13 @@ SELECT ?cq ?row ?var ?iri ?lit WHERE {
 }";
 
 const Q_STRUCTURAL: &str = "
-SELECT ?sa ?polarity ?pattern ?shape ?scope ?rationale WHERE {
+SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
   ?sa a gmeow:StructuralAssertion ;
       gmeow:saPolarity ?polarity .
   OPTIONAL { ?sa gmeow:saPattern ?pattern }
   OPTIONAL { ?sa gmeow:saShape ?shape }
   OPTIONAL { ?sa gmeow:saScope ?scope }
+  OPTIONAL { ?sa gmeow:saFailWitness ?failWitness }
   OPTIONAL { ?sa gmeow:saRationale ?rationale }
 }";
 
@@ -400,6 +410,7 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>>
             pattern: opt_string(&sol, "pattern"),
             shape: sol.get("shape").and_then(term_iri),
             scope,
+            fail_witness: opt_string(&sol, "failWitness"),
             rationale: opt_string(&sol, "rationale"),
         });
     }

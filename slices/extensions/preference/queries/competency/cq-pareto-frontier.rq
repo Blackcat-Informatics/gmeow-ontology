@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: recover the Pareto frontier — for each criterion, the candidate that wins on it.
+# Over the pareto-incomparable pass scene (two criteria) this returns exactly two rows
+# (candidate X wins latency, candidate Y wins accuracy), a REAL frontier of two non-dominated
+# candidates, not a one-row vacuity.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?criterion ?frontierMember WHERE {
+    ?observation a gmeow:PreferenceObservation ;
+        gmeow:onCriterion ?criterion ;
+        gmeow:observationPrefers ?frontierMember .
+}
+ORDER BY ?criterion
