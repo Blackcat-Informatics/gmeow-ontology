@@ -18,6 +18,7 @@ skip = Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/ext
 # ot (the object-term local in the CLIF writer triple codec), covert (the
 # linguistics term, opp. of overt), pres (the Leipzig-glossing Present-tense
 # abbreviation), falso (the Latin term in "ex falso quodlibet"),
-# atmost (the `at-most-one` choice-mode token, SHACL sh:maxCount analogue) and
-# deriver (the JSON-Schema/SHACL projection deriver).
-ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,deriver
+# atmost (the `at-most-one` choice-mode token, SHACL sh:maxCount analogue),
+# deriver (the JSON-Schema/SHACL projection deriver) and exemple (French for
+# "example" in a French translation-integrity test string in crates/docs/src/i18n.rs).
+ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,deriver,exemple
