@@ -1359,7 +1359,7 @@ gmeow-labelset:SST2
     gmeow:labelSetDecision gmeow:decisionArgmax ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-# ── Canonical named-emotion PROTOTYPES (shipped A-Box, issue #1385) ────────────
+# ── Canonical named-emotion PROTOTYPES (shipped A-Box) ─────────────────────────
 # 'Model up, don't mint': each named gmeow:EmotionType carries a TYPICAL core-affect
 # appraisal SIGNATURE as a gmeow:AffectPrototype in the canonical basis
 # (gmeow:coreAffectMetricPAD / gmeow:coreAffectGram), so an arbitrary affect vector can
@@ -1367,7 +1367,7 @@ gmeow-labelset:SST2
 # idealized landmarks held from the naming TRADITION (gmeow:prototypeAuthority), open
 # and contested (Principle 9), never ground truth. Nearest-prototype classification is a
 # DERIVED, vantage-relative view computed OUTSIDE the logic over exact rationals through
-# the #1428 bilinear-form builtin (Principle 12), never a stored label. Each cell reads
+# the native bilinear-form builtin (Principle 12), never a stored label. Each cell reads
 # (gmeow:appraisalOf) its named gmeow:EmotionType — the emotion the prototype typifies.
 # Signatures are principled from the axis semantics of AFFECT-DESIGN.md (e.g.
 # unpredictability separates fear from anger at equal valence/arousal; pride/joy differ
@@ -2409,7 +2409,7 @@ gmeow:Appraisal rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AffectScaleProfile ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/emotionBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Appraisal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/appraisalOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
@@ -2533,7 +2533,7 @@ logic:vcpAtom a logic:Formula ; logic:relation gmeow:vectorComponent ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the affect-domain closed-world shapes  #
+# Migrated procedural constraints: the affect-domain closed-world shapes          #
 # from shapes/gmeow-shapes.ttl, re-authored as logic:Constraint integrity trees   #
 # and projected to generated/shapes/procedural-constraints.ttl (Principle 17).     #
 # =========================================================================== #
@@ -3119,7 +3119,7 @@ gmeow:AppraisalValueRequiresDimensionConstraint
     logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world Emotion              #
+# Migrated procedural constraints: the closed-world Emotion                      #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
 # =========================================================================== #
 

@@ -23,7 +23,7 @@
 #
 # The winner FLIPS anger ↔ disgust with the vantage swap: metric-nearest is not
 # Euclidean-nearest and not vantage-free. The classifier (`gmeow affect classify`)
-# computes every exact-ℚ squared distance THROUGH the #1428 bilinear-form builtin; the √
+# computes every exact-ℚ squared distance THROUGH the native bilinear-form builtin; the √
 # decimals are display only, the selection rides the exact rational order. The state and
 # both vantages share the canonical core-affect basis {valence 0, arousal 1, dominance 2,
 # unpredictability 3}.
