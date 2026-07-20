@@ -140,9 +140,10 @@ pub fn validate_source_graph(
     // Split the advisory tier out of the raw results: an Info-severity result comes from a
     // `logic:severity "Info"` advisory constraint, so its raw shacl.* finding is suppressed
     // and it is re-projected as a Note + deonticRecommendation advisory (fires from a DATA
-    // MATCH). The shape store carries each advisory shape's `logic:formalizes` provenance.
+    // MATCH). The shape store carries each advisory shape's `logic:formalizes` provenance; the
+    // source `dataset` carries the formalized terms' howToUse/useWhen prose the advisory surfaces.
     let (retained, advisories) =
-        gmeow_validate::advisory::split_advisory_results(report, &shape_store);
+        gmeow_validate::advisory::split_advisory_results(report, &shape_store, &dataset);
     Ok((diagnostics_report(&retained), advisories))
 }
 
@@ -343,12 +344,12 @@ impl Stage for ValidateStage {
             let projection = advisory.project();
             advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
             advisory_claims.push(projection.claim);
+            report.add_rule(advisory.rule());
         }
+        // The flat findings are added after the ledger is fully attached (findings("validate")
+        // reads the whole batch), keeping their genuine ledger identity.
         for advisory_finding in advisory_ledger.findings("validate") {
             report.add_finding(advisory_finding);
-        }
-        for advisory in &advisories {
-            report.add_rule(advisory.rule());
         }
         // Claim wing: materialise the ComplianceAssessment claims as N-Quads into THEIR
         // OWN carrier named graph (`graph/norm-claims`), parsed the same way the SHACL

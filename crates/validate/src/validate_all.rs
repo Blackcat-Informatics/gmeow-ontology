@@ -846,7 +846,7 @@ impl ValidationRun {
         let advisory_shapes = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok();
         let advisories = advisory_shapes
             .as_deref()
-            .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes))
+            .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes, &dataset))
             .unwrap_or_default();
         let mut advisory_ledger = DiagLedger::new();
         let mut advisory_claims = Vec::with_capacity(advisories.len());
@@ -854,12 +854,11 @@ impl ValidationRun {
             let projection = advisory.project();
             advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
             advisory_claims.push(projection.claim);
+            report.add_rule(advisory.rule());
         }
+        // Flat findings after the ledger is fully attached (findings("validate") reads the batch).
         for note in advisory_ledger.findings("validate") {
             report.add_finding(note);
-        }
-        for advisory in &advisories {
-            report.add_rule(advisory.rule());
         }
 
         // Semantic (`--deep`) pass (ME2): reason over the bundle and read the

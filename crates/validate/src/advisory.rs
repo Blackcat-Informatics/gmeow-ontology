@@ -381,6 +381,15 @@ impl Advisory {
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// The help page every harvested advisory rule links to.
 const ADVICE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/advice";
+/// The formalized term's positive how-to prose — surfaced on the advisory as a corrective
+/// `suggestion` (D3 acceptance criterion: `gmeow:howToUse` populates `suggestions`).
+const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
+/// The formalized term's applicability prose — surfaced on the advisory as contextual
+/// guidance (D3 acceptance criterion: `gmeow:useWhen` surfaces as guidance).
+const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+/// The canonical source language every authored guidance literal carries; the public
+/// `@en`/`@zh`/`@fr` projections are never the surfaced text.
+const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
 
 /// The IRI string of a SHACL term, or `None` for a blank node / literal.
 fn shacl_iri(term: &ShaclTerm) -> Option<String> {
@@ -441,19 +450,48 @@ fn graph_id(ds: &purrdf::RdfDataset, iri: &str) -> Option<purrdf::TermId> {
     ds.term_id_by_value(&purrdf::TermValue::iri(iri))
 }
 
+/// The `term`'s canonical source-language (`@x-gmeow-english`) prose for the annotation
+/// `prop` (e.g. `gmeow:howToUse` / `gmeow:useWhen`), read from `ontology`. `None` when the
+/// term carries no such source-language literal — an `@en`/`@zh`/`@fr` projection is never
+/// returned. The single reader both suggestion (`howToUse`) and guidance (`useWhen`)
+/// surfacing route through, so an advisory carries the term's OWN prose, not a paraphrase.
+fn term_source_prose(ontology: &purrdf::RdfDataset, term: &str, prop: &str) -> Option<String> {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let (Some(subj), Some(pred)) = (graph_id(ontology, term), graph_id(ontology, prop)) else {
+        return None;
+    };
+    ontology
+        .quads_for_pattern(Some(subj), Some(pred), None, GraphMatch::Any)
+        .find_map(|q| match ontology.resolve(q.o) {
+            TermRef::Literal {
+                lexical,
+                language: Some(lang),
+                ..
+            } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
+            _ => None,
+        })
+}
+
 /// Build one Note [`Advisory`] from a matched advisory constraint — the single source
 /// both the pipeline (result-based) and CLI (finding-based) splits construct through.
 ///
 /// The focus node (the individual whose data matched the anti-pattern guard) is the
-/// advised subject (`gmeow:observedFeature`); `message` is the advice; the code
-/// `advice.<shape-local>.<focus-digest>` is injective per match and identifies the
-/// governing constraint (its provenance is the shape's `logic:formalizes`, carried as a
-/// `formalizes:<term>` tag).
+/// advised subject (`gmeow:observedFeature`); `message` is the advice (the constraint's
+/// formalized-term `gmeow:avoidWhen` prose); the code `advice.<shape-local>.<focus-digest>`
+/// is injective per match and identifies the governing constraint (its provenance is the
+/// shape's `logic:formalizes`, carried as a `formalizes:<term>` tag).
+///
+/// The whole prose surface of the formalized term is made machine-active here (D3): the
+/// term's `gmeow:howToUse` becomes a corrective `suggestion` and its `gmeow:useWhen` becomes
+/// a contextual-guidance `suggestion`, both read (source-language) from `ontology`. So a
+/// harvested advisory carries `avoidWhen` (as the message) + `howToUse` + `useWhen` — the
+/// term's own prose, never a paraphrase.
 fn build_advisory(
     shape_iri: Option<&str>,
     focus_iri: Option<&str>,
     message: &str,
     shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
 ) -> Advisory {
     let shape_local = shape_iri.map_or_else(|| "constraint".to_owned(), code_local);
     let digest = focus_digest(focus_iri.unwrap_or_default());
@@ -466,12 +504,25 @@ fn build_advisory(
     }
     if let Some(term) = shape_iri.and_then(|s| shape_formalizes(shapes, s)) {
         advisory = advisory.with_tag(format!("formalizes:{term}"));
+        // The formalized term's positive prose rides the advisory: howToUse as the corrective
+        // suggestion, useWhen as contextual guidance (each surfaced only when the term authors
+        // it — honest absence otherwise).
+        if let Some(how_to_use) = term_source_prose(ontology, &term, GMEOW_HOW_TO_USE) {
+            advisory = advisory.with_suggestion(how_to_use);
+        }
+        if let Some(use_when) = term_source_prose(ontology, &term, GMEOW_USE_WHEN) {
+            advisory = advisory.with_suggestion(format!("Use when: {use_when}"));
+        }
     }
     advisory
 }
 
 /// One matched advisory-constraint [`ValidationResult`] → a Note [`Advisory`].
-fn advisory_from_result(r: &ValidationResult, shapes: &purrdf::RdfDataset) -> Advisory {
+fn advisory_from_result(
+    r: &ValidationResult,
+    shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
+) -> Advisory {
     let message = r
         .message
         .clone()
@@ -481,6 +532,7 @@ fn advisory_from_result(r: &ValidationResult, shapes: &purrdf::RdfDataset) -> Ad
         shacl_iri(&r.focus_node).as_deref(),
         &message,
         shapes,
+        ontology,
     )
 }
 
@@ -493,10 +545,14 @@ fn advisory_from_result(r: &ValidationResult, shapes: &purrdf::RdfDataset) -> Ad
 /// `logic:formalizes` is an advisory-constraint match — it is REMOVED from `report` (its
 /// raw `shacl.*` form suppressed) and returned as a Note [`Advisory`] for the dual
 /// projection. Fires from a DATA MATCH; a report with no such finding yields none.
+///
+/// `ontology` carries the formalized terms' `gmeow:howToUse` / `gmeow:useWhen` prose that each
+/// advisory surfaces as suggestions/guidance (the CLI passes the validated bundle dataset).
 #[must_use]
 pub fn split_advisory_findings(
     report: &mut gmeow_errors::Report,
     shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
 ) -> Vec<Advisory> {
     let mut advisories = Vec::new();
     let mut retained = Vec::with_capacity(report.findings.len());
@@ -520,6 +576,7 @@ pub fn split_advisory_findings(
                 focus.as_deref(),
                 &finding.message,
                 shapes,
+                ontology,
             ));
         } else {
             retained.push(finding);
@@ -539,18 +596,20 @@ pub fn split_advisory_findings(
 /// MATCH — the guard matched an individual — never merely because a rule exists.
 ///
 /// Deterministic: advisories are sorted by code, and the retained results preserve the
-/// engine's order. The `shapes` graph is read for each advisory shape's
-/// `logic:formalizes` provenance term.
+/// engine's order. The `shapes` graph is read for each advisory shape's `logic:formalizes`
+/// provenance term; `ontology` carries the formalized terms' `gmeow:howToUse` /
+/// `gmeow:useWhen` prose each advisory surfaces (the pipeline passes the source graph).
 #[must_use]
 pub fn split_advisory_results(
     report: ValidationReport,
     shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
 ) -> (ValidationReport, Vec<Advisory>) {
     let mut retained = Vec::new();
     let mut advisories = Vec::new();
     for result in report.results {
         if matches!(result.severity, ShaclSeverity::Info) {
-            advisories.push(advisory_from_result(&result, shapes));
+            advisories.push(advisory_from_result(&result, shapes, ontology));
         } else {
             retained.push(result);
         }
@@ -962,6 +1021,16 @@ mod tests {
             None,
         )
         .expect("shapes parse");
+        // The ontology carries the formalized term's positive prose: howToUse → the advisory's
+        // corrective suggestion, useWhen → contextual guidance (D3 acceptance criteria).
+        let ontology = purrdf::parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\"@x-gmeow-english ;\n\
+                gmeow:useWhen \"Use for a genuinely category-neutral resource.\"@x-gmeow-english .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("ontology parse");
         let report = ValidationReport {
             conforms: false,
             results: vec![
@@ -980,7 +1049,7 @@ mod tests {
             ],
         };
 
-        let (retained, advisories) = split_advisory_results(report, &shapes);
+        let (retained, advisories) = split_advisory_results(report, &shapes, &ontology);
 
         // The hard violation is retained; the Info result was suppressed.
         assert_eq!(retained.results.len(), 1);
@@ -1001,6 +1070,23 @@ mod tests {
                 .any(|t| t == "formalizes:https://blackcatinformatics.ca/gmeow/Entity"),
             "the advisory carries its constraint's logic:formalizes provenance: {:?}",
             advisory.tags
+        );
+        // howToUse populates the suggestions verbatim; useWhen is surfaced as guidance.
+        assert!(
+            advisory
+                .suggestions
+                .iter()
+                .any(|s| s == "Type each instance with its most specific sortal."),
+            "gmeow:howToUse must populate the advisory's suggestions: {:?}",
+            advisory.suggestions
+        );
+        assert!(
+            advisory
+                .suggestions
+                .iter()
+                .any(|s| s == "Use when: Use for a genuinely category-neutral resource."),
+            "gmeow:useWhen must surface as contextual guidance: {:?}",
+            advisory.suggestions
         );
 
         // Its claim wing carries the deonticRecommendation modality and the subject.
@@ -1026,7 +1112,7 @@ mod tests {
                 result(ShaclSeverity::Info, "https://ex/advShape", "https://data/b", "advice"),
             ],
         };
-        let (_retained, advisories) = split_advisory_results(report, &shapes);
+        let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
         assert_eq!(advisories.len(), 2);
         assert_ne!(advisories[0].code, advisories[1].code, "distinct foci → distinct codes");
         // No duplicate-code panic when both claims project to N-Quads.
