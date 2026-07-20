@@ -1658,7 +1658,7 @@ ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
 /// property must appear with an `owl:FunctionalProperty` type triple in the
 /// projected view, and nothing else may. A wrong-property substitution (right
 /// count, wrong IRIs) therefore also fails. The expected count is DERIVED from the
-/// parsed corpus (712 carriers today), never hardcoded, so it tracks the corpus.
+/// parsed corpus (718 carriers today), never hardcoded, so it tracks the corpus.
 #[test]
 fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
     // Locate the real slice source relative to the crate manifest, mirroring
@@ -1707,7 +1707,7 @@ fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
     // parse silently passing a vacuous set-equality).
     assert!(
         source_carrier_triples >= 700,
-        "expected the shipped corpus to carry ~712 functional carrier records; \
+        "expected the shipped corpus to carry ~718 functional carrier records; \
          parsed only {source_carrier_triples} — the corpus likely failed to load"
     );
     // Every functional carrier record names a DISTINCT property, so the carrier-triple
@@ -1743,7 +1743,7 @@ fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
         "the OWL-DL view must re-emit owl:FunctionalProperty for EXACTLY the functional \
          carrier properties — no drop, no substitution"
     );
-    // And the count is the full carrier count, derived from the parsed corpus (712 today).
+    // And the count is the full carrier count, derived from the parsed corpus (718 today).
     assert_eq!(
         projected_props.len(),
         source_carrier_triples,
