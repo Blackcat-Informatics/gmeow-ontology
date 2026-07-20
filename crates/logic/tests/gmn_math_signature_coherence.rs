@@ -19,7 +19,8 @@ use std::sync::{Arc, OnceLock};
 
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    DatasetMut, MutableDataset, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, parse_dataset,
+    DatasetMut, MutableDataset, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
+    parse_dataset,
 };
 
 const OPERATOR_ARITY_Q: &str =
@@ -30,9 +31,8 @@ const FORM_SIGNATURE_Q: &str = include_str!(
 const PRECEDENCE_CONSISTENCY_Q: &str = include_str!(
     "../../../slices/grounding/lang/queries/verify/gmn-infix-precedence-consistency.rq"
 );
-const FALLBACK_UNIQUENESS_Q: &str = include_str!(
-    "../../../slices/grounding/lang/queries/verify/gmn-ascii-fallback-uniqueness.rq"
-);
+const FALLBACK_UNIQUENESS_Q: &str =
+    include_str!("../../../slices/grounding/lang/queries/verify/gmn-ascii-fallback-uniqueness.rq");
 
 /// Parse one grounding slice's `module.ttl` into a dataset.
 fn grounding_module(slice: &str) -> Arc<RdfDataset> {
@@ -79,7 +79,9 @@ fn merged_plus(extra_ttl: &str) -> Arc<RdfDataset> {
     for quad in extra.flat_default_graph_quads() {
         store.insert(quad);
     }
-    store.freeze().expect("freeze merged grounding graph plus injection")
+    store
+        .freeze()
+        .expect("freeze merged grounding graph plus injection")
 }
 
 /// Row count of a SELECT verify query over the frozen graph.
