@@ -154,7 +154,6 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/documents/examples/web-presence.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
     "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
-    "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
     // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
     // grounding individuals (rendering/denotation/preservation kinds, sign-system
     // kinds, scripts, the seed lang:english) that are typed in the grounding slices
@@ -237,10 +236,20 @@ fn rel(repo: &Path, path: &Path) -> String {
 }
 
 /// Whether `dataset` conforms to the merged `shapes` per the native SHACL engine.
+///
+/// SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/`Warning`
+/// results (e.g. the advisory-tier `logic:severity "Info"` constraints) are
+/// non-gating per spec, so the engine's own `conforms` flag (which flips false
+/// on ANY result) is not the right signal here. Recompute it the same way
+/// `gmeow_validate::advisory::split_advisory_results` does for its retained
+/// set: conforms iff no result carries `Severity::Violation`.
 fn conforms_to_shacl(dataset: &Arc<RdfDataset>, shapes: &Shapes) -> bool {
-    engine::validate_dataset(dataset.as_ref(), shapes)
-        .expect("validate_dataset over a frozen dataset is infallible")
-        .conforms
+    let report = engine::validate_dataset(dataset.as_ref(), shapes)
+        .expect("validate_dataset over a frozen dataset is infallible");
+    !report
+        .results
+        .iter()
+        .any(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
 }
 
 fn gmeow_namespaces() -> json_schema::Namespaces {

@@ -24,11 +24,20 @@ use std::path::{Path, PathBuf};
 use gmeow_slice_quality::report::SliceReport;
 use gmeow_slice_quality::{BundleStandards, MeasurementStandard, ScoringEnv, score_external_slice};
 
-/// The three environment-anchored axis IRIs, keyed by the rubric individual names.
+/// The four environment-anchored axis IRIs, keyed by the rubric individual names.
 const AXIS_GMN1: &str = "https://blackcatinformatics.ca/gmeow/axisGmn1Coverage";
 const AXIS_GMN_GLYPH: &str = "https://blackcatinformatics.ca/gmeow/axisGmnGlyphOptimality";
 const AXIS_DOC_MATURITY: &str = "https://blackcatinformatics.ca/gmeow/axisDocMaturity";
 const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage";
+/// The advice-harvest-coverage axis: like `gmn1`/`DocMaturity`, its Repo-mode
+/// producer ([`gmeow_slice_quality::axes`]'s `advice_coverage_axis`) resolves the
+/// advisory-constraint authority off `ctx.slice_dir`'s `slices/` ancestor
+/// (`repo_root_of`), so a slice staged with NO such ancestor (this fixture's
+/// deliberately repo-free staging) goes vacuous 1.0 in Repo mode — while Bundle
+/// mode measures the fixture's OWN graph self-containedly and finds neither
+/// advisory-prose term backed by a realized carrier, scoring the real 0.0. It is
+/// therefore environment-DIVERGENT by construction, not a byte-equality bug.
+const AXIS_ADVICE_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisAdviceCoverage";
 
 /// The fixture slice's stable IRI (matches `manifest.ttl`).
 const FIXTURE_SLICE_IRI: &str =
@@ -313,7 +322,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     )
     .expect("repo score");
 
-    // The three env-DIVERGENT axes: two are vacuous off-repo; glyph optimality is
+    // The four env-DIVERGENT axes: three are vacuous off-repo; glyph optimality is
     // deliberately non-vacuous because losing its audit authority must be visible.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
@@ -324,6 +333,18 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         grade_for(&repo, AXIS_DOC_MATURITY).score,
         1.0,
         "DocMaturity goes vacuous 1.0 in Repo mode off-repo"
+    );
+    assert_eq!(
+        grade_for(&repo, AXIS_ADVICE_COVERAGE).score,
+        1.0,
+        "advice-coverage goes vacuous 1.0 in Repo mode off-repo (no slices/ ancestor to \
+         resolve the central logic:Constraint / logic:AdviceGuidance authority from)"
+    );
+    assert_eq!(
+        grade_for(&bundle, AXIS_ADVICE_COVERAGE).score,
+        0.0,
+        "Bundle mode measures the fixture's own graph self-containedly: its avoidWhen/useWhen \
+         terms author no realized advisory carrier of their own, so the real score is 0.0"
     );
     assert_eq!(
         grade_for(&repo, AXIS_GMN_GLYPH).score,
@@ -343,6 +364,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
         if bg.axis_iri == AXIS_GMN1
             || bg.axis_iri == AXIS_GMN_GLYPH
             || bg.axis_iri == AXIS_DOC_MATURITY
+            || bg.axis_iri == AXIS_ADVICE_COVERAGE
         {
             continue;
         }
@@ -362,7 +384,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     }
     assert_eq!(
         compared, 12,
-        "exactly the 12 env-agnostic axes are compared (15 total minus three environment-dependent axes)"
+        "exactly the 12 env-agnostic axes are compared (16 total minus four environment-dependent axes)"
     );
 }
 
