@@ -19,6 +19,7 @@
 //! reading the class expression, so the `logic:` closure (the canonical superset)
 //! is the authority.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use gmeow_logic::reason::{RlClosure, rl_closure};
@@ -30,6 +31,10 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const EX: &str = "https://example.org/test/";
 /// `rdf:type`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:subClassOf`.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+/// `rdf:first` — the member cell of an RDF list (an `owl:unionOf` list).
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 
 /// `https://blackcatinformatics.ca/gmeow/<local>`.
 fn gmeow(local: &str) -> String {
@@ -176,39 +181,138 @@ fn non_factive_siblings_do_not_collapse_into_belief() {
 /// The three justification/defeat union classes.
 const UNIONS: &[&str] = &["JustificationSubject", "JustificationGround", "Defeater"];
 
-/// A member-typed instance is classified under exactly the unions it belongs to —
-/// and under NO other. Asserting both the positive memberships and the negative
-/// (non-member) unions over the whole justification/defeat class universe pins the
-/// union EXTENSIONS as tightly as the deleted exact-set membership check did, but
-/// as a `logic:` reasoner entailment rather than a class-expression read. A stray
-/// member added to any union, or a member dropped, flips a case here.
+/// The expected union classification of EVERY named gmeow class the epistemics
+/// module declares — the conformance target the `logic:` closure must reproduce.
+/// Each entry lists the union classes an instance of that class MUST be classified
+/// under (transitively, including inherited membership through `rdfs:subClassOf`);
+/// the three union classes themselves classify only as themselves (`owl:unionOf` in
+/// superclass position is not an OWL 2 RL entailment, so a union instance is not
+/// pushed down to its members). Memberships in the slice:
+///   JustificationSubject <= { DoxasticState, StandpointClaim }
+///   JustificationGround  <= { EvidenceSpan, Attestation, DoxasticState }
+///   Defeater             <= { Argument (inference-slice, not declared here),
+///                             StandpointClaim, EvidenceSpan }
+/// `DoxasticStandpointClaim <= StandpointClaim` inherits StandpointClaim's unions.
+const EXPECTED_UNION_MEMBERSHIP: &[(&str, &[&str])] = &[
+    ("AdequacyAssessment", &[]),
+    ("AdequacyVerdict", &[]),
+    ("Argument", &["Defeater"]),
+    ("Attestation", &["JustificationGround"]),
+    ("ClaimEvaluation", &[]),
+    ("ClaimToken", &[]),
+    ("Defeater", &["Defeater"]),
+    (
+        "DoxasticStandpointClaim",
+        &["JustificationSubject", "Defeater"],
+    ),
+    (
+        "DoxasticState",
+        &["JustificationSubject", "JustificationGround"],
+    ),
+    ("DoxasticTenure", &[]),
+    ("EpistemicContext", &[]),
+    ("EpistemicStandard", &[]),
+    ("EvidenceSpan", &["JustificationGround", "Defeater"]),
+    ("JustificationGround", &["JustificationGround"]),
+    ("JustificationStatus", &[]),
+    ("JustificationSubject", &["JustificationSubject"]),
+    ("KnowledgeAttribution", &[]),
+    ("KnowledgeClaim", &[]),
+    ("Proposition", &[]),
+    ("StandpointClaim", &["JustificationSubject", "Defeater"]),
+    ("SupportAssessment", &[]),
+];
+
+/// Every gmeow class the epistemics module makes a structural claim about: the
+/// subject of any `rdfs:subClassOf` (every class the module positions in the
+/// hierarchy — note some union members such as `StandpointClaim`/`EvidenceSpan`/
+/// `Attestation` are declared in other slices and only *augmented* here with a
+/// subclass edge, so keying on `a owl:Class` would miss exactly the members we must
+/// pin) UNION every gmeow class named in an `owl:unionOf` list (an `rdf:first`
+/// member, which pulls in `Argument`, the inference-slice `Defeater` member).
+/// Blank restriction/union wrappers are excluded (they are not named IRIs).
+fn epistemics_class_universe(quads: &[RdfQuad]) -> BTreeSet<String> {
+    let mut classes = BTreeSet::new();
+    for quad in quads {
+        if quad.predicate == RDFS_SUBCLASS_OF {
+            if let RdfTerm::Iri(subject) = &quad.subject {
+                if subject.starts_with(GMEOW) {
+                    classes.insert(subject.clone());
+                }
+            }
+        }
+        if quad.predicate == RDF_FIRST {
+            if let RdfTerm::Iri(object) = &quad.object {
+                if object.starts_with(GMEOW) {
+                    classes.insert(object.clone());
+                }
+            }
+        }
+    }
+    classes
+}
+
+/// Union membership pinned as a `logic:` reasoner entailment over the WHOLE named
+/// class universe of the epistemics module, not a hand-picked candidate roster:
+/// enumerate every class the module declares, inject one probe instance of each,
+/// take a single RL closure, and assert its classification across
+/// `{JustificationSubject, JustificationGround, Defeater}` matches
+/// `EXPECTED_UNION_MEMBERSHIP` exactly. This recovers open-universe stray detection
+/// through the closure — a stray member added to any union classifies some probe
+/// unexpectedly; a dropped member leaves an expected probe unclassified; and a
+/// newly-declared class the map does not cover is itself a hard failure, forcing it
+/// to be consciously classified. The reasoner is the authority; no `owl:unionOf`
+/// list is read.
 #[test]
 fn union_membership_extensions_are_exact() {
-    // (member local name, the unions it is a member of). Membership per the slice:
-    //   JustificationSubject = { DoxasticState, StandpointClaim }
-    //   JustificationGround  = { EvidenceSpan, Attestation, DoxasticState }
-    //   Defeater             = { Argument, StandpointClaim, EvidenceSpan }
-    // `Proposition` belongs to none.
-    let cases: &[(&str, &[&str])] = &[
-        ("DoxasticState", &["JustificationSubject", "JustificationGround"]),
-        ("StandpointClaim", &["JustificationSubject", "Defeater"]),
-        ("EvidenceSpan", &["JustificationGround", "Defeater"]),
-        ("Attestation", &["JustificationGround"]),
-        ("Argument", &["Defeater"]),
-        ("Proposition", &[]),
-    ];
-    for (idx, (member, member_of)) in cases.iter().enumerate() {
-        let individual = ex(&format!("member{idx}"));
-        let abox = vec![iri_quad(&individual, RDF_TYPE, &gmeow(member))];
-        let closure = scoped_closure(&["core/epistemics"], &abox);
-        assert_non_trivial(&closure);
+    let expected: BTreeMap<String, BTreeSet<String>> = EXPECTED_UNION_MEMBERSHIP
+        .iter()
+        .map(|(class, unions)| (gmeow(class), unions.iter().map(|u| gmeow(u)).collect()))
+        .collect();
+
+    let module_quads = turtle_quads(&[module("core/epistemics")]);
+    let universe = epistemics_class_universe(&module_quads);
+    assert!(
+        !universe.is_empty(),
+        "no gmeow classes discovered in the epistemics module"
+    );
+
+    // Open-universe guard: every class in the module's class universe MUST be
+    // classified in the map, and the map MUST NOT carry a class the module no longer
+    // mentions.
+    let unmapped: Vec<&String> = universe.iter().filter(|c| !expected.contains_key(*c)).collect();
+    assert!(
+        unmapped.is_empty(),
+        "epistemics classes with no union-membership expectation (classify each in EXPECTED_UNION_MEMBERSHIP): {unmapped:?}"
+    );
+    let phantom: Vec<&String> = expected.keys().filter(|c| !universe.contains(*c)).collect();
+    assert!(
+        phantom.is_empty(),
+        "EXPECTED_UNION_MEMBERSHIP names classes the module no longer mentions (remove them): {phantom:?}"
+    );
+
+    // One distinct probe instance per class in the universe, one closure over all.
+    let probes: Vec<(String, String)> = universe
+        .iter()
+        .enumerate()
+        .map(|(idx, class)| (ex(&format!("probe{idx}")), class.clone()))
+        .collect();
+    let abox: Vec<RdfQuad> = probes
+        .iter()
+        .map(|(individual, class)| iri_quad(individual, RDF_TYPE, class))
+        .collect();
+    let closure = scoped_closure(&["core/epistemics"], &abox);
+    assert_non_trivial(&closure);
+
+    for (individual, class) in &probes {
+        let expected_unions = &expected[class];
         for union in UNIONS {
-            let classified = has_type(&closure, &individual, &gmeow(union));
-            let expected = member_of.contains(union);
+            let classified = has_type(&closure, individual, &gmeow(union));
+            let should = expected_unions.contains(&gmeow(union));
             assert_eq!(
-                classified, expected,
-                "a {member} instance {} be classified as {union}",
-                if expected { "MUST" } else { "must NOT" }
+                classified, should,
+                "a {class} instance {} classify as gmeow:{union}",
+                if should { "MUST" } else { "must NOT" }
             );
         }
     }
