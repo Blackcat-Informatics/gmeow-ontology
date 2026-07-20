@@ -173,45 +173,43 @@ fn non_factive_siblings_do_not_collapse_into_belief() {
 
 // ── (c) Union-class membership as a reasoner entailment ────────────────────────
 
-/// Positive: a member-typed instance is classified under the union it belongs to.
+/// The three justification/defeat union classes.
+const UNIONS: &[&str] = &["JustificationSubject", "JustificationGround", "Defeater"];
+
+/// A member-typed instance is classified under exactly the unions it belongs to —
+/// and under NO other. Asserting both the positive memberships and the negative
+/// (non-member) unions over the whole justification/defeat class universe pins the
+/// union EXTENSIONS as tightly as the deleted exact-set membership check did, but
+/// as a `logic:` reasoner entailment rather than a class-expression read. A stray
+/// member added to any union, or a member dropped, flips a case here.
 #[test]
-fn union_membership_is_entailed() {
-    // (member local name, expected union local names)
+fn union_membership_extensions_are_exact() {
+    // (member local name, the unions it is a member of). Membership per the slice:
+    //   JustificationSubject = { DoxasticState, StandpointClaim }
+    //   JustificationGround  = { EvidenceSpan, Attestation, DoxasticState }
+    //   Defeater             = { Argument, StandpointClaim, EvidenceSpan }
+    // `Proposition` belongs to none.
     let cases: &[(&str, &[&str])] = &[
         ("DoxasticState", &["JustificationSubject", "JustificationGround"]),
-        ("StandpointClaim", &["JustificationSubject"]),
-        ("EvidenceSpan", &["JustificationGround"]),
+        ("StandpointClaim", &["JustificationSubject", "Defeater"]),
+        ("EvidenceSpan", &["JustificationGround", "Defeater"]),
         ("Attestation", &["JustificationGround"]),
         ("Argument", &["Defeater"]),
+        ("Proposition", &[]),
     ];
-    for (idx, (member, unions)) in cases.iter().enumerate() {
+    for (idx, (member, member_of)) in cases.iter().enumerate() {
         let individual = ex(&format!("member{idx}"));
         let abox = vec![iri_quad(&individual, RDF_TYPE, &gmeow(member))];
         let closure = scoped_closure(&["core/epistemics"], &abox);
         assert_non_trivial(&closure);
-        for union in *unions {
-            assert!(
-                has_type(&closure, &individual, &gmeow(union)),
-                "a {member} instance must be classified as {union}"
+        for union in UNIONS {
+            let classified = has_type(&closure, &individual, &gmeow(union));
+            let expected = member_of.contains(union);
+            assert_eq!(
+                classified, expected,
+                "a {member} instance {} be classified as {union}",
+                if expected { "MUST" } else { "must NOT" }
             );
         }
     }
-}
-
-/// Negative: a `Proposition` is neither a justification subject nor a ground — the
-/// unions do not over-classify.
-#[test]
-fn proposition_is_not_a_justification_union_member() {
-    let prop = ex("standaloneProp");
-    let abox = vec![iri_quad(&prop, RDF_TYPE, &gmeow("Proposition"))];
-    let closure = scoped_closure(&["core/epistemics"], &abox);
-    assert_non_trivial(&closure);
-    assert!(
-        !has_type(&closure, &prop, &gmeow("JustificationSubject")),
-        "a Proposition must NOT classify as a JustificationSubject"
-    );
-    assert!(
-        !has_type(&closure, &prop, &gmeow("JustificationGround")),
-        "a Proposition must NOT classify as a JustificationGround"
-    );
 }
