@@ -3635,7 +3635,14 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // value-space (e.g. `cardinality 257` distinct `xsd:byte` values). The chase
     // carries no datatype value-space reasoning, so it cannot refute the count. No
     // cardinality restriction in the committed bundle targets a datatype property.
-    if cardinality_on_datatype_property(edb) {
+    //
+    // Family 5 — the datatype value-space refutation sub-decider — now COMPLETELY
+    // decides this counting fragment (deriving the finite value-space cardinality
+    // from the `math:`-grounded facts). The withhold is narrowed to exactly the
+    // residual it cannot decide: when the subsolver decides the case, the family
+    // stays `decided` (an inconsistency materializes `owl:Nothing`; a consistent
+    // count is certified) rather than being demoted to an honest gap.
+    if cardinality_on_datatype_property(edb) && !crate::reason::refute::datatype::decided(edb) {
         withholds.insert("cardinality".to_owned());
     }
 
@@ -4117,12 +4124,31 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     // facet-restricted datatype (a value the native chase cannot validate) is the
     // family left UNDECIDED (→ honest gap). See
     // `datatype_facet_has_live_obligation`.
-    if !datatype_facet_has_live_obligation(edb) {
+    // The datatype value-space refutation sub-decider (Family 5) COMPLETELY decides
+    // a precise fragment of these live obligations (facet emptiness / membership,
+    // `owl:datatypeComplementOf` value-space membership). When it does, the facet
+    // families it accounts for are promoted to `decided` — coverage agreeing with
+    // the decider exactly. The `!live` disjunct keeps this inert on a bundle with no
+    // live obligation (the subsolver result cannot widen coverage there).
+    if !datatype_facet_has_live_obligation(edb) || crate::reason::refute::datatype::decided(edb) {
         for family in DATATYPE_FACET_FAMILIES {
             if present_set.contains(family) {
                 decided.insert((*family).to_owned());
             }
         }
+    }
+
+    // A LITERAL `owl:oneOf` datatype enumeration is a value-space the native list
+    // reader skips (it drops literal members), so it is left undecided above. The
+    // datatype value-space subsolver counts its distinct values exactly; promote the
+    // `oneOf` family to `decided` precisely when the subsolver decides the case AND
+    // every enumeration in the EDB is a literal datatype enumeration (never an
+    // object enumeration, which the native path already decides).
+    if present_set.contains("oneOf")
+        && crate::reason::refute::datatype::decided(edb)
+        && crate::reason::refute::datatype::all_oneof_are_literal_enumerations(edb)
+    {
+        decided.insert("oneOf".to_owned());
     }
 
     // The universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`)
@@ -4799,17 +4825,57 @@ mod tests {
     }
 
     #[test]
-    fn exact_cardinality_on_datatype_property_is_withheld() {
-        // x : (=257 p) with p a DatatypeProperty — datatype value-space counting the
-        // chase cannot refute (e.g. 257 distinct xsd:byte) ⇒ honest gap.
-        let store = dataset(vec![
+    fn exact_cardinality_over_finite_datatype_range_is_decided_by_family5() {
+        // Family 5 (the datatype value-space refutation sub-decider) now DECIDES the
+        // datatype value-space counting the forward chase cannot refute. With p an
+        // `owl:DatatypeProperty` whose `rdfs:range` is `xsd:byte` (value-space size
+        // 256, derived from the `math:`-grounded facts):
+        //   * `x : (=257 p)` forces 257 distinct byte values into a 256-element
+        //     space ⇒ pigeonhole INCONSISTENT (an `owl:Nothing` clash, empty gaps);
+        //   * `x : (=256 p)` fits exactly ⇒ CONSISTENT (empty gaps).
+        const BYTE: &str = "http://www.w3.org/2001/XMLSchema#byte";
+        const RANGE: &str = super::RDFS_RANGE;
+
+        let inconsistent = dataset(vec![
             quad(X, TYPE, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, CARDINALITY, "257", XSD_NON_NEGATIVE_INTEGER),
             quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "cardinality");
+        let verdict = dl_consistency(inconsistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "257 distinct xsd:byte values overflow the 256-element value space ⇒ inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 decides this — no honest gap remains: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict.coverage.decided.iter().any(|d| d == "cardinality"),
+            "the cardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+
+        let consistent = dataset(vec![
+            quad(X, TYPE, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, CARDINALITY, "256", XSD_NON_NEGATIVE_INTEGER),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+            quad(P, RANGE, BYTE),
+        ]);
+        let verdict = dl_consistency(consistent.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.consistent,
+            "256 distinct xsd:byte values fit the value space exactly ⇒ consistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "Family 5 certifies the consistent count — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]

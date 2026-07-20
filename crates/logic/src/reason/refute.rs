@@ -42,6 +42,9 @@ use gmeow_errors::{
 };
 use purrdf::RdfDataset;
 
+/// Family 5 — the datatype value-space sub-decider (Task 3, the first REAL family).
+pub(crate) mod datatype;
+
 /// The certified-complete construct families the kernel decides. Each name is the
 /// stable identity a family sub-decider (Tasks 3/4/5) registers under and that
 /// [`crate::reason::dl::classify_coverage`] promotes on an `InFragment{Consistent}`
@@ -241,16 +244,16 @@ impl FragmentBoundary {
                  ({} obstruction(s): {})",
                 family.label(),
                 obstructions.len(),
-                obstructions
-                    .iter()
-                    .cloned()
-                    .collect::<Vec<_>>()
-                    .join("; ")
+                obstructions.iter().cloned().collect::<Vec<_>>().join("; ")
             ),
             Self::Combined(inner) => format!(
                 "{} disjoint fragment boundaries: {}",
                 inner.len(),
-                inner.iter().map(Self::detail).collect::<Vec<_>>().join(" | ")
+                inner
+                    .iter()
+                    .map(Self::detail)
+                    .collect::<Vec<_>>()
+                    .join(" | ")
             ),
         }
     }
@@ -317,11 +320,12 @@ type SubDecider = fn(&RdfDataset) -> Option<RefutationCertificate>;
 
 /// The registered sub-deciders, tried in order; the first `InFragment` wins.
 ///
-/// Tasks 3/4/5 register the datatype value-space, counting, and
-/// case-split/complement deciders here. Task 2 registers NONE, so the kernel is
-/// inert: [`refute`] returns `OutOfFragment{NoDeciderEngaged}` for every input and
-/// materializes nothing — a strict no-op on real closures.
-const SUB_DECIDERS: &[SubDecider] = &[];
+/// Task 3 registers the datatype value-space decider ([`datatype::decide`], Family
+/// 5); Tasks 4/5 add the counting and case-split/complement deciders. Each decider
+/// returns `None` when its family shape is absent, so a closure carrying no
+/// datatype value-space obligation still withholds with `NoDeciderEngaged` — the
+/// kernel decides only the fragment a registered family proves complete.
+const SUB_DECIDERS: &[SubDecider] = &[datatype::decide];
 
 /// Decide the certified-complete refutation fragment for `edb`.
 ///
@@ -440,9 +444,12 @@ mod tests {
                         family: FragmentFamily::Counting,
                         clashes: [clash].into_iter().collect(),
                         evidence: WitnessEvidence {
-                            counted_individuals: ["http://ex/a".to_owned(), "http://ex/b".to_owned()]
-                                .into_iter()
-                                .collect(),
+                            counted_individuals: [
+                                "http://ex/a".to_owned(),
+                                "http://ex/b".to_owned(),
+                            ]
+                            .into_iter()
+                            .collect(),
                             violated_bound: Some(CountBound {
                                 kind: BoundKind::Max,
                                 value: 1,
@@ -554,9 +561,11 @@ mod tests {
         );
     }
 
-    // The Task-2 production registry decides nothing: an empty decider slice (and
-    // the real `refute`) withholds with `NoDeciderEngaged` — the inert steady
-    // state that keeps every current verdict unchanged.
+    // An empty decider slice withholds with `NoDeciderEngaged`. The production
+    // `refute` now registers the datatype value-space decider (Task 3), which
+    // returns `None` on an EDB carrying no datatype value-space obligation, so an
+    // empty EDB still withholds `NoDeciderEngaged` — the family engages only on its
+    // shape, never on a closure that does not carry it.
     #[test]
     fn empty_registry_withholds_no_decider_engaged() {
         let edb = empty_edb();
@@ -571,7 +580,7 @@ mod tests {
             RefutationCertificate::OutOfFragment {
                 reason: FragmentBoundary::NoDeciderEngaged,
             },
-            "the registered SUB_DECIDERS are empty in Task 2, so production is inert"
+            "the datatype value-space decider does not engage on an empty EDB"
         );
     }
 

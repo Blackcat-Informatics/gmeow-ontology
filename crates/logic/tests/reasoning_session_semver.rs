@@ -47,8 +47,17 @@ use session_common::*;
 /// decider the `reason/dl.rs` decide path now invokes), so the native contract hash folded into
 /// this descriptor moves. The kernel is inert on this input (it registers no family sub-decider
 /// yet), so no reasoning verdict changes — only the source-content digest.
+/// Re-blessed for Family 5 (the FIRST real refutation sub-decider): `reason/refute/datatype.rs`
+/// is a new engine source module registered in `SUB_DECIDERS`, and `reason/dl.rs` now consults it
+/// for datatype value-space coverage (promoting the facet / cardinality / oneOf families exactly
+/// when the subsolver decides). Both move the native-contract source-content digest folded into
+/// this descriptor. This DOES change reasoning verdicts on the datatype value-space fragment
+/// (previously-withheld W3C-divergence cases are now soundly decided), but NOT on this fixed
+/// datatype-free input, so the fixed-input session verdict is unchanged. (Value below
+/// is the post-`cargo fmt` state of the Family 5 branch — the behaviour-preserving format
+/// pass over `reason/refute.rs` folds into the raw source-content digest.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f2793e96b24fa675e2a06d2896f66ef9433433be171ad7458067c58ab9a6cd7d";
+    "6c20a96e1f83990fc5d5cca475f8e9b6e4ba4571e74870b6fe9507ffee9bf64c";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -56,8 +65,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed for the fragment-certified refutation kernel component registration (see the
 /// engine-descriptor golden above): the native contract hash is one of the seven folded axes, so
 /// the fixed-input session identity moves with it even though the reasoning verdict is unchanged.
+/// Re-blessed again for Family 5 (the datatype value-space sub-decider) for the same reason: the
+/// native contract hash is one of the seven folded axes and moves with the new engine source, while
+/// the fixed datatype-free input's reasoning verdict is unchanged. (Post-`cargo fmt` value,
+/// tracking the engine-descriptor golden above.)
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "0174e81845d28dd096335ae2f0eab9294e4056c7506cc464aa37e02aa269e77c";
+    "7743b7aa8cbe221b14a8d8f959e97da23a34e0c16b0998cbe2db0872fa383c17";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
