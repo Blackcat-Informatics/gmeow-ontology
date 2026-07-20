@@ -7050,6 +7050,292 @@ gmeow:gmnCandidateMathComplexNumbers
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# --- Math plane: set/order operators & intervals -------------------------- #
+# Membership and subset are relational ObjectProperty targets that fragment
+# under the pinned BPE, so their one-token keys win (`in`, `subseteq`) at the
+# relational precedence band (50, between the logical connectives and the
+# arithmetic operators). Union/intersection/difference share the single
+# math:SetOperation carrier with no per-operation subclass, so a flat glyph
+# cannot say which operation is meant — a structured constructor ruling. The
+# Cartesian-product sign × already denotes math:Multiplication inside @μ, and the
+# order signs < > and the interval brackets [ ] ( ) are all reserved by the GMN-1
+# surface grammar (IRI/RDF-star delimiters, list brackets, and the triple-term
+# parentheses), so each is ruled to a key or an explicit constructor rather than
+# adopted, keeping the executable grammar unambiguous.
+
+gmeow:gmnFormMathMembership
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN membership named key `in`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `in` for the extensional membership relation math:hasElement; the ∈ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMembership
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN membership key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `in` named key to math:hasElement; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMembership ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:hasElement ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMembership
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: membership ∈"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the extensional membership relation math:hasElement rendered ∈."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:hasElement ;
+    gmeow:gmnCandidateGlyph "∈" ;
+    gmeow:gmnAsciiFallback "in" ;
+    gmeow:gmnSpokenLabel "is an element of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The set-membership sign ∈ fragments into two pinned cl100k_base tokens while the one-token `in` key wins on token cost, so ∈ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMembership ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathSubsetOf
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN subset named key `subseteq`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `subseteq` for the subset relation math:subsetOf; the ⊆ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathSubsetOf
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN subset key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `subseteq` named key to math:subsetOf; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathSubsetOf ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:subsetOf ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathSubsetOf
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: subset ⊆"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the subset relation math:subsetOf rendered ⊆."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:subsetOf ;
+    gmeow:gmnCandidateGlyph "⊆" ;
+    gmeow:gmnAsciiFallback "subseteq" ;
+    gmeow:gmnSpokenLabel "is a subset of or equal to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The subset sign ⊆ fragments into three pinned cl100k_base tokens while the one-token `subseteq` key wins on token cost, so ⊆ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathSubsetOf ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathIntersection
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: intersection ∩"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for set intersection rendered ∩, an instance of the shared carrier math:SetOperation."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:SetOperation ;
+    gmeow:gmnCandidateGlyph "∩" ;
+    gmeow:gmnAsciiFallback "inter" ;
+    gmeow:gmnSpokenLabel "intersected with" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "Union, intersection, and difference share the single math:SetOperation carrier with no per-operation subclass, so a flat ∩ glyph cannot say which operation is meant; GMN retains an explicit set-operation constructor naming the operation kind." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathUnion
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: union ∪"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for set union rendered ∪, an instance of the shared carrier math:SetOperation."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:SetOperation ;
+    gmeow:gmnCandidateGlyph "∪" ;
+    gmeow:gmnAsciiFallback "union" ;
+    gmeow:gmnSpokenLabel "united with" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "Union, intersection, and difference share the single math:SetOperation carrier with no per-operation subclass, so a flat ∪ glyph cannot say which operation is meant; GMN retains an explicit set-operation constructor naming the operation kind." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathSetDifference
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: set difference ∖"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for set difference rendered ∖, an instance of the shared carrier math:SetOperation."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:SetOperation ;
+    gmeow:gmnCandidateGlyph "∖" ;
+    gmeow:gmnAsciiFallback "setminus" ;
+    gmeow:gmnSpokenLabel "set minus" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "Union, intersection, and difference share the single math:SetOperation carrier with no per-operation subclass, so a flat ∖ glyph cannot say which operation is meant; GMN retains an explicit set-operation constructor naming the operation kind." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathCartesianProduct
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Cartesian-product named key `cross`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `cross` for math:CartesianProduct at the product precedence band."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 70 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathCartesianProduct
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN Cartesian-product key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `cross` named key to the class math:CartesianProduct; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathCartesianProduct ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:CartesianProduct ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathCartesianProduct
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Cartesian product ×"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for math:CartesianProduct rendered ×."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:CartesianProduct ;
+    gmeow:gmnCandidateGlyph "×" ;
+    gmeow:gmnAsciiFallback "cross" ;
+    gmeow:gmnSpokenLabel "cross" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The × sign already denotes binary math:Multiplication inside the @μ scope, so reusing the same glyph for math:CartesianProduct would be ambiguous within one plane; the `cross` key keeps the Cartesian-product reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathCartesianProduct ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathLessThan
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN less-than named key `lt`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `lt` for the strict order relation math:lessThanRel at the relational precedence band."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathLessThan
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN less-than key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `lt` named key to math:lessThanRel; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathLessThan ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:lessThanRel ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathLessThan
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: less-than <"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the strict order relation math:lessThanRel rendered <."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:lessThanRel ;
+    gmeow:gmnCandidateGlyph "<" ;
+    gmeow:gmnAsciiFallback "lt" ;
+    gmeow:gmnSpokenLabel "is less than" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The angle bracket < is reserved by the GMN-1 surface grammar as an IRI and RDF-star quoted-triple delimiter, so reusing it as an infix order operator would be ambiguous; the `lt` key keeps the order reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathLessThan ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathGreaterThan
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN greater-than named key `gt`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `gt` for the strict order relation math:greaterThanRel at the relational precedence band."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathGreaterThan
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN greater-than key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `gt` named key to math:greaterThanRel; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathGreaterThan ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:greaterThanRel ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathGreaterThan
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: greater-than >"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the strict order relation math:greaterThanRel rendered >."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:greaterThanRel ;
+    gmeow:gmnCandidateGlyph ">" ;
+    gmeow:gmnAsciiFallback "gt" ;
+    gmeow:gmnSpokenLabel "is greater than" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The angle bracket > is reserved by the GMN-1 surface grammar as an IRI and RDF-star quoted-triple delimiter, so reusing it as an infix order operator would be ambiguous; the `gt` key keeps the order reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathGreaterThan ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathClosedEndpoint
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: closed interval endpoint [ ]"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the closed interval-endpoint inclusion math:closedEndpoint written with square brackets [a,b]."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:closedEndpoint ;
+    gmeow:gmnCandidateGlyph "[" ;
+    gmeow:gmnAsciiFallback "closed_endpoint" ;
+    gmeow:gmnSpokenLabel "closed endpoint" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The square brackets [ ] are reserved by the GMN-1 surface grammar as the list delimiters, so a flat bracket glyph cannot also carry interval-endpoint inclusion; GMN retains an explicit interval constructor naming each endpoint's inclusion." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathOpenEndpoint
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: open interval endpoint ( )"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the open interval-endpoint inclusion math:openEndpoint written with parentheses (a,b)."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:openEndpoint ;
+    gmeow:gmnCandidateGlyph "(" ;
+    gmeow:gmnAsciiFallback "open_endpoint" ;
+    gmeow:gmnSpokenLabel "open endpoint" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The parentheses ( ) are reserved by the GMN-1 surface grammar as the triple-term delimiters, so a flat parenthesis glyph cannot also carry interval-endpoint inclusion; GMN retains an explicit interval constructor naming each endpoint's inclusion." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # The IPA glyphs remain executable inside phonological surface content but are
 # semantically rejected as aliases for their denoted phone IRIs. This prevents
 # an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.
