@@ -461,3 +461,57 @@ fn justification_status_roster_is_exact() {
         "the JustificationStatus individual roster drifted"
     );
 }
+
+// ── Task 4: SSSOM mapping-set membership ───────────────────────────────────────
+
+/// Every `subject_id` (column 1) across `generated/mappings/*.sssom.tsv`, skipping
+/// `#`-prefixed YAML metadata. Mirrors the reader in `conformance_standpoint.rs`.
+/// Panics if the generated mappings are absent — no-optionality: the SSSOM sets are
+/// a required projection materialised by `make sync` before the gate runs the test.
+fn sssom_subject_ids() -> BTreeSet<String> {
+    let dir = repo_root().join("generated").join("mappings");
+    let mut subjects = BTreeSet::new();
+    for entry in
+        std::fs::read_dir(&dir).unwrap_or_else(|e| panic!("read mappings dir {}: {e}", dir.display()))
+    {
+        let path = entry.expect("dir entry").path();
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        if !name.ends_with(".sssom.tsv") {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {name}: {e}"));
+        for line in text.lines() {
+            if line.starts_with('#') {
+                continue;
+            }
+            if let Some(subject) = line.split('\t').next() {
+                subjects.insert(subject.to_owned());
+            }
+        }
+    }
+    subjects
+}
+
+/// The generated epistemics SSSOM mapping set carries its expected doxastic /
+/// justification subjects (recreates the deleted
+/// `test_epistemics_mapping_set_exists_and_has_expected_rows`).
+#[test]
+fn epistemics_sssom_subjects_present() {
+    let subjects = sssom_subject_ids();
+    let expected = [
+        "gmeow:DoxasticState",
+        "gmeow:Proposition",
+        "gmeow:believes",
+        "gmeow:knowsThat",
+        "gmeow:basesBeliefOn",
+    ];
+    let missing: Vec<&str> = expected
+        .iter()
+        .copied()
+        .filter(|subject| !subjects.contains(*subject))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "epistemics SSSOM mapping set is missing expected subjects: {missing:?}"
+    );
+}
