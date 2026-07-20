@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:CompleteLossDisclosureConstraint (AC4): a gmeow:ProjectionReceipt
+# whose logic:preservationKind is a LOSSY rung (logic:SoundUnderApproximation, i.e. anything
+# other than logic:ExactPreservation) discloses NO gmeow:DisclosedLossEntry through
+# gmeow:disclosesLoss — a lossy projection that names nothing it dropped is a hollow
+# disclosure. The receipt is otherwise well-formed (content-addressed, deterministic with a
+# tie-break rule), so the ∀→∃ SPARQL constraint MUST reject it with
+# shacl.SPARQLConstraintComponent and NO other finding. (Because it discloses no dropped
+# relation, gmeow:PreservationConsistencyConstraint's guard never fires — this is the sole
+# violation.)
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# The DEFECT: a non-exact (lossy) receipt that discloses NO gmeow:DisclosedLossEntry.
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a lossy listwise projection that discloses nothing it dropped"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    logic:preservationKind logic:SoundUnderApproximation ;   # <-- lossy, but no gmeow:disclosesLoss
+    gmeow:contentDigest "blake3:f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106" .

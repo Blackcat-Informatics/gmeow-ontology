@@ -65,9 +65,9 @@ https://blackcatinformatics.ca/gmeow/attributedProposition
 https://blackcatinformatics.ca/gmeow/attributingAgent
 https://blackcatinformatics.ca/gmeow/attributionTarget
 https://blackcatinformatics.ca/gmeow/authMethod
-https://blackcatinformatics.ca/gmeow/authorIdentityString
 https://blackcatinformatics.ca/gmeow/authResult
 https://blackcatinformatics.ca/gmeow/authServer
+https://blackcatinformatics.ca/gmeow/authorIdentityString
 https://blackcatinformatics.ca/gmeow/availabilitySlot
 https://blackcatinformatics.ca/gmeow/awarenessSubject
 https://blackcatinformatics.ca/gmeow/axisContextScope
@@ -113,8 +113,8 @@ https://blackcatinformatics.ca/gmeow/collectionPartOrder
 https://blackcatinformatics.ca/gmeow/commitAuthorIdentity
 https://blackcatinformatics.ca/gmeow/commitCommitterIdentity
 https://blackcatinformatics.ca/gmeow/commitInRepository
-https://blackcatinformatics.ca/gmeow/committedAgent
 https://blackcatinformatics.ca/gmeow/commitTree
+https://blackcatinformatics.ca/gmeow/committedAgent
 https://blackcatinformatics.ca/gmeow/comparesLeftTarget
 https://blackcatinformatics.ca/gmeow/comparesRightTarget
 https://blackcatinformatics.ca/gmeow/complianceVerdict
@@ -251,6 +251,7 @@ https://blackcatinformatics.ca/gmeow/frameKind
 https://blackcatinformatics.ca/gmeow/frameRealm
 https://blackcatinformatics.ca/gmeow/frameReferencePosition
 https://blackcatinformatics.ca/gmeow/frameTimeScale
+https://blackcatinformatics.ca/gmeow/gateVerdict
 https://blackcatinformatics.ca/gmeow/genderValue
 https://blackcatinformatics.ca/gmeow/geocodeFrame
 https://blackcatinformatics.ca/gmeow/geocodeValue
@@ -287,6 +288,7 @@ https://blackcatinformatics.ca/gmeow/gtsProfile
 https://blackcatinformatics.ca/gmeow/gtsSegmentIndex
 https://blackcatinformatics.ca/gmeow/gtsSegmentOf
 https://blackcatinformatics.ca/gmeow/guardedByCounterExample
+https://blackcatinformatics.ca/gmeow/hardConstraintClass
 https://blackcatinformatics.ca/gmeow/hasContentDisposition
 https://blackcatinformatics.ca/gmeow/hasContentTransferEncoding
 https://blackcatinformatics.ca/gmeow/hasEndInstant
@@ -312,6 +314,7 @@ https://blackcatinformatics.ca/gmeow/identifierScheme
 https://blackcatinformatics.ca/gmeow/identifierUrl
 https://blackcatinformatics.ca/gmeow/identifierValue
 https://blackcatinformatics.ca/gmeow/imageOrientation
+https://blackcatinformatics.ca/gmeow/inReferenceAssembly
 https://blackcatinformatics.ca/gmeow/indexAlgorithm
 https://blackcatinformatics.ca/gmeow/indexOfProjection
 https://blackcatinformatics.ca/gmeow/indexOverSpace
@@ -320,7 +323,6 @@ https://blackcatinformatics.ca/gmeow/ingestedAt
 https://blackcatinformatics.ca/gmeow/inhabitationLocusKind
 https://blackcatinformatics.ca/gmeow/inhabitationSubject
 https://blackcatinformatics.ca/gmeow/inhabitedHost
-https://blackcatinformatics.ca/gmeow/inReferenceAssembly
 https://blackcatinformatics.ca/gmeow/inscriptionCarrier
 https://blackcatinformatics.ca/gmeow/instantValue
 https://blackcatinformatics.ca/gmeow/intensityBasis
@@ -347,8 +349,8 @@ https://blackcatinformatics.ca/gmeow/ledgerAccountType
 https://blackcatinformatics.ca/gmeow/leftOperand
 https://blackcatinformatics.ca/gmeow/levelScale
 https://blackcatinformatics.ca/gmeow/lexicalItemLanguage
-https://blackcatinformatics.ca/gmeow/licensedWork
 https://blackcatinformatics.ca/gmeow/licenseFamily
+https://blackcatinformatics.ca/gmeow/licensedWork
 https://blackcatinformatics.ca/gmeow/linkAntecedent
 https://blackcatinformatics.ca/gmeow/linkConsequent
 https://blackcatinformatics.ca/gmeow/localPart
@@ -404,8 +406,8 @@ https://blackcatinformatics.ca/gmeow/narrativeRoleValue
 https://blackcatinformatics.ca/gmeow/narrativeTimeAxis
 https://blackcatinformatics.ca/gmeow/networkAddressFrame
 https://blackcatinformatics.ca/gmeow/networkAddressValue
-https://blackcatinformatics.ca/gmeow/normalizationKind
 https://blackcatinformatics.ca/gmeow/normFunction
+https://blackcatinformatics.ca/gmeow/normalizationKind
 https://blackcatinformatics.ca/gmeow/notationSystemOf
 https://blackcatinformatics.ca/gmeow/notationUsageInterval
 https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem
@@ -421,15 +423,16 @@ https://blackcatinformatics.ca/gmeow/opensAt
 https://blackcatinformatics.ca/gmeow/orderAmount
 https://blackcatinformatics.ca/gmeow/ornamentProfileKind
 https://blackcatinformatics.ca/gmeow/ornamentReferenceFrame
+https://blackcatinformatics.ca/gmeow/overVectorSpace
 https://blackcatinformatics.ca/gmeow/overlayAuthority
 https://blackcatinformatics.ca/gmeow/overlayDesignator
 https://blackcatinformatics.ca/gmeow/overlayPlace
-https://blackcatinformatics.ca/gmeow/overVectorSpace
 https://blackcatinformatics.ca/gmeow/pagePrincipalSubject
 https://blackcatinformatics.ca/gmeow/parameterEntity
 https://blackcatinformatics.ca/gmeow/parameterName
 https://blackcatinformatics.ca/gmeow/parameterValue
 https://blackcatinformatics.ca/gmeow/parentFrame
+https://blackcatinformatics.ca/gmeow/partOrder
 https://blackcatinformatics.ca/gmeow/participantAddress
 https://blackcatinformatics.ca/gmeow/participantHeader
 https://blackcatinformatics.ca/gmeow/participantMessage
@@ -440,7 +443,6 @@ https://blackcatinformatics.ca/gmeow/participationEvent
 https://blackcatinformatics.ca/gmeow/participationInstrumentItem
 https://blackcatinformatics.ca/gmeow/participationPart
 https://blackcatinformatics.ca/gmeow/participationTechnique
-https://blackcatinformatics.ca/gmeow/partOrder
 https://blackcatinformatics.ca/gmeow/penaltyPole
 https://blackcatinformatics.ca/gmeow/perceptionEnvironment
 https://blackcatinformatics.ca/gmeow/perceptionModality
@@ -456,8 +458,8 @@ https://blackcatinformatics.ca/gmeow/plusCode
 https://blackcatinformatics.ca/gmeow/poolingKind
 https://blackcatinformatics.ca/gmeow/positionFrame
 https://blackcatinformatics.ca/gmeow/positionOrdinal
-https://blackcatinformatics.ca/gmeow/postalAddressFrame
 https://blackcatinformatics.ca/gmeow/postIn
+https://blackcatinformatics.ca/gmeow/postalAddressFrame
 https://blackcatinformatics.ca/gmeow/postingAccount
 https://blackcatinformatics.ca/gmeow/postingAmount
 https://blackcatinformatics.ca/gmeow/postingDirection
@@ -482,6 +484,8 @@ https://blackcatinformatics.ca/gmeow/profileSurfaceKind
 https://blackcatinformatics.ca/gmeow/profileSurfaceOf
 https://blackcatinformatics.ca/gmeow/profileTransform
 https://blackcatinformatics.ca/gmeow/projectHomepage
+https://blackcatinformatics.ca/gmeow/projectionDeterminism
+https://blackcatinformatics.ca/gmeow/projectionKind
 https://blackcatinformatics.ca/gmeow/projectionSource
 https://blackcatinformatics.ca/gmeow/promptRole
 https://blackcatinformatics.ca/gmeow/pronounObject
@@ -495,6 +499,7 @@ https://blackcatinformatics.ca/gmeow/ratioDenominator
 https://blackcatinformatics.ca/gmeow/ratioNumerator
 https://blackcatinformatics.ca/gmeow/readingOf
 https://blackcatinformatics.ca/gmeow/realizationMode
+https://blackcatinformatics.ca/gmeow/receiptKind
 https://blackcatinformatics.ca/gmeow/recurrenceRuleText
 https://blackcatinformatics.ca/gmeow/referenceAuthority
 https://blackcatinformatics.ca/gmeow/referenceJurisdiction
@@ -596,7 +601,6 @@ https://blackcatinformatics.ca/gmeow/teacher
 https://blackcatinformatics.ca/gmeow/tempoMapSegmentOf
 https://blackcatinformatics.ca/gmeow/tempoRatioExpression
 https://blackcatinformatics.ca/gmeow/tenureAgent
-https://blackcatinformatics.ca/gmeow/tenuredContactPoint
 https://blackcatinformatics.ca/gmeow/tenureInquirer
 https://blackcatinformatics.ca/gmeow/tenureIntention
 https://blackcatinformatics.ca/gmeow/tenureOf
@@ -605,6 +609,7 @@ https://blackcatinformatics.ca/gmeow/tenureParty
 https://blackcatinformatics.ca/gmeow/tenurePlace
 https://blackcatinformatics.ca/gmeow/tenureQuestion
 https://blackcatinformatics.ca/gmeow/tenureStandpoint
+https://blackcatinformatics.ca/gmeow/tenuredContactPoint
 https://blackcatinformatics.ca/gmeow/thresholdFloor
 https://blackcatinformatics.ca/gmeow/thresholdTier
 https://blackcatinformatics.ca/gmeow/tierRank
@@ -639,14 +644,14 @@ https://blackcatinformatics.ca/gmeow/treeEntryMode
 https://blackcatinformatics.ca/gmeow/treeEntryName
 https://blackcatinformatics.ca/gmeow/treeEntryObject
 https://blackcatinformatics.ca/gmeow/trueQuantity
-https://blackcatinformatics.ca/gmeow/trustee
 https://blackcatinformatics.ca/gmeow/trustLevel
+https://blackcatinformatics.ca/gmeow/trustee
 https://blackcatinformatics.ca/gmeow/trustor
 https://blackcatinformatics.ca/gmeow/tuningKind
+https://blackcatinformatics.ca/gmeow/unLocode
 https://blackcatinformatics.ca/gmeow/underSemantics
 https://blackcatinformatics.ca/gmeow/underStandard
 https://blackcatinformatics.ca/gmeow/unit
-https://blackcatinformatics.ca/gmeow/unLocode
 https://blackcatinformatics.ca/gmeow/usageAppellation
 https://blackcatinformatics.ca/gmeow/usageNamed
 https://blackcatinformatics.ca/gmeow/usageRegister
@@ -659,6 +664,7 @@ https://blackcatinformatics.ca/gmeow/vectorByteOrder
 https://blackcatinformatics.ca/gmeow/vectorProfile
 https://blackcatinformatics.ca/gmeow/vectorTargetKind
 https://blackcatinformatics.ca/gmeow/verificationStatus
+https://blackcatinformatics.ca/gmeow/verifierOutcome
 https://blackcatinformatics.ca/gmeow/versionMember
 https://blackcatinformatics.ca/gmeow/versionOf
 https://blackcatinformatics.ca/gmeow/versionSet

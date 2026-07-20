@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:SelectedCandidateRequiresConsensusConstraint (AC2/F1): a
+# gmeow:ProjectionReceipt binds a gmeow:selectedCandidate at whole-gmeow:CandidateSet scope
+# (a listwise argmax top pick) but NO gmeow:PreferenceClaim asserts a global winner, extends
+# to a gmeow:ConsensusSection, and discharges a gmeow:DisagreementObstruction — the
+# "argmax winner that never sets the flag" bypass. The receipt is otherwise fully
+# well-formed (content-addressed, deterministic with a tie-break rule, exact preservation),
+# so the ∀→∃ SPARQL constraint MUST reject the unbacked selection with
+# shacl.SPARQLConstraintComponent and NO other finding.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# The DEFECT: a whole-set selected candidate with no backing discharged winner claim.
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "listwise argmax selecting A with no discharged consensus"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:selectedCandidate ex:candA ;               # <-- argmax winner, no consensus gate cleared
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104" .

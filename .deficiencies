@@ -1725,3 +1725,23 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   dispatch_query under ProceduralPrologProfile, and/or a shipped logic:ReasoningProgram the
   reason-verify gate runs — so `make check` exercises an exact-ℚ / dimension / bilinear builtin
   query on the production surface.
+
+## 2026-07-19 — #1525 / preference (contextual preference + proof-carrying learning receipts), stage-2 gap remediation (branch paudley/1525-preference-sheaf)
+
+- WEAKER-PROXY (example-conformance gate-specificity asserted in prose, not enforced by the
+  harness): each of the 29 gmeow:ExampleConformance cells in
+  slices/extensions/preference/tests/example-conformance.ttl asserts in its
+  gmeow:conformanceRationale that its counter-example triggers "exactly ONE violation, AND no
+  other finding" from its SPECIFIC named gate, but the cells pin only the COARSE generic
+  gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" — every logic:Constraint projects
+  to that same generic component, so the harness (crates/slicetest/src/exec.rs run_conformance_cell)
+  cannot by itself prove the intended preference rule (rather than some other gate) fired. The
+  harness author built the gmeow:expectedSourceShape affordance precisely for this; no preference
+  cell uses it. The stage-2 completion-adversary flagged this as a NON-BLOCKING test-robustness
+  observation (NOT an AC shortfall) and independently VERIFIED by a throwaway source-shape audit
+  that each intended gate DOES fire on its counter-example and no unintended gate does (the lone
+  extra QualifiedMinCount on the two logic:Unsupported second-order boundary records is a
+  conformance-module-scope artifact that vanishes under the full-graph make validate — make check
+  is green). FORWARD PATH: add gmeow:expectedSourceShape (the specific *ConstraintShape IRI) to
+  each preference example-conformance cell so the harness itself proves gate-specificity rather
+  than relying on a manual audit.

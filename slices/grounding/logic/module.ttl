@@ -11924,6 +11924,66 @@ logic:guardedByCounterExampleFunctionality
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:guardedByCounterExample .
 
+logic:gateVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gateVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation."@x-gmeow-english ;
+    logic:characterizes gmeow:gateVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gateVerdict .
+
+logic:hardConstraintClassFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "hardConstraintClass is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility."@x-gmeow-english ;
+    logic:characterizes gmeow:hardConstraintClass ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hardConstraintClass .
+
+logic:projectionDeterminismFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projectionDeterminism is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionDeterminism is functional: a gmeow:ProjectionReceipt carries exactly one determinism declaration, positively asserted so that non-determinism is never left silent."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionDeterminism ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionDeterminism .
+
+logic:projectionKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projectionKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionKind .
+
+logic:receiptKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receiptKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind."@x-gmeow-english ;
+    logic:characterizes gmeow:receiptKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:receiptKind .
+
+logic:verifierOutcomeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "verifierOutcome is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."@x-gmeow-english ;
+    logic:characterizes gmeow:verifierOutcome ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:verifierOutcome .
+
 
 logic:overridesIrreflexivity
     a owl:NamedIndividual ,

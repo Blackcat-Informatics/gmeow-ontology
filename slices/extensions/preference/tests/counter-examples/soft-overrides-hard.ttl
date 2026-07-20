@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:HardFailureNotOverriddenConstraint (AC3,
+# gmeow:HardFailureOverridden): a candidate carrying a HARD gmeow:VerifierVerdict of
+# gmeow:verdictNotHeld is nonetheless bound as a gmeow:selectedCandidate — a soft aggregate
+# overriding a hard gate. The scene is otherwise fully legal: a whole-base discharged
+# gmeow:PreferenceClaim backs the selection (so gmeow:SelectedCandidateRequiresConsensusConstraint,
+# F1, is SATISFIED and NOT the violation under test) and the whole-base consensus is genuine
+# (so gmeow:NoGlobalWinnerWithoutConsensusConstraint is satisfied too). The SOLE defect is
+# that ex:candA — the selected candidate — holds a hard gmeow:verdictNotHeld verdict, so the
+# ∀→¬∃ SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent and NO other
+# finding: a hard failure is never overridden by a soft score.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ---------------------------------------------- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A — hard-fails safety, selected anyway"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- A genuine whole-base discharged consensus (satisfies F1 + NoGlobalWinner) - #
+ex:eval a gmeow:Standpoint ; rdfs:label "the evaluator"@en .
+ex:panel a gmeow:Standpoint ; rdfs:label "the panel standpoint"@en .
+ex:goal a gmeow:Goal ; rdfs:label "select the strongest response"@en .
+
+ex:ctx a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal ;
+    gmeow:contentDigest "blake3:e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105" ;
+    gmeow:registersObservation ex:obs .
+ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obs a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval ; gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:feat ; gmeow:observationPrefers ex:candA .
+
+ex:h0 a math:GlobalSection .
+ex:h1 a math:GluingObstruction .
+ex:obstruction a gmeow:DisagreementObstruction ; gmeow:obstructionClass ex:h1 .
+ex:consensus a gmeow:ConsensusSection ;
+    gmeow:consensusGlobalSection ex:h0 ;
+    gmeow:sectionContext ex:ctx ;
+    gmeow:reconcilesObservation ex:obs .
+ex:claim a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:panel ; gmeow:accordingTo ex:panel ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:consensus ;
+    gmeow:dischargesDisagreement ex:obstruction .
+
+# --- The hard axis: a HARD verdict of NOT-HELD on ex:candA -------------------- #
+ex:safetyChecker a gmeow:Standpoint ; rdfs:label "the safety verifier vantage"@en .
+ex:noPiiContract a gmeow:InformationObject ; rdfs:label "hard contract — no PII"@en .
+ex:vvHard a gmeow:VerifierVerdict ;
+    gmeow:vantage ex:safetyChecker ;
+    gmeow:verifiesCandidate ex:candA ;
+    gmeow:verifierContract ex:noPiiContract ;
+    gmeow:hardConstraintClass gmeow:constraintHardnessHard ;
+    gmeow:verifierOutcome gmeow:verdictNotHeld .
+
+# --- The DEFECT: a projection selects the hard-failing candidate -------------- #
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a projection selecting the hard-failing ex:candA"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:selectedCandidate ex:candA ;               # <-- hard-failing candidate selected as winner
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205" .

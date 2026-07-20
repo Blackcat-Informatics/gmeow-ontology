@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: a within-vantage TIE recorded positively (a comparable indifference).
+# Under ONE evaluator's local order (a gmeow:PreferenceProjection cell), two candidates A and
+# B are judged equally preferable — neither is strictly preferred, but they ARE comparable.
+# The tie is the POSITIVE gmeow:preferentiallyEquivalentWith relation (symmetric + irreflexive
+# via the native logic: markers), distinct from a positive incomparability
+# (gmeow:incomparableWith) and from an absent edge ("not yet compared"). It trips no gate: a
+# tie alone is legal, and because the pair carries NO gmeow:incomparableWith,
+# gmeow:TieIncomparabilityDistinctnessConstraint (G1) is satisfied. This is the pass scene the
+# cq-ties competency question queries.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ---------------------------------------------- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ;
+    rdfs:label "the two equally-preferable candidates"@en ;
+    gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- One evaluator's local order cell (a math:LocalSection carrier) ----------- #
+ex:eval a gmeow:Standpoint ; rdfs:label "the evaluator vantage"@en .
+ex:relTie a math:Relation ; rdfs:label "the raw relation the tie order references"@en .
+ex:order a gmeow:PreferenceOrder ;
+    rdfs:label "the cell's order (references a raw math:Relation)"@en ;
+    gmeow:orderRelation ex:relTie .
+ex:cell a gmeow:PreferenceProjection ;
+    rdfs:label "the evaluator's local order cell"@en ;
+    gmeow:vantage ex:eval ;
+    gmeow:projectionOrder ex:order .
+
+# --- The POSITIVE tie: A and B are preferentially equivalent (a comparable
+#     indifference), NOT incomparable and NOT an absent edge ------------------- #
+ex:candA gmeow:preferentiallyEquivalentWith ex:candB .

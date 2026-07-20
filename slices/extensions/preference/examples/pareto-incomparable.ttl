@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: a Pareto-incomparable pair recorded POSITIVELY.
+# Two candidates X and Y are compared along two criteria c1 (latency) and c2
+# (accuracy). Under a criterion-indexed observation X ≻ Y on c1, and under another
+# Y ≻ X on c2 — neither candidate dominates the other. The slice records this not as
+# a missing edge ("not yet compared") and not as a tie (a comparable indifference)
+# but as the POSITIVE gmeow:incomparableWith relation (G1): the Pareto void is a
+# queryable, disclosed fact. The Pareto frontier is therefore BOTH candidates. The
+# two directional judgments live in reified, vantage-and-criterion-indexed
+# observations; the symmetric gmeow:incomparableWith is the aggregate positive verdict.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed field and the two criteria ------------------------------------ #
+ex:candX a gmeow:InformationObject ; rdfs:label "candidate X — fast but less accurate"@en .
+ex:candY a gmeow:InformationObject ; rdfs:label "candidate Y — accurate but slower"@en .
+
+ex:candidates a gmeow:CandidateSet ;
+    rdfs:label "the two model candidates"@en ;
+    gmeow:hasCandidate ex:candX , ex:candY .
+
+# Criteria REUSE the core gmeow:InformationObject (norms gmeow:Criterion by reference).
+ex:c1Latency  a gmeow:Criterion ; rdfs:label "criterion c1 — latency"@en .
+ex:c2Accuracy a gmeow:Criterion ; rdfs:label "criterion c2 — accuracy"@en .
+
+# --- The content-addressed context registering the vantage base --------------- #
+ex:goalServe a gmeow:Goal ; rdfs:label "choose a serving candidate"@en .
+ex:benchStandpoint a gmeow:Standpoint ; rdfs:label "the benchmarking standpoint"@en .
+
+ex:ctx a gmeow:ComparisonContext ;
+    rdfs:label "serving-candidate benchmark, 2026-Q3"@en ;
+    gmeow:contextTask ex:goalServe ;
+    gmeow:contextStandpoint ex:benchStandpoint ;
+    gmeow:contentDigest "blake3:2b3c4d5e6f7081920a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6071" ;
+    gmeow:registersObservation ex:obsC1 , ex:obsC2 .
+
+ex:evalLatency  a gmeow:Standpoint ; rdfs:label "the latency evaluator"@en .
+ex:evalAccuracy a gmeow:Standpoint ; rdfs:label "the accuracy evaluator"@en .
+
+# --- The two criterion-indexed observations (each strict WITHIN its criterion) - #
+ex:featC1 a gmeow:InformationObject ;
+    rdfs:label "X vs Y on latency"@en ;
+    gmeow:hasPart ex:candX , ex:candY .
+ex:obsC1 a gmeow:PreferenceObservation ;
+    rdfs:label "X ≻ Y on c1 (latency)"@en ;
+    gmeow:vantage ex:evalLatency ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:onCriterion ex:c1Latency ;
+    gmeow:observedFeature ex:featC1 ;
+    gmeow:observationPrefers ex:candX .
+
+ex:featC2 a gmeow:InformationObject ;
+    rdfs:label "X vs Y on accuracy"@en ;
+    gmeow:hasPart ex:candX , ex:candY .
+ex:obsC2 a gmeow:PreferenceObservation ;
+    rdfs:label "Y ≻ X on c2 (accuracy)"@en ;
+    gmeow:vantage ex:evalAccuracy ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:onCriterion ex:c2Accuracy ;
+    gmeow:observedFeature ex:featC2 ;
+    gmeow:observationPrefers ex:candY .
+
+# --- The POSITIVE aggregate verdict: X and Y are genuinely incomparable -------- #
+# gmeow:incomparableWith is symmetric + irreflexive (native markers): each better on
+# a different criterion, neither dominates — a first-class Pareto void, not an
+# absent edge and not a tie (gmeow:preferentiallyEquivalentWith).
+ex:candX gmeow:incomparableWith ex:candY .
+
+# --- The Pareto frontier is BOTH candidates, disclosed as a projection --------- #
+# A Pareto projection cannot realize a total order over an incomparable pair, so the
+# dropped total-order edge is honestly disclosed (a lossy, non-exact receipt).
+ex:paretoVoidEdge a math:Relation ;
+    rdfs:label "the total-order edge Pareto cannot realize over the X~Y void"@en .
+ex:paretoLoss a gmeow:DisclosedLossEntry ;
+    rdfs:label "dropped: any strict order across the Pareto-incomparable pair"@en ;
+    gmeow:droppedRelation ex:paretoVoidEdge .
+
+ex:paretoReceipt a gmeow:ProjectionReceipt ;
+    rdfs:label "Pareto frontier = {X, Y} (both non-dominated)"@en ;
+    gmeow:projectionKind gmeow:projectionPareto ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:disclosesLoss ex:paretoLoss ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    gmeow:contentDigest "blake3:3c4d5e6f708192a30b1c2d3e4f5061728394a5b6c7d8e9f0a1b2c3d4e5f60718" .

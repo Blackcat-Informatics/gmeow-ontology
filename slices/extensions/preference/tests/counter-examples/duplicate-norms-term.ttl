@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for the no-duplicate ban on NORMS (charter Hard Rule 10, ex:saNoRemintNormsTerms):
+# a fixture that RE-MINTS the norms term gmeow:Rubric as rdfs:isDefinedBy the preference slice —
+# the AC7 no-duplication violation (Principle 16). Unioned with the preference module by the
+# gmeow:saFailWitness teeth check, it makes the ∃-redeclared-term ASK HOLD, proving the mustNot
+# ban catches a re-minted sibling term rather than passing vacuously. Reuse rides
+# mappings/equivalences.ttl at the instance level only; the module must never carry this triple.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+gmeow:Rubric rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .

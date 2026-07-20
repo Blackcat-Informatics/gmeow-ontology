@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency data fixture (NOT a pass-witness, NOT a counter-example): TWO fully independent
+# comparison contexts, each with its own candidate set, whole-base discharged consensus, and a
+# projection receipt selecting THAT context's winner. It exists so the F1 and semantic-topology
+# cross-slice competency queries are PROBATIVE rather than vacuous: a Cartesian-product query
+# would pair receipt₁'s selection with claim₂ (and consensus₁ with obstruction₂), yielding FOUR
+# rows; the correctly-joined queries — receipt→section→observation→selected and the single
+# claim binding both consensus and obstruction — yield exactly TWO, one per context. Loaded only
+# by the competency harness (asserted lane, gmeow:reasoningNone); it drives no SHACL gate.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================================= #
+# CONTEXT 1 — editorial selection: winner ex:candA1                              #
+# ============================================================================= #
+ex:candA1 a gmeow:InformationObject ; rdfs:label "context-1 winner"@en .
+ex:candB1 a gmeow:InformationObject ; rdfs:label "context-1 runner-up"@en .
+ex:cset1 a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA1 , ex:candB1 .
+
+ex:eval1 a gmeow:Standpoint ; rdfs:label "context-1 evaluator"@en .
+ex:panel1 a gmeow:Standpoint ; rdfs:label "context-1 panel"@en .
+ex:goal1 a gmeow:Goal ; rdfs:label "select the strongest context-1 candidate"@en .
+
+ex:ctx1 a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal1 ;
+    gmeow:contentDigest "blake3:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:registersObservation ex:obs1 .
+ex:feat1 a gmeow:InformationObject ; gmeow:hasPart ex:candA1 , ex:candB1 .
+ex:obs1 a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval1 ; gmeow:comparisonContext ex:ctx1 ;
+    gmeow:observedFeature ex:feat1 ; gmeow:observationPrefers ex:candA1 .
+
+ex:h0a a math:GlobalSection .
+ex:h1a a math:GluingObstruction .
+ex:obstruction1 a gmeow:DisagreementObstruction ; gmeow:obstructionClass ex:h1a .
+ex:consensus1 a gmeow:ConsensusSection ;
+    gmeow:consensusGlobalSection ex:h0a ;
+    gmeow:sectionContext ex:ctx1 ;
+    gmeow:reconcilesObservation ex:obs1 .
+ex:claim1 a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:panel1 ; gmeow:accordingTo ex:panel1 ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:consensus1 ;
+    gmeow:dischargesDisagreement ex:obstruction1 .
+ex:receipt1 a gmeow:ProjectionReceipt ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:cset1 ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:selectedCandidate ex:candA1 ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111" .
+
+# ============================================================================= #
+# CONTEXT 2 — a wholly separate comparison: winner ex:candA2                     #
+# ============================================================================= #
+ex:candA2 a gmeow:InformationObject ; rdfs:label "context-2 winner"@en .
+ex:candB2 a gmeow:InformationObject ; rdfs:label "context-2 runner-up"@en .
+ex:cset2 a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA2 , ex:candB2 .
+
+ex:eval2 a gmeow:Standpoint ; rdfs:label "context-2 evaluator"@en .
+ex:panel2 a gmeow:Standpoint ; rdfs:label "context-2 panel"@en .
+ex:goal2 a gmeow:Goal ; rdfs:label "select the strongest context-2 candidate"@en .
+
+ex:ctx2 a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal2 ;
+    gmeow:contentDigest "blake3:2222222222222222222222222222222222222222222222222222222222222222" ;
+    gmeow:registersObservation ex:obs2 .
+ex:feat2 a gmeow:InformationObject ; gmeow:hasPart ex:candA2 , ex:candB2 .
+ex:obs2 a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:eval2 ; gmeow:comparisonContext ex:ctx2 ;
+    gmeow:observedFeature ex:feat2 ; gmeow:observationPrefers ex:candA2 .
+
+ex:h0b a math:GlobalSection .
+ex:h1b a math:GluingObstruction .
+ex:obstruction2 a gmeow:DisagreementObstruction ; gmeow:obstructionClass ex:h1b .
+ex:consensus2 a gmeow:ConsensusSection ;
+    gmeow:consensusGlobalSection ex:h0b ;
+    gmeow:sectionContext ex:ctx2 ;
+    gmeow:reconcilesObservation ex:obs2 .
+ex:claim2 a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:panel2 ; gmeow:accordingTo ex:panel2 ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:consensus2 ;
+    gmeow:dischargesDisagreement ex:obstruction2 .
+ex:receipt2 a gmeow:ProjectionReceipt ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:cset2 ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:selectedCandidate ex:candA2 ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:contentDigest "blake3:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222" .

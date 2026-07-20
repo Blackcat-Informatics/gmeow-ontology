@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:PreservationConsistencyConstraint (AC4): a gmeow:ProjectionReceipt
+# discloses a gmeow:DisclosedLossEntry that names a gmeow:droppedRelation (a raw math:Relation
+# it could not realize) yet claims logic:preservationKind logic:ExactPreservation — dropping an
+# edge is by definition not exact preservation. The ∀→¬∃ SPARQL constraint MUST reject it with
+# shacl.SPARQLConstraintComponent and NO other finding. Because the receipt DOES disclose a loss
+# entry, gmeow:CompleteLossDisclosureConstraint is satisfied and NOT the violation under test;
+# and because the preservation kind is exactly logic:ExactPreservation, the lossy guard of
+# gmeow:CompleteLossDisclosureConstraint never fires — the exact-vs-dropped inconsistency is the
+# sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# A genuinely dropped canonical edge, honestly disclosed as a loss entry...
+ex:droppedEdge a math:Relation ; rdfs:label "an incomparability edge forced into a total order"@en .
+ex:loss a gmeow:DisclosedLossEntry ;
+    gmeow:droppedRelation ex:droppedEdge .
+
+# ...but the receipt claims EXACT preservation despite the drop (the DEFECT).
+ex:receipt a gmeow:ProjectionReceipt ;
+    rdfs:label "a receipt claiming exact preservation while disclosing a dropped relation"@en ;
+    gmeow:projectionKind gmeow:projectionListwise ;
+    gmeow:projectionSourceSet ex:candidates ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "lexicographic-by-iri" ;
+    gmeow:disclosesLoss ex:loss ;
+    logic:preservationKind logic:ExactPreservation ;    # <-- exact, yet a relation was dropped
+    gmeow:contentDigest "blake3:07a207a207a207a207a207a207a207a207a207a207a207a207a207a207a207a2" .
