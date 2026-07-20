@@ -786,10 +786,10 @@ fn render_one(
     release_date: &str,
 ) -> String {
     let curie_map = used_curie_map(rows);
-    let set = SssomMappingSet {
-        meta: build_meta(meta, curie_map, version, release_date),
-        mappings: rows.to_vec(),
-    };
+    let set = SssomMappingSet::new(
+        build_meta(meta, curie_map, version, release_date),
+        rows.to_vec(),
+    );
     let tsv = purrdf::sssom::serialize_tsv(&set);
     match meta {
         Some(m) if !m.trailer.is_empty() => splice_trailer(tsv, &m.trailer),
