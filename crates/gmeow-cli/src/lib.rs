@@ -828,6 +828,16 @@ pub enum LogicSessionCommands {
     },
 }
 
+/// The metric lens for `gmeow affect classify`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
+pub enum ClassifyMetric {
+    /// Rank by exact G-distance `(x − p)ᵀG(x − p)` — nearest INCLUDING intensity.
+    #[default]
+    Distance,
+    /// Rank by G-cosine alignment `⟨x,p⟩_G/(‖x‖‖p‖)` — nearest QUALITY / direction.
+    Cosine,
+}
+
 /// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
 #[derive(Debug, Subcommand)]
 pub enum AffectCommands {
@@ -845,21 +855,36 @@ pub enum AffectCommands {
         #[arg(long, requires = "observation")]
         to: Option<String>,
     },
-    /// Classify a state observation to its nearest named-emotion prototype by argmin
-    /// over the EXACT squared metric distance ‖x − pᵢ‖²_G = (x − pᵢ)ᵀG(x − pᵢ). The
-    /// selection is decided entirely on the exact rational squared distance (√ is
-    /// monotonic, so squared order = distance order); the reported `distance` decimal
-    /// crosses the solver seam and is for display only, never selection. Every
-    /// prototype must share the state's metric basis; the empty set is a hard fail.
-    Nearest {
-        /// Source `.gts` snapshot carrying the state + prototype observations.
+    /// Classify a state affect vector to its nearest named-emotion prototype(s) under
+    /// an EXPLICIT vantage metric (competency Q9: "is this vector a schadenfreude?").
+    /// Ranks by exact G-distance (`--metric distance`, incl. intensity) or G-cosine
+    /// (`--metric cosine`, direction/quality); every squared distance is computed
+    /// THROUGH the native exact-ℚ bilinear builtin, and the reported √ decimals + cosine
+    /// are display-only, never selection. Defaults to the full canonical
+    /// `gmeow:AffectPrototype` set; the empty set / a non-PD vantage / coincident
+    /// prototypes / a zero-norm cosine vector are hard fails. Classification is a
+    /// derived, vantage-relative view — never a stored label.
+    Classify {
+        /// Source `.gts` snapshot carrying the state (+ optional explicit prototypes).
         source: PathBuf,
-        /// The state `gmeow:DerivedAffectIntensityObservation` IRI to classify.
+        /// The state `gmeow:AffectVectorObservation` IRI to classify.
         #[arg(long)]
         observation: String,
-        /// A candidate prototype observation IRI (repeatable; at least one required).
-        #[arg(long = "prototype", required = true)]
+        /// A candidate prototype observation IRI (repeatable). When omitted, classify
+        /// against EVERY `gmeow:AffectPrototype` in the snapshot.
+        #[arg(long = "prototype")]
         prototype: Vec<String>,
+        /// The metric lens: `distance` (G-distance, incl. intensity) or `cosine`
+        /// (direction / quality). Default: `distance`.
+        #[arg(long, value_enum, default_value_t = ClassifyMetric::Distance)]
+        metric: ClassifyMetric,
+        /// The vantage `gmeow:AffectScaleProfile` IRI whose `gmeow:metricGram` is
+        /// imposed on every vector. Default: the canonical `gmeow:coreAffectMetricPAD`.
+        #[arg(long = "metric-profile")]
+        metric_profile: Option<String>,
+        /// Report only the top-`N` ranked prototypes (default: the full ranked list).
+        #[arg(long = "top-k")]
+        top_k: Option<usize>,
     },
     /// Ingest a captured classifier output (JSON) into attributed GMEOW evidence
     /// Turtle: a gmeow:ModelInferenceRun + one gmeow:AffectClassifierOutput per

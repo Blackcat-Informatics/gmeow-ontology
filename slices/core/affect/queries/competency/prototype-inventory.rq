@@ -1,0 +1,15 @@
+# Competency question 9 (prototype layer): "Which named emotions carry a canonical
+# typical-signature PROTOTYPE — the 'model up, don't mint' layer that lets an arbitrary
+# affect vector be classified by nearest labelled prototype?" Each gmeow:AffectPrototype
+# names its gmeow:EmotionType via gmeow:prototypeFor, so the prototype inventory is
+# queryable directly from the data; nearest-prototype classification itself is a computed,
+# vantage-relative view outside the logic (Principle 12), exercised by `gmeow affect
+# classify` and its Rust integration test.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?prototype ?emotionType WHERE {
+    ?prototype a gmeow:AffectPrototype ;
+        gmeow:prototypeFor ?emotionType .
+}
+ORDER BY ?prototype
