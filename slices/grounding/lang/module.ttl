@@ -5000,6 +5000,14 @@ gmeow:gmnUnicodeMathWork
     gmeow:title "The Unicode Standard — Mathematical Operators and Greek and Coptic"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnIso80000Work
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "ISO 80000 Quantities and units"@x-gmeow-english ;
+    skos:definition "The ISO 80000 standard for quantities and units, cited as the provenance authority for the GMN dimension-exponent-vector notation: ISO 80000-1 defines a quantity's dimension as the product of powers of the base-quantity dimensions (the ℚ⁷ exponent vector), and the coherent SI derived units it governs — for example the newton, kg·m·s⁻², whose dimension is L¹M¹T⁻²."@x-gmeow-english ;
+    gmeow:title "ISO 80000 — Quantities and units (Part 1: General)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:gmnOpenMathWork
     a owl:NamedIndividual , gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -7491,6 +7499,280 @@ gmeow:gmnCandidateMathComplement
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
     gmeow:gmnDispositionRationale "math:Complement ranges over five complementSemantics kinds (set-theoretic, orthogonal, complex-linear, topological, quotient) and requires a declared ambient space, so a flat ∁ glyph cannot fix which complement is meant; GMN retains an explicit complement constructor naming the ambient space and semantics." ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Math plane: ℚ⁷ dimension notation ------------------------------------ #
+# A physical dimension is an element of the free ℚ-vector space on the seven SI
+# base dimensions (product = exponent-vector addition, power = scalar multiple,
+# math:dimensionless = the zero vector). The seven base-dimension symbols
+# L M T I N J are single capitals, which the GMN-1 grammar's nameStart production
+# admits as ordinary identifiers, so a bare capital cannot unambiguously denote a
+# base dimension; each is ruled to a distinguishing key. Θ is not an identifier
+# character but fragments under the pinned BPE, so its `temp` key wins on token
+# cost. The dimension vector L¹M¹T⁻² is a structured constructor: its canonical
+# identity is the set of math:DimensionExponent cells (not the display string),
+# the positive superscripts ¹ ² ³ each measure one pinned token but the
+# superscript minus ⁻ fragments to two, and its ASCII fallback is the delimited
+# dimvec(...) grammar so a signed exponent round-trips unambiguously.
+
+gmeow:gmnFormMathLengthDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN length-dimension named key `len`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `len` for the base dimension math:lengthDimension (L)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathLengthDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN length-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `len` named key to math:lengthDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathLengthDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:lengthDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathLengthDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: length dimension L"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:lengthDimension rendered L."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:lengthDimension ;
+    gmeow:gmnCandidateGlyph "L" ;
+    gmeow:gmnAsciiFallback "len" ;
+    gmeow:gmnSpokenLabel "the length dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital L is a valid GMN-1 identifier (nameStart), so a bare L cannot unambiguously denote the length base dimension; the `len` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathLengthDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathMassDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN mass-dimension named key `mass`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `mass` for the base dimension math:massDimension (M)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMassDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN mass-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `mass` named key to math:massDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMassDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:massDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMassDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: mass dimension M"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:massDimension rendered M."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:massDimension ;
+    gmeow:gmnCandidateGlyph "M" ;
+    gmeow:gmnAsciiFallback "mass" ;
+    gmeow:gmnSpokenLabel "the mass dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital M is a valid GMN-1 identifier (nameStart), so a bare M cannot unambiguously denote the mass base dimension; the `mass` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMassDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathTimeDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN time-dimension named key `time`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `time` for the base dimension math:timeDimension (T)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathTimeDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN time-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `time` named key to math:timeDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathTimeDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:timeDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathTimeDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: time dimension T"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:timeDimension rendered T."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:timeDimension ;
+    gmeow:gmnCandidateGlyph "T" ;
+    gmeow:gmnAsciiFallback "time" ;
+    gmeow:gmnSpokenLabel "the time dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital T is a valid GMN-1 identifier (nameStart), so a bare T cannot unambiguously denote the time base dimension; the `time` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathTimeDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathElectricCurrentDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN electric-current-dimension named key `curr`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `curr` for the base dimension math:electricCurrentDimension (I)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathElectricCurrentDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN electric-current-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `curr` named key to math:electricCurrentDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathElectricCurrentDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:electricCurrentDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathElectricCurrentDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: electric-current dimension I"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:electricCurrentDimension rendered I."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:electricCurrentDimension ;
+    gmeow:gmnCandidateGlyph "I" ;
+    gmeow:gmnAsciiFallback "curr" ;
+    gmeow:gmnSpokenLabel "the electric-current dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital I is a valid GMN-1 identifier (nameStart) and additionally reads as the imaginary unit, so a bare I cannot unambiguously denote the electric-current base dimension; the `curr` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathElectricCurrentDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathAmountDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN amount-of-substance-dimension named key `amount`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `amount` for the base dimension math:amountOfSubstanceDimension (N)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathAmountDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN amount-of-substance-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `amount` named key to math:amountOfSubstanceDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathAmountDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:amountOfSubstanceDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathAmountDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: amount-of-substance dimension N"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:amountOfSubstanceDimension rendered N."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:amountOfSubstanceDimension ;
+    gmeow:gmnCandidateGlyph "N" ;
+    gmeow:gmnAsciiFallback "amount" ;
+    gmeow:gmnSpokenLabel "the amount-of-substance dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital N is a valid GMN-1 identifier (nameStart), so a bare N cannot unambiguously denote the amount-of-substance base dimension; the `amount` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathAmountDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathLuminousDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN luminous-intensity-dimension named key `lumin`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `lumin` for the base dimension math:luminousIntensityDimension (J)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathLuminousDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN luminous-intensity-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `lumin` named key to math:luminousIntensityDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathLuminousDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:luminousIntensityDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathLuminousDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: luminous-intensity dimension J"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:luminousIntensityDimension rendered J."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:luminousIntensityDimension ;
+    gmeow:gmnCandidateGlyph "J" ;
+    gmeow:gmnAsciiFallback "lumin" ;
+    gmeow:gmnSpokenLabel "the luminous-intensity dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The capital J is a valid GMN-1 identifier (nameStart), so a bare J cannot unambiguously denote the luminous-intensity base dimension; the `lumin` key keeps the dimension reading distinct and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathLuminousDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathTemperatureDimension
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN temperature-dimension named key `temp`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `temp` for the base dimension math:temperatureDimension (Θ)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathTemperatureDimension
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN temperature-dimension key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `temp` named key to math:temperatureDimension; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathTemperatureDimension ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:temperatureDimension ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathTemperatureDimension
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: temperature dimension Θ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the base dimension math:temperatureDimension rendered Θ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:temperatureDimension ;
+    gmeow:gmnCandidateGlyph "Θ" ;
+    gmeow:gmnAsciiFallback "temp" ;
+    gmeow:gmnSpokenLabel "the thermodynamic-temperature dimension" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The capital theta Θ fragments into two pinned cl100k_base tokens while the one-token `temp` key wins on token cost, so Θ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathTemperatureDimension ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathDimensionVector
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: dimension vector L¹M¹T⁻²"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the derived-dimension exponent vector (e.g. force L¹M¹T⁻²) targeting math:DerivedDimension."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:DerivedDimension ;
+    gmeow:gmnCandidateGlyph "L¹M¹T⁻²" ;
+    gmeow:gmnAsciiFallback "dimvec(L=1,M=1,T=-2)" ;
+    gmeow:gmnSpokenLabel "length mass per time squared" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "A derived dimension's canonical identity is its unordered set of math:DimensionExponent cells (base dimension, exact-rational power), not a flat display string; the base-dimension letters are GMN identifiers and, while the positive superscripts ¹ ² ³ each cost one pinned cl100k_base token, the superscript minus ⁻ fragments into two, so a signed exponent cannot be adopted. GMN therefore renders the vector with an explicit constructor whose delimited ASCII fallback dimvec(L=1,M=1,T=-2) round-trips through the structured cells unambiguously. The exponent-vector model and its coherent derived-unit products (e.g. the newton kg·m·s⁻²) follow ISO 80000; the component base units carry BIPM D-SI provenance in the math mappings." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork , gmeow:gmnIso80000Work ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # The IPA glyphs remain executable inside phonological surface content but are
