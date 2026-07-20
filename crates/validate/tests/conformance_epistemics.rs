@@ -482,9 +482,10 @@ fn justification_status_roster_is_exact() {
 // ── SSSOM mapping-set membership ───────────────────────────────────────────────
 
 /// Every `subject_id` (column 1) across `generated/mappings/*.sssom.tsv`, skipping
-/// `#`-prefixed YAML metadata. Mirrors the reader in `conformance_standpoint.rs`.
-/// Panics if the generated mappings are absent — no-optionality: the SSSOM sets are
-/// a required projection materialised by `make sync` before the gate runs the test.
+/// `#`-prefixed YAML metadata, blank lines, and the TSV header row. Mirrors the
+/// reader in `conformance_standpoint.rs`. Panics if the generated mappings are
+/// absent — no-optionality: the SSSOM sets are a required projection materialised by
+/// `make sync` before the gate runs the test.
 fn sssom_subject_ids() -> BTreeSet<String> {
     let dir = repo_root().join("generated").join("mappings");
     let mut subjects = BTreeSet::new();
@@ -498,11 +499,16 @@ fn sssom_subject_ids() -> BTreeSet<String> {
         }
         let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {name}: {e}"));
         for line in text.lines() {
-            if line.starts_with('#') {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
             if let Some(subject) = line.split('\t').next() {
-                subjects.insert(subject.to_owned());
+                let subject = subject.trim();
+                // Skip the TSV header row; keep only real subject cells.
+                if !subject.is_empty() && subject != "subject_id" {
+                    subjects.insert(subject.to_owned());
+                }
             }
         }
     }
@@ -539,7 +545,11 @@ fn epistemics_example_files() -> Vec<PathBuf> {
     let dir = repo_root().join("slices/core/epistemics/examples");
     let mut paths: Vec<PathBuf> = std::fs::read_dir(&dir)
         .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
-        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .map(|entry| {
+            entry
+                .unwrap_or_else(|e| panic!("read epistemics examples dir entry: {e}"))
+                .path()
+        })
         .filter(|path| path.extension().and_then(|s| s.to_str()) == Some("ttl"))
         .collect();
     paths.sort();
