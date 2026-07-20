@@ -1043,5 +1043,4 @@ gmeow:hasGranularity logic:domain
 # closure opt-in supplies the value-class check; the reachability warning rides its own record.
 gmeow:coarsenTo logic:domain
     [ a logic:Restriction ; logic:onProperty gmeow:coarsenTo ; logic:allValuesFrom gmeow:GranularityLevel ] .
-gmeow:coarsenTo a owl:FunctionalProperty .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/coarsenTo" ; logic:closureValue logic:ClosedWorldClosure ] .

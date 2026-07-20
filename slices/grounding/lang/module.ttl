@@ -2751,7 +2751,7 @@ gmeow:gmnPrecedence
     gmeow:useWhen "Use to declare the binding strength of a GMN operator so nesting is decidable from data."@x-gmeow-english .
 
 gmeow:gmnArity
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn arity"@x-gmeow-english ;
     skos:definition "The non-negative operand count of a GMN operator form or symbol candidate. Arity is explicit wherever one glyph can name unary and binary operations (notably minus); it is paired with gmeow:gmnFixity rather than guessed from typography."@x-gmeow-english ;
@@ -2764,7 +2764,7 @@ gmeow:gmnArity
     gmeow:useWhen "Use to make an operator's operand count explicit at the GMN parsing boundary."@x-gmeow-english .
 
 gmeow:gmnDenotationGrapheme
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn denotation grapheme"@x-gmeow-english ;
     skos:definition "Links an executable GMN lang:Denotation to the single lang:Grapheme that renders its denoted form. Together with lang:denotationTarget, the grapheme's codepoints, and its gmeow:gmnSigilScope, this is the canonical graph join the writer and reader load; removing this edge removes the glyph binding without a hard-coded symbol table."@x-gmeow-english ;
@@ -2777,7 +2777,7 @@ gmeow:gmnDenotationGrapheme
     gmeow:useWhen "Use as the executable join from a sign's denotation record to its scoped glyph."@x-gmeow-english .
 
 gmeow:gmnCandidateTarget
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn candidate target"@x-gmeow-english ;
     skos:definition "Names the one grounding-plane term an audited gmeow:GmnSymbolCandidate proposes to render. The quality axis joins this target to slice ownership and cross-checks it against every executable target exposed by the graph-derived glyph registry, so neither a candidate nor a working glyph can float outside the slice's complete audit population."@x-gmeow-english ;
@@ -2790,7 +2790,7 @@ gmeow:gmnCandidateTarget
     gmeow:useWhen "Use to bind a symbol-decision record to the term whose GMN rendering it decides."@x-gmeow-english .
 
 gmeow:gmnSymbolDisposition
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn symbol disposition"@x-gmeow-english ;
     skos:definition "Names exactly one of the four gmeow:GmnSymbolDisposition outcomes for an audited candidate: adopted glyph, named key, structured constructor, or semantic rejection."@x-gmeow-english ;
@@ -2803,7 +2803,7 @@ gmeow:gmnSymbolDisposition
     gmeow:useWhen "Use to record the outcome of a GMN symbol audit in a closed machine-readable vocabulary."@x-gmeow-english .
 
 gmeow:gmnDispositionBasis
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn disposition basis"@x-gmeow-english ;
     skos:definition "Classifies the decisive evidence for a GMN symbol disposition as token cost, ambiguity, confusability, or semantic mismatch. The basis is exactly one machine-readable category; the detailed argument is gmeow:gmnDispositionRationale."@x-gmeow-english ;
@@ -2816,7 +2816,7 @@ gmeow:gmnDispositionBasis
     gmeow:useWhen "Use to expose why a symbol proposal won or lost."@x-gmeow-english .
 
 gmeow:gmnCandidateDenotation
-    a owl:ObjectProperty , owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn candidate denotation"@x-gmeow-english ;
     skos:definition "Links an adopted-glyph or named-key candidate to the lang:Denotation that binds its form to its semantic target. Adopted denotations additionally name a grapheme; named-key denotations deliberately do not."@x-gmeow-english ;
@@ -2829,7 +2829,7 @@ gmeow:gmnCandidateDenotation
     gmeow:useWhen "Use to make the candidate-to-sign-to-meaning chain explicit and auditable."@x-gmeow-english .
 
 gmeow:gmnCandidateGlyph
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn candidate glyph"@x-gmeow-english ;
     skos:definition "The canonical NFC Unicode rendering under consideration in a GMN symbol audit. It is recorded even when it loses, so BPE cost and rejection evidence remain reproducible; an adopted rendering must equal the codepoint-derived grapheme loaded by the executable registry."@x-gmeow-english ;
@@ -2842,7 +2842,7 @@ gmeow:gmnCandidateGlyph
     gmeow:useWhen "Use as the measured Unicode proposal in a symbol decision record."@x-gmeow-english .
 
 gmeow:gmnAsciiFallback
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn ASCII fallback"@x-gmeow-english ;
     skos:definition "The ASCII rendering that preserves access to an audited GMN symbol when its Unicode glyph is unavailable, unpronounceable by a tool, or deliberately not adopted. Its pinned BPE cost is the comparator for a token-cost disposition."@x-gmeow-english ;
@@ -2855,7 +2855,7 @@ gmeow:gmnAsciiFallback
     gmeow:useWhen "Use to carry the accessible non-Unicode spelling of an audited GMN symbol."@x-gmeow-english .
 
 gmeow:gmnSpokenLabel
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn spoken label"@x-gmeow-english ;
     skos:definition "The short phrase a screen reader or speech interface should voice for an audited GMN symbol. It names the symbol's meaning and arity where necessary rather than reading an opaque Unicode character name."@x-gmeow-english ;
@@ -2868,7 +2868,7 @@ gmeow:gmnSpokenLabel
     gmeow:useWhen "Use to make the GMN symbol inventory accessible to speech and assistive tooling."@x-gmeow-english .
 
 gmeow:gmnDispositionRationale
-    a owl:DatatypeProperty , owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn disposition rationale"@x-gmeow-english ;
     skos:definition "The evidence-bearing explanation of a symbol ruling, including the measured cost comparison or the exact arity, confusability, or semantic boundary that decides it. It complements the typed basis and citation; neither replaces the other."@x-gmeow-english ;
@@ -2966,8 +2966,7 @@ gmeow:gmnRingWithin
     gmeow:useWhen "Use to QUERY the derived GMN security ring lattice order — never to author it."@x-gmeow-english .
 
 gmeow:gmnRingLevel
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GmnSecurityRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn ring level"@x-gmeow-english ;
@@ -3135,8 +3134,7 @@ gmeow:gmnDictionaryEntry
     gmeow:useWhen "Use to name the entry members of a GMN dictionary version."@x-gmeow-english .
 
 gmeow:gmnDictionaryEntryTerm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GmnDictionaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary entry term"@x-gmeow-english ;
@@ -3149,8 +3147,7 @@ gmeow:gmnDictionaryEntryTerm
     gmeow:useWhen "Use to name the GMEOW term a dictionary entry's alias stands for."@x-gmeow-english .
 
 gmeow:gmnDictionaryEntryAlias
-    a owl:FunctionalProperty ,
-        owl:DatatypeProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GmnDictionaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary entry alias"@x-gmeow-english ;
@@ -3211,8 +3208,7 @@ gmeow:GlossaryEntry
     gmeow:useWhen "Use as the reified per-term rendering in a glossary, so cross-batch terminology consistency is a gated graph property rather than an unchecked catalog convention."@x-gmeow-english .
 
 gmeow:glossarySlice
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Glossary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary slice"@x-gmeow-english ;
@@ -3225,8 +3221,7 @@ gmeow:glossarySlice
     gmeow:useWhen "Use to scope a glossary to the one slice it gathers terminology for."@x-gmeow-english .
 
 gmeow:glossaryLanguage
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Glossary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary language"@x-gmeow-english ;
@@ -3254,8 +3249,7 @@ gmeow:glossaryEntry
     gmeow:useWhen "Use to name the entry members of a glossary."@x-gmeow-english .
 
 gmeow:glossaryTerm
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary term"@x-gmeow-english ;
@@ -3268,8 +3262,7 @@ gmeow:glossaryTerm
     gmeow:useWhen "Use to name the GMEOW term a glossary entry renders."@x-gmeow-english .
 
 gmeow:glossaryPredicate
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary predicate"@x-gmeow-english ;
@@ -3283,8 +3276,7 @@ gmeow:glossaryPredicate
     gmeow:useWhen "Use to record which annotation predicate a glossary entry's literal came from."@x-gmeow-english .
 
 gmeow:glossarySource
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary source"@x-gmeow-english ;
@@ -3298,8 +3290,7 @@ gmeow:glossarySource
     gmeow:useWhen "Use to record the English term a glossary entry renders into its target language."@x-gmeow-english .
 
 gmeow:glossaryTranslation
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary translation"@x-gmeow-english ;
@@ -3313,8 +3304,7 @@ gmeow:glossaryTranslation
     gmeow:useWhen "Use to record the agreed target-language rendering of a term."@x-gmeow-english .
 
 gmeow:glossaryConcept
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary concept"@x-gmeow-english ;
@@ -3328,8 +3318,7 @@ gmeow:glossaryConcept
     gmeow:useWhen "Use as the sense anchor a glossary entry's consistency is judged against."@x-gmeow-english .
 
 gmeow:glossarySense
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary sense"@x-gmeow-english ;
@@ -3343,8 +3332,7 @@ gmeow:glossarySense
     gmeow:useWhen "Use to reach the OntoLex Frege-triangle sense of a glossary entry — the lexeme's way of meaning that evokes the shared lexical concept."@x-gmeow-english .
 
 gmeow:glossaryUnit
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary unit"@x-gmeow-english ;

@@ -25,7 +25,6 @@ const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_SYMMETRIC: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
 const OWL_IRREFLEXIVE: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
@@ -264,8 +263,8 @@ fn functional_properties() {
         "tenureOf",
     ] {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} must be a FunctionalProperty"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} must carry a logic: functionalProperty characteristic"
         );
     }
 }

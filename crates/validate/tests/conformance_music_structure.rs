@@ -44,7 +44,6 @@ use rstest::rstest;
 
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 
 fn g(local: &str) -> String {
@@ -257,7 +256,10 @@ fn placeholder_voices_retyped() {
 
 #[test]
 fn structure_functional_properties() {
-    let s = module();
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (in the logic slice), not by a local `owl:FunctionalProperty` marker on the music
+    // module — so this asserts over the merged ontology, not `module()`.
+    let s = GraphStore::ontology();
     let functional = [
         "segmentKind",
         "segmentSpan",
@@ -284,8 +286,8 @@ fn structure_functional_properties() {
     ];
     for prop in functional {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should be functional"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} should carry a logic: functionalProperty characteristic"
         );
     }
 }

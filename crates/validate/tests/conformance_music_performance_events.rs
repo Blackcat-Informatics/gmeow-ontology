@@ -35,7 +35,6 @@ use rstest::rstest;
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
-const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 
 fn g(local: &str) -> String {
@@ -66,8 +65,12 @@ fn performance_events_classes_exist() {
 
 #[test]
 fn performance_event_properties_exist() {
-    let s = module();
-    // These participation properties carry owl:FunctionalProperty.
+    // Functionality is now carried by the canonical `logic:` characteristic records
+    // (in the logic slice), not by a local `owl:FunctionalProperty` marker on the music
+    // module — so this asserts over the merged ontology (a superset of `module()`, so the
+    // owl:ObjectProperty declarations from the music module are still present).
+    let s = GraphStore::ontology();
+    // These participation properties carry a logic: functionalProperty characteristic.
     for prop in [
         "participationInstrumentItem",
         "participationConfiguration",
@@ -75,8 +78,8 @@ fn performance_event_properties_exist() {
         "participationTechnique",
     ] {
         assert!(
-            s.has(Some(&g(prop)), Some(RDF_TYPE), Some(OWL_FUNCTIONAL)),
-            "{prop} should be functional"
+            s.is_functional_carrier(&g(prop)),
+            "{prop} should carry a logic: functionalProperty characteristic"
         );
     }
     // participationInstrument is a non-functional object property (deployments may
@@ -87,11 +90,7 @@ fn performance_event_properties_exist() {
         Some(OWL_OBJECT_PROPERTY)
     ));
     assert!(
-        !s.has(
-            Some(&g("participationInstrument")),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL)
-        ),
+        !s.is_functional_carrier(&g("participationInstrument")),
         "participationInstrument must not be functional"
     );
     // performanceOf is a non-functional object property.
@@ -101,11 +100,7 @@ fn performance_event_properties_exist() {
         Some(OWL_OBJECT_PROPERTY)
     ));
     assert!(
-        !s.has(
-            Some(&g("performanceOf")),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL)
-        ),
+        !s.is_functional_carrier(&g("performanceOf")),
         "performanceOf must be non-functional"
     );
 }

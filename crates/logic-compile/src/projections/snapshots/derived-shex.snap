@@ -9,6 +9,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/cites> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Doc> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Doc-shape> {
+  <https://blackcatinformatics.ca/gmeow/primaryId> . {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/FinancialAccount-shape> {
   <https://blackcatinformatics.ca/gmeow/bic> <http://www.w3.org/2001/XMLSchema#string> MAXLENGTH 11 MINLENGTH 8 /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/ ;

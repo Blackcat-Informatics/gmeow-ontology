@@ -96,8 +96,7 @@ gmeow:SeverityLevel
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:cascadeFirstLink
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Cascade ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "cascade first link"@x-gmeow-english ;
@@ -115,8 +114,7 @@ gmeow:cascadeSeverity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:causalModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "causal modality"@x-gmeow-english ;
@@ -153,8 +151,7 @@ gmeow:causallyPromotes
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hazardBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Hazard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "hazard bearer"@x-gmeow-english ;
@@ -172,8 +169,7 @@ gmeow:hazardSeverity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkAntecedent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link antecedent"@x-gmeow-english ;
@@ -182,8 +178,7 @@ gmeow:linkAntecedent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkConsequent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link consequent"@x-gmeow-english ;

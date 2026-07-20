@@ -92,6 +92,33 @@ ex:cqCDRowValence a gmeow:ExpectedRow ;
 ex:cqCDRowAgency a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri gmeow:dimensionAgency ] .
 
+# Q9 (prototype layer): "Which named emotions are modeled up as canonical prototypes?"
+# The 10 gmeow:AffectPrototype individuals each name their gmeow:EmotionType via
+# gmeow:prototypeFor, so the "primitives vs compounds" prototype inventory is queryable.
+# The answer set holds all 10 (8 Plutchik primaries + saudade + schadenfreude); the two
+# witnesses pinned here are the schadenfreude and joy prototypes, so RowsContains.
+ex:cqPrototypeInventory a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/prototype-inventory.rq" ;
+    gmeow:cqRationale "Model up, don't mint: each named emotion carries a typical core-affect signature as a gmeow:AffectPrototype linked by gmeow:prototypeFor to its gmeow:EmotionType, so 'which named emotions have a canonical prototype?' is answered directly from the data. This is the authored layer nearest-prototype classification (gmeow affect classify, a computed vantage-relative view — Principle 12) ranks against; the schadenfreude and joy prototypes are pinned witnesses." ;
+    gmeow:cqResultShape ex:cqPrototypeInventoryShape ;
+    gmeow:cqExpectRow
+        ex:cqPIRowSchadenfreude ,
+        ex:cqPIRowJoy .
+
+ex:cqPrototypeInventoryShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "prototype" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "emotionType" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqPIRowSchadenfreude a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prototype" ; gmeow:cellValueIri gmeow:schadenfreudePrototype ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "emotionType" ; gmeow:cellValueIri gmeow:emotionSchadenfreude ] .
+
+ex:cqPIRowJoy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prototype" ; gmeow:cellValueIri gmeow:joyPrototype ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "emotionType" ; gmeow:cellValueIri gmeow:emotionJoy ] .
+
 # Q10: "What is the overall intensity and dominant axis of an affective state?"
 # Intensity is a DERIVED view (the norm is computed outside the logic, never stored,
 # Principle 12), so the query returns the intensity observation's declared vector

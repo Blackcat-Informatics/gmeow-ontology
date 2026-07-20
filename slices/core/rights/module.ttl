@@ -805,8 +805,7 @@ gmeow:conflictProhibit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:conflictStrategy
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "conflict strategy"@x-gmeow-english ;
@@ -819,8 +818,7 @@ gmeow:conflictStrategy
     gmeow:useWhen "Use to declare how a rights statement settles a permission-vs-prohibition conflict over the same action (the odrl:conflict strategy) — permission wins, prohibition wins, or the policy is void."@x-gmeow-english .
 
 gmeow:constraintLogic
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LogicalConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraint logic"@x-gmeow-english ;
@@ -833,8 +831,7 @@ gmeow:constraintLogic
     gmeow:useWhen "Use to name the boolean operator that combines a logical constraint's members — AND, OR, XONE, or AND-sequence — by referencing a gmeow:ConstraintLogic value."@x-gmeow-english .
 
 gmeow:constraintOperator
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraint operator"@x-gmeow-english ;
@@ -864,8 +861,7 @@ gmeow:copyrightHolder
     gmeow:useWhen "Use to attribute a copyright to the agent(s) that hold it (schema:copyrightHolder, dcterms:rightsHolder) — the canonical rights-holder attribution, reusing gmeow:wasAttributedTo."@x-gmeow-english .
 
 gmeow:copyrightNotice
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright notice"@x-gmeow-english ;
@@ -880,8 +876,7 @@ gmeow:copyrightNotice
     gmeow:useWhen "Use to carry the ready-to-display © notice string for a work (schema:copyrightNotice) on its gmeow:Copyright relator."@x-gmeow-english .
 
 gmeow:copyrightStatus
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright status"@x-gmeow-english ;
@@ -985,8 +980,7 @@ gmeow:copyrightStatusUndetermined
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:copyrightWork
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright work"@x-gmeow-english ;
@@ -999,8 +993,7 @@ gmeow:copyrightWork
     gmeow:useWhen "Use to bind the protected work to its gmeow:Copyright relator — the work-side player of the copyright."@x-gmeow-english .
 
 gmeow:copyrightYear
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright year"@x-gmeow-english ;
@@ -1432,8 +1425,7 @@ gmeow:leftOpVirtualLocation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:leftOperand
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "left operand"@x-gmeow-english ;
@@ -1446,8 +1438,7 @@ gmeow:leftOperand
     gmeow:useWhen "Use to name the dimension an atomic constraint tests (the odrl:leftOperand) — dateTime, spatial, count, purpose, recipient, … — by referencing a gmeow:LeftOperand value."@x-gmeow-english .
 
 gmeow:licenseFamily
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "license family"@x-gmeow-english ;
@@ -1515,8 +1506,7 @@ gmeow:licenseText
     gmeow:useWhen "Use to carry the full legal text of a licence (spdx:licenseText) — typically only for a custom or bespoke licence whose text is not a standard SPDX-identified one."@x-gmeow-english .
 
 gmeow:licensedWork
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licensed work"@x-gmeow-english ;
@@ -1598,8 +1588,7 @@ gmeow:logicXone
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:markText
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Mark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "mark text"@x-gmeow-english ;
@@ -1698,8 +1687,7 @@ gmeow:operatorNeq
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:registrationNumber
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "registration number"@x-gmeow-english ;
@@ -1712,8 +1700,7 @@ gmeow:registrationNumber
     gmeow:useWhen "Use to carry the registry registration number of a trademark — a CIPO, USPTO, or WIPO identifier — on its gmeow:Trademark relator."@x-gmeow-english .
 
 gmeow:rightOperand
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "right operand"@x-gmeow-english ;
@@ -1815,8 +1802,7 @@ gmeow:rightsTypeTrademark
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:ruleAction
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule action"@x-gmeow-english ;
@@ -1868,8 +1854,7 @@ gmeow:ruleConstraint
     gmeow:useWhen "Use to condition a rule on a constraint (the odrl:constraint link) — a permission, prohibition, or duty that holds only when the constraint is satisfied."@x-gmeow-english .
 
 gmeow:ruleTarget
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule target"@x-gmeow-english ;
@@ -1882,8 +1867,7 @@ gmeow:ruleTarget
     gmeow:useWhen "Use to narrow a rule to a specific asset (the odrl:target) when it differs from the enclosing statement's overall subject — e.g. a permission that applies only to a thumbnail."@x-gmeow-english .
 
 gmeow:spdxLicenseId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "SPDX license id"@x-gmeow-english ;
@@ -1944,8 +1928,7 @@ gmeow:trademarkHolder
     gmeow:useWhen "Use to attribute a trademark to its proprietor agent(s) — the trademark-side rights-holder attribution, reusing gmeow:wasAttributedTo."@x-gmeow-english .
 
 gmeow:trademarkMark
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademark mark"@x-gmeow-english ;
@@ -1958,8 +1941,7 @@ gmeow:trademarkMark
     gmeow:useWhen "Use to bind the protected sign to its gmeow:Trademark relator — the mark-side player of the trademark."@x-gmeow-english .
 
 gmeow:trademarkStatus
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademark status"@x-gmeow-english ;

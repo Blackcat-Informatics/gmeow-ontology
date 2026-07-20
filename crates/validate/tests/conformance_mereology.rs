@@ -10,7 +10,6 @@ mod conformance_support;
 use conformance_support::*;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 fn gm(local: &str) -> String {
     format!("{GMEOW}{local}")
@@ -47,12 +46,8 @@ fn no_winner_or_cardinality_terms_for_parts() {
 
     for prop in ["partOf", "hasPart", "subOrganizationOf", "subEventOf"] {
         assert!(
-            !g.has(
-                Some(&gm(prop)),
-                Some(RDF_TYPE),
-                Some(OWL_FUNCTIONAL_PROPERTY)
-            ),
-            "gmeow:{prop} must not be a functional property"
+            !g.is_functional_carrier(&gm(prop)),
+            "gmeow:{prop} must not carry a logic: functionalProperty characteristic"
         );
     }
 }

@@ -58,60 +58,60 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:LanguageProficiency MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — it is the reified binding of {agent} × {language} × {skill modality} × {level on scale}." .
 
-# --- 6. proficiencyAgent is a functional ObjectProperty (MUST)
+# --- 6. proficiencyAgent is an ObjectProperty (MUST)
 ex:saProficiencyAgentFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:proficiencyAgent a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:proficiencyAgent a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:proficiencyAgent MUST be an owl:ObjectProperty and owl:FunctionalProperty — constitutive of LanguageProficiency (exactly one assessed agent)." .
+    gmeow:saRationale "gmeow:proficiencyAgent MUST be an owl:ObjectProperty — constitutive of LanguageProficiency (the assessed agent)." .
 
-# --- 7. proficiencyLanguage is a functional ObjectProperty (MUST)
+# --- 7. proficiencyLanguage is an ObjectProperty (MUST)
 ex:saProficiencyLanguageFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:proficiencyLanguage a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:proficiencyLanguage a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:proficiencyLanguage MUST be an owl:ObjectProperty and owl:FunctionalProperty — constitutive of LanguageProficiency (exactly one language per proficiency)." .
+    gmeow:saRationale "gmeow:proficiencyLanguage MUST be an owl:ObjectProperty — constitutive of LanguageProficiency (the language of the proficiency)." .
 
-# --- 8. proficiencyModality is a functional ObjectProperty (MUST)
+# --- 8. proficiencyModality is an ObjectProperty (MUST)
 ex:saProficiencyModalityFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:proficiencyModality a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:proficiencyModality a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:proficiencyModality MUST be an owl:ObjectProperty and owl:FunctionalProperty — mint one proficiency per (agent, language, modality) so per-skill levels coexist." .
+    gmeow:saRationale "gmeow:proficiencyModality MUST be an owl:ObjectProperty — mint one proficiency per (agent, language, modality) so per-skill levels coexist." .
 
-# --- 9. proficiencyLevel is a functional ObjectProperty (MUST)
+# --- 9. proficiencyLevel is an ObjectProperty (MUST)
 ex:saProficiencyLevelFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:proficiencyLevel a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:proficiencyLevel a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:proficiencyLevel MUST be an owl:ObjectProperty and owl:FunctionalProperty — exactly one level per proficiency relator." .
+    gmeow:saRationale "gmeow:proficiencyLevel MUST be an owl:ObjectProperty — the level of the proficiency relator." .
 
-# --- 10. proficiencyScale is a functional ObjectProperty (MUST)
+# --- 10. proficiencyScale is an ObjectProperty (MUST)
 ex:saProficiencyScaleFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:proficiencyScale a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:proficiencyScale a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:proficiencyScale MUST be an owl:ObjectProperty and owl:FunctionalProperty — exactly one framework per proficiency relator." .
+    gmeow:saRationale "gmeow:proficiencyScale MUST be an owl:ObjectProperty — the framework of the proficiency relator." .
 
 # ---------------------------------------------------------------------------
 # GROUP 3: Value vocabularies — logic:QualityValue subclasses (MUST)
@@ -321,9 +321,9 @@ ex:saKnowsLanguageNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:knowsLanguage a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:knowsLanguage ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:knowsLanguage MUST NOT be functional — a person knows multiple languages." .
 
@@ -393,8 +393,8 @@ ex:saVarietyKindNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:varietyKind a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:varietyKind ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:varietyKind MUST NOT be functional — a single variety can be classified as both a language and a dialect by different standpoints (Principle 9)." .
 
 # --- 37. varietyOf is an ObjectProperty but NOT functional (MUST / MUST-NOT)
@@ -410,8 +410,8 @@ ex:saVarietyOfNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:varietyOf a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:varietyOf ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:varietyOf MUST NOT be functional — a variety may be held to be of more than one parent language across standpoints (e.g., Scots of English vs Scots of West Germanic)." .
 
 # ---------------------------------------------------------------------------
@@ -419,14 +419,14 @@ ASK { gmeow:varietyOf a owl:FunctionalProperty . }""" ;
 # Migrated from tests/test_language_varieties.py.
 # ---------------------------------------------------------------------------
 
-# --- 38. stateLanguage is a functional ObjectProperty (MUST)
+# --- 38. stateLanguage is an ObjectProperty (MUST)
 ex:saStateLanguageFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:stateLanguage a owl:ObjectProperty , owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:stateLanguage MUST be an owl:ObjectProperty and owl:FunctionalProperty — a LanguageState is a standpoint-scoped relator about exactly one language / variety / version." .
+ASK { gmeow:stateLanguage a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:stateLanguage MUST be an owl:ObjectProperty — a LanguageState is a standpoint-scoped relator about the language / variety / version it concerns." .
 
 # --- 39. stateStatusValue, stateAuthority, stateInterval are ObjectProperties (MUST)
 ex:saStateNonFunctionalRolesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -446,10 +446,10 @@ ex:saStateNonFunctionalRolesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:stateStatusValue gmeow:stateAuthority gmeow:stateInterval }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:stateStatusValue, gmeow:stateAuthority and gmeow:stateInterval MUST NOT be functional — a language state can co-carry multiple status values, authorities and overlapping intervals under different standpoints (Principle 9)." .
 

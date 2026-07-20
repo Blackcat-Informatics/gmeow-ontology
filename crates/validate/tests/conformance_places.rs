@@ -69,7 +69,6 @@ const RDFS_LITERAL: &str = "http://www.w3.org/2000/01/rdf-schema#Literal";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
 const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
 const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
@@ -258,11 +257,10 @@ fn location_superset_core() {
     let d = |p: &str, o: &str| assert!(g.has(Some(&gmeow(p)), Some(RDFS_DOMAIN), Some(o)));
     let r = |p: &str, o: &str| assert!(g.has(Some(&gmeow(p)), Some(RDFS_RANGE), Some(o)));
     let func = |p: &str| {
-        assert!(g.has(
-            Some(&gmeow(p)),
-            Some(RDF_TYPE),
-            Some(OWL_FUNCTIONAL_PROPERTY)
-        ))
+        assert!(
+            g.is_functional_carrier(&gmeow(p)),
+            "gmeow:{p} must carry a logic: functionalProperty characteristic"
+        )
     };
 
     d("frameRealm", &gmeow("ReferenceFrame"));

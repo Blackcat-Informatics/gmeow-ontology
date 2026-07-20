@@ -107,14 +107,14 @@ ASK {
     FILTER( STR(?s) != "https://blackcatinformatics.ca/gmeow/slices/gts" )
     FILTER NOT EXISTS {
         ?s a ?owltype .
-        FILTER( ?owltype IN (owl:Class, owl:ObjectProperty, owl:DatatypeProperty, owl:FunctionalProperty, owl:Ontology) )
+        FILTER( ?owltype IN (owl:Class, owl:ObjectProperty, owl:DatatypeProperty, owl:Ontology) )
     }
     FILTER NOT EXISTS {
         ?s a ?gtype .
         FILTER( isIRI(?gtype) && STRSTARTS(STR(?gtype), "https://blackcatinformatics.ca/gmeow/") )
     }
 }""" ;
-    gmeow:saRationale "Every gmeow-namespaced subject in the module (except the slice ontology IRI) MUST be properly typed — either OWL-declared (owl:Class/ObjectProperty/DatatypeProperty/FunctionalProperty/Ontology) or a gmeow:-typed individual. A DYNAMIC sweep (FILTER NOT EXISTS over both typing patterns, mirroring the `allowed` set + individual escape), NOT a hand-listed term blacklist." .
+    gmeow:saRationale "Every gmeow-namespaced subject in the module (except the slice ontology IRI) MUST be properly typed — either OWL-declared (owl:Class/ObjectProperty/DatatypeProperty/Ontology) or a gmeow:-typed individual. owl:FunctionalProperty is no longer an accepted declared type (the functional characteristic is carried on the logic: PropertyCharacteristicAssertion carrier, not a raw owl: marker), so it is dropped from the allowed set. A DYNAMIC sweep (FILTER NOT EXISTS over both typing patterns, mirroring the `allowed` set + individual escape), NOT a hand-listed term blacklist." .
 
 # --- 7. Named value-vocabulary individuals are seeded (MUST) ------------------
 ex:saValueVocabNamedIndividualsSeeded a gmeow:StructuralAssertion ;

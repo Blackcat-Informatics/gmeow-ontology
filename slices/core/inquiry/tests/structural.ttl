@@ -87,10 +87,11 @@ ex:saSpineNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:asks gmeow:wondersWhether gmeow:inquiresInto gmeow:seeksToKnow }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "No inquiry spine verb may be owl:FunctionalProperty — an agent holds many open questions simultaneously." .
 
@@ -153,8 +154,9 @@ ex:saQuestionTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:questionType a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:questionType ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:questionType MUST NOT be functional — typeWhy and typeHow may co-apply to a single question." .
 
 # --- 8a. presupposes is an ObjectProperty with domain/range (MUST hold) -------
@@ -176,8 +178,9 @@ ex:saPresupposesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:presupposes a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:presupposes ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:presupposes MUST NOT be functional — a question may presuppose several propositions." .
 
 # --- 9a. answers is an ObjectProperty with range (MUST hold) ------------------
@@ -207,8 +210,9 @@ ex:saAnswersNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:answers a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:answers ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:answers MUST NOT be functional — answers are vantage-indexed and coexist (Principle 9)." .
 
 # --- 10a. evokes is an ObjectProperty with range (MUST hold) ------------------
@@ -238,8 +242,9 @@ ex:saEvokesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:evokes a owl:FunctionalProperty . }""" ;
+ASK { ?rec logic:characterizes gmeow:evokes ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:evokes MUST NOT be functional — one premise may evoke many questions (Wiśniewski erotetic implication)." .
 
 # --- 11a. InquiryTenure is a SituationType / TimeScopedRelation (MUST hold) ---
@@ -256,7 +261,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:InquiryTenure MUST be an owl:Class AND logic:Situation AND a subClassOf gmeow:TimeScopedRelation (not a bare relator)." .
 
-# --- 11b. InquiryTenure tenure roles are functional ObjectProperties (MUST) ---
+# --- 11b. InquiryTenure tenure roles are ObjectProperties (MUST) ---
 ex:saInquiryTenureRoles a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -264,14 +269,14 @@ ex:saInquiryTenureRoles a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:tenureInquirer a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:tenureInquirer a owl:ObjectProperty ;
         rdfs:domain gmeow:InquiryTenure ;
         rdfs:range gmeow:Agent .
-    gmeow:tenureQuestion a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:tenureQuestion a owl:ObjectProperty ;
         rdfs:domain gmeow:InquiryTenure ;
         rdfs:range gmeow:Question .
 }""" ;
-    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty AND owl:FunctionalProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question." .
+    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question; their single-value functionality now lives on the logic: PropertyCharacteristicAssertion carrier and is DL-enforced." .
 
 # --- 11c. EL someValuesFrom mediation restriction on tenureQuestion (MUST) ---
 ex:saInquiryTenureELRestriction a gmeow:StructuralAssertion ;

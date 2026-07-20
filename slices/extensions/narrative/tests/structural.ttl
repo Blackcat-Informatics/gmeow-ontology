@@ -179,18 +179,18 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:CharacterArc MUST be rdfs:subClassOf gmeow:InformationObject -- a first-class interpretive information object, not an event or participant (standpoint-scoped analysis)." .
 
-# --- 12. arcSubject, arcFrame, arcType are functional ObjectProperties (MUST) --
+# --- 12. arcSubject, arcFrame, arcType are ObjectProperties (MUST) ------------
 ex:saArcCorePropsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:arcSubject a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:arcFrame   a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:arcType    a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:arcSubject a owl:ObjectProperty .
+    gmeow:arcFrame   a owl:ObjectProperty .
+    gmeow:arcType    a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:arcSubject, arcFrame, and arcType MUST each be owl:ObjectProperty and owl:FunctionalProperty -- one subject, one frame, and one type per CharacterArc instance (cross-continuity arcs are separate instances)." .
+    gmeow:saRationale "gmeow:arcSubject, arcFrame, and arcType MUST each be owl:ObjectProperty -- one subject, one frame, and one type per CharacterArc instance (cross-continuity arcs are separate instances); their functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced)." .
 
 # --- 13. arcEvidence is an owl:ObjectProperty (NOT functional) (MUST) ---------
 ex:saArcEvidenceIsObjectProperty a gmeow:StructuralAssertion ;
@@ -208,9 +208,9 @@ ex:saArcEvidenceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:arcEvidence a owl:FunctionalProperty .
+    ?rec logic:characterizes gmeow:arcEvidence ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9)." .
 
@@ -292,8 +292,8 @@ ex:saPositionLabelNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:positionLabel a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:positionLabel ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:positionLabel MUST NOT be functional; co-equal position labels coexist." .
 
 # --- 20. NarrationUsage is a reified logic:Relator with open subject range (MUST) ---
@@ -307,10 +307,8 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:NarrationUsage a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
-    gmeow:narrationSegment a owl:FunctionalProperty .
-    gmeow:narrationSubject a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:NarrationUsage MUST be a logic:Kind relator with functional segment and subject roles. Replaces stale gufo:Kind/Relator assertions." .
+    gmeow:saRationale "gmeow:NarrationUsage MUST be a logic:Kind relator; its segment and subject role functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced). Replaces stale gufo:Kind/Relator assertions." .
 
 ex:saNarrationSubjectRangeOpen a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -324,8 +322,8 @@ ex:saNarrationModeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:narrationMode a owl:FunctionalProperty . }""" ;
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:narrationMode ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:narrationMode MUST NOT be functional; a flashback can also be a dream, and rival readings coexist." .
 
 # --- 21. Myth is a logic:Kind SocialObject (MUST) ----------------------------
@@ -352,12 +350,9 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:RoleInNarrative rdfs:subClassOf logic:Relator .
-    gmeow:narrativeRoleBearer a owl:FunctionalProperty .
-    gmeow:narrativeRoleScope  a owl:FunctionalProperty ;
-        rdfs:range gmeow:NarrativeScope .
-    gmeow:narrativeRoleValue  a owl:FunctionalProperty .
+    gmeow:narrativeRoleScope  rdfs:range gmeow:NarrativeScope .
     gmeow:CreativeWork rdfs:subClassOf gmeow:NarrativeScope .
     gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
     gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
 }""" ;
-    gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator whose bearer, scope, and role value are functional, with the narrative scope graft asserted extension-side. Replaces the stale gufo:Relator assertion." .
+    gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator with narrativeRoleScope ranging over NarrativeScope and the narrative scope graft asserted extension-side; its bearer, scope, and role-value functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced). Replaces the stale gufo:Relator assertion." .

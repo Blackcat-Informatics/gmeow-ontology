@@ -73,19 +73,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:NotationSystemUsage MUST be an owl:Class that is a subclass of both logic:Relator and gmeow:Observation — it is the reified relator that bridges notation use onto the universal observation stack." .
 
-# --- 4. The four NotationSystemUsage roles are ObjectProperty + FunctionalProperty (MUST) ---
+# --- 4. The four NotationSystemUsage roles are ObjectProperty (MUST) ---
 ex:saNotationUsageRolesFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:notationUsageTarget           a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:notationUsageNotationSystem   a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:notationUsageRole             a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:notationUsageInterval         a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:notationUsageTarget           a owl:ObjectProperty .
+    gmeow:notationUsageNotationSystem   a owl:ObjectProperty .
+    gmeow:notationUsageRole             a owl:ObjectProperty .
+    gmeow:notationUsageInterval         a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "All four NotationSystemUsage roles MUST be owl:ObjectProperty and owl:FunctionalProperty — each relator carries exactly one target, notation system, role, and interval (the four-role binding is the canonical reification)." .
+    gmeow:saRationale "All four NotationSystemUsage roles MUST be owl:ObjectProperty — the target, notation system, role, and interval bindings are the canonical reification." .
 
 # --- 5. NotationSystem is NOT a subclass of Language (MUST-NOT) ---------------
 ex:saNotationSystemNotSubclassLanguage a gmeow:StructuralAssertion ;

@@ -27,8 +27,7 @@ gmeow:QualityTier
     gmeow:useWhen "Use as the value vocabulary for the slice-quality ladder — the rungs (Registered, Grounded, Linked, Exemplified, Maximal) a slice climbs, ordered by gmeow:tierRank and combined across axes by the lattice meet."@x-gmeow-english .
 
 gmeow:tierRank
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:QualityTier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "tier rank"@x-gmeow-english ;
@@ -172,8 +171,7 @@ gmeow:axisAdviceTemplate
     gmeow:useWhen "Use on an axis to author the opinionated, doctrine-cited uplift advice the advisor offers when the axis is weak."@x-gmeow-english .
 
 gmeow:axisWeight
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis weight"@x-gmeow-english ;
@@ -187,8 +185,7 @@ gmeow:axisWeight
     gmeow:useWhen "Use on an axis to set its priority in the ranked advice list — the headline maximums (grounding, reasoner, information) weigh highest."@x-gmeow-english .
 
 gmeow:axisContextScope
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis context scope"@x-gmeow-english ;
@@ -218,8 +215,7 @@ gmeow:AxisThreshold
     gmeow:useWhen "Use to declare, as data, the score floor an axis needs for a particular tier."@x-gmeow-english .
 
 gmeow:thresholdTier
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AxisThreshold ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "threshold tier"@x-gmeow-english ;
@@ -232,8 +228,7 @@ gmeow:thresholdTier
     gmeow:useWhen "Use on a threshold pairing to name the tier its floor unlocks."@x-gmeow-english .
 
 gmeow:thresholdFloor
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AxisThreshold ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "threshold floor"@x-gmeow-english ;
@@ -326,8 +321,7 @@ gmeow:exemptionReason
     gmeow:useWhen "Use on an exemption to record why the axis is not yet measurable."@x-gmeow-english .
 
 gmeow:exemptionDate
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption date"@x-gmeow-english ;
@@ -381,8 +375,7 @@ gmeow:SliceTierFloor
     gmeow:useWhen "Use to record, as data, the committed minimum roll-up tier a named slice may declare — the raise-only per-slice tier regression floor the gate enforces."@x-gmeow-english .
 
 gmeow:floorSlice
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain [ a owl:Class ;
         owl:unionOf ( gmeow:AxisFloorCommitment gmeow:SliceTierFloor ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
@@ -396,8 +389,7 @@ gmeow:floorSlice
     gmeow:useWhen "Use on a floor commitment or tier floor to name the slice its ratchet guards."@x-gmeow-english .
 
 gmeow:floorAxis
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:AxisFloorCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor axis"@x-gmeow-english ;
@@ -410,8 +402,7 @@ gmeow:floorAxis
     gmeow:useWhen "Use on a per-axis floor commitment to name the axis whose measured score it floors."@x-gmeow-english .
 
 gmeow:floorValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:AxisFloorCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor value"@x-gmeow-english ;
@@ -424,8 +415,7 @@ gmeow:floorValue
     gmeow:useWhen "Use on a per-axis floor commitment to set the normalized minimum measured score its axis must hold for its slice."@x-gmeow-english .
 
 gmeow:floorTier
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SliceTierFloor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor tier"@x-gmeow-english ;
@@ -467,8 +457,7 @@ gmeow:ProjectionCeilingCommitment
     gmeow:useWhen "Use to record, as data, the committed maximum ungrounded-residue count a named projection vocabulary may hold for a named slice — the lower-only per-(slice,vocab) growth ceiling the gate enforces."@x-gmeow-english .
 
 gmeow:vocabularyPrefix
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary prefix"@x-gmeow-english ;
@@ -494,8 +483,7 @@ gmeow:vocabularyNamespace
     gmeow:useWhen "Use on a guarded projection vocabulary to name each IRI namespace stem whose triples the counter should recognize as this vocabulary's constructs."@x-gmeow-english .
 
 gmeow:vocabularySubsumedBy
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary subsumed by"@x-gmeow-english ;
@@ -508,8 +496,7 @@ gmeow:vocabularySubsumedBy
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the logic: core it is subsumed by."@x-gmeow-english .
 
 gmeow:vocabularyOwner
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary owner"@x-gmeow-english ;
@@ -522,8 +509,7 @@ gmeow:vocabularyOwner
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the one grounding slice that owns its external authoring boundary — the boundary-authority owner, distinct from the Principle-17 logic: subsumer."@x-gmeow-english .
 
 gmeow:vocabularyCountKind
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary count kind"@x-gmeow-english ;
@@ -536,8 +522,7 @@ gmeow:vocabularyCountKind
     gmeow:useWhen "Use on a guarded projection vocabulary to select, as data, which of the three closed construct-recognition strategies the counter runs for it."@x-gmeow-english .
 
 gmeow:vocabularyDefaultCeiling
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary default ceiling"@x-gmeow-english ;
@@ -550,8 +535,7 @@ gmeow:vocabularyDefaultCeiling
     gmeow:useWhen "Use on a guarded projection vocabulary to set the ceiling every unlisted slice is held to — the airtight default that blocks a first ungrounded use."@x-gmeow-english .
 
 gmeow:vocabularyPreservation
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary preservation"@x-gmeow-english ;
@@ -590,8 +574,7 @@ gmeow:vocabularyCountPredicate
     gmeow:useWhen "Use on a countKindStructuralAxiom guarded vocabulary (RDFS) to declare, as data, the minimum useful structural predicate set the ratchet counts, excluding annotations."@x-gmeow-english .
 
 gmeow:ceilingSlice
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling slice"@x-gmeow-english ;
@@ -604,8 +587,7 @@ gmeow:ceilingSlice
     gmeow:useWhen "Use on a projection-ceiling commitment to name the slice its ratchet guards."@x-gmeow-english .
 
 gmeow:ceilingVocabulary
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling vocabulary"@x-gmeow-english ;
@@ -618,8 +600,7 @@ gmeow:ceilingVocabulary
     gmeow:useWhen "Use on a projection-ceiling commitment to name the guarded vocabulary whose residue it ceilings."@x-gmeow-english .
 
 gmeow:ceilingCount
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling count"@x-gmeow-english ;

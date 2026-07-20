@@ -9,6 +9,10 @@ expression: shacl
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Article> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/cites> ; sh:class <https://blackcatinformatics.ca/gmeow/Doc> ] .
 
+<https://blackcatinformatics.ca/gmeow/Doc-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Doc> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/primaryId> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/FinancialAccount-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bic> ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ; sh:maxLength 11 ; sh:minLength 8 ; sh:pattern "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$" ] .

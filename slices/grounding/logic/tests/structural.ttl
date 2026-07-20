@@ -49,19 +49,30 @@ ex:saTypedRelationsAssertNoCharacteristics a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    ?r a ?c .
-    FILTER (?r IN (
-        logic:epistemicallyPossible, logic:doxasticallyAccessible,
-        logic:deonticallyIdeal, logic:temporallySucceeds,
-        logic:counterfactuallyCloser
-    ))
-    FILTER (?c IN (
-        owl:TransitiveProperty, owl:SymmetricProperty, owl:ReflexiveProperty,
-        owl:IrreflexiveProperty, owl:FunctionalProperty,
-        owl:InverseFunctionalProperty, owl:AsymmetricProperty
-    ))
+    {
+        ?r a ?c .
+        FILTER (?r IN (
+            logic:epistemicallyPossible, logic:doxasticallyAccessible,
+            logic:deonticallyIdeal, logic:temporallySucceeds,
+            logic:counterfactuallyCloser
+        ))
+        FILTER (?c IN (
+            owl:TransitiveProperty, owl:SymmetricProperty, owl:ReflexiveProperty,
+            owl:IrreflexiveProperty, owl:FunctionalProperty,
+            owl:InverseFunctionalProperty, owl:AsymmetricProperty
+        ))
+    }
+    UNION
+    {
+        ?rec logic:characterizes ?r ; logic:characteristicSort logic:functionalProperty .
+        FILTER (?r IN (
+            logic:epistemicallyPossible, logic:doxasticallyAccessible,
+            logic:deonticallyIdeal, logic:temporallySucceeds,
+            logic:counterfactuallyCloser
+        ))
+    }
 }""" ;
-    gmeow:saRationale "No logic: kernel accessibility relation MUST assert an OWL property characteristic -- the kernel documents logical character (strict order, non-reflexivity) in prose, matching logic:accessibleFrom which asserts none. The gmeow:sharpens characteristic (owl:TransitiveProperty) lives in the standpoint slice, an intentional asymmetry." .
+    gmeow:saRationale "No logic: kernel accessibility relation MUST assert an OWL property characteristic -- the kernel documents logical character (strict order, non-reflexivity) in prose, matching logic:accessibleFrom which asserts none. The gmeow:sharpens characteristic (owl:TransitiveProperty) lives in the standpoint slice, an intentional asymmetry. Functionality is now carried on the logic: PropertyCharacteristicAssertion carrier, so the second UNION arm forbids a functional carrier over these accessibility relations (the deprecated owl:FunctionalProperty marker stays forbidden in the first arm as defence in depth)." .
 
 # --- 4. PossibleWorld and Path are TBox classes (MUST) ------------------------
 ex:saTypedContextKernelClasses a gmeow:StructuralAssertion ;
@@ -944,14 +955,14 @@ ASK {
     logic:TermCarrier a owl:Class .
     logic:argument rdfs:domain logic:ArgumentStructure ; rdfs:range logic:TermCarrier .
     logic:quantifiedVariable rdfs:domain logic:Formula ; rdfs:range logic:TermCarrier .
-    logic:termIndex rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
-    logic:termIri rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
-    logic:termVariable rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
-    logic:termLiteral rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
-    logic:termLiteralDatatype rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
-    logic:termSequenceMarker rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termIndex rdfs:domain logic:TermCarrier .
+    logic:termIri rdfs:domain logic:TermCarrier .
+    logic:termVariable rdfs:domain logic:TermCarrier .
+    logic:termLiteral rdfs:domain logic:TermCarrier .
+    logic:termLiteralDatatype rdfs:domain logic:TermCarrier .
+    logic:termSequenceMarker rdfs:domain logic:TermCarrier .
 }""" ;
-    gmeow:saRationale "The typed IR MUST distinguish general Formula trees, productive Rule nodes, and the TermCarrier RDF slots that preserve ordered term kinds. Every argument and binder points to a carrier; each carrier field is single-valued and domain-locked to TermCarrier, preventing the former error in which termLiteralDatatype classified its carrier as a Formula." .
+    gmeow:saRationale "The typed IR MUST distinguish general Formula trees, productive Rule nodes, and the TermCarrier RDF slots that preserve ordered term kinds. Every argument and binder points to a carrier; each carrier field is domain-locked to TermCarrier, preventing the former error in which termLiteralDatatype classified its carrier as a Formula." .
 
 # --- Formula and term constructors have executable exclusivity (MUST) -------
 ex:saTypedIrConstructorConstraints a gmeow:StructuralAssertion ;

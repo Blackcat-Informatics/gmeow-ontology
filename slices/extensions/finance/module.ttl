@@ -342,8 +342,7 @@ gmeow:accountNumber
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account type"@x-gmeow-english ;
@@ -389,8 +388,7 @@ gmeow:assetIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:assetType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Asset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "asset type"@x-gmeow-english ;
@@ -443,8 +441,7 @@ gmeow:bic
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding agent"@x-gmeow-english ;
@@ -453,8 +450,7 @@ gmeow:holdingAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAsset
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding asset"@x-gmeow-english ;
@@ -463,8 +459,7 @@ gmeow:holdingAsset
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingCostBasis
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding cost basis"@x-gmeow-english ;
@@ -482,8 +477,7 @@ gmeow:holdingPeriod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingQuantity
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding quantity"@x-gmeow-english ;
@@ -501,8 +495,7 @@ gmeow:iban
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceAmount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice amount"@x-gmeow-english ;
@@ -610,8 +603,7 @@ gmeow:ledgerAccountHolder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:LedgerAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account type"@x-gmeow-english ;
@@ -655,8 +647,7 @@ gmeow:ledgerAccountTypeRevenue
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:orderAmount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Order ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order amount"@x-gmeow-english ;
@@ -771,8 +762,7 @@ gmeow:paymentMethodCrypto
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:postingAccount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting account"@x-gmeow-english ;
@@ -781,8 +771,7 @@ gmeow:postingAccount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingAmount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting amount"@x-gmeow-english ;
@@ -791,8 +780,7 @@ gmeow:postingAmount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingDirection
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting direction"@x-gmeow-english ;
@@ -815,8 +803,7 @@ gmeow:postingDirectionDebit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:postingJournalEntry
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting journal entry"@x-gmeow-english ;
@@ -847,8 +834,7 @@ gmeow:rolePayer
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:transactionAmount
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:FinancialTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction amount"@x-gmeow-english ;
@@ -970,8 +956,7 @@ gmeow:walletKey
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletScheme
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CryptoWallet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet scheme"@x-gmeow-english ;

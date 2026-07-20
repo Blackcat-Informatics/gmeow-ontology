@@ -129,8 +129,7 @@ gmeow:depictionAuthority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionContext
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction context"@x-gmeow-english ;
@@ -236,8 +235,7 @@ gmeow:depictionContextWork
         gmeow:boxCBox .
 
 gmeow:depictionImage
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction image"@x-gmeow-english ;
@@ -255,8 +253,7 @@ gmeow:depictionInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction subject"@x-gmeow-english ;
@@ -268,8 +265,7 @@ gmeow:depicts
     gmeow:pairsWith gmeow:DepictionUsage .
 
 gmeow:exifTagId
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag id"@x-gmeow-english ;
@@ -278,8 +274,7 @@ gmeow:exifTagId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:exifTagValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag value"@x-gmeow-english ;
@@ -325,8 +320,7 @@ gmeow:regionLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionOf
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region of"@x-gmeow-english ;
@@ -336,8 +330,7 @@ gmeow:regionOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionSelector
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region selector"@x-gmeow-english ;
@@ -346,8 +339,7 @@ gmeow:regionSelector
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneConfidence
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene confidence"@x-gmeow-english ;
@@ -357,8 +349,7 @@ gmeow:sceneConfidence
         gmeow:boxRBox .
 
 gmeow:sceneObject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene object"@x-gmeow-english ;
@@ -367,8 +358,7 @@ gmeow:sceneObject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneRelation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene relation"@x-gmeow-english ;
@@ -482,8 +472,7 @@ gmeow:sceneRelationWearing
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sceneSubject
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene subject"@x-gmeow-english ;
@@ -492,8 +481,7 @@ gmeow:sceneSubject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectorType
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:RegionSelector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selector type"@x-gmeow-english ;

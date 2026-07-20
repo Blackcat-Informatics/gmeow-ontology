@@ -394,6 +394,112 @@ fn prose_annotation_rides_by_reference() {
     );
 }
 
+// ── 9c. A raw external IRI (under no registered namespace) rides by reference ───────
+
+#[test]
+fn external_iri_reference_rides_by_reference() {
+    // G11 (issue 1579): an IRI under NO registered namespace — a realistic external URL
+    // like an account's `gmeow:accountServiceHomepage <https://mastodon.social>` — no
+    // longer hard-fails as `lang:GmnUncoveredTerm`. It rides LOSSLESSLY by reference as an
+    // `x_<hash>` token, its full IRI carried out-of-band in the reference table, mirroring
+    // the literal-by-reference machinery so per-slice axisGmn1Coverage reaches full
+    // coverage over such URLs.
+    let external = "https://mastodon.social";
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}account1"));
+    let p = b.intern_iri(&format!("{GMEOW}accountServiceHomepage"));
+    let o = b.intern_iri(external);
+    b.push_quad(s, p, o, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    // Primary assertion: the round-trip is canonically exact.
+    round_trip_check(&model, &dictionary)
+        .expect("an external IRI in reference position must round-trip losslessly");
+
+    // The surface names the IRI via an `x_` reference token and NEVER inlines the raw URL.
+    let document = gmn1_write(&model, &dictionary).expect("external-IRI reference writes");
+    assert!(
+        document.text.contains("o: x_"),
+        "the external IRI must ride by reference as an x_ token:\n{}",
+        document.text
+    );
+    assert!(
+        !document.text.contains("mastodon.social"),
+        "the raw external URL must never appear inline in the record text:\n{}",
+        document.text
+    );
+
+    // Reconstruct and compare canonically, then assert byte-idempotence.
+    let reconstructed = gmn1_read(&document, &dictionary).expect("external IRI reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "reconstructed model must be canonically equal to the original"
+    );
+    let rewritten = gmn1_write(&reconstructed, &dictionary).expect("rewrite");
+    assert_eq!(
+        document.text, rewritten.text,
+        "gmn1_read then gmn1_write must reproduce the same bytes (idempotence)"
+    );
+}
+
+// ── 9d. Two distinct external IRIs produce distinct tokens + distinct models ─────────
+
+#[test]
+fn distinct_external_iris_produce_distinct_tokens_and_models() {
+    // Guards the digest-collision assumption: two DIFFERENT external IRIs must mint two
+    // DIFFERENT `x_<hash>` tokens (a collision would surface as a round-trip mismatch).
+    let one = "https://mastodon.social";
+    let two = "https://bsky.app";
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW}account1"));
+    let p = b.intern_iri(&format!("{GMEOW}accountServiceHomepage"));
+    let o1 = b.intern_iri(one);
+    let o2 = b.intern_iri(two);
+    b.push_quad(s, p, o1, None);
+    b.push_quad(s, p, o2, None);
+    let ds = b.freeze().expect("freeze");
+    let model = Gmn0Model::from_dataset(&ds);
+    let dictionary = dict();
+
+    round_trip_check(&model, &dictionary)
+        .expect("two distinct external IRIs must round-trip losslessly");
+
+    let document = gmn1_write(&model, &dictionary).expect("distinct external IRIs write");
+    // Collect the distinct `x_<hash>` tokens the surface names.
+    let tokens: std::collections::BTreeSet<&str> = document
+        .text
+        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+        .filter(|tok| tok.starts_with("x_") && tok.len() > 2)
+        .collect();
+    assert_eq!(
+        tokens.len(),
+        2,
+        "two distinct external IRIs must mint two distinct x_ tokens:\n{}",
+        document.text
+    );
+
+    // The reconstructed model must carry BOTH distinct external IRIs.
+    let reconstructed = gmn1_read(&document, &dictionary).expect("reads back");
+    assert!(
+        gmn0_canonically_equal(&model, &reconstructed),
+        "the reconstructed model must be canonically equal to the original"
+    );
+    let objects: std::collections::BTreeSet<String> = reconstructed
+        .quads
+        .iter()
+        .filter_map(|q| match &q.object {
+            purrdf::RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        objects.contains(one) && objects.contains(two),
+        "both distinct external IRIs must survive the round-trip: {objects:?}"
+    );
+}
+
 // ── 10. Each new Task-5 qualifier slot at least once (m, ek, bd, it) ───────────────
 
 #[test]

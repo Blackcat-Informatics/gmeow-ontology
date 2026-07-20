@@ -71,8 +71,7 @@ gmeow:SensoryPerception
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:coordinateMatrixFrame
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "coordinate matrix frame"@x-gmeow-english ;
@@ -91,8 +90,7 @@ gmeow:environmentAtInstant
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:environmentAtLocation
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SensoryEnvironment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "environment at location"@x-gmeow-english ;
@@ -128,8 +126,7 @@ gmeow:hasPerceivedCondition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:matrixShape
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrix shape"@x-gmeow-english ;
@@ -138,8 +135,7 @@ gmeow:matrixShape
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:matrixValue
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CoordinateMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrix value"@x-gmeow-english ;
@@ -148,8 +144,7 @@ gmeow:matrixValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:perceptionEnvironment
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perception environment"@x-gmeow-english ;
@@ -159,8 +154,7 @@ gmeow:perceptionEnvironment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:perceptionModality
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:SensoryPerception ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perception modality"@x-gmeow-english ;

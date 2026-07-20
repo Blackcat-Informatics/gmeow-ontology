@@ -120,8 +120,7 @@ gmeow:commitmentBeneficiary
     gmeow:useWhen "Use to name an agent toward whom a Commitment is made — the recipient side of the social bond, repeated when several beneficiaries share one commitment."@x-gmeow-english .
 
 gmeow:committedAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Commitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "committed agent"@x-gmeow-english ;
@@ -162,8 +161,7 @@ gmeow:hasGoal
     gmeow:useWhen "Use for the 80% case (Principle 4): an agent holds a goal and neither the commitment grade nor its tenure over time needs to be first-class — the flat half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair."@x-gmeow-english .
 
 gmeow:intentBearer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intent bearer"@x-gmeow-english ;
@@ -176,8 +174,7 @@ gmeow:intentBearer
     gmeow:useWhen "Use to name the single agent in whom a Desire or Intention inheres — the bearer side of the intrinsic branch."@x-gmeow-english .
 
 gmeow:intentionGoal
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMoment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intention goal"@x-gmeow-english ;
@@ -221,8 +218,7 @@ gmeow:satisfiedBy
     gmeow:useWhen "Use to record that a particular situation counts as achieving a goal — the achievement link a renderer or planner reads to ask whether a goal has been met."@x-gmeow-english .
 
 gmeow:tenureAgent
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure agent"@x-gmeow-english ;
@@ -235,8 +231,7 @@ gmeow:tenureAgent
     gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single agent whose holding-over-time it records."@x-gmeow-english .
 
 gmeow:tenureIntention
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure intention"@x-gmeow-english ;

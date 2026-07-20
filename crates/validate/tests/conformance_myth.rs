@@ -49,7 +49,6 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
-const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 fn gmeow(local: &str) -> String {
     format!("{GMEOW}{local}")
@@ -185,7 +184,10 @@ fn has_myth_telling_domain_range() {
 fn myth_frame_is_functional() {
     let g = GraphStore::ontology();
     let prop = gmeow("mythFrame");
-    assert!(g.has(Some(&prop), Some(RDF_TYPE), Some(OWL_FUNCTIONAL_PROPERTY)));
+    assert!(
+        g.is_functional_carrier(&prop),
+        "gmeow:mythFrame must carry a logic: functionalProperty characteristic"
+    );
     assert!(g.has(Some(&prop), Some(RDFS_DOMAIN), Some(&gmeow("Myth"))));
     assert!(g.has(
         Some(&prop),

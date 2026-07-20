@@ -71,19 +71,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:KnowledgeProficiency MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified leveled depth-of-knowledge relator binding agent x subject x level x scale (mirrors gmeow:SkillProficiency)." .
 
-# --- 3. The four KnowledgeProficiency role properties are functional (MUST) ---
+# --- 3. The four KnowledgeProficiency role properties are ObjectProperties (MUST) ---
 ex:saKnowledgeProficiencyRolesAreFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:knowledgeProficiencyAgent   a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:knowledgeProficiencySubject a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:knowledgeProficiencyLevel   a owl:ObjectProperty , owl:FunctionalProperty .
-    gmeow:knowledgeProficiencyScale   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:knowledgeProficiencyAgent   a owl:ObjectProperty .
+    gmeow:knowledgeProficiencySubject a owl:ObjectProperty .
+    gmeow:knowledgeProficiencyLevel   a owl:ObjectProperty .
+    gmeow:knowledgeProficiencyScale   a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:knowledgeProficiencyAgent, knowledgeProficiencySubject, knowledgeProficiencyLevel, and knowledgeProficiencyScale MUST all be owl:ObjectProperty and owl:FunctionalProperty -- each is constitutive of the relator (exactly one value per role)." .
+    gmeow:saRationale "gmeow:knowledgeProficiencyAgent, knowledgeProficiencySubject, knowledgeProficiencyLevel, and knowledgeProficiencyScale MUST all be owl:ObjectProperty -- each is constitutive of the relator (one value per role; their functionality is now carried by logic:PropertyCharacteristicAssertions, DL-enforced)." .
 
 # --- 4. knowledgeProficiencyInterval is ObjectProperty but NOT functional -----
 ex:saKnowledgeProficiencyIntervalIsOptional a gmeow:StructuralAssertion ;
@@ -101,8 +101,9 @@ ex:saKnowledgeProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:knowledgeProficiencyInterval a owl:FunctionalProperty .
+    ?fpRec logic:characterizes gmeow:knowledgeProficiencyInterval ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:knowledgeProficiencyInterval MUST NOT be owl:FunctionalProperty -- several temporal spans may attach to one relator (non-functional; the suppression-not-deletion doctrine, Principle 10)." .
 

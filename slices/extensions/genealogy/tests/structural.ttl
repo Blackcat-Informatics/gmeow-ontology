@@ -68,7 +68,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role." .
 
-# --- 4. relationshipParent subPropertyOf observedFeature, functional (MUST) --
+# --- 4. relationshipParent subPropertyOf observedFeature (MUST) --
 ex:saRelationshipParentBridge a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -76,14 +76,14 @@ ex:saRelationshipParentBridge a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:relationshipParent a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:relationshipParent a owl:ObjectProperty ;
         rdfs:subPropertyOf gmeow:observedFeature ;
         rdfs:domain gmeow:ParentChildRelationship ;
         rdfs:range gmeow:Person .
 }""" ;
-    gmeow:saRationale "gmeow:relationshipParent MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- the parent role exposes the parent as an observation feature so the universal query path sees it; functional because each reified relationship has exactly one parent." .
+    gmeow:saRationale "gmeow:relationshipParent MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- the parent role exposes the parent as an observation feature so the universal query path sees it." .
 
-# --- 5. relationshipChild subPropertyOf observedFeature, functional (MUST) ---
+# --- 5. relationshipChild subPropertyOf observedFeature (MUST) ---
 ex:saRelationshipChildBridge a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -91,12 +91,12 @@ ex:saRelationshipChildBridge a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:relationshipChild a owl:ObjectProperty , owl:FunctionalProperty ;
+    gmeow:relationshipChild a owl:ObjectProperty ;
         rdfs:subPropertyOf gmeow:observedFeature ;
         rdfs:domain gmeow:ParentChildRelationship ;
         rdfs:range gmeow:Person .
 }""" ;
-    gmeow:saRationale "gmeow:relationshipChild MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- symmetrical to relationshipParent; exposes the child end as an observation feature; functional because a reified relationship has exactly one child slot." .
+    gmeow:saRationale "gmeow:relationshipChild MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- symmetrical to relationshipParent; exposes the child end as an observation feature." .
 
 # --- 6. hasPartner subPropertyOf observedFeature (MUST) ----------------------
 ex:saHasPartnerBridge a gmeow:StructuralAssertion ;

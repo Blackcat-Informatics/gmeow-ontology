@@ -181,30 +181,16 @@ ASK {
 }""" ;
     gmeow:saRationale "The owl:AllDisjointClasses set containing gmeow:Desire MUST NOT carry any member other than gmeow:Desire and gmeow:Intention — the original asserted the set is EXACTLY {Desire, Intention} (closed ==), so a third member (e.g. a future Commitment erroneously folded in) is forbidden." .
 
-# --- 10. intentBearer, committedAgent, intentionGoal, tenureAgent, tenureIntention are functional (MUST) ---
-ex:saFunctionalProperties a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK {
-    gmeow:intentBearer    a owl:FunctionalProperty .
-    gmeow:committedAgent  a owl:FunctionalProperty .
-    gmeow:intentionGoal   a owl:FunctionalProperty .
-    gmeow:tenureAgent     a owl:FunctionalProperty .
-    gmeow:tenureIntention a owl:FunctionalProperty .
-}""" ;
-    gmeow:saRationale "gmeow:intentBearer, committedAgent, intentionGoal, tenureAgent, and tenureIntention MUST all be owl:FunctionalProperty — each intrinsic/social mode has exactly one bearer, one committed agent, one goal, one tenure-agent, and one tenure-mode (native single-bearer doctrine, Principle 5)." .
-
 # --- 11. commitmentBeneficiary, satisfiedBy, motivates, hasGoal are NOT functional (MUST-NOT) ---
 ex:saNonFunctionalProperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:commitmentBeneficiary gmeow:satisfiedBy gmeow:motivates gmeow:hasGoal }
-    ?p a owl:FunctionalProperty .
+    ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:commitmentBeneficiary, satisfiedBy, motivates, and hasGoal MUST NOT be owl:FunctionalProperty — coexistence of beneficiaries, satisfaction verdicts, attributed motives, and held goals is the point (Principle 9)." .
 

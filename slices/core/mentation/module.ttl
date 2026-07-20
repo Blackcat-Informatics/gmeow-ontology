@@ -56,8 +56,7 @@ gmeow:MentalProcessType
     gmeow:useWhen "Use as the value vocabulary for the kind of a mental process — referenced from gmeow:mentalProcessType to tag an episode as perception, reasoning, imagining, dreaming, and so on (the gmeow:EventType idiom)."@x-gmeow-english .
 
 gmeow:experiencer
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "experiencer"@x-gmeow-english ;

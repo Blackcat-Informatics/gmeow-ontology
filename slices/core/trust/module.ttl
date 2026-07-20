@@ -147,8 +147,7 @@ gmeow:accountKey
     gmeow:useWhen "Use to join a decentralized-identity account to the key that identifies it — promoting an account's raw pubkey literal (e.g. a Nostr nostrPubkey) into a first-class gmeow:CryptographicKey."@x-gmeow-english .
 
 gmeow:certificationLevel
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certification level"@x-gmeow-english ;
@@ -161,8 +160,7 @@ gmeow:certificationLevel
     gmeow:useWhen "Use to record how carefully a certifier verified the binding — the OpenPGP certification level (generic, persona, casual, positive) that signals the rigour behind the attestation."@x-gmeow-english .
 
 gmeow:certifiedIdentity
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certified identity"@x-gmeow-english ;
@@ -175,8 +173,7 @@ gmeow:certifiedIdentity
     gmeow:useWhen "Use to name the agent identity a certification binds the key to — the identity half of the attested key↔identity binding."@x-gmeow-english .
 
 gmeow:certifiedKey
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certified key"@x-gmeow-english ;
@@ -189,8 +186,7 @@ gmeow:certifiedKey
     gmeow:useWhen "Use to name the cryptographic key a certification vouches for — the key half of the attested key↔identity binding."@x-gmeow-english .
 
 gmeow:certifier
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifier"@x-gmeow-english ;
@@ -242,8 +238,7 @@ gmeow:holdsKey
     gmeow:useWhen "Use to record that an agent holds a cryptographic key — the holder-to-key edge that a signature's gmeow:signingKey and a certification's gmeow:certifiedKey both reference."@x-gmeow-english .
 
 gmeow:introducerAmount
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducer amount"@x-gmeow-english ;
@@ -256,8 +251,7 @@ gmeow:introducerAmount
     gmeow:useWhen "Use to record the weight a trustor assigns to a trustee as an introducer — the OpenPGP trust-signature amount a projection metric accumulates toward a validity threshold."@x-gmeow-english .
 
 gmeow:introducerDepth
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducer depth"@x-gmeow-english ;
@@ -322,8 +316,7 @@ gmeow:keyMaterial
     gmeow:useWhen "Use to carry the actual public key bytes — armored or hex form — when the key material itself must travel with the entity rather than only a fingerprint reference."@x-gmeow-english .
 
 gmeow:keyScheme
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key scheme"@x-gmeow-english ;
@@ -364,8 +357,7 @@ gmeow:keySchemeX509
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:signatureAlgorithm
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signature algorithm"@x-gmeow-english ;
@@ -391,8 +383,7 @@ gmeow:signedBy
     gmeow:useWhen "Use to name the agent or signing identity that produced a signature — the WHO of the signing act, complementing the WHICH-KEY of gmeow:signingKey."@x-gmeow-english .
 
 gmeow:signingDomain
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signing domain"@x-gmeow-english ;
@@ -405,8 +396,7 @@ gmeow:signingDomain
     gmeow:useWhen "Use to record the domain a signature asserts on behalf of — the DKIM d= tag and like domain-scoped signing claims."@x-gmeow-english .
 
 gmeow:signingKey
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signing key"@x-gmeow-english ;
@@ -419,8 +409,7 @@ gmeow:signingKey
     gmeow:useWhen "Use to name the cryptographic key that produced a signature — the WHICH-KEY half of the signing act, the key whose binding to the signer a certification vouches for."@x-gmeow-english .
 
 gmeow:trustLevel
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trust level"@x-gmeow-english ;
@@ -433,8 +422,7 @@ gmeow:trustLevel
     gmeow:useWhen "Use to record the degree of owner-trust a trustor expresses in a trustee — the OpenPGP level (ultimate, full, marginal, none) that bounds how much weight an introducer carries."@x-gmeow-english .
 
 gmeow:trustee
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustee"@x-gmeow-english ;
@@ -447,8 +435,7 @@ gmeow:trustee
     gmeow:useWhen "Use to name the agent that is trusted in a trust assertion — the trustee the trustor vouches for or designates as an introducer."@x-gmeow-english .
 
 gmeow:trustor
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustor"@x-gmeow-english ;
@@ -461,8 +448,7 @@ gmeow:trustor
     gmeow:useWhen "Use to name the agent FROM WHOSE standpoint a trust assertion is held — the frame holder whose subjective trust the relator expresses (the trust-side counterpart of gmeow:accordingTo)."@x-gmeow-english .
 
 gmeow:verificationStatus
-    a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "verification status"@x-gmeow-english ;

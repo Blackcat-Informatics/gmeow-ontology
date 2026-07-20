@@ -2244,15 +2244,13 @@ pub fn derive_validation_shapes(
     }
 
     // ── FAMILY 3 — property-level axioms (SubjectsOf(P) / ObjectsOf(P) targets) ────────────
-    // Collect every GMEOW-NS property: the four OWL property-type declarations plus any subject
-    // of rdfs:domain / rdfs:range.
+    // Collect every GMEOW-NS property: the OWL object/datatype property-type declarations plus any
+    // subject of rdfs:domain / rdfs:range. The functional / inverse-functional characteristics are
+    // NOT seeded here — they are read from the canonical `logic:` carrier below (a functional-only
+    // property, e.g. gmeow:unit, is discovered straight from its characteristic-assertion record,
+    // not from a property-type marker).
     let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for ty in [
-        "ObjectProperty",
-        "DatatypeProperty",
-        "FunctionalProperty",
-        "InverseFunctionalProperty",
-    ] {
+    for ty in ["ObjectProperty", "DatatypeProperty"] {
         for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
             if let Subject::Iri(iri) = &s
                 && is_authoring_ns(iri)
@@ -2272,8 +2270,6 @@ pub fn derive_validation_shapes(
         }
     }
 
-    let functional = Node::iri(format!("{owl}FunctionalProperty"));
-    let inverse_functional = Node::iri(format!("{owl}InverseFunctionalProperty"));
     for p in &props {
         if optouts.contains(p) {
             continue;
@@ -2356,63 +2352,123 @@ pub fn derive_validation_shapes(
                 }
             }
         }
-        // owl:FunctionalProperty → each subject of P has ≤1 value (sh:maxCount 1 on P). A
-        // functional/inverse-functional axiom is a genuine closed-world cardinality bound (it
-        // constrains, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure
-        // opt-out), independent of the domain/range opt-in above.
-        if contains(store, &p_subj, &nn(RDF_TYPE), &functional) {
+    }
+
+    // ── Functional / inverse-functional characteristics — read from the canonical logic: carrier ──
+    // The `owl:FunctionalProperty` / `owl:InverseFunctionalProperty` property-type markers are a
+    // DEPRECATED projection source; the single authority is the `logic:PropertyCharacteristicAssertion`
+    // record that joins `logic:characterizes` (the characterized property P) with
+    // `logic:characteristicSort` (the marker) — the same carrier the native coherence gate reads.
+    // A functional/inverse-functional characteristic is a genuine closed-world cardinality bound (it
+    // CONSTRAINS, it does not merely infer), so it stays derive-all (+ the OpenWorldClosure opt-out),
+    // independent of the domain/range opt-in above. The functional cap lands on BOTH the
+    // property-scoped SubjectsOf(P) domain shape AND — so the declarative class-node reader
+    // (Pydantic / ShEx) narrows the field to scalar — every rdfs:domain class node shape of P. A
+    // property with NO rdfs:domain (e.g. gmeow:unit) keeps ONLY the property-scoped cap; no class
+    // node shape is fabricated. The merge (`merge_same_path_properties`) folds the class-scoped cap
+    // cleanly into any restriction the class already authored on P.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes) else {
+            continue;
+        };
+        if optouts.contains(&prop) {
+            continue;
+        }
+        let sorts = objects(store, &rec, &p_characteristic_sort);
+        let prop_subj = Subject::Iri(prop.clone());
+        if sorts.contains(&functional_sort) {
+            // Property-scoped cap: each subject of P has ≤1 value (sh:maxCount 1 on P).
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?;
-            entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::SubjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            // Class-scoped cap: the same maxCount-1 on each rdfs:domain class node shape, so the
+            // class-node reader narrows the Python field to scalar.
+            for c in objects(store, &prop_subj, &p_domain) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?;
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
-        // owl:InverseFunctionalProperty → each object of P has ≤1 subject (inverse sh:maxCount 1).
-        if contains(store, &p_subj, &nn(RDF_TYPE), &inverse_functional) {
+        if sorts.contains(&inverse_functional_sort) {
+            // Inverse-functional: each object of P has ≤1 subject via P (inverse sh:maxCount 1), on
+            // both the property-scoped ObjectsOf(P) shape and each rdfs:range class node shape.
             let pc = PropertyConstraintIr::new(
-                p,
+                &prop,
                 None,
                 Some(1),
                 Some(ConstraintProvenance::OwlRestriction),
                 vec![],
             )?
             .inverted();
-            entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
+            entry_for(&mut acc, ShapeTarget::ObjectsOf(prop.clone()))
                 .2
                 .push(pc);
+            for c in objects(store, &prop_subj, &p_range) {
+                if let Node::Iri(c) = c
+                    && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                {
+                    let pc = PropertyConstraintIr::new(
+                        &prop,
+                        None,
+                        Some(1),
+                        Some(ConstraintProvenance::OwlRestriction),
+                        vec![],
+                    )?
+                    .inverted();
+                    entry_for(&mut acc, ShapeTarget::Class(c)).2.push(pc);
+                }
+            }
         }
     }
 
-    // ── FAMILY 4 — owl:hasKey (single-property keys → inverse-functional reading) ──────────
-    // `K owl:hasKey ( P )` says the value of P uniquely identifies the K instance — the DL 2
-    // way to state a datatype/single-property key (an `owl:InverseFunctionalProperty` on a
-    // datatype property would be OWL 2 Full). Its closed-world reading is the same inverse
-    // `sh:maxCount 1` (each P-value has ≤1 subject via P) the InverseFunctionalProperty arm
-    // emits. A COMPOSITE key (`owl:hasKey ( P1 P2 … )`) asserts the TUPLE is unique, not each
-    // part — it has no single-path SHACL form, so it is carried in the canon and no shape is
-    // derived (never a wrong per-part uniqueness claim).
-    let haskey_iri = format!("{owl}hasKey");
-    let p_haskey = nn(&haskey_iri);
-    let mut haskey_classes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for q in default_graph_quads(store) {
-        if q.predicate.as_str() == haskey_iri
-            && let Subject::Iri(iri) = &q.subject
-            && is_authoring_ns(iri)
-        {
-            haskey_classes.insert(iri.clone());
-        }
-    }
-    for class_iri in &haskey_classes {
-        let k = Subject::Iri(class_iri.clone());
-        let Some(list_head) = value(store, &k, &p_haskey) else {
+    // ── FAMILY 4 — logic:KeyAssertion (single-property keys → inverse-functional reading) ──────
+    // A `logic:KeyAssertion` record (`logic:keyClass C`, `logic:keyProperty P`) says the value of P
+    // uniquely identifies the C instance — the canonical logic: carrier of a datatype/single-property
+    // key (the DEPRECATED `owl:hasKey ( P )` OWL-DL axiom is its lossy view, no longer a projection
+    // source; an `owl:InverseFunctionalProperty` on a datatype property would be OWL 2 Full). Its
+    // closed-world reading is the same inverse `sh:maxCount 1` (each P-value has ≤1 subject via P) the
+    // InverseFunctionalProperty arm emits. A COMPOSITE key (a record naming several `logic:keyProperty`
+    // values) asserts the TUPLE is unique, not each part — it has no single-path SHACL form, so it is
+    // carried in the canon and no shape is derived (never a wrong per-part uniqueness claim).
+    let key_assertion_ty = Node::iri(logic_iri("KeyAssertion"));
+    let p_key_class = nn(&logic_iri("keyClass"));
+    let p_key_property = nn(&logic_iri("keyProperty"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &key_assertion_ty) {
+        // The keyed class must be GMEOW-owned (the dogfooding guard every family applies).
+        let Some(Node::Iri(class_iri)) = value(store, &rec, &p_key_class) else {
             continue;
         };
-        let keys = read_iri_list(store, &list_head);
+        if !is_authoring_ns(&class_iri) {
+            continue;
+        }
+        let keys: Vec<String> = objects(store, &rec, &p_key_property)
+            .into_iter()
+            .filter_map(|o| match o {
+                Node::Iri(i) => Some(i),
+                _ => None,
+            })
+            .collect();
         // Single-property key only; a composite key has no single-path uniqueness shape.
         if let [key_prop] = keys.as_slice() {
             if optouts.contains(key_prop) {
@@ -2702,6 +2758,262 @@ pub fn derive_validation_shapes(
         shapes.push(shape);
     }
     Ok(shapes)
+}
+
+/// The authoring-completeness invariant for the functional-characteristic carrier migration.
+///
+/// Every `gmeow:` property still declared `owl:FunctionalProperty` MUST also carry a
+/// `logic:PropertyCharacteristicAssertion` record whose `logic:characteristicSort` is
+/// `logic:functionalProperty` and whose `logic:characterizes` names it — the canonical carrier the
+/// SHACL/Pydantic projection now reads (the `owl:FunctionalProperty` marker is a deprecated,
+/// no-longer-projected source). A property in the returned set is an AUTHORING GAP: its
+/// functionality would silently vanish from the derived projection because no carrier record
+/// grounds it. Returned sorted (BTreeSet) for a deterministic diagnostic; a non-empty result is a
+/// HARD FAIL on the sync path, never a soft warning — the caller must stop, not degrade.
+///
+/// The live sync-path caller is the `stage-compile-logic` shape-derivation stage
+/// (`crates/pipeline/src/stages/compile_logic.rs`), which runs this over the merged authored
+/// corpus and returns `Err` if the set is non-empty. Post-removal of the `owl:FunctionalProperty`
+/// slice sources it is vacuously satisfied (nothing is `declared`), so it guards RE-introduction.
+pub fn functional_properties_missing_logic_carrier(
+    store: &RdfDataset,
+) -> std::collections::BTreeSet<String> {
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    let owl_functional = Node::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
+    // Every gmeow:-owned property carrying the deprecated OWL functional marker.
+    let mut declared: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for s in subjects_with(store, &nn(RDF_TYPE), &owl_functional) {
+        if let Subject::Iri(iri) = &s
+            && iri.starts_with(GMEOW_NS)
+        {
+            declared.insert(iri.clone());
+        }
+    }
+    // Every property named by a functional-sort characteristic-assertion carrier record.
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut carried: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            carried.insert(prop);
+        }
+    }
+    declared.difference(&carried).cloned().collect()
+}
+
+// --------------------------------------------------------------------------- //
+// Functional-carrier integrity (migration-surviving, non-vacuous)
+// --------------------------------------------------------------------------- //
+
+/// The frozen completeness ledger of every property that MUST bear a functional
+/// `logic:PropertyCharacteristicAssertion` carrier — one canonical IRI per line, sorted, with `#`
+/// comment lines and blank lines ignored.
+///
+/// This is a DELIBERATE, human-blessed committed artifact, exactly like the `dl_oracle_gold`
+/// frozen verdicts and the `reasoning_session_semver` drift-pins: it is NEVER auto-updated. Any
+/// property that gains or loses a functional carrier moves this file in the SAME commit that moves
+/// the carrier, a conscious re-bless the author performs by hand. The
+/// [`functional_carrier_integrity`] gate asserts current-set == ledger and hard-fails on any drift
+/// (a silently-dropped or unexpectedly-added carrier), so a drift can never land unnoticed.
+///
+/// # Re-blessing (a deliberate human act)
+///
+/// When a functional carrier is intentionally added or removed, regenerate this file from the
+/// current corpus and commit it alongside the carrier change. The set is exactly the
+/// `logic:characterizes` targets of the `logic:functionalProperty`-sort
+/// `logic:PropertyCharacteristicAssertion` records over the merged authored corpus (see
+/// [`functional_carrier_property_iris`]); the pinning test `functional_carrier_ledger_matches_corpus`
+/// (in `crates/pipeline/tests`) prints the exact expected body on a mismatch.
+const FUNCTIONAL_CARRIER_LEDGER: &str = include_str!("frontend/functional_carrier_ledger.txt");
+
+/// Parse [`FUNCTIONAL_CARRIER_LEDGER`] into its sorted IRI set (ignoring `#` comments / blanks).
+fn functional_carrier_ledger() -> std::collections::BTreeSet<String> {
+    FUNCTIONAL_CARRIER_LEDGER
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// The RDF/OWL types whose subject "exists as a declared property" for the orphan check: an
+/// `rdf:Property` or any of its OWL sub-kinds. This is the property-declaration reading the
+/// validation-shape derivation uses (`owl:ObjectProperty` / `owl:DatatypeProperty`), widened to
+/// the full property-declaration vocabulary so a carrier target declared with ANY property type is
+/// recognised, and a merely misspelled / never-declared target is not.
+const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/2002/07/owl#FunctionalProperty",
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+    "http://www.w3.org/2002/07/owl#TransitiveProperty",
+    "http://www.w3.org/2002/07/owl#SymmetricProperty",
+    "http://www.w3.org/2002/07/owl#AsymmetricProperty",
+    "http://www.w3.org/2002/07/owl#ReflexiveProperty",
+    "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
+];
+
+/// Every functional carrier record's `logic:characterizes` target, as a property → carrier-count
+/// multiset over the store. A property named functional by two distinct
+/// `logic:PropertyCharacteristicAssertion` records appears with count 2 (the duplicate signal).
+fn functional_carrier_multiset(store: &RdfDataset) -> std::collections::BTreeMap<String, usize> {
+    let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
+    let functional_sort = Node::iri(logic_iri("functionalProperty"));
+    let p_characterizes = nn(&logic_iri("characterizes"));
+    let p_characteristic_sort = nn(&logic_iri("characteristicSort"));
+    let mut counts: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for rec in subjects_with(store, &nn(RDF_TYPE), &char_assertion_ty) {
+        if objects(store, &rec, &p_characteristic_sort).contains(&functional_sort)
+            && let Some(Node::Iri(prop)) = value(store, &rec, &p_characterizes)
+        {
+            *counts.entry(prop).or_insert(0) += 1;
+        }
+    }
+    counts
+}
+
+/// The set of properties bearing at least one functional carrier record — the exact set the
+/// completeness ledger pins. Sorted and deterministic; this is the generator a re-bless copies
+/// into `frontend/functional_carrier_ledger.txt`.
+pub fn functional_carrier_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    functional_carrier_multiset(store).into_keys().collect()
+}
+
+/// Every subject typed as an RDF/OWL property (see [`PROPERTY_DECLARATION_TYPES`]).
+fn declared_property_iris(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+    let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for ty in PROPERTY_DECLARATION_TYPES {
+        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(ty)) {
+            if let Subject::Iri(iri) = s {
+                props.insert(iri);
+            }
+        }
+    }
+    props
+}
+
+/// A single functional-carrier integrity violation, each a HARD FAIL on the sync path.
+///
+/// The variants make the migration-surviving completeness invariant NON-VACUOUS: unlike the bare
+/// [`functional_properties_missing_logic_carrier`] RE-introduction guard (vacuous once the
+/// `owl:FunctionalProperty` markers were removed), these bite against the LIVE carrier corpus.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FunctionalCarrierViolation {
+    /// A property still typed `owl:FunctionalProperty` with no functional carrier record — the
+    /// original RE-introduction regression guard, retained.
+    ReintroducedOwlMarker { property: String },
+    /// A functional carrier's `logic:characterizes` names an IRI that is not a declared property
+    /// anywhere in the store (a misspelled / never-declared target).
+    OrphanCarrier { property: String },
+    /// A property is named functional by more than one carrier record.
+    DuplicateCarrier { property: String, count: usize },
+    /// A property is in the frozen ledger but bears NO functional carrier now — a silently-dropped
+    /// carrier.
+    LedgerMissing { property: String },
+    /// A property bears a functional carrier but is ABSENT from the frozen ledger — an unexpected
+    /// new carrier that was never blessed.
+    LedgerUnexpected { property: String },
+}
+
+impl fmt::Display for FunctionalCarrierViolation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FunctionalCarrierViolation::ReintroducedOwlMarker { property } => write!(
+                f,
+                "re-introduced owl:FunctionalProperty on {property} without a \
+                 logic:PropertyCharacteristicAssertion functionalProperty carrier record"
+            ),
+            FunctionalCarrierViolation::OrphanCarrier { property } => write!(
+                f,
+                "orphan functional carrier: logic:characterizes names {property}, which is not a \
+                 declared rdf:Property / owl:ObjectProperty / owl:DatatypeProperty in the corpus"
+            ),
+            FunctionalCarrierViolation::DuplicateCarrier { property, count } => write!(
+                f,
+                "duplicate functional carrier: {property} is named functional by {count} \
+                 PropertyCharacteristicAssertion records (exactly one is required)"
+            ),
+            FunctionalCarrierViolation::LedgerMissing { property } => write!(
+                f,
+                "completeness drift: {property} is in the frozen functional-carrier ledger but \
+                 bears no functional carrier now (a silently-dropped carrier); re-bless the \
+                 ledger only if this drop is intended"
+            ),
+            FunctionalCarrierViolation::LedgerUnexpected { property } => write!(
+                f,
+                "completeness drift: {property} bears a functional carrier but is absent from the \
+                 frozen functional-carrier ledger (an unexpected new carrier); re-bless the \
+                 ledger only if this addition is intended"
+            ),
+        }
+    }
+}
+
+/// The migration-surviving functional-carrier integrity gate — the NON-VACUOUS successor to
+/// [`functional_properties_missing_logic_carrier`].
+///
+/// It runs four checks over the merged authored corpus and returns every violation, sorted
+/// deterministically (each kind is drawn from a `BTree*`, so the diagnostic bytes are stable):
+///
+/// 1. **RE-introduction guard** (retained) — any property still typed `owl:FunctionalProperty`
+///    with no functional carrier ([`FunctionalCarrierViolation::ReintroducedOwlMarker`]).
+/// 2. **Orphan carrier** — a carrier `logic:characterizes` target that is not a declared property
+///    ([`FunctionalCarrierViolation::OrphanCarrier`]).
+/// 3. **Duplicate carrier** — a property named functional by more than one record
+///    ([`FunctionalCarrierViolation::DuplicateCarrier`]).
+/// 4. **Positive completeness ledger** — the set of carrier-bearing properties must equal the
+///    committed frozen ledger; any drift yields
+///    [`FunctionalCarrierViolation::LedgerMissing`] / [`FunctionalCarrierViolation::LedgerUnexpected`].
+///
+/// A non-empty result is a HARD FAIL on the sync path (see
+/// `crates/pipeline/src/stages/compile_logic.rs`), never a soft warning — the caller must stop.
+pub fn functional_carrier_integrity(store: &RdfDataset) -> Vec<FunctionalCarrierViolation> {
+    let mut violations: Vec<FunctionalCarrierViolation> = Vec::new();
+
+    // (1) RE-introduction guard — kept verbatim from the pre-migration completeness gate.
+    for property in functional_properties_missing_logic_carrier(store) {
+        violations.push(FunctionalCarrierViolation::ReintroducedOwlMarker { property });
+    }
+
+    let multiset = functional_carrier_multiset(store);
+    let declared = declared_property_iris(store);
+
+    // (2) Orphan carrier + (3) duplicate carrier — both keyed off the sorted carrier multiset.
+    for (property, count) in &multiset {
+        if !declared.contains(property) {
+            violations.push(FunctionalCarrierViolation::OrphanCarrier {
+                property: property.clone(),
+            });
+        }
+        if *count > 1 {
+            violations.push(FunctionalCarrierViolation::DuplicateCarrier {
+                property: property.clone(),
+                count: *count,
+            });
+        }
+    }
+
+    // (4) Positive completeness ledger — the exact carrier-bearing set must equal the frozen ledger.
+    let carried: std::collections::BTreeSet<String> = multiset.into_keys().collect();
+    let ledger = functional_carrier_ledger();
+    for property in ledger.difference(&carried) {
+        violations.push(FunctionalCarrierViolation::LedgerMissing {
+            property: property.clone(),
+        });
+    }
+    for property in carried.difference(&ledger) {
+        violations.push(FunctionalCarrierViolation::LedgerUnexpected {
+            property: property.clone(),
+        });
+    }
+
+    violations
 }
 
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
