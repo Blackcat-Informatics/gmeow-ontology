@@ -7775,6 +7775,66 @@ gmeow:gmnCandidateMathDimensionVector
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork , gmeow:gmnIso80000Work ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# --- Math plane: collision rulings (two disjoint mechanisms) --------------- #
+# GMN resolves glyph collisions by TWO distinct mechanisms, and the two must not
+# be conflated:
+#
+#   1. CROSS-PLANE collisions are resolved by sigil scope. The same grapheme reads
+#      one way in a @μ (math) record and another in a @ℒ (logic) record: → is
+#      math:Morphism under @μ and logic implication under @ℒ; the record-initial
+#      sigil fixes the plane, and gmeow:gmnSigilScope pins each grapheme's reading
+#      to the sigil role its record opens with.
+#
+#   2. WITHIN-@μ collisions are resolved STRUCTURALLY, never by sigil scope — the
+#      sigil is already @μ for both readings, so it disambiguates nothing. × the
+#      Cartesian-product operator versus × as scalar multiplication, · as the
+#      geometric product versus · as a unit-bearing quantity product, and − as
+#      unary negation versus binary subtraction are each separated by the operator's
+#      NamedKey/StructuredConstructor and its explicit gmeow:gmnArity/gmeow:gmnFixity
+#      signature, NOT by the record sigil.
+#
+# The μ ruling below is the canonical worked case of the sigil's record-initial-only
+# discipline: μ opens a @μ math record ONLY at record position zero; anywhere else
+# inside a record μ is an ordinary in-record symbol (a measure, a mean, the micro
+# prefix), so it takes no @μ sigil reading. It is ruled a NamedKey (`measure`) and
+# adopts no executable grapheme, so it can never collide with the @μ sigil string in
+# the glyph table.
+
+gmeow:gmnFormMathMeasureSymbol
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN measure named key `measure`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `measure` for the in-record symbol μ denoting math:Measure. The Greek small mu is retained only as display notation: inside a record μ is an ordinary measure/mean/micro symbol, never the record-initial @μ math sigil, so it adopts no executable grapheme and cannot collide with the sigil string."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathMeasureSymbol
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN `measure` named key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `measure` named key to the class math:Measure; it deliberately carries no executable grapheme, keeping the in-record μ symbol out of the sigil-scoped glyph registry."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathMeasureSymbol ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget math:Measure ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathMeasureSymbol
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: in-record μ as the measure symbol"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling that the grapheme μ inside a record is an ordinary symbol for math:Measure (equally a mean or the micro prefix), NOT the record-initial @μ math sigil. The collision is ruled out by construction by the sigil's record-initial-only discipline (gmeow:gmnSigilMath): μ opens a @μ record only at position zero, so an in-record μ is content, and this ruling keeps it a NamedKey that adopts no glyph."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Measure ;
+    gmeow:gmnCandidateGlyph "μ" ;
+    gmeow:gmnAsciiFallback "measure" ;
+    gmeow:gmnSpokenLabel "measure" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The grapheme μ is the record-initial @μ math sigil at position zero and an ordinary in-record symbol (measure, mean, micro) everywhere else; the two readings are separated by the record-initial-only sigil discipline, not by adopting μ as a glyph. The in-record measure symbol is therefore ruled a named key `measure` that adopts no executable grapheme, so it can never collide with the @μ sigil string in the glyph table." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathMeasureSymbol ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # The IPA glyphs remain executable inside phonological surface content but are
 # semantically rejected as aliases for their denoted phone IRIs. This prevents
 # an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.
