@@ -200,8 +200,6 @@ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 /// The named graph the diagnostics projection lives in.
 const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
 const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 
@@ -209,8 +207,9 @@ const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 /// truncated to a `char`-boundary-safe 80 characters on the nearest preceding
 /// word boundary (an ellipsis marks the cut). Truncating on a word boundary
 /// avoids mid-word fragments that spell-checkers flag. Findings are generated
-/// A-Box instance data, so they carry a label and provenance but no
-/// `skos:definition` (assertional-tier validation contract).
+/// A-Box instance data, so every one also carries a `skos:definition` (see
+/// [`finding_definition`]) and the rest of the assertional-tier annotation
+/// contract, via [`crate::abox::annotate_nquads`].
 fn finding_label(code: &str, message: &str) -> String {
     const MAX: usize = 80;
     let truncated = if message.chars().count() > MAX {
@@ -231,6 +230,25 @@ fn finding_label(code: &str, message: &str) -> String {
         code.to_string()
     } else {
         format!("{code}: {truncated}")
+    }
+}
+
+/// A `skos:definition` for a finding: the definition-equivalent companion to
+/// [`finding_label`], derived purely from the finding's own severity, code, and
+/// FULL (untruncated) message — never fabricated, never truncated (unlike the
+/// label, a definition is expected to be read in full). Part of the
+/// assertional-tier annotation contract every generated `gmeow:Finding`
+/// individual satisfies via [`crate::abox::annotate_nquads`].
+fn finding_definition(finding: &Finding) -> String {
+    if finding.code.is_empty() {
+        format!("{} diagnostic: {}", finding.severity.as_str(), finding.message)
+    } else {
+        format!(
+            "{} diagnostic {}: {}",
+            finding.severity.as_str(),
+            finding.code,
+            finding.message
+        )
     }
 }
 
@@ -326,28 +344,20 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
         };
         let subject = format!("<{subject_iri}>");
         triple(&subject, RDF_TYPE, &format!("<{GMEOW}Finding>"), &mut lines);
-        // Assertional-tier annotation: a human label, a named-graph provenance
-        // anchor, and the assertional box role, so the folded bundle's generated
+        // Assertional-tier annotation: a human label, a machine-derived
+        // definition, a named-graph provenance anchor (this call's OWN
+        // `graph_iri`, not necessarily the canonical diagnostics graph — a
+        // conformance-ledger caller of this function asserts its findings in
+        // `graph/conformance`, and `isDefinedBy` must point there), and the
+        // assertional box role — routed through the single
+        // `crate::abox::annotate_nquads` contract every generated A-Box
+        // individual satisfies identically, so the folded bundle's generated
         // findings are self-describing instance data the validator accepts.
-        triple(
-            &subject,
-            RDFS_LABEL,
-            &format!(
-                "\"{}\"",
-                nq_escape(&finding_label(&finding.code, &finding.message))
-            ),
-            &mut lines,
-        );
-        triple(
-            &subject,
-            RDFS_IS_DEFINED_BY,
-            &format!("<{DIAGNOSTICS_GRAPH}>"),
-            &mut lines,
-        );
-        triple(
-            &subject,
-            &format!("{GMEOW}graphBoxRole"),
-            &format!("<{GMEOW}boxABox>"),
+        crate::abox::annotate_nquads(
+            &subject_iri,
+            &finding_label(&finding.code, &finding.message),
+            &finding_definition(finding),
+            graph_iri,
             &mut lines,
         );
         triple(
