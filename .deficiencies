@@ -1745,17 +1745,3 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   is green). FORWARD PATH: add gmeow:expectedSourceShape (the specific *ConstraintShape IRI) to
   each preference example-conformance cell so the harness itself proves gate-specificity rather
   than relying on a manual audit.
-
-## 2026-07-20 — issue #1374 (GMN mathematical symbology plane)
-
-- ISO 80000 provenance for the ℚ⁷ unit products (e.g. newton kg·m·s⁻²) is recorded
-  as a cited reference work (gmeow:gmnIso80000Work on the dimension-vector candidate)
-  rather than a formal gmeow:TermEquivalence alignment row as the plan's enhancement
-  note N2 implied. Reason: no math: individual exists for the force/newton compound to
-  serve as alignSubject, and ISO 80000 has no dereferenceable per-quantity IRIs (a
-  fabricated IRI would fail the equivalences.ttl curl-validation gate). The component
-  base units retain their BIPM D-SI TermEquivalence rows, so compound provenance is
-  compositional. FORWARD PATH: if a math: quantity/unit individual for a coherent
-  derived unit is introduced, or a curl-valid QUDT/Wikidata proxy for the newton is
-  chosen, promote the citation to a gmeow:TermEquivalence, logic:GroundingCorrespondence
-  row (with logic:morphismClass/morphismKind) keyed to that subject.
