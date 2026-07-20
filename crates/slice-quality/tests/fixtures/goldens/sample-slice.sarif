@@ -20,6 +20,52 @@
             }
           ],
           "message": {
+            "text": "the slice directory carries no resolvable slices/ path prefix — advice-harvest coverage cannot be measured (vacuous 1.0)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7b21e33537a9601d"
+          },
+          "ruleId": "slice-quality.advice-coverage.no-repo-root"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisAdviceCoverage: Author a central logic:CategoryRecommendation FormalizationCandidate in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — candidateFormalizes the term, candidateSourceField the ProseField (ProseFieldAvoidWhen / ProseFieldUseWhen), and the pre-computed candidateSourceHash — so the inert avoidWhen / useWhen guidance becomes a machine-active deonticRecommendation advisory rule. The domain slice asserts no logic: triple; the rule lives centrally with a drift-verified back-link."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ca64444498943e5e"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent."
           },
           "partialFingerprints": {
@@ -348,6 +394,29 @@
             "gmeowFindingHash/v2": "4bf4c28445f26ad0"
           },
           "ruleId": "slice-quality.translation.incomplete"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisAdviceCoverage: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1de774260dd82942"
+          },
+          "ruleId": "slice-quality.grade"
         },
         {
           "level": "note",
@@ -723,6 +792,13 @@
           "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
           "name": "slice-quality",
           "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-advice-coverage-no-repo-root",
+              "id": "slice-quality.advice-coverage.no-repo-root"
+            },
             {
               "defaultConfiguration": {
                 "level": "warning"

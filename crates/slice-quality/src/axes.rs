@@ -49,6 +49,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
         "gmn_glyph_optimality_axis" => Some(gmn_glyph_optimality_axis),
+        "advice_coverage_axis" => Some(advice_coverage_axis),
         "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
@@ -71,6 +72,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "flagship_counterexample_depth_axis",
     "gmn1_coverage_axis",
     "gmn_glyph_optimality_axis",
+    "advice_coverage_axis",
     "DocMaturity",
 ];
 
@@ -1859,6 +1861,184 @@ fn no_gmn_candidates(ctx: &ScoreContext) -> AxisScore {
     }
 }
 
+// ── Axis: advice-harvest coverage (avoidWhen/useWhen prose → recommendation candidate) ─
+
+/// The `gmeow:` namespace and the two advisory-prose predicates a recommendation
+/// candidate can harvest (the closed `logic:ProseField` advisory members). `howToUse`
+/// is deliberately excluded — it is suggestion text carried onto findings, not rule
+/// content, so it is not a coverage-denominator field.
+const ADVICE_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+const ADVICE_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+/// The source language whose lexical form is the canonical rule text — the same tag
+/// the harvest bridge and the `candidateSourceHash` drift gate hash against.
+const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
+
+const CAND_TYPE: &str = "https://blackcatinformatics.ca/logic/FormalizationCandidate";
+const CAND_CATEGORY: &str = "https://blackcatinformatics.ca/logic/candidateCategory";
+const CAND_RECOMMENDATION: &str = "https://blackcatinformatics.ca/logic/CategoryRecommendation";
+const CAND_LIFECYCLE: &str = "https://blackcatinformatics.ca/logic/candidateLifecycle";
+const CAND_ACCEPTED: &str = "https://blackcatinformatics.ca/logic/CandidateAccepted";
+const CAND_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/candidateFormalizes";
+const CAND_SOURCE_FIELD: &str = "https://blackcatinformatics.ca/logic/candidateSourceField";
+const PROSE_FIELD_PROPERTY: &str = "https://blackcatinformatics.ca/logic/proseFieldProperty";
+/// The central slice module that hosts the recommendation candidates (repo mode).
+const LOGIC_MODULE_REL: &str = "slices/grounding/logic/module.ttl";
+
+/// The `(term, prose-predicate)` pairs that ALREADY have an accepted
+/// `logic:CategoryRecommendation` candidate `candidateFormalizes`-linked to them — the
+/// harvest frontier. Reads each candidate's `candidateSourceField → logic:proseFieldProperty`
+/// to recover the exact predicate it harvests, so the pair is the same join key the
+/// coverage denominator is built on. A measurement, not the enforcing bridge: an
+/// unresolvable candidate is simply not counted (the bridge + drift gate red on it).
+fn recommendation_candidate_pairs(ds: &RdfDataset) -> BTreeSet<(String, String)> {
+    let mut out = BTreeSet::new();
+    let (Some(cat_p), Some(life_p), Some(form_p), Some(field_p), Some(prop_p)) = (
+        id(ds, CAND_CATEGORY),
+        id(ds, CAND_LIFECYCLE),
+        id(ds, CAND_FORMALIZES),
+        id(ds, CAND_SOURCE_FIELD),
+        id(ds, PROSE_FIELD_PROPERTY),
+    ) else {
+        return out;
+    };
+    let (rec, acc) = (id(ds, CAND_RECOMMENDATION), id(ds, CAND_ACCEPTED));
+    for cand_iri in instances_of(ds, CAND_TYPE) {
+        let Some(cand) = id(ds, &cand_iri) else {
+            continue;
+        };
+        if !rec.is_some_and(|r| graph::has(ds, cand, cat_p, r))
+            || !acc.is_some_and(|a| graph::has(ds, cand, life_p, a))
+        {
+            continue;
+        }
+        let (Some(term), Some(field)) = (one_iri(ds, cand, form_p), one_iri(ds, cand, field_p))
+        else {
+            continue;
+        };
+        let Some(prop) = id(ds, &field).and_then(|f| one_iri(ds, f, prop_p)) else {
+            continue;
+        };
+        out.insert((term, prop));
+    }
+    out
+}
+
+/// The slice's own `(term, prose-predicate) → @x-gmeow-english lexical` advisory prose
+/// — the coverage denominator population, pinned to the source language (matching the
+/// candidate `sourceHash` discipline so numerator and denominator agree).
+fn slice_advice_prose(ctx: &ScoreContext) -> BTreeMap<(String, String), String> {
+    let ds = ctx.graph;
+    let mut out = BTreeMap::new();
+    for prop in [ADVICE_AVOID_WHEN, ADVICE_USE_WHEN] {
+        let Some(prop_id) = id(ds, prop) else {
+            continue;
+        };
+        for term in &ctx.terms {
+            let Some(term_id) = id(ds, term) else {
+                continue;
+            };
+            let source_lit = ds
+                .quads_for_pattern(Some(term_id), Some(prop_id), None, GraphMatch::Any)
+                .find_map(|q| match ds.resolve(q.o) {
+                    TermRef::Literal {
+                        lexical,
+                        language: Some(lang),
+                        ..
+                    } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
+                    _ => None,
+                });
+            if let Some(lexical) = source_lit {
+                out.insert((term.clone(), prop.to_owned()), lexical);
+            }
+        }
+    }
+    out
+}
+
+/// The fraction of a slice's advisory-prose triples (`gmeow:avoidWhen` /
+/// `gmeow:useWhen`, at `@x-gmeow-english`) that a central
+/// `logic:CategoryRecommendation` candidate has already harvested into a machine-active
+/// advisory rule.
+///
+/// This is HARVEST coverage — candidate presence — NOT prose presence (that is the
+/// information / prose axes): a term can carry rich `avoidWhen` prose and score 0 here
+/// until a reviewed recommendation candidate `candidateFormalizes`-links it. The
+/// numerator/denominator are both bounded counts over `(term, field)` cells, so the
+/// score is an objective intrinsic fraction in `[0, 1]` (1.0 = every advisory-prose
+/// cell is harvested), never a tuned target or an unbounded ratio. Each uncovered cell
+/// surfaces a paste-ready candidate stub (the pre-computed `candidateSourceHash`) so the
+/// continuous background uplift lane can mint the candidate mechanically.
+///
+/// Candidate source branches on the scoring environment (mirroring `gmn1_coverage_axis`
+/// / `DocMaturity`): [`ScoringEnv::Repo`] reads the central logic slice module off the
+/// surrounding checkout (the cross-slice candidate authority); [`ScoringEnv::Bundle`]
+/// reads self-containedly from the scored slice's own graph.
+fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
+    let advice_prose = slice_advice_prose(ctx);
+    if advice_prose.is_empty() {
+        // A slice authoring no advisory prose is vacuously covered (matches the other
+        // axes' empty-population convention).
+        return AxisScore::clean(1.0);
+    }
+
+    let repo_ds;
+    let candidate_pairs = match &ctx.env {
+        ScoringEnv::Repo => {
+            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.advice-coverage.no-repo-root",
+                        "the slice directory carries no resolvable slices/ path prefix — advice-harvest coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            let Ok(ds) = crate::dataset_from_paths(&[root.join(LOGIC_MODULE_REL).as_path()]) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.advice-coverage.no-candidate-source",
+                        "the central logic slice module (slices/grounding/logic/module.ttl) failed to load — advice-harvest coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            repo_ds = ds;
+            recommendation_candidate_pairs(&repo_ds)
+        }
+        ScoringEnv::Bundle(_) => recommendation_candidate_pairs(ctx.graph),
+    };
+
+    let total = advice_prose.len();
+    let mut covered = 0usize;
+    let mut findings = Vec::new();
+    for ((term, prop), prose) in &advice_prose {
+        if candidate_pairs.contains(&(term.clone(), prop.clone())) {
+            covered += 1;
+        } else {
+            let field = prop.rsplit(['/', '#']).next().unwrap_or(prop);
+            let hash = gmeow_logic::obligations::candidate_source_hash(prose);
+            findings.push(advisory(
+                "slice-quality.advice-coverage.unharvested",
+                format!(
+                    "{term} authors gmeow:{field} prose with no central logic:CategoryRecommendation \
+                     candidate — author one in slices/grounding/logic/module.ttl \
+                     (logic:candidateFormalizes {term} ; logic:candidateSourceField logic:ProseField{} ; \
+                     logic:candidateSourceHash \"{hash}\") so the advice becomes a machine-active \
+                     advisory rule.",
+                    // ProseFieldAvoidWhen / ProseFieldUseWhen — capitalize the field local name.
+                    {
+                        let mut c = field.chars();
+                        c.next().map_or_else(String::new, |f| f.to_uppercase().collect::<String>() + c.as_str())
+                    }
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = covered as f64 / total as f64;
+    AxisScore { score, findings }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1871,6 +2051,117 @@ mod tests {
         assert!(
             resolve("no_such_producer").is_none(),
             "unknown producer → None (hard fail upstream)"
+        );
+    }
+
+    #[test]
+    fn advice_candidate_pairs_reads_accepted_recommendations_only() {
+        let ds = purrdf::parse_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              logic:ProseFieldAvoidWhen logic:proseFieldProperty gmeow:avoidWhen .\n\
+              logic:candFoo a logic:FormalizationCandidate ;\n\
+                logic:candidateCategory logic:CategoryRecommendation ;\n\
+                logic:candidateLifecycle logic:CandidateAccepted ;\n\
+                logic:candidateFormalizes gmeow:Foo ;\n\
+                logic:candidateSourceField logic:ProseFieldAvoidWhen .\n\
+              logic:candProposed a logic:FormalizationCandidate ;\n\
+                logic:candidateCategory logic:CategoryRecommendation ;\n\
+                logic:candidateLifecycle logic:CandidateProposed ;\n\
+                logic:candidateFormalizes gmeow:Bar ;\n\
+                logic:candidateSourceField logic:ProseFieldAvoidWhen .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("parse");
+        let pairs = recommendation_candidate_pairs(&ds);
+        assert_eq!(pairs.len(), 1, "only the ACCEPTED recommendation counts: {pairs:?}");
+        assert!(pairs.contains(&(
+            "https://blackcatinformatics.ca/gmeow/Foo".to_owned(),
+            ADVICE_AVOID_WHEN.to_owned(),
+        )));
+        assert!(
+            !pairs.iter().any(|(t, _)| t.ends_with("Bar")),
+            "a proposed (un-reviewed) candidate must not count as harvested"
+        );
+    }
+
+    #[test]
+    fn advice_slice_prose_pins_the_source_language() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:avoidWhen \"avoid Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:useWhen \"use Bar\"@x-gmeow-english .\n\
+             gmeow:Baz a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:avoidWhen \"avoid Baz\"@en .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            std::path::PathBuf::from("/tmp/testslice"),
+            &ds,
+            ScoringEnv::Repo,
+        );
+        let prose = slice_advice_prose(&ctx);
+        assert_eq!(prose.len(), 2, "only the two @x-gmeow-english cells: {prose:?}");
+        assert!(prose.contains_key(&(
+            "https://blackcatinformatics.ca/gmeow/Foo".to_owned(),
+            ADVICE_AVOID_WHEN.to_owned()
+        )));
+        assert!(prose.contains_key(&(
+            "https://blackcatinformatics.ca/gmeow/Bar".to_owned(),
+            ADVICE_USE_WHEN.to_owned()
+        )));
+        assert!(
+            !prose.keys().any(|(t, _)| t.ends_with("Baz")),
+            "a non-source-language (@en) advisory literal must not enter the denominator"
+        );
+    }
+
+    /// Repo-mode integration: proves the load-bearing visibility premise — the CENTRAL
+    /// logic-slice recommendation candidates ARE seen when scoring a DOMAIN slice
+    /// (`ScoreContext.graph` is slice-local, so the axis MUST read the logic module
+    /// off the repo; if that read were broken the score would be a silent 0). Kernel
+    /// authors gmeow:Entity (avoidWhen + useWhen) and gmeow:GranularityLevel (avoidWhen),
+    /// all harvested, alongside other unharvested advice-prose terms — a real sub-1.0
+    /// fraction with a paste-ready stub for each uncovered cell.
+    #[test]
+    fn advice_coverage_axis_repo_sees_central_candidates() {
+        let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
+        let kernel_dir = repo.join("slices/core/kernel");
+        let module = kernel_dir.join("module.ttl");
+        let ds = crate::dataset_from_paths(&[module.as_path()]).expect("kernel module parses");
+        let ctx = ScoreContext::new(
+            "https://blackcatinformatics.ca/gmeow/slices/kernel".to_owned(),
+            kernel_dir,
+            &ds,
+            ScoringEnv::Repo,
+        );
+        let result = advice_coverage_axis(&ctx);
+        assert!(
+            result.score > 0.0,
+            "the central candidates MUST be visible via the repo read — a 0.0 score means \
+             the cross-slice candidate read is broken (silent-wrong), got {}",
+            result.score
+        );
+        assert!(
+            result.score < 1.0,
+            "kernel still carries unharvested advice prose, so coverage is a strict fraction, \
+             got {}",
+            result.score
+        );
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|f| f.code == "slice-quality.advice-coverage.unharvested"),
+            "each uncovered cell must surface a paste-ready candidate stub"
         );
     }
 
