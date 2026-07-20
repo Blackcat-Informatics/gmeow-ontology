@@ -3593,6 +3593,20 @@ pub fn scan_coverage(edb: &RdfDataset) -> gmeow_errors::Result<DlCoverage> {
 fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     let mut withholds: BTreeSet<String> = BTreeSet::new();
 
+    // Family 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
+    // union-disjoint / malformed-list sub-decider ([`crate::reason::refute::casesplit`])
+    // now COMPLETELY decides a precisely-characterized propositional-plus-nominal
+    // fragment of exactly the beyond-Horn refutation shapes withheld below. When it
+    // decides the whole case (an `Inconsistent` decision materializes `owl:Nothing`;
+    // a `Consistent` decision is certified in-fragment), the complement / union /
+    // oneOf / malformed-list families it accounts for stay `decided` rather than
+    // being demoted to an honest gap — so each shape-specific withhold below is
+    // narrowed by `&& !casesplit_decides`. A case outside its fragment (an
+    // existential/cardinality/property-characteristic construct it refuses, or a
+    // budget-exceeded search) keeps `casesplit_decides` FALSE, so the withhold
+    // still fires. Computed once (the bounded case-split is re-run only here).
+    let casesplit_decides = crate::reason::refute::casesplit::decides(edb);
+
     // H1 — complement used in a positive class-constraint position. Native decides
     // the complement *clash* (`x:A ∧ x:¬A ⇒ Nothing`, via `dl:complement-disjoint`)
     // but NOT complement *refutation* (a class defined/constrained by a negated
@@ -3602,8 +3616,9 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // superclass, or a `someValuesFrom`/`allValuesFrom` filler). The committed
     // bundle's complement is referenced ONLY by `rdfs:domain` (a property-scoping
     // position, never reached here), so this never fires on production.
-    if complement_in_class_constraint_position(edb)
-        || complement_typed_individual_needs_derivation(edb)
+    if (complement_in_class_constraint_position(edb)
+        || complement_typed_individual_needs_derivation(edb))
+        && !casesplit_decides
     {
         withholds.insert("complementOf".to_owned());
     }
@@ -3676,7 +3691,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // `owl:differentFrom` every member — is still decided by the augment handler and
     // is NOT withheld here.) The committed bundle has no individual typed to ≥2
     // enumerations.
-    if individual_in_multiple_enumerations(edb) {
+    if individual_in_multiple_enumerations(edb) && !casesplit_decides {
         withholds.insert("oneOf".to_owned());
     }
 
@@ -3685,7 +3700,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // propositional-SAT shape whose refutation needs joint case-splitting. The
     // committed bundle has at most ONE union superclass on any class, so this never
     // fires on production; a single disjunctive superclass stays decided.
-    if class_with_multiple_union_superclasses(edb) {
+    if class_with_multiple_union_superclasses(edb) && !casesplit_decides {
         withholds.insert("unionOf".to_owned());
     }
 
@@ -3712,7 +3727,7 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // structurally-broken list makes the enclosing axiom's meaning turn on
     // list-well-formedness the chase does not adjudicate. `rdf:nil` never bears a
     // list edge in the committed bundle.
-    if nil_bears_list_edge(edb) {
+    if nil_bears_list_edge(edb) && !casesplit_decides {
         withholds.insert("malformedRdfList".to_owned());
     }
 
@@ -4810,16 +4825,33 @@ mod tests {
     }
 
     #[test]
-    fn complement_in_class_definition_is_withheld() {
+    fn complement_in_class_definition_is_decided_consistent() {
         // A ⊑ ¬D — the complement node is a `rdfs:subClassOf` superclass (a class
-        // definition), NOT typed onto an individual. Deciding this needs complement
-        // refutation the chase does not perform ⇒ honest gap.
+        // definition), with NO individual forced into it. The Family-1 case-split
+        // refutation sub-decider ([`crate::reason::refute::casesplit`]) now COMPLETELY
+        // decides this propositional-fragment case: an individual-free complement TBox
+        // is trivially satisfiable (the empty interpretation is a model), so it is
+        // decided CONSISTENT with no honest gap — no longer the pre-sub-decider
+        // conservative withhold.
         let store = dataset(vec![
             quad(A, SUBCLASS, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free complement TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4837,16 +4869,31 @@ mod tests {
     }
 
     #[test]
-    fn complement_typed_individual_without_asserted_membership_is_withheld() {
-        // x : ¬D, but x is NOT asserted x : D. The clash needs `x : D` to be DERIVED
-        // (beyond the chase) ⇒ honest gap. Contrast the decided clash test where BOTH
-        // memberships are asserted.
+    fn complement_typed_individual_without_asserted_membership_is_decided_consistent() {
+        // x : ¬D, but x is NOT asserted x : D. The Family-1 case-split sub-decider now
+        // decides this: `x ∈ ¬D` with no forced `x ∈ D` saturates clash-free inside
+        // the certified-complete fragment, so it is decided CONSISTENT (a model has
+        // `x ∉ D`) — no longer the pre-sub-decider withhold. Contrast the decided
+        // clash test where BOTH memberships are asserted (decided INCONSISTENT).
         let store = dataset(vec![
             quad(X, TYPE, "http://gmeow.example/ncomp"),
             quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "complementOf");
+        assert!(
+            verdict.consistent,
+            "x ∈ ¬D with no forced x ∈ D is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("complementOf"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "complementOf"),
+            "the case-split sub-decider certifies this — no complementOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -4862,14 +4909,21 @@ mod tests {
             literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert!(verdict.consistent, "an uncollapsed ≥2 definition is satisfiable");
+        assert!(
+            verdict.consistent,
+            "an uncollapsed ≥2 definition is satisfiable"
+        );
         assert!(
             verdict.gaps.is_empty(),
             "the counting sub-decider certifies this — no honest gap: {:?}",
             verdict.gaps
         );
         assert!(
-            verdict.coverage.decided.iter().any(|d| d == "minCardinality"),
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "minCardinality"),
             "the minCardinality family is promoted to decided: {:?}",
             verdict.coverage
         );
@@ -4977,9 +5031,13 @@ mod tests {
     }
 
     #[test]
-    fn class_with_two_union_superclasses_is_withheld() {
-        // C ⊑ (A∪B) AND C ⊑ (X∪Y): multi-disjunction propositional SAT ⇒ gap. A
-        // single union superclass stays decided (see the union decided test).
+    fn class_with_two_union_superclasses_is_decided_consistent() {
+        // C ⊑ (A∪B) AND C ⊑ (X∪Y): the multi-disjunction propositional shape. With NO
+        // individual forced into C, the Family-3 case-split sub-decider decides it
+        // CONSISTENT (the empty model satisfies every disjunctive superclass) — no
+        // longer the pre-sub-decider conservative withhold. The propositional
+        // refutation (every branch closing) is exercised end-to-end on the committed
+        // `webont-description-logic-503`/`504` SAT pair.
         let u1 = "http://gmeow.example/u1";
         let u2 = "http://gmeow.example/u2";
         let store = dataset(vec![
@@ -4993,7 +5051,16 @@ mod tests {
             quad("http://gmeow.example/lu2", REST, NIL),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "unionOf");
+        assert!(
+            verdict.consistent,
+            "an individual-free union TBox is satisfiable"
+        );
+        assert!(
+            !verdict.gaps.iter().any(|g| g.code.contains("unionOf"))
+                && !verdict.coverage.unsupported.iter().any(|u| u == "unionOf"),
+            "the case-split sub-decider certifies this — no unionOf gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]
@@ -5052,11 +5119,27 @@ mod tests {
     }
 
     #[test]
-    fn malformed_nil_list_is_withheld() {
-        // rdf:nil bearing an rdf:first edge — a malformed rdf:List ⇒ honest gap.
+    fn malformed_nil_list_is_decided_inconsistent() {
+        // rdf:nil bearing an rdf:first edge — a malformed rdf:List. The Family-6b
+        // case-split sub-decider now decides this: a structurally-broken list makes
+        // the world inconsistent, materializing `owl:Nothing` (on `rdf:nil`) — decided
+        // INCONSISTENT with no honest gap, no longer the pre-sub-decider withhold.
         let store = dataset(vec![quad(NIL, FIRST, A)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "malformedRdfList");
+        assert!(!verdict.consistent, "a malformed rdf:List is inconsistent");
+        assert!(
+            !verdict
+                .gaps
+                .iter()
+                .any(|g| g.code.contains("malformedRdfList"))
+                && !verdict
+                    .coverage
+                    .unsupported
+                    .iter()
+                    .any(|u| u == "malformedRdfList"),
+            "the case-split sub-decider decides this — no malformedRdfList gap: {:?}",
+            verdict.coverage
+        );
     }
 
     #[test]

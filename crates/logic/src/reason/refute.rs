@@ -48,6 +48,10 @@ pub(crate) mod datatype;
 /// Families 2/6a/7 — the counting / arithmetic-feasibility sub-decider (Task 4).
 pub(crate) mod counting;
 
+/// Families 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
+/// union-disjoint / malformed-list sub-decider (Task 5).
+pub(crate) mod casesplit;
+
 /// The certified-complete construct families the kernel decides. Each name is the
 /// stable identity a family sub-decider (Tasks 3/4/5) registers under and that
 /// [`crate::reason::dl::classify_coverage`] promotes on an `InFragment{Consistent}`
@@ -330,7 +334,7 @@ type SubDecider = fn(&RdfDataset) -> Option<RefutationCertificate>;
 /// closure carrying no datatype value-space or counting obligation still withholds
 /// with `NoDeciderEngaged` — the kernel decides only the fragment a registered
 /// family proves complete.
-const SUB_DECIDERS: &[SubDecider] = &[datatype::decide, counting::decide];
+const SUB_DECIDERS: &[SubDecider] = &[datatype::decide, counting::decide, casesplit::decide];
 
 /// Decide the certified-complete refutation fragment for `edb`.
 ///

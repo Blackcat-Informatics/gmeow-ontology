@@ -65,8 +65,19 @@ use session_common::*;
 /// the counting fragment (previously-withheld W3C-divergence cardinality / IFP / hasSelf cases
 /// are now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
 /// verdict is unchanged.
+/// Re-blessed for Family 1/3/6b (+ entangled Family 4) — the bounded case-split /
+/// complement / union-disjoint / malformed-list sub-decider: `reason/refute/casesplit.rs`
+/// is a new engine source module registered in `SUB_DECIDERS`, and `reason/refute.rs`
+/// (its `mod` + registry entry) and `reason/dl.rs` (the coverage coordination — the
+/// refutation-shape withholds for complement / union / oneOf / malformed list are now
+/// narrowed by `!casesplit::decides`) both change. `reason/refute.rs` and `reason/dl.rs`
+/// are folded into the native contract hash, so the engine-descriptor digest moves. This
+/// DOES change reasoning verdicts on the case-split fragment (previously-withheld
+/// W3C-divergence complement / union-disjoint / disjointUnion / malformed-list cases are
+/// now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
+/// verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4697711aff8ed5d1b4657ba7bb5e655839349105d9e070133b1ef2962e7f7f83";
+    "aa2744919027a8ef88c42093df8adfbee0a162f00efbe66b325543103e4d3ecc";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -81,8 +92,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed again for Family 2/6a/7 (the counting / arithmetic-feasibility sub-decider) for the
 /// same reason: the native contract hash is one of the seven folded axes and moves with the new
 /// engine source module, while the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for Family 1/3/6b (+ entangled Family 4) — the case-split / complement /
+/// union-disjoint / malformed-list sub-decider — for the same reason: the native contract hash
+/// (folding the changed `reason/refute.rs` + `reason/dl.rs`) is one of the seven folded axes and
+/// moves with the new engine source, while the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "78c242bc05f8731420bd4b30721d1e310a96af62419065833f3fa1f54069f482";
+    "eecd5c1fc28de783f5b7180719c8a50e5074543f07c5118d5319ac8f79f476e2";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -369,11 +369,8 @@ fn cardinality_clashes(m: &Model) -> BTreeSet<NothingClash> {
         };
         // The class is unsatisfiable; each individual directly typed `C` clashes.
         for individual in m.instances_of(&world, &class) {
-            let mut premises: Vec<(String, String, String)> = vec![(
-                individual.clone(),
-                RDF_TYPE.to_owned(),
-                class.clone(),
-            )];
+            let mut premises: Vec<(String, String, String)> =
+                vec![(individual.clone(), RDF_TYPE.to_owned(), class.clone())];
             for node in &nodes {
                 premises.push((class.clone(), RDFS_SUBCLASSOF.to_owned(), node.clone()));
                 premises.push((node.clone(), OWL_ON_PROPERTY.to_owned(), property.clone()));
@@ -455,10 +452,20 @@ fn identity_clashes(m: &Model) -> BTreeSet<NothingClash> {
         if let Obj::Res(o) = object {
             for (p, q) in &m.inverse_of {
                 if p == predicate {
-                    assertions.push((world.clone(), o.clone(), q.clone(), Obj::Res(subject.clone())));
+                    assertions.push((
+                        world.clone(),
+                        o.clone(),
+                        q.clone(),
+                        Obj::Res(subject.clone()),
+                    ));
                 }
                 if q == predicate {
-                    assertions.push((world.clone(), o.clone(), p.clone(), Obj::Res(subject.clone())));
+                    assertions.push((
+                        world.clone(),
+                        o.clone(),
+                        p.clone(),
+                        Obj::Res(subject.clone()),
+                    ));
                 }
             }
         }
@@ -805,7 +812,8 @@ impl Model {
                 }
                 OWL_INTERSECTION_OF => {
                     if let Some(v) = resource_key(&quad.object) {
-                        m.intersection_of.insert((world.clone(), subject.clone()), v);
+                        m.intersection_of
+                            .insert((world.clone(), subject.clone()), v);
                     }
                 }
                 OWL_INVERSE_OF => {
@@ -850,8 +858,12 @@ impl Model {
                         other => resource_key(other).map(Obj::Res),
                     };
                     if let Some(object) = object {
-                        m.assertions
-                            .push((world.clone(), subject.clone(), predicate.clone(), object));
+                        m.assertions.push((
+                            world.clone(),
+                            subject.clone(),
+                            predicate.clone(),
+                            object,
+                        ));
                     }
                 }
             }
@@ -940,7 +952,10 @@ impl Model {
                 if !seen.insert(node.clone()) {
                     continue;
                 }
-                if self.restrictions.contains_key(&(world.clone(), node.clone())) {
+                if self
+                    .restrictions
+                    .contains_key(&(world.clone(), node.clone()))
+                {
                     nodes.insert(node.clone());
                 }
                 if let Some(head) = self.intersection_of.get(&(world.clone(), node.clone()))
@@ -966,7 +981,9 @@ struct UnionFind {
 
 impl UnionFind {
     fn make(&mut self, x: &str) {
-        self.parent.entry(x.to_owned()).or_insert_with(|| x.to_owned());
+        self.parent
+            .entry(x.to_owned())
+            .or_insert_with(|| x.to_owned());
     }
 
     fn find(&mut self, x: &str) -> String {
@@ -981,7 +998,11 @@ impl UnionFind {
         // Path compression.
         let mut node = x.to_owned();
         while node != root {
-            let next = self.parent.get(&node).cloned().unwrap_or_else(|| node.clone());
+            let next = self
+                .parent
+                .get(&node)
+                .cloned()
+                .unwrap_or_else(|| node.clone());
             self.parent.insert(node.clone(), root.clone());
             node = next;
         }
@@ -1116,8 +1137,12 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
     fn typed_lit_quad(s: &str, p: &str, value: &str, dt: &str) -> RdfQuad {
-        RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::Literal(RdfLiteral::typed(value, dt)))
-            .in_graph(RdfTerm::iri(W))
+        RdfQuad::new(
+            RdfTerm::iri(s),
+            p,
+            RdfTerm::Literal(RdfLiteral::typed(value, dt)),
+        )
+        .in_graph(RdfTerm::iri(W))
     }
 
     fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
@@ -1147,7 +1172,10 @@ mod tests {
         )
     }
     fn withholds(edb: &RdfDataset) -> bool {
-        matches!(decide(edb), Some(RefutationCertificate::OutOfFragment { .. }))
+        matches!(
+            decide(edb),
+            Some(RefutationCertificate::OutOfFragment { .. })
+        )
     }
 
     #[test]
