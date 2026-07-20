@@ -29,7 +29,10 @@ use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use conformance_support::*;
-use gmeow_validate::lint::{LintConfig, default_annotation_predicates, structural_lint_dataset};
+use gmeow_errors::Severity;
+use gmeow_validate::lint::{
+    LintConfig, codes, default_annotation_predicates, structural_lint_dataset,
+};
 use gmeow_validate::store::dataset_from_paths;
 use purrdf::slice::rdf_query::{Object, Subject};
 
@@ -405,11 +408,12 @@ fn epistemics_lint_config() -> LintConfig {
 /// justification terms, and every `JustificationStatus` individual — carries its
 /// required annotations. Drives the production `structural_lint_dataset` (the same
 /// engine the in-gate corpus annotation sweep runs) and isolates its
-/// required-annotation findings (label / definition / isDefinedBy): the per-term
-/// "is missing" findings whose predicate lives in a standard vocabulary rather
-/// than `gmeow:`. The lint's cross-slice checks (graph-box-role registration,
-/// dangling subterm targets) need the merged corpus and are deliberately excluded
-/// here — the whole-corpus run in `label_completeness.rs` covers them in-gate.
+/// required-annotation findings by their stable diagnostic CODES
+/// (`missing-label` / `missing-definition` / `missing-is-defined-by`) rather than
+/// by matching message text. The lint's cross-slice checks (graph-box-role
+/// registration, dangling subterm targets) carry different codes, need the merged
+/// corpus, and are deliberately excluded here — the whole-corpus run in
+/// `label_completeness.rs` covers them in-gate.
 #[test]
 fn epistemics_terms_carry_required_annotations() {
     // The named terms must exist as defined subjects before their annotations can
@@ -425,10 +429,20 @@ fn epistemics_terms_carry_required_annotations() {
 
     let dataset = dataset_from_paths(&[module_path()]).expect("epistemics module must parse");
     let report = structural_lint_dataset(&dataset, &epistemics_lint_config());
+    // Isolate the three required-annotation findings by code — robust to any future
+    // rewording of the lint's messages.
+    let required_annotation_codes = [
+        codes::MISSING_LABEL,
+        codes::MISSING_DEFINITION,
+        codes::MISSING_IS_DEFINED_BY,
+    ];
     let missing_annotations: Vec<String> = report
-        .errors()
+        .ledger()
+        .emit_sorted()
         .into_iter()
-        .filter(|message| message.contains("is missing") && !message.contains("gmeow:"))
+        .filter(|node| node.grade.severity == Severity::Error)
+        .filter(|node| required_annotation_codes.contains(&node.code.as_str()))
+        .flat_map(|node| node.observations.iter().map(|o| o.message.clone()))
         .collect();
     assert!(
         missing_annotations.is_empty(),
