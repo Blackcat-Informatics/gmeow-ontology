@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example (falsifies the dimensional-homomorphism law): the force = ∫ a dm scene
+# of examples/gmn-dimension-roundtrip.ttl with ONE exponent perturbed — the declared result
+# (force) dimension carries a time exponent of −3 instead of −2. The integral-composition
+# law dim(result) = dim(integrand) ⊕ dim(measure) then fails: acceleration (L¹T⁻²) ⊕ mass
+# (M¹) = M¹L¹T⁻², but the declared result is M¹L¹T⁻³, so the native ℚ⁷ measure-and-dimension
+# reasoned gate raises EXACTLY math:DimensionalInhomogeneity. Self-contained, ex: local
+# nodes only (the base-dimension IRIs are canonical references the gate resolves internally),
+# so it never loads into the global validation graph — driven in isolation by the native
+# math-dimension gate test.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bodySpace a math:MeasurableSpace ;
+    math:measurableSpaceOf ex:bodySet , ex:bodySigma .
+ex:bodySet a math:Set .
+ex:bodySigma a math:SigmaAlgebra .
+
+ex:massMeasure a math:Measure ;
+    math:measureOn ex:bodySpace ;
+    math:totalMass "3.0"^^xsd:double ;
+    math:hasDimension ex:massDim .
+
+ex:accelerationField a math:MeasurableFunction ;
+    math:domain ex:bodySet ;
+    math:codomain ex:realValues ;
+    math:hasDimension ex:accelDim .
+ex:realValues a math:Set .
+
+# The integral declares a result dimension whose time exponent is perturbed to −3.
+ex:netForce a math:Integral ;
+    math:integrand ex:accelerationField ;
+    math:integrationDomain ex:bodySpace ;
+    math:withRespectTo ex:massMeasure ;
+    math:hasDimension ex:forceDimBroken .
+
+# force (broken): M¹L¹T⁻³  —  the single perturbed exponent (time −3, should be −2).
+ex:forceDimBroken a math:DerivedDimension ;
+    math:baseDimensionExponent ex:fMass1 , ex:fLength1 , ex:fTimeMinus3 .
+ex:fMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:fLength1 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:fTimeMinus3 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -3 ; math:exponentDenominator 1 .
+
+# mass: M¹
+ex:massDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:mMass1 .
+ex:mMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+
+# acceleration: L¹T⁻²
+ex:accelDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:aLength1 , ex:aTimeMinus2 .
+ex:aLength1 a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:aTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .

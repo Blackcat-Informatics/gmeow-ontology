@@ -360,3 +360,45 @@ fn gram_not_claimed_positive_definite_is_out_of_scope() {
         "an un-claimed indefinite Gram is out of scope for the PD gate: {f:?}"
     );
 }
+
+// ── The GMN dimension round-trip scene + its falsifying counter-example ──────
+// The force = ∫ a dm homomorphism law dim(acceleration) ⊕ dim(mass) = dim(force) is
+// authored as a shipped math example and made FALSIFIABLE by a counter-example with one
+// perturbed exponent. Both are driven through the real gate here, over the fixture bytes
+// on disk (include_str! keeps the test in lockstep with the authored scenes).
+
+const DIMENSION_ROUNDTRIP_SCENE: &str =
+    include_str!("../../../../slices/grounding/math/examples/gmn-dimension-roundtrip.ttl");
+const DIMENSION_INHOMOGENEOUS_COUNTER: &str = include_str!(
+    "../../../../slices/grounding/math/tests/counter-examples/force-dimension-inhomogeneous.ttl"
+);
+
+#[test]
+fn gmn_dimension_roundtrip_scene_is_clean() {
+    // The positive scene: acceleration (L¹T⁻²) integrated against mass (M¹) composes to
+    // force (M¹L¹T⁻²), and the two force quantities sum homogeneously — the gate raises
+    // nothing.
+    let f = findings(DIMENSION_ROUNDTRIP_SCENE);
+    assert!(
+        !has_class(&f, "math:DimensionalInhomogeneity")
+            && !has_class(&f, "math:MalformedDimension"),
+        "the force = ∫ a dm round-trip scene must pass the ℚ⁷ dimension gate cleanly: {f:?}"
+    );
+}
+
+#[test]
+fn gmn_dimension_perturbed_exponent_falsifies_the_law() {
+    // The counter-example perturbs the force result's time exponent (−2 → −3), so the
+    // integral composition dim(accel) ⊕ dim(mass) ≠ dim(result): EXACTLY
+    // math:DimensionalInhomogeneity fires, and no other dimension failure class.
+    let f = findings(DIMENSION_INHOMOGENEOUS_COUNTER);
+    assert_eq!(
+        count_class(&f, "math:DimensionalInhomogeneity"),
+        1,
+        "the perturbed force dimension must raise exactly one math:DimensionalInhomogeneity: {f:?}"
+    );
+    assert!(
+        !has_class(&f, "math:MalformedDimension"),
+        "the perturbed exponent is a well-formed cell, so no math:MalformedDimension: {f:?}"
+    );
+}
