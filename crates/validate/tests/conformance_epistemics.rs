@@ -2,9 +2,9 @@
 
 //! Native conformance twins for the epistemics slice.
 //!
-//! Recreates — natively, zero Python — the instance-semantics coverage that was
-//! deleted with the Python surface (`slices/core/epistemics/tests/test_epistemics.py`
-//! and `tests/test_epistemics_belief_revision.py`):
+//! Pins — natively, zero Python — the epistemics slice's instance-level
+//! belief-revision and justification semantics as conformance over the shipped
+//! slice surface:
 //!
 //!  * the belief-revision spine over `examples/belief-revision.ttl` AND
 //!    `examples/flagship-epistemic-ledger.ttl`, checked as a derived
@@ -363,8 +363,7 @@ fn flagship_example_parses_nonempty() {
 // ── Annotation completeness ────────────────────────────────────────────────────
 
 /// The named justification terms and the doxastic spine whose annotation
-/// completeness the deleted pytest pinned explicitly (`test_justification_terms_are_annotated`
-/// + `test_every_term_is_annotated`).
+/// completeness this suite pins explicitly.
 const NAMED_TERMS: &[&str] = &[
     "DoxasticStandpointClaim",
     "claimOfBelief",
@@ -414,7 +413,7 @@ fn epistemics_lint_config() -> LintConfig {
 #[test]
 fn epistemics_terms_carry_required_annotations() {
     // The named terms must exist as defined subjects before their annotations can
-    // be policed — pins the roster the deleted pytest enumerated against renames.
+    // be policed — pins the roster explicitly against renames.
     let store = GraphStore::parse_ttl_file(&module_path());
     for term in NAMED_TERMS {
         let iri = gmeow(term);
@@ -493,8 +492,7 @@ fn sssom_subject_ids() -> BTreeSet<String> {
 }
 
 /// The generated epistemics SSSOM mapping set carries its expected doxastic /
-/// justification subjects (recreates the deleted
-/// `test_epistemics_mapping_set_exists_and_has_expected_rows`).
+/// justification subjects.
 #[test]
 fn epistemics_sssom_subjects_present() {
     let subjects = sssom_subject_ids();
