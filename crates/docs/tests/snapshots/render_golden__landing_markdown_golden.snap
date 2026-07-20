@@ -37,7 +37,7 @@ This site documents **5549** vocabulary terms across **84** slices.
 - [All slices](slices/index.md) — the 84 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
 - [Linkages](linkages/index.md) — 2114 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 178 worked examples.
+- [Examples](examples/index.md) — 179 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1800 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
 - [What GMEOW enforces](enforced-constraints/index.md) — 63 validation rules the toolchain enforces.
