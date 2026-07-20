@@ -74,7 +74,7 @@ fn every_finding_code_resolves_to_a_live_catalog_anchor() {
     codes.extend([
         "shacl.MinCountConstraintComponent".to_string(),
         "gts.untrusted-source".to_string(),
-        "advice.tier.active".to_string(),
+        "advice.candAdviceAvoidBareEntity".to_string(),
         "mylabel-dsl.nonconforming".to_string(),
     ]);
 

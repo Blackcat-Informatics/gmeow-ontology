@@ -2124,32 +2124,27 @@ ex:RequiredShape a sh:NodeShape ;
         // And the run-ledger node set differs: the violation contributes real finding
         // nodes; the conforming run contributes exactly the informational `shacl.clean`
         // record (keeps stage-validate's graph/diagnostics attach delta stable on a
-        // clean corpus — a zero-findings validation is a report, not an absence) PLUS
-        // the unconditional advisory-tier demonstrator (D1/D4): every run, conforming
-        // or not, contributes the `advice.tier.active` Note.
+        // clean corpus — a zero-findings validation is a report, not an absence). With
+        // the fixed advisory demonstrator removed (greenfield), this candidate-free
+        // conforming corpus harvests NO advisory (no accepted logic:CategoryRecommendation
+        // candidate is authored in it), so the clean run is exactly the one shacl.clean
+        // node. (Harvested advisories surfacing on a candidate-bearing source is proven
+        // by the stage test `stage_validate_emits_both_advice_projections`.)
         assert!(
             !violating.diags.is_empty(),
             "the violating run must contribute run-ledger nodes"
         );
         assert_eq!(
             conforming.diags.len(),
-            2,
-            "the conforming run contributes exactly the shacl.clean record plus the \
-             unconditional advisory demonstrator"
+            1,
+            "the conforming candidate-free run contributes exactly the shacl.clean record \
+             (no harvested advisory): {:?}",
+            conforming.diags
         );
         assert_eq!(
             conforming.diags[0].grade.severity,
             gmeow_errors::Severity::Info,
-            "the conforming run's first node is the informational shacl.clean record"
-        );
-        assert_eq!(
-            conforming.diags[1].code, "advice.tier.active",
-            "the conforming run's second node is the unconditional advisory demonstrator"
-        );
-        assert_eq!(
-            conforming.diags[1].grade.severity,
-            gmeow_errors::Severity::Note,
-            "the advisory demonstrator is a Note-severity finding"
+            "the conforming run's only node is the informational shacl.clean record"
         );
         assert_ne!(
             violating.diags, conforming.diags,

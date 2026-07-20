@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deliverable D4 (issue 763 Task 6, Part 1) — Completion-Adversary F4 falsifiable check.
+//! Falsifiable SHACL acceptance test over the SHIPPED bundle.
 //!
 //! `gmeow-dev validate --gts` (`make validate-gts`) SHACL-validates the SHIPPED bundle
 //! through `ValidationRun::run(gts_bytes: Some(..))` →
@@ -37,10 +37,11 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
-/// The demonstrator advisory code both advice wings project (`crates/validate/src/advisory.rs`
-/// `advisory_demonstrator()`), embedded in the `graph/norm-claims` claim's content-addressed IRIs
-/// (`NORM_CLAIMS_BASE_IRI`).
-const ADVICE_CODE: &str = "advice.tier.active";
+/// A harvested advisory rule's code both advice wings project — `advice.` family
+/// prefix + the `logic:candAdviceAvoidBareEntity` candidate local name (harvesting
+/// gmeow:Entity's `avoidWhen`) — embedded in the `graph/norm-claims` claim's
+/// content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`).
+const ADVICE_CODE: &str = "advice.candAdviceAvoidBareEntity";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

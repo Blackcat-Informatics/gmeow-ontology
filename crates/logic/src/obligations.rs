@@ -1022,8 +1022,8 @@ mod tests {
 
     #[test]
     fn advisory_candidate_avoidwhen_edit_surfaces_as_drift() {
-        // D3 (#762): an advisory recommendation candidate harvesting a gmeow:avoidWhen
-        // field is governed by the SAME source-hash drift gate as a hard axiom — the soft
+        // An advisory recommendation candidate harvesting a gmeow:avoidWhen field is
+        // governed by the SAME source-hash drift gate as a hard axiom — the soft
         // advisory tier is genuinely drift-verified, not merely present. A stale hash
         // against edited avoidWhen prose must red exactly as the hard-axiom definition case
         // does. The drift recompute keys only on the harvest triad, so category

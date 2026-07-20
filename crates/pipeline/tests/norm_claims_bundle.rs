@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deliverable D4 (issue 763 Task 5) acceptance tests over the SHIPPED bundle.
+//! Acceptance tests over the SHIPPED bundle: the advice dual-projection.
 //!
-//! (Completion-Adversary F1/F3): observe BOTH advice wings in the materialized
+//! Observe BOTH advice wings in the materialized
 //! `generated/dist/gmeow.gts` — the flat `graph/diagnostics` Note finding AND the
-//! reified `graph/norm-claims` `gmeow:ComplianceAssessment` claim — for the demonstrator
-//! advisory code `advice.tier.active`. One advisory event, two projections
+//! reified `graph/norm-claims` `gmeow:ComplianceAssessment` claim — for a HARVESTED
+//! advisory rule: `advice.candAdviceAvoidBareEntity`, the soft rule harvested from
+//! gmeow:Entity's `avoidWhen` prose. One advisory event, two projections
 //! (dual-projection-always, P4/P17); this test proves both actually SHIP, not merely
 //! that the emitter code exists.
 //!
@@ -22,10 +23,11 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
-/// The demonstrator advisory code both wings project (`crates/validate/src/advisory.rs`
-/// `advisory_demonstrator()`), and the code embedded in the `graph/norm-claims` claim's
-/// content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`).
-const ADVICE_CODE: &str = "advice.tier.active";
+/// A harvested advisory rule's code both wings project — `advice.` family prefix +
+/// the `logic:candAdviceAvoidBareEntity` candidate's local name — embedded in the
+/// `graph/norm-claims` claim's content-addressed IRIs (`NORM_CLAIMS_BASE_IRI`). The
+/// candidate harvests gmeow:Entity's `avoidWhen` prose, which ships in the bundle.
+const ADVICE_CODE: &str = "advice.candAdviceAvoidBareEntity";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -72,7 +74,7 @@ fn objects_of<'a>(
 }
 
 /// Wing 1 (`graph/norm-claims`): the shipped bundle carries a `gmeow:ComplianceAssessment`
-/// whose IRI embeds the demonstrator advisory code, with exactly one `gmeow:vantage` =
+/// whose IRI embeds the harvested advisory code, with exactly one `gmeow:vantage` =
 /// `gmeowBestPractice`, exactly one `gmeow:complianceVerdict`, and a `gmeow:assessedNorm`
 /// whose object carries `gmeow:deonticModality` = `deonticRecommendation` AND a
 /// `gmeow:normIssuer` — the reified, standpoint-indexed advice claim.
@@ -150,7 +152,7 @@ fn shipped_bundle_norm_claims_carries_the_advisory_compliance_assessment() {
 }
 
 /// Wing 2 (`graph/diagnostics`): the shipped bundle carries a `gmeow:Finding` with
-/// `gmeow:findingCode` = the demonstrator advisory code, graded at the never-gating
+/// `gmeow:findingCode` = the harvested advisory code, graded at the never-gating
 /// `gmeow:standpointAdvisory` truth-axis — the flat projection of the same advice event.
 #[test]
 fn shipped_bundle_diagnostics_carries_the_advisory_finding() {

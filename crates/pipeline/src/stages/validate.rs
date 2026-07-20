@@ -212,6 +212,11 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v6: the advisory tier is HARVESTED — the fixed demonstrator is gone;
+        // every ACCEPTED logic:CategoryRecommendation FormalizationCandidate in the
+        // source graph projects into a Note finding (→ `graph/diagnostics`) + a
+        // `gmeow:ComplianceAssessment` claim (→ `graph/norm-claims`), so the emitted
+        // advisory content now depends on the authored candidates (a version bump).
         // v5: emit BOTH wings of the advisory dual-projection unconditionally — the
         // flat Note finding folded into `report` (→ `graph/diagnostics`) AND the
         // materialised `gmeow:ComplianceAssessment` claim in the new `graph/norm-claims`
@@ -227,7 +232,7 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v5-norm-claims"
+        "validate.v6-advice-harvest"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -315,31 +320,39 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             source_dataset.as_ref(),
         );
-        // Advisory tier (D1/D4): route BOTH wings of the dual-projection onto this
-        // UNCONDITIONAL path (no early-return between the report build above and
-        // here), so the advisory fires even on a non-conforming corpus. The
-        // demonstrator is single-sourced via `advisory_demonstrator()` — the SAME
-        // builder the CLI path (`gmeow_validate::validate_all::run`) calls — so the
-        // two consumer surfaces can never drift apart (D4).
-        let advisory = gmeow_validate::advisory::advisory_demonstrator();
-        let projection = advisory.project();
-        // Flat wing: fold the graded Note finding into `report` (→ rendered into
+        // Advisory tier: harvest every ACCEPTED logic:CategoryRecommendation
+        // FormalizationCandidate in the authored source graph (which carries the logic
+        // slice, hence the candidates) into soft advisories, routing BOTH wings of the
+        // dual-projection onto this UNCONDITIONAL path (no early-return between the
+        // report build above and here), so advice fires even on a non-conforming
+        // corpus. SINGLE-SOURCED with the CLI path via `harvest_advisory_rules` — the
+        // SAME builder `gmeow_validate::validate_all::run` calls — so the two consumer
+        // surfaces can never drift apart. A source with no accepted recommendation
+        // candidates harvests nothing (honest empty advisory tier + empty norm-claims).
+        let advisories =
+            gmeow_validate::advisory::harvest_advisory_rules(source_dataset.as_ref());
+        // Flat wing: fold each graded Note finding into `report` (→ rendered into
         // `graph/diagnostics` below), routed through a `DiagLedger` exactly as
-        // `gmeow_validate::advisory`'s own test helper does, so the finding carries
+        // `gmeow_validate::advisory`'s own test helper does, so each finding carries
         // genuine ledger identity (finding_iri/anchor), not a hand-built stand-in.
         let mut advisory_ledger = DiagLedger::new();
-        advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
-        let advisory_finding = advisory_ledger
-            .findings("validate")
-            .pop()
-            .expect("exactly one advisory finding");
-        report.add_finding(advisory_finding);
-        report.add_rule(advisory.rule());
-        // Claim wing: materialise the ComplianceAssessment as N-Quads into ITS OWN
-        // carrier named graph (`graph/norm-claims`), parsed the same way the SHACL
+        let mut advisory_claims = Vec::with_capacity(advisories.len());
+        for advisory in &advisories {
+            let projection = advisory.project();
+            advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+            advisory_claims.push(projection.claim);
+        }
+        for advisory_finding in advisory_ledger.findings("validate") {
+            report.add_finding(advisory_finding);
+        }
+        for advisory in &advisories {
+            report.add_rule(advisory.rule());
+        }
+        // Claim wing: materialise the ComplianceAssessment claims as N-Quads into THEIR
+        // OWN carrier named graph (`graph/norm-claims`), parsed the same way the SHACL
         // diagnostics RDF is parsed into `graph/diagnostics` below.
         let claim_nq = gmeow_validate::advisory::project_compliance_assessment(
-            &[projection.claim],
+            &advisory_claims,
             crate::stages::carrier::GRAPH_NORM_CLAIMS,
         );
         let claim_dataset = crate::stages::carrier::parse_into_graph(
@@ -649,14 +662,32 @@ ex:RequiredShape a sh:NodeShape ;
     /// body, and run the stage. Factored out of
     /// `stage_validate_run_is_enriched_matching_the_cli_path` so Task 4's two new tests
     /// reuse the EXACT same harness shape rather than a hand-rolled twin.
-    fn run_full_stage(shapes: &str) -> StageOutput {
+    /// One accepted `logic:CategoryRecommendation` candidate (N-Quads, default graph)
+    /// harvesting `gmeow:Foo`'s `avoidWhen` prose — the base-graph fixture that makes
+    /// the harvest bridge fire exactly one advisory (and thus one ComplianceAssessment)
+    /// through the full stage, replacing the old always-on demonstrator.
+    const ADVICE_BASE_NQ: &str = concat!(
+        "<https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/avoidWhen> .\n",
+        "<https://blackcatinformatics.ca/gmeow/Foo> <https://blackcatinformatics.ca/gmeow/avoidWhen> \"avoid bare Foo\"@x-gmeow-english .\n",
+        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FormalizationCandidate> .\n",
+        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryRecommendation> .\n",
+        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> .\n",
+        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/Foo> .\n",
+        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> .\n",
+    );
+
+    /// The harvested advisory code for `ADVICE_BASE_NQ`'s candidate (`advice.` family
+    /// prefix + the candidate IRI local name).
+    const ADVICE_HARVESTED_CODE: &str = "advice.candAdviceFoo";
+
+    fn run_full_stage(base_nq: &str, shapes: &str) -> StageOutput {
         use purrdf::RdfDatasetBuilder;
 
         let repo = mock_repo(shapes);
 
         let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), base_nq.as_bytes().to_vec());
         let span_index = crate::ingest::SpanIndex::new();
         let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
         let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
@@ -813,12 +844,14 @@ ex:RequiredShape a sh:NodeShape ;
         );
     }
 
-    /// Task 4: BOTH advisory wings must ride a CONFORMING run. Reuses the full
+    /// BOTH advisory wings must ride a CONFORMING run over a base graph
+    /// carrying one accepted recommendation candidate. Reuses the full
     /// `ValidateStage::run` harness with a shape module that cannot fire against the
-    /// empty base graph (no `sh:targetNode`/property shape), so the run is genuinely
+    /// base graph (no `sh:targetNode`/property shape), so the run is genuinely
     /// conforming (`shacl.clean`), and asserts:
-    ///  - the report carries the flat `advice.tier.active` finding at the
-    ///    Advisory standpoint (routed into `graph/diagnostics`);
+    ///  - the report carries the HARVESTED flat advisory finding
+    ///    (`advice.candAdviceFoo`) at the Advisory standpoint (routed into
+    ///    `graph/diagnostics`);
     ///  - the stage product's `graph/norm-claims` carries the materialised
     ///    `gmeow:ComplianceAssessment` claim, in full documented shape.
     ///
@@ -826,6 +859,7 @@ ex:RequiredShape a sh:NodeShape ;
     #[test]
     fn stage_validate_emits_both_advice_projections() {
         let output = run_full_stage(
+            ADVICE_BASE_NQ,
             r#"
 @prefix ex: <https://example.test/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
@@ -847,8 +881,8 @@ ex:RequiredShape a sh:NodeShape ;
         let advisory_finding = report
             .findings
             .iter()
-            .find(|f| f.code == "advice.tier.active")
-            .expect("the advice.tier.active finding must be present on a conforming run");
+            .find(|f| f.code == ADVICE_HARVESTED_CODE)
+            .expect("the harvested advisory finding must be present on a conforming run");
         assert_eq!(
             advisory_finding.standpoint,
             Some(gmeow_errors::Standpoint::Advisory),
@@ -872,6 +906,7 @@ ex:RequiredShape a sh:NodeShape ;
     #[test]
     fn stage_validate_emits_advice_claim_even_when_nonconforming() {
         let output = run_full_stage(
+            ADVICE_BASE_NQ,
             r#"
 @prefix ex: <https://example.test/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .

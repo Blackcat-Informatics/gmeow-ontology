@@ -831,23 +831,31 @@ impl ValidationRun {
             }
         }
 
-        // Advisory tier (D1): emit one fixed demonstrator advisory on every
-        // normal-completion run, so gmeow validate surfaces a Note finding distinct
-        // from compliance errors. The dual-projection-always contract: ONE
-        // Advisory::project() call yields BOTH the graded diagnostic AND the
-        // in-memory claim hook D4 materialises. NOT emitted on the two early-return
-        // (hard-fail) paths above. D3 replaces this demonstrator with harvested
-        // advisory rules (find via the "advisory-demonstrator" tag).
-        let advisory = crate::advisory::advisory_demonstrator();
-        let projection = advisory.project();
-        let advisory_claims = vec![projection.claim];
-        // Intern the advisory's graded (Standpoint::Advisory) diagnostic onto the
-        // run ledger — it never gates, whatever its severity.
-        run_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+        // Advisory tier: harvest every ACCEPTED logic:CategoryRecommendation
+        // FormalizationCandidate in the validated dataset into a soft
+        // (deonticRecommendation) advisory. The dual-projection-always contract: each
+        // Advisory::project() call yields BOTH the graded diagnostic AND the in-memory
+        // ComplianceAssessment claim hook. NOT emitted on the two early-return (hard-fail)
+        // paths above. SINGLE-SOURCED with the pipeline path via
+        // `harvest_advisory_rules`. A dataset with no accepted recommendation
+        // candidates (e.g. a standalone user file) harvests nothing — an honest empty
+        // advisory tier, not a placeholder. Find harvested findings via the
+        // "advisory-harvested" tag.
+        let advisories = crate::advisory::harvest_advisory_rules(dataset.as_ref());
+        let mut advisory_claims = Vec::with_capacity(advisories.len());
+        for advisory in &advisories {
+            let projection = advisory.project();
+            advisory_claims.push(projection.claim);
+            // Intern each advisory's graded (Standpoint::Advisory) diagnostic onto the
+            // run ledger — it never gates, whatever its severity.
+            run_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+        }
 
         // The single carrier is complete: project it to the one canonical report.
         let mut report = run_ledger.project_report("validate");
-        report.add_rule(advisory.rule());
+        for advisory in &advisories {
+            report.add_rule(advisory.rule());
+        }
 
         // Semantic (`--deep`) pass (ME2): reason over the bundle and read the
         // shared logic:ReasoningResult, folding its semantic verdict into the same
@@ -2690,12 +2698,16 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
     }
 
-    /// The demonstrator advisory appears on every normal-completion run as a Note
-    /// (not an error or warning), proving it is distinct from the compliance surfaces.
-    /// Both the flat finding and the in-memory claim hook are emitted together
-    /// (dual-projection-always contract D1).
+    /// With the fixed demonstrator removed (greenfield), a normal-completion run
+    /// over a bundle carrying NO accepted recommendation candidates emits an EMPTY
+    /// advisory tier — honest absence, not a synthetic always-on Note. This proves the
+    /// unconditional demonstrator is gone. Harvested advisories surfacing on a real
+    /// candidate-bearing dataset is covered by the advisory-bridge unit tests
+    /// (`harvest_yields_note_with_subject_and_howtouse_suggestion` et al.) and the
+    /// pipeline stage test; the full `make check` over gmeow.gts (which ships the advisory
+    /// candidates) exercises the whole path end to end.
     #[test]
-    fn clean_run_emits_one_demonstrator_advisory() {
+    fn clean_run_over_candidate_free_bundle_emits_no_advisory() {
         let bytes = minimal_gts_bytes();
         let options = ValidateOptions {
             gts_bytes: Some(bytes),
@@ -2705,53 +2717,34 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
             .expect("ValidationRun::run must succeed");
 
-        // The advisory is a Note — it must NOT contaminate the error/warning surfaces.
+        // No advisory contaminates the error/warning surfaces, and a clean run is ok.
         assert!(
             run.errors().is_empty(),
-            "advisory Note must not appear in errors: {:?}",
+            "no errors on a clean run: {:?}",
             run.errors()
         );
         assert!(
             run.warnings().is_empty(),
-            "advisory Note must not appear in warnings: {:?}",
+            "no warnings on a clean run: {:?}",
             run.warnings()
         );
-
-        // A Note never fails the gate.
         assert!(
             run.report.normalized().ok(),
-            "report with only a Note must still be ok"
+            "a clean report must still be ok"
         );
 
-        // Exactly one finding with code "advice.tier.active" and severity Note.
-        let advisory_findings: Vec<_> = run
-            .report
-            .findings
-            .iter()
-            .filter(|f| f.code == "advice.tier.active")
-            .collect();
-        assert_eq!(
-            advisory_findings.len(),
-            1,
-            "expected exactly one advice.tier.active finding; got: {:?}",
-            advisory_findings
+        // A candidate-free bundle harvests NOTHING — no claim hook, no advice.* finding.
+        assert!(
+            run.advisory_claims.is_empty(),
+            "a candidate-free bundle must harvest no advisory claims; got: {:?}",
+            run.advisory_claims
         );
-        assert_eq!(
-            advisory_findings[0].severity,
-            gmeow_errors::Severity::Note,
-            "demonstrator advisory must be a Note"
-        );
-
-        // The in-memory claim hook is present with correct code and modality.
-        assert_eq!(
-            run.advisory_claims.len(),
-            1,
-            "expected exactly one advisory claim on normal-completion run"
-        );
-        assert_eq!(run.advisory_claims[0].code, "advice.tier.active");
-        assert_eq!(
-            run.advisory_claims[0].modality_iri,
-            crate::advisory::DEONTIC_RECOMMENDATION_IRI
+        assert!(
+            !run.report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
+            "a candidate-free bundle must emit no advice.* finding"
         );
     }
 
@@ -2792,8 +2785,8 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             !run.report
                 .findings
                 .iter()
-                .any(|f| f.code == "advice.tier.active"),
-            "early-return path must emit no advice.tier.active finding"
+                .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
+            "early-return path must emit no advice.* finding"
         );
     }
 
