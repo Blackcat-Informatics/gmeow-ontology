@@ -12,6 +12,7 @@
 //! flags no residue — blocks serialization (red build).
 //! Compared by RDF isomorphism, like the other RDF targets.
 
+use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
 use purrdf::RdfLiteral;
 
 use crate::loss_ledger::LossLedger;
@@ -19,12 +20,46 @@ use crate::loss_ledger::LossLedger;
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
 use super::{
-    GMEOW_NS, LOGIC_NS, OverclaimError, ProjectionResult, RDF_TYPE, RDFS_NS, XSD_NS,
-    assert_no_overclaim,
+    GMEOW_NS, LOGIC_NS, OverclaimError, ProjectionResult, RDF_TYPE, XSD_NS, assert_no_overclaim,
 };
+
+/// The named graph the compiler's projection-report loss ledger is folded into
+/// downstream (mirrors `crates/pipeline::stages::carrier::GRAPH_PROJECTION_LEDGER`
+/// verbatim — `gmeow-logic-compile` has zero dependency on `gmeow-pipeline`, so the
+/// literal is pinned here rather than imported). This is the `rdfs:isDefinedBy` target
+/// for every A-Box individual this report mints: every `logic:ProjectionTarget` and
+/// `logic:TermProjectionLoss` genuinely lives in this named graph once folded, so the
+/// annotation is a true fact, not a placeholder.
+const GRAPH_PROJECTION_LEDGER: &str = "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
 
 fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
+}
+
+/// Route the four mandatory A-Box annotations (`rdfs:label`, `skos:definition`,
+/// `rdfs:isDefinedBy`, `gmeow:graphBoxRole`) for one generated individual through the
+/// single shared contract ([`gmeow_errors::abox::abox_annotations`]), so this emitter
+/// cannot drift from the other A-Box producers (`render`, `gmeow_docs::rdf`, the
+/// pipeline's provenance/evals generators). Label/definition literals carry the
+/// [`X_GMEOW_ENGLISH`] carrier language tag via [`RdfLiteral::language_tagged`], never a
+/// bare `en` tag.
+fn emit_abox_annotations(
+    g: &mut TripleSink,
+    subject_iri: &str,
+    label: &str,
+    definition: &str,
+    graph_iri: &str,
+) {
+    for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
+        match object {
+            AboxObject::Iri(iri) => g.add_iri(subject_iri, predicate, &iri),
+            AboxObject::CarrierLiteral(value) => g.add_lit(
+                subject_iri,
+                predicate,
+                RdfLiteral::language_tagged(value, X_GMEOW_ENGLISH),
+            ),
+        }
+    }
 }
 
 /// Percent-encode a projection-target name into a legal IRI path segment.
@@ -226,13 +261,36 @@ pub fn build_projection_report_from(
         // embed full IRIs + separators (`|`, `::`, spaces) that are illegal in an IRI, so
         // those are percent-encoded into a legal, deterministic segment. The unencoded
         // name remains the readable `rdfs:label`.
+        // The human-readable correspondence key, when this target's residue carries one:
+        // every `correspondence_result` caller (fno/edoal/sssom/sparql/sparql_put) pushes
+        // `correspondence: {key}` as its FIRST actual drop, so `proj.target` (a
+        // `<dialect>:<sha256-prefix>` opaque IRI segment, minted to keep the target name
+        // IRI-legal) never has to double as the label. Whole-program logic targets
+        // (owl-dl, owl-el, gufo, canonical-rdf12, …) push no such note, so `proj.target`
+        // itself — already human-readable for those — is the honest fallback.
+        let target_key = drops
+            .iter()
+            .find_map(|note| {
+                note.strip_prefix("actual: ")
+                    .unwrap_or(note.as_str())
+                    .strip_prefix("correspondence: ")
+            })
+            .unwrap_or(proj.target.as_str());
+
         let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(&proj.target));
         g.add_iri(&report_iri, &logic("hasProjection"), &target_iri);
         g.add_iri(&target_iri, RDF_TYPE, &logic("ProjectionTarget"));
-        g.add_lit(
+        let target_definition = format!(
+            "Projection to {target_key}: preservation {}, complexity {}.",
+            proj.preservation.as_str(),
+            proj.complexity
+        );
+        emit_abox_annotations(
+            &mut g,
             &target_iri,
-            &format!("{RDFS_NS}label"),
-            RdfLiteral::simple(&proj.target),
+            target_key,
+            &target_definition,
+            GRAPH_PROJECTION_LEDGER,
         );
         g.add_iri(
             &target_iri,
@@ -278,11 +336,19 @@ pub fn build_projection_report_from(
             g.add_iri(&term_loss_iri, &lossy_source_term, source_term);
             // The projection target this term-loss belongs to (the readable target name),
             // and the target's preservation kind + complexity — so the docs row is complete
-            // without re-joining the parent target node.
-            g.add_lit(
+            // without re-joining the parent target node. Label/definition are derived from
+            // the same `target_key` + the DOCUMENTED source term (never `proj.target`'s
+            // opaque hash) — the four mandatory A-Box annotations, via the shared contract.
+            let term_loss_label = format!("{target_key}: loss of {source_term}");
+            let term_loss_definition = format!(
+                "Term {source_term} is not preserved by the projection to {target_key}."
+            );
+            emit_abox_annotations(
+                &mut g,
                 &term_loss_iri,
-                &format!("{RDFS_NS}label"),
-                RdfLiteral::simple(&proj.target),
+                &term_loss_label,
+                &term_loss_definition,
+                GRAPH_PROJECTION_LEDGER,
             );
             g.add_iri(
                 &term_loss_iri,
@@ -343,5 +409,181 @@ mod tests {
             "a correspondence-free report must not emit the statistic:\n{empty}"
         );
         assert!(!empty.contains("lawfulUpliftCount"), "{empty}");
+    }
+
+    /// Shift-left for the A-Box annotation contract (`gmeow-errors::abox`): every
+    /// `logic:ProjectionTarget` and `logic:TermProjectionLoss` individual this report
+    /// mints carries all four mandatory annotations (`rdfs:label`, `skos:definition`,
+    /// `rdfs:isDefinedBy`, `gmeow:graphBoxRole`); the label/definition literals carry
+    /// the `x-gmeow-english` carrier tag (never bare `en`); and the label is the
+    /// human-readable correspondence key — never the opaque `<dialect>:<sha-prefix>`
+    /// target name `correspondence_result` mints for IRI legality.
+    ///
+    /// `gmeow-logic-compile` has zero dependency on `gmeow-validate` (the reverse
+    /// dependency would cycle: `gmeow-validate` depends on this crate), so this parses
+    /// the emitted dataset directly and asserts on it, rather than driving
+    /// `gmeow_validate::lint::structural_lint_dataset` as the pipeline-level provenance/
+    /// evals tests do.
+    #[test]
+    fn projection_targets_and_term_losses_carry_the_full_abox_annotation_contract() {
+        use crate::graphutil::{Node, Subject, nn, objects};
+        use crate::ir::PreservationKind;
+        use gmeow_errors::abox::{
+            BOX_ABOX, GRAPH_BOX_ROLE, RDFS_IS_DEFINED_BY, RDFS_LABEL, SKOS_DEFINITION,
+            X_GMEOW_ENGLISH,
+        };
+
+        // A correspondence-dialect target: `proj.target` is the opaque
+        // `<dialect>:<sha-prefix>` segment `correspondence_result` mints for IRI
+        // legality; its residue's FIRST actual drop carries the human-readable key.
+        let target_name = "fno:deadbeef01234567".to_owned();
+        let key = "fno:KnowsAboutMapping|get";
+        let source_term = "https://blackcatinformatics.ca/gmeow/knowsAbout".to_owned();
+        let mut ledger = LossLedger::new();
+        ledger.record_projection_drops_attributed(
+            &target_name,
+            PreservationKind::SoundUnder,
+            &[],
+            &[
+                (format!("correspondence: {key}"), None),
+                (
+                    "fno:hasParameter arity dropped".to_owned(),
+                    Some(source_term.clone()),
+                ),
+            ],
+        );
+        let proj = ProjectionResult {
+            target: target_name.clone(),
+            content: String::new(),
+            is_rdf: false,
+            preservation: PreservationKind::SoundUnder,
+            complexity: "P".to_owned(),
+        };
+
+        let ttl = build_projection_report_from(header(0, 0), &[proj], &ledger).expect("report");
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("emitted report Turtle must parse");
+        let ds = dataset.as_ref();
+
+        let target_iri = format!("{LOGIC_NS}target/{}", iri_safe_segment(&target_name));
+        let target_subject = Subject::Iri(target_iri.clone());
+
+        // The label is the human-readable correspondence key, never the opaque hash,
+        // and carries the x-gmeow-english carrier tag.
+        let labels = objects(ds, &target_subject, &nn(RDFS_LABEL));
+        assert_eq!(labels.len(), 1, "exactly one rdfs:label: {labels:?}");
+        match &labels[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(lexical, key, "label must be the correspondence key");
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("rdfs:label must be a literal: {other:?}"),
+        }
+        assert_ne!(
+            labels[0],
+            Node::iri(target_name.clone()),
+            "label must never be the opaque hash target name"
+        );
+
+        // skos:definition is present, carrier-tagged, and derived from the key +
+        // preservation + complexity (never fabricated).
+        let definitions = objects(ds, &target_subject, &nn(SKOS_DEFINITION));
+        assert_eq!(definitions.len(), 1, "exactly one skos:definition: {definitions:?}");
+        match &definitions[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(
+                    lexical,
+                    "Projection to fno:KnowsAboutMapping|get: preservation \
+                     SoundUnderApproximation, complexity P."
+                );
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("skos:definition must be a literal: {other:?}"),
+        }
+
+        // rdfs:isDefinedBy points at the projection-ledger named graph this report is
+        // folded into downstream.
+        assert_eq!(
+            objects(ds, &target_subject, &nn(RDFS_IS_DEFINED_BY)),
+            vec![Node::iri(GRAPH_PROJECTION_LEDGER)],
+            "rdfs:isDefinedBy must point at the projection-ledger graph"
+        );
+
+        // gmeow:graphBoxRole is the assertional-tier role every generated individual
+        // carries.
+        assert_eq!(
+            objects(ds, &target_subject, &nn(GRAPH_BOX_ROLE)),
+            vec![Node::iri(BOX_ABOX)],
+            "graphBoxRole must be gmeow:boxABox"
+        );
+
+        // The reified TermProjectionLoss node carries the same four-annotation
+        // contract, with a label/definition derived from the key + the DOCUMENTED
+        // source term (never the opaque hash).
+        let term_loss_iri = format!("{target_iri}/termloss/{}", iri_safe_segment(&source_term));
+        let term_loss_subject = Subject::Iri(term_loss_iri);
+        let term_labels = objects(ds, &term_loss_subject, &nn(RDFS_LABEL));
+        assert_eq!(
+            term_labels.len(),
+            1,
+            "exactly one term-loss rdfs:label: {term_labels:?}"
+        );
+        match &term_labels[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(lexical, &format!("{key}: loss of {source_term}"));
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("term-loss rdfs:label must be a literal: {other:?}"),
+        }
+        let term_definitions = objects(ds, &term_loss_subject, &nn(SKOS_DEFINITION));
+        assert_eq!(term_definitions.len(), 1, "{term_definitions:?}");
+        match &term_definitions[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(
+                    lexical,
+                    &format!("Term {source_term} is not preserved by the projection to {key}.")
+                );
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("term-loss skos:definition must be a literal: {other:?}"),
+        }
+        assert_eq!(
+            objects(ds, &term_loss_subject, &nn(RDFS_IS_DEFINED_BY)),
+            vec![Node::iri(GRAPH_PROJECTION_LEDGER)]
+        );
+        assert_eq!(
+            objects(ds, &term_loss_subject, &nn(GRAPH_BOX_ROLE)),
+            vec![Node::iri(BOX_ABOX)]
+        );
+
+        // A whole-program logic target (no `correspondence: ` note in its residue)
+        // falls back to its own already-human-readable `proj.target` as the label —
+        // still carrier-tagged, still carrying all four annotations.
+        let owl_dl_proj = ProjectionResult {
+            target: "owl-dl".to_owned(),
+            content: String::new(),
+            is_rdf: false,
+            preservation: PreservationKind::SoundUnder,
+            complexity: "EL".to_owned(),
+        };
+        let ttl2 = build_projection_report_from(header(0, 0), &[owl_dl_proj], &LossLedger::new())
+            .expect("report");
+        let dataset2 = purrdf::parse_dataset(ttl2.as_bytes(), "text/turtle", None)
+            .expect("emitted report Turtle must parse");
+        let ds2 = dataset2.as_ref();
+        let owl_dl_subject = Subject::Iri(format!("{LOGIC_NS}target/owl-dl"));
+        let owl_dl_labels = objects(ds2, &owl_dl_subject, &nn(RDFS_LABEL));
+        assert_eq!(owl_dl_labels.len(), 1, "{owl_dl_labels:?}");
+        match &owl_dl_labels[0] {
+            Node::Lit { lexical, lang, .. } => {
+                assert_eq!(lexical, "owl-dl");
+                assert_eq!(lang.as_deref(), Some(X_GMEOW_ENGLISH));
+            }
+            other => panic!("fallback rdfs:label must be a literal: {other:?}"),
+        }
+        assert_eq!(
+            objects(ds2, &owl_dl_subject, &nn(GRAPH_BOX_ROLE)),
+            vec![Node::iri(BOX_ABOX)]
+        );
     }
 }
