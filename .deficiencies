@@ -1770,3 +1770,23 @@ D1. `materialize_subclass_type_closure` (crates/validate/src/validate_all.rs) wa
     SPARQL-based constraint/target mechanisms too (or expose an opt-in data-graph subclass
     materialization); once purrdf subsumes ALL constraint mechanisms, delete this pass and prove
     report parity. Tracked on the purrdf repo (see PR #1618 body for the filed issue URL).
+
+D2. `build_nt_segment` / `take_nt_term` / `NtTerm` (crates/pipeline/src/mcp.rs) is a SECOND
+    hand-rolled N-Triples lexer (the conjecture/candidate AI-package segment builder) left in
+    place — a duplicate of purrdf's N-Triples parser. The sibling `parse_nt` reader in
+    crates/logic/src/result_rdf.rs WAS delegated to `purrdf::parse_dataset` in this PR (proven
+    byte-parity by the gmeow-logic round-trip suite); this one was NOT.
+    Why less than maximal: unlike `parse_nt` (whose consumers compare terms relationally, so
+    quad order is irrelevant), `build_nt_segment` interns each parsed term into a `GtsWriter`
+    term table IN ENCOUNTER ORDER, and that order is baked into the emitted GTS segment BYTES
+    of an append-only library. Delegating to `purrdf::parse_dataset` risks changing the interned
+    term order (owned_quads() iteration order need not equal document order), silently altering
+    the segment bytes / content digest. There is no cheap byte-parity test in a fresh worktree
+    (build_nt_segment is private and its round-trip needs generated artifacts), so a delegation
+    could only be verified at stage-3 make check — exactly the change/debug/check loop the
+    working discipline forbids. Landing an unverifiable byte-changing delegation would violate
+    no-silent-degradation, so it is retained.
+    Forward path: delegate once the equivalence harness (the golden/byte-parity infra this PR
+    stands up) can prove the emitted GTS segment bytes are identical — recover document order
+    from `RdfQuad.location` (or intern in a canonical sorted order and re-bless the segment
+    goldens), then remove `take_nt_term`/`NtTerm`.
