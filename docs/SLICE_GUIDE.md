@@ -174,11 +174,15 @@ The annotation-completeness gate requires `rdfs:label`, `skos:definition`, and
 - `skos:example` with a one-line worked triple;
 - `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse` — the three-part usage coat that
   makes the docs pages teach. `avoidWhen` / `useWhen` are not only prose: a central
-  `logic:CategoryRecommendation` candidate can **harvest** them into machine-active
-  advisory rules that emit `deonticRecommendation` Notes at `gmeow validate` time (the
-  `gmeow:axisAdviceCoverage` quality axis measures how much of a slice's advice prose is
-  so harvested — see [`SLICE_QA.md`](./SLICE_QA.md)). Author the guidance well here; the
-  harvest links to it centrally without the slice asserting any `logic:` triple;
+  `logic:Constraint` (for `avoidWhen`) or `logic:AdviceGuidance` (for `useWhen`) can
+  **harvest** them into machine-active advisory rules — the constraint's data-matching
+  guard emits a `deonticRecommendation` Note at `gmeow validate` time when an individual
+  matches the anti-pattern, while the guidance carries the positive-applicability
+  message onto the term (the `gmeow:axisAdviceCoverage` quality axis measures how much
+  of a slice's advice prose is so harvested — see [`SLICE_QA.md`](./SLICE_QA.md)).
+  Author the guidance well here; the harvested carrier's `logic:message` must be the
+  verbatim prose (the native prose-binding gate holds them together), and it links to
+  the term centrally without the slice asserting any `logic:` triple;
 - `gmeow:graphBoxRole` (TBox/RBox/ABox placement);
 - foundation stereotype (§4) and, on relators, `logic:mediates` naming the roles;
 - OWL characteristics stated where true (functional, transitive, symmetric, inverse,

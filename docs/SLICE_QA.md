@@ -123,29 +123,40 @@ quality *score* as a competency cell, and do not expect a cell to move a tier.
 ### The advice-harvest-coverage axis (`gmeow:axisAdviceCoverage`)
 
 One axis measures a cross-slice frontier and is uplifted differently from all the
-others. `gmeow:axisAdviceCoverage` scores the fraction of a slice's source-language
-`gmeow:avoidWhen` / `gmeow:useWhen` cells that a **central** `logic:CategoryRecommendation`
-FormalizationCandidate has already harvested into a machine-active advisory rule (one
-that emits a `deonticRecommendation` Note through `gmeow validate`). It is **harvest
-coverage — candidate presence — not prose presence**: a term can carry rich `avoidWhen`
-prose and still score `0.0` here (that prose *presence* is the information / prose axes),
-because until a reviewed recommendation candidate `candidateFormalizes`-links the term
-the guidance is inert. A slice authoring no advisory prose is vacuously `1.0`.
-`gmeow:howToUse` is deliberately **not** counted — it is suggestion text carried onto
-findings, not a harvestable rule field.
+others. `gmeow:axisAdviceCoverage` scores, per cell, the fraction of a slice's
+source-language `gmeow:avoidWhen` / `gmeow:useWhen` cells that a **central** carrier has
+already harvested into a machine-active advisory rule: an `avoidWhen` cell is covered
+when an `Info`-severity `logic:Constraint` formalizes the term (its data-matching guard
+fires a `deonticRecommendation` Note only when an individual matches the anti-pattern);
+a `useWhen` cell is covered when a `logic:AdviceGuidance` formalizes the term (a
+data-matching guard cannot express positive applicability, so `useWhen` gets its own
+carrier, not a constraint). It is **harvest coverage — carrier presence — not prose
+presence**: a term can carry rich `avoidWhen` prose and still score `0.0` here (that
+prose *presence* is the information / prose axes), because until a reviewed
+`logic:Constraint` / `logic:AdviceGuidance` `logic:formalizes`-links the term the
+guidance is inert. A slice authoring no advisory prose is vacuously `1.0`.
+`gmeow:howToUse` is deliberately **not** counted in the denominator — it is corrective
+suggestion text the runtime reads from the term and surfaces on the fired advisory, not
+a harvestable rule field in its own right.
 
-**How to raise it — author a candidate CENTRALLY, never edit the domain slice.** Unlike
-every other axis (all slice-local edits), advice-harvest coverage is raised by adding a
-`logic:FormalizationCandidate` to `slices/grounding/logic/module.ttl` —
-`logic:candidateCategory logic:CategoryRecommendation`, `logic:candidateSemanticRisk
-logic:RiskAdvisory`, the paired `logic:candidateFormalizes <term>` +
-`logic:candidateSourceField logic:ProseFieldAvoidWhen|ProseFieldUseWhen`, and the
-`logic:candidateSourceHash`. The advisor makes this mechanical: each uncovered cell it
-names ships a **paste-ready candidate stub with the pre-computed `candidateSourceHash`**.
-The domain slice keeps only its `avoidWhen` / `useWhen` prose and asserts no `logic:`
-triple; the drift gate then holds the candidate to that exact prose. The axis is
-advisory-only (no committed floor), so it never reds the gate — it exists to prioritize
-the background advice-harvest lane onto the slices with the most unharvested guidance.
+**How to raise it — author the carrier CENTRALLY, never edit the domain slice.** Unlike
+every other axis (all slice-local edits), advice-harvest coverage is raised by adding,
+to `slices/grounding/logic/module.ttl`, a `logic:Constraint` (for `avoidWhen`) or a
+`logic:AdviceGuidance` (for `useWhen`) that `logic:formalizes <term>`, names its source
+field with `logic:adviceSourceField logic:ProseFieldAvoidWhen` or
+`logic:ProseFieldUseWhen`, and sets `logic:message` to the **verbatim** `gmeow:avoidWhen`
+/ `gmeow:useWhen` source-language prose (a `logic:Constraint` additionally carries
+`logic:severity "Info"`, its advisory tier, and a `logic:integrity` `logic:Formula`
+guard). There is no stored hash for advice — the message *is* the prose, so the native
+verify gate `check_advice_message_prose_binding` hard-fails whenever a carrier's
+`logic:message` diverges from its formalized term's current `@x-gmeow-english` prose for
+the named field (this direct string binding is distinct from the hard-axiom
+`candidateSourceHash` discipline, which stays only for `logic:FormalizationCandidate`
+governance records elsewhere). The domain slice keeps only its `avoidWhen` / `useWhen`
+prose and asserts no `logic:` triple; the prose-binding gate then holds the carrier to
+that exact prose. The axis is advisory-only (no committed floor), so it never reds the
+gate — it exists to prioritize the background advice-harvest lane onto the slices with
+the most unharvested guidance.
 
 - **Advisory worklist** — `make slice-quality` scores one slice (`SLICE=…`) or the
   whole repo (`--all`) against the rubric and prints a prioritized worklist: each

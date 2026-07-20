@@ -43,10 +43,10 @@
             }
           ],
           "message": {
-            "text": "axisAdviceCoverage: Author a central advisory logic:Constraint in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — a logic:Constraint + logic:Formula whose data-matching guard detects the avoidWhen anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term — so the inert avoidWhen / useWhen guidance becomes a deonticRecommendation Note that fires when an individual matches. The domain slice keeps only its prose; the constraint lives centrally and formalizes the term."
+            "text": "axisAdviceCoverage: Author a central advice carrier in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names. For an avoidWhen cell: a logic:Constraint + logic:Formula whose data-matching guard detects the anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term, logic:adviceSourceField logic:ProseFieldAvoidWhen, and logic:message set to the term's verbatim avoidWhen prose — so it fires a deonticRecommendation Note when an individual matches. For a useWhen cell: a logic:AdviceGuidance that logic:formalizes the term, with logic:adviceSourceField logic:ProseFieldUseWhen and logic:message the verbatim useWhen prose. The native verify gate holds each message to the term's current prose. The domain slice keeps only its prose; the carrier lives centrally and formalizes the term."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "bffbcf0dc8883090"
+            "gmeowFindingHash/v2": "1c2ee159a0375598"
           },
           "ruleId": "slice-quality.axis-advice"
         },

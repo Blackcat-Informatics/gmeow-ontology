@@ -116,10 +116,15 @@ authority for why the top row is the right next move.
 
    > **Exception — `gmeow:axisAdviceCoverage` is uplifted CENTRALLY, not slice-locally.**
    > When the capping (or any deficient) axis is advice-harvest coverage, the advisor
-   > names each unharvested `avoidWhen` / `useWhen` cell with a **paste-ready
-   > `logic:FormalizationCandidate` stub** (category `recommendation`, risk `advisory`,
-   > the paired `candidateFormalizes` + `candidateSourceField`, and the pre-computed
-   > `candidateSourceHash`). Author those candidates in
+   > names each unharvested `avoidWhen` / `useWhen` cell. For each one, author a central
+   > `logic:Constraint` (for an unharvested `avoidWhen`) or `logic:AdviceGuidance` (for an
+   > unharvested `useWhen`) that `logic:formalizes` the term, names its
+   > `logic:adviceSourceField` (`logic:ProseFieldAvoidWhen` / `logic:ProseFieldUseWhen`),
+   > and sets `logic:message` to the term's **verbatim** source-language prose (a
+   > `logic:Constraint` also carries `logic:severity "Info"` and a `logic:integrity`
+   > guard formula). There is no source hash to precompute — the native verify gate
+   > `check_advice_message_prose_binding` holds the carrier's `logic:message` to the
+   > term's current prose directly. Author these carriers in
    > `slices/grounding/logic/module.ttl` — NOT in the target slice — so the domain slice
    > asserts no `logic:` triple. This is the one axis whose uplift diff lands in the
    > central logic slice; note it in the PR (the "keep the diff inside the slice" rule in
