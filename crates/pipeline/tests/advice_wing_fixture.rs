@@ -34,6 +34,10 @@ use gmeow_validate::advisory::{
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const BARE_THING: &str = "https://ex.test/bareThing";
 const GOOD_THING: &str = "https://ex.test/goodThing";
+/// The endurant-as-Event anti-pattern individual: typed BOTH gmeow:Event and
+/// gmeow:Entity, so `gmeow:EndurantAsEventAdviceConstraint`'s guard
+/// (`?this a gmeow:Event` ∧ `?this a gmeow:Entity`) fires on it.
+const BAD_EVENT: &str = "https://ex.test/badEvent";
 const DEMO_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics-fixture-demo";
 
 fn repo_root() -> PathBuf {
@@ -51,6 +55,15 @@ fn repo_root() -> PathBuf {
 const EXPECTED_MESSAGE: &str = "Avoid typing an instance as a bare gmeow:Entity when a more \
      specific sortal applies; reserve the unqualified type for genuinely category-neutral \
      resources, and never use it for occurrents (those are gufo:Event, not endurants).";
+
+/// gmeow:Event's verbatim `avoidWhen` prose (`slices/core/events/module.ttl`), which
+/// `gmeow:EndurantAsEventAdviceConstraint`'s `logic:message`
+/// (`slices/grounding/logic/module.ttl`) is kept byte-identical to by the G4 drift gate —
+/// the exact string the second advisory's message must equal.
+const EXPECTED_EAE_MESSAGE: &str = "Avoid typing an endurant as an Event (a person/document/place \
+     is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a \
+     gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an \
+     agent-driven provenance act with inputs and outputs.";
 
 /// Read the real logic module text, compile it with the exact frontend + projection APIs the
 /// pipeline's `compile_logic` stage uses, and assert the projected `shapes_ttl` carries a shape
@@ -104,22 +117,33 @@ fn compile_real_advisory_shapes() -> String {
 }
 
 /// The fixture A-Box (N-Triples, the format `purrdf::shapes::engine::validate_graphs` parses
-/// as its data graph): one bare `gmeow:Entity` individual (no top-sortal type — the anti-pattern
-/// the real constraint's guard matches) and one control individual typed BOTH `gmeow:Entity`
-/// AND `gmeow:Agent` (a top sortal — must NOT match the guard's negated disjunction).
+/// as its data graph):
+///
+/// * `bareThing` — a bare `gmeow:Entity` individual (no top-sortal type — the anti-pattern
+///   `gmeow:BareEntitySortalAdviceConstraint`'s guard matches);
+/// * `goodThing` — a control individual typed BOTH `gmeow:Entity` AND `gmeow:Agent` (a top
+///   sortal — must NOT match either guard's negated disjunction);
+/// * `badEvent` — typed BOTH `gmeow:Event` AND `gmeow:Entity`, the endurant-as-Event
+///   anti-pattern `gmeow:EndurantAsEventAdviceConstraint`'s guard matches (it also has no
+///   top sortal, so the bare-Entity guard fires on it too — an endurant mistyped as an
+///   occurrence is genuinely BOTH mistakes).
 fn fixture_abox_ntriples() -> String {
     format!(
         "<{BARE_THING}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Entity> .\n\
          <{GOOD_THING}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Entity> .\n\
-         <{GOOD_THING}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Agent> .\n"
+         <{GOOD_THING}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Agent> .\n\
+         <{BAD_EVENT}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Event> .\n\
+         <{BAD_EVENT}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{GMEOW}Entity> .\n"
     )
 }
 
-/// The end-to-end positive proof (G2): the REAL `gmeow:BareEntitySortalAdviceConstraint`,
-/// compiled off the canonical logic module, fires as a data-matching advisory on the bare
-/// `gmeow:Entity` fixture individual and produces both projection wings — the graded Note
-/// finding and the `deonticRecommendation` `gmeow:ComplianceAssessment` claim — while the
-/// control individual (typed a top sortal too) does not fire at all.
+/// The end-to-end positive proof (G2 + F2): the REAL advisory constraints, compiled off the
+/// canonical logic module, fire as data-matching advisories and produce both projection wings —
+/// the graded Note finding and the `deonticRecommendation` `gmeow:ComplianceAssessment` claim.
+/// `gmeow:BareEntitySortalAdviceConstraint` fires on the bare `gmeow:Entity` individual, and
+/// `gmeow:EndurantAsEventAdviceConstraint` fires on the endurant-as-Event individual (typed both
+/// `gmeow:Event` and `gmeow:Entity`); the control individual (a proper `gmeow:Entity`+`gmeow:Agent`)
+/// fires neither.
 #[test]
 fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
     let shapes_ttl = compile_real_advisory_shapes();
@@ -161,74 +185,108 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
         retained.results
     );
 
-    // ── exactly one advisory fired, on the bare-Entity individual ───────────────────────────
+    // ── BOTH advisory constraints fired, each on its own anti-pattern individual ────────────
+    // bareThing → bare-Entity advice; badEvent → BOTH the bare-Entity advice (it too carries
+    // no top sortal) AND the endurant-as-Event advice; goodThing → nothing (its gmeow:Agent
+    // top sortal clears the bare-Entity guard and it is not an Event). So three advisories.
     assert_eq!(
         advisories.len(),
-        1,
-        "expected exactly one advisory (bareThing only; goodThing must not fire): {advisories:#?}"
+        3,
+        "expected three advisories (bareThing bare-Entity; badEvent bare-Entity + \
+         endurant-as-Event; goodThing none): {advisories:#?}"
     );
-    let advisory = &advisories[0];
 
+    // The bare-Entity advisory on the bare individual (the pre-existing coverage).
+    let bare = advisories
+        .iter()
+        .find(|a| {
+            a.code.contains("BareEntitySortalAdviceConstraint")
+                && a.subject_iri.as_deref() == Some(BARE_THING)
+        })
+        .unwrap_or_else(|| {
+            panic!("gmeow:BareEntitySortalAdviceConstraint must fire on bareThing: {advisories:#?}")
+        });
+    assert!(bare.code.starts_with("advice."));
+    assert_eq!(bare.severity, Severity::Note);
     assert_eq!(
-        advisory.subject_iri.as_deref(),
-        Some(BARE_THING),
-        "the advisory's subject must be the bare-Entity fixture individual"
+        bare.message, EXPECTED_MESSAGE,
+        "the bare-Entity advisory message must equal gmeow:Entity's verbatim avoidWhen prose"
     );
-    assert!(
-        advisory.code.starts_with("advice."),
-        "advisory code must carry the advice. family prefix: {}",
-        advisory.code
-    );
-    assert!(
-        advisory.code.contains("BareEntitySortalAdviceConstraint"),
-        "advisory code must embed the governing shape's local name: {}",
-        advisory.code
-    );
-    assert_eq!(advisory.severity, Severity::Note);
+
+    // ── the SECOND advisory constraint: endurant-as-Event, on badEvent (F2) ─────────────────
+    let eae = advisories
+        .iter()
+        .find(|a| a.code.contains("EndurantAsEventAdviceConstraint"))
+        .unwrap_or_else(|| {
+            panic!("gmeow:EndurantAsEventAdviceConstraint must fire on the fixture: {advisories:#?}")
+        });
     assert_eq!(
-        advisory.message, EXPECTED_MESSAGE,
-        "the advisory message must equal gmeow:Entity's verbatim avoidWhen prose"
+        eae.subject_iri.as_deref(),
+        Some(BAD_EVENT),
+        "the endurant-as-Event advisory's subject must be the badEvent fixture individual"
+    );
+    assert_eq!(eae.severity, Severity::Note);
+    assert_eq!(
+        eae.message, EXPECTED_EAE_MESSAGE,
+        "the endurant-as-Event advisory message must equal gmeow:Event's verbatim avoidWhen prose"
     );
 
-    // ── the claim wing ───────────────────────────────────────────────────────────────────────
-    let projection = advisory.project();
-    let claim = &projection.claim;
-    assert_eq!(claim.modality_iri, DEONTIC_RECOMMENDATION_IRI);
-    assert_eq!(claim.subject_iri.as_deref(), Some(BARE_THING));
+    // The endurant-as-Event guard must fire on badEvent ONLY — never on the bare individual
+    // (not an Event) nor on the control (a proper Entity+Agent, also not an Event).
+    let eae_subjects: Vec<&str> = advisories
+        .iter()
+        .filter(|a| a.code.contains("EndurantAsEventAdviceConstraint"))
+        .filter_map(|a| a.subject_iri.as_deref())
+        .collect();
+    assert_eq!(
+        eae_subjects,
+        vec![BAD_EVENT],
+        "the endurant-as-Event advisory must fire on badEvent alone: {eae_subjects:?}"
+    );
 
-    // ── the reified ComplianceAssessment N-Quads ─────────────────────────────────────────────
-    let nquads = project_compliance_assessment(std::slice::from_ref(claim), DEMO_GRAPH);
+    // ── the claim wings + reified ComplianceAssessment N-Quads for BOTH advisories ──────────
+    let claims: Vec<_> = advisories.iter().map(|a| a.project().claim).collect();
+    for claim in &claims {
+        assert_eq!(claim.modality_iri, DEONTIC_RECOMMENDATION_IRI);
+    }
+    let eae_claim = eae.project().claim;
+    assert_eq!(eae_claim.subject_iri.as_deref(), Some(BAD_EVENT));
+
+    let nquads = project_compliance_assessment(&claims, DEMO_GRAPH);
     purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
         .expect("the emitted ComplianceAssessment N-Quads must parse cleanly");
     assert!(
-        nquads.contains(&format!("{}/assessment", claim.code)),
-        "the ComplianceAssessment IRI must embed the advice code: {nquads}"
+        nquads.contains(&format!("{}/assessment", eae_claim.code)),
+        "the endurant-as-Event ComplianceAssessment IRI must embed its advice code: {nquads}"
     );
     assert!(
         nquads.contains(&format!(
             "<{GMEOW}deonticModality> <{DEONTIC_RECOMMENDATION_IRI}>"
         )),
-        "the assessed norm must carry gmeow:deonticModality gmeow:deonticRecommendation: {nquads}"
+        "each assessed norm must carry gmeow:deonticModality gmeow:deonticRecommendation: {nquads}"
     );
     assert!(
         nquads.contains(&format!("<{GMEOW}ComplianceAssessment>")),
         "the emitted N-Quads must type an individual gmeow:ComplianceAssessment: {nquads}"
     );
 
-    // ── the control individual (typed a top sortal too) must NOT fire ───────────────────────
+    // ── the control individual (a proper Entity+Agent) must NOT fire ANY advisory ───────────
     assert!(
         !advisories
             .iter()
             .any(|a| a.subject_iri.as_deref() == Some(GOOD_THING)),
-        "the control individual (typed gmeow:Entity AND gmeow:Agent) must not trigger the \
+        "the control individual (typed gmeow:Entity AND gmeow:Agent) must not trigger any \
          advisory: {advisories:#?}"
     );
 
-    // Visible in `cargo nextest run --no-capture`: the observed advisory + claim output.
-    eprintln!("=== advice_wing_fixture: observed advisory ===");
-    eprintln!("code:    {}", advisory.code);
-    eprintln!("message: {}", advisory.message);
-    eprintln!("suggestions: {:?}", advisory.suggestions);
+    // Visible in `cargo nextest run --no-capture`: the observed advisories + claim output.
+    for advisory in &advisories {
+        eprintln!("=== advice_wing_fixture: observed advisory ===");
+        eprintln!("code:    {}", advisory.code);
+        eprintln!("subject: {:?}", advisory.subject_iri);
+        eprintln!("message: {}", advisory.message);
+        eprintln!("suggestions: {:?}", advisory.suggestions);
+    }
     eprintln!("=== advice_wing_fixture: ComplianceAssessment N-Quads ===");
     eprintln!("{nquads}");
 }
