@@ -53,6 +53,10 @@ A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect apprai
 }
 ```
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/affectprototype.svg)
+
 ## Usage Advice
 
 - **Scope:** Its vectorComponent cells read the CORE\-AFFECT axes only \(valence 0, arousal 1, dominance 2, unpredictability 3 — gmeow:coreAxisIndex\), never the cognitive gmeow:AppraisalDimension axes \(agency, norm, …\), which differentiate composites but are not the metric basis\. Two further invariants are NUMERIC and enforced OUTSIDE the logic at classification time \(Principle 12\), not as OWL/SHACL: every cell magnitude lies in the profile's bipolar \[\-1,1\] range, and the authored prototypes are PAIRWISE DISTINCT under gmeow:coreAffectGram \(coincident signatures are an authoring error and make the nearest\-prototype margin bisector undefined\)\.
@@ -74,6 +78,11 @@ A named\-emotion PROTOTYPE / region — a typical, idealized core\-affect apprai
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+
+## Formalized by
+
+- `gmeow:AffectPrototypePrototypeForPresentConstraint`
+- `gmeow:AffectPrototypeVectorComponentPresentConstraint`
 
 ## Documentation coverage
 
