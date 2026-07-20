@@ -125,7 +125,7 @@ pub fn validate_source_graph(
     root: &Path,
     source_nquads: &[u8],
     fresh: &BTreeMap<String, Vec<u8>>,
-) -> Result<Report, gmeow_errors::Diag> {
+) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
     // Parse the source graph into the native IR and validate it directly through the
     // native SHACL engine (`validate_dataset`), oxigraph-free.
     let dataset =
@@ -134,10 +134,16 @@ pub fn validate_source_graph(
                 message: format!("source graph parse: {e}"),
             })
         })?;
-    let (_shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
+    let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
     let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
-    Ok(diagnostics_report(&report))
+    // Split the advisory tier out of the raw results: an Info-severity result comes from a
+    // `logic:severity "Info"` advisory constraint, so its raw shacl.* finding is suppressed
+    // and it is re-projected as a Note + deonticRecommendation advisory (fires from a DATA
+    // MATCH). The shape store carries each advisory shape's `logic:formalizes` provenance.
+    let (retained, advisories) =
+        gmeow_validate::advisory::split_advisory_results(report, &shape_store);
+    Ok((diagnostics_report(&retained), advisories))
 }
 
 /// The `stage-validate` pipeline stage.
@@ -269,7 +275,7 @@ impl Stage for ValidateStage {
             self.id(),
             input.upstream,
         )?;
-        let mut report = validate_source_graph(input.root, source_graph, &fresh)?;
+        let (mut report, advisories) = validate_source_graph(input.root, source_graph, &fresh)?;
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare
         // IRI in the finding's logical location) matches a span-index entry — the path +
         // 1-based line/column travel onto the SHIPPED finding locations (and, via the
@@ -320,17 +326,13 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             source_dataset.as_ref(),
         );
-        // Advisory tier: harvest every ACCEPTED logic:CategoryRecommendation
-        // FormalizationCandidate in the authored source graph (which carries the logic
-        // slice, hence the candidates) into soft advisories, routing BOTH wings of the
-        // dual-projection onto this UNCONDITIONAL path (no early-return between the
-        // report build above and here), so advice fires even on a non-conforming
-        // corpus. SINGLE-SOURCED with the CLI path via `harvest_advisory_rules` — the
-        // SAME builder `gmeow_validate::validate_all::run` calls — so the two consumer
-        // surfaces can never drift apart. A source with no accepted recommendation
-        // candidates harvests nothing (honest empty advisory tier + empty norm-claims).
-        let advisories =
-            gmeow_validate::advisory::harvest_advisory_rules(source_dataset.as_ref());
+        // Advisory tier: `validate_source_graph` already split the DATA-MATCHED advisory
+        // constraints (logic:severity "Info") out of the raw SHACL results — each is an
+        // instance whose data matched an anti-pattern guard, re-projected here through BOTH
+        // wings of the advisory dual-projection (the raw shacl.* finding was suppressed).
+        // This path is UNCONDITIONAL (no early-return between the report build above and
+        // here), so advice rides even a non-conforming corpus. A source in which no advisory
+        // guard matched yields nothing (honest empty advisory tier + empty norm-claims).
         // Flat wing: fold each graded Note finding into `report` (→ rendered into
         // `graph/diagnostics` below), routed through a `DiagLedger` exactly as
         // `gmeow_validate::advisory`'s own test helper does, so each finding carries
@@ -478,7 +480,7 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.error_count(), 1);
         assert_eq!(
             report.metadata["shaclGatePassed"],
@@ -519,7 +521,7 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let report = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.findings.len(), 1);
         let finding = &report.findings[0];
         assert!(
@@ -662,23 +664,31 @@ ex:RequiredShape a sh:NodeShape ;
     /// body, and run the stage. Factored out of
     /// `stage_validate_run_is_enriched_matching_the_cli_path` so Task 4's two new tests
     /// reuse the EXACT same harness shape rather than a hand-rolled twin.
-    /// One accepted `logic:CategoryRecommendation` candidate (N-Quads, default graph)
-    /// harvesting `gmeow:Foo`'s `avoidWhen` prose — the base-graph fixture that makes
-    /// the harvest bridge fire exactly one advisory (and thus one ComplianceAssessment)
-    /// through the full stage, replacing the old always-on demonstrator.
-    const ADVICE_BASE_NQ: &str = concat!(
-        "<https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/avoidWhen> .\n",
-        "<https://blackcatinformatics.ca/gmeow/Foo> <https://blackcatinformatics.ca/gmeow/avoidWhen> \"avoid bare Foo\"@x-gmeow-english .\n",
-        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FormalizationCandidate> .\n",
-        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryRecommendation> .\n",
-        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> .\n",
-        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/Foo> .\n",
-        "<https://blackcatinformatics.ca/logic/candAdviceFoo> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> .\n",
-    );
+    /// The base-graph fixture (N-Quads, default graph): an individual whose data MATCHES
+    /// the advisory constraint in `ADVICE_SHAPE` (`ex:badThing a gmeow:Foo`). The
+    /// data-matching guard fires exactly one Info result, which the bridge lifts into a
+    /// Note advisory + one ComplianceAssessment through the full stage.
+    const ADVICE_BASE_NQ: &str = "<https://ex.test/badThing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Foo> .\n";
 
-    /// The harvested advisory code for `ADVICE_BASE_NQ`'s candidate (`advice.` family
-    /// prefix + the candidate IRI local name).
-    const ADVICE_HARVESTED_CODE: &str = "advice.candAdviceFoo";
+    /// An advisory `logic:Constraint` in its projected SHACL form: a `sh:SPARQLConstraint`
+    /// at `sh:severity sh:Info` (the advisory tier) carrying `logic:formalizes` (its
+    /// provenance), whose guard returns every `gmeow:Foo` instance. It fires against
+    /// `ADVICE_BASE_NQ`'s individual, and the bridge re-projects that Info match as a
+    /// Note + deonticRecommendation advisory.
+    const ADVICE_SHAPE: &str = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+<https://ex.test/FooAdviceShape> a sh:NodeShape ;
+    logic:formalizes gmeow:Foo ;
+    sh:targetClass gmeow:Foo ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Info ;
+        sh:message "prefer a more specific sortal than bare gmeow:Foo" ;
+        sh:select "SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Foo> }" ;
+    ] .
+"#;
 
     fn run_full_stage(base_nq: &str, shapes: &str) -> StageOutput {
         use purrdf::RdfDatasetBuilder;
@@ -849,22 +859,16 @@ ex:RequiredShape a sh:NodeShape ;
     /// `ValidateStage::run` harness with a shape module that cannot fire against the
     /// base graph (no `sh:targetNode`/property shape), so the run is genuinely
     /// conforming (`shacl.clean`), and asserts:
-    ///  - the report carries the HARVESTED flat advisory finding
-    ///    (`advice.candAdviceFoo`) at the Advisory standpoint (routed into
-    ///    `graph/diagnostics`);
+    ///  - the report carries a HARVESTED flat advisory finding (`advice.*`, tagged
+    ///    `advisory-harvested`) at the Advisory standpoint (routed into
+    ///    `graph/diagnostics`), NOT the raw `shacl.*` Info finding (suppressed);
     ///  - the stage product's `graph/norm-claims` carries the materialised
     ///    `gmeow:ComplianceAssessment` claim, in full documented shape.
     ///
     /// Falsifiable: this asserts the actual emitted content, not mere presence.
     #[test]
     fn stage_validate_emits_both_advice_projections() {
-        let output = run_full_stage(
-            ADVICE_BASE_NQ,
-            r#"
-@prefix ex: <https://example.test/> .
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-"#,
-        );
+        let output = run_full_stage(ADVICE_BASE_NQ, ADVICE_SHAPE);
 
         let json_bytes = output
             .product
@@ -875,18 +879,32 @@ ex:RequiredShape a sh:NodeShape ;
         assert_eq!(
             report.error_count(),
             0,
-            "the empty-shapes / empty-base-graph corpus must be conforming: {report:?}"
+            "the advisory Info match must NOT gate — a conforming run: {report:?}"
         );
 
         let advisory_finding = report
             .findings
             .iter()
-            .find(|f| f.code == ADVICE_HARVESTED_CODE)
-            .expect("the harvested advisory finding must be present on a conforming run");
+            .find(|f| {
+                f.code.starts_with("advice.") && f.tags.iter().any(|t| t == "advisory-harvested")
+            })
+            .expect("a harvested advice.* finding must be present when the guard matched");
+        assert_eq!(
+            advisory_finding.severity,
+            gmeow_errors::Severity::Note,
+            "the harvested advisory is a Note: {advisory_finding:?}"
+        );
         assert_eq!(
             advisory_finding.standpoint,
             Some(gmeow_errors::Standpoint::Advisory),
             "the advisory finding must carry the Advisory standpoint: {advisory_finding:?}"
+        );
+        assert!(
+            !report.findings.iter().any(|f| f.severity == gmeow_errors::Severity::Info
+                && f.code.starts_with("shacl.")
+                && f.code != "shacl.clean"),
+            "the raw shacl.* Info constraint finding must be SUPPRESSED (re-projected as the \
+             Note; only the informational shacl.clean record may remain): {report:?}"
         );
 
         let norm_claims = output
@@ -905,21 +923,21 @@ ex:RequiredShape a sh:NodeShape ;
     /// `if report.conforms` (or any early return before the emit) makes this test fail.
     #[test]
     fn stage_validate_emits_advice_claim_even_when_nonconforming() {
-        let output = run_full_stage(
-            ADVICE_BASE_NQ,
-            r#"
-@prefix ex: <https://example.test/> .
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-
-ex:RequiredShape a sh:NodeShape ;
-    sh:targetNode ex:thing ;
-    sh:property [
-        sh:path ex:required ;
-        sh:minCount 1 ;
-        sh:message "required value is missing" ;
-    ] .
-"#,
+        // Both the advisory Info shape (which the base graph's gmeow:Foo individual matches)
+        // AND a hard minCount violation shape, so the run is genuinely non-conforming yet the
+        // advisory claim still rides the unconditional completion path.
+        let shapes = format!(
+            "{ADVICE_SHAPE}\n\
+@prefix ex: <https://example.test/> .\n\
+ex:RequiredShape a sh:NodeShape ;\n\
+    sh:targetNode ex:thing ;\n\
+    sh:property [\n\
+        sh:path ex:required ;\n\
+        sh:minCount 1 ;\n\
+        sh:message \"required value is missing\" ;\n\
+    ] .\n"
         );
+        let output = run_full_stage(ADVICE_BASE_NQ, &shapes);
 
         let json_bytes = output
             .product

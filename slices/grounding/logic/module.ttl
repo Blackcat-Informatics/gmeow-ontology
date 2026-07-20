@@ -4681,126 +4681,61 @@ logic:candidateProperPartOfAsymmetric
     logic:candidateFormalizes logic:properPartOf ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
-# ── Soft-advice harvest exemplars ─────────────────────────────────────────────────
-# The advisory mirror of the hard-axiom harvest above: each candidate harvests a
-# domain term's gmeow:avoidWhen / gmeow:useWhen prose as a logic:CategoryRecommendation
-# candidate at logic:RiskAdvisory (never enforced, no entailment consequence — so
-# logic:candidateProjectionBehavior is logic:ExactPreservation and the promotion-cases
-# gate exempts the category). The candidateFormalizes + candidateSourceField +
-# candidateSourceHash triad ties each to the exact @x-gmeow-english prose and is
-# drift-verified by the same check_candidate_source_hash_drift gate as the hard axioms;
-# the crates/validate advisory bridge projects the ACCEPTED ones into Note findings +
-# deonticRecommendation ComplianceAssessments. The domain slices assert no logic: triple.
-# The bulk per-slice sweep runs on the continuous background uplift lane, driven by the
-# advice-coverage slice-quality axis.
+# ── Advisory constraints (data-matching soft advice) ──────────────────────────────
+# The soft mirror of the hard integrity constraints: each is a realized logic:Constraint
+# + logic:Formula whose data-matching guard fires ONLY when an instance exhibits the
+# anti-pattern its formalized term's gmeow:avoidWhen prose warns against. Authored at
+# logic:severity "Info" — the advisory tier: the crates/validate advisory bridge picks
+# each matched Info constraint result, suppresses the raw shacl.* finding, and
+# dual-projects it as a Severity::Note finding + a deonticRecommendation
+# gmeow:ComplianceAssessment (the norm-claim's gmeow:Norm carries gmeow:deonticModality
+# gmeow:deonticRecommendation, domain-correct). logic:formalizes ties each to the term it
+# advises. Advice fires from a DATA MATCH, never merely because a rule exists; the
+# advice-coverage slice-quality axis counts terms with such a realized constraint.
 
-logic:candAdviceAvoidBareEntity
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
+gmeow:BareEntitySortalAdviceConstraint
+    a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "avoid bare gmeow:Entity"@x-gmeow-english ;
-    skos:definition "The headline soft-advice harvest exemplar: harvests gmeow:Entity's gmeow:avoidWhen prose (do not type an instance as a bare gmeow:Entity when a more specific sortal applies) as an advisory recommendation. Never enforced — it emits a Note through the advisory bridge, never an integrity finding."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:16b24e911ac49bd846a49292eca4c8674c347f9c3f475c358cb66de3bc48a6e3"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:Entity gmeow:avoidWhen"^^xsd:string ;
-    logic:candidateScope "advisory: prefer a more specific sortal over bare gmeow:Entity"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:Entity ;
-    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+    rdfs:label "prefer a specific sortal over bare gmeow:Entity"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Info" ;
+    logic:formalizes gmeow:Entity ;
+    logic:message "This individual is typed gmeow:Entity but no more-specific top sortal (gmeow:Agent / InformationObject / PhysicalObject / SocialObject) — a more specific sortal applies; type it as its most specific kind and let it inherit Entity." ;
+    logic:integrity logic:besForall .
+logic:besForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:besImpl .
+logic:besImpl a logic:Formula ; logic:antecedent logic:besGuard ; logic:consequent logic:besCons .
+logic:besGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
+logic:besCons a logic:Formula ; logic:or logic:besAgent , logic:besInfo , logic:besPhys , logic:besSoc .
+logic:besAgent a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] .
+logic:besInfo a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
+logic:besPhys a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PhysicalObject ] .
+logic:besSoc a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SocialObject ] .
 
-logic:candAdviceEntityUseWhen
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
+gmeow:EndurantAsEventAdviceConstraint
+    a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "use gmeow:Entity for domain-free facets"@x-gmeow-english ;
-    skos:definition "Soft-advice harvest of gmeow:Entity's gmeow:useWhen prose (use as the universal domain for facets that attach to anything that persists) as contextual guidance surfaced when authoring the term's domain."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:184bd42652fc9b8017a76faddc03ac503dca5b1fbf96ba4f57b74f25b140a67e"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:Entity gmeow:useWhen"^^xsd:string ;
-    logic:candidateScope "advisory: gmeow:Entity as the anchor for domain-free facets"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:Entity ;
-    logic:candidateSourceField logic:ProseFieldUseWhen .
-
-logic:candAdviceGranularityLevelAvoidSubclasses
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "avoid per-level GranularityLevel subclasses"@x-gmeow-english ;
-    skos:definition "Soft-advice harvest of gmeow:GranularityLevel's gmeow:avoidWhen prose (levels are individuals — do not mint per-level subclasses, and do not use it for ordinary quantity values) as an advisory recommendation."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:e6f437e3b6ac3c573267aac488d03eb54d24a3b45cd2254c171b8c8134ed5226"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:GranularityLevel gmeow:avoidWhen"^^xsd:string ;
-    logic:candidateScope "advisory: granularity levels are individuals, not per-level subclasses"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:GranularityLevel ;
-    logic:candidateSourceField logic:ProseFieldAvoidWhen .
-
-logic:candAdviceComplianceAssessmentAvoidOrdinary
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "avoid ComplianceAssessment for the ordinary case"@x-gmeow-english ;
-    skos:definition "Soft-advice harvest of gmeow:ComplianceAssessment's gmeow:avoidWhen prose (the flat gmeow:violates / gmeow:complies carry the ordinary case more cheaply; do not expect a single global verdict) as an advisory recommendation."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:3e4b9f95e02ef373bd3b9f64519a3303eb5829bf83ab454297a88ec6ba9dc404"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:ComplianceAssessment gmeow:avoidWhen"^^xsd:string ;
-    logic:candidateScope "advisory: reserve the reified ComplianceAssessment for the who/what/how-confidently case"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:ComplianceAssessment ;
-    logic:candidateSourceField logic:ProseFieldAvoidWhen .
-
-logic:candAdviceComplianceAssessmentUseWhen
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "use ComplianceAssessment when the judgment is first-class"@x-gmeow-english ;
-    skos:definition "Soft-advice harvest of gmeow:ComplianceAssessment's gmeow:useWhen prose (use the reified form when who-judged, on-what-evidence, or how-confidently must be first-class) as contextual guidance."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:c1c19b8a646f84fcf1cf398347b1220b904e0862e3a25b45f6f470e0e07f6d30"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:ComplianceAssessment gmeow:useWhen"^^xsd:string ;
-    logic:candidateScope "advisory: reified ComplianceAssessment for first-class who/evidence/confidence"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:ComplianceAssessment ;
-    logic:candidateSourceField logic:ProseFieldUseWhen .
-
-logic:candAdviceEventAvoidEndurant
-    a owl:NamedIndividual ,
-        logic:FormalizationCandidate ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "avoid typing an endurant as an Event"@x-gmeow-english ;
-    skos:definition "Soft-advice harvest of gmeow:Event's gmeow:avoidWhen prose (a person/document/place is a gmeow:Entity, not an occurrence; do not mint an event-kind subclass; reach for gmeow:Activity for agent-driven provenance acts) as an advisory recommendation."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:b22e7fdbcd7f01dc671e0d15868bc72e0879c0eff769799c4fff803ab99e8eb4"^^xsd:string ;
-    logic:candidateExtractionProvenance "hand-harvested from gmeow:Event gmeow:avoidWhen"^^xsd:string ;
-    logic:candidateScope "advisory: endurants are gmeow:Entity, not gmeow:Event; event kinds are gmeow:eventType values"^^xsd:string ;
-    logic:candidateContract logic:StratifiedNAFProfile ;
-    logic:candidateCategory logic:CategoryRecommendation ;
-    logic:candidateLifecycle logic:CandidateAccepted ;
-    logic:reviewedBy logic:reviewerLogicFoundation ;
-    logic:candidateProjectionBehavior logic:ExactPreservation ;
-    logic:candidateSemanticRisk logic:RiskAdvisory ;
-    logic:candidateFormalizes gmeow:Event ;
-    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+    rdfs:label "avoid typing an endurant as a gmeow:Event"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Info" ;
+    logic:formalizes gmeow:Event ;
+    logic:message "This individual is typed both gmeow:Event and gmeow:Entity — an endurant (person / document / place) is a gmeow:Entity, not an occurrence; reach for gmeow:Activity when it is an agent-driven provenance act, and do not type an endurant as an Event." ;
+    logic:integrity logic:eaeForall .
+logic:eaeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:eaeImpl .
+logic:eaeImpl a logic:Formula ; logic:antecedent logic:eaeGuard ; logic:consequent logic:eaeCons .
+logic:eaeGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:eaeCons a logic:Formula ; logic:not logic:eaeIsEntity .
+logic:eaeIsEntity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
 
 # ── Property-characteristic markers + central assertions ──────────────────────────
 # The five property-characteristic sorts, minted standalone as the canonical logic:

@@ -4,14 +4,14 @@
     {
       "severity": "warning",
       "code": "slice-quality.advice-coverage.no-repo-root",
-      "message": "the slice directory carries no resolvable slices/ path prefix — advice-harvest coverage cannot be measured (vacuous 1.0).",
+      "message": "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0).",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
-      "message": "axisAdviceCoverage: Author a central logic:CategoryRecommendation FormalizationCandidate in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — candidateFormalizes the term, candidateSourceField the ProseField (ProseFieldAvoidWhen / ProseFieldUseWhen), and the pre-computed candidateSourceHash — so the inert avoidWhen / useWhen guidance becomes a machine-active deonticRecommendation advisory rule. The domain slice asserts no logic: triple; the rule lives centrally with a drift-verified back-link.",
+      "message": "axisAdviceCoverage: Author a central advisory logic:Constraint in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — a logic:Constraint + logic:Formula whose data-matching guard detects the avoidWhen anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term — so the inert avoidWhen / useWhen guidance becomes a deonticRecommendation Note that fires when an individual matches. The domain slice keeps only its prose; the constraint lives centrally and formalizes the term.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },

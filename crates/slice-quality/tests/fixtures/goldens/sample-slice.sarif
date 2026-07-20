@@ -20,10 +20,10 @@
             }
           ],
           "message": {
-            "text": "the slice directory carries no resolvable slices/ path prefix — advice-harvest coverage cannot be measured (vacuous 1.0)."
+            "text": "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "7b21e33537a9601d"
+            "gmeowFindingHash/v2": "8c95bb2c69626299"
           },
           "ruleId": "slice-quality.advice-coverage.no-repo-root"
         },
@@ -43,10 +43,10 @@
             }
           ],
           "message": {
-            "text": "axisAdviceCoverage: Author a central logic:CategoryRecommendation FormalizationCandidate in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — candidateFormalizes the term, candidateSourceField the ProseField (ProseFieldAvoidWhen / ProseFieldUseWhen), and the pre-computed candidateSourceHash — so the inert avoidWhen / useWhen guidance becomes a machine-active deonticRecommendation advisory rule. The domain slice asserts no logic: triple; the rule lives centrally with a drift-verified back-link."
+            "text": "axisAdviceCoverage: Author a central advisory logic:Constraint in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names — a logic:Constraint + logic:Formula whose data-matching guard detects the avoidWhen anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term — so the inert avoidWhen / useWhen guidance becomes a deonticRecommendation Note that fires when an individual matches. The domain slice keeps only its prose; the constraint lives centrally and formalizes the term."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ca64444498943e5e"
+            "gmeowFindingHash/v2": "bffbcf0dc8883090"
           },
           "ruleId": "slice-quality.axis-advice"
         },

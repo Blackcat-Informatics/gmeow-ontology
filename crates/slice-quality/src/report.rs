@@ -74,7 +74,7 @@ pub const FINDING_CODES: &[&str] = &[
     // Advice-harvest-coverage axis codes (axes.rs advice_coverage_axis).
     "slice-quality.advice-coverage.unharvested",
     "slice-quality.advice-coverage.no-repo-root",
-    "slice-quality.advice-coverage.no-candidate-source",
+    "slice-quality.advice-coverage.no-constraint-source",
     // Axis-level advice-template item (report.rs) — the rubric's
     // `gmeow:axisAdviceTemplate` surfaced once per DEFICIENT axis, ranked ahead of
     // that axis's per-term findings, plus the latent-data-gap code minted when a

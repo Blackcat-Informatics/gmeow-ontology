@@ -831,28 +831,33 @@ impl ValidationRun {
             }
         }
 
-        // Advisory tier: harvest every ACCEPTED logic:CategoryRecommendation
-        // FormalizationCandidate in the validated dataset into a soft
-        // (deonticRecommendation) advisory. The dual-projection-always contract: each
-        // Advisory::project() call yields BOTH the graded diagnostic AND the in-memory
-        // ComplianceAssessment claim hook. NOT emitted on the two early-return (hard-fail)
-        // paths above. SINGLE-SOURCED with the pipeline path via
-        // `harvest_advisory_rules`. A dataset with no accepted recommendation
-        // candidates (e.g. a standalone user file) harvests nothing — an honest empty
-        // advisory tier, not a placeholder. Find harvested findings via the
-        // "advisory-harvested" tag.
-        let advisories = crate::advisory::harvest_advisory_rules(dataset.as_ref());
+        // The single carrier is complete: project it to the one canonical report.
+        let mut report = run_ledger.project_report("validate");
+
+        // Advisory tier (data-matched): the merged-SHACL phase already interned every
+        // result — including the Info-severity advisory-constraint matches — as `shacl.*`
+        // findings. Split those out of the projected report: each Info `shacl.*` finding
+        // whose source shape carries a `logic:formalizes` is an instance whose data matched
+        // an advisory anti-pattern guard. Its raw finding is SUPPRESSED and re-projected as
+        // a Note + deonticRecommendation advisory. Advice fires from a DATA MATCH, never
+        // merely because a rule exists. Find harvested findings via the "advisory-harvested"
+        // tag. (CLI twin of the pipeline's result-based split; both build advisories through
+        // `advisory::build_advisory`, so the two surfaces cannot drift.)
+        let advisory_shapes = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok();
+        let advisories = advisory_shapes
+            .as_deref()
+            .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes))
+            .unwrap_or_default();
+        let mut advisory_ledger = DiagLedger::new();
         let mut advisory_claims = Vec::with_capacity(advisories.len());
         for advisory in &advisories {
             let projection = advisory.project();
+            advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
             advisory_claims.push(projection.claim);
-            // Intern each advisory's graded (Standpoint::Advisory) diagnostic onto the
-            // run ledger — it never gates, whatever its severity.
-            run_ledger.attach(projection.diag, StageId::new("validate.advisory"));
         }
-
-        // The single carrier is complete: project it to the one canonical report.
-        let mut report = run_ledger.project_report("validate");
+        for note in advisory_ledger.findings("validate") {
+            report.add_finding(note);
+        }
         for advisory in &advisories {
             report.add_rule(advisory.rule());
         }

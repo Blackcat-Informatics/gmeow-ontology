@@ -35,6 +35,9 @@ use gmeow_errors::render::nq_escape;
 use gmeow_errors::{
     Advice, Diag, FindingCategory, Grade, Location, Rule, Severity, Standpoint, register_code,
 };
+use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationReport, ValidationResult};
+use purrdf::shapes::term::Term as ShaclTerm;
+use sha2::{Digest, Sha256};
 
 // ── Standpoint & modality constants ─────────────────────────────────────────
 
@@ -371,257 +374,209 @@ impl Advisory {
     }
 }
 
-// ── Harvest bridge: accepted candidates → advisories ─────────────────────────────────────────────
+// ── Advisory bridge: data-matched Info constraints → Note advisories ────────
 
-/// The internal source-language tag every harvestable prose literal carries;
-/// only this language's lexical form is the canonical rule text. Mirrors
-/// `gmeow_logic::obligations::SOURCE_LANG` — the SAME discipline the
-/// `candidateSourceHash` drift gate hashes against, so the projected advisory
-/// message equals the hashed source byte-for-byte.
-const SOURCE_LANG: &str = "x-gmeow-english";
-
+/// The `logic:formalizes` back-reference every derived constraint shape carries — the
+/// gmeow-domain term the advisory constraint concerns (the advice's provenance).
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// The help page every harvested advisory rule links to.
 const ADVICE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/advice";
 
-/// The `logic:CategoryRecommendation` category IRI — advisory content that is
-/// never enforced (the soft mirror of the enforced hard-axiom categories).
-pub const CATEGORY_RECOMMENDATION_IRI: &str =
-    "https://blackcatinformatics.ca/logic/CategoryRecommendation";
-
-const CANDIDATE_TYPE: &str = "https://blackcatinformatics.ca/logic/FormalizationCandidate";
-const CANDIDATE_CATEGORY: &str = "https://blackcatinformatics.ca/logic/candidateCategory";
-const CANDIDATE_LIFECYCLE: &str = "https://blackcatinformatics.ca/logic/candidateLifecycle";
-const CANDIDATE_ACCEPTED: &str = "https://blackcatinformatics.ca/logic/CandidateAccepted";
-const CANDIDATE_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/candidateFormalizes";
-const CANDIDATE_SOURCE_FIELD: &str = "https://blackcatinformatics.ca/logic/candidateSourceField";
-const PROSE_FIELD_PROPERTY: &str = "https://blackcatinformatics.ca/logic/proseFieldProperty";
-const HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
-const USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
-const AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
-const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
-
-/// One accepted `logic:FormalizationCandidate` with its harvest source resolved:
-/// the prose-bearing term, the annotation field the candidate names, the field's
-/// real predicate, the exact `@x-gmeow-english` source prose, and the term's
-/// `gmeow:howToUse` prose (when it authors one).
-#[derive(Debug, Clone, PartialEq)]
-pub struct AcceptedCandidate {
-    /// The `logic:FormalizationCandidate` individual IRI.
-    pub candidate_iri: String,
-    /// The `logic:candidateFormalizes` term IRI (the advised subject).
-    pub term_iri: String,
-    /// The `logic:candidateSourceField` value (a `logic:ProseField`).
-    pub source_field_iri: String,
-    /// The real annotation predicate the field maps to (via `logic:proseFieldProperty`).
-    pub source_prop_iri: String,
-    /// The exact `@x-gmeow-english` prose of the harvested field — the rule text.
-    pub source_prose: String,
-    /// The term's `gmeow:howToUse` `@x-gmeow-english` prose, when present — routed
-    /// into the graded suggestions channel by the recommendation projector.
-    pub how_to_use: Option<String>,
-}
-
-/// The category-indexed accepted-candidate projector: the shared hard-axiom/soft-advice harvest seam.
-///
-/// Enumerates every `logic:FormalizationCandidate` in `bundle` whose
-/// `logic:candidateCategory` is `category_iri` AND whose `logic:candidateLifecycle`
-/// is `logic:CandidateAccepted` (only reviewed candidates project — the runtime
-/// mirror of "only a reviewed candidate becomes canonical"), resolves each one's
-/// harvest source through the same `candidateSourceField → logic:proseFieldProperty
-/// → term prose` join the drift gate uses (pinned to `@x-gmeow-english`), and maps
-/// each to an [`Advisory`] via `projector`. The recommendation → Note projector is
-/// the single wired instance ([`harvest_advisory_rules`]); a future non-entailing
-/// category projects by supplying its own `projector`, no new enumeration code.
-///
-/// Deterministic: candidates are processed in sorted IRI order and the returned
-/// advisories are sorted by `code`.
-///
-/// # Panics
-///
-/// No silent capability degradation — an accepted candidate whose harvest link is
-/// unresolvable is a governance/authoring defect surfaced loudly, never dropped:
-///
-/// * an accepted candidate of `category_iri` carries no `logic:candidateFormalizes`
-///   or no `logic:candidateSourceField` (an advisory rule must anchor to a term);
-/// * its `logic:candidateSourceField` resolves no `logic:proseFieldProperty`;
-/// * the harvested `(term, field)` resolves to zero or more than one distinct
-///   `@x-gmeow-english` prose literal (a dangling target — the source term was
-///   renamed/deleted or lost its prose — or an ambiguous one).
-pub fn project_accepted_candidates<F>(
-    bundle: &purrdf::RdfDataset,
-    category_iri: &str,
-    projector: F,
-) -> Vec<Advisory>
-where
-    F: Fn(&AcceptedCandidate) -> Advisory,
-{
-    use purrdf::TermRef;
-    use std::collections::{BTreeSet, HashMap, HashSet};
-
-    let mut is_candidate: HashSet<String> = HashSet::new();
-    let mut category_of: HashMap<String, String> = HashMap::new();
-    let mut lifecycle_of: HashMap<String, String> = HashMap::new();
-    let mut formalizes_of: HashMap<String, String> = HashMap::new();
-    let mut field_of: HashMap<String, String> = HashMap::new();
-    let mut prose_field_prop: HashMap<String, String> = HashMap::new();
-    let mut term_prose: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
-    let advice_props = [HOW_TO_USE, USE_WHEN, AVOID_WHEN, SKOS_DEFINITION];
-
-    for q in bundle.quads() {
-        let (TermRef::Iri(s), TermRef::Iri(p)) = (bundle.resolve(q.s), bundle.resolve(q.p)) else {
-            continue;
-        };
-        match bundle.resolve(q.o) {
-            TermRef::Iri(o) => {
-                if p == RDF_TYPE && o == CANDIDATE_TYPE {
-                    is_candidate.insert(s.to_owned());
-                } else if p == CANDIDATE_CATEGORY {
-                    category_of.insert(s.to_owned(), o.to_owned());
-                } else if p == CANDIDATE_LIFECYCLE {
-                    lifecycle_of.insert(s.to_owned(), o.to_owned());
-                } else if p == CANDIDATE_FORMALIZES {
-                    formalizes_of.insert(s.to_owned(), o.to_owned());
-                } else if p == CANDIDATE_SOURCE_FIELD {
-                    field_of.insert(s.to_owned(), o.to_owned());
-                } else if p == PROSE_FIELD_PROPERTY {
-                    prose_field_prop.insert(s.to_owned(), o.to_owned());
-                }
-            }
-            TermRef::Literal {
-                lexical, language, ..
-            } => {
-                if language == Some(SOURCE_LANG) && advice_props.contains(&p) {
-                    term_prose
-                        .entry((s.to_owned(), p.to_owned()))
-                        .or_default()
-                        .insert(lexical.to_owned());
-                }
-            }
-            _ => {}
-        }
+/// The IRI string of a SHACL term, or `None` for a blank node / literal.
+fn shacl_iri(term: &ShaclTerm) -> Option<String> {
+    match term {
+        ShaclTerm::NamedNode(n) => Some(n.as_str().to_owned()),
+        _ => None,
     }
+}
 
-    let mut selected: Vec<&String> = is_candidate
-        .iter()
-        .filter(|c| category_of.get(*c).map(String::as_str) == Some(category_iri))
-        .filter(|c| lifecycle_of.get(*c).map(String::as_str) == Some(CANDIDATE_ACCEPTED))
-        .collect();
-    selected.sort();
+/// The local name of an IRI (after the last `/` or `#`), sanitised to the IRI-safe
+/// code alphabet so it can key a `deonticRecommendation` claim IRI.
+fn code_local(iri: &str) -> String {
+    let raw = iri.rsplit(['/', '#']).next().unwrap_or(iri);
+    raw.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-') {
+                c
+            } else {
+                '-'
+            }
+        })
+        .collect()
+}
 
-    let single = |term: &str, prop: &str, cand: &str| -> String {
-        match term_prose.get(&(term.to_owned(), prop.to_owned())) {
-            Some(set) if set.len() == 1 => set.iter().next().expect("len == 1").clone(),
-            Some(set) if set.len() > 1 => panic!(
-                "advisory candidate <{cand}> harvests <{term}> <{prop}> resolving to {} distinct \
-                 @{SOURCE_LANG} literals — ambiguous harvest source",
-                set.len()
-            ),
-            _ => panic!(
-                "advisory candidate <{cand}> harvests <{term}> <{prop}> but that term carries no \
-                 @{SOURCE_LANG} prose for the field — dangling harvest link (the source term was \
-                 renamed/deleted or lost its prose; no silent skip)"
-            ),
-        }
-    };
-    let optional_single = |term: &str, prop: &str, cand: &str| -> Option<String> {
-        match term_prose.get(&(term.to_owned(), prop.to_owned())) {
-            None => None,
-            Some(set) if set.len() == 1 => Some(set.iter().next().expect("len == 1").clone()),
-            Some(set) => panic!(
-                "advisory candidate <{cand}> term <{term}> carries {} distinct @{SOURCE_LANG} \
-                 <{prop}> literals — ambiguous suggestion source",
-                set.len()
-            ),
-        }
-    };
-
-    let mut out: Vec<Advisory> = Vec::with_capacity(selected.len());
-    for cand in selected {
-        let term = formalizes_of.get(cand).unwrap_or_else(|| {
-            panic!(
-                "accepted candidate <{cand}> of category <{category_iri}> carries no \
-                 logic:candidateFormalizes — an advisory rule must anchor to a term (the harvest \
-                 link is required to project it)"
-            )
-        });
-        let field = field_of.get(cand).unwrap_or_else(|| {
-            panic!(
-                "accepted candidate <{cand}> carries logic:candidateFormalizes but no \
-                 logic:candidateSourceField (half-link — hard-failed by harvest-link-paired too)"
-            )
-        });
-        let prop = prose_field_prop.get(field).unwrap_or_else(|| {
-            panic!(
-                "logic:candidateSourceField <{field}> on <{cand}> resolves no \
-                 logic:proseFieldProperty predicate"
-            )
-        });
-        let candidate = AcceptedCandidate {
-            candidate_iri: cand.clone(),
-            term_iri: term.clone(),
-            source_field_iri: field.clone(),
-            source_prop_iri: prop.clone(),
-            source_prose: single(term, prop, cand),
-            how_to_use: optional_single(term, HOW_TO_USE, cand),
-        };
-        out.push(projector(&candidate));
+/// A stable 12-hex-char digest of a focus-node IRI — makes each `(constraint, focus)`
+/// match's advisory code unique (so [`project_compliance_assessment`] never sees a
+/// duplicate code) and deterministic across runs (SHA-256, not a process hasher).
+fn focus_digest(focus: &str) -> String {
+    let digest = Sha256::digest(focus.as_bytes());
+    let mut hex = String::with_capacity(12);
+    for b in digest.iter().take(6) {
+        use std::fmt::Write;
+        let _ = write!(hex, "{b:02x}");
     }
-    out.sort_by(|a, b| a.code.cmp(&b.code));
-    out
+    hex
 }
 
-/// The advisory `code` for a harvested candidate: `advice.<candidate-local-name>`.
+/// The gmeow-domain term the derived `shape_iri` `logic:formalizes` (its advice
+/// provenance), read from the `shapes` graph. `None` when the shape carries none.
+fn shape_formalizes(shapes: &purrdf::RdfDataset, shape_iri: &str) -> Option<String> {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let (Some(subj), Some(pred)) = (
+        graph_id(shapes, shape_iri),
+        graph_id(shapes, LOGIC_FORMALIZES),
+    ) else {
+        return None;
+    };
+    shapes
+        .quads_for_pattern(Some(subj), Some(pred), None, GraphMatch::Any)
+        .find_map(|q| match shapes.resolve(q.o) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        })
+}
+
+/// Resolve an IRI to its interned dataset id (small local helper).
+fn graph_id(ds: &purrdf::RdfDataset, iri: &str) -> Option<purrdf::TermId> {
+    ds.term_id_by_value(&purrdf::TermValue::iri(iri))
+}
+
+/// Build one Note [`Advisory`] from a matched advisory constraint — the single source
+/// both the pipeline (result-based) and CLI (finding-based) splits construct through.
 ///
-/// Injective — the candidate IRI's local name is the last `/`- or `#`-delimited
-/// segment, unique per candidate, so two candidates never collide (which would
-/// otherwise panic in [`project_compliance_assessment`]). The code is also the
-/// PROVENANCE anchor: since the norm-claims IRIs are keyed on the code
-/// (`norm-claims/{code}/assessment`), the governing `logic:FormalizationCandidate`
-/// is recoverable from any harvested finding/claim by stripping the
-/// [`crate::codes::ADVICE_FAMILY`] prefix and re-prefixing the `logic:` namespace —
-/// no bespoke provenance predicate needed. The audit chain is additionally
-/// term-mediated: the assessment's `gmeow:observedFeature` is the term the
-/// candidate's `logic:candidateFormalizes` names.
-fn advisory_code_for(candidate_iri: &str) -> String {
-    let local = candidate_iri
-        .rsplit(['/', '#'])
-        .next()
-        .unwrap_or(candidate_iri);
-    format!("{}{}", crate::codes::ADVICE_FAMILY, local)
-}
-
-/// The recommendation → Note projector: harvest one accepted advisory candidate
-/// into a `Severity::Note` [`Advisory`]. The harvested `avoidWhen`/`useWhen` prose
-/// IS the message (the machine-active rule); the term's `howToUse` prose (when
-/// present) rides the graded `suggestions` channel; the advised subject is the
-/// formalized term (`gmeow:observedFeature`). Tagged `"advisory-harvested"`.
-fn recommendation_advisory(candidate: &AcceptedCandidate) -> Advisory {
-    let mut advisory = Advisory::note(
-        advisory_code_for(&candidate.candidate_iri),
-        candidate.source_prose.clone(),
-    )
-    .with_subject_iri(candidate.term_iri.clone())
-    .with_tag("advisory-harvested")
-    .with_help_uri(ADVICE_HELP_URI);
-    if let Some(how_to_use) = &candidate.how_to_use {
-        advisory = advisory.with_suggestion(how_to_use.clone());
+/// The focus node (the individual whose data matched the anti-pattern guard) is the
+/// advised subject (`gmeow:observedFeature`); `message` is the advice; the code
+/// `advice.<shape-local>.<focus-digest>` is injective per match and identifies the
+/// governing constraint (its provenance is the shape's `logic:formalizes`, carried as a
+/// `formalizes:<term>` tag).
+fn build_advisory(
+    shape_iri: Option<&str>,
+    focus_iri: Option<&str>,
+    message: &str,
+    shapes: &purrdf::RdfDataset,
+) -> Advisory {
+    let shape_local = shape_iri.map_or_else(|| "constraint".to_owned(), code_local);
+    let digest = focus_digest(focus_iri.unwrap_or_default());
+    let code = format!("{}{}.{}", crate::codes::ADVICE_FAMILY, shape_local, digest);
+    let mut advisory = Advisory::note(code, message.to_owned())
+        .with_tag("advisory-harvested")
+        .with_help_uri(ADVICE_HELP_URI);
+    if let Some(focus) = focus_iri {
+        advisory = advisory.with_subject_iri(focus.to_owned());
+    }
+    if let Some(term) = shape_iri.and_then(|s| shape_formalizes(shapes, s)) {
+        advisory = advisory.with_tag(format!("formalizes:{term}"));
     }
     advisory
 }
 
-/// Harvest every ACCEPTED `logic:CategoryRecommendation` candidate in `bundle`
-/// into a soft (`deonticRecommendation`) [`Advisory`].
+/// One matched advisory-constraint [`ValidationResult`] → a Note [`Advisory`].
+fn advisory_from_result(r: &ValidationResult, shapes: &purrdf::RdfDataset) -> Advisory {
+    let message = r
+        .message
+        .clone()
+        .unwrap_or_else(|| "advisory constraint matched".to_owned());
+    build_advisory(
+        shacl_iri(&r.source_shape).as_deref(),
+        shacl_iri(&r.focus_node).as_deref(),
+        &message,
+        shapes,
+    )
+}
+
+/// Split ADVISORY findings out of an already-projected [`gmeow_errors::Report`] — the
+/// CLI twin of [`split_advisory_results`] (which works on raw results before projection).
 ///
-/// SINGLE-SOURCED: the CLI path ([`crate::validate_all`]) and the pipeline path
-/// (`crates/pipeline/src/stages/validate.rs::ValidateStage::run`) both call THIS
-/// function, so the two consumer surfaces can never drift apart. A `bundle` with
-/// no accepted recommendation candidates (e.g. a standalone user file validated
-/// without the ontology) harvests nothing — an honest empty advisory tier, not a
-/// synthetic placeholder. The bulk per-slice sweep runs on the continuous background
-/// uplift lane, driven by the advice-coverage slice-quality axis. Find harvested
-/// findings via the `"advisory-harvested"` tag.
-pub fn harvest_advisory_rules(bundle: &purrdf::RdfDataset) -> Vec<Advisory> {
-    project_accepted_candidates(bundle, CATEGORY_RECOMMENDATION_IRI, recommendation_advisory)
+/// The CLI interns all SHACL findings (including the Info-severity advisory ones as
+/// `shacl.*`) through cached phases, so the split happens on the projected report: each
+/// `Severity::Info`, `shacl.*` finding whose recorded source shape carries a
+/// `logic:formalizes` is an advisory-constraint match — it is REMOVED from `report` (its
+/// raw `shacl.*` form suppressed) and returned as a Note [`Advisory`] for the dual
+/// projection. Fires from a DATA MATCH; a report with no such finding yields none.
+#[must_use]
+pub fn split_advisory_findings(
+    report: &mut gmeow_errors::Report,
+    shapes: &purrdf::RdfDataset,
+) -> Vec<Advisory> {
+    let mut advisories = Vec::new();
+    let mut retained = Vec::with_capacity(report.findings.len());
+    for finding in std::mem::take(&mut report.findings) {
+        let is_shacl = finding.code.starts_with(crate::codes::SHACL_FAMILY);
+        let shape_iri = finding.detail.as_deref().and_then(|d| {
+            d.strip_prefix("source shape: ")
+                .map(|s| s.trim().to_owned())
+        });
+        let is_advisory = finding.severity == Severity::Info
+            && is_shacl
+            && shape_iri
+                .as_deref()
+                .is_some_and(|s| shape_formalizes(shapes, s).is_some());
+        if is_advisory {
+            let focus = finding
+                .primary_location()
+                .and_then(|l| l.logical.clone());
+            advisories.push(build_advisory(
+                shape_iri.as_deref(),
+                focus.as_deref(),
+                &finding.message,
+                shapes,
+            ));
+        } else {
+            retained.push(finding);
+        }
+    }
+    report.findings = retained;
+    advisories.sort_by(|a, b| a.code.cmp(&b.code));
+    advisories
+}
+
+/// Split a SHACL [`ValidationReport`] into (retained hard/warning results, advisory
+/// Note projections). An `Info`-severity result is ADVISORY — it comes from a
+/// `logic:severity "Info"` advisory constraint (the only Info constraints authored),
+/// so its raw `shacl.*` finding is SUPPRESSED (removed from `retained`) and re-projected
+/// through the advisory dual-projection as a `Severity::Note` finding + a
+/// `deonticRecommendation` `gmeow:ComplianceAssessment`. The advisory fires from a DATA
+/// MATCH — the guard matched an individual — never merely because a rule exists.
+///
+/// Deterministic: advisories are sorted by code, and the retained results preserve the
+/// engine's order. The `shapes` graph is read for each advisory shape's
+/// `logic:formalizes` provenance term.
+#[must_use]
+pub fn split_advisory_results(
+    report: ValidationReport,
+    shapes: &purrdf::RdfDataset,
+) -> (ValidationReport, Vec<Advisory>) {
+    let mut retained = Vec::new();
+    let mut advisories = Vec::new();
+    for result in report.results {
+        if matches!(result.severity, ShaclSeverity::Info) {
+            advisories.push(advisory_from_result(&result, shapes));
+        } else {
+            retained.push(result);
+        }
+    }
+    advisories.sort_by(|a, b| a.code.cmp(&b.code));
+    // Guard the producer invariant early with a clear message (project_compliance_assessment
+    // also hard-fails, but surfacing it here names the colliding advisory codes).
+    debug_assert!(
+        advisories.windows(2).all(|w| w[0].code != w[1].code),
+        "advisory codes must be unique per (constraint, focus) match"
+    );
+    // Recompute conformance for the RETAINED set: advisory Info matches were the reason
+    // the run was non-conforming iff they were the only results, but they never gate — so
+    // once they are lifted out, the retained report conforms unless a real Violation
+    // remains. (Without this, suppressing the only result leaves conforms=false with an
+    // empty result set, which the diagnostics fallback wrongly reports as a hard error.)
+    let conforms = !retained
+        .iter()
+        .any(|r| matches!(r.severity, ShaclSeverity::Violation));
+    (
+        ValidationReport {
+            conforms,
+            results: retained,
+        },
+        advisories,
+    )
 }
 
 // ── ComplianceAssessment RDF emitter (D4) ───────────────────────────────────
@@ -966,158 +921,117 @@ mod tests {
         assert_eq!(claim.subject_iri, None);
     }
 
-    // ── Harvest bridge: accepted candidates → advisories ───────────────────────────────────
+    // ── Advisory bridge: data-matched Info constraints → Note advisories ─────
 
-    fn bundle(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
-        purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("test bundle parses")
+    fn result(
+        severity: ShaclSeverity,
+        shape: &str,
+        focus: &str,
+        message: &str,
+    ) -> ValidationResult {
+        use purrdf::shapes::term::{NamedNode, Term};
+        ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked(focus)),
+            result_path: None,
+            path_structure: None,
+            value: None,
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#SPARQLConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked(shape)),
+            severity,
+            message: Some(message.to_owned()),
+            source_box_roles: Vec::new(),
+            path_box_roles: Vec::new(),
+            result_box_roles: Vec::new(),
+            attributions: Vec::new(),
+        }
     }
 
-    /// An accepted recommendation candidate harvesting an `avoidWhen` field
-    /// projects to a Note advisory whose message IS the source prose, whose
-    /// subject is the formalized term, whose suggestion is the term's `howToUse`,
-    /// and whose claim carries the `deonticRecommendation` modality.
+    /// An `Info`-severity result (from an advisory constraint) is lifted into a Note
+    /// advisory carrying the focus node as subject and the shape's `logic:formalizes`
+    /// provenance, its raw `shacl.*` finding SUPPRESSED; a `Violation` result is retained
+    /// for the hard diagnostics report. The advisory fires from the DATA MATCH.
     #[test]
-    fn harvest_yields_note_with_subject_and_howtouse_suggestion() {
-        let ds = bundle(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             logic:ProseFieldAvoidWhen logic:proseFieldProperty gmeow:avoidWhen .\n\
-             gmeow:Foo gmeow:avoidWhen \"avoid bare Foo\"@x-gmeow-english ;\n\
-                       gmeow:howToUse \"type the most specific sortal\"@x-gmeow-english .\n\
-             logic:candAdviceFoo a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Foo ;\n\
-                 logic:candidateSourceField logic:ProseFieldAvoidWhen .\n",
-        );
-        let advisories = harvest_advisory_rules(&ds);
-        assert_eq!(advisories.len(), 1, "one accepted recommendation candidate");
-        let a = &advisories[0];
-        assert_eq!(a.code, "advice.candAdviceFoo");
-        assert_eq!(a.severity, Severity::Note);
-        assert_eq!(a.message, "avoid bare Foo");
-        assert_eq!(
-            a.subject_iri.as_deref(),
-            Some("https://blackcatinformatics.ca/gmeow/Foo")
-        );
-        assert_eq!(a.suggestions, vec!["type the most specific sortal".to_owned()]);
-        assert!(a.tags.iter().any(|t| t == "advisory-harvested"));
-        assert!(!a.tags.iter().any(|t| t == "advisory-demonstrator"));
-        let claim = a.project().claim;
-        assert_eq!(claim.modality_iri, DEONTIC_RECOMMENDATION_IRI);
-        assert_eq!(
-            claim.subject_iri.as_deref(),
-            Some("https://blackcatinformatics.ca/gmeow/Foo")
-        );
-    }
+    fn split_advisory_lifts_info_results_and_retains_violations() {
+        let shapes = purrdf::parse_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              <https://ex/advShape> logic:formalizes gmeow:Entity .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("shapes parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/thing",
+                    "prefer a more specific sortal than bare gmeow:Entity",
+                ),
+                result(
+                    ShaclSeverity::Violation,
+                    "https://ex/hardShape",
+                    "https://data/bad",
+                    "a required value is missing",
+                ),
+            ],
+        };
 
-    /// The COMMON path: a term with no `gmeow:howToUse` still projects a valid
-    /// Note + claim, with empty `suggestions` — no panic, no skip.
-    #[test]
-    fn harvest_term_without_howtouse_has_empty_suggestions() {
-        let ds = bundle(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             logic:ProseFieldUseWhen logic:proseFieldProperty gmeow:useWhen .\n\
-             gmeow:Bar gmeow:useWhen \"use Bar for X\"@x-gmeow-english .\n\
-             logic:candAdviceBar a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Bar ;\n\
-                 logic:candidateSourceField logic:ProseFieldUseWhen .\n",
-        );
-        let advisories = harvest_advisory_rules(&ds);
+        let (retained, advisories) = split_advisory_results(report, &shapes);
+
+        // The hard violation is retained; the Info result was suppressed.
+        assert_eq!(retained.results.len(), 1);
+        assert_eq!(retained.results[0].severity, ShaclSeverity::Violation);
+
+        // Exactly one Note advisory, subject = the matched focus node, provenance tag.
         assert_eq!(advisories.len(), 1);
-        assert_eq!(advisories[0].message, "use Bar for X");
+        let advisory = &advisories[0];
+        assert_eq!(advisory.severity, Severity::Note);
+        assert!(advisory.code.starts_with(crate::codes::ADVICE_FAMILY));
+        assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
+        assert_eq!(advisory.message, "prefer a more specific sortal than bare gmeow:Entity");
+        assert!(advisory.tags.iter().any(|t| t == "advisory-harvested"));
         assert!(
-            advisories[0].suggestions.is_empty(),
-            "no howToUse → empty suggestions, still a valid advisory"
+            advisory
+                .tags
+                .iter()
+                .any(|t| t == "formalizes:https://blackcatinformatics.ca/gmeow/Entity"),
+            "the advisory carries its constraint's logic:formalizes provenance: {:?}",
+            advisory.tags
         );
-        // The claim wing still projects to RDF without panicking.
-        let claim = advisories[0].project().claim;
-        let _ = project_compliance_assessment(&[claim], DEMO_GRAPH);
+
+        // Its claim wing carries the deonticRecommendation modality and the subject.
+        let claim = advisory.project().claim;
+        assert_eq!(claim.modality_iri, DEONTIC_RECOMMENDATION_IRI);
+        assert_eq!(claim.subject_iri.as_deref(), Some("https://data/thing"));
     }
 
-    /// Two accepted candidates on ONE term (avoidWhen + useWhen) yield two
-    /// distinct-coded advisories, and their claims project to N-Quads with no
-    /// duplicate-code panic (injective codes).
+    /// Two matches of the SAME advisory constraint at DIFFERENT focus nodes get distinct
+    /// injective codes (so the claim emitter never sees a duplicate) and both project.
     #[test]
-    fn harvest_two_candidates_one_term_distinct_codes() {
-        let ds = bundle(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             logic:ProseFieldAvoidWhen logic:proseFieldProperty gmeow:avoidWhen .\n\
-             logic:ProseFieldUseWhen logic:proseFieldProperty gmeow:useWhen .\n\
-             gmeow:Baz gmeow:avoidWhen \"avoid Baz here\"@x-gmeow-english ;\n\
-                       gmeow:useWhen \"use Baz there\"@x-gmeow-english .\n\
-             logic:candAdviceBazAvoid a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Baz ;\n\
-                 logic:candidateSourceField logic:ProseFieldAvoidWhen .\n\
-             logic:candAdviceBazUse a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Baz ;\n\
-                 logic:candidateSourceField logic:ProseFieldUseWhen .\n",
-        );
-        let advisories = harvest_advisory_rules(&ds);
+    fn split_advisory_distinct_foci_get_distinct_codes() {
+        let shapes = purrdf::parse_dataset(
+            b"<https://ex/advShape> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Entity> .\n",
+            "application/n-triples",
+            None,
+        )
+        .expect("shapes parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/a", "advice"),
+                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/b", "advice"),
+            ],
+        };
+        let (_retained, advisories) = split_advisory_results(report, &shapes);
         assert_eq!(advisories.len(), 2);
-        // Sorted by code; both distinct.
-        assert_eq!(advisories[0].code, "advice.candAdviceBazAvoid");
-        assert_eq!(advisories[1].code, "advice.candAdviceBazUse");
-        let claims: Vec<AdvisoryClaim> =
-            advisories.iter().map(|a| a.project().claim).collect();
-        // No duplicate-code panic — the codes are injective on the candidate IRI.
-        let nquads = project_compliance_assessment(&claims, DEMO_GRAPH);
-        assert!(nquads.contains("advice.candAdviceBazAvoid"));
-        assert!(nquads.contains("advice.candAdviceBazUse"));
-    }
-
-    /// Only ACCEPTED candidates of the requested category project: a `proposed`
-    /// candidate and a non-recommendation candidate are both ignored.
-    #[test]
-    fn harvest_ignores_unaccepted_and_other_category() {
-        let ds = bundle(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             logic:ProseFieldAvoidWhen logic:proseFieldProperty gmeow:avoidWhen .\n\
-             gmeow:Qux gmeow:avoidWhen \"avoid Qux\"@x-gmeow-english .\n\
-             logic:candProposed a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateProposed ;\n\
-                 logic:candidateFormalizes gmeow:Qux ;\n\
-                 logic:candidateSourceField logic:ProseFieldAvoidWhen .\n\
-             logic:candHardAxiom a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryIntegrityConstraint ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Qux ;\n\
-                 logic:candidateSourceField logic:ProseFieldAvoidWhen .\n",
-        );
-        assert!(
-            harvest_advisory_rules(&ds).is_empty(),
-            "a proposed candidate and a non-recommendation candidate must not project"
-        );
-    }
-
-    /// R2 — a DANGLING harvest target hard-fails: an accepted recommendation
-    /// candidate whose formalized term carries no source-language prose for its
-    /// field (e.g. the term was renamed/deleted) panics rather than silently
-    /// vanish. None of the three governance gates catches this; the bridge must.
-    #[test]
-    #[should_panic(expected = "dangling harvest link")]
-    fn harvest_dangling_target_hard_fails() {
-        let ds = bundle(
-            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-             logic:ProseFieldAvoidWhen logic:proseFieldProperty gmeow:avoidWhen .\n\
-             logic:candAdviceGone a logic:FormalizationCandidate ;\n\
-                 logic:candidateCategory logic:CategoryRecommendation ;\n\
-                 logic:candidateLifecycle logic:CandidateAccepted ;\n\
-                 logic:candidateFormalizes gmeow:Vanished ;\n\
-                 logic:candidateSourceField logic:ProseFieldAvoidWhen .\n",
-        );
-        let _ = harvest_advisory_rules(&ds);
+        assert_ne!(advisories[0].code, advisories[1].code, "distinct foci → distinct codes");
+        // No duplicate-code panic when both claims project to N-Quads.
+        let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
+        let _ = project_compliance_assessment(&claims, "https://ex/graph");
     }
 
     // ── (D4) project_compliance_assessment ──────────────────────────────────
