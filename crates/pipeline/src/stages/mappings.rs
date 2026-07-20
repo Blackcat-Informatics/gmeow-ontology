@@ -2172,7 +2172,11 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         for param in &catalog.params {
             subjects.push(param.iri.clone());
         }
-        assert_eq!(subjects.len(), 6 + 6 + 7, "expected 6 functions + 6 outputs + 7 params");
+        assert_eq!(
+            subjects.len(),
+            6 + 6 + 7,
+            "expected 6 functions + 6 outputs + 7 params"
+        );
 
         for subject in &subjects {
             let subject_errors = abox_annotation_errors(&errors, subject);

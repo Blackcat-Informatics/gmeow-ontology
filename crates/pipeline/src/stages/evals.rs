@@ -927,7 +927,10 @@ gmeow:assessmentScoreValue {} .",
                 &mut lines,
                 &assessment_iri,
                 &format!("{} / {criterion}", card.model),
-                &format!("{criterion} assessment of {} against the eval rubric.", card.model),
+                &format!(
+                    "{criterion} assessment of {} against the eval rubric.",
+                    card.model
+                ),
                 &graph_iri,
             );
         }

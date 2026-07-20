@@ -241,7 +241,11 @@ fn finding_label(code: &str, message: &str) -> String {
 /// individual satisfies via [`crate::abox::annotate_nquads`].
 fn finding_definition(finding: &Finding) -> String {
     if finding.code.is_empty() {
-        format!("{} diagnostic: {}", finding.severity.as_str(), finding.message)
+        format!(
+            "{} diagnostic: {}",
+            finding.severity.as_str(),
+            finding.message
+        )
     } else {
         format!(
             "{} diagnostic {}: {}",

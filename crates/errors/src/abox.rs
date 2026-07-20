@@ -187,7 +187,10 @@ mod tests {
         let mut out = Vec::new();
         annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
         assert_eq!(out.len(), 4, "must emit exactly four annotation triples");
-        assert!(out[0].contains(RDFS_LABEL), "line 0 must be rdfs:label: {out:?}");
+        assert!(
+            out[0].contains(RDFS_LABEL),
+            "line 0 must be rdfs:label: {out:?}"
+        );
         assert!(
             out[1].contains(SKOS_DEFINITION),
             "line 1 must be skos:definition: {out:?}"

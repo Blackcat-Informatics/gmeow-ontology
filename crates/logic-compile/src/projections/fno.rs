@@ -138,10 +138,8 @@ pub fn lower_fno(dsl: &DslView, onto: &DslView) -> gmeow_errors::Result<FnoLower
     // quads BEFORE the carrier-tag retag, so any label/definition this pass derives
     // rides the exact same `x-gmeow-english` → public-BCP-47 remap every other
     // catalog literal goes through.
-    let completed = complete_fno_abox_annotations(
-        fno::to_quads(&catalog_model),
-        &catalog_model.document_iri,
-    );
+    let completed =
+        complete_fno_abox_annotations(fno::to_quads(&catalog_model), &catalog_model.document_iri);
     let quads: Vec<RdfQuad> = completed
         .into_iter()
         .map(|q| retag_quad(q, &tag_map))
@@ -610,7 +608,9 @@ fn predicate_label_and_description(
     let description = onto
         .object_literal(predicate, SKOS_DEFINITION)
         .unwrap_or_else(|| {
-            format!("The {role} bound to the `{local_name}` predicate in the FnO projection catalog.")
+            format!(
+                "The {role} bound to the `{local_name}` predicate in the FnO projection catalog."
+            )
         });
     (label, description)
 }
@@ -782,10 +782,7 @@ fn complete_fno_abox_annotations(mut quads: Vec<RdfQuad>, catalog_graph_iri: &st
                 extra.push(RdfQuad::new(
                     RdfTerm::iri(subject.clone()),
                     RDFS_LABEL,
-                    RdfTerm::literal(RdfLiteral::language_tagged(
-                        label,
-                        GMEOW_INTERNAL_ENGLISH,
-                    )),
+                    RdfTerm::literal(RdfLiteral::language_tagged(label, GMEOW_INTERNAL_ENGLISH)),
                 ));
             }
             if !has_definition.contains(subject) {
@@ -1164,7 +1161,10 @@ mod tests {
             .object_literal(&document_iri, SKOS_DEFINITION)
             .expect("fno catalog header missing skos:definition");
         assert!(
-            catalog.contains(&format!("\"{}\"@en", header_definition.replace('"', "\\\""))),
+            catalog.contains(&format!(
+                "\"{}\"@en",
+                header_definition.replace('"', "\\\"")
+            )),
             "fno catalog header's skos:definition {header_definition:?} must carry the \
              carrier-tag-resolved public 'en' tag; catalog:\n{catalog}"
         );

@@ -30,7 +30,8 @@ use super::{
 /// for every A-Box individual this report mints: every `logic:ProjectionTarget` and
 /// `logic:TermProjectionLoss` genuinely lives in this named graph once folded, so the
 /// annotation is a true fact, not a placeholder.
-const GRAPH_PROJECTION_LEDGER: &str = "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
+const GRAPH_PROJECTION_LEDGER: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
 
 fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
@@ -340,9 +341,8 @@ pub fn build_projection_report_from(
             // the same `target_key` + the DOCUMENTED source term (never `proj.target`'s
             // opaque hash) — the four mandatory A-Box annotations, via the shared contract.
             let term_loss_label = format!("{target_key}: loss of {source_term}");
-            let term_loss_definition = format!(
-                "Term {source_term} is not preserved by the projection to {target_key}."
-            );
+            let term_loss_definition =
+                format!("Term {source_term} is not preserved by the projection to {target_key}.");
             emit_abox_annotations(
                 &mut g,
                 &term_loss_iri,
@@ -488,7 +488,11 @@ mod tests {
         // skos:definition is present, carrier-tagged, and derived from the key +
         // preservation + complexity (never fabricated).
         let definitions = objects(ds, &target_subject, &nn(SKOS_DEFINITION));
-        assert_eq!(definitions.len(), 1, "exactly one skos:definition: {definitions:?}");
+        assert_eq!(
+            definitions.len(),
+            1,
+            "exactly one skos:definition: {definitions:?}"
+        );
         match &definitions[0] {
             Node::Lit { lexical, lang, .. } => {
                 assert_eq!(
