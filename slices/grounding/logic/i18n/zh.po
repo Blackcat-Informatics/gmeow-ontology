@@ -3,7 +3,8 @@
 #
 # GMEOW translation catalog (slice: logic, language: zh).
 # Authored translation store — the ONLY home for non-English ontology prose.
-# This initial catalog deliberately covers the typed-IR exemplar introduced in this uplift.
+# Covers every localizable literal in the logic slice (labels, definitions, examples,
+# scope notes, comments) in Mandarin.
 msgid ""
 msgstr ""
 "Project-Id-Version: gmeow\n"
