@@ -173,7 +173,12 @@ The annotation-completeness gate requires `rdfs:label`, `skos:definition`, and
 - `skos:definition` that states the concept *and its boundaries* — what it is NOT;
 - `skos:example` with a one-line worked triple;
 - `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse` — the three-part usage coat that
-  makes the docs pages teach;
+  makes the docs pages teach. `avoidWhen` / `useWhen` are not only prose: a central
+  `logic:CategoryRecommendation` candidate can **harvest** them into machine-active
+  advisory rules that emit `deonticRecommendation` Notes at `gmeow validate` time (the
+  `gmeow:axisAdviceCoverage` quality axis measures how much of a slice's advice prose is
+  so harvested — see [`SLICE_QA.md`](./SLICE_QA.md)). Author the guidance well here; the
+  harvest links to it centrally without the slice asserting any `logic:` triple;
 - `gmeow:graphBoxRole` (TBox/RBox/ABox placement);
 - foundation stereotype (§4) and, on relators, `logic:mediates` naming the roles;
 - OWL characteristics stated where true (functional, transitive, symmetric, inverse,

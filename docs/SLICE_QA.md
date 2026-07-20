@@ -120,6 +120,33 @@ validation gate. It never asserts a bit is right or wrong; it scores how far a
 slice has been lifted and holds the gains. Keep the two straight — do not file a
 quality *score* as a competency cell, and do not expect a cell to move a tier.
 
+### The advice-harvest-coverage axis (`gmeow:axisAdviceCoverage`)
+
+One axis measures a cross-slice frontier and is uplifted differently from all the
+others. `gmeow:axisAdviceCoverage` scores the fraction of a slice's source-language
+`gmeow:avoidWhen` / `gmeow:useWhen` cells that a **central** `logic:CategoryRecommendation`
+FormalizationCandidate has already harvested into a machine-active advisory rule (one
+that emits a `deonticRecommendation` Note through `gmeow validate`). It is **harvest
+coverage — candidate presence — not prose presence**: a term can carry rich `avoidWhen`
+prose and still score `0.0` here (that prose *presence* is the information / prose axes),
+because until a reviewed recommendation candidate `candidateFormalizes`-links the term
+the guidance is inert. A slice authoring no advisory prose is vacuously `1.0`.
+`gmeow:howToUse` is deliberately **not** counted — it is suggestion text carried onto
+findings, not a harvestable rule field.
+
+**How to raise it — author a candidate CENTRALLY, never edit the domain slice.** Unlike
+every other axis (all slice-local edits), advice-harvest coverage is raised by adding a
+`logic:FormalizationCandidate` to `slices/grounding/logic/module.ttl` —
+`logic:candidateCategory logic:CategoryRecommendation`, `logic:candidateSemanticRisk
+logic:RiskAdvisory`, the paired `logic:candidateFormalizes <term>` +
+`logic:candidateSourceField logic:ProseFieldAvoidWhen|ProseFieldUseWhen`, and the
+`logic:candidateSourceHash`. The advisor makes this mechanical: each uncovered cell it
+names ships a **paste-ready candidate stub with the pre-computed `candidateSourceHash`**.
+The domain slice keeps only its `avoidWhen` / `useWhen` prose and asserts no `logic:`
+triple; the drift gate then holds the candidate to that exact prose. The axis is
+advisory-only (no committed floor), so it never reds the gate — it exists to prioritize
+the background advice-harvest lane onto the slices with the most unharvested guidance.
+
 - **Advisory worklist** — `make slice-quality` scores one slice (`SLICE=…`) or the
   whole repo (`--all`) against the rubric and prints a prioritized worklist: each
   slice's roll-up tier plus its capping axis (the weakest axis dragging the meet

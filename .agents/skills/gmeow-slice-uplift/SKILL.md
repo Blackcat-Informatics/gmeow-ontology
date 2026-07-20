@@ -114,6 +114,18 @@ authority for why the top row is the right next move.
    `mappings/…`), per [`gmeow-ontology-authoring`](../../gmeow-ontology-authoring/SKILL.md);
    never satisfy a projection finding with a new hand-authored shape (Principle 17).
 
+   > **Exception — `gmeow:axisAdviceCoverage` is uplifted CENTRALLY, not slice-locally.**
+   > When the capping (or any deficient) axis is advice-harvest coverage, the advisor
+   > names each unharvested `avoidWhen` / `useWhen` cell with a **paste-ready
+   > `logic:FormalizationCandidate` stub** (category `recommendation`, risk `advisory`,
+   > the paired `candidateFormalizes` + `candidateSourceField`, and the pre-computed
+   > `candidateSourceHash`). Author those candidates in
+   > `slices/grounding/logic/module.ttl` — NOT in the target slice — so the domain slice
+   > asserts no `logic:` triple. This is the one axis whose uplift diff lands in the
+   > central logic slice; note it in the PR (the "keep the diff inside the slice" rule in
+   > §4 yields here to the projection-purity rule). See
+   > [`SLICE_QA.md`](../../../docs/SLICE_QA.md) § the advice-harvest-coverage axis.
+
 ---
 
 ## 4. Land
