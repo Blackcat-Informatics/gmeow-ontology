@@ -82,13 +82,10 @@ fn graph_triples(g: &Graph) -> Vec<(String, String, String)> {
 /// are both honest "no norm-claims content" states, never a panic.
 fn norm_claims_only_graph() -> Option<Graph> {
     let g = read_committed_gts_graph();
-    let Some(graph_id) = g
+    let graph_id = g
         .terms
         .iter()
-        .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))
-    else {
-        return None;
-    };
+        .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))?;
 
     let quads: Vec<_> = g
         .quads

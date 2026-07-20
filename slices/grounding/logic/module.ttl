@@ -4712,6 +4712,7 @@ gmeow:BareEntitySortalAdviceConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "prefer a specific sortal over bare gmeow:Entity"@x-gmeow-english ;
+    skos:definition "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual is typed bare gmeow:Entity without a more-specific top sortal (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject or gmeow:SocialObject). Its data-matching guard formalizes gmeow:Entity, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Info" ;
     logic:formalizes gmeow:Entity ;
@@ -4738,6 +4739,7 @@ gmeow:EndurantAsEventAdviceConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "avoid typing an endurant as a gmeow:Event"@x-gmeow-english ;
+    skos:definition "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual is typed both gmeow:Event and gmeow:Entity — an endurant (a person, document or place) mistyped as an occurrence. Its data-matching guard formalizes gmeow:Event, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Info" ;
     logic:formalizes gmeow:Event ;
@@ -4767,6 +4769,7 @@ logic:EntityUniversalDomainAdvice
     a logic:AdviceGuidance ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "use gmeow:Entity as the universal domain"@x-gmeow-english ;
+    skos:definition "The positive-guidance carrier that makes gmeow:Entity's gmeow:useWhen applicability prose machine-active: use gmeow:Entity as the universal domain for anything that persists and can bear properties. Its logic:message is that term's useWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldUseWhen); the useWhen peer of gmeow:BareEntitySortalAdviceConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Entity ;
     logic:adviceSourceField logic:ProseFieldUseWhen ;
@@ -4776,6 +4779,7 @@ logic:EventUniversalOccurrentAdvice
     a logic:AdviceGuidance ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "use gmeow:Event as the universal occurrent"@x-gmeow-english ;
+    skos:definition "The positive-guidance carrier that makes gmeow:Event's gmeow:useWhen applicability prose machine-active: use gmeow:Event as the universal occurrent whenever something happens that bears participants, a time, a location, or sub-events. Its logic:message is that term's useWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldUseWhen); the useWhen peer of gmeow:EndurantAsEventAdviceConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Event ;
     logic:adviceSourceField logic:ProseFieldUseWhen ;

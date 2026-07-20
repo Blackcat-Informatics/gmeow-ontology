@@ -10484,3 +10484,51 @@ msgstr "多维语境面的世界索引轴：一条真理相对于一个 logic:Wo
 msgctxt "https://blackcatinformatics.ca/logic/World|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A reified, named context relative to which truth is evaluated — a possible world in the Kripke sense, realized by GMEOW's materialized contextual index (standpoints, narrative reference frames, goal-, ought-, feared-, and counterfactual-worlds). Truth is world-relative and entailment is world-indexed: a contradiction within one world is a witness, a contradiction across worlds is not an inconsistency in the model. Carries a world-type taxonomy (epistemic, doxastic, telic, deontic, alethic, representational, counterfactual)."
 msgstr "一个具体化的、有名称的语境，真理相对于它被求值——是 Kripke 意义上的一个可能世界，由 GMEOW 的物化语境索引实现（立场、叙事参照框架、目标世界、应然世界、畏惧世界与反事实世界）。真理是相对于世界的，蕴含是按世界编制索引的：一个世界之内的矛盾是一个见证，跨世界的矛盾并非模型中的不一致。承载一套世界类型分类法（认知的、信念的、目的的、道义的、真势的、表征的、反事实的）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BareEntitySortalAdviceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prefer a specific sortal over bare gmeow:Entity"
+msgstr "优先使用具体的 sortal 而非裸 gmeow:Entity"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BareEntitySortalAdviceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual is typed bare gmeow:Entity without a more-specific top sortal (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject or gmeow:SocialObject). Its data-matching guard formalizes gmeow:Entity, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."
+msgstr "当某个个体被类型化为裸 gmeow:Entity 而缺少更具体的顶层 sortal（gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject 或 gmeow:SocialObject）时，触发 deonticRecommendation Note 的建议性 logic:Constraint。其数据匹配守卫形式化 gmeow:Entity，其 logic:message 是该术语的 gmeow:avoidWhen 散文按原样呈现（由 logic:adviceSourceField logic:ProseFieldAvoidWhen 绑定）；以 logic:severity \"Info\" 撰写——永不阻断的建议层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EndurantAsEventAdviceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "avoid typing an endurant as a gmeow:Event"
+msgstr "避免将 endurant 类型化为 gmeow:Event"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EndurantAsEventAdviceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The advisory logic:Constraint that fires a deonticRecommendation Note when an individual is typed both gmeow:Event and gmeow:Entity — an endurant (a person, document or place) mistyped as an occurrence. Its data-matching guard formalizes gmeow:Event, and its logic:message is that term's gmeow:avoidWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldAvoidWhen); authored at logic:severity \"Info\" — the never-gating advisory tier."
+msgstr "当某个个体同时被类型化为 gmeow:Event 和 gmeow:Entity 时，触发 deonticRecommendation Note 的建议性 logic:Constraint——即一个 endurant（人、文档或地点）被错误地类型化为一次发生。其数据匹配守卫形式化 gmeow:Event，其 logic:message 是该术语的 gmeow:avoidWhen 散文按原样呈现（由 logic:adviceSourceField logic:ProseFieldAvoidWhen 绑定）；以 logic:severity \"Info\" 撰写——永不阻断的建议层级。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AdviceGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Advice Guidance"
+msgstr "建议指导"
+
+msgctxt "https://blackcatinformatics.ca/logic/AdviceGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A first-class positive-guidance carrier: a queryable object that makes a term's gmeow:useWhen applicability prose machine-active, the useWhen peer of the avoidWhen anti-pattern logic:Constraint. It logic:formalizes the term it advises, names the harvested field with logic:adviceSourceField (logic:ProseFieldUseWhen), and surfaces the VERBATIM useWhen prose as its logic:message — bound to the source prose by the native check_advice_message_prose_binding gate. Unlike a logic:Constraint it carries no data-matching guard: positive applicability is not an anti-pattern to detect but guidance to surface when authoring the term's domain. The advice-coverage slice-quality axis counts a term's useWhen cell as covered exactly when such a carrier logic:formalizes it."
+msgstr "一种一等的正向指导载体：一个可查询的对象，它使某术语的 gmeow:useWhen 适用性散文对机器生效，是 avoidWhen 反模式 logic:Constraint 的 useWhen 对应物。它 logic:formalizes 它所建议的术语，用 logic:adviceSourceField（logic:ProseFieldUseWhen）命名收割的字段，并将 VERBATIM 的 useWhen 散文作为其 logic:message 呈现——由原生的 check_advice_message_prose_binding 门绑定到源散文。与 logic:Constraint 不同，它不携带数据匹配守卫：正向适用性不是要检测的反模式，而是在编写该术语的域时要呈现的指导。当且仅当这样的载体 logic:formalizes 某术语时，advice-coverage 切片质量轴才将该术语的 useWhen 单元格计为已覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "advice source field"
+msgstr "建议来源字段"
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued, range logic:ProseField."
+msgstr "logic:candidateSourceField 的软建议对应物，由一个已实现的建议载体承载——一个建议性的 logic:Constraint（avoidWhen）或一个 logic:AdviceGuidance（useWhen）——而非治理候选：指明载体的 logic:formalizes 术语的哪个注解字段（来自封闭集合的 logic:ProseField）必须由载体的 logic:message 按 VERBATIM 呈现。原生验证门 check_advice_message_prose_binding 解析该字段当前的 @x-gmeow-english 散文，并在任何偏离时硬失败，因此机器生效的建议永远不会悄然偏离它所形式化的散文。这是一个直接的字符串绑定，而非存储的摘要，因为该消息就是那段散文。刻意不设域——它由两种建议载体共享，因此不得蕴含任一类型（rdfs:domain 会那样做）。单值，值域为 logic:ProseField。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EntityUniversalDomainAdvice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "use gmeow:Entity as the universal domain"
+msgstr "将 gmeow:Entity 用作通用域"
+
+msgctxt "https://blackcatinformatics.ca/logic/EntityUniversalDomainAdvice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive-guidance carrier that makes gmeow:Entity's gmeow:useWhen applicability prose machine-active: use gmeow:Entity as the universal domain for anything that persists and can bear properties. Its logic:message is that term's useWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldUseWhen); the useWhen peer of gmeow:BareEntitySortalAdviceConstraint."
+msgstr "使 gmeow:Entity 的 gmeow:useWhen 适用性散文对机器生效的正向指导载体：将 gmeow:Entity 用作任何持续存在且能承载属性之物的通用域。其 logic:message 是该术语的 useWhen 散文按原样呈现（由 logic:adviceSourceField logic:ProseFieldUseWhen 绑定）；是 gmeow:BareEntitySortalAdviceConstraint 的 useWhen 对应物。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EventUniversalOccurrentAdvice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "use gmeow:Event as the universal occurrent"
+msgstr "将 gmeow:Event 用作通用发生体"
+
+msgctxt "https://blackcatinformatics.ca/logic/EventUniversalOccurrentAdvice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive-guidance carrier that makes gmeow:Event's gmeow:useWhen applicability prose machine-active: use gmeow:Event as the universal occurrent whenever something happens that bears participants, a time, a location, or sub-events. Its logic:message is that term's useWhen prose surfaced verbatim (bound by logic:adviceSourceField logic:ProseFieldUseWhen); the useWhen peer of gmeow:EndurantAsEventAdviceConstraint."
+msgstr "使 gmeow:Event 的 gmeow:useWhen 适用性散文对机器生效的正向指导载体：每当发生某件带有参与者、时间、地点或子事件之事时，将 gmeow:Event 用作通用发生体。其 logic:message 是该术语的 useWhen 散文按原样呈现（由 logic:adviceSourceField logic:ProseFieldUseWhen 绑定）；是 gmeow:EndurantAsEventAdviceConstraint 的 useWhen 对应物。"
