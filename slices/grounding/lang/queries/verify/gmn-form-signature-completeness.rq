@@ -1,8 +1,8 @@
 # Negative test: every GMN operator form that declares a gmeow:gmnFixity (infix, prefix,
 # postfix, or bracketing) MUST also carry BOTH gmeow:gmnPrecedence and gmeow:gmnArity, so
-# #1377's operator-precedence parser always reads a COMPLETE operator signature — fixity,
-# binding strength, and operand count together. A form that declares a fixity but omits
-# either precedence or arity is a half-specified operator, undecidable from data.
+# any downstream operator-precedence parser always reads a COMPLETE operator signature —
+# fixity, binding strength, and operand count together. A form that declares a fixity but
+# omits either precedence or arity is a half-specified operator, undecidable from data.
 #
 # Constant forms (number-space signs like ℕ ℤ ℚ ℝ ℂ, the π/γ constants) carry no fixity
 # and are exempt by construction — they name no operator grammar. Distinct forms may

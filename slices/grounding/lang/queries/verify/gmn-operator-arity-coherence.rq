@@ -13,8 +13,8 @@
 # targets are not owl:ObjectProperty at all, so the antecedent simply does not match them.
 #
 # Any returned row is a violation: a math ObjectProperty operator whose denoting form is
-# not arity 2, or declares no arity at all — the exact signature gap #1377's parser must
-# never see.
+# not arity 2, or declares no arity at all — the exact signature gap a downstream
+# operator-precedence parser must never see.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX lang: <https://blackcatinformatics.ca/lang/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
