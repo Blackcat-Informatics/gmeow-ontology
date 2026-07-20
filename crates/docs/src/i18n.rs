@@ -78,7 +78,13 @@ pub fn translation_integrity_issue(
         return Some("multi-word English source text was copied into msgstr");
     }
 
-    let english_leaks = ascii_words(target)
+    // Count English PROSE leaks only — a faithful translation must preserve code and
+    // notation literals verbatim (SPARQL queries, wire values, CURIEs), and those may
+    // legitimately contain English-looking keywords (`SELECT ?this WHERE`, `use-when`,
+    // `$this`). Strip backtick/quote-delimited code spans and SPARQL variables before
+    // counting, so preserving a literal is never mistaken for copied English prose.
+    let prose = strip_code_and_notation(target);
+    let english_leaks = ascii_words(&prose)
         .iter()
         .filter(|word| is_english_prose_token(word))
         .count();
@@ -100,6 +106,43 @@ pub fn translation_integrity_issue(
 /// Whether a catalog value passes the deterministic integrity guard.
 pub fn translation_has_integrity(language: &str, msgid: &str, msgstr: &str) -> bool {
     translation_integrity_issue(language, msgid, msgstr).is_none()
+}
+
+/// Remove code/notation literals from prose before English-leak counting:
+/// backtick-delimited spans (`` `use-when` ``), double-quote-delimited spans
+/// (an embedded `"SELECT ?this WHERE { … }"`), and SPARQL-style variables
+/// (`$this`, `?far`). These carry English-looking keywords that a faithful
+/// translation MUST preserve verbatim; counting them as copied English would
+/// reward corrupting the literal. Prose outside these spans is left intact, so a
+/// genuinely copied English sentence is still caught.
+fn strip_code_and_notation(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut chars = text.chars().peekable();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '`' | '"' => {
+                // Drop everything up to the matching delimiter (or end of string).
+                for c in chars.by_ref() {
+                    if c == ch {
+                        break;
+                    }
+                }
+                out.push(' ');
+            }
+            '$' | '?' => {
+                // Drop a following SPARQL-variable identifier, if any.
+                while chars
+                    .peek()
+                    .is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_')
+                {
+                    chars.next();
+                }
+                out.push(' ');
+            }
+            _ => out.push(ch),
+        }
+    }
+    out
 }
 
 fn ascii_words(text: &str) -> Vec<String> {
@@ -1022,6 +1065,37 @@ mod tests {
         assert_eq!(
             translation_integrity_issue("zh-Hans", "Permission", "Permission"),
             Some("Chinese prose translation contains no Han characters")
+        );
+    }
+
+    #[test]
+    fn translation_integrity_admits_preserved_code_and_notation_literals() {
+        // Faithful translations must keep SPARQL queries, wire values, and SPARQL
+        // variables verbatim; the English keywords inside them (this/where/use/when)
+        // must NOT be counted as copied English prose.
+        assert!(translation_has_integrity(
+            "fr",
+            "Example: ex:g logic:sparqlTarget ex:focus, \"SELECT ?this WHERE { ?this ex:reviewed true }\" .",
+            "Exemple : ex:g logic:sparqlTarget ex:focus, \"SELECT ?this WHERE { ?this ex:reviewed true }\" ."
+        ));
+        assert!(translation_has_integrity(
+            "zh",
+            "The logic:ProseField for a term's gmeow:useWhen. Wire value `use-when`.",
+            "对应某词项 gmeow:useWhen 的 logic:ProseField。线路值 `use-when`。"
+        ));
+        assert!(translation_has_integrity(
+            "fr",
+            "lowered to a SELECT $this ?far … GROUP BY $this ?far HAVING(…)",
+            "abaissée en un SELECT $this ?far … GROUP BY $this ?far HAVING(…)"
+        ));
+        // But copied English PROSE outside any code span is still rejected.
+        assert_eq!(
+            translation_integrity_issue(
+                "fr",
+                "A guard `x`.",
+                "Un garde `x`. Use this only when under the stated conditions."
+            ),
+            Some("msgstr retains multiple English prose tokens")
         );
     }
 

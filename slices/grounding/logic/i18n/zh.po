@@ -296,7 +296,7 @@ msgstr "跨节点约束"
 
 msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
 msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
-msgstr "跨节点共现或不等约束（P5）的紧凑语法糖：包含一个 logic:onClass 目标和两个角色 logic:roleA、logic:roleB；它们依照 logic:crossMode 必须共同出现，或永不绑定同一值。它展开为规范的 logic:Constraint，其完整性条件是双蕴含，或通过 logic:termEqual 过滤关系形成的连接加不等式。它只是前端创作捷径。"
+msgstr "跨节点共现或不等约束（P5）的紧凑语法糖：包含一个 logic:onClass 目标和两个角色（logic:roleA、logic:roleB）；依照 logic:crossMode，它们必须或者 'co-occur'（共同出现），或者 'differ'（永不绑定同一值）。它展开为规范的 logic:Constraint，其完整性条件是双蕴含（co-occur），或通过 logic:termEqual 过滤关系形成的连接加不等式（differ）。它只是前端创作捷径。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
 msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
@@ -332,7 +332,7 @@ msgstr "基础对应"
 
 msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A logic:Correspondence owned by one of the three co-foundational grounding slices (logic:, math:, or lang:) and shipped as meta-level correspondence data in graph/correspondence-laws. Unlike an ordinary consumer mapping, every grounding correspondence explicitly declares its logic:morphismClass, logic:morphismKind, and logic:preservationKind, and names both related terms through logic:sourceEndpoint and logic:targetEndpoint. It remains outside object-level closure: external vocabularies are linked by reference and their TBoxes are never silently imported."
-msgstr "由 logic:、math: 或 lang: 三个共同基础切片之一拥有并随 graph/correspondence-laws 发布的 logic:Correspondence。它显式声明映射类别、映射种类、保真等级及两个端点；外部词汇仅按引用连接，其 TBox 不会被静默导入对象层闭包。"
+msgstr "由三个共同基础的 grounding 切片之一（logic:、math: 或 lang:）拥有、并作为元层对应数据在 graph/correspondence-laws 中发布的 logic:Correspondence。与普通的消费者映射不同，每个 grounding 对应都显式声明其 logic:morphismClass、logic:morphismKind 和 logic:preservationKind，并通过 logic:sourceEndpoint 与 logic:targetEndpoint 命名两个相关词项。它始终处于对象层闭包之外：外部词汇仅按引用链接，其 TBox 绝不会被静默导入。"
 
 msgctxt "https://blackcatinformatics.ca/logic/sourceEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "source endpoint"
@@ -340,7 +340,7 @@ msgstr "源端点"
 
 msgctxt "https://blackcatinformatics.ca/logic/sourceEndpoint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the canonical source term or pattern related by a logic:Correspondence. This is an endpoint, not an executable logic:getLeg: a term-level correspondence can name both endpoints while carrying no transaction program. Single-valued when present and paired with exactly one logic:targetEndpoint."
-msgstr "命名 logic:Correspondence 所关联的规范源词项或模式。它是端点而不是可执行的 logic:getLeg；出现时只能有一个，并与恰好一个 logic:targetEndpoint 配对。"
+msgstr "命名 logic:Correspondence 所关联的规范源词项或模式。它是端点而不是可执行的 logic:getLeg：词项层的对应可以命名两个端点，而不携带任何事务程序。出现时为单值，并与恰好一个 logic:targetEndpoint 配对。"
 
 msgctxt "https://blackcatinformatics.ca/logic/targetEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "target endpoint"
@@ -396,7 +396,7 @@ msgstr "枚举"
 
 msgctxt "https://blackcatinformatics.ca/logic/Enumeration|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A finite class expression whose members are named by a logic:oneOf RDF list. It lowers to an OWL nominal (owl:oneOf) and remains first-class in logic: even when a weaker target profile cannot carry nominals."
-msgstr "由 logic:oneOf RDF 列表命名成员的有限类表达式。它降低为 OWL 名词式，即使较弱的目标配置无法承载名词式，它在 logic: 中仍是一等构造。"
+msgstr "由 logic:oneOf RDF 列表命名成员的有限类表达式。它降低为 OWL 标称（owl:oneOf），即使较弱的目标配置无法承载标称，它在 logic: 中仍是一等构造。"
 
 msgctxt "https://blackcatinformatics.ca/logic/Datarange|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Datarange"
@@ -1439,7 +1439,7 @@ msgstr "列变量"
 
 msgctxt "https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a commitment's beneficiary is distinct from its committed agent"
-msgstr "承诺的受益者不同于其被承诺的主体"
+msgstr "承诺的受益者不同于做出承诺的主体"
 
 msgctxt "https://blackcatinformatics.ca/logic/CommitmentShiftingBridge|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Commitment-Shifting Bridge"
@@ -2202,7 +2202,7 @@ msgstr "维度阈值"
 
 msgctxt "https://blackcatinformatics.ca/logic/dimensionTransfer|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dimension: transfer"
-msgstr "维度：转移"
+msgstr "维度：迁移"
 
 msgctxt "https://blackcatinformatics.ca/logic/DischargeBoundedCorpus|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Bounded Corpus"
@@ -3964,7 +3964,7 @@ msgstr "位置实体"
 
 msgctxt "https://blackcatinformatics.ca/logic/positionHolarchy|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "position holarchy"
-msgstr "位置整体层级"
+msgstr "位置全子层级"
 
 msgctxt "https://blackcatinformatics.ca/logic/positionInterval|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "position interval"
@@ -4715,7 +4715,7 @@ msgstr "静态演化"
 
 msgctxt "https://blackcatinformatics.ca/logic/StereotypeCardinality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Stereotype Cardinality"
-msgstr "刻板型基数"
+msgstr "构造型基数"
 
 msgctxt "https://blackcatinformatics.ca/logic/StratifiedNAFProfile|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Stratified Negation-As-Failure Profile"
@@ -8231,7 +8231,7 @@ msgstr "一个展开的 logic:JoinAggregateConstraint 作为其诚实 FOL 完整
 
 msgctxt "https://blackcatinformatics.ca/logic/JoinAggregateConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Compact sugar for a multi-hop-join product-aggregate constraint (P9): a logic:onClass focus, an ordered logic:joinPath of at least two logic:JoinLeg records (each a reified relation with a logic:legSource / logic:legTarget / logic:legValue predicate and an optional logic:legRecordType), a logic:aggFunction (SUM for ∂²), a logic:aggComparator invariant, and a fixed literal logic:aggThreshold. Each leg hops from an already-bound endpoint through a record to the next endpoint, chaining leg[k].target into leg[k+1].source (the shared join variable); the aggregate is applied to the PRODUCT of the joined leaf values, GROUPED BY the (focus, far-endpoint) tuple, and a violation fires when a group value fails the invariant. It GENERALIZES logic:AggregateConstraint from a single-predicate focus aggregate to a chained-join product aggregate, and is the sanctioned home of the general-CW ∂²=0 conformance check (a SUM of incidence-sign products over composable cells that must equal 0). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured join-aggregate satellite, lowered to a SELECT $this ?far … GROUP BY $this ?far HAVING(…) sh:SPARQLConstraint whose join order uses the incidence index and scales with the number of records, never cells². It is not a single-predicate aggregate (use logic:AggregateConstraint), not a derivation rule (a reduce head belongs on logic:aggregateFunction), and not a cartesian product over cells. Frontend-only authoring shortcut."
-msgstr "多跳连接积聚合约束的紧凑语法糖（P9）：一个 logic:onClass 焦点，一个由至少两条 logic:JoinLeg 记录组成的有序 logic:joinPath（每条是一个带 logic:legSource / logic:legTarget / logic:legValue 谓词及可选 logic:legRecordType 的具体化关系），一个 logic:aggFunction（对 ∂² 用 SUM），一个 logic:aggComparator 不变式，以及一个固定的字面 logic:aggThreshold。每条分段从一个已绑定的端点经一条记录跳到下一个端点，把 leg[k].target 链入 leg[k+1].source（共享连接变量）；聚合施加于所连接叶值的乘积（PRODUCT），按 (焦点, 远端点) 元组分组（GROUPED BY），当某组值未通过不变式时触发违反。它把 logic:AggregateConstraint 从单谓词焦点聚合泛化为链式连接积聚合，并且是通用 CW ∂²=0 一致性检查（可复合胞元上关联符号积的一个必须等于 0 的 SUM）获批准的归处。它展开为一个既携带诚实具体化 FOL 完整性又携带结构化连接聚合卫星的规范 logic:Constraint，降型为一个 SELECT $this ?far … GROUP BY ?far HAVING(…) 的 sh:SPARQLConstraint，其连接顺序采用关联索引并随记录数量伸缩，绝不按胞元²。它不是单谓词聚合（请用 logic:AggregateConstraint），不是推导规则（归约头属于 logic:aggregateFunction），也不是胞元上的笛卡尔积。仅前端的撰写捷径。"
+msgstr "多跳连接积聚合约束的紧凑语法糖（P9）：一个 logic:onClass 焦点，一个由至少两条 logic:JoinLeg 记录组成的有序 logic:joinPath（每条是一个带 logic:legSource / logic:legTarget / logic:legValue 谓词及可选 logic:legRecordType 的具体化关系），一个 logic:aggFunction（对 ∂² 用 SUM），一个 logic:aggComparator 不变式，以及一个固定的字面 logic:aggThreshold。每条分段从一个已绑定的端点经一条记录跳到下一个端点，把 leg[k].target 链入 leg[k+1].source（共享连接变量）；聚合施加于所连接叶值的乘积（PRODUCT），按 (焦点, 远端点) 元组分组（GROUPED BY），当某组值未通过不变式时触发违反。它把 logic:AggregateConstraint 从单谓词焦点聚合泛化为链式连接积聚合，并且是通用 CW ∂²=0 一致性检查（可复合胞元上关联符号积的一个必须等于 0 的 SUM）获批准的归处。它展开为一个既携带诚实具体化 FOL 完整性又携带结构化连接聚合卫星的规范 logic:Constraint，降型为一个 SELECT $this ?far … GROUP BY $this ?far HAVING(…) 的 sh:SPARQLConstraint，其连接顺序采用关联索引并随记录数量伸缩，绝不按胞元²。它不是单谓词聚合（请用 logic:AggregateConstraint），不是推导规则（归约头属于 logic:aggregateFunction），也不是胞元上的笛卡尔积。仅前端的撰写捷径。"
 
 msgctxt "https://blackcatinformatics.ca/logic/JoinAggregateConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:boundarySquareZero a logic:JoinAggregateConstraint ; logic:onClass ex:TopCell ; logic:aggFunction \"SUM\" ; logic:aggComparator \"=\" ; logic:aggThreshold 0 ; logic:joinPath ( [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ] ) ; logic:formalizes ex:BoundaryOperator ."
@@ -9143,11 +9143,11 @@ msgstr "投影目标值，请求把一个 logic:PathShape（或某规则的路�
 
 msgctxt "https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:ProseField for a term's gmeow:avoidWhen — the anti-pattern or non-applicability guidance a candidate formalized. Wire value `avoid-when`."
-msgstr "对应某词项 gmeow:avoidWhen 的 logic:ProseField——候选者所形式化的反模式或不适用性指引。线路值为 gmeow:avoidWhen 字段的连字符形式。"
+msgstr "对应某词项 gmeow:avoidWhen 的 logic:ProseField——候选者所形式化的反模式或不适用性指引。线路值 `avoid-when`。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ProseFieldDefinition|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:ProseField for a term's skos:definition — the definitional or descriptive prose a candidate formalized. Wire value `definition`."
-msgstr "对应某词项 skos:definition 的 logic:ProseField——候选者所形式化的定义性或描述性散文。线路值为 skos:definition 字段的短名。"
+msgstr "对应某词项 skos:definition 的 logic:ProseField——候选者所形式化的定义性或描述性散文。线路值 `definition`。"
 
 msgctxt "https://blackcatinformatics.ca/logic/proseFieldProperty|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the annotation property a logic:ProseField value stands for — the exact term-level field (skos:definition, gmeow:useWhen or gmeow:avoidWhen) whose prose a harvested candidate formalizes. An annotation property, so the closed logic:ProseField set links to the real field IRI without punning it into the reasoned core."
@@ -9159,7 +9159,7 @@ msgstr "logic:candidateSourceField 面向的封闭三成员值类：一个 logic
 
 msgctxt "https://blackcatinformatics.ca/logic/ProseFieldUseWhen|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:ProseField for a term's gmeow:useWhen — the applicability guidance a candidate formalized. Wire value `use-when`."
-msgstr "对应于某词项的 gmeow:useWhen 的 logic:ProseField——某候选者所形式化的适用性指引。序列化值：gmeow:useWhen 的 kebab 记号。"
+msgstr "对应于某词项的 gmeow:useWhen 的 logic:ProseField——某候选者所形式化的适用性指引。线路值 `use-when`。"
 
 msgctxt "https://blackcatinformatics.ca/logic/protocolEnforced|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The boolean verdict of classifying a logic:ConcurrentHistory's witnessed schedule against the logic:ConcurrencyControlProtocol its run declared (logic:declaredProtocol): true iff the schedule respects that protocol's discipline over the run's recorded protocol events (timestamps for logic:TimestampOrdering; lock acquire/release events for the two-phase-locking protocols; cross-leg read-write disjointness for logic:OptimisticValidation). Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a protocol is declared. A false verdict carries a human-readable logic:protocolViolationReason. This is HOW-a-guarantee-is-enforced verification, kept distinct from logic:satisfiesCriterion (the history property the schedule satisfies) and logic:isolationLevelAdequacy (whether the schedule meets a declared guarantee strength); a declared protocol whose required events are absent is a hard error, never a false-by-default."
@@ -9811,7 +9811,7 @@ msgstr "对于外部接地桥，源端点始终位于 lang:、math: 或 logic: �
 
 msgctxt "https://blackcatinformatics.ca/logic/sparqlTarget|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:focusGuard logic:sparqlTarget ex:focus, \"SELECT ?this WHERE { ?this ex:reviewed true }\" ."
-msgstr "示例：ex:focusGuard logic:sparqlTarget ex:focus, \"SELECT * { ?this ex:reviewed true }\" ."
+msgstr "示例：ex:focusGuard logic:sparqlTarget ex:focus, \"SELECT ?this WHERE { ?this ex:reviewed true }\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/sparqlTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The SELECT text defines focus selection only and is removed from the projected violation condition."
@@ -9839,7 +9839,7 @@ msgstr "一种 evolution 面值，其中不发生任何状态变更——推理�
 
 msgctxt "https://blackcatinformatics.ca/logic/StereotypeCardinality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The discipline that every class carries exactly one stereotype: a class with no meta-class pun, or with two or more distinct meta-class puns, violates it. The lowering of reasoning_lint.exactly_one_stereotype — the precondition every other discipline assumes."
-msgstr "要求每个类恰好携带一个刻板型的纪律：没有元类双关、或带有两个及以上相异元类双关的类，均违反之。它是 reasoning_lint.exactly_one_stereotype 的下降——其他每一项纪律都预设的前置条件。"
+msgstr "要求每个类恰好携带一个构造型的纪律：没有元类双关、或带有两个及以上相异元类双关的类，均违反之。它是 reasoning_lint.exactly_one_stereotype 的下降——其他每一项纪律都预设的前置条件。"
 
 msgctxt "https://blackcatinformatics.ca/logic/StratifiedNAFProfile|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Negation-as-failure under stratification: a unique perfect model with PTIME data complexity, where negated literals are evaluated only over strata already settled. Adds well-behaved negation without the multiple models of the stable-model semantics."
@@ -10375,7 +10375,7 @@ msgstr "用于目标点已失败的目标的 logic:SatisfactionStatus 值——�
 
 msgctxt "https://blackcatinformatics.ca/logic/violation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an offending entity to the constraint it violates — a logic:Discipline (an OntoUML structural anti-pattern), a logic:MereologyConstraint (a profiled-mereology axiom such as logic:WeakSupplementation), a logic:OccurrentConstraint (an occurrent well-formedness axiom such as logic:OccurrentChangeAsymmetry), or a logic:QualityConstraint (a quality/quantity well-formedness axiom such as logic:MeasurementFrameMissing): the derived diagnostic the foundation lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption, mediation and parthood facts, so its presence is a machine-checkable proof that the entity breaks the named constraint."
-msgstr "将一个违规实体关联到它所违反的约束——某个 logic:Discipline（一种 OntoUML 结构反模式）、某个 logic:MereologyConstraint（一条剖面化部件论公理，例如 logic:WeakSupplementation）、某个 logic:OccurrentConstraint（一条历现良构公理，例如 logic:OccurrentChangeAsymmetry），或某个 logic:QualityConstraint（一条质量/数量良构公理，例如 logic:MeasurementFrameMissing）：即基础下沉所物化的派生诊断，是 reasoning_lint 消息的 logic: 类比物。logic:violation 事实绝不由手工断言；它由下沉规则在刻板型、包摄、中介与部件事实之上蕴含，因而其存在是一份机器可核验的证明，表明该实体破坏了所命名的约束。"
+msgstr "将一个违规实体关联到它所违反的约束——某个 logic:Discipline（一种 OntoUML 结构反模式）、某个 logic:MereologyConstraint（一条剖面化部件论公理，例如 logic:WeakSupplementation）、某个 logic:OccurrentConstraint（一条历现良构公理，例如 logic:OccurrentChangeAsymmetry），或某个 logic:QualityConstraint（一条质量/数量良构公理，例如 logic:MeasurementFrameMissing）：即基础下沉所物化的派生诊断，是 reasoning_lint 消息的 logic: 类比物。logic:violation 事实绝不由手工断言；它由下沉规则在构造型、包摄、中介与部件事实之上蕴含，因而其存在是一份机器可核验的证明，表明该实体破坏了所命名的约束。"
 
 msgctxt "https://blackcatinformatics.ca/logic/WeakPlanSuccess|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:PlanSuccessMode value under which a plan succeeds when SOME outcome path reaches the goal — the existential reading. The weakest of the three; contrast logic:StrongPlanSuccess (every path) and logic:StrongCyclicPlanSuccess (every fair execution, allowing loops)."
