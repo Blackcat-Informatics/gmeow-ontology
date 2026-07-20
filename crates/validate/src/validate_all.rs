@@ -34,7 +34,6 @@ use purrdf::slice::catalog::SliceCatalog;
 use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
 use purrdf::slice::{Phase, ToolchainContext, product_unit_key};
 
-use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
@@ -839,13 +838,7 @@ impl ValidationRun {
         // in-memory claim hook D4 materialises. NOT emitted on the two early-return
         // (hard-fail) paths above. D3 replaces this demonstrator with harvested
         // advisory rules (find via the "advisory-demonstrator" tag).
-        let advisory = Advisory::note(
-            crate::codes::ADVICE_TIER_ACTIVE,
-            "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
-        )
-        .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
-        .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
-        .with_tag("advisory-demonstrator");
+        let advisory = crate::advisory::advisory_demonstrator();
         let projection = advisory.project();
         let advisory_claims = vec![projection.claim];
         // Intern the advisory's graded (Standpoint::Advisory) diagnostic onto the

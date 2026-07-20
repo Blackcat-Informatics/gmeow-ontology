@@ -1182,7 +1182,7 @@ gmeow:stage-goal-directed
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/goal-directed> .
 
 gmeow:stage-validate
-    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics>, <https://blackcatinformatics.ca/gmeow/graph/norm-claims> ;
     gmeow:attachesBlobRep "diagnostics:nodes" .
 
 gmeow:stage-conformance
