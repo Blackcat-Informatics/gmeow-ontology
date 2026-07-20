@@ -10484,4 +10484,3 @@ msgstr "多维语境面的世界索引轴：一条真理相对于一个 logic:Wo
 msgctxt "https://blackcatinformatics.ca/logic/World|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A reified, named context relative to which truth is evaluated — a possible world in the Kripke sense, realized by GMEOW's materialized contextual index (standpoints, narrative reference frames, goal-, ought-, feared-, and counterfactual-worlds). Truth is world-relative and entailment is world-indexed: a contradiction within one world is a witness, a contradiction across worlds is not an inconsistency in the model. Carries a world-type taxonomy (epistemic, doxastic, telic, deontic, alethic, representational, counterfactual)."
 msgstr "一个具体化的、有名称的语境，真理相对于它被求值——是 Kripke 意义上的一个可能世界，由 GMEOW 的物化语境索引实现（立场、叙事参照框架、目标世界、应然世界、畏惧世界与反事实世界）。真理是相对于世界的，蕴含是按世界编制索引的：一个世界之内的矛盾是一个见证，跨世界的矛盾并非模型中的不一致。承载一套世界类型分类法（认知的、信念的、目的的、道义的、真势的、表征的、反事实的）。"
-
