@@ -504,6 +504,15 @@ impl DlGap {
 /// families present and decided by the native path. `gaps` mirrors
 /// `coverage.unsupported` for existing consumers and must be empty for the
 /// committed bundle.
+///
+/// `boundary_findings` carries the fragment-certified refutation kernel's
+/// FAMILY-SCOPED withholds (see [`crate::reason::refute::production_boundary_findings`]):
+/// a family shape was present but its completeness bound did not close, so the kernel
+/// surfaces an honest, ledger-identified "outside the certified fragment" finding
+/// stamped with [`crate::reason::refute::REFUTATION_KERNEL_CATEGORY`]. It is a
+/// Coherent `UnsupportedSemanticFeature` that can NEVER gate, and it is EMPTY on the
+/// committed bundle and every gated corpus input (the kernel's steady state there is
+/// `NoDeciderEngaged`, which emits nothing), so it changes no reasoning verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DlVerdict {
     pub consistent: bool,
@@ -511,6 +520,7 @@ pub struct DlVerdict {
     pub inconsistencies: Vec<InconsistencyWitness>,
     pub coverage: DlCoverage,
     pub gaps: Vec<DlGap>,
+    pub boundary_findings: Vec<gmeow_errors::Finding>,
 }
 
 /// Strip a decoded object display form (`<iri>`) back to the bare IRI.
@@ -3434,6 +3444,12 @@ pub(crate) fn verdict_from_inferred(
 
     let coverage = scan_coverage(edb)?;
     let gaps = gaps_from_unsupported(&coverage.unsupported);
+    // Fold the fragment-certified refutation kernel's FAMILY-SCOPED withhold (a
+    // present family shape whose completeness bound did not close) into the verdict as
+    // an honest, ledger-identified boundary finding. Empty on the committed bundle and
+    // every gated input (the kernel's steady state there is `NoDeciderEngaged`, which
+    // emits nothing), so this changes no reasoning verdict.
+    let boundary_findings = crate::reason::refute::production_boundary_findings(edb);
 
     Ok(DlVerdict {
         consistent,
@@ -3441,6 +3457,7 @@ pub(crate) fn verdict_from_inferred(
         inconsistencies,
         coverage,
         gaps,
+        boundary_findings,
     })
 }
 

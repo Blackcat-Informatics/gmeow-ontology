@@ -28,12 +28,20 @@
 //!
 //! The membership-certificate helper ([`certify_membership`]) and the
 //! ledger-boundary derivation ([`boundary_diag_ledger`]) are the forward-facing
-//! kernel API the per-family sub-deciders (Tasks 3/4/5) register against; they are
-//! fully exercised by this module's unit tests but not yet by the inert production
-//! registry, so — like the sibling contract-hashed engine modules (`rule_ir`,
-//! `seminaive`, `wellfounded`) — this module keeps a crate-internal `dead_code`
-//! allowance rather than widening or prematurely wiring them.
-#![allow(dead_code)]
+//! kernel API the per-family sub-deciders register against. The kernel is ALSO the
+//! single source of truth for its own decidability surface: [`decided_fragments`]
+//! and [`retained_boundaries`] enumerate, respectively, the certified-complete
+//! construct families (each keyed to a [`RefutationPattern`] and a technical
+//! completeness bound) and the constructs the kernel deliberately RETAINS as honest
+//! withholds. `slices/grounding/logic/module.ttl` ships that surface as
+//! `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
+//! individuals, and the agreement test [`tests::module_ttl_projects_the_kernel_registry`]
+//! proves the manifest is EXACTLY a projection of this registry (drift in either
+//! direction fails). The production reason path consumes a family-scoped withhold
+//! through [`production_boundary_findings`], routing its boundary through the
+//! diagnostics substrate under [`REFUTATION_KERNEL_CATEGORY`] into
+//! [`crate::reason::dl::DlVerdict::boundary_findings`], so the kernel's honest
+//! "outside the certified fragment" is tied to a real verdict rather than dark.
 
 use std::collections::BTreeSet;
 
@@ -111,6 +119,13 @@ pub(crate) enum BoundKind {
     /// A `min` / `minQualifiedCardinality` lower bound.
     Min,
     /// A `max` / `maxQualifiedCardinality` upper bound.
+    // The `max`-bound evidence variant of the shippable [`CountBound`] value. The
+    // datatype value-space decider currently emits only `Min`/`Exact` bounds and the
+    // counting decider reads maxima structurally rather than minting a `CountBound`,
+    // so `Max` is exercised through the kernel's own unit tests only; it stays a
+    // first-class variant because a `CountBound` is a shippable evidence value a
+    // downstream consumer reasons over, and a max-cardinality violation is a real one.
+    #[allow(dead_code)]
     Max,
     /// An exact `cardinality` / `qualifiedCardinality` bound.
     Exact,
@@ -416,6 +431,238 @@ pub(crate) fn boundary_diag_ledger(reason: &FragmentBoundary) -> DiagLedger {
     ledger
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// The kernel's decidability surface as a first-class, shipped registry.
+//
+// This registry is the SINGLE SOURCE OF TRUTH for which construct families the
+// kernel decides (and under which refutation pattern), and which constructs it
+// deliberately RETAINS as honest withholds. `slices/grounding/logic/module.ttl`
+// ships it as `logic:DecidedFragment` / `logic:RefutationPattern` /
+// `logic:expressivenessBoundary` individuals; the agreement test
+// [`tests::module_ttl_projects_the_kernel_registry`] proves the manifest is exactly
+// this registry's projection. Every string here is a TECHNICAL fragment /
+// completeness / boundary characterization — never a process or issue reference.
+//
+// The registry types and functions are the shipped, forward-facing kernel API,
+// consumed by the Part C agreement test (`module_ttl_projects_the_kernel_registry`,
+// under `#[cfg(test)]`) and the forthcoming Task 8 `gmeow` CLI surface — not yet by a
+// non-test production caller. Each therefore carries a NARROW, item-scoped
+// `#[allow(dead_code)]` (never the blanket module allowance, which was removed): they
+// are a genuine registry the ontology manifest projects, not dead scaffold.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A refutation pattern: the decision-procedure schema a decided construct family
+/// closes under. Several families may share one pattern (a cardinality count and a
+/// `hasSelf` self-edge are both [`RefutationPattern::CountingPigeonhole`]).
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum RefutationPattern {
+    /// A finite pigeonhole count of distinct fillers / edges against a numeric bound.
+    CountingPigeonhole,
+    /// A finite datatype value-space cardinality bounding the distinct-literal count.
+    ValueSpaceCardinality,
+    /// An exhaustive, terminating case-split over a bounded disjunction.
+    CaseSplitExhaustion,
+    /// A propositional complement clash (`C` and `¬C` in a definition position).
+    ComplementClash,
+    /// An equality / inequality arithmetic collapse over a finite set of named
+    /// individuals (an (inverse-)functional identity forced against a distinctness).
+    ArithmeticEqualityCollapse,
+    /// A decidable metamodel malformation of the finite triple set (a broken list).
+    MalformedMetamodel,
+    /// A finite closed-set (nominal enumeration) intersection emptiness.
+    NominalClash,
+}
+
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+impl RefutationPattern {
+    /// Every pattern variant, in canonical [`RefutationPattern::slug`] order — the
+    /// closed set the shipped `logic:RefutationPattern` individuals must match.
+    pub(crate) const ALL: &'static [RefutationPattern] = &[
+        RefutationPattern::CountingPigeonhole,
+        RefutationPattern::ValueSpaceCardinality,
+        RefutationPattern::CaseSplitExhaustion,
+        RefutationPattern::ComplementClash,
+        RefutationPattern::ArithmeticEqualityCollapse,
+        RefutationPattern::MalformedMetamodel,
+        RefutationPattern::NominalClash,
+    ];
+
+    /// The stable kebab-case slug — the local name of the pattern's shipped
+    /// `logic:RefutationPattern` individual.
+    pub(crate) const fn slug(self) -> &'static str {
+        match self {
+            Self::CountingPigeonhole => "counting-pigeonhole",
+            Self::ValueSpaceCardinality => "value-space-cardinality",
+            Self::CaseSplitExhaustion => "case-split-exhaustion",
+            Self::ComplementClash => "complement-clash",
+            Self::ArithmeticEqualityCollapse => "arithmetic-equality-collapse",
+            Self::MalformedMetamodel => "malformed-metamodel",
+            Self::NominalClash => "nominal-clash",
+        }
+    }
+}
+
+/// One decided construct family: a stable `id` (the local name of its shipped
+/// `logic:DecidedFragment` individual), the [`RefutationPattern`] it closes under,
+/// and a short TECHNICAL completeness-bound characterization.
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct DecidedFragment {
+    /// The stable kebab-case fragment id / shipped individual local name.
+    pub(crate) id: &'static str,
+    /// The refutation pattern the family closes under.
+    pub(crate) pattern: RefutationPattern,
+    /// The technical completeness bound, free of any process reference.
+    pub(crate) bound: &'static str,
+}
+
+/// One deliberately-RETAINED withhold: a construct the kernel does NOT decide, with
+/// a stable `id` (its shipped `logic:expressivenessBoundary`-record local name) and
+/// a TECHNICAL fragment-boundary `reason`.
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct FragmentBoundaryRecord {
+    /// The stable kebab-case boundary id / shipped record local name.
+    pub(crate) id: &'static str,
+    /// The technical reason the construct lies outside the certified fragment.
+    pub(crate) reason: &'static str,
+}
+
+/// The certified-complete construct families — ONE entry per decided family,
+/// returned sorted by `id` (deterministic). This is the authoritative source the
+/// shipped `logic:DecidedFragment` manifest projects. Families 6a (arithmetic
+/// identity collapse) and 6b (malformed list) are distinct patterns, so each is its
+/// own entry (the "seven construct families" fold Family 6's two sub-families).
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
+    let mut fragments = vec![
+        DecidedFragment {
+            id: "complement-refutation",
+            pattern: RefutationPattern::ComplementClash,
+            bound: "A class expression forced into both C and its complement not-C in a \
+                    class-definition position; complete because complementhood is decided \
+                    propositionally, every branch that types an individual into not-C closing \
+                    against a derivable C-membership with no model search.",
+        },
+        DecidedFragment {
+            id: "number-cardinality-counting",
+            pattern: RefutationPattern::CountingPigeonhole,
+            bound: "A min, max, or exact (qualified) cardinality bound on a populated class; \
+                    complete because the distinct fillers under the identity stance are finitely \
+                    counted and a collapsed bound (min N greater than max M, or N distinct forced \
+                    fillers exceeding max M) is a pigeonhole violation with no unbounded search.",
+        },
+        DecidedFragment {
+            id: "union-disjoint-case-split",
+            pattern: RefutationPattern::CaseSplitExhaustion,
+            bound: "A bounded union C subClassOf (D1 or ... or Dn) whose members are pairwise \
+                    disjoint; complete because the finite disjunction is exhaustively case-split \
+                    and every branch closes under refutation in a terminating propositional \
+                    decision.",
+        },
+        DecidedFragment {
+            id: "nominal-enumeration-counting",
+            pattern: RefutationPattern::NominalClash,
+            bound: "An individual typed into two or more pairwise-disjoint owl:oneOf enumerations; \
+                    complete because nominal membership is a finite closed-set intersection whose \
+                    emptiness is decided by counting, with no anonymous-individual generation.",
+        },
+        DecidedFragment {
+            id: "datatype-value-space",
+            pattern: RefutationPattern::ValueSpaceCardinality,
+            bound: "A facet-restricted datatype whose finite value-space cardinality is provably \
+                    smaller than the distinct literals a cardinality bound forces onto it; complete \
+                    because the value-space count is derived from the math-grounded \
+                    finite-cardinality table, bounding the pigeonhole exactly.",
+        },
+        DecidedFragment {
+            id: "inverse-functional-identity-collapse",
+            pattern: RefutationPattern::ArithmeticEqualityCollapse,
+            bound: "An inverse-functional or functional property forcing two owl:differentFrom (or \
+                    distinct-nominal) individuals to be identified; complete because the identity \
+                    collapse is a decidable equality / inequality arithmetic over a finite set of \
+                    named individuals.",
+        },
+        DecidedFragment {
+            id: "malformed-rdf-list",
+            pattern: RefutationPattern::MalformedMetamodel,
+            bound: "An rdf:nil node bearing rdf:first or rdf:rest (a structurally broken RDF list); \
+                    complete because list well-formedness is a decidable metamodel property of the \
+                    finite triple set, independent of object-level entailment.",
+        },
+        DecidedFragment {
+            id: "has-self-membership",
+            pattern: RefutationPattern::CountingPigeonhole,
+            bound: "An owl:hasSelf (exists p.Self) restriction in a refutation position where a \
+                    self-edge x p x forces membership disjoint with a held class; complete because \
+                    self-membership is a single reflexive-edge count with no unbounded quantifier \
+                    alternation.",
+        },
+    ];
+    fragments.sort();
+    fragments
+}
+
+/// The constructs the kernel deliberately RETAINS as honest withholds — ONE entry
+/// per retained-withhold construct, returned sorted by `id` (deterministic). Each
+/// carries a technical fragment-boundary reason; the shipped
+/// `logic:expressivenessBoundary` records project these.
+#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
+    let mut boundaries = vec![
+        FragmentBoundaryRecord {
+            id: "xsd-pattern-facet",
+            reason: "An xsd:pattern facet requires the XML Schema regular-expression dialect, with \
+                     its Unicode block and category escapes and XSD-specific quantifier semantics, \
+                     which is not the host platform regular-expression language; the value-space \
+                     emptiness it induces cannot be decided without an XSD regex evaluator, so it \
+                     lies outside the certified fragment.",
+        },
+        FragmentBoundaryRecord {
+            id: "non-binary-property-chain",
+            reason: "A property chain of length other than two (an n-ary role composition) does not \
+                     reduce to the binary role composition the counting and identity deciders \
+                     certify; its closure couples an unbounded number of role edges, so it lies \
+                     outside the certified fragment.",
+        },
+        FragmentBoundaryRecord {
+            id: "entangled-existential-cardinality",
+            reason: "A configuration entangling an existential owl:someValuesFrom filler with a \
+                     number or qualified-cardinality bound on the same property couples witness \
+                     generation with counting; the family sub-deciders certify each in isolation \
+                     only, so the entangled full-DL case lies outside the certified fragment.",
+        },
+    ];
+    boundaries.sort();
+    boundaries
+}
+
+/// Route a family-scoped kernel withhold into the reasoner finding output.
+///
+/// Runs the kernel over `edb`; when it lands OUTSIDE its certified-complete fragment
+/// with a FAMILY-SCOPED boundary (an `Uncertified` / `Combined` reason — a family
+/// shape was present but its completeness bound did not close), derives the
+/// ledger-identified finding through [`boundary_diag_ledger`] so the withhold is
+/// carried on [`crate::reason::dl::DlVerdict::boundary_findings`] under
+/// [`REFUTATION_KERNEL_CATEGORY`], tied to the same input that produces the verdict.
+///
+/// The `NoDeciderEngaged` steady state (no family shape engaged — the committed
+/// bundle and every gated corpus input) yields NO finding, so this is a strict
+/// no-op there and changes no verdict; a decision (`InFragment`) likewise yields
+/// none. The finding is a Coherent `UnsupportedSemanticFeature` at Info severity and
+/// can NEVER gate (see [`boundary_diag_ledger`]).
+pub(crate) fn production_boundary_findings(edb: &RdfDataset) -> Vec<gmeow_errors::Finding> {
+    match refute(edb) {
+        RefutationCertificate::OutOfFragment { reason }
+            if !matches!(reason, FragmentBoundary::NoDeciderEngaged) =>
+        {
+            boundary_diag_ledger(&reason).findings("reason")
+        }
+        _ => Vec::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -629,6 +876,153 @@ mod tests {
         assert_eq!(
             first_boundary, second_boundary,
             "out-of-fragment boundary must be byte-stable"
+        );
+    }
+
+    /// SINGLE SOURCE OF TRUTH: the shipped `logic:DecidedFragment` /
+    /// `logic:RefutationPattern` / `logic:expressivenessBoundary` manifest in
+    /// `slices/grounding/logic/module.ttl` is EXACTLY the projection of this kernel's
+    /// [`decided_fragments`] / [`retained_boundaries`] registry (mirrors the datatype
+    /// family's `rust_finite_cardinality_table_projects_the_math_grounding`). Drift in
+    /// either direction — the Rust registry gaining/losing an entry, or the slice
+    /// editing an id, pattern, bound, or reason — fails here, so the ontology manifest
+    /// can never silently diverge from the kernel that decides.
+    #[test]
+    fn module_ttl_projects_the_kernel_registry() {
+        use purrdf::{NativeRdfFormat, RdfTerm, dataset_from_bytes};
+        use std::collections::BTreeMap;
+
+        const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+        let decided_class = format!("{LOGIC_NS}DecidedFragment");
+        let pattern_class = format!("{LOGIC_NS}RefutationPattern");
+        let decides_under = format!("{LOGIC_NS}decidesUnderPattern");
+        let completeness_bound = format!("{LOGIC_NS}fragmentCompletenessBound");
+        let boundary_pred = format!("{LOGIC_NS}expressivenessBoundary");
+        let boundary_reason = format!("{LOGIC_NS}fragmentBoundaryReason");
+
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../slices/grounding/logic/module.ttl"
+        );
+        let bytes = std::fs::read(path).expect("read the logic grounding slice");
+        let dataset =
+            dataset_from_bytes(&bytes, NativeRdfFormat::Turtle).expect("parse logic module.ttl");
+
+        let local = |iri: &str| iri.strip_prefix(LOGIC_NS).map(str::to_owned);
+
+        let mut ttl_pattern_individuals: BTreeSet<String> = BTreeSet::new();
+        let mut ttl_decided_subjects: BTreeSet<String> = BTreeSet::new();
+        let mut decides: BTreeMap<String, String> = BTreeMap::new();
+        let mut bound: BTreeMap<String, String> = BTreeMap::new();
+        let mut boundary_subjects: BTreeSet<String> = BTreeSet::new();
+        let mut reason: BTreeMap<String, String> = BTreeMap::new();
+
+        for quad in dataset.owned_quads() {
+            let RdfTerm::Iri(subject) = &quad.subject else {
+                continue;
+            };
+            let Some(subj) = local(subject) else {
+                continue;
+            };
+            match quad.predicate.as_str() {
+                RDF_TYPE => {
+                    if let RdfTerm::Iri(o) = &quad.object {
+                        if *o == decided_class {
+                            ttl_decided_subjects.insert(subj);
+                        } else if *o == pattern_class {
+                            ttl_pattern_individuals.insert(subj);
+                        }
+                    }
+                }
+                p if p == decides_under => {
+                    if let RdfTerm::Iri(o) = &quad.object
+                        && let Some(pl) = local(o)
+                    {
+                        decides.insert(subj, pl);
+                    }
+                }
+                p if p == completeness_bound => {
+                    if let RdfTerm::Literal(l) = &quad.object {
+                        bound.insert(subj, l.lexical_form.clone());
+                    }
+                }
+                p if p == boundary_pred => {
+                    boundary_subjects.insert(subj);
+                }
+                p if p == boundary_reason => {
+                    if let RdfTerm::Literal(l) = &quad.object {
+                        reason.insert(subj, l.lexical_form.clone());
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // (1) `logic:RefutationPattern` individuals ≡ every `RefutationPattern` slug.
+        let rust_patterns: BTreeSet<String> = RefutationPattern::ALL
+            .iter()
+            .map(|p| p.slug().to_owned())
+            .collect();
+        assert_eq!(
+            ttl_pattern_individuals, rust_patterns,
+            "logic:RefutationPattern individuals must match RefutationPattern::ALL slugs"
+        );
+
+        // (2) `logic:DecidedFragment` individuals ≡ `decided_fragments()`: id set,
+        // deciding pattern per id, and completeness bound per id — bidirectionally.
+        let rust_fragments = decided_fragments();
+        let rust_ids: BTreeSet<String> =
+            rust_fragments.iter().map(|f| f.id.to_owned()).collect();
+        assert_eq!(
+            ttl_decided_subjects, rust_ids,
+            "logic:DecidedFragment individuals must match decided_fragments() ids"
+        );
+        for f in &rust_fragments {
+            assert_eq!(
+                decides.get(f.id).map(String::as_str),
+                Some(f.pattern.slug()),
+                "fragment {} logic:decidesUnderPattern must match the kernel pattern",
+                f.id
+            );
+            assert_eq!(
+                bound.get(f.id).map(String::as_str),
+                Some(f.bound),
+                "fragment {} logic:fragmentCompletenessBound must match the kernel bound",
+                f.id
+            );
+        }
+        assert_eq!(
+            decides.keys().cloned().collect::<BTreeSet<_>>(),
+            rust_ids,
+            "no logic:decidesUnderPattern outside the decided-fragment set"
+        );
+        assert_eq!(
+            bound.keys().cloned().collect::<BTreeSet<_>>(),
+            rust_ids,
+            "no logic:fragmentCompletenessBound outside the decided-fragment set"
+        );
+
+        // (3) `logic:expressivenessBoundary` records ≡ `retained_boundaries()`: id set
+        // plus technical reason per id — bidirectionally.
+        let rust_boundaries = retained_boundaries();
+        let rust_boundary_ids: BTreeSet<String> =
+            rust_boundaries.iter().map(|b| b.id.to_owned()).collect();
+        assert_eq!(
+            boundary_subjects, rust_boundary_ids,
+            "logic:expressivenessBoundary records must match retained_boundaries() ids"
+        );
+        for b in &rust_boundaries {
+            assert_eq!(
+                reason.get(b.id).map(String::as_str),
+                Some(b.reason),
+                "boundary {} logic:fragmentBoundaryReason must match the kernel reason",
+                b.id
+            );
+        }
+        assert_eq!(
+            reason.keys().cloned().collect::<BTreeSet<_>>(),
+            rust_boundary_ids,
+            "no logic:fragmentBoundaryReason outside the retained-boundary set"
         );
     }
 }

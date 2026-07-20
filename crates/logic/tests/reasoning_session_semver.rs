@@ -76,8 +76,17 @@ use session_common::*;
 /// W3C-divergence complement / union-disjoint / disjointUnion / malformed-list cases are
 /// now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
 /// verdict is unchanged.
+/// Re-blessed for Task 6b — the kernel's decidability surface as first-class content:
+/// `reason/refute.rs` gains the shipped registry API (`RefutationPattern`,
+/// `decided_fragments`, `retained_boundaries`) and a live production consumer
+/// (`production_boundary_findings`), the blanket `#![allow(dead_code)]` is removed, and
+/// `reason/dl.rs` folds a family-scoped kernel withhold into a new
+/// `DlVerdict::boundary_findings`. All fold into the native contract source-content
+/// digest, so the engine descriptor moves. The kernel stays inert on this fixed
+/// edge-only input (its steady state is `NoDeciderEngaged`, which emits nothing), so no
+/// reasoning verdict changes — only the source-content digest.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "aa2744919027a8ef88c42093df8adfbee0a162f00efbe66b325543103e4d3ecc";
+    "4747c69f8868a79a0862c9a659714ef08011494211d7ee862d0e6b93cab5551e";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -96,8 +105,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// union-disjoint / malformed-list sub-decider — for the same reason: the native contract hash
 /// (folding the changed `reason/refute.rs` + `reason/dl.rs`) is one of the seven folded axes and
 /// moves with the new engine source, while the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed for Task 6b for the same reason as the engine-descriptor golden above:
+/// the native contract hash is one of the seven folded identity axes and moves with the
+/// changed `reason/refute.rs` + `reason/dl.rs` engine source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "eecd5c1fc28de783f5b7180719c8a50e5074543f07c5118d5319ac8f79f476e2";
+    "d1e9f8fc49a12d4e4228d3a6547554cba932cb6b691aa6d55e0e395360d7c78b";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
