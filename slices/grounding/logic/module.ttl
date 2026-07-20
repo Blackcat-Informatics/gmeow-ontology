@@ -295,6 +295,13 @@ logic:Constraint
     rdfs:label "Constraint"@x-gmeow-english ;
     skos:definition "An integrity condition whose violation is a finding, not a derivation: the node kind for a condition that detects bad data rather than producing new facts. Kept distinct from logic:DerivationRule so a check is never mistaken for a productive rule."@x-gmeow-english .
 
+logic:AdviceGuidance
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Advice Guidance"@x-gmeow-english ;
+    skos:definition "A first-class positive-guidance carrier: a queryable object that makes a term's gmeow:useWhen applicability prose machine-active, the useWhen peer of the avoidWhen anti-pattern logic:Constraint. It logic:formalizes the term it advises, names the harvested field with logic:adviceSourceField (logic:ProseFieldUseWhen), and surfaces the VERBATIM useWhen prose as its logic:message — bound to the source prose by the native check_advice_message_prose_binding gate. Unlike a logic:Constraint it carries no data-matching guard: positive applicability is not an anti-pattern to detect but guidance to surface when authoring the term's domain. The advice-coverage slice-quality axis counts a term's useWhen cell as covered exactly when such a carrier logic:formalizes it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:ConstraintBinding
     a owl:NamedIndividual ,
         logic:ConstraintVerdict ;
@@ -4747,6 +4754,33 @@ logic:eaeCons a logic:Formula ; logic:not logic:eaeIsEntity .
 logic:eaeIsEntity a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
 
+# ── Advice guidance (positive useWhen applicability) ──────────────────────────────
+# The useWhen peer of the avoidWhen anti-pattern constraints above. A data-matching guard
+# cannot state positive applicability ("use this WHEN…"), so a term's gmeow:useWhen prose is
+# made machine-active as a first-class logic:AdviceGuidance carrier: a queryable object that
+# logic:formalizes the term and surfaces its VERBATIM useWhen prose (bound to the source prose
+# by check_advice_message_prose_binding via logic:adviceSourceField logic:ProseFieldUseWhen,
+# exactly as the constraint messages are). The advice-coverage slice-quality axis counts a
+# term's useWhen cell as covered by such a carrier — never by its avoidWhen constraint.
+
+logic:EntityUniversalDomainAdvice
+    a logic:AdviceGuidance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "use gmeow:Entity as the universal domain"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:Entity ;
+    logic:adviceSourceField logic:ProseFieldUseWhen ;
+    logic:message "Use as the universal domain when a property, facet, or claim must attach to anything that persists and can bear properties — the anchor for the domain-free facets (granularity, determinacy, sensitivity, consumer eligibility) that are defined Entity-wide." .
+
+logic:EventUniversalOccurrentAdvice
+    a logic:AdviceGuidance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "use gmeow:Event as the universal occurrent"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:Event ;
+    logic:adviceSourceField logic:ProseFieldUseWhen ;
+    logic:message "Use as the universal occurrent whenever something HAPPENS — a wedding, a release, a survey, a battle — that bears participants, a time, a location, or sub-events; the single anchor for the four orthogonal event axes (type ⟂ role ⟂ temporal ⟂ location)." .
+
 # ── Property-characteristic markers + central assertions ──────────────────────────
 # The five property-characteristic sorts, minted standalone as the canonical logic:
 # carriers. logic:transitiveProperty, logic:asymmetricProperty and
@@ -5942,11 +5976,10 @@ logic:candidateSourceField
 logic:adviceSourceField
     a owl:ObjectProperty ,
         owl:FunctionalProperty ;
-    rdfs:domain logic:Constraint ;
     rdfs:range logic:ProseField ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "advice source field"@x-gmeow-english ;
-    skos:definition "The soft-advice peer of logic:candidateSourceField, borne by a realized advisory logic:Constraint rather than a governance candidate: names which annotation field of the constraint's logic:formalizes term (a logic:ProseField from the closed set — here logic:ProseFieldAvoidWhen) the constraint's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Single-valued. Domain logic:Constraint, range logic:ProseField."@x-gmeow-english ;
+    skos:definition "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued, range logic:ProseField."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:candidateDeliberateNonAssertion

@@ -1877,6 +1877,11 @@ const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
 const LOGIC_CONSTRAINT: &str = "https://blackcatinformatics.ca/logic/Constraint";
 const LOGIC_SEVERITY: &str = "https://blackcatinformatics.ca/logic/severity";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// The first-class positive-guidance carrier: a `logic:AdviceGuidance` `logic:formalizes` a
+/// term whose `gmeow:useWhen` prose it surfaces. It is the `useWhen` peer of the `avoidWhen`
+/// anti-pattern constraint — a data-matching guard cannot state positive applicability, so the
+/// `useWhen` cell is covered by this carrier, not by a `logic:Constraint`.
+const LOGIC_ADVICE_GUIDANCE: &str = "https://blackcatinformatics.ca/logic/AdviceGuidance";
 /// The central slice module that hosts the advisory constraints (repo mode).
 const LOGIC_MODULE_REL: &str = "slices/grounding/logic/module.ttl";
 
@@ -1899,6 +1904,27 @@ fn advisory_constraint_terms(ds: &RdfDataset) -> BTreeSet<String> {
             continue;
         }
         for term in graph::all_iris(ds, c, form_p) {
+            out.insert(term);
+        }
+    }
+    out
+}
+
+/// The set of gmeow-domain terms a first-class `logic:AdviceGuidance` carrier already
+/// `logic:formalizes` — terms whose `useWhen` applicability prose has been made a realized,
+/// queryable positive-guidance object (the `useWhen` peer of [`advisory_constraint_terms`]).
+/// A `useWhen` cell counts as covered only when such a carrier exists, never merely because the
+/// term also carries an `avoidWhen` anti-pattern constraint.
+fn advice_guidance_terms(ds: &RdfDataset) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let Some(form_p) = id(ds, LOGIC_FORMALIZES) else {
+        return out;
+    };
+    for g_iri in instances_of(ds, LOGIC_ADVICE_GUIDANCE) {
+        let Some(g) = id(ds, &g_iri) else {
+            continue;
+        };
+        for term in graph::all_iris(ds, g, form_p) {
             out.insert(term);
         }
     }
@@ -1937,18 +1963,20 @@ fn slice_advice_prose(ctx: &ScoreContext) -> BTreeMap<(String, String), String> 
     out
 }
 
-/// The fraction of a slice's advisory-prose triples (`gmeow:avoidWhen` /
-/// `gmeow:useWhen`, at `@x-gmeow-english`) whose term a REALIZED advisory
-/// `logic:Constraint` (`logic:severity "Info"`) already `logic:formalizes` — i.e. whose
-/// guidance has been made a DATA-MATCHING, machine-active advisory rule.
+/// The fraction of a slice's advisory-prose cells (`gmeow:avoidWhen` / `gmeow:useWhen`, at
+/// `@x-gmeow-english`) that have a REALIZED, machine-active advice carrier, counted PER CELL by
+/// field: an `avoidWhen` cell is covered by a data-matching advisory `logic:Constraint`
+/// (`logic:severity "Info"`) that `logic:formalizes` the term; a `useWhen` cell by a first-class
+/// `logic:AdviceGuidance` carrier that `logic:formalizes` it. A term's avoidWhen constraint never
+/// credits its useWhen cell, and vice versa — positive applicability is not an anti-pattern to
+/// detect but guidance to surface, so the two fields have distinct carriers.
 ///
-/// This counts EXECUTABLE logic-backed advice — a realized constraint that fires a Note
-/// against a matching individual — NOT prose presence (that is the information / prose
-/// axes) and NOT a stub: a term can carry rich `avoidWhen` prose and score 0 here until
-/// an advisory constraint is authored to formalize it. Numerator and denominator are
-/// both bounded counts over `(term, field)` cells, so the score is an objective
-/// intrinsic fraction in `[0, 1]` (1.0 = every advisory-prose cell's term has a realized
-/// advisory constraint), never a tuned target or unbounded ratio.
+/// This counts EXECUTABLE logic-backed advice — a realized carrier — NOT prose presence (that is
+/// the information / prose axes) and NOT a stub: a term can carry rich `avoidWhen` / `useWhen`
+/// prose and score 0 here until its carrier is authored. Numerator and denominator are both
+/// bounded counts over `(term, field)` cells, so the score is an objective intrinsic fraction in
+/// `[0, 1]` (1.0 = every advisory-prose cell has a realized carrier), reachable honestly for both
+/// fields — never a tuned target or unbounded ratio.
 ///
 /// Constraint source branches on the scoring environment (mirroring `gmn1_coverage_axis`
 /// / `DocMaturity`): [`ScoringEnv::Repo`] reads the central logic slice module off the
@@ -1962,8 +1990,11 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         return AxisScore::clean(1.0);
     }
 
-    let repo_ds;
-    let constraint_terms = match &ctx.env {
+    // Resolve the coverage authority and read BOTH per-field sets from it: Repo reads the
+    // central logic slice module (the constraint/guidance home); Bundle reads the scored
+    // slice's own graph self-containedly. `advisory_constraint_terms` returns owned sets, so
+    // the dataset need not outlive the arm (no deferred placeholder binding).
+    let (avoidwhen_terms, usewhen_terms) = match &ctx.env {
         ScoringEnv::Repo => {
             let Some(root) = repo_root_of(&ctx.slice_dir) else {
                 return AxisScore {
@@ -1983,24 +2014,46 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                     )],
                 };
             };
-            repo_ds = ds;
-            advisory_constraint_terms(&repo_ds)
+            (advisory_constraint_terms(&ds), advice_guidance_terms(&ds))
         }
-        ScoringEnv::Bundle(_) => advisory_constraint_terms(ctx.graph),
+        ScoringEnv::Bundle(_) => (
+            advisory_constraint_terms(ctx.graph),
+            advice_guidance_terms(ctx.graph),
+        ),
     };
 
+    // Per-cell coverage: an avoidWhen cell is covered by a data-matching advisory
+    // logic:Constraint; a useWhen cell by a first-class logic:AdviceGuidance carrier. A term's
+    // avoidWhen constraint never credits its useWhen cell (and vice versa), so the fraction is
+    // an honest intrinsic [0, 1] reachable to 1.0 only when BOTH fields are genuinely formalized.
     let total = advice_prose.len();
     let mut covered = 0usize;
     let mut findings = Vec::new();
     for (term, prop) in advice_prose.keys() {
-        if constraint_terms.contains(term) {
-            covered += 1;
+        let is_use_when = prop == ADVICE_USE_WHEN;
+        let is_covered = if is_use_when {
+            usewhen_terms.contains(term)
         } else {
-            let field = prop.rsplit(['/', '#']).next().unwrap_or(prop);
+            avoidwhen_terms.contains(term)
+        };
+        if is_covered {
+            covered += 1;
+        } else if is_use_when {
             findings.push(advisory(
                 "slice-quality.advice-coverage.unharvested",
                 format!(
-                    "{term} authors gmeow:{field} prose with no realized advisory logic:Constraint — \
+                    "{term} authors gmeow:useWhen prose with no realized logic:AdviceGuidance — \
+                     author one in slices/grounding/logic/module.ttl (a logic:AdviceGuidance that \
+                     logic:formalizes {term}, with logic:adviceSourceField logic:ProseFieldUseWhen and \
+                     logic:message the verbatim useWhen prose) so the applicability guidance is \
+                     machine-active."
+                ),
+            ));
+        } else {
+            findings.push(advisory(
+                "slice-quality.advice-coverage.unharvested",
+                format!(
+                    "{term} authors gmeow:avoidWhen prose with no realized advisory logic:Constraint — \
                      author one in slices/grounding/logic/module.ttl (a logic:Constraint with a \
                      data-matching guard, logic:severity \"Info\", and logic:formalizes {term}) so the \
                      guidance fires a deonticRecommendation Note when an individual matches the \
@@ -2126,6 +2179,56 @@ mod tests {
                 .iter()
                 .any(|f| f.code == "slice-quality.advice-coverage.unharvested"),
             "each uncovered cell must surface an advisory to author the constraint"
+        );
+    }
+
+    /// Per-cell coverage (Bundle mode, self-contained): an `avoidWhen` cell is covered ONLY by a
+    /// data-matching advisory `logic:Constraint`, a `useWhen` cell ONLY by a `logic:AdviceGuidance`
+    /// carrier. A term with only an avoidWhen constraint leaves its useWhen cell uncovered (and
+    /// vice versa), so a term needs BOTH to reach full coverage — the metric-coherence fix.
+    #[test]
+    fn advice_coverage_axis_is_per_cell_avoidwhen_vs_usewhen() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        // gmeow:Foo authors BOTH avoidWhen + useWhen and carries BOTH carriers → both cells covered.
+        // gmeow:Bar authors BOTH but only an avoidWhen constraint → its useWhen cell is uncovered.
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ;\n\
+               gmeow:avoidWhen \"avoid Foo\"@x-gmeow-english ; gmeow:useWhen \"use Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ;\n\
+               gmeow:avoidWhen \"avoid Bar\"@x-gmeow-english ; gmeow:useWhen \"use Bar\"@x-gmeow-english .\n\
+             gmeow:FooAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Foo .\n\
+             gmeow:FooUse a logic:AdviceGuidance ; logic:formalizes gmeow:Foo .\n\
+             gmeow:BarAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Bar .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        // Bundle mode reads ctx.graph for BOTH per-field sets (the dict is unused here).
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            std::path::PathBuf::from("/tmp/testslice"),
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        let result = advice_coverage_axis(&ctx);
+        // 4 cells (Foo/Bar × avoidWhen/useWhen); covered: Foo.avoidWhen, Foo.useWhen, Bar.avoidWhen
+        // = 3/4. Bar.useWhen is uncovered because no AdviceGuidance formalizes gmeow:Bar.
+        assert!(
+            (result.score - 0.75).abs() < 1e-9,
+            "expected 3/4 per-cell coverage; got {}",
+            result.score
+        );
+        assert!(
+            result.findings.iter().any(|f| f
+                .message
+                .contains("gmeow:useWhen prose with no realized logic:AdviceGuidance")
+                && f.message.contains("Bar")),
+            "the uncovered Bar.useWhen cell must surface a logic:AdviceGuidance advisory: {:?}",
+            result.findings
         );
     }
 
