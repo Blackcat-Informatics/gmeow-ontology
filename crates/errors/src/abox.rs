@@ -46,6 +46,11 @@ pub const GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxR
 /// `gmeow:boxABox` — the assertional-tier box-role individual every generated
 /// A-Box individual carries by default (via [`abox_annotations`]).
 pub const BOX_ABOX: &str = "https://blackcatinformatics.ca/gmeow/boxABox";
+/// `gmeow:boxTBox` — the terminological-tier box-role individual a generated
+/// `owl:Ontology` header node (a T-Box document, never an assertional
+/// individual) carries via [`abox_annotation_pairs`] instead of [`BOX_ABOX`] —
+/// the future T-Box reuse [`abox_annotation_pairs`]'s doc comment anticipates.
+pub const BOX_TBOX: &str = "https://blackcatinformatics.ca/gmeow/boxTBox";
 /// The private-use carrier language tag every generated label/definition literal
 /// MUST use instead of bare `en` — the one spelling every emitter's English prose
 /// rides under.

@@ -21,7 +21,7 @@ use purrdf::fno::{
     self, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping,
     FnoCatalog,
 };
-use purrdf::{RdfQuad, RdfTerm, turtle};
+use purrdf::{RdfLiteral, RdfQuad, RdfTerm, turtle};
 
 use crate::ingest::{DslTerm, DslView};
 use crate::loss_ledger::LossLedger;
@@ -132,7 +132,17 @@ pub fn lower_fno(dsl: &DslView, onto: &DslView) -> gmeow_errors::Result<FnoLower
     let cells = extract_cells(dsl)?;
     let catalog_model = build_catalog(&functions, &cells, onto)?;
     let tag_map = build_tag_map(onto);
-    let quads: Vec<RdfQuad> = fno::to_quads(&catalog_model)
+    // `purrdf::fno::to_quads` never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
+    // any subject, and its external `FnImpl` model carries no label/description
+    // field at all — complete the A-Box structural-annotation contract on the raw
+    // quads BEFORE the carrier-tag retag, so any label/definition this pass derives
+    // rides the exact same `x-gmeow-english` → public-BCP-47 remap every other
+    // catalog literal goes through.
+    let completed = complete_fno_abox_annotations(
+        fno::to_quads(&catalog_model),
+        &catalog_model.document_iri,
+    );
+    let quads: Vec<RdfQuad> = completed
         .into_iter()
         .map(|q| retag_quad(q, &tag_map))
         .collect();
@@ -461,17 +471,21 @@ fn build_catalog(
             expects.push(param.clone());
             if !params_emitted.contains_key(&param) {
                 params_emitted.insert(param.clone(), (predicate.clone(), required));
+                let (label, description) =
+                    predicate_label_and_description(onto, predicate, "parameter");
                 catalog_params.push(FnParam {
                     iri: param,
                     predicate: Some(predicate.clone()),
                     r#type: rng,
                     required,
-                    label: None,
-                    description: None,
+                    label: Some(label),
+                    description: Some(description),
                 });
             }
         }
 
+        let (output_label, output_description) =
+            predicate_label_and_description(onto, &func.output, "output");
         catalog_fns.push(FnFunction {
             iri: func.iri.clone(),
             label: func.label.clone(),
@@ -487,8 +501,8 @@ fn build_catalog(
                 iri: output_iri(&func.iri),
                 predicate: Some(func.output.clone()),
                 r#type: func.output_type.clone(),
-                label: None,
-                description: None,
+                label: Some(output_label),
+                description: Some(output_description),
             },
         });
     }
@@ -577,6 +591,227 @@ fn build_catalog(
         implementations,
         mappings,
     })
+}
+
+/// Derive a real, non-fabricated `(label, description)` pair for `predicate` (an
+/// input or output predicate of a projection function) from the ontology view:
+/// the predicate's own authored `rdfs:label`/`skos:definition` when present, else
+/// a readable form derived purely from its own local name — never invented
+/// content, always re-derived from the predicate IRI itself.
+fn predicate_label_and_description(
+    onto: &DslView,
+    predicate: &str,
+    role: &str,
+) -> (String, String) {
+    let local_name = local(predicate);
+    let label = onto
+        .object_literal(predicate, RDFS_LABEL)
+        .unwrap_or_else(|| humanize_local(&local_name));
+    let description = onto
+        .object_literal(predicate, SKOS_DEFINITION)
+        .unwrap_or_else(|| {
+            format!("The {role} bound to the `{local_name}` predicate in the FnO projection catalog.")
+        });
+    (label, description)
+}
+
+/// Split a `camelCase`/`PascalCase` local name into space-separated words with a
+/// lowercase first letter (`"addressLocality"` → `"address locality"`) — a
+/// readable fallback label derived purely from the term's own local name, used
+/// only when the ontology view carries no authored `rdfs:label` for the term.
+fn humanize_local(local: &str) -> String {
+    let mut out = String::with_capacity(local.len() + 4);
+    for (i, ch) in local.chars().enumerate() {
+        if ch.is_uppercase() {
+            if i > 0 {
+                out.push(' ');
+            }
+            out.extend(ch.to_lowercase());
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+// ── A-Box structural-annotation completion ────────────────────────────────────────
+
+/// The `fno:` A-Box individual `rdf:type`s this completion pass covers — every
+/// IRI-subject type `purrdf::fno::to_quads` mints for the catalog. Its
+/// `fno:Mapping`/`fnom:PropertyParameterMapping`/`fnom:DefaultReturnMapping`
+/// subjects are ALWAYS deterministic blank nodes (`purrdf::fno`'s internal
+/// `bnode(label)`), never IRIs, so the structural lint's IRI-subject-only A-Box
+/// scope already excludes them without help — they need no completion here.
+const FNO_FUNCTION: &str = "https://w3id.org/function/ontology#Function";
+const FNO_OUTPUT: &str = "https://w3id.org/function/ontology#Output";
+const FNO_PARAMETER: &str = "https://w3id.org/function/ontology#Parameter";
+const FNO_IMPLEMENTATION: &str = "https://w3id.org/function/ontology#Implementation";
+
+/// Derive a real, non-fabricated `(label, description)` fallback for an
+/// `fno:Implementation` individual purely from its own minted IRI — the external
+/// `purrdf::fno::FnImpl` model carries NO label/description field at all, so this
+/// is the only source available. [`impl_iri`] mints the IRI from the profile name
+/// (`impl<CamelCaseProfile>`), so stripping the `impl` prefix and humanizing
+/// recovers the profile name exactly.
+fn implementation_label_and_description(iri: &str) -> (String, String) {
+    let loc = local(iri);
+    let stem = loc.strip_prefix("impl").unwrap_or(&loc);
+    let humanized = humanize_local(stem);
+    (
+        format!("{humanized} implementation"),
+        format!("The SPARQL-query implementation of the {humanized} projection profile."),
+    )
+}
+
+/// Complete the FnO catalog's A-Box structural-annotation contract:
+/// `purrdf::fno::to_quads` never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
+/// any subject, and `fno:Implementation` individuals structurally cannot get
+/// `rdfs:label`/`skos:definition` from the external model at all (no such fields
+/// exist on `FnImpl`). This pass scans the ACTUAL emitted quads (never assumes
+/// presence from the catalog model — a DSL-authored function with no
+/// `skos:definition` genuinely omits it from `to_quads`' output too) and appends
+/// whatever is missing on every IRI-subject FnO A-Box individual
+/// (`fno:Parameter`/`fno:Function`/`fno:Output`/`fno:Implementation`).
+fn complete_fno_abox_annotations(mut quads: Vec<RdfQuad>, catalog_graph_iri: &str) -> Vec<RdfQuad> {
+    let mut has_label: BTreeSet<String> = BTreeSet::new();
+    let mut has_definition: BTreeSet<String> = BTreeSet::new();
+    let mut has_is_defined_by: BTreeSet<String> = BTreeSet::new();
+    let mut has_graph_box_role: BTreeSet<String> = BTreeSet::new();
+    let mut typed: BTreeMap<String, &'static str> = BTreeMap::new();
+    for q in &quads {
+        let RdfTerm::Iri(subject) = &q.subject else {
+            continue;
+        };
+        match q.predicate.as_str() {
+            RDFS_LABEL => {
+                has_label.insert(subject.clone());
+            }
+            SKOS_DEFINITION => {
+                has_definition.insert(subject.clone());
+            }
+            predicate if predicate == gmeow_errors::abox::RDFS_IS_DEFINED_BY => {
+                has_is_defined_by.insert(subject.clone());
+            }
+            predicate if predicate == gmeow_errors::abox::GRAPH_BOX_ROLE => {
+                has_graph_box_role.insert(subject.clone());
+            }
+            predicate if predicate == gmeow_errors::abox::RDF_TYPE => {
+                if let RdfTerm::Iri(ty) = &q.object {
+                    let role = match ty.as_str() {
+                        FNO_FUNCTION => Some("function"),
+                        FNO_OUTPUT => Some("output"),
+                        FNO_PARAMETER => Some("parameter"),
+                        FNO_IMPLEMENTATION => Some("implementation"),
+                        _ => None,
+                    };
+                    if let Some(role) = role {
+                        typed.insert(subject.clone(), role);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut extra: Vec<RdfQuad> = Vec::new();
+
+    // The catalog's own `owl:Ontology` document header (the catalog graph IRI
+    // itself) is ALSO a gmeow-namespaced typed term, so the structural lint holds
+    // it to the same four-predicate contract — `owl:Ontology` is not exempt, only
+    // `<ns>self`-defined terms are (`crates/validate/src/lint.rs:557-619`). It is
+    // a T-Box document, never an assertional individual, so it carries
+    // `gmeow:graphBoxRole gmeow:boxTBox`, never [`gmeow_errors::abox::BOX_ABOX`].
+    // `to_quads` already emits its `rdfs:label`/`rdfs:comment`/`dcterms:isPartOf`
+    // (never `skos:definition`/`rdfs:isDefinedBy`/`gmeow:graphBoxRole`) — only add
+    // what's missing, exactly like every other completion in this pass.
+    let header = catalog_graph_iri.to_owned();
+    if !has_label.contains(&header) {
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(header.clone()),
+            RDFS_LABEL,
+            RdfTerm::literal(RdfLiteral::language_tagged(
+                "GMEOW FnO function catalog",
+                GMEOW_INTERNAL_ENGLISH,
+            )),
+        ));
+    }
+    if !has_definition.contains(&header) {
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(header.clone()),
+            SKOS_DEFINITION,
+            RdfTerm::literal(RdfLiteral::language_tagged(
+                "The generated FnO function catalog projecting gmeow correspondence \
+                 functions to the Function Ontology.",
+                GMEOW_INTERNAL_ENGLISH,
+            )),
+        ));
+    }
+    if !has_is_defined_by.contains(&header) {
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(header.clone()),
+            gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+            RdfTerm::iri(catalog_graph_iri.to_owned()),
+        ));
+    }
+    if !has_graph_box_role.contains(&header) {
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(header),
+            gmeow_errors::abox::GRAPH_BOX_ROLE,
+            RdfTerm::iri(gmeow_errors::abox::BOX_TBOX.to_owned()),
+        ));
+    }
+
+    for (subject, role) in &typed {
+        if !has_label.contains(subject) || !has_definition.contains(subject) {
+            let (label, description) = if *role == "implementation" {
+                implementation_label_and_description(subject)
+            } else {
+                // Function/Parameter/Output are always populated with real
+                // label/description by `build_catalog` — this arm is a defensive
+                // fallback (e.g. a DSL function authored with no skos:definition),
+                // never the common path.
+                (
+                    humanize_local(&local(subject)),
+                    format!(
+                        "The {role} `{}` in the FnO projection catalog.",
+                        local(subject)
+                    ),
+                )
+            };
+            if !has_label.contains(subject) {
+                extra.push(RdfQuad::new(
+                    RdfTerm::iri(subject.clone()),
+                    RDFS_LABEL,
+                    RdfTerm::literal(RdfLiteral::language_tagged(
+                        label,
+                        GMEOW_INTERNAL_ENGLISH,
+                    )),
+                ));
+            }
+            if !has_definition.contains(subject) {
+                extra.push(RdfQuad::new(
+                    RdfTerm::iri(subject.clone()),
+                    SKOS_DEFINITION,
+                    RdfTerm::literal(RdfLiteral::language_tagged(
+                        description,
+                        GMEOW_INTERNAL_ENGLISH,
+                    )),
+                ));
+            }
+        }
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(subject.clone()),
+            gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+            RdfTerm::iri(catalog_graph_iri.to_owned()),
+        ));
+        extra.push(RdfQuad::new(
+            RdfTerm::iri(subject.clone()),
+            gmeow_errors::abox::GRAPH_BOX_ROLE,
+            RdfTerm::iri(gmeow_errors::abox::BOX_ABOX.to_owned()),
+        ));
+    }
+    quads.extend(extra);
+    quads
 }
 
 // ── IRI minting + var resolution ─────────────────────────────────────────────────
@@ -779,6 +1014,175 @@ mod tests {
         assert!(
             nt.contains("implementationProperty> \"bdate\""),
             "expected ?bdate impl property; got:\n{nt}"
+        );
+    }
+
+    /// Shift-left: parse the COMPLETED FnO catalog dataset back and confirm every
+    /// A-Box FnO individual (`fno:Parameter`/`fno:Function`/`fno:Output`/
+    /// `fno:Implementation`) carries all four structural annotations — the exact
+    /// contract `gmeow_validate::lint::structural_lint_dataset` enforces at
+    /// `make validate-gts`, caught here in a fast `cargo nextest -p
+    /// gmeow-logic-compile` instead.
+    #[test]
+    fn fno_abox_individuals_carry_full_structural_annotations() {
+        use purrdf::{NativeRdfFormat, RdfDatasetBuilder, parse_dataset};
+        let dsl_ttl = r#"
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            gmeow:fnY a gmeow:ProjectionFunction ;
+                rdfs:label "y" ;
+                gmeow:fnInput gmeow:eventTime ;
+                gmeow:fnOutput gmeow:outVal ; gmeow:fnOutputType rdfs:Literal .
+            gmeow:cellY a gmeow:ProjectionMapping ;
+                gmeow:hasMappingPattern [
+                    gmeow:anchor "person" ; gmeow:value "bdate" ;
+                    gmeow:atom (
+                        [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ]
+                    ) ] ;
+                gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:transform gmeow:fnY ] .
+        "#;
+        // `eventTime` deliberately carries an authored label/definition (exercises
+        // the onto-derived branch of `predicate_label_and_description`); the
+        // function itself authors no `skos:definition`, so its `fno:Function`
+        // individual exercises the completion pass's defensive definition fallback.
+        // The `lang:carrierTag` graft mirrors the real ontology's grounding: with
+        // it declared, `build_tag_map` remaps EVERY English literal in this public
+        // FnO document — both `to_quads`-native ones and the ones this completion
+        // pass derives — from the internal `x-gmeow-english` carrier tag to the
+        // public `en` BCP-47 tag, so the two sources end up carrying the SAME
+        // final tag (proving the derived literals interoperate with the existing
+        // carrier-tag retag pipeline rather than diverging from it).
+        let onto_ttl = r#"
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+            @prefix lang: <https://blackcatinformatics.ca/lang/> .
+            gmeow:eventTime rdfs:range rdfs:Literal ;
+                rdfs:label "event time" ;
+                skos:definition "The time an event occurred." .
+            gmeow:englishGmeowCarrier lang:carrierTag "x-gmeow-english" ;
+                lang:varietyOf gmeow:englishSign .
+            gmeow:englishSign skos:notation "en" .
+        "#;
+        let mut db = RdfDatasetBuilder::new();
+        db.push_dataset(
+            &parse_dataset(
+                dsl_ttl.as_bytes(),
+                NativeRdfFormat::Turtle.media_type(),
+                None,
+            )
+            .expect("parse dsl"),
+        );
+        let dsl = db.freeze().expect("freeze dsl");
+        let onto = parse_dataset(
+            onto_ttl.as_bytes(),
+            NativeRdfFormat::Turtle.media_type(),
+            None,
+        )
+        .expect("parse onto");
+
+        let catalog = lower_fno(&DslView::new(&dsl), &DslView::new(&onto))
+            .expect("lower")
+            .catalog;
+
+        let catalog_ds = parse_dataset(
+            catalog.as_bytes(),
+            NativeRdfFormat::NTriples.media_type(),
+            None,
+        )
+        .expect("parse completed fno catalog");
+        let view = DslView::new(&catalog_ds);
+
+        let document_iri = format!("{ONTOLOGY_IRI}/projections/functions");
+        let expected_counts: [(&str, usize); 4] = [
+            (FNO_PARAMETER, 1),
+            (FNO_FUNCTION, 1),
+            (FNO_OUTPUT, 1),
+            (FNO_IMPLEMENTATION, 1),
+        ];
+        let mut checked = 0usize;
+        for (fno_type, expected_count) in expected_counts {
+            let subjects = view.subjects_of_type(fno_type);
+            assert_eq!(
+                subjects.len(),
+                expected_count,
+                "expected {expected_count} individual(s) typed {fno_type}, got {subjects:?}"
+            );
+            for subject in subjects {
+                checked += 1;
+                // The carrier-tag graft above resolves `x-gmeow-english` → `en`
+                // for this public FnO document, so BOTH `to_quads`-native labels
+                // (e.g. `fnY`'s DSL-authored label) and this completion pass's
+                // OWN derived literals (e.g. `implSchemaOrg`'s, which never came
+                // from `to_quads` at all — `FnImpl` has no label/description
+                // field) must land on the identical public tag: proof the
+                // completion pass's carrier-tagged literals ride the exact same
+                // retag pipeline as everything else in the catalog.
+                let label = view
+                    .object_literal(&subject, RDFS_LABEL)
+                    .unwrap_or_else(|| panic!("{subject} ({fno_type}) missing rdfs:label"));
+                assert!(
+                    catalog.contains(&format!("\"{}\"@en", label.replace('"', "\\\""))),
+                    "{subject}'s rdfs:label {label:?} must carry the carrier-tag-resolved \
+                     public 'en' tag; catalog:\n{catalog}"
+                );
+                let definition = view
+                    .object_literal(&subject, SKOS_DEFINITION)
+                    .unwrap_or_else(|| panic!("{subject} ({fno_type}) missing skos:definition"));
+                assert!(
+                    catalog.contains(&format!("\"{}\"@en", definition.replace('"', "\\\""))),
+                    "{subject}'s skos:definition {definition:?} must carry the \
+                     carrier-tag-resolved public 'en' tag; catalog:\n{catalog}"
+                );
+                assert_eq!(
+                    view.object_iri(&subject, gmeow_errors::abox::RDFS_IS_DEFINED_BY),
+                    Some(document_iri.clone()),
+                    "{subject} ({fno_type}) must be rdfs:isDefinedBy the FnO catalog graph"
+                );
+                assert_eq!(
+                    view.object_iri(&subject, gmeow_errors::abox::GRAPH_BOX_ROLE),
+                    Some(gmeow_errors::abox::BOX_ABOX.to_owned()),
+                    "{subject} ({fno_type}) must carry gmeow:graphBoxRole gmeow:boxABox"
+                );
+            }
+        }
+        assert_eq!(checked, 4, "fixture must exercise all four FnO A-Box types");
+
+        // The catalog's own `owl:Ontology` document header is NOT exempt from the
+        // structural lint (only `<ns>self`-defined terms are) — it must ALSO carry
+        // all four annotations, but with `gmeow:graphBoxRole gmeow:boxTBox` (a
+        // T-Box document), never `gmeow:boxABox`.
+        let header_label = view
+            .object_literal(&document_iri, RDFS_LABEL)
+            .expect("fno catalog header missing rdfs:label");
+        assert!(
+            catalog.contains(&format!("\"{}\"@en", header_label.replace('"', "\\\""))),
+            "fno catalog header's rdfs:label {header_label:?} must carry the \
+             carrier-tag-resolved public 'en' tag; catalog:\n{catalog}"
+        );
+        let header_definition = view
+            .object_literal(&document_iri, SKOS_DEFINITION)
+            .expect("fno catalog header missing skos:definition");
+        assert!(
+            catalog.contains(&format!("\"{}\"@en", header_definition.replace('"', "\\\""))),
+            "fno catalog header's skos:definition {header_definition:?} must carry the \
+             carrier-tag-resolved public 'en' tag; catalog:\n{catalog}"
+        );
+        assert_eq!(
+            view.object_iri(&document_iri, gmeow_errors::abox::RDFS_IS_DEFINED_BY),
+            Some(document_iri.clone()),
+            "fno catalog header must be rdfs:isDefinedBy the FnO catalog graph"
+        );
+        assert_eq!(
+            view.object_iri(&document_iri, gmeow_errors::abox::GRAPH_BOX_ROLE),
+            Some(gmeow_errors::abox::BOX_TBOX.to_owned()),
+            "fno catalog header (a T-Box document) must carry gmeow:graphBoxRole \
+             gmeow:boxTBox, never gmeow:boxABox"
+        );
+        assert_ne!(
+            view.object_iri(&document_iri, gmeow_errors::abox::GRAPH_BOX_ROLE),
+            Some(gmeow_errors::abox::BOX_ABOX.to_owned()),
+            "fno catalog header must never carry gmeow:boxABox"
         );
     }
 
