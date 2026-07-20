@@ -1,0 +1,35 @@
+# Negative test: within the GMN math plane (@μ, selected by the denotation context
+# gmeow:gmnMathGlyphContext), a single operator — one lang:denotationTarget — MUST bind
+# ONE consistent precedence. If the same target has two infix forms declaring DIFFERENT
+# gmeow:gmnPrecedence values, its binding strength is undecidable and a downstream
+# operator-precedence parser cannot place it in the ladder. Any returned row is that
+# violation.
+#
+# This is the precedence-CONSISTENCY complement to gmn-form-signature-completeness.rq
+# (which checks only that a fixity-bearing form HAS a precedence). It deliberately does
+# NOT flag distinct operators sharing one precedence band: that is by design (∈ ⊆ < >
+# ≤ ≥ ⊇ all sit at the relational band 50; the additive band is 60, multiplicative 70),
+# and cross-operator band-sharing is resolved by associativity, not precedence. The only
+# genuine clash a precedence gate can prove from data is a single operator carrying two
+# precedences — an operator clashing with itself — so that is exactly what this flags.
+#
+# The current math-plane population binds each operator target to one infix form at one
+# precedence, so this query returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?target ?formA ?formB ?precA ?precB WHERE {
+    ?denA lang:denotationContext gmeow:gmnMathGlyphContext ;
+          lang:denotationTarget ?target ;
+          lang:denotedForm ?formA .
+    ?denB lang:denotationContext gmeow:gmnMathGlyphContext ;
+          lang:denotationTarget ?target ;
+          lang:denotedForm ?formB .
+    ?formA gmeow:gmnFixity gmeow:gmnFixityInfix ;
+           gmeow:gmnPrecedence ?precA .
+    ?formB gmeow:gmnFixity gmeow:gmnFixityInfix ;
+           gmeow:gmnPrecedence ?precB .
+    FILTER (STR(?formA) < STR(?formB))
+    FILTER (?precA != ?precB)
+}
+ORDER BY ?target ?formA ?formB
