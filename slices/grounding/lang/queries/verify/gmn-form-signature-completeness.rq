@@ -1,0 +1,24 @@
+# Negative test: every GMN operator form that declares a gmeow:gmnFixity (infix, prefix,
+# postfix, or bracketing) MUST also carry BOTH gmeow:gmnPrecedence and gmeow:gmnArity, so
+# #1377's operator-precedence parser always reads a COMPLETE operator signature — fixity,
+# binding strength, and operand count together. A form that declares a fixity but omits
+# either precedence or arity is a half-specified operator, undecidable from data.
+#
+# Constant forms (number-space signs like ℕ ℤ ℚ ℝ ℂ, the π/γ constants) carry no fixity
+# and are exempt by construction — they name no operator grammar. Distinct forms may
+# SHARE a precedence level by design (the additive band 60, the multiplicative band 70
+# each hold several forms), so this gate checks only the PRESENCE of a precedence and an
+# arity, never their distinctness.
+#
+# Any returned row is a violation: a fixity-bearing form missing its precedence or arity.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?form ?fixity WHERE {
+    ?form a lang:Form ;
+          lang:inSignSystem gmeow:gmnModelNotation ;
+          gmeow:gmnFixity ?fixity .
+    FILTER (NOT EXISTS { ?form gmeow:gmnPrecedence ?precedence }
+            || NOT EXISTS { ?form gmeow:gmnArity ?arity })
+}
+ORDER BY ?form
