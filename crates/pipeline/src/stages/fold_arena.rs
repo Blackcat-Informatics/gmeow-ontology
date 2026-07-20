@@ -4,7 +4,7 @@
 //! The gts-`Graph` arena read shape, materialized over the native carrier
 //! [`RdfDataset`].
 //!
-//! Several export leaves (`yaml_ld`, `parquet`) were written against the gts
+//! Several export leaves (`yaml_ld`) were written against the gts
 //! in-memory `Graph` model: a flat term arena indexed by `usize` term id, `(s, p, o,
 //! g)` quad tuples, and the RDF 1.2 reifier / annotation side-tables. The carrier is
 //! the native [`RdfDataset`]; this ONE adapter materializes that shape from it so the

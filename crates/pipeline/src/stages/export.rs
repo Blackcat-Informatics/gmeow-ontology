@@ -2829,7 +2829,7 @@ pub(crate) fn read_fold(
 }
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
-/// export leaf (export / parquet / okf) uses: the `stage-snapshot` product carries the
+/// export leaf (export / okf) uses: the `stage-snapshot` product carries the
 /// terminal carrier `RdfDataset` directly, so the leaves read ONE shared dataset off
 /// the bundle instead of re-parsing the `gmeow.gts` bytes (GTS is exit-only).
 pub(crate) fn read_fold_upstream(
