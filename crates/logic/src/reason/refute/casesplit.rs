@@ -1494,9 +1494,17 @@ mod tests {
 
     // ── Corpus soundness sweep (decider-isolated) ────────────────────────────────
 
-    fn divergence_dir() -> std::path::PathBuf {
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../conformance/logic/cases/external/w3c-owl2-full-divergence")
+    /// The two sibling W3C-full corpora the soundness sweep ranges over: the
+    /// still-withheld `-divergence` cases AND the relocated now-decided
+    /// `-decided` cases (the case-split decider's decided cases moved into the
+    /// latter, so the sweep must cover both to keep exercising the decider).
+    fn full_corpus_dirs() -> [std::path::PathBuf; 2] {
+        let external = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../conformance/logic/cases/external");
+        [
+            external.join("w3c-owl2-full-divergence"),
+            external.join("w3c-owl2-full-decided"),
+        ]
     }
 
     /// The `w3c_published_verdict` recorded in a slug's flat `profile.json`.
@@ -1524,8 +1532,10 @@ mod tests {
         }
     }
 
-    /// SOUNDNESS SWEEP (decider-isolated) — over EVERY committed W3C-divergence
-    /// case, for every case the case-split decider now DECIDES (`InFragment`), the
+    /// SOUNDNESS SWEEP (decider-isolated) — over EVERY committed W3C-full case in
+    /// BOTH sibling corpora (the still-withheld `-divergence` set AND the
+    /// relocated now-decided `-decided` set), for every case the case-split
+    /// decider now DECIDES (`InFragment`), the
     /// decided verdict MUST equal the W3C published verdict. A single contradiction
     /// is a hard fail: it would mean a wrong decided token could ship, breaking the
     /// `corpus_only == 0` invariant. This runs the decider DIRECTLY (never the native
@@ -1534,38 +1544,40 @@ mod tests {
     #[test]
     fn corpus_soundness_sweep_no_decider_contradicts_w3c() {
         use purrdf::{NativeRdfFormat, dataset_from_bytes};
-        let dir = divergence_dir();
-        let mut slugs: Vec<String> = std::fs::read_dir(&dir)
-            .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
-            .filter_map(|e| {
-                let e = e.ok()?;
-                e.file_type()
-                    .ok()?
-                    .is_dir()
-                    .then(|| e.file_name().to_string_lossy().into_owned())
-            })
-            .filter(|slug| dir.join(slug).join("input.nq").exists())
-            .collect();
-        slugs.sort();
 
         let mut decided = 0usize;
         let mut contradictions = Vec::new();
-        for slug in &slugs {
-            let bytes = std::fs::read(dir.join(slug).join("input.nq")).expect("read input.nq");
-            let dataset =
-                dataset_from_bytes(&bytes, NativeRdfFormat::NQuads).expect("parse input.nq");
-            let Some(token) = decision_token(dataset.as_ref()) else {
-                continue;
-            };
-            decided += 1;
-            match w3c_verdict(&dir, slug) {
-                Some(w3c) if w3c == token => {}
-                Some(w3c) => contradictions.push(format!(
-                    "{slug}: decider says {token:?}, W3C published {w3c:?}"
-                )),
-                None => contradictions.push(format!(
-                    "{slug}: decider says {token:?} but no W3C verdict recorded"
-                )),
+        for dir in full_corpus_dirs() {
+            let mut slugs: Vec<String> = std::fs::read_dir(&dir)
+                .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
+                .filter_map(|e| {
+                    let e = e.ok()?;
+                    e.file_type()
+                        .ok()?
+                        .is_dir()
+                        .then(|| e.file_name().to_string_lossy().into_owned())
+                })
+                .filter(|slug| dir.join(slug).join("input.nq").exists())
+                .collect();
+            slugs.sort();
+
+            for slug in &slugs {
+                let bytes = std::fs::read(dir.join(slug).join("input.nq")).expect("read input.nq");
+                let dataset =
+                    dataset_from_bytes(&bytes, NativeRdfFormat::NQuads).expect("parse input.nq");
+                let Some(token) = decision_token(dataset.as_ref()) else {
+                    continue;
+                };
+                decided += 1;
+                match w3c_verdict(&dir, slug) {
+                    Some(w3c) if w3c == token => {}
+                    Some(w3c) => contradictions.push(format!(
+                        "{slug}: decider says {token:?}, W3C published {w3c:?}"
+                    )),
+                    None => contradictions.push(format!(
+                        "{slug}: decider says {token:?} but no W3C verdict recorded"
+                    )),
+                }
             }
         }
 

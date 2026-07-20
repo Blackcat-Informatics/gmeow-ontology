@@ -41,11 +41,26 @@ const DECIDED: &[(&str, &str)] = &[
     ("footnote-not-about-self", "inconsistent"),
 ];
 
-fn native_token(slug: &str) -> String {
-    let path = format!(
-        "{}/../../conformance/logic/cases/external/w3c-owl2-full-divergence/{slug}/input.nq",
+/// Resolve a slug's `input.nq`, looking in the `w3c-owl2-full-decided` corpus
+/// first (the relocated now-decided cases) and falling back to the sibling
+/// `w3c-owl2-full-divergence` corpus. The two corpora partition the original
+/// W3C-full set, so exactly one holds the slug.
+fn case_input(slug: &str) -> String {
+    let decided = format!(
+        "{}/../../conformance/logic/cases/external/w3c-owl2-full-decided/{slug}/input.nq",
         env!("CARGO_MANIFEST_DIR")
     );
+    if std::path::Path::new(&decided).is_file() {
+        return decided;
+    }
+    format!(
+        "{}/../../conformance/logic/cases/external/w3c-owl2-full-divergence/{slug}/input.nq",
+        env!("CARGO_MANIFEST_DIR")
+    )
+}
+
+fn native_token(slug: &str) -> String {
+    let path = case_input(slug);
     let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
     let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
         .unwrap_or_else(|e| panic!("parse {path}: {e}"));

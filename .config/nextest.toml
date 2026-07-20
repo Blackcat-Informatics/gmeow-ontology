@@ -18,6 +18,7 @@ default-filter = '''
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-conformance) & binary(full_divergence_gate) & test(/_heavy_offgate/))
+    | (package(gmeow-conformance) & binary(full_decided_gate) & test(/_heavy_offgate/))
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & binary(fanout_parity))

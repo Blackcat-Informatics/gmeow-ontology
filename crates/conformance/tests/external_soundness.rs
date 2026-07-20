@@ -241,6 +241,12 @@ fn external_corpus_verdicts_match_their_third_party_source() {
         // verdict there, so `committed == declared` does NOT hold by construction.
         // The dedicated divergence gate (`el_divergence_gate`) pins those cases
         // exactly; this soundness check (committed == declared) must skip them.
+        //
+        // The `decided` lane is deliberately NOT skipped: its committed golden IS
+        // the decided native token, which by construction EQUALS the W3C published
+        // (== source-declared) verdict, so `committed == declared` holds and this
+        // gate proves that third-party agreement statically (the dedicated
+        // `full_decided_gate` proves it live).
         if meta.lane == gmeow_conformance::vendored::Lane::Divergence {
             continue;
         }
@@ -289,8 +295,9 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     assert!(
         checked >= 38,
         "expected ≥38 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
-         tptp-mini ×6, ontouml-mini ×8; the *-divergence lanes are excluded above), \
-         found {checked}"
+         tptp-mini ×6, ontouml-mini ×8, w3c-owl2-full-decided ×32; the *-divergence \
+         lanes are excluded above, but the `decided` lane is NOT — its committed \
+         verdict == the W3C-declared verdict by construction), found {checked}"
     );
     assert!(
         failures.is_empty(),
