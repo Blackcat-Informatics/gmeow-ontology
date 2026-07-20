@@ -136,7 +136,7 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_gmeow_gts(
     builder: &SnapshotBuilder,
-    doc_blobs: Vec<BlobRow>,
+    archive_blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
     signer_secret: Option<[u8; 32]>,
     signer_kid: Option<String>,
@@ -146,7 +146,7 @@ pub(crate) fn emit_gmeow_gts(
         builder,
         "dist",
         Some(vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()]),
-        doc_blobs,
+        archive_blobs,
         report_blobs,
         signer_secret,
         signer_kid,
