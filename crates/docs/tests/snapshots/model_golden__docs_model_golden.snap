@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 85,
-  "term_count": 5680,
-  "dependency_edge_count": 1296,
+  "term_count": 5682,
+  "dependency_edge_count": 1297,
   "term_count_by_category": {
-    "Class": 1797,
+    "Class": 1798,
     "Datatype": 1,
     "Individual": 829,
-    "Property": 3053
+    "Property": 3054
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -429,7 +429,7 @@ expression: summary
     ]
   },
   "shape_count": 145,
-  "competency_count": 292,
+  "competency_count": 293,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
