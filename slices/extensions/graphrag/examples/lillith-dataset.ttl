@@ -9,10 +9,11 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:lillith-benchmark a gmeow:Dataset ;
-    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    rdfs:label "Lillith GraphRAG benchmark"@x-gmeow-english ;
     gmeow:title "Lillith GraphRAG benchmark"@x-gmeow-english ;
     gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@x-gmeow-english ;
     gmeow:hasPart ex:corpus-lillith ;
@@ -21,47 +22,71 @@ ex:lillith-benchmark a gmeow:Dataset ;
     gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
     gmeow:version "1.0.0"^^xsd:string ;
-    gmeow:citeAs "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+    gmeow:citeAs "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The Lillith GraphRAG benchmark dataset: the top-level catalog record the worked example's research-object exports (Croissant, RO-Crate, DCAT, DataCite, Frictionless) read their metadata from."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:lillith-license a gmeow:License ;
-    rdfs:label "CC BY 4.0"@en ;
+    rdfs:label "CC BY 4.0"@x-gmeow-english ;
     gmeow:licensor ex:blackcat ;
     gmeow:licensedWork ex:lillith-benchmark ;
     gmeow:licenseFamily gmeow:licenseFamilyCC ;
     gmeow:spdxLicenseId "CC-BY-4.0" ;
-    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
+    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The CC BY 4.0 licence terms under which the Lillith GraphRAG benchmark dataset is published."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:blackcat a gmeow:Organization ;
-    rdfs:label "Blackcat Informatics® Inc."@en .
+    rdfs:label "Blackcat Informatics® Inc."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "Blackcat Informatics® Inc., the organization that authored and licenses the Lillith GraphRAG benchmark dataset and pipeline."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The ingest provenance the catalog projections flatten to PROV.
 ex:lillith-ingest a gmeow:ImportActivity ;
-    rdfs:label "lillith corpus ingest"@en ;
+    rdfs:label "lillith corpus ingest"@x-gmeow-english ;
     gmeow:ingestedAt "2026-06-01T09:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The corpus-ingest activity that brought the Lillith working corpus into the benchmark pipeline, flattened by the catalog projections to PROV import provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # --- The pipeline run as a verifiable workflow (Workflow Run Crate model, the Workflow
 # Run Crate substrate): the extraction pipeline lives in a repository, its
 # workflow definition is the buildConfigUri, the run is a BuildActivity
 # performed by a Builder, and the published crate is the Distribution.
 ex:pipeline-repo a gmeow:Repository ;
-    rdfs:label "lillith-pipeline repository"@en ;
+    rdfs:label "lillith-pipeline repository"@x-gmeow-english ;
     gmeow:repositoryType gmeow:repoTypeGit ;
     gmeow:cloneUrl "https://example.org/lillith-pipeline.git";
-    gmeow:webUrl "https://example.org/lillith-pipeline".
+    gmeow:webUrl "https://example.org/lillith-pipeline";
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The git repository holding the Lillith extraction pipeline's workflow definition — the Workflow Run Crate model's buildConfigUri source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:pipeline-runner a gmeow:Builder ;
-    rdfs:label "lillith pipeline runner"@en .
+    rdfs:label "lillith pipeline runner"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The builder agent that executed the Lillith benchmark pipeline run."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:pipeline-run a gmeow:BuildActivity ;
-    rdfs:label "lillith benchmark pipeline run 2026-06-02"@en ;
+    rdfs:label "lillith benchmark pipeline run 2026-06-02"@x-gmeow-english ;
     gmeow:buildSource ex:pipeline-repo ;
     gmeow:buildOutput ex:lillith-crate ;
     gmeow:buildConfigUri "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml";
     gmeow:hasParticipant ex:pipeline-runner ;
     gmeow:eventTime "2026-06-02T08:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The 2026-06-02 build activity that ran the Lillith extraction pipeline against ex:pipeline-repo, producing the published ex:lillith-crate distribution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:lillith-crate a gmeow:Distribution ;
-    rdfs:label "lillith.crate.zip"@en ;
-    gmeow:contentDigest "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66" .
+    rdfs:label "lillith.crate.zip"@x-gmeow-english ;
+    gmeow:contentDigest "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+    skos:definition "The published Lillith benchmark distribution archive (lillith.crate.zip), the Workflow Run Crate's build output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
