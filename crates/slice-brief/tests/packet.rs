@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Light behavioural tests over the `slices/grounding/logic` fixture — the one
-//! slice that ships fr/zh `.po` catalogs AND external `gmeow:TermEquivalence`
-//! alignments, so the cross-lingual JOIN, the explicit-absent record, the batch
-//! hard-fail, exemplar shortfall, and determinism are all exercised on real data.
+//! Light behavioural tests over the `slices/grounding/logic` slice — it ships
+//! fr/zh `.po` catalogs AND external `gmeow:TermEquivalence` alignments, so the
+//! cross-lingual JOIN (present cell), the batch hard-fail, exemplar shortfall, and
+//! determinism are exercised on real data. The one case `logic` can no longer
+//! demonstrate — an EXPLICIT-ABSENT zh incidence, now that `logic` is fully
+//! fr/zh-covered — is exercised on a dedicated intentionally-incomplete fixture
+//! (`tests/fixtures/partial-zh-grounding`).
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -15,6 +18,15 @@ const RULE: &str = "https://blackcatinformatics.ca/logic/Rule";
 
 fn logic_slice_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic")
+}
+
+/// A test-only fixture slice that deliberately ships an INCOMPLETE zh catalog
+/// (fr covers both terms; zh omits one). The live `logic` slice now has full
+/// fr/zh coverage, so it no longer carries any absent-zh incidence — this fixture
+/// is the durable source of the explicit-absent case, independent of any shipped
+/// slice's evolving translation coverage.
+fn partial_zh_fixture_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/partial-zh-grounding")
 }
 
 fn empty_tiers() -> BTreeMap<String, i64> {
@@ -64,11 +76,13 @@ fn fr_translation_joins_as_present_cell() {
 
 #[test]
 fn missing_zh_is_a_sparse_absent_count_not_a_materialized_cell() {
-    // The first sorted batch of the slice covers terms the zh catalog does not reach.
-    // In the sparse encoding their absence is NOT a materialized cell — it is recorded
-    // only by the packet's per-attribute absent count (packetZhAbsent) in the canonical
-    // turtle, while the on-demand JSON view still expands the explicit per-term absence.
-    let dir = logic_slice_dir();
+    // The fixture slice covers a term the zh catalog does not reach (fr present,
+    // zh absent). In the sparse encoding that absence is NOT a materialized cell —
+    // it is recorded only by the packet's per-attribute absent count (packetZhAbsent)
+    // in the canonical turtle, while the on-demand JSON view still expands the
+    // explicit per-term absence. A dedicated fixture (not the live logic slice,
+    // which is now fully fr/zh-covered) keeps this absent case durable.
+    let dir = partial_zh_fixture_dir();
     let tiers = empty_tiers();
     let inputs = BriefInputs {
         slice_dir: &dir,
