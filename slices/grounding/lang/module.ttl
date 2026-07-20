@@ -6868,6 +6868,188 @@ gmeow:gmnCandidateMathVectorUnbinding
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# --- Math plane: number-space signs (ℕ ℤ ℚ ℝ ℂ) --------------------------- #
+# The blackboard-bold number-space letters denote the canonical number-system
+# sets. Each is a constant sign (no fixity/precedence/arity). ℕ ℤ ℚ ℝ each cost
+# two pinned cl100k_base tokens against a one-token ASCII key, so the key wins on
+# token cost; ℂ ties its key but is Letterlike-confusable with Latin C, so the
+# key wins on the confusability safety basis. None mints an executable grapheme.
+
+gmeow:gmnFormMathNaturals
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN naturals named key `nat`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `nat` for the natural-number system math:naturalNumbers; the ℕ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathNaturals
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN naturals key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `nat` named key to math:naturalNumbers; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathNaturals ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:naturalNumbers ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathNaturals
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: naturals ℕ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the number-system set math:naturalNumbers rendered ℕ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:naturalNumbers ;
+    gmeow:gmnCandidateGlyph "ℕ" ;
+    gmeow:gmnAsciiFallback "nat" ;
+    gmeow:gmnSpokenLabel "the natural numbers" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The blackboard-bold ℕ fragments into two pinned cl100k_base tokens while the one-token `nat` key wins on token cost, so the Unicode sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathNaturals ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathIntegers
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN integers named key `int`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `int` for the integer system math:integers; the ℤ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathIntegers
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN integers key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `int` named key to math:integers; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathIntegers ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:integers ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathIntegers
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: integers ℤ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the number-system set math:integers rendered ℤ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:integers ;
+    gmeow:gmnCandidateGlyph "ℤ" ;
+    gmeow:gmnAsciiFallback "int" ;
+    gmeow:gmnSpokenLabel "the integers" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The blackboard-bold ℤ fragments into two pinned cl100k_base tokens while the one-token `int` key wins on token cost, so the Unicode sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathIntegers ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathRationals
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN rationals named key `rat`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `rat` for the rational system math:rationalNumbers; the ℚ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathRationals
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN rationals key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `rat` named key to math:rationalNumbers; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathRationals ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:rationalNumbers ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathRationals
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: rationals ℚ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the number-system set math:rationalNumbers rendered ℚ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:rationalNumbers ;
+    gmeow:gmnCandidateGlyph "ℚ" ;
+    gmeow:gmnAsciiFallback "rat" ;
+    gmeow:gmnSpokenLabel "the rational numbers" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The blackboard-bold ℚ fragments into two pinned cl100k_base tokens while the one-token `rat` key wins on token cost, so the Unicode sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathRationals ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathReals
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN reals named key `real`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `real` for the real system math:realNumbers; the ℝ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathReals
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN reals key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `real` named key to math:realNumbers; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathReals ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:realNumbers ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathReals
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: reals ℝ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the number-system set math:realNumbers rendered ℝ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:realNumbers ;
+    gmeow:gmnCandidateGlyph "ℝ" ;
+    gmeow:gmnAsciiFallback "real" ;
+    gmeow:gmnSpokenLabel "the real numbers" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The blackboard-bold ℝ fragments into two pinned cl100k_base tokens while the one-token `real` key wins on token cost, so the Unicode sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathReals ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathComplexNumbers
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN complex-numbers named key `cplx`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `cplx` for the complex system math:complexNumbers; the ℂ sign is retained as display notation because it is confusable with Latin C."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathComplexNumbers
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN complex-numbers key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `cplx` named key to math:complexNumbers; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathComplexNumbers ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:complexNumbers ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathComplexNumbers
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: complex numbers ℂ"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the number-system set math:complexNumbers rendered ℂ."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:complexNumbers ;
+    gmeow:gmnCandidateGlyph "ℂ" ;
+    gmeow:gmnAsciiFallback "cplx" ;
+    gmeow:gmnSpokenLabel "the complex numbers" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
+    gmeow:gmnDispositionRationale "The blackboard-bold ℂ costs the same two pinned cl100k_base tokens as the `cplx` key, so there is no token win; but ℂ is a Letterlike symbol visually confusable with Latin capital C, so the `cplx` key is retained on the confusability safety basis and ℂ adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathComplexNumbers ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # The IPA glyphs remain executable inside phonological surface content but are
 # semantically rejected as aliases for their denoted phone IRIs. This prevents
 # an identifier-shaped `k` or `t` from overlapping GMN's reference-token grammar.
