@@ -481,7 +481,8 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let (report, _adv) = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) =
+            validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.error_count(), 1);
         assert_eq!(
             report.metadata["shaclGatePassed"],
@@ -522,7 +523,8 @@ ex:RequiredShape a sh:NodeShape ;
     ] .
 "#,
         );
-        let (report, _adv) = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
+        let (report, _adv) =
+            validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
         assert_eq!(report.findings.len(), 1);
         let finding = &report.findings[0];
         assert!(
@@ -901,9 +903,12 @@ ex:RequiredShape a sh:NodeShape ;
             "the advisory finding must carry the Advisory standpoint: {advisory_finding:?}"
         );
         assert!(
-            !report.findings.iter().any(|f| f.severity == gmeow_errors::Severity::Info
-                && f.code.starts_with("shacl.")
-                && f.code != "shacl.clean"),
+            !report
+                .findings
+                .iter()
+                .any(|f| f.severity == gmeow_errors::Severity::Info
+                    && f.code.starts_with("shacl.")
+                    && f.code != "shacl.clean"),
             "the raw shacl.* Info constraint finding must be SUPPRESSED (re-projected as the \
              Note; only the informational shacl.clean record may remain): {report:?}"
         );

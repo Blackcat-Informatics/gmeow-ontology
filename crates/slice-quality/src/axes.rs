@@ -2134,10 +2134,16 @@ mod tests {
         )
         .expect("parse");
         let terms = advisory_constraint_terms(&ds);
-        assert_eq!(terms.len(), 1, "only the Info (advisory) constraint counts: {terms:?}");
+        assert_eq!(
+            terms.len(),
+            1,
+            "only the Info (advisory) constraint counts: {terms:?}"
+        );
         assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Foo"));
         assert!(
-            !terms.iter().any(|t| t.ends_with("Bar") || t.ends_with("Baz")),
+            !terms
+                .iter()
+                .any(|t| t.ends_with("Bar") || t.ends_with("Baz")),
             "a Violation (hard) or default-severity constraint is not advisory: {terms:?}"
         );
     }
@@ -2161,7 +2167,11 @@ mod tests {
             ScoringEnv::Repo,
         );
         let prose = slice_advice_prose(&ctx);
-        assert_eq!(prose.len(), 2, "only the two @x-gmeow-english cells: {prose:?}");
+        assert_eq!(
+            prose.len(),
+            2,
+            "only the two @x-gmeow-english cells: {prose:?}"
+        );
         assert!(prose.contains_key(&(
             "https://blackcatinformatics.ca/gmeow/Foo".to_owned(),
             ADVICE_AVOID_WHEN.to_owned()

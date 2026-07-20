@@ -843,7 +843,8 @@ impl ValidationRun {
         // merely because a rule exists. Find harvested findings via the "advisory-harvested"
         // tag. (CLI twin of the pipeline's result-based split; both build advisories through
         // `advisory::build_advisory`, so the two surfaces cannot drift.)
-        let advisory_shapes = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok();
+        let advisory_shapes =
+            purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).ok();
         let advisories = advisory_shapes
             .as_deref()
             .map(|shapes| crate::advisory::split_advisory_findings(&mut report, shapes, &dataset))

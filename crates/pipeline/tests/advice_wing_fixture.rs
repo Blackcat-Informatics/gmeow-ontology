@@ -73,7 +73,8 @@ fn compile_real_advisory_shapes() -> String {
         "parsing slices/grounding/logic/module.ttl must not raise error-grade diagnostics: {hard_diags:?}"
     );
 
-    let shapes_ttl = gmeow_logic_compile::projections::shapes::project_procedural_constraints(&program);
+    let shapes_ttl =
+        gmeow_logic_compile::projections::shapes::project_procedural_constraints(&program);
 
     // The shape must trace back to the REAL constraint: its own `logic:formalizes gmeow:Entity`,
     // `sh:severity sh:Info`, and its own verbatim `logic:message` (the shape's `sh:message`).
@@ -139,11 +140,12 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
     // the advisory's suggestion/guidance surfacing actually resolves.
     let module_path = repo_root().join("slices/grounding/logic/module.ttl");
     let kernel_path = repo_root().join("slices/core/kernel/module.ttl");
-    let mut ontology_bytes =
-        std::fs::read(&module_path).unwrap_or_else(|e| panic!("read {}: {e}", module_path.display()));
+    let mut ontology_bytes = std::fs::read(&module_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_path.display()));
     ontology_bytes.push(b'\n');
     ontology_bytes.extend(
-        std::fs::read(&kernel_path).unwrap_or_else(|e| panic!("read {}: {e}", kernel_path.display())),
+        std::fs::read(&kernel_path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", kernel_path.display())),
     );
     let ontology_dataset = purrdf::parse_dataset(&ontology_bytes, "text/turtle", None)
         .expect("the union of the logic + kernel modules must parse as Turtle");

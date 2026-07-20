@@ -568,9 +568,7 @@ pub fn split_advisory_findings(
                 .as_deref()
                 .is_some_and(|s| shape_formalizes(shapes, s).is_some());
         if is_advisory {
-            let focus = finding
-                .primary_location()
-                .and_then(|l| l.logical.clone());
+            let focus = finding.primary_location().and_then(|l| l.logical.clone());
             advisories.push(build_advisory(
                 shape_iri.as_deref(),
                 focus.as_deref(),
@@ -1069,7 +1067,10 @@ mod tests {
         assert_eq!(advisory.severity, Severity::Note);
         assert!(advisory.code.starts_with(crate::codes::ADVICE_FAMILY));
         assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
-        assert_eq!(advisory.message, "prefer a more specific sortal than bare gmeow:Entity");
+        assert_eq!(
+            advisory.message,
+            "prefer a more specific sortal than bare gmeow:Entity"
+        );
         assert!(advisory.tags.iter().any(|t| t == "advisory-harvested"));
         assert!(
             advisory
@@ -1116,13 +1117,26 @@ mod tests {
         let report = ValidationReport {
             conforms: false,
             results: vec![
-                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/a", "advice"),
-                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/b", "advice"),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/a",
+                    "advice",
+                ),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/b",
+                    "advice",
+                ),
             ],
         };
         let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
         assert_eq!(advisories.len(), 2);
-        assert_ne!(advisories[0].code, advisories[1].code, "distinct foci → distinct codes");
+        assert_ne!(
+            advisories[0].code, advisories[1].code,
+            "distinct foci → distinct codes"
+        );
         // No duplicate-code panic when both distinct-focus claims project to N-Quads.
         let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
         let _ = project_compliance_assessment(&claims, "https://ex/graph");
@@ -1143,8 +1157,18 @@ mod tests {
         let report = ValidationReport {
             conforms: false,
             results: vec![
-                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/dup", "advice"),
-                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/dup", "advice"),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/dup",
+                    "advice",
+                ),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/dup",
+                    "advice",
+                ),
             ],
         };
         let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);

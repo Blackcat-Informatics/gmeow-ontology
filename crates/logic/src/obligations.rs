@@ -1210,7 +1210,8 @@ mod tests {
         let avoid_when = "https://blackcatinformatics.ca/gmeow/avoidWhen";
         let field = "https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen";
         let term = "https://blackcatinformatics.ca/gmeow/Entity";
-        let prose = "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies.";
+        let prose =
+            "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies.";
         let constraint_store = |message: &str| {
             let ntriples = format!(
                 "<https://ex/adviceConstraint> <{rdf_type}> <{logic}Constraint> .\n\
