@@ -1021,6 +1021,28 @@ mod tests {
     }
 
     #[test]
+    fn advisory_candidate_avoidwhen_edit_surfaces_as_drift() {
+        // D3 (#762): an advisory recommendation candidate harvesting a gmeow:avoidWhen
+        // field is governed by the SAME source-hash drift gate as a hard axiom — the soft
+        // advisory tier is genuinely drift-verified, not merely present. A stale hash
+        // against edited avoidWhen prose must red exactly as the hard-axiom definition case
+        // does. The drift recompute keys only on the harvest triad, so category
+        // (CategoryRecommendation) and risk (RiskAdvisory) need not be set for coverage —
+        // authoring a gmeow:avoidWhen harvest is enough to bring the soft tier under the gate.
+        let term = "https://blackcatinformatics.ca/gmeow/Entity";
+        let prop = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+        let stale_hash = candidate_source_hash("The ORIGINAL reviewed avoidWhen prose.");
+        let edited_prose = "The avoidWhen prose after an un-reviewed edit.";
+        let store = harvested_candidate_store(term, prop, edited_prose, SOURCE_LANG, &stale_hash);
+        let findings = check_candidate_source_hash_drift(&store).expect("check runs");
+        let drift = findings
+            .iter()
+            .find(|f| f.code == "verify.candidate-hash.drift")
+            .expect("an advisory candidate's edited avoidWhen prose must surface as drift");
+        assert_eq!(drift.severity, Severity::Error);
+    }
+
+    #[test]
     fn projected_translation_is_not_hashed() {
         // Only the @x-gmeow-english source literal is the hashed text. A projected public
         // translation (@en) on the same field must be ignored: the term carries ONLY an
