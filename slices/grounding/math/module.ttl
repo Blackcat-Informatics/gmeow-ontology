@@ -2064,6 +2064,7 @@ math:forceMassExponent
     a owl:NamedIndividual , math:DimensionExponent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "force: mass exponent 1 (M¹)"@x-gmeow-english ;
+    skos:definition "The mass cell of the force dimension's exponent vector: math:massDimension raised to the exact-rational power 1/1. One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
     math:exponentOfDimension math:massDimension ;
     math:exponentNumerator 1 ; math:exponentDenominator 1 .
 
@@ -2071,6 +2072,7 @@ math:forceLengthExponent
     a owl:NamedIndividual , math:DimensionExponent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "force: length exponent 1 (L¹)"@x-gmeow-english ;
+    skos:definition "The length cell of the force dimension's exponent vector: math:lengthDimension raised to the exact-rational power 1/1. One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
     math:exponentOfDimension math:lengthDimension ;
     math:exponentNumerator 1 ; math:exponentDenominator 1 .
 
@@ -2078,6 +2080,7 @@ math:forceTimeExponent
     a owl:NamedIndividual , math:DimensionExponent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "force: time exponent −2 (T⁻²)"@x-gmeow-english ;
+    skos:definition "The time cell of the force dimension's exponent vector: math:timeDimension raised to the exact-rational power −2/1 (the inverse-square-time of Newton's second law). One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
     math:exponentOfDimension math:timeDimension ;
     math:exponentNumerator -2 ; math:exponentDenominator 1 .
 
