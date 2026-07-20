@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency: which candidates are judged a comparable TIE? Over the tie-cell pass scene this
+# returns exactly the one preferentially-equivalent pair, proving a tie is a first-class,
+# positively-asserted verdict (gmeow:preferentiallyEquivalentWith), distinct from a positive
+# incomparability and from an absent edge.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?a ?b WHERE {
+    ?a gmeow:preferentiallyEquivalentWith ?b .
+}
+ORDER BY ?a ?b

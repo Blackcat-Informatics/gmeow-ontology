@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — model-serving): the preference gmeow:deltaBaseArtifact leg
+# composes a gmeow:ModelConfigDelta with the model-serving gmeow:ModelArtifact reused by reference
+# (Principle 16). Over the model-delta-worked pass scene this returns exactly one row joining the
+# delta to its base checkpoint typed gmeow:ModelArtifact.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?baseArtifact WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:deltaBaseArtifact ?baseArtifact .
+    ?baseArtifact a gmeow:ModelArtifact .
+}
+ORDER BY ?delta

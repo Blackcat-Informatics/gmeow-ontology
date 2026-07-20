@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pass-witness scene: promotion RECOMMENDS, but grants NO activation authority (AC6).
+# A gmeow:PromotionReceipt recommends a learned gmeow:ModelConfigDelta advance and
+# cites its evidence — but it carries NO gmeow:grantsActivation edge
+# (gmeow:PromotionNotActivationConstraint). Activation is deferred to the AUTHORITATIVE
+# gmeow:ConsumerImprovementGate, whose gmeow:gateVerdict is gmeow:verdictHeld. The only
+# resource that actually grants activation is a separate activation record, and it is
+# gmeow:activationAuthorizedBy the held gate (gmeow:ActivationAuthorityConstraint) — the
+# promotion alone could never authorize it. Promotion ≠ activation authority.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The learned change under decision (a COMPLETE, content-addressed delta) --- #
+# The promotion recommends a REAL delta, so it binds all eleven mandatory identity legs
+# (gmeow:ModelConfigDeltaCompletenessConstraint, AC5) — a partial delta is not a
+# reproducible identity. The legs are reused by-reference at the instance level.
+ex:evalSpan a gmeow:EvidenceSpan ;
+    rdfs:label "evaluation evidence: the delta improves the held-out preference win-rate"@en .
+
+ex:dpoLoss a gmeow:DisclosedLossEntry ; gmeow:droppedRelation ex:flattenedEdge .
+ex:flattenedEdge a math:Relation .
+ex:dpoCand a gmeow:InformationObject .
+ex:dpoSet a gmeow:CandidateSet ; gmeow:hasCandidate ex:dpoCand .
+ex:rec1 a gmeow:DpoView ;
+    gmeow:projectionKind gmeow:projectionPairwise ;
+    gmeow:projectionSourceSet ex:dpoSet ;
+    gmeow:projectionDeterminism gmeow:determinismDeterministic ;
+    gmeow:tieBreakRule "chosen-over-rejected-stable" ;
+    gmeow:disclosesLoss ex:dpoLoss ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    gmeow:contentDigest "blake3:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d" .
+ex:baseCkpt a gmeow:InformationObject ; gmeow:contentDigest "blake3:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a" .
+ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest "blake3:1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b" .
+ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest "blake3:2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c" .
+ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest "blake3:4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e" .
+ex:sysPrompt a gmeow:Prompt ; gmeow:contentDigest "blake3:5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f" .
+ex:rubric1 a gmeow:Rubric ; gmeow:contentDigest "blake3:6060606060606060606060606060606060606060606060606060606060606060" .
+ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest "blake3:7171717171717171717171717171717171717171717171717171717171717171" .
+ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest "blake3:8282828282828282828282828282828282828282828282828282828282828282" .
+
+ex:delta1 a gmeow:ModelConfigDelta ;
+    rdfs:label "the learned model/config delta being decided about (all eleven legs bound)"@en ;
+    gmeow:deltaBaseArtifact ex:baseCkpt ;
+    gmeow:deltaTokenizer ex:tok1 ;
+    gmeow:deltaCodebook ex:cb1 ;
+    gmeow:deltaDatasetProjection ex:rec1 ;
+    gmeow:deltaSelectionQuery ex:sq1 ;
+    gmeow:deltaPromptIdentity ex:sysPrompt ;
+    gmeow:deltaRubricIdentity ex:rubric1 ;
+    gmeow:deltaEngine ex:eng1 ;
+    gmeow:deltaOptimizer ex:opt1 ;
+    gmeow:deltaSeed 42 ;
+    gmeow:deltaEvaluationEvidence ex:evalSpan ;
+    gmeow:contentDigest "blake3:93a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607182" .
+
+# --- The PROMOTION RECEIPT: recommends + cites, grants NOTHING ----------------- #
+# It carries receiptKind + provenance + evidence, and — critically — NO
+# gmeow:grantsActivation edge. It is a recommendation the consumer weighs.
+ex:promotion a gmeow:PromotionReceipt ;
+    rdfs:label "promotion: recommend the delta advance (recommendation only)"@en ;
+    gmeow:receiptKind gmeow:receiptKindPromotion ;
+    gmeow:wasDerivedFrom ex:delta1 ;
+    gmeow:groundedIn ex:evalSpan .
+
+# --- The AUTHORITATIVE consumer improvement gate (a held verdict) -------------- #
+ex:consumerTelemetry a gmeow:Standpoint ; rdfs:label "the consumer-telemetry vantage"@en .
+ex:gate a gmeow:ConsumerImprovementGate ;
+    rdfs:label "the authoritative consumer improvement gate — verdict HELD"@en ;
+    gmeow:vantage ex:consumerTelemetry ;
+    gmeow:gateVerdict gmeow:verdictHeld .
+
+# --- Activation is a SEPARATE act, authorized ONLY by the held gate ------------ #
+# The deployment (model-serving gmeow:ModelDeployment) is referenced at the instance
+# level only, typed as a core gmeow:InformationObject (Principle 16). The activation
+# record carries gmeow:grantsActivation and MUST be gmeow:activationAuthorizedBy the
+# held gate — never by the promotion receipt.
+ex:deployment a gmeow:InformationObject ;
+    rdfs:label "the serving deployment the delta would activate into"@en .
+
+ex:activation a gmeow:InformationObject ;
+    rdfs:label "the activation act — authorized by the held gate, not by the promotion"@en ;
+    gmeow:grantsActivation ex:deployment ;
+    gmeow:activationAuthorizedBy ex:gate .

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — provenance): the preference lifecycle rides the provenance
+# gmeow:wasDerivedFrom spine reused by reference (Principle 16). Over the promotion-worked pass
+# scene this returns exactly one row joining the gmeow:PromotionReceipt to the
+# gmeow:ModelConfigDelta it was derived from.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?receipt ?derivedFrom WHERE {
+    ?receipt a gmeow:PromotionReceipt ;
+        gmeow:wasDerivedFrom ?derivedFrom .
+    ?derivedFrom a gmeow:ModelConfigDelta .
+}
+ORDER BY ?receipt

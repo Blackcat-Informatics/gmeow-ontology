@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the GOVERNING gmeow:NoGlobalWinnerWithoutConsensusConstraint —
+# the F2 whole-base vantage-closure clause. The gmeow:ComparisonContext registers TWO
+# co-equal observations (ex:obsOne from evaluator one, ex:obsTwo from evaluator two), but
+# the gmeow:ConsensusSection is built from ONE evaluator's order and reconciles only
+# ex:obsOne — ex:obsTwo is a registered vantage the section never reconciles. The claim is
+# otherwise perfect: it is typed, asserts a winner, extends to a TYPED gmeow:ConsensusSection
+# bound to that context, and discharges a TYPED gmeow:DisagreementObstruction. Because the
+# section leaves a registered observation unreconciled (gmeow:ngwWholeBase's ¬∃-hole clause
+# fires), the ∀→∃(∧…∧¬∃) SPARQL constraint MUST reject it with shacl.SPARQLConstraintComponent
+# and NO other finding — a lone evaluator's section is not a whole-base H0 lift.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The closed candidate field ---------------------------------------------- #
+ex:candA a gmeow:InformationObject ; rdfs:label "candidate A"@en .
+ex:candB a gmeow:InformationObject ; rdfs:label "candidate B"@en .
+ex:candidates a gmeow:CandidateSet ; gmeow:hasCandidate ex:candA , ex:candB .
+
+# --- Two co-equal evaluator vantages, both registered on the context ---------- #
+ex:evalOne a gmeow:Standpoint ; rdfs:label "evaluator one"@en .
+ex:evalTwo a gmeow:Standpoint ; rdfs:label "evaluator two"@en .
+ex:goal a gmeow:Goal ; rdfs:label "select the strongest draft"@en .
+
+ex:ctx a gmeow:ComparisonContext ;
+    gmeow:contextTask ex:goal ;
+    gmeow:contentDigest "blake3:bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02" ;
+    gmeow:registersObservation ex:obsOne , ex:obsTwo .
+
+ex:featOne a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obsOne a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:evalOne ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:featOne ;
+    gmeow:observationPrefers ex:candA .
+
+ex:featTwo a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
+ex:obsTwo a gmeow:PreferenceObservation ;
+    gmeow:vantage ex:evalTwo ;
+    gmeow:comparisonContext ex:ctx ;
+    gmeow:observedFeature ex:featTwo ;
+    gmeow:observationPrefers ex:candB .
+
+# --- H0 lift + typed discharged obstruction ----------------------------------- #
+ex:h0 a math:GlobalSection .
+ex:h1 a math:GluingObstruction .
+ex:obstruction a gmeow:DisagreementObstruction ;
+    gmeow:obstructionClass ex:h1 .
+
+# --- The DEFECT: a single-vantage section reconciling only ex:obsOne ----------- #
+ex:sec a gmeow:ConsensusSection ;
+    rdfs:label "a lone-evaluator section that omits registered ex:obsTwo"@en ;
+    gmeow:consensusGlobalSection ex:h0 ;
+    gmeow:sectionContext ex:ctx ;
+    gmeow:reconcilesObservation ex:obsOne .          # <-- ex:obsTwo is registered but unreconciled
+
+ex:claim a gmeow:PreferenceClaim ;
+    gmeow:vantage ex:evalOne ;
+    gmeow:accordingTo ex:evalOne ;
+    gmeow:assertsGlobalWinner true ;
+    gmeow:extendsToConsensusSection ex:sec ;
+    gmeow:dischargesDisagreement ex:obstruction .

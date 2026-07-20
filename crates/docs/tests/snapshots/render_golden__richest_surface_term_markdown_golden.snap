@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 130
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -129,7 +128,7 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 
 ## Profiles
 
-- `claims` · `full` · `memory`
+- `claims` · `full` · `memory` · `narrative`
 
 ## Formal & academic
 

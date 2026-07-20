@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ProjectionObjectConflationConstraint (gmeow:ProjectionObjectConflation,
+# the semantic-topology ResultObjectConflation twin). The module authors this gate on
+# gmeow:PreferenceOrder: a gmeow:PreferenceOrder wrapper must REFERENCE a raw math:Relation
+# through gmeow:orderRelation, never itself be typed in the math: namespace. Here ex:order is
+# typed BOTH gmeow:PreferenceOrder AND math:Relation — the auditable wrapper conflated with the
+# pure mathematical referent. The ∀→¬∃ SPARQL constraint (matching the order's own rdf:type in
+# the math: namespace) MUST reject it with shacl.SPARQLConstraintComponent and NO other finding.
+# The order correctly references a distinct raw math:Relation through gmeow:orderRelation, so the
+# self-conflation is the sole violation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:rawRelation a math:Relation ; rdfs:label "the raw math:Relation the order should merely reference"@en .
+
+# The DEFECT: the order wrapper IS ALSO a raw math: object (conflation).
+ex:order a gmeow:PreferenceOrder , math:Relation ;      # <-- typed in the math: namespace
+    rdfs:label "a preference order conflated with a raw math:Relation"@en ;
+    gmeow:orderRelation ex:rawRelation .

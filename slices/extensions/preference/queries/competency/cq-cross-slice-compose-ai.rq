@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (cross-slice compose — ai): the preference gmeow:deltaPromptIdentity leg composes a
+# gmeow:ModelConfigDelta with the ai gmeow:Prompt reused by reference (Principle 16). Over the
+# model-delta-worked pass scene this returns exactly one row joining the delta to its system
+# prompt typed gmeow:Prompt.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?delta ?prompt WHERE {
+    ?delta a gmeow:ModelConfigDelta ;
+        gmeow:deltaPromptIdentity ?prompt .
+    ?prompt a gmeow:Prompt .
+}
+ORDER BY ?delta

@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency (AC3): the hard verifier axis and the soft preference axis are structurally
+# disjoint. Over the hard-fails-soft-high pass scene this returns exactly the candidate that
+# carries BOTH a HARD gmeow:verdictNotHeld verifier verdict AND a soft assessment — proving a
+# hard failure and a high soft score coexist without the soft score overriding the hard gate.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?candidate ?verdict ?assessment WHERE {
+    ?verdict a gmeow:VerifierVerdict ;
+        gmeow:verifiesCandidate ?candidate ;
+        gmeow:hardConstraintClass gmeow:constraintHardnessHard ;
+        gmeow:verifierOutcome gmeow:verdictNotHeld .
+    ?assessment gmeow:assessmentTarget ?candidate .
+}
+ORDER BY ?candidate
