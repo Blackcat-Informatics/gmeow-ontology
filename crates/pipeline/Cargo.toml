@@ -36,7 +36,7 @@ purrdf.workspace = true
 # validates `@id`/`@type`/predicate/graph IRIs through this, preserving the old
 # `oxigraph::model::NamedNode::new` Ok/Err discrimination (EPIC #906).
 # The gts ARCHIVE BOUNDARY only (#1132): GTS is exit-only — never an internal
-# pipeline transport. Every internal export leaf (export / yaml_ld / parquet /
+# pipeline transport. Every internal export leaf (export / yaml_ld /
 # schemas / okf / transcode) now reads the native `RdfDataset` carrier off the
 # snapshot product's bundle, NOT a gts `Graph`. This dep is scoped by discipline to
 # the three archive-boundary surfaces that legitimately read/write the gts package:

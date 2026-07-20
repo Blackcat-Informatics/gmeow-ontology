@@ -8,7 +8,7 @@
 //!
 //! # The single-pass property
 //!
-//! The fold-reading export leaves (lpg, metadata, export, okf, parquet) consume
+//! The fold-reading export leaves (lpg, metadata, export, okf) consume
 //! the in-memory `stage-snapshot` product — THIS run's freshly-composed
 //! `gmeow.gts` — rather than re-reading the committed file from disk. The sole
 //! [`crate::stages::gts_sink::GtsSinkStage`] re-emits those snapshot bytes as its
@@ -376,7 +376,6 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-okf", "okf"),
-        ("stage-export-parquet", "parquet"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }

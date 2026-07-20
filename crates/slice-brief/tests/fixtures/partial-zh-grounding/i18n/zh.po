@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: partial-zh-grounding-fixture, language: zh).
+# Test-only fixture: DELIBERATELY covers only Alpha's label — Beta's zh label is
+# absent, so batch-0 always carries an explicit-absent groundingZh incidence.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/partial-zh-grounding-fixture/Alpha|rdfs:label"
+msgid "Alpha"
+msgstr "阿尔法"

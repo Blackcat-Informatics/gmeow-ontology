@@ -4,12 +4,12 @@
 //! The gts-`Graph` arena read shape, materialized over the native carrier
 //! [`RdfDataset`].
 //!
-//! Several export leaves (`yaml_ld`, `parquet`) were written against the gts
+//! The export leaf `yaml_ld` was written against the gts
 //! in-memory `Graph` model: a flat term arena indexed by `usize` term id, `(s, p, o,
 //! g)` quad tuples, and the RDF 1.2 reifier / annotation side-tables. The carrier is
 //! the native [`RdfDataset`]; this ONE adapter materializes that shape from it so the
-//! deterministic projection bodies stay unchanged — rather than each leaf carrying a
-//! near-identical private shim. GTS is exit-only; the leaves read the carrier here.
+//! deterministic projection bodies stay unchanged — rather than the leaf carrying a
+//! near-identical private shim. GTS is exit-only; the leaf reads the carrier here.
 //!
 //! Blobs are deliberately absent: the carrier holds RDF only (blob payloads live in
 //! the gts archive by reference, never in the in-memory transport), so a leaf that
