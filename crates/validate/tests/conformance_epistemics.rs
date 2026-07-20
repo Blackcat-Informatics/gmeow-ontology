@@ -89,7 +89,7 @@ fn credence(store: &GraphStore, state: &str) -> f64 {
         .unwrap_or_else(|e| panic!("{state} credence {value:?} is not a decimal: {e}"))
 }
 
-// ── Task 1: belief-revision spine (derived original/revised partition) ─────────
+// ── Belief-revision spine (derived original/revised partition) ─────────────────
 
 /// A revision fixture reduced to its original (closed, suppressed) and revised
 /// (open, live) tenures/states/intervals, derived purely from graph structure.
@@ -360,7 +360,7 @@ fn flagship_example_parses_nonempty() {
     );
 }
 
-// ── Task 3: annotation completeness ────────────────────────────────────────────
+// ── Annotation completeness ────────────────────────────────────────────────────
 
 /// The named justification terms and the doxastic spine whose annotation
 /// completeness the deleted pytest pinned explicitly (`test_justification_terms_are_annotated`
@@ -462,7 +462,7 @@ fn justification_status_roster_is_exact() {
     );
 }
 
-// ── Task 4: SSSOM mapping-set membership ───────────────────────────────────────
+// ── SSSOM mapping-set membership ───────────────────────────────────────────────
 
 /// Every `subject_id` (column 1) across `generated/mappings/*.sssom.tsv`, skipping
 /// `#`-prefixed YAML metadata. Mirrors the reader in `conformance_standpoint.rs`.
@@ -516,7 +516,7 @@ fn epistemics_sssom_subjects_present() {
     );
 }
 
-// ── Task 6: corpus Principle-10 suppression law ────────────────────────────────
+// ── Corpus Principle-10 suppression law ────────────────────────────────────────
 
 /// Every `*.ttl` under the epistemics examples directory (sorted, non-empty).
 fn epistemics_example_files() -> Vec<PathBuf> {
