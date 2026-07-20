@@ -584,6 +584,10 @@ pub fn split_advisory_findings(
     }
     report.findings = retained;
     advisories.sort_by(|a, b| a.code.cmp(&b.code));
+    // One advice per (constraint, focus): collapse a shape matched more than once on the same
+    // focus (identical `advice.<shape-local>.<focus-digest>` code) so the claim emitter never sees
+    // a duplicate — mirrors `split_advisory_results`.
+    advisories.dedup_by(|a, b| a.code == b.code);
     advisories
 }
 
@@ -615,11 +619,15 @@ pub fn split_advisory_results(
         }
     }
     advisories.sort_by(|a, b| a.code.cmp(&b.code));
-    // Guard the producer invariant early with a clear message (project_compliance_assessment
-    // also hard-fails, but surfacing it here names the colliding advisory codes).
+    // One advice per (constraint, focus): the SAME advisory constraint matching the SAME focus
+    // node is ONE piece of advice, but the engine can surface it more than once (a shape present
+    // twice in the shape union, or duplicate SPARQL solution rows), and the code
+    // `advice.<shape-local>.<focus-digest>` is identical for those. Collapse them so the claim
+    // emitter never sees a duplicate code — otherwise `project_compliance_assessment` hard-fails.
+    advisories.dedup_by(|a, b| a.code == b.code);
     debug_assert!(
         advisories.windows(2).all(|w| w[0].code != w[1].code),
-        "advisory codes must be unique per (constraint, focus) match"
+        "advisory codes must be unique per (constraint, focus) match after dedup"
     );
     // Recompute conformance for the RETAINED set: advisory Info matches were the reason
     // the run was non-conforming iff they were the only results, but they never gate — so
@@ -1115,7 +1123,37 @@ mod tests {
         let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
         assert_eq!(advisories.len(), 2);
         assert_ne!(advisories[0].code, advisories[1].code, "distinct foci → distinct codes");
-        // No duplicate-code panic when both claims project to N-Quads.
+        // No duplicate-code panic when both distinct-focus claims project to N-Quads.
+        let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
+        let _ = project_compliance_assessment(&claims, "https://ex/graph");
+    }
+
+    /// The SAME advisory constraint matching the SAME focus more than once (a shape present twice
+    /// in the shape union, or duplicate SPARQL solution rows) is ONE advice: the duplicate
+    /// `advice.<shape>.<focus-digest>` results collapse to a single advisory, so the claim emitter
+    /// never sees a duplicate code (which would hard-fail `project_compliance_assessment`).
+    #[test]
+    fn split_advisory_dedups_duplicate_shape_focus_matches() {
+        let shapes = purrdf::parse_dataset(
+            b"<https://ex/advShape> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Entity> .\n",
+            "application/n-triples",
+            None,
+        )
+        .expect("shapes parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/dup", "advice"),
+                result(ShaclSeverity::Info, "https://ex/advShape", "https://data/dup", "advice"),
+            ],
+        };
+        let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
+        assert_eq!(
+            advisories.len(),
+            1,
+            "duplicate (shape, focus) Info matches must collapse to one advisory: {advisories:?}"
+        );
+        // And the collapsed set projects to N-Quads with no duplicate-code panic.
         let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
         let _ = project_compliance_assessment(&claims, "https://ex/graph");
     }

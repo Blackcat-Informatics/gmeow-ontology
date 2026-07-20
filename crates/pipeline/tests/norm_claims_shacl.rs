@@ -13,21 +13,17 @@
 //! dataset `make validate-gts` SHACL-checks — not merely present in the bundle but
 //! structurally invisible to the validator.
 //!
-//! Advice fires only on a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the
-//! shipped bundle's base graph is deliberately TBox-only, so `graph/norm-claims` carries no
-//! advisory-harvested `gmeow:ComplianceAssessment` here — the reified advice wing is
-//! honestly EMPTY in the shipped bundle. This test proves two things instead of asserting a
-//! specific harvested code:
-//!   1. Whatever `graph/norm-claims` DOES carry (if anything) SHACL-conforms against the
-//!      merged shape union — the re-homed fragment is well-formed as shipped.
-//!   2. No `gmeow:ComplianceAssessment` subject in it embeds an `advice.`-family code.
-//! Both hold vacuously true when the graph is empty or absent, which is the expected
-//! TBox-only state; the assertions below handle that case without panicking.
+//! Advice fires from a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the shipped
+//! bundle's base graph folds bare `gmeow:Entity` A-Box individuals that match the advisory guard,
+//! so `graph/norm-claims` DOES carry advisory-harvested `gmeow:ComplianceAssessment`s. This test
+//! proves two things, keyed on the `advice.` FAMILY rather than a specific harvested code:
+//!   1. `graph/norm-claims` carries at least one `gmeow:ComplianceAssessment` embedding an
+//!      `advice.`-family code (the reified advice wing SHIPS).
+//!   2. That re-homed fragment SHACL-conforms against the merged shape union — well-formed as
+//!      shipped, and structurally visible to `make validate-gts`, not just present in the bundle.
 //!
-//! The falsifiable non-vacuity proof that the advisory machinery — including its derived
-//! SHACL shape — genuinely fires on real data lives in `advice_wing_fixture.rs`, which
-//! supplies its own TEST-ONLY anti-pattern individual and drives the whole
-//! compile → validate → split → project pipeline over it end to end.
+//! The isolated, deterministic proof over a controlled fixture — including the derived SHACL
+//! shape firing on a supplied anti-pattern individual — lives in `advice_wing_fixture.rs`.
 //!
 //! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle AND the
 //! post-sync `generated/shapes/*.ttl` shape union (`purrdf::shapes::shape_union::shape_files`
@@ -41,9 +37,8 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
-/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the
-/// string this test proves is ABSENT from any `gmeow:ComplianceAssessment` subject IRI in the
-/// shipped bundle's `graph/norm-claims`.
+/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the family
+/// this test proves SHIPS (and SHACL-conforms) in the bundle's `graph/norm-claims`.
 const ADVICE_FAMILY: &str = "advice.";
 
 fn repo_root() -> PathBuf {
@@ -132,20 +127,19 @@ fn merged_shapes_ttl(root: &Path) -> String {
     out
 }
 
-/// The honest invariant: whatever the shipped `graph/norm-claims` carries (if anything)
-/// SHACL-conforms against the merged shape union, and none of it is an advisory-harvested
-/// `gmeow:ComplianceAssessment` (no subject IRI embeds an `advice.`-family code). Both hold
-/// vacuously when the graph is absent/empty, which is the expected state for the TBox-only
-/// shipped bundle (see the module docs).
+/// The invariant: the shipped `graph/norm-claims` carries at least one advisory-harvested
+/// `gmeow:ComplianceAssessment` (an `advice.`-family code in its subject IRI — the reified advice
+/// wing SHIPS), and the whole re-homed fragment SHACL-conforms against the merged shape union,
+/// exactly as `make validate-gts` re-homes and checks it.
 #[test]
-fn shipped_norm_claims_conforms_and_carries_no_advisory_compliance_assessment() {
+fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment() {
     let root = repo_root();
 
-    let Some(graph) = norm_claims_only_graph() else {
-        // Absent or empty graph/norm-claims: the honest invariant holds vacuously — there is
-        // no content, so certainly no advisory-harvested ComplianceAssessment among it.
-        return;
-    };
+    let graph = norm_claims_only_graph().expect(
+        "the shipped bundle's graph/norm-claims must be present and non-empty — the base graph \
+         folds bare gmeow:Entity individuals that match the advisory guard, so the reified advice \
+         wing ships",
+    );
 
     let triples = graph_triples(&graph);
 
@@ -157,14 +151,13 @@ fn shipped_norm_claims_conforms_and_carries_no_advisory_compliance_assessment() 
         .filter(|s| s.contains(ADVICE_FAMILY))
         .collect();
     assert!(
-        advisory_assessment_subjects.is_empty(),
-        "the TBox-only shipped bundle's graph/norm-claims must carry NO \
-         gmeow:ComplianceAssessment whose IRI embeds an `{ADVICE_FAMILY}` code; found: \
-         {advisory_assessment_subjects:?}"
+        !advisory_assessment_subjects.is_empty(),
+        "the shipped bundle's graph/norm-claims must carry at least one gmeow:ComplianceAssessment \
+         whose IRI embeds an `{ADVICE_FAMILY}` code (the reified advice wing must ship)"
     );
 
-    // Whatever non-advisory content graph/norm-claims DOES carry must still SHACL-conform
-    // against the merged shape union, re-homed exactly as `make validate-gts` re-homes it.
+    // The re-homed graph/norm-claims fragment must SHACL-conform against the merged shape union,
+    // re-homed exactly as `make validate-gts` re-homes it.
     let shapes_ttl = merged_shapes_ttl(&root);
     let shapes =
         purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("parse the merged shape union");

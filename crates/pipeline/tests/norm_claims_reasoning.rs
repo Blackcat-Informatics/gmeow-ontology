@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Reasoning-reuse acceptance test over the SHIPPED bundle's `graph/norm-claims` — honestly
-//! EMPTY of advice content.
+//! Reasoning-reuse acceptance test over the SHIPPED bundle's `graph/norm-claims`.
 //!
 //! Models `crates/logic/tests/ontology_entailments.rs`'s scoped-closure pattern: union a
 //! small TBox with a small A-Box in one default-graph world and close it under the native
@@ -10,23 +9,18 @@
 //! `graph/norm-claims` named graph read back from the SHIPPED `generated/dist/gmeow.gts`; the
 //! TBox is `slices/extensions/norms/module.ttl`.
 //!
-//! Advice fires only on a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the
-//! shipped bundle's base graph is deliberately TBox-only, so `graph/norm-claims` carries no
-//! advisory-harvested `gmeow:ComplianceAssessment` / `gmeow:Event` / `gmeow:Norm` triple here
-//! — the reified advice wing is honestly EMPTY. This test asserts that honest absence
-//! (rather than a specific harvested code no producer emits any more) and, when the A-Box is
-//! non-empty for any other reason, proves the native OWL 2 RL reasoner still consumes it
-//! without error — reasoning-consumability is a property of the TBox/reader, not of any one
-//! demonstrator individual.
+//! Advice fires from a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the shipped
+//! bundle's base graph folds bare `gmeow:Entity` A-Box individuals that match the advisory guard,
+//! so `graph/norm-claims` DOES carry advisory-harvested `gmeow:ComplianceAssessment` content. This
+//! test asserts the wing SHIPS (at least one `advice.`-family `ComplianceAssessment`, keyed on the
+//! family rather than a per-focus-digest code) AND that the native OWL 2 RL reasoner unions + closes
+//! that real A-Box with the `norms` TBox without error — the emitted claim is genuinely
+//! reasoning-consumable content, not inert bytes.
 //!
-//! The positive proof that a REAL advisory event's `ComplianceAssessment` is genuinely
-//! reasoning-consumable content (entailing `gmeow:observedFeature` / `rdf:type
-//! gmeow:Observation` authored nowhere in the emitted claim) lives in `advice_wing_fixture.rs`,
-//! which supplies its own TEST-ONLY anti-pattern individual and drives the whole
-//! compile → validate → split → project pipeline over it.
+//! The isolated, deterministic proof over a controlled fixture lives in `advice_wing_fixture.rs`.
 //!
-//! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle — it runs
-//! green only after `make sync`.
+//! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle — it runs green only
+//! after `make sync`.
 
 use std::path::{Path, PathBuf};
 
@@ -38,9 +32,8 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
-/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the
-/// string this test proves is ABSENT from any `gmeow:ComplianceAssessment` subject IRI in the
-/// shipped bundle's `graph/norm-claims` A-Box.
+/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the family
+/// this test proves SHIPS (and reasons cleanly) in the bundle's `graph/norm-claims` A-Box.
 const ADVICE_FAMILY: &str = "advice.";
 
 fn repo_root() -> PathBuf {
@@ -114,16 +107,18 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
     builder.freeze().expect("valid TBox+ABox dataset")
 }
 
-/// The honest invariant (G1 rework): the shipped `graph/norm-claims` A-Box carries no
-/// advisory-harvested `gmeow:ComplianceAssessment` (no subject IRI embeds an `advice.`-family
-/// code) — vacuously true when the graph is absent/empty, the expected state for the
-/// TBox-only shipped bundle. When the A-Box DOES carry other content, the native OWL 2 RL
-/// reasoner must still union + close it with the `norms` TBox without error, proving
-/// reasoning-consumability is a property of the reader/TBox pairing, not of any one
-/// demonstrator individual.
+/// The invariant: the shipped `graph/norm-claims` A-Box carries at least one advisory-harvested
+/// `gmeow:ComplianceAssessment` (an `advice.`-family code in its subject IRI — the wing ships), and
+/// the native OWL 2 RL reasoner unions + closes that real A-Box with the `norms` TBox without error
+/// — the emitted claim is genuinely reasoning-consumable content.
 #[test]
-fn shipped_norm_claims_abox_carries_no_advisory_assessment_and_reasons_cleanly() {
+fn shipped_norm_claims_abox_carries_the_advisory_assessment_and_reasons_cleanly() {
     let abox = norm_claims_abox_quads();
+    assert!(
+        !abox.is_empty(),
+        "the shipped bundle's graph/norm-claims A-Box must be non-empty — the base graph folds \
+         bare gmeow:Entity individuals that match the advisory guard, so the advice wing ships"
+    );
 
     let assessment_class = gmeow_iri("ComplianceAssessment");
     let advisory_assessments: Vec<&str> = abox
@@ -138,17 +133,10 @@ fn shipped_norm_claims_abox_carries_no_advisory_assessment_and_reasons_cleanly()
         })
         .collect();
     assert!(
-        advisory_assessments.is_empty(),
-        "the TBox-only shipped bundle's graph/norm-claims A-Box must carry NO \
-         gmeow:ComplianceAssessment whose IRI embeds an `{ADVICE_FAMILY}` code; found: \
-         {advisory_assessments:?}"
+        !advisory_assessments.is_empty(),
+        "the shipped bundle's graph/norm-claims A-Box must carry at least one \
+         gmeow:ComplianceAssessment whose IRI embeds an `{ADVICE_FAMILY}` code (the wing ships)"
     );
-
-    if abox.is_empty() {
-        // Absent or empty graph/norm-claims: the honest invariant holds vacuously, and there
-        // is no content to union + close — nothing further to prove here.
-        return;
-    }
 
     let tbox = turtle_quads(&["slices/extensions/norms/module.ttl"]);
 
