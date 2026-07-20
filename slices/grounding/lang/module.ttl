@@ -6883,6 +6883,13 @@ gmeow:gmnCandidateMathVectorUnbinding
 # two pinned cl100k_base tokens against a one-token ASCII key, so the key wins on
 # token cost; ℂ ties its key but is Letterlike-confusable with Latin C, so the
 # key wins on the confusability safety basis. None mints an executable grapheme.
+# NFC decision (E9): the codec/digest canonical-codepoint gate is NFC, not NFKC.
+# Under NFC the blackboard-bold letters ℕ ℤ ℚ ℝ ℂ (U+2115 U+2124 U+211A U+211D
+# U+2102) survive as distinct Letterlike codepoints; under NFKC they would fold to
+# the ambiguous Latin capitals N Z Q R C. The gate being NFC is exactly why the
+# signs remain reproducible display notation while the multi-character keys win —
+# the decision is authored here, not assumed, so AC2's codepoint-canonical leg is
+# a stated ruling.
 
 gmeow:gmnFormMathNaturals
     a lang:Form ;
@@ -7056,6 +7063,205 @@ gmeow:gmnCandidateMathComplexNumbers
     gmeow:gmnDispositionBasis gmeow:gmnBasisConfusability ;
     gmeow:gmnDispositionRationale "The blackboard-bold ℂ costs the same two pinned cl100k_base tokens as the `cplx` key, so there is no token win; but ℂ is a Letterlike symbol visually confusable with Latin capital C, so the `cplx` key is retained on the confusability safety basis and ℂ adopts no glyph." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenMathComplexNumbers ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Math plane: extended real line ℝ̄ and its poles ±∞ ------------------- #
+# The sixth number system math:ExtendedRealLine (ℝ̄ = ℝ ∪ {−∞, +∞}, a
+# math:NumberSystem individual sibling to the five above) and its two poles
+# math:PositiveInfinity / math:NegativeInfinity. Each rendering (ℝ̄, the signed
+# ∞ forms) fragments under the pinned BPE, so the one-token keys win — no glyph is
+# adopted. Including them keeps the number-system audit set complete (no silent
+# gap for the extended line the interval and measure machinery already ranges
+# over).
+
+gmeow:gmnFormMathExtendedRealLine
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN extended-real-line named key `extreal`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `extreal` for the signed extended real line math:ExtendedRealLine; the ℝ̄ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathExtendedRealLine
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN extended-real-line key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `extreal` named key to math:ExtendedRealLine; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathExtendedRealLine ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:ExtendedRealLine ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathExtendedRealLine
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: extended real line ℝ̄"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the signed extended real line math:ExtendedRealLine rendered ℝ̄."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:ExtendedRealLine ;
+    gmeow:gmnCandidateGlyph "ℝ̄" ;
+    gmeow:gmnAsciiFallback "extreal" ;
+    gmeow:gmnSpokenLabel "the extended real line" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The R-with-overbar ℝ̄ is a base letter plus a combining overline that fragments into multiple pinned cl100k_base tokens while the one-token `extreal` key wins on token cost, so the sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathExtendedRealLine ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathPositiveInfinity
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN positive-infinity named key `posinf`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `posinf` for the positive pole math:PositiveInfinity; the signed +∞ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathPositiveInfinity
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN positive-infinity key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `posinf` named key to math:PositiveInfinity; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathPositiveInfinity ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:PositiveInfinity ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathPositiveInfinity
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: positive infinity +∞"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the positive pole math:PositiveInfinity rendered +∞."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:PositiveInfinity ;
+    gmeow:gmnCandidateGlyph "+∞" ;
+    gmeow:gmnAsciiFallback "posinf" ;
+    gmeow:gmnSpokenLabel "positive infinity" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The signed +∞ display is the plus sign plus the infinity glyph U+221E, fragmenting into multiple pinned cl100k_base tokens while the one-token `posinf` key wins on token cost and names the pole unambiguously (a bare ∞ cannot say which pole is meant), so the sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathPositiveInfinity ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathNegativeInfinity
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN negative-infinity named key `neginf`"@x-gmeow-english ;
+    skos:definition "The constant GMN named-key form `neginf` for the negative pole math:NegativeInfinity; the signed −∞ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathNegativeInfinity
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN negative-infinity key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `neginf` named key to math:NegativeInfinity; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathNegativeInfinity ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:NegativeInfinity ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathNegativeInfinity
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: negative infinity −∞"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the negative pole math:NegativeInfinity rendered −∞."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:NegativeInfinity ;
+    gmeow:gmnCandidateGlyph "−∞" ;
+    gmeow:gmnAsciiFallback "neginf" ;
+    gmeow:gmnSpokenLabel "negative infinity" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The signed −∞ display is the minus sign U+2212 plus the infinity glyph U+221E, fragmenting into multiple pinned cl100k_base tokens while the one-token `neginf` key wins on token cost and names the pole unambiguously (a bare ∞ cannot say which pole is meant), so the sign remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathNegativeInfinity ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Math plane: number-TYPE classes (element classes ℕ ℤ ℚ ℝ ℂ) --------- #
+# The blackboard-bold letters primarily name the number-system SET individuals
+# (math:naturalNumbers … math:complexNumbers, ruled above as named keys). The
+# co-extensional element-TYPE classes (math:NaturalNumber … math:ComplexNumber)
+# share the same glyph, so a flat reference sign cannot say whether ℕ means "the
+# set" or "is a natural number"; the element class is reached structurally through
+# membership (x ∈ ℕ), so each type class is an audited structured constructor with
+# no independent glyph — closing the number audit set with no silent gap and no
+# key/grapheme collision against the set keys `nat`/`int`/`rat`/`real`/`cplx`.
+
+gmeow:gmnCandidateMathNaturalNumberClass
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: the natural-number class ℕ"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the element class math:NaturalNumber."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:NaturalNumber ;
+    gmeow:gmnCandidateGlyph "ℕ" ;
+    gmeow:gmnAsciiFallback "is_nat" ;
+    gmeow:gmnSpokenLabel "is a natural number" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The glyph ℕ already names the number-system set individual math:naturalNumbers; the co-extensional element class math:NaturalNumber shares that glyph, so a flat reference sign cannot disambiguate set-membership from set-identity — the class is reached structurally through membership and adopts no independent glyph." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathIntegerClass
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: the integer class ℤ"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the element class math:Integer."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:Integer ;
+    gmeow:gmnCandidateGlyph "ℤ" ;
+    gmeow:gmnAsciiFallback "is_int" ;
+    gmeow:gmnSpokenLabel "is an integer" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The glyph ℤ already names the number-system set individual math:integers; the co-extensional element class math:Integer shares that glyph, so a flat reference sign cannot disambiguate set-membership from set-identity — the class is reached structurally through membership and adopts no independent glyph." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathRationalNumberClass
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: the rational-number class ℚ"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the element class math:RationalNumber."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:RationalNumber ;
+    gmeow:gmnCandidateGlyph "ℚ" ;
+    gmeow:gmnAsciiFallback "is_rat" ;
+    gmeow:gmnSpokenLabel "is a rational number" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The glyph ℚ already names the number-system set individual math:rationalNumbers; the co-extensional element class math:RationalNumber shares that glyph, so a flat reference sign cannot disambiguate set-membership from set-identity — the class is reached structurally through membership and adopts no independent glyph." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathRealNumberClass
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: the real-number class ℝ"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the element class math:RealNumber."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:RealNumber ;
+    gmeow:gmnCandidateGlyph "ℝ" ;
+    gmeow:gmnAsciiFallback "is_real" ;
+    gmeow:gmnSpokenLabel "is a real number" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The glyph ℝ already names the number-system set individual math:realNumbers; the co-extensional element class math:RealNumber shares that glyph, so a flat reference sign cannot disambiguate set-membership from set-identity — the class is reached structurally through membership and adopts no independent glyph." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathComplexNumberClass
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: the complex-number class ℂ"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for the element class math:ComplexNumber."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:ComplexNumber ;
+    gmeow:gmnCandidateGlyph "ℂ" ;
+    gmeow:gmnAsciiFallback "is_cplx" ;
+    gmeow:gmnSpokenLabel "is a complex number" ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "The glyph ℂ already names the number-system set individual math:complexNumbers; the co-extensional element class math:ComplexNumber shares that glyph, so a flat reference sign cannot disambiguate set-membership from set-identity — the class is reached structurally through membership and adopts no independent glyph." ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -7345,6 +7551,169 @@ gmeow:gmnCandidateMathOpenEndpoint
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+# --- Math plane: set/order operator families (⊂ ⊇ ⊃ ≤ ≥) ------------------ #
+# Closing the containment and order families around the named examples above.
+# ⊇ binds the non-strict superset relation math:supersetRel and ≤ ≥ bind the
+# non-strict order relations math:lessOrEqualRel / math:greaterOrEqualRel as
+# named keys (each fragments under the pinned BPE, so the one-token key wins).
+# The proper (strict) forms ⊂ ⊃ have no distinct strict-containment target —
+# math:subsetOf / math:supersetRel are the non-strict relations — so a flat glyph
+# cannot carry the strictness (proper = containment ∧ not-equal); each is a
+# structured constructor over its non-strict relation. Equality = and inequality
+# ≠ are NOT math-plane signs: identity is owl:sameAs / logic non-identity, owned
+# by the RDF and logic planes, and math: mints no equality relation — so the math
+# plane adopts no sign for them and they carry no candidate (a targetless row is
+# ill-formed). This closes the R2/E7 families with no silent gap.
+
+gmeow:gmnFormMathSupersetOf
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN superset named key `supseteq`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `supseteq` for the non-strict superset relation math:supersetRel at the relational precedence band; the ⊇ sign is retained as display notation because it fragments under the pinned BPE."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathSupersetOf
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN superset key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `supseteq` named key to math:supersetRel; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathSupersetOf ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:supersetRel ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathSupersetOf
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: superset ⊇"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the non-strict superset relation math:supersetRel rendered ⊇."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:supersetRel ;
+    gmeow:gmnCandidateGlyph "⊇" ;
+    gmeow:gmnAsciiFallback "supseteq" ;
+    gmeow:gmnSpokenLabel "is a superset of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The superset sign ⊇ fragments into two pinned cl100k_base tokens while the one-token `supseteq` key wins on token cost, so ⊇ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathSupersetOf ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathLessOrEqual
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN less-or-equal named key `leq`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `leq` for the non-strict order relation math:lessOrEqualRel at the relational precedence band."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathLessOrEqual
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN less-or-equal key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `leq` named key to math:lessOrEqualRel; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathLessOrEqual ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:lessOrEqualRel ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathLessOrEqual
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: less-or-equal ≤"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the non-strict order relation math:lessOrEqualRel rendered ≤."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:lessOrEqualRel ;
+    gmeow:gmnCandidateGlyph "≤" ;
+    gmeow:gmnAsciiFallback "leq" ;
+    gmeow:gmnSpokenLabel "is less than or equal to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The less-or-equal sign ≤ fragments into two pinned cl100k_base tokens while the one-token `leq` key wins on token cost, so ≤ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathLessOrEqual ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormMathGreaterOrEqual
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN greater-or-equal named key `geq`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `geq` for the non-strict converse-order relation math:greaterOrEqualRel at the relational precedence band."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnPrecedence 50 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenMathGreaterOrEqual
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN greater-or-equal key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from the `geq` named key to math:greaterOrEqualRel; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormMathGreaterOrEqual ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget math:greaterOrEqualRel ;
+    lang:denotationContext gmeow:gmnMathGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathGreaterOrEqual
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: greater-or-equal ≥"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the non-strict converse-order relation math:greaterOrEqualRel rendered ≥."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:greaterOrEqualRel ;
+    gmeow:gmnCandidateGlyph "≥" ;
+    gmeow:gmnAsciiFallback "geq" ;
+    gmeow:gmnSpokenLabel "is greater than or equal to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The greater-or-equal sign ≥ fragments into two pinned cl100k_base tokens while the one-token `geq` key wins on token cost, so ≥ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenMathGreaterOrEqual ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathProperSubset
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: proper subset ⊂"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for proper (strict) subset rendered ⊂, over the non-strict relation math:subsetOf."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:subsetOf ;
+    gmeow:gmnCandidateGlyph "⊂" ;
+    gmeow:gmnAsciiFallback "propsubset" ;
+    gmeow:gmnSpokenLabel "is a proper subset of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "math: declares only the non-strict containment math:subsetOf; proper subset is math:subsetOf together with proper inequality, and a flat ⊂ glyph cannot carry the strictness qualifier, so GMN retains an explicit strict-containment constructor over math:subsetOf rather than adopting the sign." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateMathProperSuperset
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: proper superset ⊃"@x-gmeow-english ;
+    skos:definition "The audited structured-constructor ruling for proper (strict) superset rendered ⊃, over the non-strict relation math:supersetRel."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget math:supersetRel ;
+    gmeow:gmnCandidateGlyph "⊃" ;
+    gmeow:gmnAsciiFallback "propsupset" ;
+    gmeow:gmnSpokenLabel "is a proper superset of" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
+    gmeow:gmnDispositionRationale "math: declares only the non-strict containment math:supersetRel; proper superset is math:supersetRel together with proper inequality, and a flat ⊃ glyph cannot carry the strictness qualifier, so GMN retains an explicit strict-containment constructor over math:supersetRel rather than adopting the sign." ;
+    gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # --- Math plane: morphisms & category theory ------------------------------ #
 # The morphism arrow → is adopted (one pinned token, no penalty over its `to`
 # key) and scoped to @μ; the logic plane owns → as implication under @ℒ, so the
@@ -7514,6 +7883,13 @@ gmeow:gmnCandidateMathComplement
 # the positive superscripts ¹ ² ³ each measure one pinned token but the
 # superscript minus ⁻ fragments to two, and its ASCII fallback is the delimited
 # dimvec(...) grammar so a signed exponent round-trips unambiguously.
+# NFC decision (E9): the codepoint gate is NFC, not NFKC. Under NFC the
+# superscripts ¹ ² ³ ⁻ (U+00B9 U+00B2 U+00B3 U+207B) survive as distinct
+# codepoints; under NFKC they fold to the ordinary digits 1 2 3 and the hyphen —
+# which would collapse an exponent into the surrounding token stream. The gate
+# being NFC keeps the display superscripts distinct, but the ⁻ token
+# fragmentation is why the signed vector is ruled to the delimited dimvec(...)
+# constructor rather than adopted.
 
 gmeow:gmnFormMathLengthDimension
     a lang:Form ;
@@ -7771,7 +8147,7 @@ gmeow:gmnCandidateMathDimensionVector
     gmeow:gmnSpokenLabel "length mass per time squared" ;
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionStructuredConstructor ;
     gmeow:gmnDispositionBasis gmeow:gmnBasisAmbiguity ;
-    gmeow:gmnDispositionRationale "A derived dimension's canonical identity is its unordered set of math:DimensionExponent cells (base dimension, exact-rational power), not a flat display string; the base-dimension letters are GMN identifiers and, while the positive superscripts ¹ ² ³ each cost one pinned cl100k_base token, the superscript minus ⁻ fragments into two, so a signed exponent cannot be adopted. GMN therefore renders the vector with an explicit constructor whose delimited ASCII fallback dimvec(L=1,M=1,T=-2) round-trips through the structured cells unambiguously. The exponent-vector model and its coherent derived-unit products (e.g. the newton kg·m·s⁻²) follow ISO 80000; the component base units carry BIPM D-SI provenance in the math mappings." ;
+    gmeow:gmnDispositionRationale "A derived dimension's canonical identity is its unordered set of math:DimensionExponent cells (base dimension, exact-rational power), not a flat display string; the base-dimension letters are GMN identifiers and, while the positive superscripts ¹ ² ³ each cost one pinned cl100k_base token, the superscript minus ⁻ fragments into two, so a signed exponent cannot be adopted. GMN therefore renders the vector with an explicit constructor whose delimited ASCII fallback dimvec(L=1,M=1,T=-2) round-trips through the structured cells unambiguously. The exponent-vector model and its coherent derived-unit products (e.g. the newton kg·m·s⁻²) follow ISO 80000; the newton carries formal QUDT (qudt:unit/N, qudt:quantitykind/Force) and Wikidata provenance on math:forceDimension in the math mappings, and the component base units carry BIPM D-SI provenance there too." ;
     gmeow:cites gmeow:gmnOpenMathWork , gmeow:gmnUnicodeMathWork , gmeow:gmnIso80000Work ;
     gmeow:graphBoxRole gmeow:boxABox .
 
