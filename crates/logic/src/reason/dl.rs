@@ -149,10 +149,12 @@ const RDF_XML_LITERAL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLit
 // DL construct IRIs scanned for the native coverage inventory.
 const OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
 // `owl:InverseFunctionalProperty` needs an inverse-functional identity-merge clash
-// the native post-pass does not perform; it is out of the OWL 2 EL profile and
-// absent from the committed bundle + vendored on-gate corpus (measured), so
-// inventorying it and NEVER promoting it to `decided` surfaces any bundle asserting
-// it as an honest cannot-decide gap rather than a wrong `consistent`.
+// the native forward post-pass does not perform; it is out of the OWL 2 EL profile
+// and absent from the committed bundle + vendored on-gate corpus (measured). The
+// Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+// decides its pure assertional/identity fragment (the `1 = 2` collapse); outside
+// that fragment its presence stays an honest cannot-decide gap, never a wrong
+// `consistent`.
 //
 // `owl:hasSelf` is NOT inventoried here: it is IN the OWL 2 EL profile and the
 // vendored EL grade decides a benign `hasSelf` self-restriction typed onto an
@@ -302,9 +304,13 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "allDisjointClasses",
     ),
     (OWL_ALL_DIFFERENT, "owl:AllDifferent", "allDifferent"),
-    // No native inverse-functional identity-merge clash exists — never promoted to
-    // `decided` (out of EL, absent from the committed bundle + vendored on-gate
-    // corpus, so its presence is always an honest gap, never a silently-ignored axiom).
+    // No native inverse-functional identity-merge clash exists in the forward chase
+    // (out of EL, absent from the committed bundle + vendored on-gate corpus). The
+    // Family-6a counting refutation sub-decider ([`crate::reason::refute::counting`])
+    // wires the real inverse-functional `sameAs` propagation and its `differentFrom`
+    // clash, so `classify_coverage` promotes this family to `decided` exactly when
+    // that sub-decider completely decides the (pure assertional/identity) case —
+    // otherwise its presence stays an honest gap, never a silently-ignored axiom.
     (
         OWL_INVERSE_FUNCTIONAL_PROPERTY,
         "owl:InverseFunctionalProperty",
@@ -3613,20 +3619,30 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // sits in a class-definition position — never when it is `rdf:type`d onto an
     // individual (the Wave-A decided case). The committed bundle uses only exact
     // `cardinality 1` and qualified cardinalities, none in the withheld shape.
-    let restrictions = read_restrictions(edb);
-    let constraint_nodes = nodes_in_class_constraint_position(edb);
-    for ((world, node), r) in &restrictions {
-        if !constraint_nodes.contains(&(world.clone(), node.clone())) {
-            continue;
-        }
-        if r.min_cardinality.is_some() {
-            withholds.insert("minCardinality".to_owned());
-        }
-        if r.max_cardinality.is_some() {
-            withholds.insert("maxCardinality".to_owned());
-        }
-        if matches!(r.cardinality, Some(n) if n >= 2) {
-            withholds.insert("cardinality".to_owned());
+    // Family 2 — the counting sub-decider ([`crate::reason::refute::counting`]) now
+    // COMPLETELY decides the pure class-definition cardinality fragment (a collapsed
+    // `min > max` bound on a populated class materializes `owl:Nothing`; an
+    // uncollapsed one is certified consistent). When it decides the case, the
+    // cardinality families it accounts for stay `decided` rather than being demoted
+    // to an honest gap; the withhold is narrowed to exactly the residual (a case
+    // mixing cardinality with an existential/nominal/identity construct the
+    // sub-decider refuses) it cannot decide.
+    if !crate::reason::refute::counting::decides_cardinality(edb) {
+        let restrictions = read_restrictions(edb);
+        let constraint_nodes = nodes_in_class_constraint_position(edb);
+        for ((world, node), r) in &restrictions {
+            if !constraint_nodes.contains(&(world.clone(), node.clone())) {
+                continue;
+            }
+            if r.min_cardinality.is_some() {
+                withholds.insert("minCardinality".to_owned());
+            }
+            if r.max_cardinality.is_some() {
+                withholds.insert("maxCardinality".to_owned());
+            }
+            if matches!(r.cardinality, Some(n) if n >= 2) {
+                withholds.insert("cardinality".to_owned());
+            }
         }
     }
 
@@ -3679,7 +3695,16 @@ fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
     // class-constraint position needs the self-membership inference (`x p x ⇒ x ∈ ∃p.Self`)
     // the chase does not perform to see the clash. Withheld only in that refutation
     // position; the committed bundle asserts no `owl:hasSelf`.
-    if has_self_restriction_in_refutation_position(edb) {
+    // Family 7 — the counting sub-decider now decides the `owl:hasSelf` membership
+    // refutation: a self-edge (`x p x`) inhabiting a `∃p.Self` restriction that is
+    // `owl:disjointWith` a class `x` also holds materializes `owl:Nothing`. When the
+    // sub-decider decides the case (a clash, or a certified-consistent benign
+    // position), the withhold is dropped; it stays for the residual the sub-decider
+    // refuses (a self-restriction entangled with an existential/property-chain
+    // construct it does not fold in).
+    if has_self_restriction_in_refutation_position(edb)
+        && !crate::reason::refute::counting::decides_has_self(edb)
+    {
         withholds.insert("hasSelf".to_owned());
     }
 
@@ -4149,6 +4174,20 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         && crate::reason::refute::datatype::all_oneof_are_literal_enumerations(edb)
     {
         decided.insert("oneOf".to_owned());
+    }
+
+    // owl:InverseFunctionalProperty carries NO native identity-merge rule, so it was
+    // never promoted above (the chase cannot see the `1 = 2` collapse). The Family-6a
+    // counting sub-decider ([`crate::reason::refute::counting`]) now wires the real
+    // inverse-functional `sameAs` propagation: it merges the subjects that share a
+    // value and clashes a merged pair asserted `owl:differentFrom`. It certifies the
+    // family only for the PURE assertional/identity fragment (no class-construction
+    // vocabulary present); a case mixing IFP with a class definition it does not
+    // fold in is refused, so `inverseFunctionalProperty` stays an honest gap there.
+    if present_set.contains("inverseFunctionalProperty")
+        && crate::reason::refute::counting::decides_identity(edb)
+    {
+        decided.insert("inverseFunctionalProperty".to_owned());
     }
 
     // The universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`)
@@ -4811,17 +4850,56 @@ mod tests {
     }
 
     #[test]
-    fn min_cardinality_on_a_class_definition_is_withheld() {
-        // C ≡ (≥2 p): a TBox cardinality counting definition, not an ABox restriction
-        // typed onto an individual. Native decides the ABox counting clash (Wave A)
-        // but NOT the TBox-satisfiability counting ⇒ honest gap.
+    fn min_cardinality_on_a_class_definition_is_decided_consistent() {
+        // C ≡ (≥2 p): a pure TBox cardinality counting definition. The Family-2
+        // counting refutation sub-decider now COMPLETELY decides the pure
+        // class-definition cardinality fragment: an uncollapsed bound (no `min > max`
+        // conflict) on a class is satisfiable, so this is decided CONSISTENT with no
+        // honest gap — no longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, EQUIV_CLASS, R),
             quad(R, ON_PROPERTY, P),
             literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "minCardinality");
+        assert!(verdict.consistent, "an uncollapsed ≥2 definition is satisfiable");
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict.coverage.decided.iter().any(|d| d == "minCardinality"),
+            "the minCardinality family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    #[test]
+    fn collapsed_cardinality_on_a_populated_class_is_decided_inconsistent() {
+        // C ⊑ (≥2 p) ⊓ (≤1 p), i : C — the collapsed bound makes the populated class
+        // unsatisfiable, so the Family-2 sub-decider materializes `owl:Nothing` on the
+        // instance: decided INCONSISTENT with no honest gap.
+        let r2 = "http://gmeow.example/r2";
+        let store = dataset(vec![
+            quad(C, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(C, SUBCLASS, r2),
+            quad(r2, ON_PROPERTY, P),
+            literal_quad(r2, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, C),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "a collapsed min>max bound on a populated class is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the counting sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4919,9 +4997,11 @@ mod tests {
     }
 
     #[test]
-    fn hasself_disjoint_refutation_is_withheld() {
-        // C disjointWith [∃p.Self], x : C, x p x. The clash needs `x ∈ ∃p.Self`
-        // inferred from `x p x` ⇒ honest gap.
+    fn hasself_disjoint_refutation_is_decided_inconsistent() {
+        // C disjointWith [∃p.Self], x : C, x p x. The Family-7 counting sub-decider
+        // now infers `x ∈ ∃p.Self` from the self-edge and clashes it against the
+        // disjoint class x also holds: decided INCONSISTENT with no honest gap — no
+        // longer the pre-sub-decider withhold.
         let store = dataset(vec![
             quad(C, DISJOINT, R),
             quad(R, TYPE, "http://www.w3.org/2002/07/owl#Restriction"),
@@ -4936,7 +5016,15 @@ mod tests {
             quad(X, P, X),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "hasSelf");
+        assert!(
+            !verdict.consistent,
+            "a self-edge inhabiting a disjoint self-restriction is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the hasSelf sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]
@@ -4981,12 +5069,54 @@ mod tests {
     }
 
     #[test]
-    fn inverse_functional_property_is_withheld() {
-        // owl:InverseFunctionalProperty has no native identity-merge clash rule ⇒
-        // its presence is an honest gap.
+    fn inverse_functional_property_is_decided_consistent() {
+        // owl:InverseFunctionalProperty has no native identity-merge clash rule, but
+        // the Family-6a counting sub-decider now wires the real inverse-functional
+        // `sameAs` propagation. A single assertion with no distinctness merges
+        // nothing to clash — decided CONSISTENT with no honest gap (the pure
+        // assertional/identity fragment).
         let store = dataset(vec![quad(P, TYPE, INVERSE_FUNCTIONAL), quad(X, P, Y)]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
-        assert_withheld(&verdict, "inverseFunctionalProperty");
+        assert!(verdict.consistent, "a lone IFP assertion is consistent");
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider certifies this — no honest gap: {:?}",
+            verdict.gaps
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .iter()
+                .any(|d| d == "inverseFunctionalProperty"),
+            "the inverseFunctionalProperty family is promoted to decided: {:?}",
+            verdict.coverage
+        );
+    }
+
+    #[test]
+    fn inverse_functional_collapse_with_differentfrom_is_decided_inconsistent() {
+        // s1 p o, s2 p o, p IFP, s1 differentFrom s2 — the `1 = 2` collapse: the IFP
+        // merges s1 and s2, contradicting their asserted distinctness. Decided
+        // INCONSISTENT with no honest gap.
+        let s1 = "http://gmeow.example/s1";
+        let s2 = "http://gmeow.example/s2";
+        let store = dataset(vec![
+            quad(P, TYPE, INVERSE_FUNCTIONAL),
+            quad(s1, P, Y),
+            quad(s2, P, Y),
+            quad(s1, DIFFERENT_FROM, s2),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "an IFP-merged pair asserted differentFrom is inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "the identity sub-decider decides this — no honest gap: {:?}",
+            verdict.gaps
+        );
     }
 
     #[test]

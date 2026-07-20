@@ -45,6 +45,9 @@ use purrdf::RdfDataset;
 /// Family 5 — the datatype value-space sub-decider (Task 3, the first REAL family).
 pub(crate) mod datatype;
 
+/// Families 2/6a/7 — the counting / arithmetic-feasibility sub-decider (Task 4).
+pub(crate) mod counting;
+
 /// The certified-complete construct families the kernel decides. Each name is the
 /// stable identity a family sub-decider (Tasks 3/4/5) registers under and that
 /// [`crate::reason::dl::classify_coverage`] promotes on an `InFragment{Consistent}`
@@ -321,11 +324,13 @@ type SubDecider = fn(&RdfDataset) -> Option<RefutationCertificate>;
 /// The registered sub-deciders, tried in order; the first `InFragment` wins.
 ///
 /// Task 3 registers the datatype value-space decider ([`datatype::decide`], Family
-/// 5); Tasks 4/5 add the counting and case-split/complement deciders. Each decider
-/// returns `None` when its family shape is absent, so a closure carrying no
-/// datatype value-space obligation still withholds with `NoDeciderEngaged` — the
-/// kernel decides only the fragment a registered family proves complete.
-const SUB_DECIDERS: &[SubDecider] = &[datatype::decide];
+/// 5); Task 4 registers the counting / arithmetic-feasibility decider
+/// ([`counting::decide`], Families 2/6a/7); Task 5 adds the case-split/complement
+/// decider. Each decider returns `None` when its family shape is absent, so a
+/// closure carrying no datatype value-space or counting obligation still withholds
+/// with `NoDeciderEngaged` — the kernel decides only the fragment a registered
+/// family proves complete.
+const SUB_DECIDERS: &[SubDecider] = &[datatype::decide, counting::decide];
 
 /// Decide the certified-complete refutation fragment for `edb`.
 ///

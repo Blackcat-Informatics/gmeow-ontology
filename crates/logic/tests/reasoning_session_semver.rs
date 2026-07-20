@@ -56,8 +56,17 @@ use session_common::*;
 /// datatype-free input, so the fixed-input session verdict is unchanged. (Value below
 /// is the post-`cargo fmt` state of the Family 5 branch — the behaviour-preserving format
 /// pass over `reason/refute.rs` folds into the raw source-content digest.)
+/// Re-blessed for Family 2/6a/7 (the counting / arithmetic-feasibility sub-decider):
+/// `reason/refute/counting.rs` is a new engine source module registered in `SUB_DECIDERS`,
+/// and `reason/dl.rs` now consults it for cardinality / inverse-functional / `owl:hasSelf`
+/// coverage (promoting those families and narrowing their class-definition / refutation-shape
+/// withholds exactly when the sub-decider decides). Both move the native-contract
+/// source-content digest folded into this descriptor. This DOES change reasoning verdicts on
+/// the counting fragment (previously-withheld W3C-divergence cardinality / IFP / hasSelf cases
+/// are now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
+/// verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "6c20a96e1f83990fc5d5cca475f8e9b6e4ba4571e74870b6fe9507ffee9bf64c";
+    "4697711aff8ed5d1b4657ba7bb5e655839349105d9e070133b1ef2962e7f7f83";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -69,8 +78,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// native contract hash is one of the seven folded axes and moves with the new engine source, while
 /// the fixed datatype-free input's reasoning verdict is unchanged. (Post-`cargo fmt` value,
 /// tracking the engine-descriptor golden above.)
+/// Re-blessed again for Family 2/6a/7 (the counting / arithmetic-feasibility sub-decider) for the
+/// same reason: the native contract hash is one of the seven folded axes and moves with the new
+/// engine source module, while the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "7743b7aa8cbe221b14a8d8f959e97da23a34e0c16b0998cbe2db0872fa383c17";
+    "78c242bc05f8731420bd4b30721d1e310a96af62419065833f3fa1f54069f482";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
