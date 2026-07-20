@@ -515,3 +515,62 @@ fn epistemics_sssom_subjects_present() {
         "epistemics SSSOM mapping set is missing expected subjects: {missing:?}"
     );
 }
+
+// ── Task 6: corpus Principle-10 suppression law ────────────────────────────────
+
+/// Every `*.ttl` under the epistemics examples directory (sorted, non-empty).
+fn epistemics_example_files() -> Vec<PathBuf> {
+    let dir = repo_root().join("slices/core/epistemics/examples");
+    let mut paths: Vec<PathBuf> = std::fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .filter(|path| path.extension().and_then(|s| s.to_str()) == Some("ttl"))
+        .collect();
+    paths.sort();
+    assert!(!paths.is_empty(), "expected epistemics example fixtures");
+    paths
+}
+
+/// Principle 10 as a fixture-agnostic biconditional over every `DoxasticTenure` in
+/// every epistemics example (`DoxasticTenure` is epistemics-local, so this is the
+/// complete corpus for the invariant): a tenure whose interval carries `endedAtTime`
+/// (closed) MUST be suppressed with `displayable false`; an open tenure (no
+/// `endedAtTime`) MUST NOT be. This hard-gates the intent the shipped
+/// suppression constraint only warns about. Credence direction is deliberately out
+/// of scope — a confirming revision legitimately raises credence while still closing
+/// and suppressing the superseded tenure.
+#[test]
+fn principle_10_suppression_law_holds_across_examples() {
+    let mut offenders: Vec<String> = Vec::new();
+    for path in epistemics_example_files() {
+        let file = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default()
+            .to_owned();
+        let store = GraphStore::parse_ttl_file(&path);
+        for tenure in store.subjects_of_type(&gmeow("DoxasticTenure")) {
+            let closed = store
+                .objects(&tenure, &gmeow("duringInterval"))
+                .iter()
+                .any(|interval| store.has(Some(interval), Some(&gmeow("endedAtTime")), None));
+            let suppressed =
+                store.has_literal(&tenure, &gmeow("displayable"), "false", XSD_BOOLEAN);
+            if closed && !suppressed {
+                offenders.push(format!(
+                    "{file}: closed tenure {tenure} is not suppressed (displayable false)"
+                ));
+            }
+            if !closed && suppressed {
+                offenders.push(format!(
+                    "{file}: open tenure {tenure} is wrongly suppressed (displayable false)"
+                ));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "Principle-10 suppression law violated:\n{}",
+        offenders.join("\n")
+    );
+}
