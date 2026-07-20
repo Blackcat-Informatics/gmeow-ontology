@@ -35,14 +35,17 @@ use session_common::*;
 /// `logic:keyProperty`) unioned into the key-agreement clash reader and coverage inventory
 /// alongside the `owl:hasKey` list, so the datatype/single-property key survives removal of the
 /// `owl:hasKey` slice declaration — moving the `reason/dl.rs` content digest folded here.
+/// Re-blessed once more for the stage-2 `cargo fmt` pass over the branch-modified reasoning
+/// core: reformatting `reason/dl.rs` / `physical/chase.rs` (behaviour-preserving — `reason-verify`
+/// stays green) moves the raw-source content digest folded into this descriptor.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f03598d6681e34539f5984dd97cc9c4ed92f94ca3169f4fec959f8424da47515";
+    "2936573199d260d8233f759544d755315b6e303e0c3b006d8c940b03e5d089c7";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "35d5fea03662c6ec29a771051565fbff8772bb69267efdfd4b3dd7097bcdfb7b";
+    "f9e288179252c68b3a64a8ebdad5096dba8eaaacdb47918144e7223acc0ae1ce";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
