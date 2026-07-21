@@ -1,0 +1,54 @@
+# Negative test: the eight GMN Belnap grade signs — the four raw logic:BelnapBilattice
+# values (logic:BelnapTrue ●, logic:BelnapFalse ○, logic:BelnapBoth ◉, logic:BelnapNeither ◌)
+# and the four result-level logic:InformationState verdicts (logic:InfoSupported ▲,
+# logic:InfoOpposed ▼, logic:InfoBoth △, logic:InfoNeither ▽) — MUST be pairwise
+# non-confusable: no two may share a gmeow:gmnCodepoints value or a gmeow:gmnCandidateTarget,
+# so the raw algebra value never floats as a duplicate of the verdict that reports it. They
+# MUST also stay distinct from the classical Formula constants logic:Top / logic:Bottom (⊤ ⊥),
+# and from any sign that a non-result state (logic:InfoUndetermined / logic:InfoNotEvaluated)
+# might carry. Any returned row is a collision: two grade-family signs, or a grade sign and
+# a ⊤/⊥ or non-result sign, sharing one codepoint or one target.
+#
+# A sign's codepoints are read either directly on its candidate (a named-key sign such as
+# ⊤/⊥ carries gmeow:gmnCodepoints) or through its adopted grapheme
+# (gmeow:gmnCandidateDenotation -> gmeow:gmnDenotationGrapheme -> gmeow:gmnCodepoints). The
+# non-result states carry no sign in the shipped graph, so they contribute nothing yet the
+# branch guards them if one is ever added. The shipped signs use eight distinct geometric
+# codepoints, all distinct from ⊤ (U+22A4) and ⊥ (U+22A5), so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?signA ?signB ?cpA ?cpB WHERE {
+    VALUES ?gradeA {
+        logic:BelnapTrue logic:BelnapFalse logic:BelnapBoth logic:BelnapNeither
+        logic:InfoSupported logic:InfoOpposed logic:InfoBoth logic:InfoNeither
+    }
+    VALUES ?otherB {
+        logic:BelnapTrue logic:BelnapFalse logic:BelnapBoth logic:BelnapNeither
+        logic:InfoSupported logic:InfoOpposed logic:InfoBoth logic:InfoNeither
+        logic:Top logic:Bottom logic:InfoUndetermined logic:InfoNotEvaluated
+    }
+    ?signA gmeow:gmnCandidateTarget ?gradeA .
+    ?signB gmeow:gmnCandidateTarget ?otherB .
+    FILTER (STR(?signA) < STR(?signB))
+    {
+        ?signA gmeow:gmnCodepoints ?cpA .
+    }
+    UNION
+    {
+        ?signA gmeow:gmnCandidateDenotation ?denA .
+        ?denA gmeow:gmnDenotationGrapheme ?graphemeA .
+        ?graphemeA gmeow:gmnCodepoints ?cpA .
+    }
+    {
+        ?signB gmeow:gmnCodepoints ?cpB .
+    }
+    UNION
+    {
+        ?signB gmeow:gmnCandidateDenotation ?denB .
+        ?denB gmeow:gmnDenotationGrapheme ?graphemeB .
+        ?graphemeB gmeow:gmnCodepoints ?cpB .
+    }
+    FILTER (?cpA = ?cpB || ?gradeA = ?otherB)
+}
+ORDER BY ?signA ?signB

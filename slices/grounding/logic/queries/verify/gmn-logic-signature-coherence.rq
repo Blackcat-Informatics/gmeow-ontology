@@ -1,0 +1,94 @@
+# Negative test: every GMN operator form in the logic glyph plane (a lang:Form
+# lang:inSignSystem gmeow:gmnModelNotation that denotes in gmeow:gmnLogicGlyphContext)
+# MUST carry a COMPLETE order-sorted signature, and every structured operator
+# (implication, sequent turnstile, modal) MUST declare its required named argument roles.
+# A form missing a piece is a half-specified operator an order-sorted parser cannot type.
+# Any returned row is one such gap; ?issue names which piece is missing.
+#
+# Branches (one row per offending form):
+#   no-result-sort      — the form declares no gmeow:gmnResultSort (its produced sort).
+#   no-arity-kind       — the form declares no gmeow:gmnArityKind (fixed/binder/variadic).
+#   infix-no-assoc      — an infix form declares no gmeow:gmnAssociativity (its grouping).
+#   operand-index-range — an operand slot's gmeow:gmnArgIndex is >= the form's gmeow:gmnArity
+#                         (a slot outside the declared arity: operand sorts inconsistent
+#                         with the arity/arity-kind).
+#   modal-no-access     — a modal form (denotes logic:necessarily / logic:possibly) has no
+#                         gmeow:gmnArgRoleOverAccessibility slot, so its box/diamond would be
+#                         evaluated over an unpinned accessibility type.
+#   turnstile-role      — a sequent turnstile (denotes logic:derives / logic:entails) is
+#                         missing its gmeow:gmnArgRoleContext or gmeow:gmnArgRoleSuccedent slot.
+#   implication-no-antecedent — the implication form (denotes logic:consequent, the → head)
+#                         has no gmeow:gmnArgRoleAntecedent slot for its hypothesis operand.
+# The shipped logic plane declares every result sort, arity kind, infix associativity, and
+# structured-operator role, so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?form ?issue WHERE {
+    ?den lang:denotationContext gmeow:gmnLogicGlyphContext ;
+         lang:denotedForm ?form .
+    ?form lang:inSignSystem gmeow:gmnModelNotation .
+    {
+        FILTER NOT EXISTS { ?form gmeow:gmnResultSort ?rs }
+        BIND("no-result-sort" AS ?issue)
+    }
+    UNION
+    {
+        FILTER NOT EXISTS { ?form gmeow:gmnArityKind ?ak }
+        BIND("no-arity-kind" AS ?issue)
+    }
+    UNION
+    {
+        ?form gmeow:gmnFixity gmeow:gmnFixityInfix .
+        FILTER NOT EXISTS { ?form gmeow:gmnAssociativity ?assoc }
+        BIND("infix-no-assoc" AS ?issue)
+    }
+    UNION
+    {
+        ?form gmeow:gmnArity ?arity ;
+              gmeow:gmnOperandSorts ?slot .
+        ?slot gmeow:gmnArgIndex ?idx .
+        FILTER (?idx >= ?arity)
+        BIND("operand-index-range" AS ?issue)
+    }
+    UNION
+    {
+        ?den lang:denotationTarget ?modalTarget .
+        VALUES ?modalTarget { logic:necessarily logic:possibly }
+        FILTER NOT EXISTS {
+            ?form gmeow:gmnOperandSorts ?accSlot .
+            ?accSlot gmeow:gmnArgRole gmeow:gmnArgRoleOverAccessibility .
+        }
+        BIND("modal-no-access" AS ?issue)
+    }
+    UNION
+    {
+        ?den lang:denotationTarget ?turnstileTarget .
+        VALUES ?turnstileTarget { logic:derives logic:entails }
+        {
+            FILTER NOT EXISTS {
+                ?form gmeow:gmnOperandSorts ?ctxSlot .
+                ?ctxSlot gmeow:gmnArgRole gmeow:gmnArgRoleContext .
+            }
+        }
+        UNION
+        {
+            FILTER NOT EXISTS {
+                ?form gmeow:gmnOperandSorts ?sucSlot .
+                ?sucSlot gmeow:gmnArgRole gmeow:gmnArgRoleSuccedent .
+            }
+        }
+        BIND("turnstile-role" AS ?issue)
+    }
+    UNION
+    {
+        ?den lang:denotationTarget logic:consequent .
+        FILTER NOT EXISTS {
+            ?form gmeow:gmnOperandSorts ?antSlot .
+            ?antSlot gmeow:gmnArgRole gmeow:gmnArgRoleAntecedent .
+        }
+        BIND("implication-no-antecedent" AS ?issue)
+    }
+}
+ORDER BY ?form ?issue

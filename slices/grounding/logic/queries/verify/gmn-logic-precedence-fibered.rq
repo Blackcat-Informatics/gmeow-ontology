@@ -1,0 +1,37 @@
+# Negative test: within the GMN logic glyph plane (denotation context
+# gmeow:gmnLogicGlyphContext), a single operator — one lang:denotationTarget — MUST bind
+# ONE consistent gmeow:gmnPrecedence within a given result-sort fiber. The logic plane is
+# order-sorted: an operator's binding strength is read against operators that produce the
+# SAME gmeow:gmnResultSort (Formula operators against Formula operators, Concept
+# constructors against Concept constructors, …). If one target has two infix forms in the
+# same result-sort fiber declaring DIFFERENT precedences, its binding strength within that
+# fiber is undecidable and an operator-precedence parser cannot place it in the ladder.
+# Any returned row is that violation.
+#
+# This is the logic-plane, result-sort-fibered complement of gmn-form-signature-completeness
+# (presence) and the math-plane gmn-infix-precedence-consistency (a single flat ladder). It
+# deliberately does NOT flag distinct operators sharing a precedence band, nor one operator
+# carrying two precedences across DIFFERENT fibers (those never compete in one ladder). The
+# only clash it proves from data is one operator clashing with itself inside one fiber. The
+# shipped logic plane binds each operator target to one infix form at one precedence, so
+# this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+
+SELECT ?target ?sort ?formA ?formB ?precA ?precB WHERE {
+    ?denA lang:denotationContext gmeow:gmnLogicGlyphContext ;
+          lang:denotationTarget ?target ;
+          lang:denotedForm ?formA .
+    ?denB lang:denotationContext gmeow:gmnLogicGlyphContext ;
+          lang:denotationTarget ?target ;
+          lang:denotedForm ?formB .
+    ?formA gmeow:gmnFixity gmeow:gmnFixityInfix ;
+           gmeow:gmnResultSort ?sort ;
+           gmeow:gmnPrecedence ?precA .
+    ?formB gmeow:gmnFixity gmeow:gmnFixityInfix ;
+           gmeow:gmnResultSort ?sort ;
+           gmeow:gmnPrecedence ?precB .
+    FILTER (STR(?formA) < STR(?formB))
+    FILTER (?precA != ?precB)
+}
+ORDER BY ?target ?sort ?formA ?formB

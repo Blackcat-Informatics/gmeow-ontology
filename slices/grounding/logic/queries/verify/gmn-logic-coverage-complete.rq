@@ -1,0 +1,40 @@
+# Negative test: every GMN logic-glyph-plane term marked in scope
+# (gmeow:gmnGlyphInScope true) MUST be RENDERED — reached from a GMN sign either
+# directly (an adopted glyph or named-key candidate through gmeow:gmnCandidateTarget,
+# or a dictionary alias through gmeow:gmnDictionaryEntryTerm) or COMPOSITIONALLY as a
+# declared operand / assembly node of a signed structured operator. An in-scope term
+# with no rendering path at all is an uncovered glyph-plane gap: a downstream reader
+# would meet a canonical term the notation cannot write. Any returned row is that gap.
+#
+# The denominator is the in-scope set MINUS the two non-result information states
+# (logic:InfoUndetermined, logic:InfoNotEvaluated) that Task 1 rules gmnGlyphNamedKeyRuled
+# — the raw Belnap algebra has no value for them, so a coverage anti-join must not
+# false-fire on them. Two in-scope terms are covered COMPOSITIONALLY, not by a standalone
+# sign, and are exempted by their real structural links, not by name:
+#   * logic:antecedent — it heads no denotation of its own (the → arrow denotes the
+#     implication on logic:consequent), but it is the paired operand of an implication
+#     guard (logic:trigger) whose required companion logic:consequent IS signed, so the
+#     antecedent is rendered whenever an implication is written.
+#   * logic:Sequent — a reified proof-obligation node CLASS assembled by its signed
+#     turnstile operators (⊢ logic:derives, ⊨ logic:entails), not an atomic sign; an
+#     owl:Class is a structural node, never given a standalone glyph.
+# Every other in-scope term binds a candidate or a dictionary alias, so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+
+SELECT ?t WHERE {
+    ?t gmeow:gmnGlyphInScope true .
+    FILTER NOT EXISTS { ?t gmeow:gmnGlyphNamedKeyRuled true }
+    FILTER NOT EXISTS { ?c gmeow:gmnCandidateTarget ?t }
+    FILTER NOT EXISTS { ?d gmeow:gmnDictionaryEntryTerm ?t }
+    # compositional coverage: the paired operand of a signed structured operator
+    FILTER NOT EXISTS {
+        ?constraint logic:trigger ?t ;
+                    logic:requires ?paired .
+        ?pairedCand gmeow:gmnCandidateTarget ?paired .
+    }
+    # compositional coverage: a reified node class assembled by its signed operators
+    FILTER NOT EXISTS { ?t a owl:Class }
+}
+ORDER BY ?t

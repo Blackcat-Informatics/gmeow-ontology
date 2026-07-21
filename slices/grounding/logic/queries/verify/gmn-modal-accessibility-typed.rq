@@ -1,0 +1,28 @@
+# Negative test: a modal logic:Formula node (a box logic:necessarily or a diamond
+# logic:possibly) MUST pin its standard translation to ONE typed accessibility relation
+# through logic:overAccessibility — one of logic:epistemicallyPossible,
+# logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds,
+# logic:counterfactuallyCloser, or gmeow:sharpens. Evaluating a modal over the bare
+# logic:accessibleFrom union of those typed relations would manufacture the cross-type
+# entailment the kernel forbids (its generic superproperty licenses no cross-type
+# inference), and pointing it at a standpoint claim-modal-force value
+# (gmeow:modalForceNecessary / gmeow:modalForcePossible / gmeow:modalForceActual /
+# gmeow:modalForceCounterfactual) confuses the object-level standard-translation operator
+# with the assertion-force register. Any returned row is that mistyping: a modal node
+# whose logic:overAccessibility argument is the blurred union or a modal-force value.
+#
+# The shipped grounding graph declares the operators and their GMN forms but instantiates
+# no modal formula node, so this returns no rows; it fires the instant an authored modal
+# node is evaluated over logic:accessibleFrom or a gmeow:modalForce* standpoint value.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?node ?access WHERE {
+    { ?node logic:necessarily ?body } UNION { ?node logic:possibly ?body }
+    ?node logic:overAccessibility ?access .
+    FILTER (
+        ?access = logic:accessibleFrom
+        || STRSTARTS(STR(?access), "https://blackcatinformatics.ca/gmeow/modalForce")
+    )
+}
+ORDER BY ?node ?access
