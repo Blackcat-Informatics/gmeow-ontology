@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An illustrative, well-formed scene that EXERCISES the GMN logic glyph plane — the
+# FOL/modal/proof-theoretic operators the plane renders — against a single coherent
+# epistemic argument, so the newly-signed logic signs are DEMONSTRATED in an examples/
+# fixture (the projection universe scans examples/, not tests/) rather than merely
+# defined in module.ttl. It mirrors the math plane's gmn-dimension-roundtrip.ttl.
+#
+# The argument, in glyph form:
+#
+#   §1  ∀x. Trustworthy(x) → Reliable(x)      a universal material implication
+#   §2  Trustworthy(alice)                     a ground premise atom
+#   §3  { §1, §2 } ⊢ Reliable(alice)           the proof-obligation sequent Γ ⊢ φ,
+#       { §1, §2 } ⊨ Reliable(alice)           with its matching semantic obligation Γ ⊨ φ
+#   §4  □ Reliable(alice)   over epistemicallyPossible   the box modality, TYPE-PARAMETERIZED
+#       ◇ Reliable(alice)   over epistemicallyPossible   over one named typed accessibility relation
+#   §5  BelnapTrue ⟶ InfoSupported             the raw bilattice value realized as its verdict
+#
+# Every construct is wired to a canonical logic: term authored in the module (the glyph
+# plane mints only the absent signs and reuses the existing FOL connectives, quantifiers,
+# and term-carrier machinery). The scene REFERENCES canonical terms; it never redefines
+# them. It round-trips losslessly through the GMN codec (see the lang-bridge
+# real_logic_examples_round_trip test, which scans every examples/*.ttl of this slice).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+
+#### §1  ∀x. Trustworthy(x) → Reliable(x) — a universal material implication ####
+# forall binds the body implication; the body's antecedent/consequent pair marks it an
+# ordered (non-commutative) material implication. Bound-variable block order is fixed by
+# logic:termIndex on the quantifiedVariable carrier.
+
+ex:trustEntailsReliability
+    a logic:Formula ;
+    rdfs:label "∀x. Trustworthy(x) → Reliable(x)"@x-gmeow-english ;
+    logic:forall ex:trustReliabilityImplication ;
+    logic:quantifiedVariable [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] .
+
+ex:trustReliabilityImplication
+    a logic:Formula ;
+    logic:antecedent ex:trustworthyOfX ;
+    logic:consequent ex:reliableOfX .
+
+ex:trustworthyOfX
+    a logic:Formula ;
+    logic:relation ex:Trustworthy ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] .
+
+ex:reliableOfX
+    a logic:Formula ;
+    logic:relation ex:Reliable ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] .
+
+#### §2  Trustworthy(alice) — a ground premise atom #############################
+# An atomic predication whose sole argument is an IRI constant, not a variable.
+
+ex:aliceTrustworthy
+    a logic:Formula ;
+    rdfs:label "Trustworthy(alice)"@x-gmeow-english ;
+    logic:relation ex:Trustworthy ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termIri ex:alice
+    ] .
+
+# The succedent φ: Reliable(alice) — the conclusion the sequent discharges.
+ex:aliceReliable
+    a logic:Formula ;
+    rdfs:label "Reliable(alice)"@x-gmeow-english ;
+    logic:relation ex:Reliable ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termIri ex:alice
+    ] .
+
+#### §3  The proof-obligation sequent  Γ ⊢ φ  (and its semantic twin  Γ ⊨ φ) ####
+# Γ = { §1, §2 } is the antecedent context (multi-valued sequentContext); φ = Reliable(alice)
+# is the single succedent. logic:derives (⊢) reads the SYNTACTIC turnstile — φ is provable
+# from Γ in the calculus; logic:entails (⊨) reads the DISTINCT semantic obligation — φ is true
+# in every model of Γ. The two are deliberately kept on separate edges, never collapsed.
+
+ex:reliabilitySequent
+    a logic:Sequent ;
+    rdfs:label "{ ∀x.Trustworthy(x)→Reliable(x), Trustworthy(alice) } ⊢ Reliable(alice)"@x-gmeow-english ;
+    logic:sequentContext ex:trustEntailsReliability ,
+        ex:aliceTrustworthy ;
+    logic:sequentSuccedent ex:aliceReliable ;
+    logic:derives ex:aliceReliable ;
+    logic:entails ex:aliceReliable .
+
+#### §4  □ / ◇ Reliable(alice) — the TYPE-PARAMETERIZED modal operators ##########
+# The box (necessity) and diamond (possibility) are the standard translation over ONE named
+# typed accessibility relation, pinned through logic:overAccessibility — here the typed
+# alethic relation logic:epistemicallyPossible. A well-formed modal node never floats over
+# the bare logic:accessibleFrom union, which would manufacture cross-type entailment.
+
+ex:necessarilyReliable
+    a logic:Formula ;
+    rdfs:label "□ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
+    logic:necessarily ex:aliceReliable ;
+    logic:overAccessibility logic:epistemicallyPossible .
+
+ex:possiblyReliable
+    a logic:Formula ;
+    rdfs:label "◇ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
+    logic:possibly ex:aliceReliable ;
+    logic:overAccessibility logic:epistemicallyPossible .
+
+#### §5  Belnap-graded verdict witness — BelnapTrue realized as InfoSupported ####
+# Restating the canonical algebra→verdict binding (never re-minting it) lets the scene
+# exercise the raw logic:TruthValue plane and its logic:realizedAsVerdict binding: the raw
+# bilattice value logic:BelnapTrue (told-true, not told-false) reports at the result level as
+# the conclusive verdict logic:InfoSupported. This is the glyph-plane sibling of the math
+# example's canonical-class restatement — a rendering of the canonical term, never a rival
+# identity — so regeneration lowers the scene through the production GMN target and proves
+# the shipped logic-glyph registry is graph-derived, not a hard-coded symbol table.
+logic:BelnapTrue logic:realizedAsVerdict logic:InfoSupported .
