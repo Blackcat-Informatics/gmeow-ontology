@@ -4608,7 +4608,7 @@ gmeow:gmnDictV3
     a owl:NamedIndividual , gmeow:GmnDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN dictionary (version 3)"@x-gmeow-english ;
-    skos:definition "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries and adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys."@x-gmeow-english ;
+    skos:definition "Dictionary version 3 of the GMN alias table: an immutable successor to version 2 that retains all 24 prior bindings on version-owned entries, adds `boundary`, `coboundary`, `ds`, `lcon`, `rev`, and `hlap` for the audited mathematics named keys, and adds `df`, `st`, and `ev` — the structural named-key aliases for the defeater, standpoint, and evidence-strength record keys, each an ASCII key with no separate Unicode glyph because no standard notation exists to borrow."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnDictionaryEntry
@@ -4641,7 +4641,10 @@ gmeow:gmnDictV3
         gmeow:gmnDictV3EntryMathDirectSum ,
         gmeow:gmnDictV3EntryMathLeftContraction ,
         gmeow:gmnDictV3EntryMathReversion ,
-        gmeow:gmnDictV3EntryMathHodgeLaplacian .
+        gmeow:gmnDictV3EntryMathHodgeLaplacian ,
+        gmeow:gmnDictV3EntryDefeater ,
+        gmeow:gmnDictV3EntryStandpoint ,
+        gmeow:gmnDictV3EntryEvidenceStrength .
 
 gmeow:gmnDictV3EntryEnvelope
     a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
@@ -4687,6 +4690,33 @@ gmeow:gmnDictV3EntryMorphemeBoundary
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:gmnDictionaryEntryTerm lang:MorphemeBoundary ;
     gmeow:gmnDictionaryEntryAlias "mb" .
+
+gmeow:gmnDictV3EntryDefeater
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: gmeow:Attack to df"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:Attack, the defeater a `@d` record carries: `df`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a defeater and a named key beats an invented pseudo-glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:Attack ;
+    gmeow:gmnDictionaryEntryAlias "df" .
+
+gmeow:gmnDictV3EntryStandpoint
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: gmeow:Standpoint to st"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for gmeow:Standpoint, the claim-holder a record's `st` slot names by reference: `st`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a standpoint and a named key beats an invented pseudo-glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm gmeow:Standpoint ;
+    gmeow:gmnDictionaryEntryAlias "st" .
+
+gmeow:gmnDictV3EntryEvidenceStrength
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v3 entry: logic:evidenceStrength to ev"@x-gmeow-english ;
+    skos:definition "The version-3 alias binding for logic:evidenceStrength, the evidence a record's `ev` slot names by reference: `ev`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for evidence strength and a named key beats an invented pseudo-glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:gmnDictionaryEntryTerm logic:evidenceStrength ;
+    gmeow:gmnDictionaryEntryAlias "ev" .
 
 gmeow:gmnDictV3EntryMathDivision
     a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
@@ -5301,7 +5331,8 @@ gmeow:gmnGlyphTokenCost
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one gmeow:gmnGlyphTokenCost edge per authored glyph, pointing at a dimensionless math:Quantity whose math:quantityValue is the token count the crate-side primitive measures for the glyph's rendering."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use to read a glyph's measured token cost when deriving the token-cost matrix or the glyph-versus-named-key disposition."@x-gmeow-english .
+    gmeow:useWhen "Use to read a glyph's measured token cost when deriving the token-cost matrix or the glyph-versus-named-key disposition."@x-gmeow-english ;
+    gmeow:cites gmeow:gmnCl100kBaseTokenizerWork .
 
 gmeow:gmnTokenCostOne
     a math:Quantity ;
@@ -5417,6 +5448,30 @@ gmeow:gmnLinguisticNotationWork
     gmeow:title "Linguistic acceptability notation conventions"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnModalLogicNotationWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "modal-logic box and diamond notation"@x-gmeow-english ;
+    skos:definition "The established modal-logic notation practice cited for the box □ and diamond ◇ signs as the necessity and possibility operators of the standard Kripke translation. GMN binds those signs to the canonical type-parameterized logic:necessarily and logic:possibly, each evaluated over the single typed accessibility relation its logic:overAccessibility names; Unicode supplies the character identity while the modal-logic reading supplies the operator semantics."@x-gmeow-english ;
+    gmeow:title "Modal Logic — Kripke box and diamond notation"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnBelnapBilatticeWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Belnap four-valued logic"@x-gmeow-english ;
+    skos:definition "The four-valued relevance-logic reference cited for the raw truth values (told-true, told-false, the over-determined glut, the under-determined gap) and their result-level verdicts that the GMN logic glyph plane renders. GMN draws a coherent, visually-distinct geometric-shape family for the eight grade signs rather than a conventional notation, since the four-valued algebra has no single established typography; the Belnap reading supplies the semantics while the shapes stay pairwise non-confusable."@x-gmeow-english ;
+    gmeow:title "Belnap — A Useful Four-Valued Logic"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCl100kBaseTokenizerWork
+    a owl:NamedIndividual , gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "cl100k_base tokenizer vocabulary"@x-gmeow-english ;
+    skos:definition "The pinned cl100k_base byte-pair-encoding tokenizer vocabulary under which every GMN glyph token cost is measured. It is the single provenance identity of the measured costs the gmeow:gmnGlyphTokenCost feed carries: the crate-side glyph token-cost primitive encodes each glyph's rendering against this embedded, network-free vocabulary, so the measurement is deterministic and the authored cost bucket a cross-check re-verifies against it."@x-gmeow-english ;
+    gmeow:title "cl100k_base byte-pair-encoding tokenizer vocabulary"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # --- Executable grounding-plane glyph inventory --------------------------- #
 # Every adopted sign is a scoped Grapheme -> Form -> Denotation -> target chain.
 # GmnGlyphRegistry reads only this graph join; no symbol-to-term table is hard-coded.
@@ -5441,6 +5496,8 @@ gmeow:gmnFormLogicNot
     gmeow:gmnFixity gmeow:gmnFixityPrefix ;
     gmeow:gmnPrecedence 90 ;
     gmeow:gmnArity 1 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicNot
@@ -5492,6 +5549,9 @@ gmeow:gmnFormLogicSubClassOf
     gmeow:gmnFixity gmeow:gmnFixityInfix ;
     gmeow:gmnPrecedence 20 ;
     gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocNone ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicSubClassOf
@@ -5520,6 +5580,135 @@ gmeow:gmnCandidateLogicSubClassOf
     gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
     gmeow:gmnDispositionRationale "The established description-logic ⊑ sign costs no more than the explicit ASCII fallback is_subclass_of under the pinned cl100k_base vocabulary; ⊑ is adopted without a token penalty, with @ℒ scope and binary infix metadata preserving its class-subsumption reading." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenLogicSubClassOf ;
+    gmeow:cites gmeow:gmnDescriptionLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicImplies
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN logical-implication glyph"@x-gmeow-english ;
+    skos:definition "The NFC → grapheme (U+2192) in the @ℒ scope, adopted as the executable GMN sign for the material-implication construction after the pinned BPE measured it at one token. Its @ℒ sigil scope keeps it distinct from the math plane's → morphism-arrow reading under @μ — the record-initial sigil discipline is the single lawful cross-plane reuse of the codepoint."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+2192" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotImpliesAntecedent
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "implication antecedent slot"@x-gmeow-english ;
+    skos:definition "The first operand slot of the implication construction: the antecedent logic:Formula (the hypothesis), at index 0 in the antecedent role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleAntecedent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotImpliesConsequent
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "implication consequent slot"@x-gmeow-english ;
+    skos:definition "The second operand slot of the implication construction: the consequent logic:Formula (the conclusion), at index 1 in the consequent role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 1 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleConsequent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicImplies
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN implication operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by → and denoting the material-implication construction in the logic glyph context. It builds no new logic: term: an implication formula is the logic:Formula node bearing logic:antecedent (slot 0) and logic:consequent (slot 1), and the arrow points at the consequent it heads, so its denotation target is the ordered, non-commutative logic:consequent carrier whose presence marks the node as an implication — distinct from the commutative logic:iff. Right-associative so a → b → c reads a → (b → c)."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 15 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotImpliesAntecedent , gmeow:gmnSlotImpliesConsequent ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocRight ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicImplies
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN implication"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN → form to the material-implication construction, headed on the canonical logic:consequent carrier; the ordered antecedent operand is carried by the form's slot 0 through logic:antecedent."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicImplies ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:consequent ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicImplies ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicImplies
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: implication as →"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the material-implication construction as → in @ℒ records; the two ordered operands are the antecedent and consequent formulae the form's slots name."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:consequent ;
+    gmeow:gmnCandidateGlyph "→" ;
+    gmeow:gmnAsciiFallback "implies" ;
+    gmeow:gmnSpokenLabel "implies" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conventional implication arrow → costs one pinned cl100k_base token while the ASCII key `implies` costs two; → is adopted because it is strictly cheaper and preserves the established conditional reading of a → b, scoped to @ℒ so the math plane's @μ morphism arrow stays distinct." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicImplies ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicEquivalent
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN class-equivalence glyph"@x-gmeow-english ;
+    skos:definition "The NFC ≡ grapheme (U+2261) in the @ℒ scope, adopted as the executable GMN sign for the canonical class-equivalence relation logic:equivalentClass after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+2261" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicEquivalent
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN class-equivalence operator"@x-gmeow-english ;
+    skos:definition "The binary infix GMN form rendered by ≡ and denoting canonical logic:equivalentClass in the logic glyph context; its two operands are concept expressions and its result is a logic:Formula asserting their mutual subsumption."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 20 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocNone ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicEquivalent
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN class equivalence"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to owl:equivalentClass without reversing semantic ownership."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicEquivalent ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:equivalentClass ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicEquivalent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicEquivalent
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: logic:equivalentClass as ≡"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering canonical class equivalence logic:equivalentClass as ≡ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:equivalentClass ;
+    gmeow:gmnCandidateGlyph "≡" ;
+    gmeow:gmnAsciiFallback "is_equiv_to" ;
+    gmeow:gmnSpokenLabel "is equivalent to" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The conventional identity-of-concepts sign ≡ costs two pinned cl100k_base tokens while the ASCII key `is_equiv_to` costs three; ≡ is adopted because it is cheaper and preserves the established class-equivalence reading, scoped to @ℒ with binary infix metadata." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicEquivalent ;
     gmeow:cites gmeow:gmnDescriptionLogicNotationWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -5867,6 +6056,16 @@ gmeow:gmnScript lang:hasGrapheme
     gmeow:gmnGlyphAsterisk ,
     gmeow:gmnGlyphLogicNot ,
     gmeow:gmnGlyphLogicSubClassOf ,
+    gmeow:gmnGlyphLogicImplies ,
+    gmeow:gmnGlyphLogicEquivalent ,
+    gmeow:gmnGlyphLogicBelnapTrue ,
+    gmeow:gmnGlyphLogicBelnapFalse ,
+    gmeow:gmnGlyphLogicBelnapBoth ,
+    gmeow:gmnGlyphLogicBelnapNeither ,
+    gmeow:gmnGlyphLogicInfoSupported ,
+    gmeow:gmnGlyphLogicInfoOpposed ,
+    gmeow:gmnGlyphLogicInfoBoth ,
+    gmeow:gmnGlyphLogicInfoNeither ,
     gmeow:gmnGlyphMathPi ,
     gmeow:gmnGlyphMathEulerMascheroni ,
     gmeow:gmnGlyphMathAddition ,
@@ -6635,6 +6834,16 @@ gmeow:gmnDenMathVectorUnbinding
     lang:denotationContext gmeow:gmnMathGlyphContext ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnSlotForallBody
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "forall body slot"@x-gmeow-english ;
+    skos:definition "The single operand slot of the universal quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleBody ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:gmnFormLogicForall
     a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -6644,6 +6853,10 @@ gmeow:gmnFormLogicForall
     gmeow:gmnFixity gmeow:gmnFixityPrefix ;
     gmeow:gmnArity 1 ;
     gmeow:gmnPrecedence 20 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotForallBody ;
+    gmeow:gmnArityKind gmeow:gmnArityKindBinder ;
+    gmeow:gmnMaximalScope true ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicForall
@@ -6657,6 +6870,16 @@ gmeow:gmnDenLogicForall
     lang:denotationContext gmeow:gmnLogicGlyphContext ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:gmnSlotExistsBody
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "exists body slot"@x-gmeow-english ;
+    skos:definition "The single operand slot of the existential quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleBody ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:gmnFormLogicExists
     a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -6666,6 +6889,10 @@ gmeow:gmnFormLogicExists
     gmeow:gmnFixity gmeow:gmnFixityPrefix ;
     gmeow:gmnArity 1 ;
     gmeow:gmnPrecedence 20 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotExistsBody ;
+    gmeow:gmnArityKind gmeow:gmnArityKindBinder ;
+    gmeow:gmnMaximalScope true ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicExists
@@ -6688,6 +6915,9 @@ gmeow:gmnFormLogicAnd
     gmeow:gmnFixity gmeow:gmnFixityInfix ;
     gmeow:gmnArity 2 ;
     gmeow:gmnPrecedence 40 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindVariadic ;
+    gmeow:gmnAssociativity gmeow:gmnAssocAssociative ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicAnd
@@ -6710,6 +6940,9 @@ gmeow:gmnFormLogicOr
     gmeow:gmnFixity gmeow:gmnFixityInfix ;
     gmeow:gmnArity 2 ;
     gmeow:gmnPrecedence 30 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindVariadic ;
+    gmeow:gmnAssociativity gmeow:gmnAssocAssociative ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicOr
@@ -6732,6 +6965,9 @@ gmeow:gmnFormLogicIff
     gmeow:gmnFixity gmeow:gmnFixityInfix ;
     gmeow:gmnArity 2 ;
     gmeow:gmnPrecedence 10 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocNone ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:gmnDenLogicIff
@@ -6917,6 +7153,877 @@ gmeow:gmnCandidateLogicIff
     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ; gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
     gmeow:gmnDispositionRationale "The biconditional glyph fragments into more pinned BPE tokens than the `iff` key." ;
     gmeow:gmnCandidateDenotation gmeow:gmnDenLogicIff ; gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- GMN logic plane: FOL/DL/modal constants, turnstiles, and operators ----- #
+# The truth constants ⊤ ⊥, the derivability/entailment turnstiles ⊢ ⊨, the typed
+# modal operators □ ◇, the DL concept-forming operators ⊓ ⊔, and the lens/
+# correspondence composition ∘, each an audited named key: its display glyph
+# fragments to more pinned cl100k_base tokens than its one-token ASCII key, so the
+# glyph stays display notation and the term keeps the key. Each candidate records
+# the display glyph's codepoints and measured cost so the token-cost cross-check
+# reconstructs and re-verifies it; none enters the executable glyph registry.
+
+gmeow:gmnFormLogicTop
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN verum key `top`"@x-gmeow-english ;
+    skos:definition "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicTop
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN verum key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `top` to the constant logic:Top; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicTop ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:Top ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicTop
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: verum ⊤"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the verum constant logic:Top rendered ⊤."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:Top ;
+    gmeow:gmnCandidateGlyph "⊤" ;
+    gmeow:gmnCodepoints "U+22A4" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "top" ;
+    gmeow:gmnSpokenLabel "top" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The verum sign ⊤ costs three pinned cl100k_base tokens while the one-token `top` key wins on token cost, so ⊤ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicTop ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicBottom
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN falsum key `bot`"@x-gmeow-english ;
+    skos:definition "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicBottom
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN falsum key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `bot` to the constant logic:Bottom; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicBottom ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:Bottom ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicBottom
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: falsum ⊥"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the falsum constant logic:Bottom rendered ⊥."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:Bottom ;
+    gmeow:gmnCandidateGlyph "⊥" ;
+    gmeow:gmnCodepoints "U+22A5" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "bot" ;
+    gmeow:gmnSpokenLabel "bottom" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The falsum sign ⊥ costs three pinned cl100k_base tokens while the one-token `bot` key wins on token cost, so ⊥ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicBottom ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotDerivesContext
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "derivability context slot"@x-gmeow-english ;
+    skos:definition "The first operand slot of the derivability turnstile: the premise context Γ, at index 0 in the context role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortContext ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotDerivesSuccedent
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "derivability succedent slot"@x-gmeow-english ;
+    skos:definition "The second operand slot of the derivability turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 1 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleSuccedent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicDerives
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN derivability key `derives`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `derives` for the syntactic proof-theoretic turnstile logic:derives (Γ ⊢ φ); the ⊢ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the semantic entailment turnstile ⊨."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 5 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortJudgment ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotDerivesContext , gmeow:gmnSlotDerivesSuccedent ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocNone ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicDerives
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN derivability key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `derives` to the syntactic derivability relation logic:derives; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicDerives ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:derives ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicDerives
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: derivability turnstile ⊢"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the syntactic derivability turnstile logic:derives rendered ⊢, kept distinct from the semantic ⊨."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:derives ;
+    gmeow:gmnCandidateGlyph "⊢" ;
+    gmeow:gmnCodepoints "U+22A2" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "derives" ;
+    gmeow:gmnSpokenLabel "derives" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The derivability turnstile ⊢ costs three pinned cl100k_base tokens while the two-token `derives` key wins on token cost, so ⊢ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicDerives ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotEntailsContext
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "entailment context slot"@x-gmeow-english ;
+    skos:definition "The first operand slot of the entailment turnstile: the premise context Γ, at index 0 in the context role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortContext ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotEntailsSuccedent
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "entailment succedent slot"@x-gmeow-english ;
+    skos:definition "The second operand slot of the entailment turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 1 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleSuccedent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicEntails
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN entailment key `entails`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `entails` for the semantic model-theoretic turnstile logic:entails (Γ ⊨ φ); the ⊨ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the syntactic derivability turnstile ⊢."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 5 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortJudgment ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotEntailsContext , gmeow:gmnSlotEntailsSuccedent ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocNone ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicEntails
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN entailment key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `entails` to the semantic entailment relation logic:entails; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicEntails ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:entails ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicEntails
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: entailment turnstile ⊨"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the semantic entailment turnstile logic:entails rendered ⊨, kept distinct from the syntactic ⊢."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:entails ;
+    gmeow:gmnCandidateGlyph "⊨" ;
+    gmeow:gmnCodepoints "U+22A8" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "entails" ;
+    gmeow:gmnSpokenLabel "entails" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The entailment turnstile ⊨ costs three pinned cl100k_base tokens while the two-token `entails` key wins on token cost, so ⊨ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicEntails ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotNecessarilyAccess
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "necessity accessibility slot"@x-gmeow-english ;
+    skos:definition "The first operand slot of the box modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortAccessibilityType ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleOverAccessibility ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotNecessarilyBody
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "necessity body slot"@x-gmeow-english ;
+    skos:definition "The second operand slot of the box modality: the body logic:Formula that must hold in every accessible context of the declared type, at index 1 in the body role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 1 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleBody ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicNecessarily
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN necessity key `box`"@x-gmeow-english ;
+    skos:definition "The prefix GMN named-key form `box` for the type-parameterized necessity modality logic:necessarily (□); the ⊤-shaped box glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnPrecedence 85 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotNecessarilyAccess , gmeow:gmnSlotNecessarilyBody ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicNecessarily
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN necessity key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `box` to the type-parameterized necessity modality logic:necessarily; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicNecessarily ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:necessarily ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicNecessarily
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: necessity □"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the type-parameterized necessity modality logic:necessarily rendered □."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:necessarily ;
+    gmeow:gmnCandidateGlyph "□" ;
+    gmeow:gmnCodepoints "U+25A1" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnAsciiFallback "box" ;
+    gmeow:gmnSpokenLabel "necessarily" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The box modality □ costs two pinned cl100k_base tokens while the one-token `box` key wins on token cost, so □ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicNecessarily ;
+    gmeow:cites gmeow:gmnModalLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotPossiblyAccess
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "possibility accessibility slot"@x-gmeow-english ;
+    skos:definition "The first operand slot of the diamond modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 0 ;
+    gmeow:gmnArgSort gmeow:gmnSortAccessibilityType ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleOverAccessibility ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSlotPossiblyBody
+    a gmeow:GmnArgSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "possibility body slot"@x-gmeow-english ;
+    skos:definition "The second operand slot of the diamond modality: the body logic:Formula that must hold in some accessible context of the declared type, at index 1 in the body role."@x-gmeow-english ;
+    gmeow:gmnArgIndex 1 ;
+    gmeow:gmnArgSort gmeow:gmnSortFormula ;
+    gmeow:gmnArgRole gmeow:gmnArgRoleBody ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicPossibly
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN possibility key `dia`"@x-gmeow-english ;
+    skos:definition "The prefix GMN named-key form `dia` for the type-parameterized possibility modality logic:possibly (◇); the diamond glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityPrefix ;
+    gmeow:gmnPrecedence 85 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortFormula ;
+    gmeow:gmnOperandSorts gmeow:gmnSlotPossiblyAccess , gmeow:gmnSlotPossiblyBody ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicPossibly
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN possibility key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `dia` to the type-parameterized possibility modality logic:possibly; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicPossibly ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:possibly ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicPossibly
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: possibility ◇"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the type-parameterized possibility modality logic:possibly rendered ◇."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:possibly ;
+    gmeow:gmnCandidateGlyph "◇" ;
+    gmeow:gmnCodepoints "U+25C7" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnAsciiFallback "dia" ;
+    gmeow:gmnSpokenLabel "possibly" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The diamond modality ◇ costs two pinned cl100k_base tokens while the one-token `dia` key wins on token cost, so ◇ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicPossibly ;
+    gmeow:cites gmeow:gmnModalLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicConceptIntersection
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN concept-intersection key `concept_and`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `concept_and` for the Description-Logic concept-intersection constructor logic:conceptIntersection (⊓); the ⊓ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 45 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortConcept ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocAssociative ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicConceptIntersection
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN concept-intersection key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `concept_and` to the concept-intersection constructor logic:conceptIntersection; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicConceptIntersection ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:conceptIntersection ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicConceptIntersection
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: concept intersection ⊓"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the DL concept-intersection constructor logic:conceptIntersection rendered ⊓, kept distinct from the sentence connective logic:and."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:conceptIntersection ;
+    gmeow:gmnCandidateGlyph "⊓" ;
+    gmeow:gmnCodepoints "U+2293" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "concept_and" ;
+    gmeow:gmnSpokenLabel "concept intersection" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The concept-intersection sign ⊓ costs three pinned cl100k_base tokens while the two-token `concept_and` key wins on token cost, so ⊓ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicConceptIntersection ;
+    gmeow:cites gmeow:gmnDescriptionLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicConceptUnion
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN concept-union key `concept_or`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `concept_or` for the Description-Logic concept-union constructor logic:conceptUnion (⊔); the ⊔ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 44 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortConcept ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocAssociative ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicConceptUnion
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN concept-union key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `concept_or` to the concept-union constructor logic:conceptUnion; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicConceptUnion ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:conceptUnion ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicConceptUnion
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: concept union ⊔"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for the DL concept-union constructor logic:conceptUnion rendered ⊔, kept distinct from the sentence connective logic:or."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:conceptUnion ;
+    gmeow:gmnCandidateGlyph "⊔" ;
+    gmeow:gmnCodepoints "U+2294" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostThree ;
+    gmeow:gmnAsciiFallback "concept_or" ;
+    gmeow:gmnSpokenLabel "concept union" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The concept-union sign ⊔ costs three pinned cl100k_base tokens while the two-token `concept_or` key wins on token cost, so ⊔ remains display notation and adopts no glyph." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicConceptUnion ;
+    gmeow:cites gmeow:gmnDescriptionLogicNotationWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicCompose
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN lens-composition key `after`"@x-gmeow-english ;
+    skos:definition "The binary infix GMN named-key form `after` for lens / correspondence composition logic:compose (∘); the ring-operator glyph remains display notation because the ASCII key is cheaper under the pinned BPE. Composition sequences two lens legs and is associative; it is distinct from math:functionComposition, so its @ℒ key `after` never collides with the math plane's `compose`."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnFixity gmeow:gmnFixityInfix ;
+    gmeow:gmnPrecedence 75 ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnResultSort gmeow:gmnSortTerm ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:gmnAssociativity gmeow:gmnAssocAssociative ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicCompose
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the GMN lens-composition key"@x-gmeow-english ;
+    skos:definition "The meaning assignment from `after` to lens / correspondence composition logic:compose; it deliberately carries no executable grapheme."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicCompose ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:compose ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicCompose
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: lens composition ∘"@x-gmeow-english ;
+    skos:definition "The audited named-key ruling for lens / correspondence composition logic:compose rendered ∘, kept distinct from math:functionComposition by its @ℒ scope and `after` key."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:compose ;
+    gmeow:gmnCandidateGlyph "∘" ;
+    gmeow:gmnCodepoints "U+2218" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnAsciiFallback "after" ;
+    gmeow:gmnSpokenLabel "after" ;
+    gmeow:gmnArity 2 ;
+    gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The ring-operator ∘ costs two pinned cl100k_base tokens while the one-token `after` key wins on token cost, so ∘ remains display notation and adopts no glyph; the @ℒ scope keeps it distinct from the math plane's `compose` reading of the same codepoint." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicCompose ;
+    gmeow:cites gmeow:gmnCommonLogicWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- GMN logic plane: Belnap bilattice grade signs -------------------------- #
+# Eight nullary truth-value constants scoped @ℒ: the four raw logic:BelnapBilattice
+# values (rendered as filled/patterned circles ● ○ ◉ ◌) and the four result-level
+# logic:InformationState verdicts (rendered as filled/hollow up/down triangles
+# ▲ ▼ △ ▽). The two families are pairwise visually distinct, share no codepoint with
+# the verum/falsum ⊤ ⊥ or with each other, and are no mathematical-italic latin
+# letter, so no UTS #39 skeleton collapses them onto an ASCII letter or onto one
+# another. Each geometric glyph measures no more than its ASCII key, so all eight are
+# adopted without a token penalty; the four raw values and four verdicts carry
+# distinct targets and distinct signs so the algebra value never floats duplicate to
+# the verdict that reports it.
+
+gmeow:gmnGlyphLogicBelnapTrue
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Belnap-true glyph"@x-gmeow-english ;
+    skos:definition "The NFC ● grapheme (U+25CF) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapTrue after the pinned BPE measured it at one token."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25CF" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicBelnapTrue
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Belnap-true constant form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ● and denoting the raw truth value logic:BelnapTrue in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicBelnapTrue
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN Belnap true"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ● form to the raw truth value logic:BelnapTrue."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicBelnapTrue ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:BelnapTrue ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicBelnapTrue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicBelnapTrue
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Belnap true as ●"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the raw truth value logic:BelnapTrue as ● in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:BelnapTrue ;
+    gmeow:gmnCandidateGlyph "●" ;
+    gmeow:gmnAsciiFallback "btrue" ;
+    gmeow:gmnSpokenLabel "Belnap true" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The black-circle sign ● costs one pinned cl100k_base token, no more than the two-token ASCII key `btrue`; ● is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicBelnapTrue ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicBelnapFalse
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Belnap-false glyph"@x-gmeow-english ;
+    skos:definition "The NFC ○ grapheme (U+25CB) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapFalse after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25CB" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicBelnapFalse
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Belnap-false constant form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ○ and denoting the raw truth value logic:BelnapFalse in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicBelnapFalse
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN Belnap false"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ○ form to the raw truth value logic:BelnapFalse."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicBelnapFalse ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:BelnapFalse ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicBelnapFalse ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicBelnapFalse
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Belnap false as ○"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the raw truth value logic:BelnapFalse as ○ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:BelnapFalse ;
+    gmeow:gmnCandidateGlyph "○" ;
+    gmeow:gmnAsciiFallback "bfalse" ;
+    gmeow:gmnSpokenLabel "Belnap false" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The white-circle sign ○ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `bfalse`; ○ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicBelnapFalse ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicBelnapBoth
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Belnap-both glyph"@x-gmeow-english ;
+    skos:definition "The NFC ◉ grapheme (U+25C9) in the @ℒ scope, adopted as the executable GMN sign for the raw over-determined glut value logic:BelnapBoth after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25C9" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicBelnapBoth
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Belnap-both constant form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ◉ and denoting the raw over-determined glut value logic:BelnapBoth in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicBelnapBoth
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN Belnap both"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ◉ form to the raw glut value logic:BelnapBoth."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicBelnapBoth ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:BelnapBoth ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicBelnapBoth ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicBelnapBoth
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Belnap both as ◉"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the raw glut value logic:BelnapBoth as ◉ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:BelnapBoth ;
+    gmeow:gmnCandidateGlyph "◉" ;
+    gmeow:gmnAsciiFallback "bboth" ;
+    gmeow:gmnSpokenLabel "Belnap both" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The fisheye sign ◉ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `bboth`; ◉ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicBelnapBoth ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicBelnapNeither
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Belnap-neither glyph"@x-gmeow-english ;
+    skos:definition "The NFC ◌ grapheme (U+25CC) in the @ℒ scope, adopted as the executable GMN sign for the raw under-determined gap value logic:BelnapNeither after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25CC" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicBelnapNeither
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN Belnap-neither constant form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ◌ and denoting the raw under-determined gap value logic:BelnapNeither in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicBelnapNeither
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN Belnap neither"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ◌ form to the raw gap value logic:BelnapNeither."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicBelnapNeither ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:BelnapNeither ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicBelnapNeither ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicBelnapNeither
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: Belnap neither as ◌"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the raw gap value logic:BelnapNeither as ◌ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:BelnapNeither ;
+    gmeow:gmnCandidateGlyph "◌" ;
+    gmeow:gmnAsciiFallback "bnone" ;
+    gmeow:gmnSpokenLabel "Belnap neither" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The dotted-circle sign ◌ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `bnone`; ◌ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicBelnapNeither ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicInfoSupported
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN info-supported glyph"@x-gmeow-english ;
+    skos:definition "The NFC ▲ grapheme (U+25B2) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoSupported after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25B2" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicInfoSupported
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN info-supported verdict form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ▲ and denoting the result-level verdict logic:InfoSupported in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicInfoSupported
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN info supported"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ▲ form to the verdict logic:InfoSupported."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicInfoSupported ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:InfoSupported ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicInfoSupported ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicInfoSupported
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: info supported as ▲"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the result-level verdict logic:InfoSupported as ▲ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:InfoSupported ;
+    gmeow:gmnCandidateGlyph "▲" ;
+    gmeow:gmnAsciiFallback "isupp" ;
+    gmeow:gmnSpokenLabel "information supported" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The black-up-triangle sign ▲ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `isupp`; ▲ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicInfoSupported ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicInfoOpposed
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN info-opposed glyph"@x-gmeow-english ;
+    skos:definition "The NFC ▼ grapheme (U+25BC) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoOpposed after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25BC" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicInfoOpposed
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN info-opposed verdict form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ▼ and denoting the result-level verdict logic:InfoOpposed in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicInfoOpposed
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN info opposed"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ▼ form to the verdict logic:InfoOpposed."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicInfoOpposed ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:InfoOpposed ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicInfoOpposed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicInfoOpposed
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: info opposed as ▼"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the result-level verdict logic:InfoOpposed as ▼ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:InfoOpposed ;
+    gmeow:gmnCandidateGlyph "▼" ;
+    gmeow:gmnAsciiFallback "iopp" ;
+    gmeow:gmnSpokenLabel "information opposed" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The black-down-triangle sign ▼ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `iopp`; ▼ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicInfoOpposed ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicInfoBoth
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN info-both glyph"@x-gmeow-english ;
+    skos:definition "The NFC △ grapheme (U+25B3) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoBoth after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25B3" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicInfoBoth
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN info-both verdict form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by △ and denoting the result-level verdict logic:InfoBoth in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicInfoBoth
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN info both"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN △ form to the verdict logic:InfoBoth."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicInfoBoth ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:InfoBoth ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicInfoBoth ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicInfoBoth
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: info both as △"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the result-level verdict logic:InfoBoth as △ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:InfoBoth ;
+    gmeow:gmnCandidateGlyph "△" ;
+    gmeow:gmnAsciiFallback "iboth" ;
+    gmeow:gmnSpokenLabel "information both" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The white-up-triangle sign △ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `iboth`; △ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicInfoBoth ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnGlyphLogicInfoNeither
+    a lang:Grapheme ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN info-neither glyph"@x-gmeow-english ;
+    skos:definition "The NFC ▽ grapheme (U+25BD) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoNeither after the pinned BPE measured it at two tokens."@x-gmeow-english ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+25BD" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnFormLogicInfoNeither
+    a lang:Form ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the GMN info-neither verdict form"@x-gmeow-english ;
+    skos:definition "The nullary GMN constant form rendered by ▽ and denoting the result-level verdict logic:InfoNeither in the logic glyph context."@x-gmeow-english ;
+    lang:inSignSystem gmeow:gmnModelNotation ;
+    gmeow:gmnResultSort gmeow:gmnSortTruthValue ;
+    gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenLogicInfoNeither
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of GMN info neither"@x-gmeow-english ;
+    skos:definition "The executable scoped meaning assignment from the GMN ▽ form to the verdict logic:InfoNeither."@x-gmeow-english ;
+    lang:denotedForm gmeow:gmnFormLogicInfoNeither ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget logic:InfoNeither ;
+    lang:denotationContext gmeow:gmnLogicGlyphContext ;
+    gmeow:gmnDenotationGrapheme gmeow:gmnGlyphLogicInfoNeither ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateLogicInfoNeither
+    a gmeow:GmnSymbolCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN candidate: info neither as ▽"@x-gmeow-english ;
+    skos:definition "The audited adoption record for rendering the result-level verdict logic:InfoNeither as ▽ in @ℒ records."@x-gmeow-english ;
+    gmeow:gmnCandidateTarget logic:InfoNeither ;
+    gmeow:gmnCandidateGlyph "▽" ;
+    gmeow:gmnAsciiFallback "inone" ;
+    gmeow:gmnSpokenLabel "information neither" ;    gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph ;
+    gmeow:gmnDispositionBasis gmeow:gmnBasisTokenCost ;
+    gmeow:gmnDispositionRationale "The white-down-triangle sign ▽ costs two pinned cl100k_base tokens, no more than the two-token ASCII key `inone`; ▽ is adopted without a token penalty as one of the coherent geometric grade-sign family, scoped to @ℒ." ;
+    gmeow:gmnCandidateDenotation gmeow:gmnDenLogicInfoNeither ;
+    gmeow:cites gmeow:gmnBelnapBilatticeWork , gmeow:gmnUnicodeMathWork ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # External-corpus mathematics coverage: conventional display notation is audited

@@ -66,7 +66,7 @@ ex:nightlyEnvelope
     gmeow:accordingTo ex:archiveKeeper ;
     gmeow:wasGeneratedBy ex:nightlyGmnWrite ;
     gmeow:contentDigest "blake3:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrNightlyEnvelope .
 
 # --- A compartmented-scope envelope: the NATO demonstrator ring -------------- #
@@ -96,7 +96,7 @@ ex:coalitionEnvelope
     gmeow:accordingTo ex:coalitionDesk ;
     gmeow:wasGeneratedBy ex:coalitionGmnWrite ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrCoalitionEnvelope .
 
 # --- A worked gmeow:gmnRingWithin flow example: querying the DERIVED order --- #
