@@ -78,6 +78,10 @@ const MCP_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 /// the tool that produced the finding.
 const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
 
+/// The origin marker stamped on every `advise` finding's primary location — the
+/// `advise`-tool twin of [`VALIDATE_LOCAL_ORIGIN`].
+const ADVISE_ORIGIN: &str = "mcp:advise";
+
 /// A generous ceiling on the inline `data` payload `validate_local` accepts (8 MiB).
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
@@ -2122,6 +2126,22 @@ impl McpServer {
                 ],
             ),
             tool(
+                "advise",
+                "Advise on an inline agent-authored RDF claim: return the non-gating \
+                 RECOMMENDATIONS (never rejections) GMEOW harvests for it — the avoid-when \
+                 prohibition, the how-to-use corrective directive, and the use-when permission \
+                 prose of every advisory `advice.*` finding the claim trips. The companion of \
+                 `validate_local`: where validate reports OBLIGATIONS (a claim can fail), advise \
+                 reports RECOMMENDATIONS and ALWAYS returns `ok:true` — a clean claim returns an \
+                 empty list. Routes through the SAME shipped validator core as `validate_local` \
+                 (shallow Tier-1 pass only; advice is a fast structural concept), so it never \
+                 diverges. `data` is the RDF text; `format` is one of turtle|ttl|text/turtle, \
+                 ntriples|nt|n-triples, nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml, \
+                 jsonld|json-ld. Nothing is written; an unknown format or an oversized payload \
+                 is a hard error.",
+                &[("data", "string"), ("format", "string")],
+            ),
+            tool(
                 "explain_finding",
                 "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
                  addressed by its fingerprint IRI (a finding) or its anchor IRI (a cluster): \
@@ -2387,6 +2407,7 @@ impl McpServer {
             "explain_quad" => self.tool_explain_quad(args),
             "coherence_certificate" => self.tool_coherence_certificate(args),
             "validate_local" => self.tool_validate_local(args),
+            "advise" => self.tool_advise(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
@@ -2740,6 +2761,94 @@ impl McpServer {
         serde_json::to_string(&enriched).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("validate_local: serialize enriched report: {e}"),
+            })
+        })
+    }
+
+    /// The `advise` tool: return the non-gating RECOMMENDATIONS (never rejections) a
+    /// submitted claim trips — the companion of `validate_local`. It runs the SAME
+    /// shipped validator core (shallow Tier-1 only — the advisory `advice.*` Note tier
+    /// is a fast structural pass; deep reasoning buys no advisory yield for its
+    /// multi-minute cost), keeps only the advisory tier, and serializes each as a
+    /// contrary-to-duty-shaped recommendation. ALWAYS `ok:true`: advice is a
+    /// recommendation, so a clean claim returns an empty list, never a failure.
+    fn tool_advise(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let canonical = canonical_rdf_format(format)?;
+
+        if data.len() > MAX_VALIDATE_DATA_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "advise: data payload is {} bytes, exceeding the {} byte ceiling; \
+                     split the graph and advise on the parts (no silent truncation)",
+                    data.len(),
+                    MAX_VALIDATE_DATA_BYTES
+                ),
+            }));
+        }
+
+        // Shallow Tier-1 only (deep = false): advisory Notes come from the fast SHACL
+        // pass. Same bundle parts and core as validate_local, so advice never diverges
+        // from the shipped validator.
+        let report = gmeow_validate::data_validate::run_with(
+            gmeow_validate::data_validate::BundleParts {
+                gts_bytes: self.view.gts_bytes(),
+                shapes: self.view.tier1_shapes()?,
+                dataset: self.view.dataset.as_ref(),
+            },
+            data.as_bytes(),
+            canonical,
+            MCP_NAMESPACE,
+            ADVISE_ORIGIN,
+            false,
+        )?;
+
+        // Keep only the advisory tier (the advice.* Note family) and shape each as a
+        // contrary-to-duty recommendation: the violated prohibition (avoid_when = the
+        // finding message), the sub-ideal repair (how_to_use), and the permission gate
+        // (use_when). The bridge builds `suggestions` as [howToUse, "Use when: <prose>"],
+        // so the "Use when: " prefix cleanly separates the permission leg.
+        let recommendations: Vec<Value> = report
+            .findings
+            .iter()
+            .filter(|f| f.code.starts_with(gmeow_validate::codes::ADVICE_FAMILY))
+            .map(|f| {
+                let mut use_when: Vec<String> = Vec::new();
+                let mut how_to_use: Vec<String> = Vec::new();
+                for suggestion in &f.suggestions {
+                    match suggestion.strip_prefix("Use when: ") {
+                        Some(rest) => use_when.push(rest.to_string()),
+                        None => how_to_use.push(suggestion.clone()),
+                    }
+                }
+                // The governed term the advice formalizes rides as a `formalizes:<term>`
+                // tag; the tripped subject is the first location's logical IRI.
+                let formalizes = f
+                    .tags
+                    .iter()
+                    .find_map(|t| t.strip_prefix("formalizes:").map(str::to_string));
+                let subject = f.locations.iter().find_map(|l| l.logical.clone());
+                json!({
+                    "code": f.code,
+                    "subject": subject,
+                    "formalizes": formalizes,
+                    "avoid_when": f.message,
+                    "how_to_use": how_to_use,
+                    "use_when": use_when,
+                    "help_uri": gmeow_validate::rule_catalog::catalog_anchor_uri(&f.code),
+                })
+            })
+            .collect();
+
+        let response = json!({
+            "ok": true,
+            "tool": "advise",
+            "recommendations": recommendations,
+        });
+        serde_json::to_string(&response).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("advise: serialize recommendations: {e}"),
             })
         })
     }
@@ -6335,6 +6444,8 @@ mod tests {
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
         assert!(consumer_tools.contains("\"validate_local\""));
+        // `advise` — the recommendation companion of `validate_local` (D6, #765).
+        assert!(consumer_tools.contains("\"advise\""));
         assert!(consumer_tools.contains("\"docs_search\""));
         assert!(consumer_tools.contains("\"counter_examples\""));
         assert!(consumer_tools.contains("\"entailments\""));
@@ -8215,6 +8326,12 @@ mod tests {
             "validate_local",
             json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
         );
+        // `advise` is the fast Tier-1-only recommendation surface: a tiny clean graph
+        // dispatches and returns ok:true with no recommendations.
+        call_args.insert(
+            "advise",
+            json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
+        );
         call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
         call_args.insert(
             "conjecture_test",
@@ -8830,6 +8947,217 @@ mod tests {
         assert_eq!(
             malformed["ok"], false,
             "malformed RDF must surface as an error, not a silent success: {malformed}"
+        );
+    }
+
+    /// The n-triples claim that types an individual as a BARE gmeow:Entity — the
+    /// exact fixture the advisory bridge fires `BareEntitySortalAdviceConstraint`
+    /// (Entity avoidWhen) on.
+    const BARE_ENTITY_CLAIM: &str = "<https://ex.test/x> \
+         <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+         <https://blackcatinformatics.ca/gmeow/Entity> .\n";
+
+    /// AC2 (issue #765): `advise` returns the non-gating RECOMMENDATIONS a claim
+    /// trips — driven over the REAL JSON-RPC `handle_message` dispatch. A bare-Entity
+    /// claim surfaces the Entity avoid/use/how-to advice, `ok:true`.
+    #[test]
+    fn advise_surfaces_recommendations_for_a_matching_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // Drive the REAL JSON-RPC path: tools/call → dispatch → tool_advise.
+        let body = format!(
+            r#"{{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{{"name":"advise","arguments":{{"data":{},"format":"ntriples"}}}}}}"#,
+            serde_json::to_string(BARE_ENTITY_CLAIM).unwrap()
+        );
+        let raw = server.handle_message(&body);
+        let envelope: Value = serde_json::from_str(&raw).expect("JSON-RPC response");
+        assert_eq!(envelope["jsonrpc"], "2.0");
+        let payload: Value = serde_json::from_str(
+            envelope["result"]["content"][0]["text"]
+                .as_str()
+                .expect("tool text"),
+        )
+        .expect("advise payload is JSON");
+
+        assert_eq!(
+            payload["ok"], true,
+            "advise is a recommendation surface — always ok:true: {payload}"
+        );
+        assert_eq!(payload["tool"], "advise");
+        let recs = payload["recommendations"]
+            .as_array()
+            .expect("recommendations array");
+        assert!(
+            !recs.is_empty(),
+            "a bare-Entity claim must surface at least one recommendation: {payload}"
+        );
+        for rec in recs {
+            let code = rec["code"].as_str().unwrap();
+            assert!(
+                code.starts_with("advice."),
+                "advise must surface ONLY advisory advice.* codes: {rec}"
+            );
+            assert!(
+                !rec["avoid_when"].as_str().unwrap().is_empty(),
+                "each recommendation carries its avoid-when prohibition prose: {rec}"
+            );
+            assert_eq!(
+                rec["help_uri"].as_str().unwrap(),
+                gmeow_validate::rule_catalog::catalog_anchor_uri(code),
+                "help_uri routes through the single anchor authority (→ #advice-): {rec}"
+            );
+        }
+        // The Entity advice carries its formalized term and its corrective/permission
+        // guidance (the contrary-to-duty how-to-use / use-when legs).
+        let entity = recs
+            .iter()
+            .find(|r| {
+                r["formalizes"].as_str() == Some("https://blackcatinformatics.ca/gmeow/Entity")
+            })
+            .unwrap_or_else(|| {
+                panic!("the Entity advice recommendation must be present: {payload}")
+            });
+        assert!(
+            !entity["how_to_use"].as_array().unwrap().is_empty()
+                || !entity["use_when"].as_array().unwrap().is_empty(),
+            "the Entity advice carries how-to-use / use-when guidance: {entity}"
+        );
+    }
+
+    /// AC2: a claim that trips NO advice returns an empty recommendation list, still
+    /// `ok:true` — advice is a recommendation, never a rejection.
+    #[test]
+    fn advise_returns_empty_for_a_clean_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let payload = text_payload(server.call_tool_result(
+            "advise",
+            &json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "ntriples"}),
+        ));
+        assert_eq!(
+            payload["ok"], true,
+            "advice never fails, even for a claim with no recommendations: {payload}"
+        );
+        assert_eq!(payload["tool"], "advise");
+        assert!(
+            payload["recommendations"].as_array().unwrap().is_empty(),
+            "a claim tripping no advice returns an empty recommendation list: {payload}"
+        );
+    }
+
+    /// AC2 (the sharpest witness): on a MIXED claim tripping BOTH a binding Error AND
+    /// the Entity advice, `advise` returns ONLY the advisory tier — `ok:true`, never
+    /// the binding code — while `validate_local` on the same claim is `ok:false`.
+    #[test]
+    fn advise_on_a_mixed_claim_returns_only_advice() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let tier1_shapes =
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
+                .expect("parse the bundle's Tier-1 shapes once");
+        let (_fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+
+        // The Error-tripping fixture PLUS a bare-Entity advice trigger (a new subject,
+        // so the fixture's Error still fires and the Entity advice is added).
+        let claim = format!(
+            "{text}\n<https://ex.test/advicex> a <https://blackcatinformatics.ca/gmeow/Entity> .\n"
+        );
+
+        // validate_local sees the binding Error → ok:false.
+        let validated = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": claim, "format": "turtle"}),
+        ));
+        assert_eq!(
+            validated["ok"], false,
+            "the mixed claim carries a binding Error (validate_local rejects it): {validated}"
+        );
+
+        // advise returns ONLY the advisory tier, ok:true, and NEVER the binding code.
+        let advised = text_payload(
+            server.call_tool_result("advise", &json!({"data": claim, "format": "turtle"})),
+        );
+        assert_eq!(
+            advised["ok"], true,
+            "advise never fails, even on a claim carrying a binding violation: {advised}"
+        );
+        let recs = advised["recommendations"].as_array().unwrap();
+        assert!(
+            !recs.is_empty(),
+            "the bare-Entity leg must still surface advice on the mixed claim: {advised}"
+        );
+        for rec in recs {
+            let rec_code = rec["code"].as_str().unwrap();
+            assert!(
+                rec_code.starts_with("advice."),
+                "advise surfaces only advice.* codes, never the binding {code}: {rec}"
+            );
+            assert_ne!(
+                rec_code, code,
+                "the binding Error code must never appear in advise output: {rec}"
+            );
+        }
+    }
+
+    /// ROBUSTNESS (parity with `validate_local`): an unknown `format` and an oversized
+    /// `data` payload each return a well-formed `ok:false` error envelope — never a
+    /// panic, never a silent truncation.
+    #[test]
+    fn advise_hard_fails_bad_format_and_oversize() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        let bad_format = text_payload(server.call_tool_result(
+            "advise",
+            &json!({"data": "<urn:s> <urn:p> <urn:o> .", "format": "bogus"}),
+        ));
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format must be a hard fail"
+        );
+        assert!(
+            bad_format["error"]
+                .as_str()
+                .unwrap()
+                .contains("unrecognized RDF format"),
+            "the error must name the offending format: {bad_format}"
+        );
+
+        let huge = format!(
+            "<urn:s> <urn:p> \"{}\" .",
+            "x".repeat(MAX_VALIDATE_DATA_BYTES + 1)
+        );
+        let oversize = text_payload(
+            server.call_tool_result("advise", &json!({"data": huge, "format": "turtle"})),
+        );
+        assert_eq!(
+            oversize["ok"], false,
+            "oversized payload must be a hard fail"
+        );
+        assert!(
+            oversize["error"].as_str().unwrap().contains("ceiling"),
+            "the error must explain the size ceiling: {oversize}"
         );
     }
 
