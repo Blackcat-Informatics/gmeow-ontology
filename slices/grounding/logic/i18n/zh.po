@@ -10487,21 +10487,29 @@ msgstr "一个具体化的、有名称的语境，真理相对于它被求值—
 
 # --- GMN logic glyph-plane enrichment: truth constants, turnstiles, modal & DL operators, sequents, Belnap values ---
 
+msgctxt "https://blackcatinformatics.ca/logic/TruthConstant|rdfs:label"
+msgid "Truth Constant"
+msgstr "真值常量"
+
+msgctxt "https://blackcatinformatics.ca/logic/TruthConstant|skos:definition"
+msgid "The closed class of the two nullary logical truth constants — logic:Top (⊤, verum) and logic:Bottom (⊥, falsum) — the sentential identities of the propositional fragment. A truth constant is a nullary sentence: it carries NONE of the logic:FormulaConstructorConstraint constructor predicates (logic:and / logic:or / logic:not / logic:antecedent / logic:iff / logic:forall / logic:exists / logic:relation), so it is deliberately NOT a logic:Formula node (which selects exactly one such constructor) and is a distinct, sibling sentential kind — the constructed-formula grammar reaches a truth constant by reference, never by folding a constructor over it. It is DISTINCT from the raw logic:TruthValue algebra values (logic:BelnapTrue …), which are bilattice values rather than sentences, and from the logic:InformationState verdicts, which are result-level grades. The set is closed."
+msgstr "两个零元逻辑真值常量的闭合类——logic:Top（⊤，恒真）与 logic:Bottom（⊥，恒假）——命题片段的语句层单位元。真值常量是零元语句：它不携带 logic:FormulaConstructorConstraint 的任何构造子谓词（logic:and / logic:or / logic:not / logic:antecedent / logic:iff / logic:forall / logic:exists / logic:relation），故它有意地不是 logic:Formula 节点（后者恰好选取一个此类构造子），而是一个相异的、同级的语句种类——被构造的公式文法通过引用抵达真值常量，绝不通过在其上折叠构造子。它与原始 logic:TruthValue 代数值（logic:BelnapTrue …）相异，后者是双格值而非语句，也与 logic:InformationState 裁决相异，后者是结果级等级。该集合是闭合的。"
+
 msgctxt "https://blackcatinformatics.ca/logic/Top|rdfs:label"
 msgid "top"
 msgstr "顶（真，⊤）"
 
 msgctxt "https://blackcatinformatics.ca/logic/Top|skos:definition"
-msgid "The verum Formula constant ⊤: the nullary logic:Formula true under every interpretation — the identity a vacuous logic:and folds to. A constant of the logic:Formula grammar paired with logic:Bottom (⊥). It is NOT a logic:InformationState verdict such as logic:InfoSupported (a result-level Belnap grade, not a sentence), NOT a raw logic:TruthValue such as logic:BelnapTrue (an algebra value, not a sentence), and NOT owl:Thing, the universal class expression rather than a truth-valued formula."
-msgstr "verum（恒真）Formula 常量 ⊤：在每一种解释下均为真的零元 logic:Formula——空的 logic:and 归约所得的单位元。它是 logic:Formula 文法的常量，与 logic:Bottom（⊥）成对。它不是诸如 logic:InfoSupported 之类的 logic:InformationState 裁决（那是结果级的 Belnap 等级，而非语句），不是诸如 logic:BelnapTrue 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Thing（全域类表达式，而非具真值的公式）。"
+msgid "The verum truth constant ⊤: the nullary logic:TruthConstant true under every interpretation — the identity a vacuous logic:and folds to. Paired with logic:Bottom (⊥). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoSupported (a result-level Belnap grade, not a sentence), NOT a raw logic:TruthValue such as logic:BelnapTrue (an algebra value, not a sentence), and NOT owl:Thing, the universal class expression rather than a truth-valued sentence."
+msgstr "verum（恒真）真值常量 ⊤：在每一种解释下均为真的零元 logic:TruthConstant——空的 logic:and 归约所得的单位元。与 logic:Bottom（⊥）成对。由于它不携带任何构造子谓词，故它有意地不是被构造的 logic:Formula 节点（见 logic:TruthConstant）。它不是诸如 logic:InfoSupported 之类的 logic:InformationState 裁决（那是结果级的 Belnap 等级，而非语句），不是诸如 logic:BelnapTrue 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Thing（全域类表达式，而非具真值的语句）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/Bottom|rdfs:label"
 msgid "bottom"
 msgstr "底（假，⊥）"
 
 msgctxt "https://blackcatinformatics.ca/logic/Bottom|skos:definition"
-msgid "The falsum Formula constant ⊥: the nullary logic:Formula false under every interpretation — the identity a vacuous logic:or folds to. A constant of the logic:Formula grammar paired with logic:Top (⊤). It is NOT a logic:InformationState verdict such as logic:InfoOpposed or logic:InfoNeither (result-level grades, not sentences), NOT a raw logic:TruthValue such as logic:BelnapFalse (an algebra value, not a sentence), and NOT owl:Nothing, the empty class expression rather than a truth-valued formula."
-msgstr "falsum（恒假）Formula 常量 ⊥：在每一种解释下均为假的零元 logic:Formula——空的 logic:or 归约所得的单位元。它是 logic:Formula 文法的常量，与 logic:Top（⊤）成对。它不是诸如 logic:InfoOpposed 或 logic:InfoNeither 之类的 logic:InformationState 裁决（那是结果级的等级，而非语句），不是诸如 logic:BelnapFalse 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Nothing（空类表达式，而非具真值的公式）。"
+msgid "The falsum truth constant ⊥: the nullary logic:TruthConstant false under every interpretation — the identity a vacuous logic:or folds to. Paired with logic:Top (⊤). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoOpposed or logic:InfoNeither (result-level grades, not sentences), NOT a raw logic:TruthValue such as logic:BelnapFalse (an algebra value, not a sentence), and NOT owl:Nothing, the empty class expression rather than a truth-valued sentence."
+msgstr "falsum（恒假）真值常量 ⊥：在每一种解释下均为假的零元 logic:TruthConstant——空的 logic:or 归约所得的单位元。与 logic:Top（⊤）成对。由于它不携带任何构造子谓词，故它有意地不是被构造的 logic:Formula 节点（见 logic:TruthConstant）。它不是诸如 logic:InfoOpposed 或 logic:InfoNeither 之类的 logic:InformationState 裁决（那是结果级的等级，而非语句），不是诸如 logic:BelnapFalse 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Nothing（空类表达式，而非具真值的语句）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/derives|rdfs:label"
 msgid "derives"
@@ -10596,8 +10604,8 @@ msgid "Truth Value"
 msgstr "真值"
 
 msgctxt "https://blackcatinformatics.ca/logic/TruthValue|skos:definition"
-msgid "The closed class of the four RAW truth values of the logic:BelnapBilattice algebra: logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth (glut) and logic:BelnapNeither (gap). These are the algebra's carrier values, each bound to the logic:InformationState verdict that reports it through logic:realizedAsVerdict so there is no floating duplicate canon. They are DISTINCT from the logic:InformationState verdicts, which are result-level fields carrying two extra non-results (logic:InfoUndetermined, logic:InfoNotEvaluated) the raw algebra has no value for, and DISTINCT from the classical Formula constants logic:Top / logic:Bottom, which are nullary sentences rather than algebra values. The set is closed."
-msgstr "logic:BelnapBilattice 代数四个原始真值的闭合类：logic:BelnapTrue、logic:BelnapFalse、logic:BelnapBoth（过定）与 logic:BelnapNeither（欠定）。它们是该代数的载体值，各自通过 logic:realizedAsVerdict 绑定到报告它的 logic:InformationState 裁决，从而不存在游离的重复正典。它们与 logic:InformationState 裁决相异，后者是结果级字段，另携两个原始代数无对应值的非结果（logic:InfoUndetermined、logic:InfoNotEvaluated）；也与经典 Formula 常量 logic:Top / logic:Bottom 相异，后者是零元语句而非代数值。该集合是闭合的。"
+msgid "The closed class of the four RAW truth values of the logic:BelnapBilattice algebra: logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth (glut) and logic:BelnapNeither (gap). These are the algebra's carrier values, each bound to the logic:InformationState verdict that reports it through logic:realizedAsVerdict so there is no floating duplicate canon. They are DISTINCT from the logic:InformationState verdicts, which are result-level fields carrying two extra non-results (logic:InfoUndetermined, logic:InfoNotEvaluated) the raw algebra has no value for, and DISTINCT from the classical truth constants logic:Top / logic:Bottom (logic:TruthConstant), which are nullary sentences rather than algebra values. The set is closed."
+msgstr "logic:BelnapBilattice 代数四个原始真值的闭合类：logic:BelnapTrue、logic:BelnapFalse、logic:BelnapBoth（过定）与 logic:BelnapNeither（欠定）。它们是该代数的载体值，各自通过 logic:realizedAsVerdict 绑定到报告它的 logic:InformationState 裁决，从而不存在游离的重复正典。它们与 logic:InformationState 裁决相异，后者是结果级字段，另携两个原始代数无对应值的非结果（logic:InfoUndetermined、logic:InfoNotEvaluated）；也与经典真值常量 logic:Top / logic:Bottom（logic:TruthConstant）相异，后者是零元语句而非代数值。该集合是闭合的。"
 
 msgctxt "https://blackcatinformatics.ca/logic/realizedAsVerdict|rdfs:label"
 msgid "realized as verdict"
@@ -10612,16 +10620,16 @@ msgid "Belnap true"
 msgstr "Belnap 真"
 
 msgctxt "https://blackcatinformatics.ca/logic/BelnapTrue|skos:definition"
-msgid "The raw logic:BelnapBilattice value true — told true and not told false. The algebra value that logic:InfoSupported reports at the result level; DISTINCT from that verdict and from the Formula constant logic:Top. Bound to its verdict by logic:realizedAsVerdict."
-msgstr "logic:BelnapBilattice 的原始值「真」——被断言为真且未被断言为假。logic:InfoSupported 在结果级所报告的代数值；与该裁决及 Formula 常量 logic:Top 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
+msgid "The raw logic:BelnapBilattice value true — told true and not told false. The algebra value that logic:InfoSupported reports at the result level; DISTINCT from that verdict and from the truth constant logic:Top. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「真」——被断言为真且未被断言为假。logic:InfoSupported 在结果级所报告的代数值；与该裁决及真值常量 logic:Top 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
 
 msgctxt "https://blackcatinformatics.ca/logic/BelnapFalse|rdfs:label"
 msgid "Belnap false"
 msgstr "Belnap 假"
 
 msgctxt "https://blackcatinformatics.ca/logic/BelnapFalse|skos:definition"
-msgid "The raw logic:BelnapBilattice value false — told false and not told true. The algebra value that logic:InfoOpposed reports at the result level; DISTINCT from that verdict and from the Formula constant logic:Bottom. Bound to its verdict by logic:realizedAsVerdict."
-msgstr "logic:BelnapBilattice 的原始值「假」——被断言为假且未被断言为真。logic:InfoOpposed 在结果级所报告的代数值；与该裁决及 Formula 常量 logic:Bottom 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
+msgid "The raw logic:BelnapBilattice value false — told false and not told true. The algebra value that logic:InfoOpposed reports at the result level; DISTINCT from that verdict and from the truth constant logic:Bottom. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「假」——被断言为假且未被断言为真。logic:InfoOpposed 在结果级所报告的代数值；与该裁决及真值常量 logic:Bottom 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
 
 msgctxt "https://blackcatinformatics.ca/logic/BelnapBoth|rdfs:label"
 msgid "Belnap both"

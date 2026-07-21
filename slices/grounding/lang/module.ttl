@@ -7168,7 +7168,7 @@ gmeow:gmnFormLogicTop
     a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN verum key `top`"@x-gmeow-english ;
-    skos:definition "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."@x-gmeow-english ;
+    skos:definition "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."@x-gmeow-english ;
     lang:inSignSystem gmeow:gmnModelNotation ;
     gmeow:gmnResultSort gmeow:gmnSortFormula ;
     gmeow:gmnArityKind gmeow:gmnArityKindFixed ;
@@ -7206,7 +7206,7 @@ gmeow:gmnFormLogicBottom
     a lang:Form ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "the GMN falsum key `bot`"@x-gmeow-english ;
-    skos:definition "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."@x-gmeow-english ;
+    skos:definition "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."@x-gmeow-english ;
     lang:inSignSystem gmeow:gmnModelNotation ;
     gmeow:gmnResultSort gmeow:gmnSortFormula ;
     gmeow:gmnArityKind gmeow:gmnArityKindFixed ;

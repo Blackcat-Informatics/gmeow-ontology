@@ -1390,8 +1390,8 @@ msgid "the GMN falsum key `bot`"
 msgstr "la clé falsum GMN « bot »"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|skos:definition"
-msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
-msgstr "La forme à clé nommée GMN nullaire « bot » pour la constante falsum logic:Bottom ; le glyphe ⊥ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de la grammaire logic:Formula, elle ne porte donc aucune fixité."
+msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "La forme à clé nommée GMN nullaire « bot » pour la constante falsum logic:Bottom ; le glyphe ⊥ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de vérité nullaire (logic:TruthConstant), elle ne porte donc aucune fixité."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|rdfs:label"
 msgid "the GMN lens-composition key `after`"
@@ -1502,8 +1502,8 @@ msgid "the GMN verum key `top`"
 msgstr "la clé verum GMN « top »"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|skos:definition"
-msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
-msgstr "La forme à clé nommée GMN nullaire « top » pour la constante verum logic:Top ; le glyphe ⊤ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de la grammaire logic:Formula, elle ne porte donc aucune fixité."
+msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "La forme à clé nommée GMN nullaire « top » pour la constante verum logic:Top ; le glyphe ⊤ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de vérité nullaire (logic:TruthConstant), elle ne porte donc aucune fixité."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|rdfs:label"
 msgid "gmn glyph in scope"

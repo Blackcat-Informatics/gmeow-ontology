@@ -1390,8 +1390,8 @@ msgid "the GMN falsum key `bot`"
 msgstr "GMN falsum 键「bot」"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|skos:definition"
-msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
-msgstr "用于 falsum 常量 logic:Bottom 的零元 GMN 具名键形式「bot」；⊥ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是 logic:Formula 文法的常量，故不携带固定性。"
+msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "用于 falsum 常量 logic:Bottom 的零元 GMN 具名键形式「bot」；⊥ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是一个零元真值常量（logic:TruthConstant），故不携带固定性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|rdfs:label"
 msgid "the GMN lens-composition key `after`"
@@ -1502,8 +1502,8 @@ msgid "the GMN verum key `top`"
 msgstr "GMN verum 键「top」"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|skos:definition"
-msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
-msgstr "用于 verum 常量 logic:Top 的零元 GMN 具名键形式「top」；⊤ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是 logic:Formula 文法的常量，故不携带固定性。"
+msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "用于 verum 常量 logic:Top 的零元 GMN 具名键形式「top」；⊤ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是一个零元真值常量（logic:TruthConstant），故不携带固定性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|rdfs:label"
 msgid "gmn glyph in scope"

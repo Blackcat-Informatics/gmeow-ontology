@@ -15964,20 +15964,27 @@ logic:iff
 # typed accessibility relations, the lens legs (logic:getLeg / logic:putLeg) and
 # the Belnap verdicts (logic:InfoSupported / …); it mints only the absent terms.
 
+logic:TruthConstant
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Truth Constant"@x-gmeow-english ;
+    skos:definition "The closed class of the two nullary logical truth constants — logic:Top (⊤, verum) and logic:Bottom (⊥, falsum) — the sentential identities of the propositional fragment. A truth constant is a nullary sentence: it carries NONE of the logic:FormulaConstructorConstraint constructor predicates (logic:and / logic:or / logic:not / logic:antecedent / logic:iff / logic:forall / logic:exists / logic:relation), so it is deliberately NOT a logic:Formula node (which selects exactly one such constructor) and is a distinct, sibling sentential kind — the constructed-formula grammar reaches a truth constant by reference, never by folding a constructor over it. It is DISTINCT from the raw logic:TruthValue algebra values (logic:BelnapTrue …), which are bilattice values rather than sentences, and from the logic:InformationState verdicts, which are result-level grades. The set is closed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Top
     a owl:NamedIndividual ,
-        logic:Formula ;
+        logic:TruthConstant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "top"@x-gmeow-english ;
-    skos:definition "The verum Formula constant ⊤: the nullary logic:Formula true under every interpretation — the identity a vacuous logic:and folds to. A constant of the logic:Formula grammar paired with logic:Bottom (⊥). It is NOT a logic:InformationState verdict such as logic:InfoSupported (a result-level Belnap grade, not a sentence), NOT a raw logic:TruthValue such as logic:BelnapTrue (an algebra value, not a sentence), and NOT owl:Thing, the universal class expression rather than a truth-valued formula."@x-gmeow-english ;
+    skos:definition "The verum truth constant ⊤: the nullary logic:TruthConstant true under every interpretation — the identity a vacuous logic:and folds to. Paired with logic:Bottom (⊥). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoSupported (a result-level Belnap grade, not a sentence), NOT a raw logic:TruthValue such as logic:BelnapTrue (an algebra value, not a sentence), and NOT owl:Thing, the universal class expression rather than a truth-valued sentence."@x-gmeow-english ;
     gmeow:gmnGlyphInScope true .
 
 logic:Bottom
     a owl:NamedIndividual ,
-        logic:Formula ;
+        logic:TruthConstant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "bottom"@x-gmeow-english ;
-    skos:definition "The falsum Formula constant ⊥: the nullary logic:Formula false under every interpretation — the identity a vacuous logic:or folds to. A constant of the logic:Formula grammar paired with logic:Top (⊤). It is NOT a logic:InformationState verdict such as logic:InfoOpposed or logic:InfoNeither (result-level grades, not sentences), NOT a raw logic:TruthValue such as logic:BelnapFalse (an algebra value, not a sentence), and NOT owl:Nothing, the empty class expression rather than a truth-valued formula."@x-gmeow-english ;
+    skos:definition "The falsum truth constant ⊥: the nullary logic:TruthConstant false under every interpretation — the identity a vacuous logic:or folds to. Paired with logic:Top (⊤). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoOpposed or logic:InfoNeither (result-level grades, not sentences), NOT a raw logic:TruthValue such as logic:BelnapFalse (an algebra value, not a sentence), and NOT owl:Nothing, the empty class expression rather than a truth-valued sentence."@x-gmeow-english ;
     gmeow:gmnGlyphInScope true .
 
 logic:derives
@@ -16078,7 +16085,7 @@ logic:TruthValue
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Truth Value"@x-gmeow-english ;
-    skos:definition "The closed class of the four RAW truth values of the logic:BelnapBilattice algebra: logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth (glut) and logic:BelnapNeither (gap). These are the algebra's carrier values, each bound to the logic:InformationState verdict that reports it through logic:realizedAsVerdict so there is no floating duplicate canon. They are DISTINCT from the logic:InformationState verdicts, which are result-level fields carrying two extra non-results (logic:InfoUndetermined, logic:InfoNotEvaluated) the raw algebra has no value for, and DISTINCT from the classical Formula constants logic:Top / logic:Bottom, which are nullary sentences rather than algebra values. The set is closed."@x-gmeow-english ;
+    skos:definition "The closed class of the four RAW truth values of the logic:BelnapBilattice algebra: logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth (glut) and logic:BelnapNeither (gap). These are the algebra's carrier values, each bound to the logic:InformationState verdict that reports it through logic:realizedAsVerdict so there is no floating duplicate canon. They are DISTINCT from the logic:InformationState verdicts, which are result-level fields carrying two extra non-results (logic:InfoUndetermined, logic:InfoNotEvaluated) the raw algebra has no value for, and DISTINCT from the classical truth constants logic:Top / logic:Bottom (logic:TruthConstant), which are nullary sentences rather than algebra values. The set is closed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:realizedAsVerdict
@@ -16095,7 +16102,7 @@ logic:BelnapTrue
         logic:TruthValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Belnap true"@x-gmeow-english ;
-    skos:definition "The raw logic:BelnapBilattice value true — told true and not told false. The algebra value that logic:InfoSupported reports at the result level; DISTINCT from that verdict and from the Formula constant logic:Top. Bound to its verdict by logic:realizedAsVerdict."@x-gmeow-english ;
+    skos:definition "The raw logic:BelnapBilattice value true — told true and not told false. The algebra value that logic:InfoSupported reports at the result level; DISTINCT from that verdict and from the truth constant logic:Top. Bound to its verdict by logic:realizedAsVerdict."@x-gmeow-english ;
     logic:realizedAsVerdict logic:InfoSupported ;
     gmeow:gmnGlyphInScope true .
 
@@ -16104,7 +16111,7 @@ logic:BelnapFalse
         logic:TruthValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Belnap false"@x-gmeow-english ;
-    skos:definition "The raw logic:BelnapBilattice value false — told false and not told true. The algebra value that logic:InfoOpposed reports at the result level; DISTINCT from that verdict and from the Formula constant logic:Bottom. Bound to its verdict by logic:realizedAsVerdict."@x-gmeow-english ;
+    skos:definition "The raw logic:BelnapBilattice value false — told false and not told true. The algebra value that logic:InfoOpposed reports at the result level; DISTINCT from that verdict and from the truth constant logic:Bottom. Bound to its verdict by logic:realizedAsVerdict."@x-gmeow-english ;
     logic:realizedAsVerdict logic:InfoOpposed ;
     gmeow:gmnGlyphInScope true .
 
