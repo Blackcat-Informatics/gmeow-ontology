@@ -1743,7 +1743,7 @@ fn functional_carriers_project_owl_functional_property_over_whole_corpus() {
         "the OWL-DL view must re-emit owl:FunctionalProperty for EXACTLY the functional \
          carrier properties — no drop, no substitution"
     );
-    // And the count is the full carrier count, derived from the parsed corpus (719 today).
+    // And the count is the full carrier count, derived from the parsed corpus (720 today).
     assert_eq!(
         projected_props.len(),
         source_carrier_triples,
