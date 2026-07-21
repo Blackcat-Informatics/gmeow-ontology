@@ -999,7 +999,7 @@ impl Model {
     /// Resolve a datatype node/IRI into a value space, or `Err(reason)` when it is
     /// outside the certified fragment (an unknown named datatype, an unrecognized
     /// datatype construct, or an unparsable member).
-    fn resolve(&self, node: &str) -> Result<Dt, String> {
+    fn resolve(&self, node: &str) -> Result<Dt, gmeow_errors::Diag> {
         if let Some(dt) = named_datatype(node) {
             return Ok(dt);
         }
@@ -1020,26 +1020,31 @@ impl Model {
             let mut values = Vec::new();
             for member in self.list_members(list_head) {
                 match &member {
-                    RdfTerm::Literal(l) => values.push(
-                        parse_value(l)
-                            .ok_or_else(|| format!("unparsable enumeration member in <{node}>"))?,
-                    ),
-                    _ => return Err(format!("non-literal enumeration member in <{node}>")),
+                    RdfTerm::Literal(l) => values.push(parse_value(l).ok_or_else(|| {
+                        reason_err(format!("unparsable enumeration member in <{node}>"))
+                    })?),
+                    _ => {
+                        return Err(reason_err(format!(
+                            "non-literal enumeration member in <{node}>"
+                        )));
+                    }
                 }
             }
             return Ok(Dt::Enumeration(values));
         }
-        Err(format!("unrecognized datatype <{node}>"))
+        Err(reason_err(format!("unrecognized datatype <{node}>")))
     }
 
-    fn parse_facets(&self, list_head: &str) -> Result<Facets, String> {
+    fn parse_facets(&self, list_head: &str) -> Result<Facets, gmeow_errors::Diag> {
         let mut facets = Facets::default();
         for member in self.list_members(list_head) {
             let Some(node) = resource_key(&member) else {
-                return Err("non-resource facet in owl:withRestrictions".to_owned());
+                return Err(reason_err(
+                    "non-resource facet in owl:withRestrictions".to_owned(),
+                ));
             };
             let Some((prop, lit)) = self.facet_carrier.get(&node) else {
-                return Err(format!("facet node <{node}> carries no facet"));
+                return Err(reason_err(format!("facet node <{node}> carries no facet")));
             };
             match prop.as_str() {
                 XSD_PATTERN => facets.has_pattern = true,
@@ -1058,7 +1063,7 @@ impl Model {
                 XSD_LENGTH => facets.length = Some(parse_len_facet(lit)?),
                 XSD_MIN_LENGTH => facets.min_length = Some(parse_len_facet(lit)?),
                 XSD_MAX_LENGTH => facets.max_length = Some(parse_len_facet(lit)?),
-                other => return Err(format!("unrecognized facet <{other}>")),
+                other => return Err(reason_err(format!("unrecognized facet <{other}>"))),
             }
         }
         Ok(facets)
@@ -1241,7 +1246,7 @@ impl Obligation {
             0 => None,
             1 => match model.resolve(&spaces[0]) {
                 Ok(dt) => Some(dt),
-                Err(reason) => return Outcome::Obstructed(reason),
+                Err(reason) => return Outcome::Obstructed(reason.message().to_string()),
             },
             _ => {
                 return Outcome::Obstructed(format!(
@@ -1363,6 +1368,16 @@ impl Obligation {
     }
 }
 
+/// Mint a `logic.reason` diagnostic for a value-space/facet resolution failure —
+/// the same [`crate::error::Reason`] kind + idiom every other `crate::reason::*`
+/// module uses for a premise/term it could not resolve. The preserved `detail`
+/// text is the exact obstruction reason a caller folds into an
+/// [`Outcome::Obstructed`] message, so converting the error TYPE here changes
+/// nothing about the withhold/obstruction DECISION.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 // ── Literal parsing ─────────────────────────────────────────────────────────────
 
 /// Parse a non-negative-integer cardinality literal.
@@ -1371,18 +1386,18 @@ fn parse_usize(lit: &RdfLiteral) -> Option<usize> {
 }
 
 /// Parse an xsd length-facet literal (a non-negative integer).
-fn parse_len_facet(lit: &RdfLiteral) -> Result<usize, String> {
+fn parse_len_facet(lit: &RdfLiteral) -> Result<usize, gmeow_errors::Diag> {
     lit.lexical_form
         .trim()
         .parse::<usize>()
-        .map_err(|_| format!("non-integer length facet {:?}", lit.lexical_form))
+        .map_err(|_| reason_err(format!("non-integer length facet {:?}", lit.lexical_form)))
 }
 
 /// Parse a numeric facet literal into an exact [`Value`] (float/double stay IEEE).
-fn parse_num_facet(lit: &RdfLiteral) -> Result<Value, String> {
+fn parse_num_facet(lit: &RdfLiteral) -> Result<Value, gmeow_errors::Diag> {
     parse_value(lit)
         .filter(|v| matches!(v, Value::Rat(_) | Value::F32(_) | Value::F64(_)))
-        .ok_or_else(|| format!("non-numeric facet literal {:?}", lit.lexical_form))
+        .ok_or_else(|| reason_err(format!("non-numeric facet literal {:?}", lit.lexical_form)))
 }
 
 /// Parse a literal into its exact xsd/owl value, or `None` when it is not a
