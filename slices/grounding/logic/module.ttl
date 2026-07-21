@@ -16269,14 +16269,16 @@ logic:FormulaConstructorConstraint
         logic:exists ,
         logic:forall ,
         logic:iff ,
+        logic:necessarily ,
         logic:not ,
         logic:or ,
+        logic:possibly ,
         logic:relation ;
     logic:formalizes logic:Formula ;
     logic:onClass logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Formula Constructor Constraint"@x-gmeow-english ;
-    skos:definition "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, or existential quantification. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."@x-gmeow-english ;
+    skos:definition "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, existential quantification, necessity, or possibility. A modal necessity/possibility node is a constructed formula (a compound sentence over its operand formula, unlike the nullary logic:TruthConstant siblings ⊤/⊥ which carry no constructor), so it selects the logic:necessarily or logic:possibly constructor. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."@x-gmeow-english ;
     skos:example "A node with both logic:relation and logic:not violates this constraint because it cannot be both an atom and a negation."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use this constraint to limit how many operands a selected constructor carries; arity is a separate typed-IR invariant."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ;
@@ -16312,6 +16314,42 @@ logic:ImplicationAntecedentConstraint
     gmeow:graphBoxRole gmeow:boxCBox ;
     gmeow:howToUse "When logic:consequent is present, require one resource-valued logic:antecedent before constructing Formula::Implies."@x-gmeow-english ;
     gmeow:useWhen "Use with logic:ImplicationConsequentConstraint to validate both halves of an implication."@x-gmeow-english .
+
+logic:ModalNecessityAccessibilityConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:Formula ;
+    logic:onClass logic:Formula ;
+    logic:requires logic:overAccessibility ;
+    logic:trigger logic:necessarily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Modal Necessity Accessibility Constraint"@x-gmeow-english ;
+    skos:definition "Requires a logic:Formula carrying logic:necessarily (a box modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the box has no world set to quantify over, so the necessity claim is undefined; this structural integrity condition forbids the untyped box. Paired with logic:ModalPossibilityAccessibilityConstraint for the diamond, and bounded above by the at-most-one logic:overAccessibility restriction on logic:Formula so a modal node pins EXACTLY one; the value-set (one of the six typed accessibility relations, never the blurred logic:accessibleFrom union or a modal-force value) is enforced by the modal-accessibility-typed verify gate."@x-gmeow-english ;
+    skos:example "A logic:necessarily node carrying no logic:overAccessibility violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read the required edge as evaluating the modal; it only completes the typed-modal constructor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "When logic:necessarily is present, require one resource-valued logic:overAccessibility naming a typed accessibility relation."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating that a box modal node is typed by an accessibility relation."@x-gmeow-english .
+
+logic:ModalPossibilityAccessibilityConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:Formula ;
+    logic:onClass logic:Formula ;
+    logic:requires logic:overAccessibility ;
+    logic:trigger logic:possibly ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Modal Possibility Accessibility Constraint"@x-gmeow-english ;
+    skos:definition "Requires a logic:Formula carrying logic:possibly (a diamond modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the diamond has no world set to quantify over, so the possibility claim is undefined; this structural integrity condition forbids the untyped diamond. The dual of logic:ModalNecessityAccessibilityConstraint; the value-set of the relation is enforced by the modal-accessibility-typed verify gate."@x-gmeow-english ;
+    skos:example "A logic:possibly node carrying no logic:overAccessibility violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read the required edge as evaluating the modal; it only completes the typed-modal constructor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "When logic:possibly is present, require one resource-valued logic:overAccessibility naming a typed accessibility relation."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating that a diamond modal node is typed by an accessibility relation."@x-gmeow-english .
+
+# A modal logic:Formula pins EXACTLY one typed accessibility relation: presence is
+# required by the two guarded modal constraints above, and this restriction caps it at
+# one. A non-modal formula carries zero logic:overAccessibility, which satisfies the bound.
+logic:Formula logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:overAccessibility ; logic:maxCardinality 1 ] .
 
 logic:TermCarrierValueConstraint
     a logic:ChoiceGroupConstraint ;
