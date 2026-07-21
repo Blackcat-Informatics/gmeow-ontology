@@ -12,9 +12,9 @@
 //! (a non-empty `gaps`), otherwise the consistency boolean — must equal the W3C
 //! ground truth.
 
-use std::path::{Path, PathBuf};
+mod common;
 
-use purrdf::{NativeRdfFormat, dataset_from_bytes};
+use common::native_token;
 
 /// The committed W3C-divergence slugs the case-split sub-decider now DECIDES, with
 /// the W3C published verdict each must reproduce. These are the NAMED Task-5 targets
@@ -30,43 +30,6 @@ const DECIDED: &[(&str, &str)] = &[
     ("webont-description-logic-504", "inconsistent"),
     ("webont-description-logic-503", "consistent"),
 ];
-
-/// Resolve a slug's `input.nq`, looking in the `w3c-owl2-full-decided` corpus
-/// first (the cases the kernel now DECIDES were relocated there) and falling back
-/// to the sibling `w3c-owl2-full-divergence` corpus (the still-withheld cases).
-/// The two corpora partition the original W3C-full set, so exactly one holds the
-/// slug.
-fn case_input(slug: &str) -> PathBuf {
-    let external =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/logic/cases/external");
-    let decided = external
-        .join("w3c-owl2-full-decided")
-        .join(slug)
-        .join("input.nq");
-    if decided.is_file() {
-        return decided;
-    }
-    external
-        .join("w3c-owl2-full-divergence")
-        .join(slug)
-        .join("input.nq")
-}
-
-fn native_token(slug: &str) -> String {
-    let path = case_input(slug);
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-    let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-        .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-        .unwrap_or_else(|e| panic!("dl_consistency on {slug}: {e}"));
-    if !verdict.gaps.is_empty() {
-        "incomplete".to_owned()
-    } else if verdict.consistent {
-        "consistent".to_owned()
-    } else {
-        "inconsistent".to_owned()
-    }
-}
 
 #[test]
 fn casesplit_decides_the_named_divergence_slugs_matching_w3c() {

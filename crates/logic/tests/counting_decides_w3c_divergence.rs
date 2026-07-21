@@ -19,7 +19,9 @@
 //! `owl:propertyChainAxiom` gap outside every counting family. They stay
 //! `incomplete` — an honest boundary, never a forced verdict.
 
-use purrdf::{NativeRdfFormat, dataset_from_bytes};
+mod common;
+
+use common::native_token;
 
 /// The committed W3C-divergence slugs the counting sub-decider now DECIDES, with the
 /// W3C published verdict each must reproduce.
@@ -40,40 +42,6 @@ const DECIDED: &[(&str, &str)] = &[
     // Family 7 — owl:hasSelf membership refutation.
     ("footnote-not-about-self", "inconsistent"),
 ];
-
-/// Resolve a slug's `input.nq`, looking in the `w3c-owl2-full-decided` corpus
-/// first (the relocated now-decided cases) and falling back to the sibling
-/// `w3c-owl2-full-divergence` corpus. The two corpora partition the original
-/// W3C-full set, so exactly one holds the slug.
-fn case_input(slug: &str) -> String {
-    let decided = format!(
-        "{}/../../conformance/logic/cases/external/w3c-owl2-full-decided/{slug}/input.nq",
-        env!("CARGO_MANIFEST_DIR")
-    );
-    if std::path::Path::new(&decided).is_file() {
-        return decided;
-    }
-    format!(
-        "{}/../../conformance/logic/cases/external/w3c-owl2-full-divergence/{slug}/input.nq",
-        env!("CARGO_MANIFEST_DIR")
-    )
-}
-
-fn native_token(slug: &str) -> String {
-    let path = case_input(slug);
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
-    let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-        .unwrap_or_else(|e| panic!("parse {path}: {e}"));
-    let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-        .unwrap_or_else(|e| panic!("dl_consistency on {slug}: {e}"));
-    if !verdict.gaps.is_empty() {
-        "incomplete".to_owned()
-    } else if verdict.consistent {
-        "consistent".to_owned()
-    } else {
-        "inconsistent".to_owned()
-    }
-}
 
 #[test]
 fn counting_decides_the_divergence_slugs_matching_w3c() {

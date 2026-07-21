@@ -74,16 +74,14 @@ use gmeow_conformance::paths::{cases_root, repo_root};
 use gmeow_logic::reason::DlVerdict;
 use purrdf::{NativeRdfFormat, RdfTerm, dataset_from_bytes};
 
+mod common;
+
+use common::{PER_CASE_TIMEOUT, divergence_root, native_token};
+
 /// The `logic:` grounding namespace whose local names key the shipped registry.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-/// A per-case wall-clock budget for the guarded live re-run, matching the sibling
-/// full-corpus gates. A timeout surfaces as `incomplete`, which fails the "must
-/// decide" assertion loudly rather than wedging the gate; none of the eight
-/// representatives trip it.
-const PER_CASE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
 
 /// One representative case pinning a family to its DECIDED pole.
 struct Representative {
@@ -203,37 +201,6 @@ const RETAINED_BOUNDARY_IDS: &[&str] = &[
     "non-binary-property-chain",
     "xsd-pattern-facet",
 ];
-
-/// The native verdict token for one case, computed exactly as the grader/runner
-/// does (a non-empty `gaps` is `incomplete`; otherwise the consistency boolean),
-/// wrapped in a bounded-join worker thread so a wedged chase can never hang the gate
-/// — a timeout surfaces as `incomplete`, failing the "must decide" assertion loudly.
-fn native_token(input_nq: &Path) -> String {
-    let path = input_nq.to_path_buf();
-    let (tx, rx) = std::sync::mpsc::channel();
-    let worker = std::thread::spawn(move || {
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-        let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-            .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-        let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-            .unwrap_or_else(|e| panic!("dl_consistency on {}: {e}", path.display()));
-        let token = if !verdict.gaps.is_empty() {
-            "incomplete"
-        } else if verdict.consistent {
-            "consistent"
-        } else {
-            "inconsistent"
-        };
-        let _ = tx.send(token.to_owned());
-    });
-    match rx.recv_timeout(PER_CASE_TIMEOUT) {
-        Ok(token) => {
-            let _ = worker.join();
-            token
-        }
-        Err(_) => "incomplete".to_owned(),
-    }
-}
 
 /// The FULL native [`DlVerdict`] for one case, computed on the exact production
 /// consistency path (`gmeow_logic::reason::dl_consistency`), wrapped in a bounded-join
@@ -704,12 +671,6 @@ const NAMED_DIVERGENCE_SLUGS: &[NamedDivergenceSlug] = &[
     },
 ];
 
-fn divergence_corpus_root() -> PathBuf {
-    cases_root()
-        .join("external")
-        .join("w3c-owl2-full-divergence")
-}
-
 /// THE per-NAMED-slug pole gate (default gate): each of the three issue-named
 /// W3C-divergence slugs reaches EXACTLY ONE pole on its OWN committed `input.nq`, run
 /// through the production consistency path — NOT via a family substitute fixture.
@@ -732,7 +693,7 @@ fn divergence_corpus_root() -> PathBuf {
 /// ledger-identified capability gap — FAILS here. All violations are collected.
 #[test]
 fn native_fragment_named_divergence_slugs_reach_exactly_one_documented_pole() {
-    let root = divergence_corpus_root();
+    let root = divergence_root();
     let mut failures: Vec<String> = Vec::new();
 
     for named in NAMED_DIVERGENCE_SLUGS {
@@ -898,7 +859,7 @@ const XSD_PATTERN_REPRESENTATIVE_NQ: &str = concat!(
 #[test]
 fn native_fragment_retained_boundaries_bound_to_live_withhold() {
     let surface = load_registry_surface();
-    let root = divergence_corpus_root();
+    let root = divergence_root();
     let mut failures: Vec<String> = Vec::new();
 
     for rep in BOUNDARY_REPRESENTATIVES {

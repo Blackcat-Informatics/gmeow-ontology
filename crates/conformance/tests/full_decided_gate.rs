@@ -33,11 +33,11 @@
 //! It is offline, deterministic, and — for the representative subset and the
 //! partition/floor pins — sub-second.
 
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use gmeow_conformance::paths::cases_root;
-use purrdf::{NativeRdfFormat, dataset_from_bytes};
+mod common;
+
+use common::{case_slugs, decided_root, divergence_root, native_token};
 
 /// The minimum number of decided cases the corpus must retain — a floor, not an
 /// exact pin, so a future case that migrates *into* the decided corpus (the
@@ -48,13 +48,6 @@ const DECIDED_FLOOR: usize = 32;
 /// corpora partition (`divergence` ∪ `decided`). Frozen: a deliberate reasoner
 /// change moves a slug across the partition, but the union size is invariant.
 const ORIGINAL_FULL_SET: usize = 154;
-
-/// A per-case wall-clock budget for the guarded live re-run, matching
-/// `full_divergence_gate`. The decided cases are all fast (the kernel decides
-/// them without the heavy existential chase), but the guard is kept for symmetry
-/// and defence-in-depth: a timeout surfaces as `incomplete`, which fails the
-/// "must decide" assertion loudly rather than wedging the gate.
-const PER_CASE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
 
 /// A representative cross-family subset re-run on the DEFAULT gate (fast). Each
 /// entry is `(slug, expected decided token)`, spanning both verdict directions
@@ -76,70 +69,6 @@ const REPRESENTATIVE: &[(&str, &str)] = &[
     ("webont-description-logic-504", "inconsistent"),
     ("new-feature-disjointunion-001", "consistent"),
 ];
-
-/// The native verdict token for one case, computed exactly as the grader/runner
-/// does (a non-empty `gaps` is `incomplete`; otherwise the consistency boolean),
-/// wrapped in a bounded-join worker thread so a wedged chase can never hang the
-/// gate — a timeout surfaces as `incomplete`.
-fn native_token(input_nq: &Path) -> String {
-    let path = input_nq.to_path_buf();
-    let (tx, rx) = std::sync::mpsc::channel();
-    let worker = std::thread::spawn(move || {
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-        let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-            .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-        let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-            .unwrap_or_else(|e| panic!("dl_consistency on {}: {e}", path.display()));
-        let token = if !verdict.gaps.is_empty() {
-            "incomplete"
-        } else if verdict.consistent {
-            "consistent"
-        } else {
-            "inconsistent"
-        };
-        let _ = tx.send(token.to_owned());
-    });
-    match rx.recv_timeout(PER_CASE_TIMEOUT) {
-        Ok(token) => {
-            let _ = worker.join();
-            token
-        }
-        Err(_) => "incomplete".to_owned(),
-    }
-}
-
-fn decided_root() -> PathBuf {
-    cases_root().join("external").join("w3c-owl2-full-decided")
-}
-
-fn divergence_root() -> PathBuf {
-    cases_root()
-        .join("external")
-        .join("w3c-owl2-full-divergence")
-}
-
-/// The sorted case-directory slugs directly under `root` (a dir is a case iff it
-/// holds `input.nq`), keyed to their paths.
-fn case_slugs(root: &Path) -> BTreeMap<String, PathBuf> {
-    assert!(root.is_dir(), "corpus root missing: {}", root.display());
-    let mut cases = BTreeMap::new();
-    for entry in std::fs::read_dir(root).unwrap_or_else(|e| panic!("read {}: {e}", root.display()))
-    {
-        let path = entry
-            .unwrap_or_else(|e| panic!("dir entry in {}: {e}", root.display()))
-            .path();
-        if !path.is_dir() || !path.join("input.nq").is_file() {
-            continue;
-        }
-        let slug = path
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or_else(|| panic!("non-UTF8 case dir name: {}", path.display()))
-            .to_owned();
-        cases.insert(slug, path);
-    }
-    cases
-}
 
 /// Read and parse a case's `profile.json`.
 fn read_profile(case: &Path) -> serde_json::Value {

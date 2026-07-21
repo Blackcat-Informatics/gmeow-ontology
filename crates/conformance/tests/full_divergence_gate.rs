@@ -45,11 +45,11 @@
 //! verdicts must be represented, so the soundness test actually exercises
 //! both contradiction directions).
 
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use gmeow_conformance::paths::cases_root;
-use purrdf::{NativeRdfFormat, dataset_from_bytes};
+mod common;
+
+use common::{case_slugs, divergence_root, native_token};
 
 /// The minimum number of vendored cases the corpus must retain. A floor, not
 /// an exact pin: legitimate future additions still pass; deletion/emptying
@@ -57,92 +57,6 @@ use purrdf::{NativeRdfFormat, dataset_from_bytes};
 /// to the sibling `w3c-owl2-full-decided` corpus; the disjoint-union partition
 /// (122 + 32 == 154) is pinned by `full_decided_gate`.
 const MIN_CASE_COUNT: usize = 122;
-
-/// The per-case wall-clock budget for the guarded live re-run. A case whose
-/// existential chase exceeds this is treated as `incomplete` — always SOUND (an
-/// honest "cannot decide") and the exact expected honest-gap token for every
-/// divergence case, so the timeout can NEVER manufacture a false failure. It is
-/// generous enough that a *fast* future wrong-decision (the soundness regression
-/// this gate exists to catch) still completes and is caught; only the known
-/// memory/compute-heavy chase cases (`webont-description-logic-907`,
-/// `webont-i5-1-010`) actually trip it.
-const PER_CASE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
-
-/// The native verdict token for one case (`consistent` / `inconsistent` /
-/// `incomplete`), computed exactly as the grader/runner does: a non-empty
-/// `gaps` is `incomplete` (an honest "cannot decide"); otherwise the
-/// consistency boolean.
-///
-/// The parse + `dl_consistency` run executes in a spawned worker thread joined
-/// with a [`PER_CASE_TIMEOUT`] budget: a known-heavy case that hangs/OOMs the
-/// chase (`webont-description-logic-907`, `webont-i5-1-010`) is reported as
-/// `incomplete` rather than wedging the whole-corpus offgate sweep. Treating a
-/// timeout as `incomplete` is always sound and is the expected honest-gap token,
-/// so it cannot weaken either invariant below.
-fn native_token(input_nq: &Path) -> String {
-    let path = input_nq.to_path_buf();
-    let (tx, rx) = std::sync::mpsc::channel();
-    let worker = std::thread::spawn(move || {
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-        let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
-            .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
-        let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
-            .unwrap_or_else(|e| panic!("dl_consistency on {}: {e}", path.display()));
-        let token = if !verdict.gaps.is_empty() {
-            "incomplete"
-        } else if verdict.consistent {
-            "consistent"
-        } else {
-            "inconsistent"
-        };
-        // A receiver hung up (timed out) is fine — the token is simply discarded.
-        let _ = tx.send(token.to_owned());
-    });
-    match rx.recv_timeout(PER_CASE_TIMEOUT) {
-        Ok(token) => {
-            let _ = worker.join();
-            token
-        }
-        // Timeout (or a panicked worker that dropped its sender): treat as the
-        // honest gap. The detached worker is left to unwind on process exit; we do
-        // NOT join it, so a genuinely wedged chase cannot block the gate.
-        Err(_) => "incomplete".to_owned(),
-    }
-}
-
-fn corpus_root() -> PathBuf {
-    cases_root()
-        .join("external")
-        .join("w3c-owl2-full-divergence")
-}
-
-/// Discover every case directory under the corpus root, sorted by slug for
-/// deterministic iteration and failure-report ordering.
-fn discover_case_slugs() -> BTreeMap<String, PathBuf> {
-    let root = corpus_root();
-    assert!(
-        root.is_dir(),
-        "w3c-owl2-full-divergence corpus missing: {}",
-        root.display()
-    );
-    let mut cases = BTreeMap::new();
-    for entry in std::fs::read_dir(&root).unwrap_or_else(|e| panic!("read {}: {e}", root.display()))
-    {
-        let path = entry
-            .unwrap_or_else(|e| panic!("dir entry in {}: {e}", root.display()))
-            .path();
-        if !path.is_dir() {
-            continue;
-        }
-        let slug = path
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or_else(|| panic!("non-UTF8 case dir name: {}", path.display()))
-            .to_owned();
-        cases.insert(slug, path);
-    }
-    cases
-}
 
 /// Read and parse a case's `profile.json`.
 fn read_profile(case: &Path) -> serde_json::Value {
@@ -185,7 +99,7 @@ fn read_expected_status(case: &Path, slug: &str) -> String {
 /// conformance proofs; the fast coverage-floor test below stays on the default gate.
 #[test]
 fn never_a_wrong_decided_verdict_heavy_offgate() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
         let profile = read_profile(case);
@@ -226,7 +140,7 @@ fn never_a_wrong_decided_verdict_heavy_offgate() {
 /// reasoner over all 122 cases and runs in the `maint-heavy` lane.
 #[test]
 fn native_reproduces_the_frozen_gap_heavy_offgate() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     let mut failures: Vec<String> = Vec::new();
     for (slug, case) in &cases {
         let native = native_token(&case.join("input.nq"));
@@ -274,7 +188,7 @@ fn native_reproduces_the_frozen_gap_heavy_offgate() {
 /// contradiction directions.
 #[test]
 fn full_divergence_corpus_meets_its_coverage_floor() {
-    let cases = discover_case_slugs();
+    let cases = case_slugs(&divergence_root());
     assert!(
         cases.len() >= MIN_CASE_COUNT,
         "w3c-owl2-full-divergence corpus has only {} cases, below the coverage floor of {}",
@@ -282,7 +196,7 @@ fn full_divergence_corpus_meets_its_coverage_floor() {
         MIN_CASE_COUNT
     );
 
-    let corpus_json_path = corpus_root().join("corpus.json");
+    let corpus_json_path = divergence_root().join("corpus.json");
     let corpus_json: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(&corpus_json_path)
             .unwrap_or_else(|e| panic!("read {}: {e}", corpus_json_path.display())),
