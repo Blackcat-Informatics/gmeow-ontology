@@ -11,7 +11,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_errors::abox::X_GMEOW_ENGLISH;
+use gmeow_errors::abox::{BOX_ABOX, abox_annotation_turtle_lines};
 use gmeow_logic_compile::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
     ShapeTarget, ValidationShapeIr,
@@ -239,18 +239,25 @@ fn render_frame_shape(shape: &ValidationShapeIr) -> Result<String, gmeow_errors:
     let graph_iri = frame_shapes_graph_iri();
     let definition =
         format!("SHACL frame-requirement shape for the {carrier} carrier (generated).");
+    let subject_iri = format!("{NS}{carrier}FrameRequirementShape");
     let mut lines: Vec<String> = vec![
         format!("gmeow:{carrier}FrameRequirementShape"),
         "    a sh:NodeShape ;".to_string(),
-        format!("    rdfs:label \"{label}\"@{X_GMEOW_ENGLISH} ;"),
-        format!("    skos:definition \"{definition}\"@{X_GMEOW_ENGLISH} ;"),
-        format!("    rdfs:isDefinedBy <{graph_iri}> ;"),
-        "    gmeow:graphBoxRole gmeow:boxABox ;".to_string(),
+    ];
+    lines.extend(abox_annotation_turtle_lines(
+        &subject_iri,
+        label,
+        &definition,
+        &graph_iri,
+        BOX_ABOX,
+        "    ",
+    ));
+    lines.extend([
         format!("    sh:targetClass gmeow:{carrier} ;"),
         "    sh:property [".to_string(),
         format!("        sh:path gmeow:{prop} ;"),
         format!("        sh:minCount {min} ;"),
-    ];
+    ]);
     if let Some(max) = property.max_count {
         lines.push(format!("        sh:maxCount {max} ;"));
     }
@@ -484,7 +491,9 @@ mod tests {
     /// `provenance_graph::tests::minted_individuals_satisfy_the_assertional_abox_contract`).
     #[test]
     fn minted_shapes_satisfy_the_assertional_abox_contract() {
-        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+        use gmeow_validate::lint::{
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
+        };
 
         let root = repo_root();
         let ttl = render_frame_shapes(&root).expect("render");
@@ -501,7 +510,7 @@ mod tests {
             ontology_iri: NS.trim_end_matches('/').to_string(),
             selector_tokens: Default::default(),
             core_slice_iris: Default::default(),
-            annotation_predicates: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
         let report = structural_lint_dataset(&native, &cfg);
         let errors = report.errors();

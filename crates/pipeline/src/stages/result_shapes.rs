@@ -45,7 +45,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_errors::abox::X_GMEOW_ENGLISH;
+use gmeow_errors::abox::{BOX_ABOX, abox_annotation_turtle_lines};
 #[cfg(test)]
 use gmeow_logic_compile::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
@@ -261,23 +261,27 @@ pub fn render_result_shapes(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let graph_iri = result_shapes_graph_iri();
     for (shape_iri, columns) in shapes(&store)? {
         let local = nodeshape_local(&shape_iri);
+        let subject_iri = format!("{GMEOW_NS}{local}");
+        let label = format!("result-row shape for <{shape_iri}> (generated)");
         let definition = format!("Result-row shape for <{shape_iri}> (generated).");
-        let mut lines: Vec<String> = vec![
-            format!("gmeow:{local}"),
-            "    a sh:NodeShape ;".to_string(),
-            format!(
-                "    rdfs:label \"result-row shape for <{shape_iri}> (generated)\"@{X_GMEOW_ENGLISH} ;"
-            ),
-            format!("    skos:definition \"{definition}\"@{X_GMEOW_ENGLISH} ;"),
-            format!("    rdfs:isDefinedBy <{graph_iri}> ;"),
-            "    gmeow:graphBoxRole gmeow:boxABox ;".to_string(),
+        let mut lines: Vec<String> =
+            vec![format!("gmeow:{local}"), "    a sh:NodeShape ;".to_string()];
+        lines.extend(abox_annotation_turtle_lines(
+            &subject_iri,
+            &label,
+            &definition,
+            &graph_iri,
+            BOX_ABOX,
+            "    ",
+        ));
+        lines.extend([
             "    sh:target [".to_string(),
             "        a sh:SPARQLTarget ;".to_string(),
             format!(
                 "        sh:select \"\"\"PREFIX gmeow: <{GMEOW_NS}> SELECT ?this WHERE {{ ?cq gmeow:cqResultShape <{shape_iri}> . ?cq gmeow:cqExpectRow ?this }}\"\"\" ;"
             ),
             "    ] ;".to_string(),
-        ];
+        ]);
 
         for col in &columns {
             let v = &col.var;
@@ -779,7 +783,9 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
     /// `provenance_graph::tests::minted_individuals_satisfy_the_assertional_abox_contract`).
     #[test]
     fn minted_shapes_satisfy_the_assertional_abox_contract() {
-        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+        use gmeow_validate::lint::{
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
+        };
 
         let root = repo_root();
         let ttl = render_result_shapes(&root).expect("render");
@@ -796,7 +802,7 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
             ontology_iri: GMEOW_NS.trim_end_matches('/').to_string(),
             selector_tokens: Default::default(),
             core_slice_iris: Default::default(),
-            annotation_predicates: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
         let report = structural_lint_dataset(&native, &cfg);
         let errors = report.errors();

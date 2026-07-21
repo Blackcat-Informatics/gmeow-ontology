@@ -32,7 +32,7 @@
 //! ledgered drop, never dropped in silence. The surface is **emit-only**: there is no
 //! parse-back from `sh:SPARQLRule` into a `logic:` rule (Principle 4).
 
-use gmeow_errors::abox::X_GMEOW_ENGLISH;
+use gmeow_errors::abox::{BOX_ABOX, abox_annotation_turtle_lines};
 
 use super::super::ir::{LogicAxiom, LogicProgram, LogicRule};
 use super::sparql_lower::{sparql_literal, sparql_predicate};
@@ -195,22 +195,29 @@ fn emit_rule_shape(
     target_where: &str,
     construct_where: &str,
 ) -> String {
-    format!(
-        "gmeow:{local}\n\
-         \x20   a sh:NodeShape ;\n\
-         \x20   rdfs:label \"{label}\"@{X_GMEOW_ENGLISH} ;\n\
-         \x20   skos:definition \"{definition}\"@{X_GMEOW_ENGLISH} ;\n\
-         \x20   rdfs:isDefinedBy <{SHACL_AF_GRAPH_IRI}> ;\n\
-         \x20   gmeow:graphBoxRole gmeow:boxABox ;\n\
-         \x20   sh:target [\n\
-         \x20       a sh:SPARQLTarget ;\n\
-         \x20       sh:select \"\"\"SELECT ?this WHERE {{ {target_where} }}\"\"\" ;\n\
-         \x20   ] ;\n\
-         \x20   sh:rule [\n\
-         \x20       a sh:SPARQLRule ;\n\
-         \x20       sh:construct \"\"\"CONSTRUCT {{ $this {head_pred} {head_obj} }} WHERE {{ {construct_where} }}\"\"\" ;\n\
-         \x20   ] ."
-    )
+    let subject_iri = format!("{GMEOW_NS}{local}");
+    let mut lines = vec![format!("gmeow:{local}"), "    a sh:NodeShape ;".to_string()];
+    lines.extend(abox_annotation_turtle_lines(
+        &subject_iri,
+        label,
+        definition,
+        SHACL_AF_GRAPH_IRI,
+        BOX_ABOX,
+        "    ",
+    ));
+    lines.extend([
+        "    sh:target [".to_string(),
+        "        a sh:SPARQLTarget ;".to_string(),
+        format!("        sh:select \"\"\"SELECT ?this WHERE {{ {target_where} }}\"\"\" ;"),
+        "    ] ;".to_string(),
+        "    sh:rule [".to_string(),
+        "        a sh:SPARQLRule ;".to_string(),
+        format!(
+            "        sh:construct \"\"\"CONSTRUCT {{ $this {head_pred} {head_obj} }} WHERE {{ {construct_where} }}\"\"\" ;"
+        ),
+        "    ] .".to_string(),
+    ]);
+    lines.join("\n")
 }
 
 /// Project the canonical `logic:` program to a SHACL-AF `sh:SPARQLRule` rule document.
@@ -1041,6 +1048,7 @@ mod tests {
         use crate::graphutil::{Node, Subject, nn, objects};
         use gmeow_errors::abox::{
             BOX_ABOX, GRAPH_BOX_ROLE, RDFS_IS_DEFINED_BY, RDFS_LABEL, SKOS_DEFINITION,
+            X_GMEOW_ENGLISH,
         };
 
         let (result, _loss) = project(&ladder_program());

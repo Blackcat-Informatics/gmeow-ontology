@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_errors::abox::X_GMEOW_ENGLISH;
+use gmeow_errors::abox::{BOX_TBOX, abox_annotation_turtle_lines};
 use purrdf::slice::rdf_query::{Dataset, Object};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -209,12 +209,11 @@ fn profile_document(
         String::new(),
         format!("<{iri}>"),
         "    a owl:Ontology ;".to_string(),
-        format!("    rdfs:label \"{label}\"@{X_GMEOW_ENGLISH} ;"),
-        format!("    skos:definition \"{comment}\"@{X_GMEOW_ENGLISH} ;"),
-        format!("    rdfs:isDefinedBy <{iri}> ;"),
-        "    gmeow:graphBoxRole gmeow:boxTBox ;".to_string(),
-        "    owl:imports".to_string(),
     ];
+    lines.extend(abox_annotation_turtle_lines(
+        iri, label, comment, iri, BOX_TBOX, "    ",
+    ));
+    lines.push("    owl:imports".to_string());
     for imp in &imports[..imports.len() - 1] {
         lines.push(format!("        <{imp}> ,"));
     }

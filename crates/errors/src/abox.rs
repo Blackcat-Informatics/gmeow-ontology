@@ -171,6 +171,73 @@ pub fn annotate_builder(
     }
 }
 
+/// `rdfs:` namespace IRI — for rendering the contract's fixed predicate IRIs as
+/// prefixed Turtle terms.
+const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
+/// `skos:` namespace IRI.
+const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
+
+/// Render one of the contract's fixed predicate/object IRIs as a Turtle term: a
+/// `prefix:local` name for the `rdfs:` / `skos:` / `gmeow:` namespaces when the local
+/// part is a legal single-segment name (non-empty, no `/`), else an angle-bracketed
+/// full IRI. This reproduces exactly how the shape emitters already spell the four
+/// clauses: the box-role IRI (`gmeow:boxABox`/`gmeow:boxTBox`) prefixes, while the
+/// containing-graph IRI (a `gmeow:graph/…` path) has a `/` in its local part and so
+/// stays angle-bracketed.
+#[must_use]
+fn turtle_iri(iri: &str) -> String {
+    for (namespace, prefix) in [(RDFS_NS, "rdfs"), (SKOS_NS, "skos"), (GMEOW, "gmeow")] {
+        if let Some(local) = iri.strip_prefix(namespace)
+            && !local.is_empty()
+            && !local.contains('/')
+        {
+            return format!("{prefix}:{local}");
+        }
+    }
+    format!("<{iri}>")
+}
+
+/// Render one [`AboxObject`] as a Turtle object term.
+#[must_use]
+fn turtle_object(object: &AboxObject) -> String {
+    match object {
+        AboxObject::Iri(iri) => turtle_iri(iri),
+        AboxObject::CarrierLiteral(value) => format!("\"{}\"@{X_GMEOW_ENGLISH}", nq_escape(value)),
+    }
+}
+
+/// Turtle-flavor adapter: the four A-Box annotation clauses as prefixed-Turtle
+/// predicate-object lines (`{indent}{predicate} {object} ;`), in the fixed (label,
+/// definition, isDefinedBy, graphBoxRole) order, derived from [`abox_annotation_pairs`]
+/// so the predicate set and box-role default live ONLY in this module — a Turtle
+/// emitter splices these lines into its statement instead of hand-rolling the
+/// four-triple skeleton (which is how `frame_shapes`/`result_shapes`/`shacl_af`/
+/// `profiles` had each re-drifted the contract). Literals are [`nq_escape`]d and carry
+/// the [`X_GMEOW_ENGLISH`] carrier tag; the box-role IRI renders as `gmeow:boxABox`
+/// (or `gmeow:boxTBox` for an `owl:Ontology` header), the containing-graph IRI as an
+/// angle-bracketed full IRI. Each returned line ends in ` ;`; the caller owns the
+/// subject line, the type line, and the statement terminator, and MUST declare the
+/// `rdfs:`, `skos:`, and `gmeow:` prefixes in its Turtle document.
+#[must_use]
+pub fn abox_annotation_turtle_lines(
+    subject_iri: &str,
+    label: &str,
+    definition: &str,
+    graph_iri: &str,
+    box_role_iri: &str,
+    indent: &str,
+) -> [String; 4] {
+    abox_annotation_pairs(subject_iri, label, definition, graph_iri, box_role_iri).map(
+        |(predicate, object)| {
+            format!(
+                "{indent}{} {} ;",
+                turtle_iri(predicate),
+                turtle_object(&object)
+            )
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -312,5 +379,50 @@ mod tests {
             from_builder, from_nquads,
             "string and builder adapters must emit the identical logical quad set"
         );
+    }
+
+    /// The Turtle adapter renders the four clauses as prefixed-Turtle lines, at the
+    /// requested indent, in the fixed order — the exact spelling the shape emitters
+    /// hand-rolled before routing through this module. `isDefinedBy`'s graph IRI (a
+    /// `gmeow:graph/…` path) stays angle-bracketed; `graphBoxRole`'s role IRI
+    /// prefixes to `gmeow:boxABox`; the predicates prefix to `rdfs:`/`skos:`/`gmeow:`.
+    #[test]
+    fn turtle_lines_render_the_prefixed_four_clause_skeleton() {
+        let lines =
+            abox_annotation_turtle_lines(SUBJECT, LABEL, DEFINITION, GRAPH, BOX_ABOX, "    ");
+        assert_eq!(
+            lines,
+            [
+                format!("    rdfs:label \"{LABEL}\"@{X_GMEOW_ENGLISH} ;"),
+                format!("    skos:definition \"{DEFINITION}\"@{X_GMEOW_ENGLISH} ;"),
+                format!("    rdfs:isDefinedBy <{GRAPH}> ;"),
+                "    gmeow:graphBoxRole gmeow:boxABox ;".to_string(),
+            ]
+        );
+    }
+
+    /// The box role is parameterized: a T-Box `owl:Ontology` header carries
+    /// `gmeow:boxTBox`, reusing the same core the A-Box default rides.
+    #[test]
+    fn turtle_lines_honor_the_box_role_parameter() {
+        let lines =
+            abox_annotation_turtle_lines(SUBJECT, LABEL, DEFINITION, GRAPH, BOX_TBOX, "    ");
+        assert_eq!(lines[3], "    gmeow:graphBoxRole gmeow:boxTBox ;");
+    }
+
+    /// The Turtle adapter escapes literal content the same way the N-Quads adapter
+    /// does, so a definition with a quote can never break the emitted statement.
+    #[test]
+    fn turtle_lines_escape_literal_content() {
+        let lines = abox_annotation_turtle_lines(
+            SUBJECT,
+            "has \"quotes\"",
+            "has\\backslash",
+            GRAPH,
+            BOX_ABOX,
+            "    ",
+        );
+        assert!(lines[0].contains("has \\\"quotes\\\""), "{}", lines[0]);
+        assert!(lines[1].contains("has\\\\backslash"), "{}", lines[1]);
     }
 }
