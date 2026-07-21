@@ -16504,3 +16504,11 @@ msgstr "在规范载体上断言 logic:witnessIndividual 是函数性的:一个�
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:witnessWorld is functional: a contradiction witness is realized in exactly one world, so it records a single world IRI — the one modal/context world within the conjecture's standpoint where the contradiction was found — keeping the refutation world-scoped rather than asserted across all worlds."
 msgstr "在规范载体上断言 logic:witnessWorld 是函数性的:一个矛盾见证恰好在一个世界中实现,因此它记录唯一一个世界 IRI——即在该猜想立场之内发现矛盾的那一个模态/语境世界——从而使反驳限定在该世界范围内,而不是宣称适用于所有世界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adviceSourceField is functional"
+msgstr "adviceSourceField 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that logic:adviceSourceField is functional: a realized advice carrier (an advisory logic:Constraint or a logic:AdviceGuidance) names exactly one logic:ProseField from the closed set (definition, use-when, or avoid-when) — the single field whose prose its logic:message must surface verbatim, so a carrier cannot ambiguously bind to two source fields at once."
+msgstr "在规范载体上断言 logic:adviceSourceField 具有函数性：一个已实现的建议载体（一个咨询性 logic:Constraint 或一个 logic:AdviceGuidance）恰好指定封闭集合（`definition`、`use-when` 或 `avoid-when`）中的一个 logic:ProseField —— 即其 logic:message 必须逐字呈现其散文的那个唯一字段，因此一个载体不能同时含糊地绑定到两个来源字段。"

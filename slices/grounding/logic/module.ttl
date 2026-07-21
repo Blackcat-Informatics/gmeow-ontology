@@ -13196,13 +13196,22 @@ logic:candidateSourceField
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:adviceSourceField
-    a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:range logic:ProseField ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "advice source field"@x-gmeow-english ;
-    skos:definition "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued, range logic:ProseField."@x-gmeow-english ;
+    skos:definition "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued (functionality asserted on the canonical carrier logic:adviceSourceFieldFunctionality, not the deprecated owl:FunctionalProperty marker), range logic:ProseField."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:adviceSourceFieldFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "adviceSourceField is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:adviceSourceField is functional: a realized advice carrier (an advisory logic:Constraint or a logic:AdviceGuidance) names exactly one logic:ProseField from the closed set (definition, use-when, or avoid-when) — the single field whose prose its logic:message must surface verbatim, so a carrier cannot ambiguously bind to two source fields at once."@x-gmeow-english ;
+    logic:characterizes logic:adviceSourceField ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:adviceSourceField .
 
 logic:candidateDeliberateNonAssertion
     a owl:DatatypeProperty ;

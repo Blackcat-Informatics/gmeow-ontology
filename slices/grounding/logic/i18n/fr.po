@@ -16504,3 +16504,11 @@ msgstr "Affirme sur le porteur canonique que logic:witnessIndividual est fonctio
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:witnessWorld is functional: a contradiction witness is realized in exactly one world, so it records a single world IRI — the one modal/context world within the conjecture's standpoint where the contradiction was found — keeping the refutation world-scoped rather than asserted across all worlds."
 msgstr "Affirme sur le porteur canonique que logic:witnessWorld est fonctionnelle : un témoin de contradiction se réalise dans exactement un monde, de sorte qu'il enregistre un unique IRI de monde — l'unique monde modal/contextuel, au sein du point de vue de la conjecture, où la contradiction a été trouvée — maintenant la réfutation circonscrite à ce monde plutôt qu'affirmée à travers tous les mondes."
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adviceSourceField is functional"
+msgstr "adviceSourceField est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that logic:adviceSourceField is functional: a realized advice carrier (an advisory logic:Constraint or a logic:AdviceGuidance) names exactly one logic:ProseField from the closed set (definition, use-when, or avoid-when) — the single field whose prose its logic:message must surface verbatim, so a carrier cannot ambiguously bind to two source fields at once."
+msgstr "Affirme sur le porteur canonique que logic:adviceSourceField est fonctionnelle : un porteur de conseil réalisé (une logic:Constraint consultative ou une logic:AdviceGuidance) désigne exactement un logic:ProseField parmi l'ensemble fermé (`definition`, `use-when`, ou `avoid-when`) — l'unique champ dont sa logic:message doit restituer la prose mot pour mot, de sorte qu'un porteur ne saurait se lier de façon ambiguë à deux champs sources à la fois."
