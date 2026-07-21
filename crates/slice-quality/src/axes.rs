@@ -49,6 +49,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
         "gmn_glyph_optimality_axis" => Some(gmn_glyph_optimality_axis),
+        "advice_coverage_axis" => Some(advice_coverage_axis),
         "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
@@ -71,6 +72,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "flagship_counterexample_depth_axis",
     "gmn1_coverage_axis",
     "gmn_glyph_optimality_axis",
+    "advice_coverage_axis",
     "DocMaturity",
 ];
 
@@ -1898,6 +1900,212 @@ fn no_gmn_candidates(ctx: &ScoreContext) -> AxisScore {
     }
 }
 
+// ── Axis: advice-harvest coverage (avoidWhen/useWhen prose → advisory constraint) ─
+
+/// The two advisory-prose predicates a term may author. `howToUse` is deliberately
+/// excluded — it is suggestion text carried onto findings, not rule content, so it is
+/// not a coverage-denominator field.
+const ADVICE_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+const ADVICE_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+/// The source language whose lexical form is the canonical prose.
+const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
+
+/// `logic:Constraint` node-kind type, the advisory-severity marker, and the provenance
+/// back-reference — an advisory constraint is a `logic:Constraint` at `logic:severity
+/// "Info"` carrying a `logic:formalizes` term.
+const LOGIC_CONSTRAINT: &str = "https://blackcatinformatics.ca/logic/Constraint";
+const LOGIC_SEVERITY: &str = "https://blackcatinformatics.ca/logic/severity";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// The first-class positive-guidance carrier: a `logic:AdviceGuidance` `logic:formalizes` a
+/// term whose `gmeow:useWhen` prose it surfaces. It is the `useWhen` peer of the `avoidWhen`
+/// anti-pattern constraint — a data-matching guard cannot state positive applicability, so the
+/// `useWhen` cell is covered by this carrier, not by a `logic:Constraint`.
+const LOGIC_ADVICE_GUIDANCE: &str = "https://blackcatinformatics.ca/logic/AdviceGuidance";
+/// The central slice module that hosts the advisory constraints (repo mode).
+const LOGIC_MODULE_REL: &str = "slices/grounding/logic/module.ttl";
+
+/// The set of gmeow-domain terms that a REALIZED advisory `logic:Constraint`
+/// (`logic:severity "Info"`) already `logic:formalizes` — terms whose `avoidWhen`
+/// anti-pattern has been made a DATA-MATCHING, machine-active advisory rule. This
+/// counts executable logic-backed advice, never a stub: a term is covered only when an
+/// authored constraint exists to fire a Note against a matching individual.
+fn advisory_constraint_terms(ds: &RdfDataset) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let (Some(sev_p), Some(form_p)) = (id(ds, LOGIC_SEVERITY), id(ds, LOGIC_FORMALIZES)) else {
+        return out;
+    };
+    for c_iri in instances_of(ds, LOGIC_CONSTRAINT) {
+        let Some(c) = id(ds, &c_iri) else {
+            continue;
+        };
+        // Advisory constraints are the Info-severity ones (the soft tier).
+        if !graph::all_lits(ds, c, sev_p).iter().any(|s| s == "Info") {
+            continue;
+        }
+        for term in graph::all_iris(ds, c, form_p) {
+            out.insert(term);
+        }
+    }
+    out
+}
+
+/// The set of gmeow-domain terms a first-class `logic:AdviceGuidance` carrier already
+/// `logic:formalizes` — terms whose `useWhen` applicability prose has been made a realized,
+/// queryable positive-guidance object (the `useWhen` peer of [`advisory_constraint_terms`]).
+/// A `useWhen` cell counts as covered only when such a carrier exists, never merely because the
+/// term also carries an `avoidWhen` anti-pattern constraint.
+fn advice_guidance_terms(ds: &RdfDataset) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let Some(form_p) = id(ds, LOGIC_FORMALIZES) else {
+        return out;
+    };
+    for g_iri in instances_of(ds, LOGIC_ADVICE_GUIDANCE) {
+        let Some(g) = id(ds, &g_iri) else {
+            continue;
+        };
+        for term in graph::all_iris(ds, g, form_p) {
+            out.insert(term);
+        }
+    }
+    out
+}
+
+/// The slice's own `(term, prose-predicate) → @x-gmeow-english lexical` advisory prose
+/// — the coverage denominator population, pinned to the source language (matching the
+/// candidate `sourceHash` discipline so numerator and denominator agree).
+fn slice_advice_prose(ctx: &ScoreContext) -> BTreeMap<(String, String), String> {
+    let ds = ctx.graph;
+    let mut out = BTreeMap::new();
+    for prop in [ADVICE_AVOID_WHEN, ADVICE_USE_WHEN] {
+        let Some(prop_id) = id(ds, prop) else {
+            continue;
+        };
+        for term in &ctx.terms {
+            let Some(term_id) = id(ds, term) else {
+                continue;
+            };
+            let source_lit = ds
+                .quads_for_pattern(Some(term_id), Some(prop_id), None, GraphMatch::Any)
+                .find_map(|q| match ds.resolve(q.o) {
+                    TermRef::Literal {
+                        lexical,
+                        language: Some(lang),
+                        ..
+                    } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
+                    _ => None,
+                });
+            if let Some(lexical) = source_lit {
+                out.insert((term.clone(), prop.to_owned()), lexical);
+            }
+        }
+    }
+    out
+}
+
+/// The fraction of a slice's advisory-prose cells (`gmeow:avoidWhen` / `gmeow:useWhen`, at
+/// `@x-gmeow-english`) that have a REALIZED, machine-active advice carrier, counted PER CELL by
+/// field: an `avoidWhen` cell is covered by a data-matching advisory `logic:Constraint`
+/// (`logic:severity "Info"`) that `logic:formalizes` the term; a `useWhen` cell by a first-class
+/// `logic:AdviceGuidance` carrier that `logic:formalizes` it. A term's avoidWhen constraint never
+/// credits its useWhen cell, and vice versa — positive applicability is not an anti-pattern to
+/// detect but guidance to surface, so the two fields have distinct carriers.
+///
+/// This counts EXECUTABLE logic-backed advice — a realized carrier — NOT prose presence (that is
+/// the information / prose axes) and NOT a stub: a term can carry rich `avoidWhen` / `useWhen`
+/// prose and score 0 here until its carrier is authored. Numerator and denominator are both
+/// bounded counts over `(term, field)` cells, so the score is an objective intrinsic fraction in
+/// `[0, 1]` (1.0 = every advisory-prose cell has a realized carrier), reachable honestly for both
+/// fields — never a tuned target or unbounded ratio.
+///
+/// Constraint source branches on the scoring environment (mirroring `gmn1_coverage_axis`
+/// / `DocMaturity`): [`ScoringEnv::Repo`] reads the central logic slice module off the
+/// surrounding checkout (the constraint authority); [`ScoringEnv::Bundle`] reads
+/// self-containedly from the scored slice's own graph.
+fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
+    let advice_prose = slice_advice_prose(ctx);
+    if advice_prose.is_empty() {
+        // A slice authoring no advisory prose is vacuously covered (matches the other
+        // axes' empty-population convention).
+        return AxisScore::clean(1.0);
+    }
+
+    // Resolve the coverage authority and read BOTH per-field sets from it: Repo reads the
+    // central logic slice module (the constraint/guidance home); Bundle reads the scored
+    // slice's own graph self-containedly. `advisory_constraint_terms` returns owned sets, so
+    // the dataset need not outlive the arm (no deferred placeholder binding).
+    let (avoidwhen_terms, usewhen_terms) = match &ctx.env {
+        ScoringEnv::Repo => {
+            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.advice-coverage.no-repo-root",
+                        "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            let Ok(ds) = crate::dataset_from_paths(&[root.join(LOGIC_MODULE_REL).as_path()]) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.advice-coverage.no-constraint-source",
+                        "the central logic slice module (slices/grounding/logic/module.ttl) failed to load — advice coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            (advisory_constraint_terms(&ds), advice_guidance_terms(&ds))
+        }
+        ScoringEnv::Bundle(_) => (
+            advisory_constraint_terms(ctx.graph),
+            advice_guidance_terms(ctx.graph),
+        ),
+    };
+
+    // Per-cell coverage: an avoidWhen cell is covered by a data-matching advisory
+    // logic:Constraint; a useWhen cell by a first-class logic:AdviceGuidance carrier. A term's
+    // avoidWhen constraint never credits its useWhen cell (and vice versa), so the fraction is
+    // an honest intrinsic [0, 1] reachable to 1.0 only when BOTH fields are genuinely formalized.
+    let total = advice_prose.len();
+    let mut covered = 0usize;
+    let mut findings = Vec::new();
+    for (term, prop) in advice_prose.keys() {
+        let is_use_when = prop == ADVICE_USE_WHEN;
+        let is_covered = if is_use_when {
+            usewhen_terms.contains(term)
+        } else {
+            avoidwhen_terms.contains(term)
+        };
+        if is_covered {
+            covered += 1;
+        } else if is_use_when {
+            findings.push(advisory(
+                "slice-quality.advice-coverage.unharvested",
+                format!(
+                    "{term} authors gmeow:useWhen prose with no realized logic:AdviceGuidance — \
+                     author one in slices/grounding/logic/module.ttl (a logic:AdviceGuidance that \
+                     logic:formalizes {term}, with logic:adviceSourceField logic:ProseFieldUseWhen and \
+                     logic:message the verbatim useWhen prose) so the applicability guidance is \
+                     machine-active."
+                ),
+            ));
+        } else {
+            findings.push(advisory(
+                "slice-quality.advice-coverage.unharvested",
+                format!(
+                    "{term} authors gmeow:avoidWhen prose with no realized advisory logic:Constraint — \
+                     author one in slices/grounding/logic/module.ttl (a logic:Constraint with a \
+                     data-matching guard, logic:severity \"Info\", and logic:formalizes {term}) so the \
+                     guidance fires a deonticRecommendation Note when an individual matches the \
+                     anti-pattern."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = covered as f64 / total as f64;
+    AxisScore { score, findings }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1910,6 +2118,166 @@ mod tests {
         assert!(
             resolve("no_such_producer").is_none(),
             "unknown producer → None (hard fail upstream)"
+        );
+    }
+
+    #[test]
+    fn advisory_constraint_terms_reads_info_constraints_only() {
+        let ds = purrdf::parse_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              gmeow:FooAdvice a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Foo .\n\
+              gmeow:BarHard a logic:Constraint ; logic:severity \"Violation\" ; logic:formalizes gmeow:Bar .\n\
+              gmeow:BazDefault a logic:Constraint ; logic:formalizes gmeow:Baz .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("parse");
+        let terms = advisory_constraint_terms(&ds);
+        assert_eq!(
+            terms.len(),
+            1,
+            "only the Info (advisory) constraint counts: {terms:?}"
+        );
+        assert!(terms.contains("https://blackcatinformatics.ca/gmeow/Foo"));
+        assert!(
+            !terms
+                .iter()
+                .any(|t| t.ends_with("Bar") || t.ends_with("Baz")),
+            "a Violation (hard) or default-severity constraint is not advisory: {terms:?}"
+        );
+    }
+
+    #[test]
+    fn advice_slice_prose_pins_the_source_language() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:avoidWhen \"avoid Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:useWhen \"use Bar\"@x-gmeow-english .\n\
+             gmeow:Baz a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:avoidWhen \"avoid Baz\"@en .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            std::path::PathBuf::from("/tmp/testslice"),
+            &ds,
+            ScoringEnv::Repo,
+        );
+        let prose = slice_advice_prose(&ctx);
+        assert_eq!(
+            prose.len(),
+            2,
+            "only the two @x-gmeow-english cells: {prose:?}"
+        );
+        assert!(prose.contains_key(&(
+            "https://blackcatinformatics.ca/gmeow/Foo".to_owned(),
+            ADVICE_AVOID_WHEN.to_owned()
+        )));
+        assert!(prose.contains_key(&(
+            "https://blackcatinformatics.ca/gmeow/Bar".to_owned(),
+            ADVICE_USE_WHEN.to_owned()
+        )));
+        assert!(
+            !prose.keys().any(|(t, _)| t.ends_with("Baz")),
+            "a non-source-language (@en) advisory literal must not enter the denominator"
+        );
+    }
+
+    /// Repo-mode integration: proves the load-bearing visibility premise — the CENTRAL
+    /// logic-slice advisory constraints ARE seen when scoring a DOMAIN slice
+    /// (`ScoreContext.graph` is slice-local, so the axis MUST read the logic module off
+    /// the repo; if that read were broken the score would be a silent 0). Kernel authors
+    /// gmeow:Entity (avoidWhen + useWhen), which BareEntitySortalAdviceConstraint
+    /// formalizes, alongside other unharvested advice-prose terms — a real sub-1.0
+    /// fraction with an advisory for each uncovered cell.
+    #[test]
+    fn advice_coverage_axis_repo_sees_advisory_constraints() {
+        let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
+        let kernel_dir = repo.join("slices/core/kernel");
+        let module = kernel_dir.join("module.ttl");
+        let ds = crate::dataset_from_paths(&[module.as_path()]).expect("kernel module parses");
+        let ctx = ScoreContext::new(
+            "https://blackcatinformatics.ca/gmeow/slices/kernel".to_owned(),
+            kernel_dir,
+            &ds,
+            ScoringEnv::Repo,
+        );
+        let result = advice_coverage_axis(&ctx);
+        assert!(
+            result.score > 0.0,
+            "the central advisory constraints MUST be visible via the repo read — a 0.0 score \
+             means the cross-slice constraint read is broken (silent-wrong), got {}",
+            result.score
+        );
+        assert!(
+            result.score < 1.0,
+            "kernel still carries advice prose with no advisory constraint, so coverage is a \
+             strict fraction, got {}",
+            result.score
+        );
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|f| f.code == "slice-quality.advice-coverage.unharvested"),
+            "each uncovered cell must surface an advisory to author the constraint"
+        );
+    }
+
+    /// Per-cell coverage (Bundle mode, self-contained): an `avoidWhen` cell is covered ONLY by a
+    /// data-matching advisory `logic:Constraint`, a `useWhen` cell ONLY by a `logic:AdviceGuidance`
+    /// carrier. A term with only an avoidWhen constraint leaves its useWhen cell uncovered (and
+    /// vice versa), so a term needs BOTH to reach full coverage — the metric-coherence fix.
+    #[test]
+    fn advice_coverage_axis_is_per_cell_avoidwhen_vs_usewhen() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        // gmeow:Foo authors BOTH avoidWhen + useWhen and carries BOTH carriers → both cells covered.
+        // gmeow:Bar authors BOTH but only an avoidWhen constraint → its useWhen cell is uncovered.
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ;\n\
+               gmeow:avoidWhen \"avoid Foo\"@x-gmeow-english ; gmeow:useWhen \"use Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ;\n\
+               gmeow:avoidWhen \"avoid Bar\"@x-gmeow-english ; gmeow:useWhen \"use Bar\"@x-gmeow-english .\n\
+             gmeow:FooAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Foo .\n\
+             gmeow:FooUse a logic:AdviceGuidance ; logic:formalizes gmeow:Foo .\n\
+             gmeow:BarAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Bar .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        // Bundle mode reads ctx.graph for BOTH per-field sets (the dict is unused here).
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            std::path::PathBuf::from("/tmp/testslice"),
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        let result = advice_coverage_axis(&ctx);
+        // 4 cells (Foo/Bar × avoidWhen/useWhen); covered: Foo.avoidWhen, Foo.useWhen, Bar.avoidWhen
+        // = 3/4. Bar.useWhen is uncovered because no AdviceGuidance formalizes gmeow:Bar.
+        assert!(
+            (result.score - 0.75).abs() < 1e-9,
+            "expected 3/4 per-cell coverage; got {}",
+            result.score
+        );
+        assert!(
+            result.findings.iter().any(|f| f
+                .message
+                .contains("gmeow:useWhen prose with no realized logic:AdviceGuidance")
+                && f.message.contains("Bar")),
+            "the uncovered Bar.useWhen cell must surface a logic:AdviceGuidance advisory: {:?}",
+            result.findings
         );
     }
 

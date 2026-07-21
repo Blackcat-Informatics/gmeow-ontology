@@ -303,6 +303,13 @@ pub fn verify_with_reasoning_result(
     for finding in crate::obligations::check_candidate_source_hash_drift(&reasoned)? {
         report.add_finding(finding);
     }
+    // The soft-advice peer: an advisory logic:Constraint whose logic:message must mirror its
+    // logic:formalizes term's gmeow:avoidWhen prose (declared via logic:adviceSourceField) is
+    // held to that prose by a direct string binding — a diverged advice message is a hard error,
+    // so the surfaced advice can never silently drift from the prose it formalizes.
+    for finding in crate::obligations::check_advice_message_prose_binding(&reasoned)? {
+        report.add_finding(finding);
+    }
     // 5. The math: measure-and-dimension reasoned gate — dimensional homogeneity,
     //    integral dimensional composition, math:dimensionVector string drift, and the
     //    positive-definiteness of every authored math:GramMatrix used as a metric form.

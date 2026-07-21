@@ -8,7 +8,7 @@
 //! prove it against the REAL merged authored corpus — the exact `graph/logic-compile-inputs` entity
 //! the `stage-compile-logic` hard-fail path consumes:
 //!
-//! * the committed corpus PASSES — the frozen 719-entry ledger matches the live carrier-bearing set
+//! * the committed corpus PASSES — the frozen 720-entry ledger matches the live carrier-bearing set
 //!   and there are zero orphan / duplicate / re-introduction violations; and
 //! * dropping a single property's carrier from that corpus HARD-FAILS the completeness check,
 //!   NAMING the dropped property — proving the ledger is non-vacuous (a silently-lost carrier can
