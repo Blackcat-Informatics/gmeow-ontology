@@ -641,15 +641,43 @@ fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
 
 /// Complete `gmeow:CorePrefixes`' A-Box structural-annotation gap:
 /// `purrdf::slice::prefix_emit::emit_core_prefixes` mints the importable SHACL
-/// prefix set as `a owl:Ontology` with an `rdfs:label`/`rdfs:comment` (bare `@en`
-/// — migrated separately) but NEVER a `skos:definition`, `rdfs:isDefinedBy`, or
-/// `gmeow:graphBoxRole`. `CorePrefixes` is a T-Box document (an ontology header
+/// prefix set as `a owl:Ontology` with an `rdfs:label`/`rdfs:comment` (bare `@en`,
+/// retagged to the `x-gmeow-english` carrier here by [`retag_core_prefixes_english`])
+/// but NEVER a `skos:definition`, `rdfs:isDefinedBy`, or `gmeow:graphBoxRole`. `CorePrefixes` is a T-Box document (an ontology header
 /// describing a declared prefix set), never an assertional individual, so it
 /// carries [`gmeow_errors::abox::BOX_TBOX`] rather than the A-Box
 /// [`gmeow_errors::abox::BOX_ABOX`] every other completion in this module uses.
 /// Appended as full-IRI Turtle triples so `canon_fanout_ttl` folds them into the
 /// same canonicalization pass as `body`.
+/// Retag the bare public `@en` tag `emit_core_prefixes` mints on the
+/// `gmeow:CorePrefixes` `rdfs:label` / `rdfs:comment` to the `x-gmeow-english`
+/// carrier tag. `CorePrefixes` is an INTERNAL importable SHACL prefix set — not a
+/// Principle-17 external lowering — so its GMEOW-authored English prose owes the
+/// carrier tag like every other internal term (only its `skos:definition`, minted
+/// below, already carries it). Keyed on the label/comment predicate so no other
+/// literal is touched; the object literal value never itself contains `"@en`.
+fn retag_core_prefixes_english(body: &str) -> String {
+    body.lines()
+        .map(|line| {
+            let annotation = line.contains("#label>")
+                || line.contains("#comment>")
+                || line.contains("rdfs:label")
+                || line.contains("rdfs:comment");
+            if annotation {
+                line.replace(
+                    "\"@en",
+                    &format!("\"@{}", gmeow_errors::abox::X_GMEOW_ENGLISH),
+                )
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn complete_core_prefixes_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
+    let body = retag_core_prefixes_english(body);
     let subject = vocab.core_prefixes_iri();
     const DEFINITION: &str = "The importable SHACL prefix set (`sh:declare`) covering every \
         namespace prefix in the mapping-DSL prefix registry; reference it from a SHACL shape \
@@ -2092,7 +2120,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     /// `minted_individuals_satisfy_the_assertional_abox_contract`.
     #[test]
     fn core_prefixes_completion_satisfies_the_structural_contract() {
-        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+        use gmeow_validate::lint::{
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
+        };
 
         let vocab = crate::gmeow_ns::gmeow_slice_vocab();
         let subject = vocab.core_prefixes_iri();
@@ -2115,7 +2145,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             ontology_iri: crate::gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
             selector_tokens: Default::default(),
             core_slice_iris: Default::default(),
-            annotation_predicates: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
         let report = structural_lint_dataset(&ds, &cfg);
         let errors = report.errors();
@@ -2130,6 +2160,19 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         assert!(
             !completed.contains(gmeow_errors::abox::BOX_ABOX),
             "gmeow:CorePrefixes is a T-Box header — it must never carry gmeow:boxABox"
+        );
+        // The label/comment `emit_core_prefixes` mints with a bare `@en` must be
+        // retagged to the carrier tag — CorePrefixes is an internal ontology, not an
+        // external lowering, so it owes the carrier-tag discipline.
+        assert!(
+            !errors
+                .iter()
+                .any(|e| e.contains(&subject) && e.contains("external language tag 'en'")),
+            "gmeow:CorePrefixes label/comment must carry x-gmeow-english, not bare @en: {errors:?}"
+        );
+        assert!(
+            !completed.contains("\"@en"),
+            "no bare @en may survive on the completed CorePrefixes A-Box: {completed}"
         );
     }
 
