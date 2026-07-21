@@ -24,7 +24,7 @@ use gmeow_errors::{
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::gts::model::Graph;
 use purrdf::{
-    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
+    PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, RdfTriple,
     pair_loss_ledger,
 };
 use rayon::prelude::*;
@@ -700,11 +700,12 @@ impl ValidationRun {
         };
         let start = Instant::now();
         let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            // Same class-membership materialization as the example phase: purrdf's
-            // spec-conformant `sh:class` needs the subClassOf→rdf:type closure made
-            // explicit (see [`materialize_subclass_type_closure`]).
-            let materialized = materialize_subclass_type_closure(&dataset)?;
-            let report = store::shacl_validate_dataset(&materialized, &shapes);
+            // No `rdf:type` pre-materialization: the engine closes `sh:class`/`sh:targetClass`
+            // over the asserted `rdfs:subClassOf` chain, and every projected `sh:sparql` /
+            // `sh:SPARQLTarget` body now reads class membership through the `a/<subClassOf>*`
+            // property path (constraint projector + the legacy shape bodies), so the raw dataset
+            // is validated directly.
+            let report = store::shacl_validate_dataset(&dataset, &shapes);
             Ok(shacl_findings_from_report(&report, None))
         })?;
         if options.timings {
@@ -1676,155 +1677,6 @@ fn example_shacl_key(
     ]))
 }
 
-/// Materialize the `rdfs:subClassOf` → `rdf:type` transitive closure into a
-/// validation dataset so SHACL `sh:class` constraints resolve without relying on
-/// any RDF-engine's (non-)inference behavior.
-///
-/// # Why this exists — READ BEFORE TOUCHING THE SHACL PHASES (this WILL resurface)
-///
-/// # Why the engine's own closure does NOT replace this pass
-///
-/// A SHACL engine that resolves `sh:class` value-node membership AND `sh:targetClass`
-/// focus selection through the asserted `rdfs:subClassOf` closure still reads only
-/// ASSERTED `rdf:type` for every OTHER constraint mechanism. In particular,
-/// `sh:sparql`/`sh:SPARQLConstraint`/`sh:SPARQLTarget` bodies that match `?this a C`
-/// see a subclass-only-typed node as NOT a `C`. gmeow validates several such
-/// SPARQL-based constraints over subclass-bearing classes (e.g. `gmeow:Event`,
-/// `gmeow:Finding`, `gmeow:StandpointClaim`, `lang:Form`, and profile open-value
-/// classes); without this pass, a node typed only as a subclass would silently
-/// escape those checks — and for the attack-kind/target constraint would flip a
-/// `sh:Violation`. So even where the engine now closes `sh:class`/`sh:targetClass`
-/// itself, this materialization remains load-bearing for the SPARQL surfaces and is
-/// the single closed-world closure every constraint kind sees. Do NOT delete it on
-/// the assumption the engine subsumes it — it subsumes only two of the mechanisms.
-///
-/// SHACL's `sh:class C` is satisfied when the value node is a *SHACL instance* of
-/// `C`: it carries `rdf:type C`, or `rdf:type D` for some `D` that reaches `C`
-/// through `rdfs:subClassOf` (SHACL spec §2.1.4, the definition of "SHACL
-/// instance"). A **spec-conformant** SHACL processor performs NO other entailment
-/// — it does not run RDFS/OWL reasoning, and it does NOT synthesize `rdf:type`
-/// triples from `rdfs:subClassOf`. It only follows `subClassOf` edges that are
-/// *literally present in the data graph* when resolving `sh:class`.
-///
-/// A lenient SHACL engine that instead performs `rdfs:subClassOf` entailment while
-/// evaluating `sh:class` accepts an instance typed only as a deep subclass (e.g.
-/// `ex:x a gmeow:Proposition`, where `gmeow:Proposition ⊑* gmeow:Entity`) against
-/// `sh:class gmeow:Entity` even though `ex:x` never carries `rdf:type gmeow:Entity`.
-/// A conformant engine does NOT, so relying on that leniency is fragile.
-///
-/// A conformant engine walks `subClassOf` TRANSITIVELY, but only over the edges in
-/// the data graph, and never infers `rdf:type`. It therefore accepts the deep
-/// subclass case IFF the whole `subClassOf` chain up to the target class is in the
-/// validated graph; otherwise it (correctly) reports a `ClassConstraintComponent`
-/// violation. gmeow's example ABox files assert only the most specific type
-/// (`gmeow:Proposition`), and the class chain crosses namespaces
-/// (`gmeow:Proposition → logic:Object → logic:Endurant → gmeow:SocialObject →
-/// gmeow:Entity`), so depending on the validator to bridge that is fragile and
-/// engine-sensitive.
-///
-/// So gmeow makes the class membership EXPLICIT here instead of depending on the
-/// validator: it precomputes the transitive `subClassOf` closure of every class in
-/// the graph and materializes, for each asserted `s rdf:type C`, the derived
-/// `s rdf:type Super` for every transitive `Super` of `C`. After this pass a value
-/// typed `gmeow:Proposition` literally carries `rdf:type gmeow:Entity`, so
-/// `sh:class gmeow:Entity` is satisfied by a direct type check — independent of how
-/// any SHACL engine chooses to follow `subClassOf`. This keeps gmeow's closed-world
-/// SHACL semantics stable across RDF-engine versions and stays deterministic (no
-/// reasoner in the validate path).
-///
-/// Scope: this materializes ONLY the `subClassOf → rdf:type` closure (RDFS rule
-/// rdfs9 plus the transitivity of `subClassOf`). It is deliberately NOT a general
-/// reasoner — it does not touch `owl:*`, `rdfs:domain`/`range`, or property
-/// hierarchies. SHACL `sh:class` needs none of those, and adding them would
-/// over-approximate the validated graph and mask real closed-world violations.
-///
-/// Cost: one pass over the quads to build the direct-super map, a memoized DFS for
-/// the transitive closure (cycle-guarded — a malformed `A ⊑ A` loop yields no
-/// derived types rather than diverging), and one pass to emit the derived
-/// `rdf:type` quads. All derived quads are `(IRI, rdf:type, IRI)`; blank-node and
-/// literal subjects/types are ignored (they cannot participate in a `sh:class`
-/// class check).
-fn materialize_subclass_type_closure(data: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    use std::collections::{BTreeMap, BTreeSet};
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-    // Materialize the quad stream once — it is walked twice (build the super map,
-    // then emit derived types).
-    let quads: Vec<RdfQuad> = data.owned_quads().collect();
-
-    // 1. Direct super-class map: class IRI → the classes it is *directly* declared a
-    //    subclass of. Only IRI→IRI `subClassOf` edges participate (a blank-node
-    //    superclass is an anonymous OWL class expression, not a `sh:class` target).
-    let mut direct_supers: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
-    for q in &quads {
-        if q.predicate.as_str() == RDFS_SUBCLASSOF
-            && let (RdfTerm::Iri(sub), RdfTerm::Iri(sup)) = (&q.subject, &q.object)
-        {
-            direct_supers
-                .entry(sub.as_str())
-                .or_default()
-                .insert(sup.as_str());
-        }
-    }
-
-    // 2. Transitive closure per class, memoized. `in_progress` guards subclass
-    //    cycles (`A ⊑ B ⊑ A`): a class already on the DFS stack contributes nothing
-    //    further, so the pass terminates on any (malformed) cyclic hierarchy.
-    fn supers_of<'a>(
-        cls: &'a str,
-        direct: &BTreeMap<&'a str, BTreeSet<&'a str>>,
-        cache: &mut BTreeMap<&'a str, BTreeSet<&'a str>>,
-        in_progress: &mut BTreeSet<&'a str>,
-    ) -> BTreeSet<&'a str> {
-        if let Some(hit) = cache.get(cls) {
-            return hit.clone();
-        }
-        if !in_progress.insert(cls) {
-            return BTreeSet::new();
-        }
-        let mut out = BTreeSet::new();
-        if let Some(directs) = direct.get(cls) {
-            for &sup in directs {
-                out.insert(sup);
-                out.extend(supers_of(sup, direct, cache, in_progress));
-            }
-        }
-        in_progress.remove(cls);
-        cache.insert(cls, out.clone());
-        out
-    }
-
-    let mut cache: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
-    let mut in_progress: BTreeSet<&str> = BTreeSet::new();
-
-    // 3. Emit `s rdf:type Super` for every transitive superclass of each asserted
-    //    `s rdf:type C`. The builder keeps the original graph verbatim first, so
-    //    the pass is purely additive (deterministic: BTree iteration order).
-    let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(data);
-    for q in &quads {
-        if q.predicate.as_str() == RDF_TYPE
-            && let RdfTerm::Iri(cls) = &q.object
-        {
-            for sup in supers_of(cls.as_str(), &direct_supers, &mut cache, &mut in_progress) {
-                builder.push_owned_quad(&RdfQuad::new(
-                    q.subject.clone(),
-                    RDF_TYPE,
-                    RdfTerm::iri(sup),
-                ));
-            }
-        }
-    }
-
-    builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: e.to_string(),
-        })
-    })
-}
-
 /// The example file is parsed under its own blank scope, projected into the SHACL
 /// flattened view, merged with the already-projected base graph, then validated
 /// with the native SHACL engine.
@@ -1860,21 +1712,14 @@ fn run_example_shacl(
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(base_projected);
     builder.push_dataset(&example_projected);
+    // The base graph carries the class hierarchy (`rdfs:subClassOf` edges) and the example
+    // asserts only the most-specific type; class membership is resolved by the engine
+    // (`sh:class`/`sh:targetClass`) and by the `a/<subClassOf>*` property path the projected
+    // `sh:sparql` / `sh:SPARQLTarget` bodies carry, so no `rdf:type` pre-materialization is
+    // needed over the merged projected dataset.
     let merged = builder.freeze().map_err(|e| {
         Diag::of_kind(crate::error::Serialize {
             detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
-        })
-    })?;
-    // Materialize the subClassOf→rdf:type closure so `sh:class` resolves against
-    // the example instances' full type set (the base graph carries the class
-    // hierarchy; the example asserts only the most-specific type). See
-    // [`materialize_subclass_type_closure`] for the full rationale.
-    let merged = materialize_subclass_type_closure(&merged).map_err(|e| {
-        Diag::of_kind(crate::error::Engine {
-            detail: format!(
-                "example {name}: class-membership materialization failed: {}",
-                e.message()
-            ),
         })
     })?;
     let report = if example_allows_focus_pruning(example_ds.as_ref()) {

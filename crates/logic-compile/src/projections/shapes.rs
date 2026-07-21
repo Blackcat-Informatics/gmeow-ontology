@@ -1256,6 +1256,21 @@ fn constraint_atom(f: &Formula, focus: &str) -> gmeow_errors::Result<String> {
     }
     let s = constraint_term(&args[0], focus)?;
     let o = constraint_term(&args[1], focus)?;
+    if pred == RDF_TYPE {
+        // A body-position `rdf:type` atom — a NON-focus class check (`?v a C`), a VARIABLE-class
+        // check (`$this a ?openClass`), or a focus CO-TYPING check in the consequent (a Frege-style
+        // disjointness `$this a lang:Form`). The subclass-EXCLUDING focus guard `rdf:type(this, C)`
+        // never reaches here: it is derived into `sh:targetClass C` (engine-closed) and stripped by
+        // `strip_direct_type_guard`. Everything that DOES reach here lowers into a `sh:sparql` /
+        // `sh:SPARQLTarget` body, which the SHACL engine does NOT subclass-close, so it must close
+        // the asserted `rdfs:subClassOf` chain itself with the `a/<subClassOf>*` property path
+        // (the same idiom the OWL-disjointness / conditional-range projections use). The `*`
+        // zero-or-more length includes the exact-type match, so a class with no subclasses behaves
+        // identically to the plain `a`. This makes the projected body verdict-equivalent to the
+        // retired whole-dataset `rdf:type` closure pass for positive and `FILTER NOT EXISTS` atoms
+        // alike.
+        return Ok(format!("{s} a/<{RDFS_SUBCLASS_OF}>* {o} ."));
+    }
     let p = sparql_predicate(pred);
     Ok(format!("{s} {p} {o} ."))
 }
@@ -1417,6 +1432,11 @@ fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>>
 
 /// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// The `rdfs:subClassOf` IRI — the edge a body-position `rdf:type` atom closes over with the
+/// `a/<subClassOf>*` property path so the projected `sh:sparql`/`sh:SPARQLTarget` body is
+/// subclass-aware without a whole-dataset `rdf:type` pre-materialization pass.
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 
 /// Is `f` a guard-only selection marker (`directType` / `sparqlTarget`) — a relation that selects
 /// the focus via the `sh:target` clause and has NO data-triple form (so it is stripped from the
@@ -2829,7 +2849,10 @@ mod procedural_tests {
         let b = block(&c);
         assert!(b.contains("$this <https://ex/part> ?v ."), "{b}");
         assert!(
-            b.contains("FILTER NOT EXISTS { ?v a <https://ex/Part> . }"),
+            b.contains(
+                "FILTER NOT EXISTS { ?v a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* \
+                 <https://ex/Part> . }"
+            ),
             "{b}"
         );
     }
@@ -3903,7 +3926,10 @@ ex:aggv a logic:AggregateConstraint ;\n\
         );
         // Violation = no typed Denotation points back at $this.
         assert!(b.contains("FILTER NOT EXISTS"), "{b}");
-        assert!(b.contains("?s a <https://ex/Denotation> ."), "{b}");
+        assert!(
+            b.contains("?s a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://ex/Denotation> ."),
+            "{b}"
+        );
         assert!(
             b.contains("?s <https://ex/denotationTarget> $this ."),
             "{b}"
