@@ -1235,15 +1235,35 @@ fn search(state: &mut State, ctx: &Ctx, budget: &mut u64, depth: u32) -> SearchR
                     return SearchResult::Bound;
                 }
                 let mut child = state.clone();
-                let clashed = match action {
-                    Action::Add(root, concept) => child.add(&root, concept, budget).is_err(),
+                match action {
+                    Action::Add(root, concept) => match child.add(&root, concept, budget) {
+                        // The disjunct clashed — this branch is CLOSED; try the next.
+                        Err(()) => continue,
+                        // The disjunct was already (structurally) present, so `child`
+                        // is identical to its parent. `saturate` returned this very
+                        // branch point from that same completion, so recursing would
+                        // re-derive it forever: the cyclic-TBox non-progress loop that
+                        // otherwise recurses toward `SEARCH_DEPTH`, deep-cloning the
+                        // full `State` at every frame (the heap-explosion sink). Such a
+                        // branch is neither a clash (it cannot close) nor a completion
+                        // we may certify open (the resolver truncated the cycle at
+                        // `RESOLVE_DEPTH`), so the sound outcome is to WITHHOLD — bound
+                        // the search here instead of exploding. Returning `Bound`
+                        // (rather than skipping the branch) preserves the pre-existing
+                        // verdicts exactly: today this same non-progress branch is
+                        // entered and bounds the whole search by exhausting the depth
+                        // limit; this reaches that identical withhold in O(1) without
+                        // the deep clone chain. A genuinely decided case never reaches
+                        // a non-progress branch (it would already withhold today).
+                        Ok(false) => return SearchResult::Bound,
+                        // A genuine successor: the completion grew, so recurse.
+                        Ok(true) => {}
+                    },
+                    // `pick_branch` only offers a nominal merge whose member is not
+                    // already the root, so a merge always makes progress.
                     Action::Merge(root, member) => {
                         child.union(&root, &member);
-                        false
                     }
-                };
-                if clashed {
-                    continue;
                 }
                 match search(&mut child, ctx, budget, depth + 1) {
                     SearchResult::Sat => return SearchResult::Sat,
@@ -1301,6 +1321,40 @@ mod tests {
             decide(edb),
             Some(RefutationCertificate::OutOfFragment { .. })
         )
+    }
+
+    /// A WIDE + DEEP cyclic class expression mirroring webont-i5-26-007
+    /// (`_:B = B ⊓ (_:B ⊔ C)`) but with MANY individuals typed to the cyclic node.
+    /// The `owl:unionOf` re-offers a non-progressing `And`-disjunct branch at every
+    /// level; before the non-progress bound in [`search`] this recursed toward
+    /// [`SEARCH_DEPTH`], deep-cloning the full `State` per frame and exploding the
+    /// heap. The decider must WITHHOLD (`OutOfFragment`) in bounded memory rather
+    /// than OOM. Regression guard for the cyclic-TBox memory sink.
+    #[test]
+    fn cyclic_class_expression_withholds_without_memory_explosion() {
+        let b = "http://ex/B";
+        let u = "http://ex/U";
+        let mut quads = vec![
+            quad(b, RDF_TYPE, OWL_CLASS),
+            quad(b, OWL_INTERSECTION_OF, "http://ex/il0"),
+            // intersection list: [ B_named, U ]
+            quad("http://ex/il0", RDF_FIRST, "http://ex/Bn"),
+            quad("http://ex/il0", RDF_REST, "http://ex/il1"),
+            quad("http://ex/il1", RDF_FIRST, u),
+            quad("http://ex/il1", RDF_REST, RDF_NIL),
+            quad(u, OWL_UNION_OF, "http://ex/ul0"),
+        ];
+        // union list: [ _:B, C ] — the cyclic self-reference `_:B` re-offered forever.
+        quads.push(quad("http://ex/ul0", RDF_FIRST, b));
+        quads.push(quad("http://ex/ul0", RDF_REST, "http://ex/ul1"));
+        quads.push(quad("http://ex/ul1", RDF_FIRST, "http://ex/C"));
+        quads.push(quad("http://ex/ul1", RDF_REST, RDF_NIL));
+        for n in 0..300 {
+            quads.push(quad(&format!("http://ex/ind{n}"), RDF_TYPE, b));
+        }
+        let edb = dataset(quads);
+        // Bounded, sound withhold — never a decided verdict off a truncated cycle.
+        assert!(withholds(edb.as_ref()));
     }
 
     #[test]
