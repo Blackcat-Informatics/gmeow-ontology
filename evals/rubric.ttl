@@ -9,68 +9,144 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ev:    <https://blackcatinformatics.ca/gmeow/evals/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ev:harness a gmeow:SoftwareAgent ;
-    rdfs:label "the gmeow-evals harness"@en .
+    rdfs:label "the gmeow-evals harness"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "The gmeow-evals harness: the software agent that reads corpus documents, extracts claims, and scores them against this rubric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:scale-unit a gmeow:ScoreScale ;
-    rdfs:label "unit interval"@en ;
+    rdfs:label "unit interval"@x-gmeow-english ;
     gmeow:scaleMin 0.0 ;
-    gmeow:scaleMax 1.0 .
+    gmeow:scaleMax 1.0 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "The unit-interval [0.0, 1.0] score scale shared by every criterion of the gmeow-evals rubric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:rubric a gmeow:Rubric ;
-    rdfs:label "gmeow-evals claim-extraction rubric v1"@en ;
+    rdfs:label "gmeow-evals claim-extraction rubric v1"@x-gmeow-english ;
     gmeow:normIssuer ev:harness ;
     gmeow:usesScale ev:scale-unit ;
     gmeow:hasCriterion ev:crit-schema-validity, ev:crit-grounding-precision,
         ev:crit-grounding-recall, ev:crit-hallucination, ev:crit-abstention,
-        ev:crit-calibration .
+        ev:crit-calibration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "The gmeow-evals claim-extraction rubric (v1): a named evaluation standard issued by the harness whose criteria are the RAGAS/AIS family scored on the shared unit scale."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-schema-validity a gmeow:Criterion ;
-    rdfs:label "schema validity"@en ;
+    rdfs:label "schema validity"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainFactual ;
     gmeow:rewardPole ev:pole-conformant ;
-    gmeow:penaltyPole ev:pole-malformed .
-ev:pole-conformant a gmeow:CriterionPole ; rdfs:label "Conformant emission"@en .
-ev:pole-malformed  a gmeow:CriterionPole ; rdfs:label "Malformed emission"@en .
+    gmeow:penaltyPole ev:pole-malformed ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding schema-conformant emissions and penalizing malformed ones."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-conformant a gmeow:CriterionPole ;
+    rdfs:label "Conformant emission"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of schema validity: the emission conforms to the required schema."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-malformed a gmeow:CriterionPole ;
+    rdfs:label "Malformed emission"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of schema validity: the emission is malformed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-grounding-precision a gmeow:Criterion ;
-    rdfs:label "grounding precision"@en ;
+    rdfs:label "grounding precision"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainFactual ;
     gmeow:rewardPole ev:pole-pinned ;
-    gmeow:penaltyPole ev:pole-unpinned .
-ev:pole-pinned   a gmeow:CriterionPole ; rdfs:label "Every span verifies against the source bytes"@en .
-ev:pole-unpinned a gmeow:CriterionPole ; rdfs:label "Spans that do not match the source"@en .
+    gmeow:penaltyPole ev:pole-unpinned ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding spans that verify against the source bytes and penalizing spans that do not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-pinned a gmeow:CriterionPole ;
+    rdfs:label "Every span verifies against the source bytes"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of grounding precision: every span verifies against the source bytes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-unpinned a gmeow:CriterionPole ;
+    rdfs:label "Spans that do not match the source"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of grounding precision: spans that do not match the source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-grounding-recall a gmeow:Criterion ;
-    rdfs:label "grounding recall"@en ;
+    rdfs:label "grounding recall"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainFactual ;
     gmeow:rewardPole ev:pole-recovered ;
-    gmeow:penaltyPole ev:pole-missed .
-ev:pole-recovered a gmeow:CriterionPole ; rdfs:label "Expected claims recovered with verified evidence"@en .
-ev:pole-missed    a gmeow:CriterionPole ; rdfs:label "Supported claims left unextracted"@en .
+    gmeow:penaltyPole ev:pole-missed ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding expected claims recovered with verified evidence and penalizing supported claims left unextracted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-recovered a gmeow:CriterionPole ;
+    rdfs:label "Expected claims recovered with verified evidence"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of grounding recall: expected claims recovered with verified evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-missed a gmeow:CriterionPole ;
+    rdfs:label "Supported claims left unextracted"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of grounding recall: supported claims left unextracted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-hallucination a gmeow:Criterion ;
-    rdfs:label "hallucination resistance"@en ;
+    rdfs:label "hallucination resistance"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainSafety ;
     gmeow:rewardPole ev:pole-grounded-only ;
-    gmeow:penaltyPole ev:pole-fabricated .
-ev:pole-grounded-only a gmeow:CriterionPole ; rdfs:label "Asserts only what evidence supports"@en .
-ev:pole-fabricated    a gmeow:CriterionPole ; rdfs:label "Fabricates beyond the evidence"@en .
+    gmeow:penaltyPole ev:pole-fabricated ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding assertions supported by evidence and penalizing fabrication beyond the evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-grounded-only a gmeow:CriterionPole ;
+    rdfs:label "Asserts only what evidence supports"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of hallucination resistance: asserts only what evidence supports."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-fabricated a gmeow:CriterionPole ;
+    rdfs:label "Fabricates beyond the evidence"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of hallucination resistance: fabricates beyond the evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-abstention a gmeow:Criterion ;
-    rdfs:label "abstention quality"@en ;
+    rdfs:label "abstention quality"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainSafety ;
     gmeow:rewardPole ev:pole-declines ;
-    gmeow:penaltyPole ev:pole-takes-bait .
-ev:pole-declines  a gmeow:CriterionPole ; rdfs:label "Declines unsupported statements"@en .
-ev:pole-takes-bait a gmeow:CriterionPole ; rdfs:label "Emits the unsupported bait"@en .
+    gmeow:penaltyPole ev:pole-takes-bait ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding declining unsupported statements and penalizing taking the unsupported bait."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-declines a gmeow:CriterionPole ;
+    rdfs:label "Declines unsupported statements"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of abstention quality: declines unsupported statements."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-takes-bait a gmeow:CriterionPole ;
+    rdfs:label "Emits the unsupported bait"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of abstention quality: emits the unsupported bait."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:crit-calibration a gmeow:Criterion ;
-    rdfs:label "calibration"@en ;
+    rdfs:label "calibration"@x-gmeow-english ;
     gmeow:criterionDomain gmeow:criterionDomainFactual ;
     gmeow:rewardPole ev:pole-honest ;
-    gmeow:penaltyPole ev:pole-overconfident .
-ev:pole-honest        a gmeow:CriterionPole ; rdfs:label "Stated confidence tracks measured grounding"@en .
-ev:pole-overconfident a gmeow:CriterionPole ; rdfs:label "Confidence detached from grounding"@en .
+    gmeow:penaltyPole ev:pole-overconfident ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Criterion rewarding stated confidence that tracks measured grounding and penalizing confidence detached from grounding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-honest a gmeow:CriterionPole ;
+    rdfs:label "Stated confidence tracks measured grounding"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Reward pole of calibration: stated confidence tracks measured grounding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+ev:pole-overconfident a gmeow:CriterionPole ;
+    rdfs:label "Confidence detached from grounding"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ;
+    skos:definition "Penalty pole of calibration: confidence detached from grounding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
