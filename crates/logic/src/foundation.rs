@@ -94,6 +94,68 @@ const RIGIDITY_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/cross
 const ANTI_RIGIDITY_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/anti-rigidity-witness";
 
+// ── Modal-evaluation vocabulary (□/◇ standard translation) ───────────────────────
+//
+// The modal post-pass evaluates □ (`logic:necessarily`) / ◇ (`logic:possibly`) by the
+// standard translation over ONE pinned typed accessibility relation, bounded over the
+// finite materialized named-graph world set.  It never walks the bare
+// `logic:accessibleFrom` superproperty (prose-only) nor a `gmeow:modalForce*` term.
+
+/// The `gmeow:` vocabulary namespace — `gmeow:sharpens` (a typed accessibility
+/// relation) lives here rather than under `LOGIC_NS`.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// Rule IRI stamped on every modal-evaluation verdict (`logic:rule/modal-evaluation`).
+const MODAL_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/modal-evaluation";
+
+/// Modal operator marker: `F logic:necessarily B` reads `F = □B`.
+const NECESSARILY: &str = "https://blackcatinformatics.ca/logic/necessarily";
+/// Modal operator marker: `F logic:possibly B` reads `F = ◇B`.
+const POSSIBLY: &str = "https://blackcatinformatics.ca/logic/possibly";
+/// Pins the single typed accessibility relation a modal formula is translated over.
+const OVER_ACCESSIBILITY: &str = "https://blackcatinformatics.ca/logic/overAccessibility";
+/// Carries the evaluation world `w0` on a modal `logic:Formula` node.
+const MODAL_EVAL_WORLD: &str = "https://blackcatinformatics.ca/logic/modalEvalWorld";
+/// Binds the subject of the ground body atom `P = (s, p, o)` on the body formula node.
+const ATOM_SUBJECT: &str = "https://blackcatinformatics.ca/logic/atomSubject";
+/// Binds the predicate of the ground body atom on the body formula node.
+const ATOM_PREDICATE: &str = "https://blackcatinformatics.ca/logic/atomPredicate";
+/// Binds the object of the ground body atom on the body formula node.
+const ATOM_OBJECT: &str = "https://blackcatinformatics.ca/logic/atomObject";
+
+/// The prose-only generic accessibility superproperty — NEVER a modal-eval relation.
+const ACCESSIBLE_FROM: &str = "https://blackcatinformatics.ca/logic/accessibleFrom";
+
+/// The six typed accessibility relations the modal operators may translate over.
+/// `gmeow:sharpens` is `gmeow:`-namespaced; the other five are `logic:` kernel
+/// relations (foundation.rs mirrors `module.ttl`'s `logic:accessibleFrom` prose).
+const TYPED_ACCESSIBILITY: [&str; 6] = [
+    "https://blackcatinformatics.ca/logic/epistemicallyPossible",
+    "https://blackcatinformatics.ca/logic/doxasticallyAccessible",
+    "https://blackcatinformatics.ca/logic/deonticallyIdeal",
+    "https://blackcatinformatics.ca/logic/temporallySucceeds",
+    "https://blackcatinformatics.ca/logic/counterfactuallyCloser",
+    "https://blackcatinformatics.ca/gmeow/sharpens",
+];
+/// The serial typed relation — an empty accessible set yields `Undetermined`, never
+/// a vacuous □-holds (`module.ttl`'s `logic:deonticallyIdeal` seriality).
+const DEONTICALLY_IDEAL: &str = "https://blackcatinformatics.ca/logic/deonticallyIdeal";
+
+/// Verdict edge: □B holds (vacuously or over a non-empty accessible set).
+const MODAL_NECESSITY_HOLDS: &str = "https://blackcatinformatics.ca/logic/modalNecessityHolds";
+/// Verdict edge: □B fails — some accessible world lacks the body atom.
+const MODAL_NECESSITY_FAILS: &str = "https://blackcatinformatics.ca/logic/modalNecessityFails";
+/// Verdict edge: □B undetermined — serial relation with an empty accessible set.
+const MODAL_NECESSITY_UNDETERMINED: &str =
+    "https://blackcatinformatics.ca/logic/modalNecessityUndetermined";
+/// Verdict edge: ◇B holds — some accessible world carries the body atom.
+const MODAL_POSSIBILITY_HOLDS: &str = "https://blackcatinformatics.ca/logic/modalPossibilityHolds";
+/// Verdict edge: ◇B fails — no accessible world carries the body atom.
+const MODAL_POSSIBILITY_FAILS: &str = "https://blackcatinformatics.ca/logic/modalPossibilityFails";
+/// Companion of a □-fails verdict: the least accessible world where the atom is absent.
+const MODAL_COUNTEREXAMPLE_WORLD: &str =
+    "https://blackcatinformatics.ca/logic/modalCounterexampleWorld";
+
 // ── Property-characteristic vocabulary (H4) ──────────────────────────────────────
 //
 // The characteristic post-pass reads BOTH the OWL characteristic classes (the
@@ -2321,6 +2383,307 @@ fn cross_world_rigidity_violations(
     Ok(out)
 }
 
+// ── Modal evaluation (□/◇ standard translation, post-pass) ───────────────────────
+
+/// The modal operator a modal `logic:Formula` node carries.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ModalOp {
+    /// `logic:necessarily` — □, true iff the body holds in every accessible world.
+    Box,
+    /// `logic:possibly` — ◇, true iff the body holds in some accessible world.
+    Diamond,
+}
+
+/// A fully-resolved modal frame: `F = op B` translated over `relation` from `w0`,
+/// with a single ground body atom `P = (subject, predicate, object)`.
+struct ModalFrame {
+    formula: String,
+    op: ModalOp,
+    body: String,
+    relation: String,
+    w0: String,
+    atom_s: String,
+    atom_p: String,
+    atom_o: String,
+}
+
+/// Evaluate □ (`logic:necessarily`) / ◇ (`logic:possibly`) modal formulas by the
+/// standard translation over their pinned typed accessibility relation, bounded over
+/// the finite materialized named-graph world set.
+///
+/// Mirrors [`cross_world_rigidity_violations`]: three content-keyed indexes over the
+/// materialized quads, then a deterministic (sorted) closure emitting verdict
+/// [`FoundationQuad`]s.  A modal formula node `F` carries `logic:necessarily`/`possibly`
+/// (→ its body node `B`), exactly one `logic:overAccessibility` relation (one of the
+/// six typed relations — the bare `logic:accessibleFrom` superproperty and any
+/// `gmeow:modalForce*` term are refused), a `logic:modalEvalWorld` evaluation world,
+/// and — on `B` — a single ground atom via `logic:atomSubject`/`atomPredicate`/
+/// `atomObject`.  A body that is a nested modal or a compound sub-formula, a missing
+/// evaluation world, or a mis-typed relation is an explicit HARD FAIL (no silent
+/// partial verdict).
+///
+/// - □: an empty accessible set under the SERIAL `logic:deonticallyIdeal` yields
+///   `modalNecessityUndetermined`; an otherwise-empty set is a vacuous
+///   `modalNecessityHolds`; otherwise the least accessible world lacking the atom
+///   yields `modalNecessityFails` plus a `modalCounterexampleWorld` row, else
+///   `modalNecessityHolds`.
+/// - ◇: `modalPossibilityHolds` iff some accessible world carries the atom, else
+///   `modalPossibilityFails`.
+///
+/// Verdict rows carry `graph = w0`, `subject = F`, an empty `source_quad_ids`
+/// (cross-world leaf), and a `derivation_id` hashing `MODAL_RULE_IRI` over the body
+/// atom's reifier (plus the accessibility-edge reifier on the counterexample row).
+///
+/// # Errors
+///
+/// Returns `Err` on a malformed modal frame (see above) or a provenance recipe failure.
+fn evaluate_modal_formulas(quads: &[FoundationQuad]) -> gmeow_errors::Result<Vec<FoundationQuad>> {
+    // Per-node outgoing edges of interest (content-keyed, graph-independent — the
+    // frame is a modal claim about the world set, not about one named graph).
+    let mut nec_body: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut pos_body: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut over: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut eval_world: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut atom_s: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut atom_p: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut atom_o: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+
+    let six: BTreeSet<&str> = TYPED_ACCESSIBILITY.iter().copied().collect();
+
+    // Index 2: accessibility — (w0, R) → sorted accessible worlds.
+    let mut access: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    // Index 3: presence — (graph, s, p, object_n3) membership for the atom-in-world test.
+    let mut presence: BTreeSet<(String, String, String, String)> = BTreeSet::new();
+
+    for q in quads {
+        presence.insert((
+            q.graph.clone(),
+            q.subject.clone(),
+            q.predicate.clone(),
+            q.object.clone(),
+        ));
+        let obj = strip_angle(&q.object).to_owned();
+        match q.predicate.as_str() {
+            NECESSARILY => {
+                nec_body.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            POSSIBLY => {
+                pos_body.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            OVER_ACCESSIBILITY => {
+                over.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            MODAL_EVAL_WORLD => {
+                eval_world.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            ATOM_SUBJECT => {
+                atom_s.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            ATOM_PREDICATE => {
+                atom_p.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            ATOM_OBJECT => {
+                atom_o.entry(q.subject.clone()).or_default().insert(obj);
+            }
+            pred if six.contains(pred) => {
+                access
+                    .entry((q.subject.clone(), q.predicate.clone()))
+                    .or_default()
+                    .insert(obj);
+            }
+            _ => {}
+        }
+    }
+
+    // Every node carrying a modal operator is a modal formula; resolve each in sorted
+    // order for determinism.
+    let mut formula_nodes: BTreeSet<String> = BTreeSet::new();
+    formula_nodes.extend(nec_body.keys().cloned());
+    formula_nodes.extend(pos_body.keys().cloned());
+
+    let mut frames: Vec<ModalFrame> = Vec::new();
+    for f in &formula_nodes {
+        let has_nec = nec_body.contains_key(f);
+        let has_pos = pos_body.contains_key(f);
+        if has_nec && has_pos {
+            return Err(foundation_err(format!(
+                "modal formula {f} carries both logic:necessarily (□) and \
+                 logic:possibly (◇); a modal node pins exactly one operator"
+            )));
+        }
+        let (op, bodies) = if has_nec {
+            (ModalOp::Box, &nec_body[f])
+        } else {
+            (ModalOp::Diamond, &pos_body[f])
+        };
+        if bodies.len() != 1 {
+            return Err(foundation_err(format!(
+                "modal formula {f} carries {} body formulae; a modal node pins exactly \
+                 one body",
+                bodies.len()
+            )));
+        }
+        let body = bodies.iter().next().expect("exactly one body").clone();
+
+        // Relation: exactly one, one of the six typed relations.
+        let relations = over.get(f);
+        let relation = match relations.map(|r| (r.len(), r)) {
+            Some((1, r)) => r.iter().next().expect("exactly one relation").clone(),
+            _ => {
+                return Err(foundation_err(format!(
+                    "modal formula {f} must carry exactly one logic:overAccessibility \
+                     relation (found {})",
+                    relations.map_or(0, BTreeSet::len)
+                )));
+            }
+        };
+        if !six.contains(relation.as_str()) {
+            let why = if relation == ACCESSIBLE_FROM {
+                " (the bare logic:accessibleFrom superproperty is prose-only and licenses \
+                 no modal translation)"
+            } else if relation.starts_with(&format!("{GMEOW_NS}modalForce")) {
+                " (a gmeow:modalForce* term is a claim's modal force, not an accessibility \
+                 relation)"
+            } else {
+                ""
+            };
+            return Err(foundation_err(format!(
+                "modal formula {f} is translated over {relation}, which is not one of the \
+                 six typed accessibility relations{why}"
+            )));
+        }
+
+        // Evaluation world: exactly one.
+        let worlds = eval_world.get(f);
+        let w0 = match worlds.map(|w| (w.len(), w)) {
+            Some((1, w)) => w.iter().next().expect("exactly one world").clone(),
+            _ => {
+                return Err(foundation_err(format!(
+                    "modal formula {f} must carry exactly one logic:modalEvalWorld \
+                     evaluation world (found {})",
+                    worlds.map_or(0, BTreeSet::len)
+                )));
+            }
+        };
+
+        // Body must be a single ground atom — never a nested modal or compound formula.
+        if nec_body.contains_key(&body) || pos_body.contains_key(&body) {
+            return Err(foundation_err(format!(
+                "modal body {body} of formula {f} is itself a modal formula; the modal \
+                 body is scoped to a single ground atom, not a nested modal"
+            )));
+        }
+        let s = single_atom_binding(&atom_s, &body, ATOM_SUBJECT, f)?;
+        let p = single_atom_binding(&atom_p, &body, ATOM_PREDICATE, f)?;
+        let o = single_atom_binding(&atom_o, &body, ATOM_OBJECT, f)?;
+
+        frames.push(ModalFrame {
+            formula: f.clone(),
+            op,
+            body,
+            relation,
+            w0,
+            atom_s: s,
+            atom_p: p,
+            atom_o: o,
+        });
+    }
+
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for frame in &frames {
+        let accessible: Vec<String> = access
+            .get(&(frame.w0.clone(), frame.relation.clone()))
+            .map(|w| w.iter().cloned().collect())
+            .unwrap_or_default();
+        let atom_present = |world: &str| -> bool {
+            presence.contains(&(
+                world.to_owned(),
+                frame.atom_s.clone(),
+                frame.atom_p.clone(),
+                n3(&frame.atom_o),
+            ))
+        };
+        let body_reifier = triple_reifier(&frame.atom_s, &frame.atom_p, &frame.atom_o)?;
+        let mut push_verdict = |predicate: &str, object: String, sources: &[&str]| {
+            out.push(FoundationQuad {
+                graph: frame.w0.clone(),
+                subject: frame.formula.clone(),
+                predicate: predicate.to_owned(),
+                object,
+                rule_iri: MODAL_RULE_IRI.to_owned(),
+                source_quad_ids: Vec::new(),
+                derivation_id: mint_derivation_id(MODAL_RULE_IRI, sources),
+            });
+        };
+
+        match frame.op {
+            ModalOp::Box => {
+                if accessible.is_empty() {
+                    // A serial relation with no accessible world is undetermined, never a
+                    // vacuous □-holds; any other empty accessible set holds vacuously.
+                    let predicate = if frame.relation == DEONTICALLY_IDEAL {
+                        MODAL_NECESSITY_UNDETERMINED
+                    } else {
+                        MODAL_NECESSITY_HOLDS
+                    };
+                    push_verdict(predicate, n3(&frame.body), &[body_reifier.as_str()]);
+                } else if let Some(witness) =
+                    accessible.iter().find(|w| !atom_present(w.as_str()))
+                {
+                    push_verdict(
+                        MODAL_NECESSITY_FAILS,
+                        n3(&frame.body),
+                        &[body_reifier.as_str()],
+                    );
+                    let access_witness =
+                        triple_reifier(&frame.w0, &frame.relation, witness.as_str())?;
+                    push_verdict(
+                        MODAL_COUNTEREXAMPLE_WORLD,
+                        n3(witness),
+                        &[body_reifier.as_str(), access_witness.as_str()],
+                    );
+                } else {
+                    push_verdict(
+                        MODAL_NECESSITY_HOLDS,
+                        n3(&frame.body),
+                        &[body_reifier.as_str()],
+                    );
+                }
+            }
+            ModalOp::Diamond => {
+                let holds = accessible.iter().any(|w| atom_present(w.as_str()));
+                let predicate = if holds {
+                    MODAL_POSSIBILITY_HOLDS
+                } else {
+                    MODAL_POSSIBILITY_FAILS
+                };
+                push_verdict(predicate, n3(&frame.body), &[body_reifier.as_str()]);
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Resolve a single ground-atom binding (`logic:atomSubject`/`atomPredicate`/
+/// `atomObject`) on a modal body node — HARD FAIL unless exactly one is present, so a
+/// missing or multi-valued binding is an explicit boundary refusal, never a silent
+/// partial verdict.
+fn single_atom_binding(
+    index: &BTreeMap<String, BTreeSet<String>>,
+    body: &str,
+    predicate: &str,
+    formula: &str,
+) -> gmeow_errors::Result<String> {
+    match index.get(body).map(|v| (v.len(), v)) {
+        Some((1, v)) => Ok(v.iter().next().expect("exactly one binding").clone()),
+        other => Err(foundation_err(format!(
+            "modal body {body} of formula {formula} must carry exactly one {predicate} \
+             ground-atom binding (found {})",
+            other.map_or(0, |(n, _)| n)
+        ))),
+    }
+}
+
 // ── Anti-rigidity witness policy (post-pass) ─────────────────────────────────────
 
 /// The union-of-worlds anti-rigid-type IRI set.  Mirrors `_anti_rigid_type_iris`.
@@ -3058,11 +3421,13 @@ pub fn evaluate(
     let characteristics = property_characteristic_pass(&all)?;
     let carrier_agreement = characteristic_carrier_agreement_pass(&all)?;
     let distinctness = relatum_distinctness_pass(&all)?;
+    let modal = evaluate_modal_formulas(&all)?;
     all.extend(rigidity);
     all.extend(obligations);
     all.extend(characteristics);
     all.extend(carrier_agreement);
     all.extend(distinctness);
+    all.extend(modal);
 
     // Final canonical sort (matches the runner's fold + sort).
     all.sort_by(|a, b| {

@@ -16156,6 +16156,103 @@ logic:InfoNeither gmeow:gmnGlyphInScope true .
 logic:InfoUndetermined gmeow:gmnGlyphNamedKeyRuled true .
 logic:InfoNotEvaluated gmeow:gmnGlyphNamedKeyRuled true .
 
+# === Modal-evaluation carriers: the all-IRI frame the reasoner's =============
+# === evaluate_modal_formulas post-pass reads, and the verdict edges it =======
+# === derives. The modal operators (□ logic:necessarily / ◇ logic:possibly) ===
+# === are the standard translation over ONE pinned typed accessibility ========
+# === relation (logic:overAccessibility), bounded over the finite =============
+# === materialized named-graph world set — never over the bare ================
+# === logic:accessibleFrom superproperty. The reasoner all-IRI contract =======
+# === forbids the blank-node logic:argument body representation, so a modal ===
+# === body's ground atom is pinned all-IRI via logic:atomSubject / ============
+# === atomPredicate / atomObject. Normative in design/LOGIC-FOUNDATION.md. ====
+
+logic:actualWorld
+    a logic:PossibleWorld ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "actual world"@x-gmeow-english ;
+    skos:definition "The shared base logic:PossibleWorld — the evaluation world from which a modal claim is read when no other is pinned. It is one materialized context of the finite world set the modal operators quantify over, never the unbounded space of all logically possible worlds."@x-gmeow-english .
+
+logic:modalEvalWorld
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal evaluation world"@x-gmeow-english ;
+    skos:definition "Carries the evaluation world w0 on a modal logic:Formula node: the world from which its □ / ◇ is read, i.e. the source of the pinned typed accessibility relation. Single-valued; the reasoner's modal post-pass hard-fails a modal formula that carries none or several. The typed relation itself is pinned by logic:overAccessibility."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:atomSubject
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "atom subject"@x-gmeow-english ;
+    skos:definition "Binds the subject of the ground body atom P = (s, p, o) on a modal body logic:Formula node. All-IRI, because the reasoner's all-IRI contract forbids the blank-node logic:argument body representation: a modal body is scoped to a single ground atom, pinned by logic:atomSubject / logic:atomPredicate / logic:atomObject. Single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:atomPredicate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "atom predicate"@x-gmeow-english ;
+    skos:definition "Binds the predicate of the ground body atom P = (s, p, o) on a modal body logic:Formula node. Companion of logic:atomSubject / logic:atomObject; the three pin a modal body's single ground atom all-IRI. Single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:atomObject
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "atom object"@x-gmeow-english ;
+    skos:definition "Binds the object of the ground body atom P = (s, p, o) on a modal body logic:Formula node. Companion of logic:atomSubject / logic:atomPredicate; the three pin a modal body's single ground atom all-IRI. Single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalNecessityHolds
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal necessity holds"@x-gmeow-english ;
+    skos:definition "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity holds — the body atom is present in every world accessible from w0 over the pinned typed relation (or the accessible set is empty under a non-serial relation, a vacuous hold). Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalNecessityFails
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal necessity fails"@x-gmeow-english ;
+    skos:definition "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity fails — some world accessible from w0 over the pinned typed relation lacks the body atom. The least such world is recorded by a companion logic:modalCounterexampleWorld row. Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalNecessityUndetermined
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal necessity undetermined"@x-gmeow-english ;
+    skos:definition "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity is undetermined — the pinned typed relation is the SERIAL logic:deonticallyIdeal and its accessible set is empty, so the 'holds in every ideal world' condition is not vacuously true but undetermined. Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalPossibilityHolds
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal possibility holds"@x-gmeow-english ;
+    skos:definition "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility holds — the body atom is present in at least one world accessible from w0 over the pinned typed relation. Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalPossibilityFails
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal possibility fails"@x-gmeow-english ;
+    skos:definition "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility fails — no world accessible from w0 over the pinned typed relation carries the body atom. Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:modalCounterexampleWorld
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "modal counterexample world"@x-gmeow-english ;
+    skos:definition "Reasoner-derived companion of a logic:modalNecessityFails verdict: names the least (lexicographically smallest) world accessible from w0 over the pinned typed relation in which the body atom is absent — the witness that refutes the necessity. Emitted by the native modal-evaluation post-pass, not hand-authored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:relation
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;

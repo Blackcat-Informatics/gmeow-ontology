@@ -553,6 +553,112 @@ fn cross_world_rigidity_clean_single_world() {
     );
 }
 
+// ── Modal evaluation (□/◇ standard translation) ─────────────────────────────────
+
+/// Build a modal frame `F = op B` over `logic:epistemicallyPossible` from `w0`, with
+/// `B`'s ground atom `(a, knows, b)`, `R`-edges `R(w0,w1) ∧ R(w0,w2)`, and the atom
+/// fact `a knows b` in each named graph listed in `atom_worlds`.
+///
+/// `op` is `"necessarily"` (□) or `"possibly"` (◇).  Everything is all-IRI and every
+/// quad lives in a named graph so the chase echoes it as an ordinary `FoundationQuad`.
+fn modal_frame_nq(op: &str, atom_worlds: &[&str]) -> String {
+    let base = "https://example.org/foundation/modal";
+    let frame = format!("{base}/frame");
+    let epi = format!("{LOGIC}epistemicallyPossible");
+    let mut nq = format!(
+        "<{base}/F> <{LOGIC}{op}> <{base}/B> <{frame}> .\n\
+         <{base}/F> <{LOGIC}overAccessibility> <{epi}> <{frame}> .\n\
+         <{base}/F> <{LOGIC}modalEvalWorld> <{base}/w0> <{frame}> .\n\
+         <{base}/B> <{LOGIC}atomSubject> <{base}/a> <{frame}> .\n\
+         <{base}/B> <{LOGIC}atomPredicate> <{base}/knows> <{frame}> .\n\
+         <{base}/B> <{LOGIC}atomObject> <{base}/b> <{frame}> .\n\
+         <{base}/w0> <{epi}> <{base}/w1> <{frame}> .\n\
+         <{base}/w0> <{epi}> <{base}/w2> <{frame}> .\n"
+    );
+    for w in atom_worlds {
+        nq.push_str(&format!("<{base}/a> <{base}/knows> <{base}/b> <{base}/{w}> .\n"));
+    }
+    nq
+}
+
+#[test]
+fn modal_box_holds_when_body_true_in_all_accessible() {
+    // □(a knows b) over epistemicallyPossible from w0, with w1 and w2 both accessible
+    // and the atom present in BOTH → the necessity holds.
+    let base = "https://example.org/foundation/modal";
+    let quads = run(
+        &modal_frame_nq("necessarily", &["w1", "w2"]),
+        AntiRigidityPolicy::WitnessObligation,
+    );
+    assert!(
+        quads.iter().any(|q| q.subject == format!("{base}/F")
+            && q.predicate == format!("{LOGIC}modalNecessityHolds")
+            && q.object == format!("<{base}/B>")
+            && q.graph == format!("{base}/w0")),
+        "□ must hold when the body atom is present in every accessible world"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate == format!("{LOGIC}modalNecessityFails")),
+        "no □-failure when the body holds everywhere accessible"
+    );
+}
+
+#[test]
+fn modal_box_fails_with_witness() {
+    // Atom present in w1 only; w2 is accessible but lacks it → □ fails, and the least
+    // absent accessible world (w2) is recorded as the counterexample world.
+    let base = "https://example.org/foundation/modal";
+    let quads = run(
+        &modal_frame_nq("necessarily", &["w1"]),
+        AntiRigidityPolicy::WitnessObligation,
+    );
+    assert!(
+        quads.iter().any(|q| q.subject == format!("{base}/F")
+            && q.predicate == format!("{LOGIC}modalNecessityFails")
+            && q.object == format!("<{base}/B>")
+            && q.graph == format!("{base}/w0")),
+        "□ must fail when an accessible world lacks the body atom"
+    );
+    assert!(
+        quads.iter().any(|q| q.subject == format!("{base}/F")
+            && q.predicate == format!("{LOGIC}modalCounterexampleWorld")
+            && q.object == format!("<{base}/w2>")
+            && q.graph == format!("{base}/w0")),
+        "the least absent accessible world (w2) must be the counterexample world"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate == format!("{LOGIC}modalNecessityHolds")),
+        "no □-holds verdict when the necessity fails"
+    );
+}
+
+#[test]
+fn modal_diamond_holds_when_body_true_in_some() {
+    // ◇(a knows b): the atom is present in w1 only, but one accessible world suffices.
+    let base = "https://example.org/foundation/modal";
+    let quads = run(
+        &modal_frame_nq("possibly", &["w1"]),
+        AntiRigidityPolicy::WitnessObligation,
+    );
+    assert!(
+        quads.iter().any(|q| q.subject == format!("{base}/F")
+            && q.predicate == format!("{LOGIC}modalPossibilityHolds")
+            && q.object == format!("<{base}/B>")
+            && q.graph == format!("{base}/w0")),
+        "◇ must hold when the body atom is present in some accessible world"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate == format!("{LOGIC}modalPossibilityFails")),
+        "no ◇-failure when the body holds in some accessible world"
+    );
+}
+
 // ── Policy parsing: unknown is a hard error ─────────────────────────────────────
 
 #[test]
