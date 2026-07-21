@@ -94,6 +94,7 @@ fn bilingual_model() -> DocsModel {
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         constraint_rules: Vec::new(),
+        advice_entries: Vec::new(),
         four_boxes: None,
         concept_doi: None,
         pipeline: None,

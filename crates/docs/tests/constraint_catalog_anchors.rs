@@ -96,3 +96,29 @@ fn every_finding_code_resolves_to_a_live_catalog_anchor() {
         misses.join("\n")
     );
 }
+
+/// D6 (issue #765): the `#advice-` section anchor — the single static resolution
+/// target of every `advice.*` finding code — must appear EXACTLY ONCE on the page.
+/// It heads the distinct Advice section; the `advice.` family rule must therefore be
+/// pulled OUT of the compliance category grouping (which would emit a second
+/// `id="advice-"`). Two identical anchors is an HTML defect that the membership check
+/// above cannot catch (a set dedupes), so this guards the moved-anchor duplicate risk.
+#[test]
+fn advice_section_anchor_appears_exactly_once() {
+    let model = common::cached_model();
+    let html = to_html(&model, &Page::ConstraintCatalog);
+    // The exact `id="advice-"` substring (with the closing quote) matches ONLY the
+    // section head — per-term sub-anchors are `id="advice-<term>"` and do not match.
+    let count = html.matches("id=\"advice-\"").count();
+    assert_eq!(
+        count, 1,
+        "the #advice- section anchor must appear exactly once (it heads the distinct \
+         Advice section and is every advice.* code's resolution target); found {count}"
+    );
+    // And a realized-shaped advisory finding code still resolves to that one anchor.
+    let anchor_uri = gmeow_validate::rule_catalog::catalog_anchor_uri(
+        "advice.BareEntitySortalAdviceConstraint.deadbeef",
+    );
+    assert_eq!(fragment_of(&anchor_uri), "advice-");
+    assert!(anchor_ids(&html).contains("advice-"));
+}

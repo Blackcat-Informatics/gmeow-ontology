@@ -4952,8 +4952,11 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
             "The **{}** validation rules the GMEOW toolchain enforces, grouped by finding \
              category. Each rule is a `gmeow:ValidationRule` individual from the constraint \
              catalog; a finding's `helpUri` deep-links to its entry here. **Binding** rules fail \
-             the gate; **advisory** rules report without failing.",
-            model.constraint_rules.len()
+             the gate; **advisory** rules report without failing. The distinct **{}** section \
+             below documents the non-gating *recommendations* (`avoidWhen` / `useWhen` / \
+             `howToUse`) that advisory `advice.*` findings resolve to.",
+            model.constraint_rules.len(),
+            model.ui("body_usage_advice"),
         ),
     );
 
@@ -4963,10 +4966,15 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
     }
 
     // Group by category IRI (rules are already sorted by code); the category map
-    // is a BTreeMap so category headings emit in sorted IRI order.
+    // is a BTreeMap so category headings emit in sorted IRI order. The `advice.`
+    // family rule is EXCLUDED here — it heads the distinct Advice section below and
+    // carries the single `#advice-` anchor, which must appear exactly once.
     let mut by_category: std::collections::BTreeMap<&str, Vec<&crate::model::ConstraintRule>> =
         std::collections::BTreeMap::new();
     for rule in &model.constraint_rules {
+        if rule.code == gmeow_validate::codes::ADVICE_FAMILY {
+            continue;
+        }
         by_category
             .entry(rule.category.as_str())
             .or_default()
@@ -5051,7 +5059,72 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
             }
         }
     }
+
+    // ── The Advice section (D6): the recommendation tier, a distinct top-level
+    // section headed by the `advice.` family rule's `#advice-` anchor. ────────────
+    md_advice_section(&mut out, model, &from);
     out
+}
+
+/// Render the distinct "Advice" section: the non-gating recommendation tier. Headed
+/// by the `advice.` family rule's `#advice-` anchor (the single static target every
+/// advisory `advice.*` finding code resolves to), then one sub-entry per
+/// [`crate::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
+fn md_advice_section(out: &mut String, model: &DocsModel, from: &str) {
+    // The `#advice-` anchor is the advice family rule's own slug — the guaranteed
+    // resolution target of every advice.* helpUri fragment.
+    let anchor = model
+        .constraint_rules
+        .iter()
+        .find(|r| r.code == gmeow_validate::codes::ADVICE_FAMILY)
+        .map(|r| r.slug.clone())
+        .unwrap_or_else(|| {
+            gmeow_validate::rule_catalog::slugify(gmeow_validate::codes::ADVICE_FAMILY)
+        });
+    heading(out, 2, model.ui("body_usage_advice"));
+    push_line(out, &format!("<a id=\"{anchor}\"></a>"));
+    blank(out);
+    line(
+        out,
+        "Non-gating **recommendations** harvested verbatim from each term's usage prose \
+         (`gmeow:avoidWhen` / `gmeow:useWhen` / `gmeow:howToUse`) and made machine-active as \
+         realized advice carriers. Unlike the compliance rules above, advice NEVER fails the \
+         gate — an advisory `advice.*` finding resolves to this section.",
+    );
+
+    if model.advice_entries.is_empty() {
+        // Honest empty state: no realized advice carrier exists yet.
+        line(out, model.ui("body_no_enforced_constraints"));
+        return;
+    }
+
+    for entry in &model.advice_entries {
+        // Per-term navigation sub-anchor (advice-<term-slug>); the guaranteed static
+        // resolution target remains the section-head `#advice-` above.
+        push_line(out, &format!("<a id=\"{}\"></a>", entry.slug));
+        blank(out);
+        let title = entry.label.clone().unwrap_or_else(|| to_curie(&entry.term));
+        heading(out, 3, &md_escape(&title));
+        push_line(
+            out,
+            &format!("- {}", curie_link(model, from, &to_curie(&entry.term))),
+        );
+        blank(out);
+        if let Some(definition) = &entry.definition {
+            line(out, &md_escape(definition));
+        }
+        // The three deontic-modality legs; each rendered only when present.
+        for (label, values) in [
+            (model.ui("body_advice_avoid_when"), &entry.avoid_when),
+            (model.ui("body_advice_use_when"), &entry.use_when),
+            (model.ui("body_advice_how_to_use"), &entry.how_to_use),
+        ] {
+            for value in values {
+                push_line(out, &format!("- **{label}:** {}", md_escape(value)));
+            }
+        }
+        blank(out);
+    }
 }
 
 /// A human-readable display name for a `logic:FindingCategory` IRI (e.g.
@@ -7275,6 +7348,7 @@ mod tests {
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,
@@ -7287,6 +7361,78 @@ mod tests {
             schema_fragments: None,
             lang: String::new(),
         }
+    }
+
+    /// D6 (issue #765): the "What GMEOW enforces" page renders the advice
+    /// recommendation tier as a DISTINCT section from the compliance rules, headed by
+    /// the single `#advice-` anchor and carrying each realized term's verbatim
+    /// avoid/use/how-to prose. Self-contained (a hand-built model), so it proves the
+    /// production render function independently of a regenerated catalog `.nq`.
+    #[test]
+    fn constraint_catalog_renders_distinct_advice_section() {
+        use crate::model::{AdviceEntry, ConstraintRule};
+        let mut model = tiny_model();
+        // The advice family rule — its slug is the `#advice-` section anchor.
+        model.constraint_rules = vec![ConstraintRule {
+            code: gmeow_validate::codes::ADVICE_FAMILY.to_string(),
+            slug: gmeow_validate::rule_catalog::slugify(gmeow_validate::codes::ADVICE_FAMILY),
+            category: "https://blackcatinformatics.ca/logic/FindingPolicyWarning".to_string(),
+            severity: "advisory".to_string(),
+            help_uri: gmeow_validate::rule_catalog::help_uri_for(
+                gmeow_validate::codes::ADVICE_FAMILY,
+            ),
+            label: None,
+            definition: None,
+            applies_to_terms: Vec::new(),
+            formalizes: None,
+        }];
+        model.advice_entries = vec![
+            AdviceEntry {
+                term: format!("{GMEOW_NS}Entity"),
+                slug: "advice-Entity".to_string(),
+                label: Some("Entity".to_string()),
+                definition: Some("The universal endurant".to_string()),
+                avoid_when: vec!["Avoid bare Entity when a sortal applies".to_string()],
+                use_when: vec!["Use for category-neutral resources".to_string()],
+                how_to_use: vec!["Reserve the unqualified type".to_string()],
+                documented_by_rule: Some(format!("{GMEOW_NS}rule/family/advice")),
+            },
+            AdviceEntry {
+                term: format!("{GMEOW_NS}Event"),
+                slug: "advice-Event".to_string(),
+                label: Some("Event".to_string()),
+                definition: None,
+                avoid_when: vec!["Avoid typing an endurant as an Event".to_string()],
+                use_when: vec!["Use for occurrences with participants".to_string()],
+                how_to_use: Vec::new(),
+                documented_by_rule: Some(format!("{GMEOW_NS}rule/family/advice")),
+            },
+        ];
+
+        let md = md_constraint_catalog(&model);
+
+        // A distinct Advice section heading and the single `#advice-` anchor (once).
+        assert!(
+            md.contains("## Usage Advice"),
+            "missing the distinct Advice section heading:\n{md}"
+        );
+        assert_eq!(
+            md.matches("id=\"advice-\"").count(),
+            1,
+            "the #advice- section anchor must appear exactly once:\n{md}"
+        );
+        // Both realized terms' per-term sub-anchors and all three deontic legs.
+        assert!(md.contains("id=\"advice-Entity\""));
+        assert!(md.contains("id=\"advice-Event\""));
+        assert!(md.contains("**Avoid when:**"));
+        assert!(md.contains("**Use when:**"));
+        assert!(md.contains("**How to use:**"));
+        // Verbatim prose (period-free substrings; md_escape escapes the trailing dot).
+        // (md_escape backslash-escapes `-`/`.`, so assert on separator-free spans.)
+        assert!(md.contains("Avoid bare Entity when a sortal applies"));
+        assert!(md.contains("neutral resources"));
+        assert!(md.contains("Reserve the unqualified type"));
+        assert!(md.contains("Avoid typing an endurant as an Event"));
     }
 
     #[test]
