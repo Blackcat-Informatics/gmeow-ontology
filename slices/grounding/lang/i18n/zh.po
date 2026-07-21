@@ -830,3 +830,973 @@ msgstr "GMN 负无穷命名键 “neginf”"
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathNegativeInfinity|skos:definition"
 msgid "The constant GMN named-key form `neginf` for the negative pole math:NegativeInfinity; the signed −∞ sign is retained as display notation because it fragments under the pinned BPE."
 msgstr "用于负极 math:NegativeInfinity 的常量 GMN 命名键形式 “neginf”；带符号的 −∞ 记号因在固定 BPE 下会碎裂，故保留为显示记法。"
+
+# --- GMN logic symbology plane: signature type discipline (sorts, arity, associativity, arg roles/slots) and the logic glyph sign chains ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgIndex|rdfs:label"
+msgid "gmn argument index"
+msgstr "gmn 参数索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgIndex|skos:definition"
+msgid "The zero-based ordinal position of an operand slot in a GMN operator signature. Domain gmeow:GmnArgSlot, range xsd:nonNegativeInteger (stated in prose). Indexes are unique per operator and, in strict canonical mode, zero-based and contiguous; operand order is carried by this integer, never by RDF list ordering, mirroring lang:slotIndex."
+msgstr "GMN 操作符签名中某操作数槽位的从零起算的序数位置。定义域 gmeow:GmnArgSlot，值域 xsd:nonNegativeInteger（以散文陈述）。索引在每个操作符内唯一，且在严格规范模式下从零起算且连续；操作数次序由该整数承载，绝不由 RDF 列表排序承载，与 lang:slotIndex 相仿。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgRole|rdfs:label"
+msgid "GMN Argument Role"
+msgstr "GMN 参数角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgRole|skos:definition"
+msgid "The closed argument-role vocabulary of GMN operator signatures: the named role an ordered operand slot fills. Its instances are exactly the six named individuals gmeow:gmnArgRoleAntecedent, gmeow:gmnArgRoleConsequent, gmeow:gmnArgRoleContext, gmeow:gmnArgRoleSuccedent, gmeow:gmnArgRoleOverAccessibility and gmeow:gmnArgRoleBody. A gmeow:GmnArgSlot names its role through gmeow:gmnArgRole, binding the slot to the canonical logic: carrier it fills (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional. It is the slot's ROLE, NOT its syntactic sort gmeow:GmnSort and NOT its ordinal gmeow:gmnArgIndex."
+msgstr "GMN 操作符签名的闭合参数角色词表：有序操作数槽位所充当的具名角色。其实例恰为六个具名个体 gmeow:gmnArgRoleAntecedent、gmeow:gmnArgRoleConsequent、gmeow:gmnArgRoleContext、gmeow:gmnArgRoleSuccedent、gmeow:gmnArgRoleOverAccessibility 与 gmeow:gmnArgRoleBody。gmeow:GmnArgSlot 通过 gmeow:gmnArgRole 命名其角色，将槽位绑定到它所充当的规范 logic: 载体（例如 gmeow:gmnArgRoleAntecedent 对应 logic:antecedent，gmeow:gmnArgRoleOverAccessibility 对应 logic:overAccessibility），使操作符的操作数具名，而不仅是按位置的。它是槽位的角色，而非其语法种类 gmeow:GmnSort，也非其序数 gmeow:gmnArgIndex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRole|rdfs:label"
+msgid "gmn argument role"
+msgstr "gmn 参数角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRole|skos:definition"
+msgid "Names the role an operand slot fills. Domain gmeow:GmnArgSlot, range gmeow:GmnArgRole (stated in prose). Binds the slot to the canonical logic: carrier it renders (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional."
+msgstr "命名操作数槽位所充当的角色。定义域 gmeow:GmnArgSlot，值域 gmeow:GmnArgRole（以散文陈述）。将槽位绑定到它所呈现的规范 logic: 载体（例如 gmeow:gmnArgRoleAntecedent 对应 logic:antecedent，gmeow:gmnArgRoleOverAccessibility 对应 logic:overAccessibility），使操作符的操作数具名，而不仅是按位置的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleAntecedent|rdfs:label"
+msgid "antecedent role"
+msgstr "前件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleAntecedent|skos:definition"
+msgid "The antecedent role: the operand slot that fills the canonical logic:antecedent — the hypothesis of an implication. Paired with the consequent role."
+msgstr "前件角色：充当规范 logic:antecedent 的操作数槽位——蕴涵式的假设。与后件角色成对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleBody|rdfs:label"
+msgid "body role"
+msgstr "主体角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleBody|skos:definition"
+msgid "The body role: the operand slot that fills the scoped body of a binder — the formula a quantifier (logic:forall / logic:exists) or a modal operator (logic:necessarily / logic:possibly) ranges over."
+msgstr "主体角色：充当绑定算子受辖主体的操作数槽位——量词（logic:forall / logic:exists）或模态算子（logic:necessarily / logic:possibly）所辖的公式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleConsequent|rdfs:label"
+msgid "consequent role"
+msgstr "后件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleConsequent|skos:definition"
+msgid "The consequent role: the operand slot that fills the canonical logic:consequent — the conclusion of an implication. Paired with the antecedent role."
+msgstr "后件角色：充当规范 logic:consequent 的操作数槽位——蕴涵式的结论。与前件角色成对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleContext|rdfs:label"
+msgid "context role"
+msgstr "语境角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleContext|skos:definition"
+msgid "The context role: the operand slot that fills the canonical logic:sequentContext — the premise context Γ of a sequent. Paired with the succedent role."
+msgstr "语境角色：充当规范 logic:sequentContext 的操作数槽位——相继式的前提语境 Γ。与后承角色成对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleOverAccessibility|rdfs:label"
+msgid "over-accessibility role"
+msgstr "可达关系角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleOverAccessibility|skos:definition"
+msgid "The over-accessibility role: the operand slot that fills the canonical logic:overAccessibility — the typed accessibility relation a modal operator is evaluated over. Its slot sort is the accessibility-type sort."
+msgstr "可达关系角色：充当规范 logic:overAccessibility 的操作数槽位——模态算子据以求值的带类型可达关系。其槽位种类为可达类型种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleSuccedent|rdfs:label"
+msgid "succedent role"
+msgstr "后承角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleSuccedent|skos:definition"
+msgid "The succedent role: the operand slot that fills the canonical logic:sequentSuccedent — the conclusion φ of a sequent. Paired with the context role."
+msgstr "后承角色：充当规范 logic:sequentSuccedent 的操作数槽位——相继式的结论 φ。与语境角色成对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgSlot|rdfs:label"
+msgid "GMN Argument Slot"
+msgstr "GMN 参数槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgSlot|skos:definition"
+msgid "An ordered, named operand slot in a GMN operator signature: a reified carrier holding exactly one zero-based gmeow:gmnArgIndex (operand position), one gmeow:gmnArgSort (the operand's syntactic sort, a gmeow:GmnSort), and one gmeow:gmnArgRole (the named role it fills, a gmeow:GmnArgRole). An operator declares its slots through gmeow:gmnOperandSorts; slot order is carried by the integer gmeow:gmnArgIndex, never by RDF list ordering, mirroring the lang:FormSlot idiom so two encodings of one signature are one signature. It is the position-and-role carrier, NOT the operand value itself and NOT the sort or role vocabularies it points at."
+msgstr "GMN 操作符签名中一个有序、具名的操作数槽位：一个具体化载体，恰持有一个从零起算的 gmeow:gmnArgIndex（操作数位置）、一个 gmeow:gmnArgSort（操作数的语法种类，一个 gmeow:GmnSort）与一个 gmeow:gmnArgRole（它所充当的具名角色，一个 gmeow:GmnArgRole）。操作符通过 gmeow:gmnOperandSorts 声明其槽位；槽位次序由整数 gmeow:gmnArgIndex 承载，绝不由 RDF 列表排序承载，与 lang:FormSlot 惯用法相仿，使同一签名的两种编码为同一签名。它是位置与角色的载体，而非操作数值本身，也非它所指向的种类或角色词表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgSort|rdfs:label"
+msgid "gmn argument sort"
+msgstr "gmn 参数种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgSort|skos:definition"
+msgid "Names the syntactic sort of one operand slot. Domain gmeow:GmnArgSlot, range gmeow:GmnSort (stated in prose). Exactly one sort per slot; the operand-level counterpart of the operator-level gmeow:gmnResultSort."
+msgstr "命名某个操作数槽位的语法种类。定义域 gmeow:GmnArgSlot，值域 gmeow:GmnSort（以散文陈述）。每个槽位恰一种类；是操作符级 gmeow:gmnResultSort 在操作数级的对应物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArityKind|rdfs:label"
+msgid "GMN Arity Kind"
+msgstr "GMN 元数种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArityKind|skos:definition"
+msgid "The closed arity-kind vocabulary of GMN operators: the shape of an operator's operand count. Its instances are exactly the three named individuals gmeow:gmnArityKindFixed (a fixed operand count carried by gmeow:gmnArity), gmeow:gmnArityKindVariadic (an unbounded operand run, as for flattened logic:and / logic:or) and gmeow:gmnArityKindBinder (a variable-binding operator such as logic:forall / logic:exists / the modal box and diamond, whose quantifier body scope is marked by gmeow:gmnMaximalScope). An operator names its arity kind through gmeow:gmnArityKind. It is the arity SHAPE, NOT the integer count gmeow:gmnArity, which a fixed-arity operator additionally carries."
+msgstr "GMN 操作符的闭合元数种类词表：操作符操作数个数的形态。其实例恰为三个具名个体 gmeow:gmnArityKindFixed（由 gmeow:gmnArity 承载的固定操作数个数）、gmeow:gmnArityKindVariadic（无界的操作数序列，如展平后的 logic:and / logic:or）与 gmeow:gmnArityKindBinder（一个绑定变量的操作符，如 logic:forall / logic:exists / 模态方盒与菱形，其量词主体辖域由 gmeow:gmnMaximalScope 标记）。操作符通过 gmeow:gmnArityKind 命名其元数种类。它是元数的形态，而非整数个数 gmeow:gmnArity——后者由固定元数操作符另行携带。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKind|rdfs:label"
+msgid "gmn arity kind"
+msgstr "gmn 元数种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKind|skos:definition"
+msgid "Names the arity kind of a GMN operator — fixed, variadic, or binder. Domain a GMN operator sign, range gmeow:GmnArityKind (stated in prose). Exactly one arity kind per operator; a fixed operator additionally carries the integer gmeow:gmnArity, and a binder carries gmeow:gmnMaximalScope."
+msgstr "命名 GMN 操作符的元数种类——固定、可变或绑定。定义域为 GMN 操作符符号，值域 gmeow:GmnArityKind（以散文陈述）。每个操作符恰一种元数种类；固定操作符另行携带整数 gmeow:gmnArity，绑定算子携带 gmeow:gmnMaximalScope。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindBinder|rdfs:label"
+msgid "binder arity"
+msgstr "绑定元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindBinder|skos:definition"
+msgid "Binder arity: the operator binds one or more variables over a body — the shape of the quantifiers logic:forall and logic:exists and the modal operators logic:necessarily and logic:possibly, whose body-scope extent is marked by gmeow:gmnMaximalScope."
+msgstr "绑定元数：该操作符在一个主体上绑定一个或多个变量——量词 logic:forall 与 logic:exists 以及模态算子 logic:necessarily 与 logic:possibly 的形态，其主体辖域的范围由 gmeow:gmnMaximalScope 标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindFixed|rdfs:label"
+msgid "fixed arity"
+msgstr "固定元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindFixed|skos:definition"
+msgid "Fixed arity: the operator takes a fixed operand count, carried by the integer gmeow:gmnArity — the shape of logic:not (one) or logic:antecedent+logic:consequent implication (two)."
+msgstr "固定元数：该操作符取固定的操作数个数，由整数 gmeow:gmnArity 承载——logic:not（一元）或 logic:antecedent+logic:consequent 蕴涵（二元）的形态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindVariadic|rdfs:label"
+msgid "variadic arity"
+msgstr "可变元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindVariadic|skos:definition"
+msgid "Variadic arity: the operator takes an unbounded operand run — the shape of the flattened logic:and and logic:or, whose canonical identity absorbs nesting."
+msgstr "可变元数：该操作符取无界的操作数序列——展平后的 logic:and 与 logic:or 的形态，其规范恒等式吸收嵌套。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocAssociative|rdfs:label"
+msgid "fully associative"
+msgstr "完全结合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocAssociative|skos:definition"
+msgid "Full associativity: grouping is immaterial because the operator is semantically associative and flattens under its canonical identity — the reading of conjunction and disjunction."
+msgstr "完全结合性：分组无关紧要，因为该操作符在语义上可结合并在其规范恒等式下展平——合取与析取的读法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnAssociativity|rdfs:label"
+msgid "GMN Associativity"
+msgstr "GMN 结合性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnAssociativity|skos:definition"
+msgid "The closed associativity value vocabulary of GMN operators: how a run of one operator at equal gmeow:gmnPrecedence groups. Its instances are exactly the four named individuals gmeow:gmnAssocLeft, gmeow:gmnAssocRight, gmeow:gmnAssocNone and gmeow:gmnAssocAssociative. An operator names its grouping through gmeow:gmnAssociativity, resolving precedence ties the integer gmeow:gmnPrecedence leaves open. It is a grouping discipline, NOT the binding-strength integer gmeow:gmnPrecedence and NOT the placement value gmeow:GmnFixity."
+msgstr "GMN 操作符的闭合结合性取值词表：同一操作符在相等 gmeow:gmnPrecedence 下的一个序列如何分组。其实例恰为四个具名个体 gmeow:gmnAssocLeft、gmeow:gmnAssocRight、gmeow:gmnAssocNone 与 gmeow:gmnAssocAssociative。操作符通过 gmeow:gmnAssociativity 命名其分组，解决整数 gmeow:gmnPrecedence 所遗留的优先级并列。它是一种分组规程，而非绑定强度整数 gmeow:gmnPrecedence，也非放置取值 gmeow:GmnFixity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssociativity|rdfs:label"
+msgid "gmn associativity"
+msgstr "gmn 结合性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssociativity|skos:definition"
+msgid "Names the associativity of a GMN operator. Domain a GMN operator sign, range gmeow:GmnAssociativity (stated in prose). Exactly one of the four closed associativity individuals per operator; resolves equal-gmeow:gmnPrecedence grouping the integer precedence leaves open."
+msgstr "命名 GMN 操作符的结合性。定义域为 GMN 操作符符号，值域 gmeow:GmnAssociativity（以散文陈述）。每个操作符恰为四个闭合结合性个体之一；解决整数优先级所遗留的相等 gmeow:gmnPrecedence 分组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocLeft|rdfs:label"
+msgid "left-associative"
+msgstr "左结合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocLeft|skos:definition"
+msgid "Left associativity: an equal-precedence run groups from the left, so a ∘ b ∘ c parses as (a ∘ b) ∘ c."
+msgstr "左结合性：相等优先级的序列自左分组，故 a ∘ b ∘ c 解析为 (a ∘ b) ∘ c。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocNone|rdfs:label"
+msgid "non-associative"
+msgstr "非结合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocNone|skos:definition"
+msgid "Non-associativity: an equal-precedence run does not chain, so a ∘ b ∘ c is a parse error requiring explicit bracketing."
+msgstr "非结合性：相等优先级的序列不链接，故 a ∘ b ∘ c 是需要显式括号的解析错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocRight|rdfs:label"
+msgid "right-associative"
+msgstr "右结合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocRight|skos:definition"
+msgid "Right associativity: an equal-precedence run groups from the right, so a ∘ b ∘ c parses as a ∘ (b ∘ c) — the usual reading of implication."
+msgstr "右结合性：相等优先级的序列自右分组，故 a ∘ b ∘ c 解析为 a ∘ (b ∘ c)——蕴涵的通常读法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnBelnapBilatticeWork|rdfs:label"
+msgid "Belnap four-valued logic"
+msgstr "Belnap 四值逻辑"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnBelnapBilatticeWork|skos:definition"
+msgid "The four-valued relevance-logic reference cited for the raw truth values (told-true, told-false, the over-determined glut, the under-determined gap) and their result-level verdicts that the GMN logic glyph plane renders. GMN draws a coherent, visually-distinct geometric-shape family for the eight grade signs rather than a conventional notation, since the four-valued algebra has no single established typography; the Belnap reading supplies the semantics while the shapes stay pairwise non-confusable."
+msgstr "为 GMN 逻辑字形平面所呈现的原始真值（被断言为真、被断言为假、过定盈余、欠定空缺）及其结果级裁决所引用的四值相干逻辑参考文献。GMN 为这八个等级符号绘制一族连贯且视觉可辨的几何形状，而非采用某种约定记法，因为该四值代数没有单一确立的排印方案；Belnap 读法提供语义，而诸形状两两保持不可混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapBoth|rdfs:label"
+msgid "GMN candidate: Belnap both as ◉"
+msgstr "GMN 候选：Belnap 二者皆为 ◉"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapBoth|skos:definition"
+msgid "The audited adoption record for rendering the raw glut value logic:BelnapBoth as ◉ in @ℒ records."
+msgstr "针对将原始过定值 logic:BelnapBoth 在 @ℒ 记录中渲染为 ◉ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapFalse|rdfs:label"
+msgid "GMN candidate: Belnap false as ○"
+msgstr "GMN 候选：Belnap 假为 ○"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapFalse|skos:definition"
+msgid "The audited adoption record for rendering the raw truth value logic:BelnapFalse as ○ in @ℒ records."
+msgstr "针对将原始真值 logic:BelnapFalse 在 @ℒ 记录中渲染为 ○ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapNeither|rdfs:label"
+msgid "GMN candidate: Belnap neither as ◌"
+msgstr "GMN 候选：Belnap 二者皆非为 ◌"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapNeither|skos:definition"
+msgid "The audited adoption record for rendering the raw gap value logic:BelnapNeither as ◌ in @ℒ records."
+msgstr "针对将原始欠定值 logic:BelnapNeither 在 @ℒ 记录中渲染为 ◌ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapTrue|rdfs:label"
+msgid "GMN candidate: Belnap true as ●"
+msgstr "GMN 候选：Belnap 真为 ●"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapTrue|skos:definition"
+msgid "The audited adoption record for rendering the raw truth value logic:BelnapTrue as ● in @ℒ records."
+msgstr "针对将原始真值 logic:BelnapTrue 在 @ℒ 记录中渲染为 ● 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBottom|rdfs:label"
+msgid "GMN candidate: falsum ⊥"
+msgstr "GMN 候选：falsum ⊥"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBottom|skos:definition"
+msgid "The audited named-key ruling for the falsum constant logic:Bottom rendered ⊥."
+msgstr "针对 falsum 常量 logic:Bottom（呈现为 ⊥）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicCompose|rdfs:label"
+msgid "GMN candidate: lens composition ∘"
+msgstr "GMN 候选：透镜复合 ∘"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicCompose|skos:definition"
+msgid "The audited named-key ruling for lens / correspondence composition logic:compose rendered ∘, kept distinct from math:functionComposition by its @ℒ scope and `after` key."
+msgstr "针对透镜／对应复合 logic:compose（呈现为 ∘）的已审定命名键裁定，通过其 @ℒ 范围与「after」键而与 math:functionComposition 保持相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptIntersection|rdfs:label"
+msgid "GMN candidate: concept intersection ⊓"
+msgstr "GMN 候选：概念交 ⊓"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptIntersection|skos:definition"
+msgid "The audited named-key ruling for the DL concept-intersection constructor logic:conceptIntersection rendered ⊓, kept distinct from the sentence connective logic:and."
+msgstr "针对描述逻辑概念交构造子 logic:conceptIntersection（呈现为 ⊓）的已审定命名键裁定，与语句连接词 logic:and 保持相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptUnion|rdfs:label"
+msgid "GMN candidate: concept union ⊔"
+msgstr "GMN 候选：概念并 ⊔"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptUnion|skos:definition"
+msgid "The audited named-key ruling for the DL concept-union constructor logic:conceptUnion rendered ⊔, kept distinct from the sentence connective logic:or."
+msgstr "针对描述逻辑概念并构造子 logic:conceptUnion（呈现为 ⊔）的已审定命名键裁定，与语句连接词 logic:or 保持相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|rdfs:label"
+msgid "GMN candidate: derivability turnstile ⊢"
+msgstr "GMN 候选：可推导性转折号 ⊢"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|skos:definition"
+msgid "The audited named-key ruling for the syntactic derivability turnstile logic:derives rendered ⊢, kept distinct from the semantic ⊨."
+msgstr "针对语法可推导性转折号 logic:derives（呈现为 ⊢）的已审定命名键裁定，与语义的 ⊨ 保持相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|rdfs:label"
+msgid "GMN candidate: entailment turnstile ⊨"
+msgstr "GMN 候选：蕴涵转折号 ⊨"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|skos:definition"
+msgid "The audited named-key ruling for the semantic entailment turnstile logic:entails rendered ⊨, kept distinct from the syntactic ⊢."
+msgstr "针对语义蕴涵转折号 logic:entails（呈现为 ⊨）的已审定命名键裁定，与语法的 ⊢ 保持相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEquivalent|rdfs:label"
+msgid "GMN candidate: logic:equivalentClass as ≡"
+msgstr "GMN 候选：logic:equivalentClass 为 ≡"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEquivalent|skos:definition"
+msgid "The audited adoption record for rendering canonical class equivalence logic:equivalentClass as ≡ in @ℒ records."
+msgstr "针对将规范类等价 logic:equivalentClass 在 @ℒ 记录中渲染为 ≡ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicImplies|rdfs:label"
+msgid "GMN candidate: implication as →"
+msgstr "GMN 候选：蕴涵为 →"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicImplies|skos:definition"
+msgid "The audited adoption record for rendering the material-implication construction as → in @ℒ records; the two ordered operands are the antecedent and consequent formulae the form's slots name."
+msgstr "针对将实质蕴涵构造在 @ℒ 记录中渲染为 → 的已审定采纳记录；两个有序操作数为该形式的槽位所命名的前件与后件公式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoBoth|rdfs:label"
+msgid "GMN candidate: info both as △"
+msgstr "GMN 候选：info 二者皆为 △"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoBoth|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoBoth as △ in @ℒ records."
+msgstr "针对将结果级裁决 logic:InfoBoth 在 @ℒ 记录中渲染为 △ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoNeither|rdfs:label"
+msgid "GMN candidate: info neither as ▽"
+msgstr "GMN 候选：info 二者皆非为 ▽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoNeither|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoNeither as ▽ in @ℒ records."
+msgstr "针对将结果级裁决 logic:InfoNeither 在 @ℒ 记录中渲染为 ▽ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoOpposed|rdfs:label"
+msgid "GMN candidate: info opposed as ▼"
+msgstr "GMN 候选：info 反对为 ▼"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoOpposed|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoOpposed as ▼ in @ℒ records."
+msgstr "针对将结果级裁决 logic:InfoOpposed 在 @ℒ 记录中渲染为 ▼ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoSupported|rdfs:label"
+msgid "GMN candidate: info supported as ▲"
+msgstr "GMN 候选：info 支持为 ▲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoSupported|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoSupported as ▲ in @ℒ records."
+msgstr "针对将结果级裁决 logic:InfoSupported 在 @ℒ 记录中渲染为 ▲ 的已审定采纳记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicNecessarily|rdfs:label"
+msgid "GMN candidate: necessity □"
+msgstr "GMN 候选：必然 □"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicNecessarily|skos:definition"
+msgid "The audited named-key ruling for the type-parameterized necessity modality logic:necessarily rendered □."
+msgstr "针对按类型参数化的必然模态 logic:necessarily（呈现为 □）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicPossibly|rdfs:label"
+msgid "GMN candidate: possibility ◇"
+msgstr "GMN 候选：可能 ◇"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicPossibly|skos:definition"
+msgid "The audited named-key ruling for the type-parameterized possibility modality logic:possibly rendered ◇."
+msgstr "针对按类型参数化的可能模态 logic:possibly（呈现为 ◇）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicTop|rdfs:label"
+msgid "GMN candidate: verum ⊤"
+msgstr "GMN 候选：verum ⊤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicTop|skos:definition"
+msgid "The audited named-key ruling for the verum constant logic:Top rendered ⊤."
+msgstr "针对 verum 常量 logic:Top（呈现为 ⊤）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCl100kBaseTokenizerWork|rdfs:label"
+msgid "cl100k_base tokenizer vocabulary"
+msgstr "cl100k_base 分词器词表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCl100kBaseTokenizerWork|skos:definition"
+msgid "The pinned cl100k_base byte-pair-encoding tokenizer vocabulary under which every GMN glyph token cost is measured. It is the single provenance identity of the measured costs the gmeow:gmnGlyphTokenCost feed carries: the crate-side glyph token-cost primitive encodes each glyph's rendering against this embedded, network-free vocabulary, so the measurement is deterministic and the authored cost bucket a cross-check re-verifies against it."
+msgstr "据以测量每个 GMN 字形词元代价的固定 cl100k_base 字节对编码分词器词表。它是 gmeow:gmnGlyphTokenCost 数据流所携带的已测代价的单一溯源身份：crate 侧的字形词元代价原语针对这一内嵌、无网络的词表编码每个字形的渲染，因而该测量是确定性的，且所撰写的代价分桶由交叉检查针对它重新校验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapBoth|rdfs:label"
+msgid "denotation of GMN Belnap both"
+msgstr "GMN Belnap 二者皆的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapBoth|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ◉ form to the raw glut value logic:BelnapBoth."
+msgstr "从 GMN ◉ 形式到原始过定值 logic:BelnapBoth 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapFalse|rdfs:label"
+msgid "denotation of GMN Belnap false"
+msgstr "GMN Belnap 假的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapFalse|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ○ form to the raw truth value logic:BelnapFalse."
+msgstr "从 GMN ○ 形式到原始真值 logic:BelnapFalse 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapNeither|rdfs:label"
+msgid "denotation of GMN Belnap neither"
+msgstr "GMN Belnap 二者皆非的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapNeither|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ◌ form to the raw gap value logic:BelnapNeither."
+msgstr "从 GMN ◌ 形式到原始欠定值 logic:BelnapNeither 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapTrue|rdfs:label"
+msgid "denotation of GMN Belnap true"
+msgstr "GMN Belnap 真的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapTrue|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ● form to the raw truth value logic:BelnapTrue."
+msgstr "从 GMN ● 形式到原始真值 logic:BelnapTrue 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBottom|rdfs:label"
+msgid "denotation of the GMN falsum key"
+msgstr "GMN falsum 键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBottom|skos:definition"
+msgid "The meaning assignment from `bot` to the constant logic:Bottom; it deliberately carries no executable grapheme."
+msgstr "从「bot」到常量 logic:Bottom 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicCompose|rdfs:label"
+msgid "denotation of the GMN lens-composition key"
+msgstr "GMN 透镜复合键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicCompose|skos:definition"
+msgid "The meaning assignment from `after` to lens / correspondence composition logic:compose; it deliberately carries no executable grapheme."
+msgstr "从「after」到透镜／对应复合 logic:compose 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptIntersection|rdfs:label"
+msgid "denotation of the GMN concept-intersection key"
+msgstr "GMN 概念交键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptIntersection|skos:definition"
+msgid "The meaning assignment from `concept_and` to the concept-intersection constructor logic:conceptIntersection; it deliberately carries no executable grapheme."
+msgstr "从「concept_and」到概念交构造子 logic:conceptIntersection 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptUnion|rdfs:label"
+msgid "denotation of the GMN concept-union key"
+msgstr "GMN 概念并键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptUnion|skos:definition"
+msgid "The meaning assignment from `concept_or` to the concept-union constructor logic:conceptUnion; it deliberately carries no executable grapheme."
+msgstr "从「concept_or」到概念并构造子 logic:conceptUnion 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicDerives|rdfs:label"
+msgid "denotation of the GMN derivability key"
+msgstr "GMN 可推导性键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicDerives|skos:definition"
+msgid "The meaning assignment from `derives` to the syntactic derivability relation logic:derives; it deliberately carries no executable grapheme."
+msgstr "从「derives」到语法可推导性关系 logic:derives 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEntails|rdfs:label"
+msgid "denotation of the GMN entailment key"
+msgstr "GMN 蕴涵键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEntails|skos:definition"
+msgid "The meaning assignment from `entails` to the semantic entailment relation logic:entails; it deliberately carries no executable grapheme."
+msgstr "从「entails」到语义蕴涵关系 logic:entails 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|rdfs:label"
+msgid "denotation of GMN class equivalence"
+msgstr "GMN 类等价的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to owl:equivalentClass without reversing semantic ownership."
+msgstr "从 GMN ≡ 形式到规范 logic:equivalentClass 的可执行受限含义赋值。其接地对应将该关系下降为 owl:equivalentClass，而不颠倒语义所有权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|rdfs:label"
+msgid "denotation of GMN implication"
+msgstr "GMN 蕴涵的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN → form to the material-implication construction, headed on the canonical logic:consequent carrier; the ordered antecedent operand is carried by the form's slot 0 through logic:antecedent."
+msgstr "从 GMN → 形式到实质蕴涵构造的可执行受限含义赋值，以规范 logic:consequent 载体为核心；有序的前件操作数由该形式的第 0 槽位通过 logic:antecedent 承载。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoBoth|rdfs:label"
+msgid "denotation of GMN info both"
+msgstr "GMN info 二者皆的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoBoth|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN △ form to the verdict logic:InfoBoth."
+msgstr "从 GMN △ 形式到裁决 logic:InfoBoth 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoNeither|rdfs:label"
+msgid "denotation of GMN info neither"
+msgstr "GMN info 二者皆非的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoNeither|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▽ form to the verdict logic:InfoNeither."
+msgstr "从 GMN ▽ 形式到裁决 logic:InfoNeither 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoOpposed|rdfs:label"
+msgid "denotation of GMN info opposed"
+msgstr "GMN info 反对的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoOpposed|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▼ form to the verdict logic:InfoOpposed."
+msgstr "从 GMN ▼ 形式到裁决 logic:InfoOpposed 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoSupported|rdfs:label"
+msgid "denotation of GMN info supported"
+msgstr "GMN info 支持的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoSupported|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▲ form to the verdict logic:InfoSupported."
+msgstr "从 GMN ▲ 形式到裁决 logic:InfoSupported 的可执行受限含义赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicNecessarily|rdfs:label"
+msgid "denotation of the GMN necessity key"
+msgstr "GMN 必然键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicNecessarily|skos:definition"
+msgid "The meaning assignment from `box` to the type-parameterized necessity modality logic:necessarily; it deliberately carries no executable grapheme."
+msgstr "从「box」到按类型参数化的必然模态 logic:necessarily 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicPossibly|rdfs:label"
+msgid "denotation of the GMN possibility key"
+msgstr "GMN 可能键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicPossibly|skos:definition"
+msgid "The meaning assignment from `dia` to the type-parameterized possibility modality logic:possibly; it deliberately carries no executable grapheme."
+msgstr "从「dia」到按类型参数化的可能模态 logic:possibly 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicTop|rdfs:label"
+msgid "denotation of the GMN verum key"
+msgstr "GMN verum 键的指称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicTop|skos:definition"
+msgid "The meaning assignment from `top` to the constant logic:Top; it deliberately carries no executable grapheme."
+msgstr "从「top」到常量 logic:Top 的含义赋值；它有意不携带任何可执行字素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDefeater|rdfs:label"
+msgid "dict-v3 entry: gmeow:Attack to df"
+msgstr "dict-v3 条目：gmeow:Attack 至 df"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDefeater|skos:definition"
+msgid "The version-3 alias binding for gmeow:Attack, the defeater a `@d` record carries: `df`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a defeater and a named key beats an invented pseudo-glyph."
+msgstr "gmeow:Attack 的第 3 版别名绑定，即「@d」记录所携带的击败者：「df」。一个结构性具名键——ASCII 键即为全部记法，因为击败者没有标准字形，而具名键胜过臆造的伪字形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvidenceStrength|rdfs:label"
+msgid "dict-v3 entry: logic:evidenceStrength to ev"
+msgstr "dict-v3 条目：logic:evidenceStrength 至 ev"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvidenceStrength|skos:definition"
+msgid "The version-3 alias binding for logic:evidenceStrength, the evidence a record's `ev` slot names by reference: `ev`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for evidence strength and a named key beats an invented pseudo-glyph."
+msgstr "logic:evidenceStrength 的第 3 版别名绑定，即记录的「ev」槽位按引用命名的证据：「ev」。一个结构性具名键——ASCII 键即为全部记法，因为证据强度没有标准字形，而具名键胜过臆造的伪字形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryStandpoint|rdfs:label"
+msgid "dict-v3 entry: gmeow:Standpoint to st"
+msgstr "dict-v3 条目：gmeow:Standpoint 至 st"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryStandpoint|skos:definition"
+msgid "The version-3 alias binding for gmeow:Standpoint, the claim-holder a record's `st` slot names by reference: `st`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a standpoint and a named key beats an invented pseudo-glyph."
+msgstr "gmeow:Standpoint 的第 3 版别名绑定，即记录的「st」槽位按引用命名的主张持有者：「st」。一个结构性具名键——ASCII 键即为全部记法，因为立场没有标准字形，而具名键胜过臆造的伪字形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapBoth|rdfs:label"
+msgid "the GMN Belnap-both constant form"
+msgstr "GMN Belnap-二者皆常量形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapBoth|skos:definition"
+msgid "The nullary GMN constant form rendered by ◉ and denoting the raw over-determined glut value logic:BelnapBoth in the logic glyph context."
+msgstr "由 ◉ 呈现、在逻辑字形语境中指称原始过定盈余值 logic:BelnapBoth 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapFalse|rdfs:label"
+msgid "the GMN Belnap-false constant form"
+msgstr "GMN Belnap-假常量形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapFalse|skos:definition"
+msgid "The nullary GMN constant form rendered by ○ and denoting the raw truth value logic:BelnapFalse in the logic glyph context."
+msgstr "由 ○ 呈现、在逻辑字形语境中指称原始真值 logic:BelnapFalse 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapNeither|rdfs:label"
+msgid "the GMN Belnap-neither constant form"
+msgstr "GMN Belnap-二者皆非常量形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapNeither|skos:definition"
+msgid "The nullary GMN constant form rendered by ◌ and denoting the raw under-determined gap value logic:BelnapNeither in the logic glyph context."
+msgstr "由 ◌ 呈现、在逻辑字形语境中指称原始欠定空缺值 logic:BelnapNeither 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapTrue|rdfs:label"
+msgid "the GMN Belnap-true constant form"
+msgstr "GMN Belnap-真常量形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapTrue|skos:definition"
+msgid "The nullary GMN constant form rendered by ● and denoting the raw truth value logic:BelnapTrue in the logic glyph context."
+msgstr "由 ● 呈现、在逻辑字形语境中指称原始真值 logic:BelnapTrue 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|rdfs:label"
+msgid "the GMN falsum key `bot`"
+msgstr "GMN falsum 键「bot」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|skos:definition"
+msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
+msgstr "用于 falsum 常量 logic:Bottom 的零元 GMN 具名键形式「bot」；⊥ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是 logic:Formula 文法的常量，故不携带固定性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|rdfs:label"
+msgid "the GMN lens-composition key `after`"
+msgstr "GMN 透镜复合键「after」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|skos:definition"
+msgid "The binary infix GMN named-key form `after` for lens / correspondence composition logic:compose (∘); the ring-operator glyph remains display notation because the ASCII key is cheaper under the pinned BPE. Composition sequences two lens legs and is associative; it is distinct from math:functionComposition, so its @ℒ key `after` never collides with the math plane's `compose`."
+msgstr "用于透镜／对应复合 logic:compose（∘）的二元中缀 GMN 具名键形式「after」；环算子字形因 ASCII 键在固定 BPE 下更省而仍为显示记法。复合串接两条透镜支腿且可结合；它与 math:functionComposition 相异，故其 @ℒ 键「after」绝不与数学平面的「compose」冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptIntersection|rdfs:label"
+msgid "the GMN concept-intersection key `concept_and`"
+msgstr "GMN 概念交键「concept_and」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptIntersection|skos:definition"
+msgid "The binary infix GMN named-key form `concept_and` for the Description-Logic concept-intersection constructor logic:conceptIntersection (⊓); the ⊓ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."
+msgstr "用于描述逻辑概念交构造子 logic:conceptIntersection（⊓）的二元中缀 GMN 具名键形式「concept_and」；⊓ 字形因 ASCII 键在固定 BPE 下更省而仍为显示记法。一个构造概念的算子：概念 × 概念 → 概念，可结合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptUnion|rdfs:label"
+msgid "the GMN concept-union key `concept_or`"
+msgstr "GMN 概念并键「concept_or」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptUnion|skos:definition"
+msgid "The binary infix GMN named-key form `concept_or` for the Description-Logic concept-union constructor logic:conceptUnion (⊔); the ⊔ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."
+msgstr "用于描述逻辑概念并构造子 logic:conceptUnion（⊔）的二元中缀 GMN 具名键形式「concept_or」；⊔ 字形因 ASCII 键在固定 BPE 下更省而仍为显示记法。一个构造概念的算子：概念 × 概念 → 概念，可结合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicDerives|rdfs:label"
+msgid "the GMN derivability key `derives`"
+msgstr "GMN 可推导性键「derives」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicDerives|skos:definition"
+msgid "The binary infix GMN named-key form `derives` for the syntactic proof-theoretic turnstile logic:derives (Γ ⊢ φ); the ⊢ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the semantic entailment turnstile ⊨."
+msgstr "用于语法证明论转折号 logic:derives（Γ ⊢ φ）的二元中缀 GMN 具名键形式「derives」；⊢ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语义蕴涵转折号 ⊨ 保持结构性相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|rdfs:label"
+msgid "the GMN entailment key `entails`"
+msgstr "GMN 蕴涵键「entails」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|skos:definition"
+msgid "The binary infix GMN named-key form `entails` for the semantic model-theoretic turnstile logic:entails (Γ ⊨ φ); the ⊨ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the syntactic derivability turnstile ⊢."
+msgstr "用于语义模型论转折号 logic:entails（Γ ⊨ φ）的二元中缀 GMN 具名键形式「entails」；⊨ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语法可推导性转折号 ⊢ 保持结构性相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEquivalent|rdfs:label"
+msgid "the GMN class-equivalence operator"
+msgstr "GMN 类等价算子"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEquivalent|skos:definition"
+msgid "The binary infix GMN form rendered by ≡ and denoting canonical logic:equivalentClass in the logic glyph context; its two operands are concept expressions and its result is a logic:Formula asserting their mutual subsumption."
+msgstr "由 ≡ 呈现、在逻辑字形语境中指称规范 logic:equivalentClass 的二元中缀 GMN 形式；其两个操作数为概念表达式，其结果为断言二者相互包含的 logic:Formula。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicImplies|rdfs:label"
+msgid "the GMN implication operator"
+msgstr "GMN 蕴涵算子"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicImplies|skos:definition"
+msgid "The binary infix GMN form rendered by → and denoting the material-implication construction in the logic glyph context. It builds no new logic: term: an implication formula is the logic:Formula node bearing logic:antecedent (slot 0) and logic:consequent (slot 1), and the arrow points at the consequent it heads, so its denotation target is the ordered, non-commutative logic:consequent carrier whose presence marks the node as an implication — distinct from the commutative logic:iff. Right-associative so a → b → c reads a → (b → c)."
+msgstr "由 → 呈现、在逻辑字形语境中指称实质蕴涵构造的二元中缀 GMN 形式。它不构造新的 logic: 术语：蕴涵公式即为承载 logic:antecedent（第 0 槽位）与 logic:consequent（第 1 槽位）的 logic:Formula 节点，箭头指向它所领起的后件，故其指称目标为有序、非交换的 logic:consequent 载体，其存在将该节点标记为蕴涵——与可交换的 logic:iff 相异。右结合，故 a → b → c 读作 a → (b → c)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoBoth|rdfs:label"
+msgid "the GMN info-both verdict form"
+msgstr "GMN info-二者皆裁决形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoBoth|skos:definition"
+msgid "The nullary GMN constant form rendered by △ and denoting the result-level verdict logic:InfoBoth in the logic glyph context."
+msgstr "由 △ 呈现、在逻辑字形语境中指称结果级裁决 logic:InfoBoth 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoNeither|rdfs:label"
+msgid "the GMN info-neither verdict form"
+msgstr "GMN info-二者皆非裁决形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoNeither|skos:definition"
+msgid "The nullary GMN constant form rendered by ▽ and denoting the result-level verdict logic:InfoNeither in the logic glyph context."
+msgstr "由 ▽ 呈现、在逻辑字形语境中指称结果级裁决 logic:InfoNeither 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoOpposed|rdfs:label"
+msgid "the GMN info-opposed verdict form"
+msgstr "GMN info-反对裁决形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoOpposed|skos:definition"
+msgid "The nullary GMN constant form rendered by ▼ and denoting the result-level verdict logic:InfoOpposed in the logic glyph context."
+msgstr "由 ▼ 呈现、在逻辑字形语境中指称结果级裁决 logic:InfoOpposed 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoSupported|rdfs:label"
+msgid "the GMN info-supported verdict form"
+msgstr "GMN info-支持裁决形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoSupported|skos:definition"
+msgid "The nullary GMN constant form rendered by ▲ and denoting the result-level verdict logic:InfoSupported in the logic glyph context."
+msgstr "由 ▲ 呈现、在逻辑字形语境中指称结果级裁决 logic:InfoSupported 的零元 GMN 常量形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicNecessarily|rdfs:label"
+msgid "the GMN necessity key `box`"
+msgstr "GMN 必然键「box」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicNecessarily|skos:definition"
+msgid "The prefix GMN named-key form `box` for the type-parameterized necessity modality logic:necessarily (□); the ⊤-shaped box glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."
+msgstr "用于按类型参数化的必然模态 logic:necessarily（□）的前缀 GMN 具名键形式「box」；⊤ 形方盒字形因 ASCII 键在固定 BPE 下更省而仍为显示记法。一个按类型参数化的固定操作符：其第一操作数为带类型可达关系（logic:overAccessibility），第二为主体公式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicPossibly|rdfs:label"
+msgid "the GMN possibility key `dia`"
+msgstr "GMN 可能键「dia」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicPossibly|skos:definition"
+msgid "The prefix GMN named-key form `dia` for the type-parameterized possibility modality logic:possibly (◇); the diamond glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."
+msgstr "用于按类型参数化的可能模态 logic:possibly（◇）的前缀 GMN 具名键形式「dia」；菱形字形因 ASCII 键在固定 BPE 下更省而仍为显示记法。一个按类型参数化的固定操作符：其第一操作数为带类型可达关系（logic:overAccessibility），第二为主体公式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|rdfs:label"
+msgid "the GMN verum key `top`"
+msgstr "GMN verum 键「top」"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|skos:definition"
+msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A constant of the logic:Formula grammar, so it carries no fixity."
+msgstr "用于 verum 常量 logic:Top 的零元 GMN 具名键形式「top」；⊤ 字形因在固定 BPE 下会碎裂而仍为显示记法。它是 logic:Formula 文法的常量，故不携带固定性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|rdfs:label"
+msgid "gmn glyph in scope"
+msgstr "gmn 字形在范围内"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|skos:definition"
+msgid "Whether a canonical grounding term is in scope for a GMN glyph plane — the coverage marker a glyph-plane audit joins against to find which in-scope terms still lack a bound glyph. Domain a canonical grounding term (a logic:, math:, or gmeow: term the plane renders), range xsd:boolean (stated in prose). True asserts the term belongs to the plane's denominator; it is DISTINCT from gmeow:gmnGlyphNamedKeyRuled, which rules a term out of the gap denominator as a named-key / not-a-gap non-target."
+msgstr "指示某个规范接地术语是否处于某 GMN 字形平面的范围内——字形平面审计据以连接、以找出哪些在范围内的术语仍缺少绑定字形的覆盖标记。定义域为规范接地术语（该平面所呈现的 logic:、math: 或 gmeow: 术语），值域 xsd:boolean（以散文陈述）。真断言该术语属于该平面的分母；它与 gmeow:gmnGlyphNamedKeyRuled 相异，后者将术语作为具名键／非空缺的非目标排除出空缺分母。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapBoth|rdfs:label"
+msgid "GMN Belnap-both glyph"
+msgstr "GMN Belnap-二者皆字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapBoth|skos:definition"
+msgid "The NFC ◉ grapheme (U+25C9) in the @ℒ scope, adopted as the executable GMN sign for the raw over-determined glut value logic:BelnapBoth after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ◉（U+25C9），在固定 BPE 将其测量为两个词元后，被采纳为原始过定盈余值 logic:BelnapBoth 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapFalse|rdfs:label"
+msgid "GMN Belnap-false glyph"
+msgstr "GMN Belnap-假字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapFalse|skos:definition"
+msgid "The NFC ○ grapheme (U+25CB) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapFalse after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ○（U+25CB），在固定 BPE 将其测量为两个词元后，被采纳为原始真值 logic:BelnapFalse 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapNeither|rdfs:label"
+msgid "GMN Belnap-neither glyph"
+msgstr "GMN Belnap-二者皆非字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapNeither|skos:definition"
+msgid "The NFC ◌ grapheme (U+25CC) in the @ℒ scope, adopted as the executable GMN sign for the raw under-determined gap value logic:BelnapNeither after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ◌（U+25CC），在固定 BPE 将其测量为两个词元后，被采纳为原始欠定空缺值 logic:BelnapNeither 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapTrue|rdfs:label"
+msgid "GMN Belnap-true glyph"
+msgstr "GMN Belnap-真字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapTrue|skos:definition"
+msgid "The NFC ● grapheme (U+25CF) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapTrue after the pinned BPE measured it at one token."
+msgstr "@ℒ 范围内的 NFC 字素 ●（U+25CF），在固定 BPE 将其测量为一个词元后，被采纳为原始真值 logic:BelnapTrue 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicEquivalent|rdfs:label"
+msgid "GMN class-equivalence glyph"
+msgstr "GMN 类等价字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicEquivalent|skos:definition"
+msgid "The NFC ≡ grapheme (U+2261) in the @ℒ scope, adopted as the executable GMN sign for the canonical class-equivalence relation logic:equivalentClass after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ≡（U+2261），在固定 BPE 将其测量为两个词元后，被采纳为规范类等价关系 logic:equivalentClass 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicImplies|rdfs:label"
+msgid "GMN logical-implication glyph"
+msgstr "GMN 逻辑蕴涵字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicImplies|skos:definition"
+msgid "The NFC → grapheme (U+2192) in the @ℒ scope, adopted as the executable GMN sign for the material-implication construction after the pinned BPE measured it at one token. Its @ℒ sigil scope keeps it distinct from the math plane's → morphism-arrow reading under @μ — the record-initial sigil discipline is the single lawful cross-plane reuse of the codepoint."
+msgstr "@ℒ 范围内的 NFC 字素 →（U+2192），在固定 BPE 将其测量为一个词元后，被采纳为实质蕴涵构造的可执行 GMN 符号。其 @ℒ 记号前缀范围使它与数学平面在 @μ 下的 → 态射箭头读法保持相异——记录起首的记号前缀规程是该码位跨平面重用的唯一合法途径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoBoth|rdfs:label"
+msgid "GMN info-both glyph"
+msgstr "GMN info-二者皆字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoBoth|skos:definition"
+msgid "The NFC △ grapheme (U+25B3) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoBoth after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 △（U+25B3），在固定 BPE 将其测量为两个词元后，被采纳为结果级裁决 logic:InfoBoth 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoNeither|rdfs:label"
+msgid "GMN info-neither glyph"
+msgstr "GMN info-二者皆非字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoNeither|skos:definition"
+msgid "The NFC ▽ grapheme (U+25BD) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoNeither after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ▽（U+25BD），在固定 BPE 将其测量为两个词元后，被采纳为结果级裁决 logic:InfoNeither 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoOpposed|rdfs:label"
+msgid "GMN info-opposed glyph"
+msgstr "GMN info-反对字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoOpposed|skos:definition"
+msgid "The NFC ▼ grapheme (U+25BC) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoOpposed after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ▼（U+25BC），在固定 BPE 将其测量为两个词元后，被采纳为结果级裁决 logic:InfoOpposed 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoSupported|rdfs:label"
+msgid "GMN info-supported glyph"
+msgstr "GMN info-支持字形"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoSupported|skos:definition"
+msgid "The NFC ▲ grapheme (U+25B2) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoSupported after the pinned BPE measured it at two tokens."
+msgstr "@ℒ 范围内的 NFC 字素 ▲（U+25B2），在固定 BPE 将其测量为两个词元后，被采纳为结果级裁决 logic:InfoSupported 的可执行 GMN 符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphNamedKeyRuled|rdfs:label"
+msgid "gmn glyph named-key ruled"
+msgstr "gmn 字形判为具名键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphNamedKeyRuled|skos:definition"
+msgid "Whether a canonical grounding term is explicitly ruled a named-key / not-a-gap non-target of a GMN glyph plane — a term that is deliberately rendered by its named key rather than a dedicated glyph, so a coverage anti-join must NOT false-fire on it as a missing glyph. Domain a canonical grounding term, range xsd:boolean (stated in prose). True excludes the term from the gap denominator; it is DISTINCT from gmeow:gmnGlyphInScope, which enrols an in-scope term that DOES want a glyph."
+msgstr "指示某个规范接地术语是否被显式判定为某 GMN 字形平面的具名键／非空缺非目标——一个有意由其具名键而非专用字形呈现的术语，故覆盖反连接绝不可将其误报为缺失字形。定义域为规范接地术语，值域 xsd:boolean（以散文陈述）。真将该术语排除出空缺分母；它与 gmeow:gmnGlyphInScope 相异，后者纳入一个确实需要字形的在范围内术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnMaximalScope|rdfs:label"
+msgid "gmn maximal scope"
+msgstr "gmn 最大辖域"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnMaximalScope|skos:definition"
+msgid "Whether a binder GMN operator (arity kind gmeow:gmnArityKindBinder — a quantifier logic:forall / logic:exists or a modal logic:necessarily / logic:possibly) takes MAXIMAL scope, extending its body as far to the right as the grammar allows rather than stopping at the next operator. Domain a binder operator sign, range xsd:boolean (stated in prose). True marks the standard maximal-scope reading; its absence or false marks a bracket-delimited binder."
+msgstr "指示某个绑定 GMN 操作符（元数种类 gmeow:gmnArityKindBinder——量词 logic:forall / logic:exists 或模态 logic:necessarily / logic:possibly）是否取最大辖域，将其主体尽文法所允许地向右延伸，而非在下一个操作符处停止。定义域为绑定操作符符号，值域 xsd:boolean（以散文陈述）。真标记标准的最大辖域读法；其缺省或为假则标记一个由括号界定的绑定算子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnModalLogicNotationWork|rdfs:label"
+msgid "modal-logic box and diamond notation"
+msgstr "模态逻辑方盒与菱形记法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnModalLogicNotationWork|skos:definition"
+msgid "The established modal-logic notation practice cited for the box □ and diamond ◇ signs as the necessity and possibility operators of the standard Kripke translation. GMN binds those signs to the canonical type-parameterized logic:necessarily and logic:possibly, each evaluated over the single typed accessibility relation its logic:overAccessibility names; Unicode supplies the character identity while the modal-logic reading supplies the operator semantics."
+msgstr "为方盒 □ 与菱形 ◇ 符号作为标准 Kripke 翻译的必然与可能算子所引用的既有模态逻辑记法惯例。GMN 将这些符号绑定到规范的按类型参数化 logic:necessarily 与 logic:possibly，各自在其 logic:overAccessibility 所命名的唯一带类型可达关系上求值；Unicode 提供字符身份，而模态逻辑读法提供算子语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnOperandSorts|rdfs:label"
+msgid "gmn operand sorts"
+msgstr "gmn 操作数种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnOperandSorts|skos:definition"
+msgid "Relates a GMN operator sign to each of its ordered operand slots — the gmeow:GmnArgSlot carriers whose gmeow:gmnArgIndex fixes operand position and whose gmeow:gmnArgSort and gmeow:gmnArgRole name each operand's sort and role. Multi-valued; the operand-sort list is realized as indexed slot carriers rather than RDF list ordering, mirroring lang:formSlot, so two encodings of one signature are one signature. Domain a GMN operator sign, range gmeow:GmnArgSlot (stated in prose)."
+msgstr "将 GMN 操作符符号关联到其每一个有序操作数槽位——gmeow:GmnArgSlot 载体，其 gmeow:gmnArgIndex 固定操作数位置，其 gmeow:gmnArgSort 与 gmeow:gmnArgRole 命名每个操作数的种类与角色。多值；操作数种类列表实现为带索引的槽位载体，而非 RDF 列表排序，与 lang:formSlot 相仿，使同一签名的两种编码为同一签名。定义域为 GMN 操作符符号，值域 gmeow:GmnArgSlot（以散文陈述）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnResultSort|rdfs:label"
+msgid "gmn result sort"
+msgstr "gmn 结果种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnResultSort|skos:definition"
+msgid "Names the syntactic sort a GMN operator produces. Domain a GMN operator sign (a lang:Form or lang:Lexeme of the gmeow:gmnModelNotation sign system), range gmeow:GmnSort (stated in prose). Exactly one result sort per operator; paired with the ordered operand sorts of gmeow:gmnOperandSorts to make the operator's signature checkable data."
+msgstr "命名 GMN 操作符所产生的语法种类。定义域为 GMN 操作符符号（gmeow:gmnModelNotation 符号系统的 lang:Form 或 lang:Lexeme），值域 gmeow:GmnSort（以散文陈述）。每个操作符恰一种结果种类；与 gmeow:gmnOperandSorts 的有序操作数种类配对，使操作符的签名成为可校验的数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesContext|rdfs:label"
+msgid "derivability context slot"
+msgstr "可推导性语境槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesContext|skos:definition"
+msgid "The first operand slot of the derivability turnstile: the premise context Γ, at index 0 in the context role."
+msgstr "可推导性转折号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|rdfs:label"
+msgid "derivability succedent slot"
+msgstr "可推导性后承槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|skos:definition"
+msgid "The second operand slot of the derivability turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
+msgstr "可推导性转折号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|rdfs:label"
+msgid "entailment context slot"
+msgstr "蕴涵语境槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|skos:definition"
+msgid "The first operand slot of the entailment turnstile: the premise context Γ, at index 0 in the context role."
+msgstr "蕴涵转折号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|rdfs:label"
+msgid "entailment succedent slot"
+msgstr "蕴涵后承槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|skos:definition"
+msgid "The second operand slot of the entailment turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
+msgstr "蕴涵转折号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotExistsBody|rdfs:label"
+msgid "exists body slot"
+msgstr "存在量词主体槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotExistsBody|skos:definition"
+msgid "The single operand slot of the existential quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."
+msgstr "存在量词的单一操作数槽位：绑定算子所辖的受辖主体 logic:Formula，在主体角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotForallBody|rdfs:label"
+msgid "forall body slot"
+msgstr "全称量词主体槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotForallBody|skos:definition"
+msgid "The single operand slot of the universal quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."
+msgstr "全称量词的单一操作数槽位：绑定算子所辖的受辖主体 logic:Formula，在主体角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesAntecedent|rdfs:label"
+msgid "implication antecedent slot"
+msgstr "蕴涵前件槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesAntecedent|skos:definition"
+msgid "The first operand slot of the implication construction: the antecedent logic:Formula (the hypothesis), at index 0 in the antecedent role."
+msgstr "蕴涵构造的第一操作数槽位：前件 logic:Formula（假设），在前件角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesConsequent|rdfs:label"
+msgid "implication consequent slot"
+msgstr "蕴涵后件槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesConsequent|skos:definition"
+msgid "The second operand slot of the implication construction: the consequent logic:Formula (the conclusion), at index 1 in the consequent role."
+msgstr "蕴涵构造的第二操作数槽位：后件 logic:Formula（结论），在后件角色中位于索引 1。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyAccess|rdfs:label"
+msgid "necessity accessibility slot"
+msgstr "必然可达关系槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyAccess|skos:definition"
+msgid "The first operand slot of the box modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."
+msgstr "方盒模态的第一操作数槽位：它据以求值的带类型可达关系，在可达关系角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyBody|rdfs:label"
+msgid "necessity body slot"
+msgstr "必然主体槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyBody|skos:definition"
+msgid "The second operand slot of the box modality: the body logic:Formula that must hold in every accessible context of the declared type, at index 1 in the body role."
+msgstr "方盒模态的第二操作数槽位：必须在所声明类型的每个可达语境中成立的主体 logic:Formula，在主体角色中位于索引 1。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyAccess|rdfs:label"
+msgid "possibility accessibility slot"
+msgstr "可能可达关系槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyAccess|skos:definition"
+msgid "The first operand slot of the diamond modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."
+msgstr "菱形模态的第一操作数槽位：它据以求值的带类型可达关系，在可达关系角色中位于索引 0。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyBody|rdfs:label"
+msgid "possibility body slot"
+msgstr "可能主体槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyBody|skos:definition"
+msgid "The second operand slot of the diamond modality: the body logic:Formula that must hold in some accessible context of the declared type, at index 1 in the body role."
+msgstr "菱形模态的第二操作数槽位：必须在所声明类型的某个可达语境中成立的主体 logic:Formula，在主体角色中位于索引 1。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnSort|rdfs:label"
+msgid "GMN Sort"
+msgstr "GMN 种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnSort|skos:definition"
+msgid "The closed sort (syntactic category) vocabulary of the GMN signature type discipline: what kind of thing a GMN operator consumes or produces. Its instances are exactly the eight named individuals gmeow:gmnSortFormula, gmeow:gmnSortConcept, gmeow:gmnSortTerm, gmeow:gmnSortVariable, gmeow:gmnSortJudgment, gmeow:gmnSortContext, gmeow:gmnSortTruthValue and gmeow:gmnSortAccessibilityType. An operator names its produced sort through gmeow:gmnResultSort and its ordered operand sorts through the gmeow:GmnArgSlot carriers of gmeow:gmnOperandSorts, making the signature machine-checkable data rather than parser lore. It is a sort of the notation's type discipline, NOT a gmeow:GmnSigilRole (a record-kind sigil) and NOT a gmeow:GmnFixity (an operand-placement value)."
+msgstr "GMN 签名类型规程的闭合种类（语法范畴）词表：GMN 操作符消耗或产生何种事物。其实例恰为八个具名个体 gmeow:gmnSortFormula、gmeow:gmnSortConcept、gmeow:gmnSortTerm、gmeow:gmnSortVariable、gmeow:gmnSortJudgment、gmeow:gmnSortContext、gmeow:gmnSortTruthValue 与 gmeow:gmnSortAccessibilityType。操作符通过 gmeow:gmnResultSort 命名其所产生的种类，通过 gmeow:gmnOperandSorts 的 gmeow:GmnArgSlot 载体命名其有序操作数种类，使签名成为机器可校验的数据，而非解析器口传知识。它是该记法类型规程的一种种类，而非 gmeow:GmnSigilRole（记录种类记号）也非 gmeow:GmnFixity（操作数放置取值）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortAccessibilityType|rdfs:label"
+msgid "accessibility-type sort"
+msgstr "可达类型种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortAccessibilityType|skos:definition"
+msgid "The accessibility-type sort: a typed accessibility relation (logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, or gmeow:sharpens), the sort of the operand a modal operator carries on logic:overAccessibility. It is a relation-type parameter, never the bare logic:accessibleFrom union."
+msgstr "可达类型种类：一个带类型可达关系（logic:epistemicallyPossible、logic:doxasticallyAccessible、logic:deonticallyIdeal、logic:temporallySucceeds、logic:counterfactuallyCloser 或 gmeow:sharpens），即模态算子在 logic:overAccessibility 上携带的操作数的种类。它是一个关系类型参数，绝非裸并集 logic:accessibleFrom。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortConcept|rdfs:label"
+msgid "concept sort"
+msgstr "概念种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortConcept|skos:definition"
+msgid "The concept sort: a Description Logic concept expression. The operand and result sort of the concept-forming operators logic:conceptIntersection and logic:conceptUnion."
+msgstr "概念种类：一个描述逻辑概念表达式。构造概念的算子 logic:conceptIntersection 与 logic:conceptUnion 的操作数与结果种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortContext|rdfs:label"
+msgid "context sort"
+msgstr "语境种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortContext|skos:definition"
+msgid "The context sort: a premise context Γ — a set or ordered multiset of formulae, the antecedent side of a logic:Sequent carried by logic:sequentContext. Distinct from the formula sort, which is a single sentence."
+msgstr "语境种类：一个前提语境 Γ——公式的集合或有序多重集，由 logic:sequentContext 承载的 logic:Sequent 的前件一侧。与公式种类相异，后者是单一语句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortFormula|rdfs:label"
+msgid "formula sort"
+msgstr "公式种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortFormula|skos:definition"
+msgid "The formula sort: a truth-valued sentence, the sort of a logic:Formula. The result sort of the connectives, quantifiers, and modal operators."
+msgstr "公式种类：一个具真值的语句，即 logic:Formula 的种类。连接词、量词与模态算子的结果种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortJudgment|rdfs:label"
+msgid "judgment sort"
+msgstr "判断种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortJudgment|skos:definition"
+msgid "The judgment sort: a proof-obligation or entailment judgment, the sort of a logic:Sequent (Γ ⊢ φ). The result sort of the derivability and entailment turnstiles logic:derives and logic:entails. Distinct from the formula sort, which is a sentence rather than an obligation."
+msgstr "判断种类：一个证明义务或蕴涵判断，即 logic:Sequent（Γ ⊢ φ）的种类。可推导性与蕴涵转折号 logic:derives 与 logic:entails 的结果种类。与公式种类相异，后者是语句而非义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|rdfs:label"
+msgid "term sort"
+msgstr "项种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|skos:definition"
+msgid "The term sort: a first-order term — an individual, a literal, or a compound function term. Distinct from the variable sort, which is the bindable subclass of terms."
+msgstr "项种类：一个一阶项——个体、字面量或复合函数项。与变量种类相异，后者是项的可绑定子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTruthValue|rdfs:label"
+msgid "truth-value sort"
+msgstr "真值种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTruthValue|skos:definition"
+msgid "The truth-value sort: a raw logic:BelnapBilattice value (a logic:TruthValue). Distinct from the formula sort — a truth value is an algebra element, not a sentence — and from the concept sort."
+msgstr "真值种类：一个原始 logic:BelnapBilattice 值（一个 logic:TruthValue）。与公式种类相异——真值是代数元素而非语句——也与概念种类相异。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|rdfs:label"
+msgid "variable sort"
+msgstr "变量种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|skos:definition"
+msgid "The variable sort: a bindable first-order variable, the sort a binder operator (quantifier or modal) binds. The specialized bindable counterpart of the term sort."
+msgstr "变量种类：一个可绑定的一阶变量，即绑定算子（量词或模态）所绑定的种类。项种类的专门化可绑定对应物。"
