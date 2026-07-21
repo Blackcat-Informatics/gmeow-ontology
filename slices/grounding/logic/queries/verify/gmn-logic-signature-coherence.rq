@@ -30,11 +30,18 @@ SELECT ?form ?issue WHERE {
          lang:denotedForm ?form .
     ?form lang:inSignSystem gmeow:gmnModelNotation .
     {
+        # Rebind ?form INSIDE this UNION arm: a bare FILTER NOT EXISTS over a variable the
+        # arm does not itself bind would evaluate ?form as unbound (UNION arms are scoped
+        # independently and joined with the outer group afterward), so NOT EXISTS would test
+        # "does ANY form carry a result sort", never THIS form's — a vacuous branch. The
+        # re-binding correlates the anti-join to each model-notation form.
+        ?form lang:inSignSystem gmeow:gmnModelNotation .
         FILTER NOT EXISTS { ?form gmeow:gmnResultSort ?rs }
         BIND("no-result-sort" AS ?issue)
     }
     UNION
     {
+        ?form lang:inSignSystem gmeow:gmnModelNotation .
         FILTER NOT EXISTS { ?form gmeow:gmnArityKind ?ak }
         BIND("no-arity-kind" AS ?issue)
     }
@@ -55,6 +62,9 @@ SELECT ?form ?issue WHERE {
     UNION
     {
         ?den lang:denotationTarget ?modalTarget .
+        # Rebind ?form inside this arm (see the no-result-sort arm) so the accessibility-slot
+        # anti-join correlates to THIS modal form, not to "any form anywhere".
+        ?den lang:denotedForm ?form .
         VALUES ?modalTarget { logic:necessarily logic:possibly }
         FILTER NOT EXISTS {
             ?form gmeow:gmnOperandSorts ?accSlot .
@@ -66,7 +76,11 @@ SELECT ?form ?issue WHERE {
     {
         ?den lang:denotationTarget ?turnstileTarget .
         VALUES ?turnstileTarget { logic:derives logic:entails }
+        # The ?form re-binding must live INSIDE each inner UNION sub-branch: an inner UNION is
+        # its own independent scope, so a ?form bound only in this outer arm would again be
+        # unbound within the sub-branch's FILTER NOT EXISTS. Bind it in each sub-branch.
         {
+            ?den lang:denotedForm ?form .
             FILTER NOT EXISTS {
                 ?form gmeow:gmnOperandSorts ?ctxSlot .
                 ?ctxSlot gmeow:gmnArgRole gmeow:gmnArgRoleContext .
@@ -74,6 +88,7 @@ SELECT ?form ?issue WHERE {
         }
         UNION
         {
+            ?den lang:denotedForm ?form .
             FILTER NOT EXISTS {
                 ?form gmeow:gmnOperandSorts ?sucSlot .
                 ?sucSlot gmeow:gmnArgRole gmeow:gmnArgRoleSuccedent .
@@ -84,6 +99,7 @@ SELECT ?form ?issue WHERE {
     UNION
     {
         ?den lang:denotationTarget logic:consequent .
+        ?den lang:denotedForm ?form .
         FILTER NOT EXISTS {
             ?form gmeow:gmnOperandSorts ?antSlot .
             ?antSlot gmeow:gmnArgRole gmeow:gmnArgRoleAntecedent .

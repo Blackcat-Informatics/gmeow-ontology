@@ -460,6 +460,24 @@ ex:ecGmnGlyphCollision a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "Two distinct graphemes of one script share the identical gmeow:gmnCodepoints \"U+03BC\" with NO gmeow:gmnSigilScope on either (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision)." .
 
+ex:ecGmnLogicConfusableGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-confusable-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct LOGIC-plane turnstile graphemes of gmeow:gmnScript (the forcing turnstile ⊩ U+22A9 and the double-bar turnstile ⊫ U+22AB) are related by gmeow:gmnConfusableWith (the sh:sparql of lang:GmnConfusableGlyphShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnConfusableGlyph); their codepoint values are distinct and canonical, so the collision and codepoint gates stay quiet. The logic-plane sibling of ex:ecGmnConfusableGlyph — the confusables blocklist is plane-agnostic." .
+
+ex:ecGmnLogicNonCanonicalCodepoint a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-noncanonical-codepoint.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.PatternConstraintComponent" ;
+    gmeow:conformanceRationale "A LOGIC-plane forcing-turnstile grapheme's gmeow:gmnCodepoints value \"22A9\" drops the canonical \"U+\" prefix (sh:pattern on lang:GmnCodepointCanonicalShape), so validation MUST emit shacl.PatternConstraintComponent and NO other finding (lang:GmnNonCanonicalCodepoint); the value is present, so the presence branch stays quiet. The logic-plane sibling of ex:ecGmnNonCanonicalCodepoint." .
+
+ex:ecGmnLogicGlyphCollision a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-glyph-collision.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct LOGIC-plane graphemes of one script share the identical gmeow:gmnCodepoints \"U+22AB\" with a gmeow:gmnSigilScope on ONLY ONE of them (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision). The logic-plane sibling of ex:ecGmnGlyphCollision, tightened to the one-partner-scoped case." .
+
 ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
