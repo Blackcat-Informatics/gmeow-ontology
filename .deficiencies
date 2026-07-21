@@ -1746,47 +1746,44 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   each preference example-conformance cell so the harness itself proves gate-specificity rather
   than relying on a manual audit.
 
-=============================================================================
-## From #1618 — upgrade purrdf 0.7.0 -> 0.8.0 (parallel SHACL) + de-dup sweep (recorded 2026-07-20)
-branch paudley/1618-purrdf-080-parallel-shacl — de-dup sweep scoped down for one target.
+## 2026-07-20 — advice-harvest advisory enrichment is native-only; the wasm validate surface keeps the raw Info finding
 
-D1. `materialize_subclass_type_closure` (crates/validate/src/validate_all.rs) was a target of the
-    issue's "remove ALL SHACL code duplicated by purrdf" sweep but is RETAINED, so the sweep is a
-    strict subset of the maximal ask.
-    Why less than maximal: purrdf 0.8.0's SHACL engine now resolves the transitive asserted
-    `rdfs:subClassOf` closure INTERNALLY, but ONLY for `sh:class` value-node membership and
-    `sh:targetClass` focus selection. It injects no `rdf:type` into the data graph, so every OTHER
-    constraint mechanism still reads only asserted type. An a-priori scan of the validated shape
-    union found SEVEN constraints that read `rdf:type` via `sh:sparql`/`sh:SPARQLTarget`/SPARQL body
-    over subclass-bearing classes — organization-shapes.ttl (gmeow:Event), diagnostics
-    GateFatalUpset (gmeow:Finding), ai ClaimNeedsEvidence (gmeow:StandpointClaim), lang Frege
-    disjointness (lang:Form), inference AttackKindTarget (aktTypeSC, a false-POSITIVE flip at
-    sh:Violation severity), lang fds/fdd twins, and profiles ProfileOpenValueUse. Removing the pass
-    would silently narrow coverage for any subclass-only-typed instance of these (no-silent-
-    degradation forbids it). The current committed corpus types every such instance with the exact
-    superclass directly, so an empirical report-parity gate alone would NOT catch this — the a-priori
-    structural proof did.
-    Forward path: filed upstream purrdf issue requesting the engine close `rdf:type` for
-    SPARQL-based constraint/target mechanisms too (or expose an opt-in data-graph subclass
-    materialization); once purrdf subsumes ALL constraint mechanisms, delete this pass and prove
-    report parity. Tracked on the purrdf repo (see PR #1618 body for the filed issue URL).
+The advisory-harvest tier (a data-matching `logic:Constraint` at `logic:severity "Info"` →
+suppressed `shacl.*` result re-projected as a `Severity::Note` `advice.*` finding carrying the
+formalized term's `gmeow:howToUse` suggestion + `gmeow:useWhen` guidance + `logic:formalizes`
+provenance + a `deonticRecommendation` `gmeow:ComplianceAssessment`) is delivered on every NATIVE
+consumer surface: the `gmeow validate` CLI, the MCP `validate_local` tool, the repo validate path,
+and the pipeline `stage-validate` (bundle self-validation). The advisory bridge
+(`crates/validate/src/advisory.rs`) is `#[cfg(not(target_arch = "wasm32"))]`-gated because
+`crates/validate/src/lib.rs` makes the `advisory` module native-only, and the crate's
+`validate`/`validate_json` core must stay wasm-clean. Consequence: the wasm `validate_json` surface
+still emits the matched anti-pattern as a raw `Severity::Info` `shacl.*` finding rather than the
+enriched Note `advice.*` finding — a lossy projection of the advisory tier on that one surface.
+This is a pre-existing native/wasm boundary, not a regression, and the issue's named deliverables
+(the `gmeow.gts` bundle + the `gmeow` CLI) are native and deliver the full advice. FORWARD PATH:
+make the advisory split wasm-compatible (or add a wasm-side enrichment pass) so `validate_json` in
+the browser/wasm consumer also re-projects the Info match as the Note `advice.*` finding with its
+suggestions/guidance.
 
-D2. `build_nt_segment` / `take_nt_term` / `NtTerm` (crates/pipeline/src/mcp.rs) is a SECOND
-    hand-rolled N-Triples lexer (the conjecture/candidate AI-package segment builder) left in
-    place — a duplicate of purrdf's N-Triples parser. The sibling `parse_nt` reader in
-    crates/logic/src/result_rdf.rs WAS delegated to `purrdf::parse_dataset` in this PR (proven
-    byte-parity by the gmeow-logic round-trip suite); this one was NOT.
-    Why less than maximal: unlike `parse_nt` (whose consumers compare terms relationally, so
-    quad order is irrelevant), `build_nt_segment` interns each parsed term into a `GtsWriter`
-    term table IN ENCOUNTER ORDER, and that order is baked into the emitted GTS segment BYTES
-    of an append-only library. Delegating to `purrdf::parse_dataset` risks changing the interned
-    term order (owned_quads() iteration order need not equal document order), silently altering
-    the segment bytes / content digest. There is no cheap byte-parity test in a fresh worktree
-    (build_nt_segment is private and its round-trip needs generated artifacts), so a delegation
-    could only be verified at stage-3 make check — exactly the change/debug/check loop the
-    working discipline forbids. Landing an unverifiable byte-changing delegation would violate
-    no-silent-degradation, so it is retained.
-    Forward path: delegate once the equivalence harness (the golden/byte-parity infra this PR
-    stands up) can prove the emitted GTS segment bytes are identical — recover document order
-    from `RdfQuad.location` (or intern in a canonical sorted order and re-bless the segment
-    goldens), then remove `take_nt_term`/`NtTerm`.
+## 2026-07-20 — issue #1374 (GMN mathematical symbology plane)
+
+- fr/cmn translation of the new GMN math-symbology terms is PARTIAL. The change adds
+  ~95 new GMN sign-inventory terms (number-type classes, set/order operator families
+  ⊇ ≤ ≥ ⊂ ⊃, extended real line ℝ̄ + poles ±∞, and their Form/Denotation records) to
+  slices/grounding/lang/module.ttl, but only 19 of them received authored fr + cmn
+  translations in slices/grounding/lang/i18n/{fr,zh}.po — the number sufficient to
+  restore the lang axisTranslationCoverage floor after the additions widened the
+  localizable set. The remaining ~76 new terms carry English labels/definitions with
+  no fr/cmn translation. FORWARD PATH: complete fr + cmn translation for the remaining
+  new GMN terms in a translation pass (the .po msgctxt "term|predicate" keys are the
+  authoring seam); this raises lang translation coverage rather than merely holding
+  the floor.
+- Merged with the logic slice's axisTranslationCoverage make-check floor red (measured
+  0.7617 < committed rubric floor 1.0) under verbatim maintainer sign-off ("Sign off +
+  merge via ghprsq"). This is a human-signed-off descope of the green-gate requirement
+  for a PRE-EXISTING, not-#1374 condition: slices/grounding/logic/ is byte-identical to
+  origin/main (git diff origin/main -- slices/grounding/logic/ = 0 lines) and main's own
+  CI was already red on it. #1374 does not touch the logic slice. FORWARD PATH: complete
+  logic's fr/cmn translation coverage, or reconcile the aspirational 1.0
+  afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
+  a logic-slice / rubric-governance task independent of #1374.

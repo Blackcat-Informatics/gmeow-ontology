@@ -210,13 +210,12 @@ pub const EXAMPLE_PARSE: &str = "example.parse";
 
 // ── Soft advisory ─────────────────────────────────────────────────────────
 
-/// Family base for `advice.*` (e.g. [`ADVICE_TIER_ACTIVE`], and every harvested
-/// advisory rule).
+/// Family base for `advice.*` — every harvested advisory rule's code is
+/// `advice.<candidate-local-name>` (D3), classified by this prefix family in
+/// [`crate::rule_catalog`] so no per-rule const is needed. (The old fixed
+/// `ADVICE_TIER_ACTIVE` demonstrator const is removed — greenfield: harvested
+/// rules replace it.)
 pub const ADVICE_FAMILY: &str = "advice.";
-
-/// `crates/validate/src/validate_all.rs` — the fixed demonstrator advisory
-/// emitted on every normal-completion validate run.
-pub const ADVICE_TIER_ACTIVE: &str = "advice.tier.active";
 
 // ── Dynamic per-DSL SHACL failure suffix ─────────────────────────────────────
 

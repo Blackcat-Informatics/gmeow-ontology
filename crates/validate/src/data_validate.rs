@@ -125,6 +125,19 @@ pub fn run_tier1(
 /// over raw bundle bytes. Wasm-clean, like the [`run_tier1`] core it carries.
 pub struct Tier1Shapes {
     shapes: purrdf::shapes::shapes::Shapes,
+    /// The same data-graph shape union parsed as an [`RdfDataset`], read for each
+    /// advisory shape's `logic:formalizes` provenance term during the advisory
+    /// split ([`crate::advisory::split_advisory_results`]). Native-only: the
+    /// advisory bridge is a native module, so the wasm Tier-1 surface never carries
+    /// (or applies) the split.
+    #[cfg(not(target_arch = "wasm32"))]
+    shapes_dataset: Arc<RdfDataset>,
+    /// The bundle's imported RDF, carrying the formalized terms'
+    /// `gmeow:howToUse` / `gmeow:useWhen` prose each split advisory surfaces as its
+    /// corrective suggestion / contextual guidance. Native-only (see
+    /// `shapes_dataset`).
+    #[cfg(not(target_arch = "wasm32"))]
+    ontology: Arc<RdfDataset>,
 }
 
 impl Tier1Shapes {
@@ -141,7 +154,26 @@ impl Tier1Shapes {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
         })?;
-        Ok(Self { shapes })
+        // Native-only advisory-split inputs: the shape union as an RdfDataset (source
+        // of each advisory shape's `logic:formalizes` provenance) and the bundle's RDF
+        // (source of the formalized terms' howToUse/useWhen prose). Parsed here once
+        // per bundle so a resident consumer never re-parses per payload.
+        #[cfg(not(target_arch = "wasm32"))]
+        let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    detail: format!("bundled SHACL shapes failed to parse as a dataset: {e}"),
+                })
+            })?;
+        #[cfg(not(target_arch = "wasm32"))]
+        let ontology = crate::store::dataset_from_gts(gts_bytes)?;
+        Ok(Self {
+            shapes,
+            #[cfg(not(target_arch = "wasm32"))]
+            shapes_dataset,
+            #[cfg(not(target_arch = "wasm32"))]
+            ontology,
+        })
     }
 
     /// Run Tier-1 conformance of `data_bytes` (an RDF graph in `data_format`)
@@ -161,6 +193,23 @@ impl Tier1Shapes {
         let dataset = data_dataset_flat(data_bytes, data_format)?;
 
         let shacl_report = store::shacl_validate_dataset(&dataset, &self.shapes);
+
+        // Split the advisory tier out of the raw SHACL results BEFORE building the flat
+        // findings: an Info-severity result whose source shape carries a
+        // `logic:formalizes` comes from a `logic:severity "Info"` advisory constraint
+        // whose data-matching guard matched an individual. Its raw `shacl.*` finding is
+        // SUPPRESSED and re-projected below as a Note + deonticRecommendation advisory
+        // (the exact split the pipeline `ValidateStage` and the dev `validate_all` gate
+        // apply, so the consumer `gmeow validate <file>` / MCP `validate_local` output
+        // carries the same advice, not a raw `shacl.* Info` finding). Native-only: the
+        // advisory bridge is a native module; the wasm surface keeps the raw report.
+        #[cfg(not(target_arch = "wasm32"))]
+        let (shacl_report, advisories) = crate::advisory::split_advisory_results(
+            shacl_report,
+            &self.shapes_dataset,
+            &self.ontology,
+        );
+
         let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
 
         let cfg = GufoConfig {
@@ -179,6 +228,25 @@ impl Tier1Shapes {
                 });
             }
             report.add_finding(f);
+        }
+
+        // Project each split advisory into a Note finding through a `DiagLedger` and
+        // register its soft `Rule` (help URI) — the same dual projection the pipeline
+        // `ValidateStage` and `validate_all` perform, so all three validate surfaces emit
+        // identical advice from a data match. `findings("validate")` reads the whole
+        // batch, so the ledger is fully attached before the flat findings are drained.
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            use gmeow_errors::{DiagLedger, StageId};
+            let mut advisory_ledger = DiagLedger::new();
+            for advisory in &advisories {
+                let projection = advisory.project();
+                advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
+                report.add_rule(advisory.rule());
+            }
+            for note in advisory_ledger.findings("validate") {
+                report.add_finding(note);
+            }
         }
 
         Ok(report)
@@ -920,6 +988,109 @@ logic:c rdf:type logic:ReasoningContract ;
             err.message().contains("shapes-archive"),
             "the error must name the missing bundle surface: {}",
             err.message()
+        );
+    }
+
+    /// Build a `Tier1Shapes` directly from hand-authored shape + ontology Turtle,
+    /// bypassing the bundle decode — a self-contained fixture proving
+    /// [`Tier1Shapes::validate`] WIRES the advisory split without needing a real
+    /// `gmeow.gts`. `shapes_ttl` feeds BOTH the SHACL engine (`shapes`) and the
+    /// `logic:formalizes` provenance reader (`shapes_dataset`); `ontology_ttl` carries
+    /// the formalized term's howToUse/useWhen prose.
+    fn tier1_from_ttl(shapes_ttl: &str, ontology_ttl: &str) -> Tier1Shapes {
+        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).expect("shapes parse");
+        let shapes_dataset =
+            purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).expect("shapes ds");
+        let ontology = purrdf::parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
+            .expect("ontology ds");
+        Tier1Shapes {
+            shapes,
+            shapes_dataset,
+            ontology,
+        }
+    }
+
+    /// The consumer-path wiring proof (F1): `Tier1Shapes::validate` — the shared core
+    /// `gmeow validate <file>` and the MCP `validate_local` tool both reach — applies the
+    /// advisory split. A bare `gmeow:Entity` individual (the anti-pattern the Info-severity
+    /// advisory guard matches) must surface as a `Severity::Note`, `advice.*` finding
+    /// carrying the formalized term's howToUse suggestion and a "Use when:" useWhen entry —
+    /// NOT a raw `shacl.* Info` finding for that shape.
+    #[test]
+    fn validate_wires_the_advisory_split_for_a_bare_entity() {
+        const SHAPES: &str = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+<https://ex.test/EntityAdviceShape> a sh:NodeShape ;
+    logic:formalizes gmeow:Entity ;
+    sh:targetClass gmeow:Entity ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Info ;
+        sh:message "prefer a more specific sortal than bare gmeow:Entity" ;
+        sh:select "SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Entity> }" ;
+    ] .
+"#;
+        const ONTOLOGY: &str = "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\"@x-gmeow-english ;
+    gmeow:useWhen \"Use for a genuinely category-neutral resource.\"@x-gmeow-english .
+";
+        let tier1 = tier1_from_ttl(SHAPES, ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://blackcatinformatics.ca/gmeow/Entity> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://blackcatinformatics.ca/gmeow/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        // The advisory is a Note, code in the advice.* family.
+        let advice: Vec<_> = report
+            .findings
+            .iter()
+            .filter(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY))
+            .collect();
+        assert_eq!(
+            advice.len(),
+            1,
+            "exactly one advice.* Note finding must be wired in by validate: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+        let advice = advice[0];
+        assert_eq!(advice.severity, Severity::Note);
+
+        // The raw shacl.* Info finding for the advisory shape must have been SUPPRESSED.
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)
+                    && f.severity == Severity::Info),
+            "the raw shacl.* Info finding must be suppressed once split into advice: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+
+        // howToUse populates the suggestions verbatim; useWhen surfaces as guidance.
+        assert!(
+            advice
+                .suggestions
+                .iter()
+                .any(|s| s == "Type each instance with its most specific sortal."),
+            "the advice must carry the term's gmeow:howToUse as a suggestion: {:?}",
+            advice.suggestions
+        );
+        assert!(
+            advice
+                .suggestions
+                .iter()
+                .any(|s| s == "Use when: Use for a genuinely category-neutral resource."),
+            "the advice must carry the term's gmeow:useWhen as a \"Use when:\" entry: {:?}",
+            advice.suggestions
         );
     }
 

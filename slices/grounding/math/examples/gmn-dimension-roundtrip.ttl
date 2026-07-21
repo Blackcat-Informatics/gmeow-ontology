@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An illustrative, well-formed scene demonstrating the ℚ⁷ dimensional-homomorphism law
+# behind GMN's dimension notation: the net force on a rigid body is the integral of its
+# acceleration field over the body's mass distribution, F = ∫ a dm (a genuine physics
+# integral — the total force is the acceleration integrated against the mass measure). The
+# native measure-and-dimension reasoned gate checks the integral-composition law
+# dim(result) = dim(integrand) ⊕ dim(measure) by EXACT ℚ⁷ exponent-vector addition:
+# dim(acceleration) ⊕ dim(mass) = (L¹T⁻²) ⊕ (M¹) = M¹L¹T⁻² = dim(force). The force
+# dimension is a math:DerivedDimension built from structured math:DimensionExponent cells
+# (mass 1/1, length 1/1, time -2/1), never a display string, so perturbing one exponent
+# falsifies the law (see tests/counter-examples/force-dimension-inhomogeneous.ttl). Two
+# force quantities share the force dimension and a homogeneous math:DimensionalExpression
+# adds them. The scene round-trips through the GMN codec and validates cleanly under the
+# global gate, including the native dimensional-homogeneity check.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
+
+# --- The body as a measurable space with its mass distribution --------------- #
+
+ex:bodySpace a math:MeasurableSpace ;
+    rdfs:label "the rigid body's configuration space"@x-gmeow-english ;
+    math:measurableSpaceOf ex:bodySet , ex:bodySigma .
+
+ex:bodySet a math:Set ;
+    rdfs:label "the body's point set"@x-gmeow-english .
+
+ex:bodySigma a math:SigmaAlgebra ;
+    rdfs:label "the Borel σ-algebra on the body"@x-gmeow-english .
+
+ex:massMeasure a math:Measure ;
+    rdfs:label "the body's mass measure (dm)"@x-gmeow-english ;
+    math:measureOn ex:bodySpace ;
+    math:totalMass "3.0"^^xsd:double ;
+    math:hasDimension ex:massDim .
+
+# --- The acceleration field (the integrand) ---------------------------------- #
+
+ex:accelerationField a math:MeasurableFunction ;
+    rdfs:label "the acceleration field a(x)"@x-gmeow-english ;
+    math:domain ex:bodySet ;
+    math:codomain ex:realValues ;
+    math:hasDimension ex:accelDim .
+
+ex:realValues a math:Set ;
+    rdfs:label "the real values"@x-gmeow-english .
+
+# --- The worked integral F = ∫ a dm, carrying its result dimension ----------- #
+# The homogeneity gate checks dim(result) = dim(integrand) ⊕ dim(measure):
+# acceleration (L¹T⁻²) integrated against mass (M¹) is force (M¹L¹T⁻²).
+
+ex:netForce a math:Integral ;
+    rdfs:label "net force = ∫ a dm"@x-gmeow-english ;
+    math:integrand ex:accelerationField ;
+    math:integrationDomain ex:bodySpace ;
+    math:withRespectTo ex:massMeasure ;
+    math:hasDimension ex:forceDim .
+
+# --- Dimensions as ℚ-vector-space elements (structured exponents only) -------- #
+
+ex:forceDim a math:DerivedDimension ;
+    rdfs:label "force dimension (M¹L¹T⁻²)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:fMass1 , ex:fLength1 , ex:fTimeMinus2 .
+
+ex:fMass1 a math:DimensionExponent ;
+    rdfs:label "force: mass exponent 1 (M¹)"@x-gmeow-english ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:fLength1 a math:DimensionExponent ;
+    rdfs:label "force: length exponent 1 (L¹)"@x-gmeow-english ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:fTimeMinus2 a math:DimensionExponent ;
+    rdfs:label "force: time exponent −2 (T⁻²)"@x-gmeow-english ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:massDim a math:DerivedDimension ;
+    rdfs:label "mass dimension (M¹)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:mMass1 .
+
+ex:mMass1 a math:DimensionExponent ;
+    rdfs:label "mass: mass exponent 1 (M¹)"@x-gmeow-english ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+
+ex:accelDim a math:DerivedDimension ;
+    rdfs:label "acceleration dimension (L¹T⁻²)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:aLength1 , ex:aTimeMinus2 .
+
+ex:aLength1 a math:DimensionExponent ;
+    rdfs:label "acceleration: length exponent 1 (L¹)"@x-gmeow-english ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:aTimeMinus2 a math:DimensionExponent ;
+    rdfs:label "acceleration: time exponent −2 (T⁻²)"@x-gmeow-english ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+# --- Two commensurable force quantities and their homogeneous sum ------------- #
+# Both operands carry the force dimension, so the sum is dimensionally homogeneous.
+
+ex:gravityForce a math:Quantity ;
+    rdfs:label "gravitational force"@x-gmeow-english ;
+    math:hasDimension ex:forceDim ;
+    gmeow:unit <http://qudt.org/vocab/unit/N> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    math:quantityValue "29.4"^^xsd:double .
+
+ex:dragForce a math:Quantity ;
+    rdfs:label "drag force"@x-gmeow-english ;
+    math:hasDimension ex:forceDim ;
+    gmeow:unit <http://qudt.org/vocab/unit/N> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    math:quantityValue "4.5"^^xsd:double .
+
+ex:totalForce a math:DimensionalExpression ;
+    rdfs:label "total force = gravity + drag"@x-gmeow-english ;
+    math:homogeneousOperand ex:gravityForce , ex:dragForce .
+
+# --- Glyph-projection witness: the adopted → sign (U+2192) ------------------- #
+# The → glyph's canonical inventory join (gmeow:gmnGlyphMathMorphismArrow →
+# gmeow:gmnFormMathMorphismArrow → gmeow:gmnDenMathMorphismArrow) denotes the class
+# math:Morphism. Restating this canonical class fact — never re-minting the glyph table —
+# lets regeneration lower the scene through the production GMN target, proving the shipped
+# glyph registry is graph-derived, not a hard-coded symbol table. A GMN glyph is a
+# rendering of the canonical term, a sibling of math:ExpressionRendering, never a rival
+# identity.
+math:Morphism a owl:Class .

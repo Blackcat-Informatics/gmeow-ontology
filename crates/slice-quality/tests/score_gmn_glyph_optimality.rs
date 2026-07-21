@@ -129,6 +129,39 @@ fn executable_glyph_without_candidate_enters_denominator_and_is_named() {
 }
 
 #[test]
+fn real_math_slice_glyph_optimality_is_perfect() {
+    // AC1, demonstrated on the production surface: score the REAL math slice's
+    // gmn_glyph_optimality axis in repo mode (the math-plane candidates live in the lang
+    // authority, which the axis joins for a math-slice score). A score of 1.0 with no
+    // findings proves every audited math target carries a complete, evidence-backed
+    // disposition AND no executable math glyph binding lacks a candidate — the "no silent
+    // gaps" contract, over the authored graph rather than a synthetic fixture. A missed or
+    // half-specified math candidate would drop this below 1.0.
+    let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("resolve repo root");
+    let math_dir = repo_root.join("slices/grounding/math");
+    let paths = gmeow_slice_quality::report::slice_ttl_paths(&math_dir);
+    let path_refs: Vec<&std::path::Path> = paths.iter().map(PathBuf::as_path).collect();
+    let ds = gmeow_slice_quality::dataset_from_paths(&path_refs).expect("math slice loads");
+    let slice_iri = gmeow_slice_quality::slice_iri_of_dir(&math_dir).expect("math slice IRI");
+    let ctx = ScoreContext::new(slice_iri, math_dir, &ds, ScoringEnv::Repo);
+
+    let result = axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&ctx);
+    assert_eq!(
+        result.score, 1.0,
+        "the real math-plane glyph audit must be perfect (no silent gaps); findings: {:?}",
+        result.findings
+    );
+    assert!(
+        result.findings.is_empty(),
+        "a perfect math-plane audit surfaces no advisories: {:?}",
+        result.findings
+    );
+}
+
+#[test]
 fn complete_candidate_closes_the_executable_target_gap() {
     let result = score(
         r#"

@@ -75,7 +75,7 @@ fn mk_axis(producer: &str) -> Axis {
 
 #[test]
 fn axis_producers_bind_bijectively_to_implemented_primitives() {
-    // (c) The real, committed rubric: all fourteen producers must resolve to real Rust
+    // (c) The real, committed rubric: all sixteen producers must resolve to real Rust
     // items in this crate's source AND be in bijection with IMPLEMENTED.
     let symbols = primitive_symbols();
     let errs = binding_gate(&rubric(), |s| symbols.contains(s));

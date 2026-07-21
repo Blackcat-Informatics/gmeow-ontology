@@ -676,3 +676,157 @@ msgstr "GMN 字典别名单射约束"
 msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|skos:definition"
 msgid "A closed-world integrity constraint requiring entries in one gmeow:GmnDictionary that share a gmeow:gmnDictionaryEntryAlias to name the same gmeow:gmnDictionaryEntryTerm; one alias never reads back as two terms."
 msgstr "一项闭世界完整性约束，要求同一个 gmeow:GmnDictionary 中共享某个 gmeow:gmnDictionaryEntryAlias 的条目命名同一个 gmeow:gmnDictionaryEntryTerm；同一个别名绝不回读为两个术语。"
+
+# --- GMN math symbology plane: number-type classes, operator families, extended real line & poles ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNaturalNumberClass|rdfs:label"
+msgid "GMN candidate: the natural-number class ℕ"
+msgstr "GMN 候选：自然数类 ℕ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNaturalNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:NaturalNumber."
+msgstr "针对元素类 math:NaturalNumber 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathIntegerClass|rdfs:label"
+msgid "GMN candidate: the integer class ℤ"
+msgstr "GMN 候选：整数类 ℤ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathIntegerClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:Integer."
+msgstr "针对元素类 math:Integer 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRationalNumberClass|rdfs:label"
+msgid "GMN candidate: the rational-number class ℚ"
+msgstr "GMN 候选：有理数类 ℚ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRationalNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:RationalNumber."
+msgstr "针对元素类 math:RationalNumber 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRealNumberClass|rdfs:label"
+msgid "GMN candidate: the real-number class ℝ"
+msgstr "GMN 候选：实数类 ℝ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRealNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:RealNumber."
+msgstr "针对元素类 math:RealNumber 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathComplexNumberClass|rdfs:label"
+msgid "GMN candidate: the complex-number class ℂ"
+msgstr "GMN 候选：复数类 ℂ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathComplexNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:ComplexNumber."
+msgstr "针对元素类 math:ComplexNumber 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathSupersetOf|rdfs:label"
+msgid "GMN candidate: superset ⊇"
+msgstr "GMN 候选：超集 ⊇"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathSupersetOf|skos:definition"
+msgid "The audited named-key ruling for the non-strict superset relation math:supersetRel rendered ⊇."
+msgstr "针对非严格超集关系 math:supersetRel（呈现为 ⊇）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLessOrEqual|rdfs:label"
+msgid "GMN candidate: less-or-equal ≤"
+msgstr "GMN 候选：小于或等于 ≤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLessOrEqual|skos:definition"
+msgid "The audited named-key ruling for the non-strict order relation math:lessOrEqualRel rendered ≤."
+msgstr "针对非严格序关系 math:lessOrEqualRel（呈现为 ≤）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGreaterOrEqual|rdfs:label"
+msgid "GMN candidate: greater-or-equal ≥"
+msgstr "GMN 候选：大于或等于 ≥"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGreaterOrEqual|skos:definition"
+msgid "The audited named-key ruling for the non-strict converse-order relation math:greaterOrEqualRel rendered ≥."
+msgstr "针对非严格逆序关系 math:greaterOrEqualRel（呈现为 ≥）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSubset|rdfs:label"
+msgid "GMN candidate: proper subset ⊂"
+msgstr "GMN 候选：真子集 ⊂"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSubset|skos:definition"
+msgid "The audited structured-constructor ruling for proper (strict) subset rendered ⊂, over the non-strict relation math:subsetOf."
+msgstr "针对真（严格）子集（呈现为 ⊂）、基于非严格关系 math:subsetOf 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSuperset|rdfs:label"
+msgid "GMN candidate: proper superset ⊃"
+msgstr "GMN 候选：真超集 ⊃"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSuperset|skos:definition"
+msgid "The audited structured-constructor ruling for proper (strict) superset rendered ⊃, over the non-strict relation math:supersetRel."
+msgstr "针对真（严格）超集（呈现为 ⊃）、基于非严格关系 math:supersetRel 的已审定结构化构造子裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExtendedRealLine|rdfs:label"
+msgid "GMN candidate: extended real line ℝ̄"
+msgstr "GMN 候选：扩展实数轴 ℝ̄"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExtendedRealLine|skos:definition"
+msgid "The audited named-key ruling for the signed extended real line math:ExtendedRealLine rendered ℝ̄."
+msgstr "针对带符号扩展实数轴 math:ExtendedRealLine（呈现为 ℝ̄）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathPositiveInfinity|rdfs:label"
+msgid "GMN candidate: positive infinity +∞"
+msgstr "GMN 候选：正无穷 +∞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathPositiveInfinity|skos:definition"
+msgid "The audited named-key ruling for the positive pole math:PositiveInfinity rendered +∞."
+msgstr "针对正极 math:PositiveInfinity（呈现为 +∞）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegativeInfinity|rdfs:label"
+msgid "GMN candidate: negative infinity −∞"
+msgstr "GMN 候选：负无穷 −∞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegativeInfinity|skos:definition"
+msgid "The audited named-key ruling for the negative pole math:NegativeInfinity rendered −∞."
+msgstr "针对负极 math:NegativeInfinity（呈现为 −∞）的已审定命名键裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathSupersetOf|rdfs:label"
+msgid "the GMN superset named key `supseteq`"
+msgstr "GMN 超集命名键 “supseteq”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathSupersetOf|skos:definition"
+msgid "The binary infix GMN named-key form `supseteq` for the non-strict superset relation math:supersetRel at the relational precedence band; the ⊇ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "用于非严格超集关系 math:supersetRel 的二元中缀 GMN 命名键形式 “supseteq”，位于关系优先级带；⊇ 记号因在固定 BPE 下会碎裂，故保留为显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLessOrEqual|rdfs:label"
+msgid "the GMN less-or-equal named key `leq`"
+msgstr "GMN 小于或等于命名键 “leq”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLessOrEqual|skos:definition"
+msgid "The binary infix GMN named-key form `leq` for the non-strict order relation math:lessOrEqualRel at the relational precedence band."
+msgstr "用于非严格序关系 math:lessOrEqualRel 的二元中缀 GMN 命名键形式 “leq”，位于关系优先级带。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathGreaterOrEqual|rdfs:label"
+msgid "the GMN greater-or-equal named key `geq`"
+msgstr "GMN 大于或等于命名键 “geq”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathGreaterOrEqual|skos:definition"
+msgid "The binary infix GMN named-key form `geq` for the non-strict converse-order relation math:greaterOrEqualRel at the relational precedence band."
+msgstr "用于非严格逆序关系 math:greaterOrEqualRel 的二元中缀 GMN 命名键形式 “geq”，位于关系优先级带。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathExtendedRealLine|rdfs:label"
+msgid "the GMN extended-real-line named key `extreal`"
+msgstr "GMN 扩展实数轴命名键 “extreal”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathExtendedRealLine|skos:definition"
+msgid "The constant GMN named-key form `extreal` for the signed extended real line math:ExtendedRealLine; the ℝ̄ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "用于带符号扩展实数轴 math:ExtendedRealLine 的常量 GMN 命名键形式 “extreal”；ℝ̄ 记号因在固定 BPE 下会碎裂，故保留为显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathPositiveInfinity|rdfs:label"
+msgid "the GMN positive-infinity named key `posinf`"
+msgstr "GMN 正无穷命名键 “posinf”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathPositiveInfinity|skos:definition"
+msgid "The constant GMN named-key form `posinf` for the positive pole math:PositiveInfinity; the signed +∞ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "用于正极 math:PositiveInfinity 的常量 GMN 命名键形式 “posinf”；带符号的 +∞ 记号因在固定 BPE 下会碎裂，故保留为显示记法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathNegativeInfinity|rdfs:label"
+msgid "the GMN negative-infinity named key `neginf`"
+msgstr "GMN 负无穷命名键 “neginf”"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathNegativeInfinity|skos:definition"
+msgid "The constant GMN named-key form `neginf` for the negative pole math:NegativeInfinity; the signed −∞ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "用于负极 math:NegativeInfinity 的常量 GMN 命名键形式 “neginf”；带符号的 −∞ 记号因在固定 BPE 下会碎裂，故保留为显示记法。"

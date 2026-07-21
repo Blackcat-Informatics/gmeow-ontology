@@ -1346,6 +1346,51 @@ gmeow:eqMathLuminousDimensionDsi a gmeow:TermEquivalence, logic:GroundingCorresp
     logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly .
 
+# --- Coherent derived dimension (force) → QUDT / Wikidata provenance -------- #
+# The force dimension M·L·T⁻² is the coherent SI derived quantity realized by the
+# newton (kg·m·s⁻²). ISO 80000-1 is the exponent-vector-model authority but has no
+# dereferenceable per-quantity IRI, so provenance anchors on the realizable QUDT
+# and Wikidata proxies (ISO 80000 cited in prose). Alignment, never identity.
+
+gmeow:eqMathForceDimensionQudtUnit a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:forceDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/unit/N> ;
+    logic:sourceEndpoint math:forceDimension ; logic:targetEndpoint <http://qudt.org/vocab/unit/N> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "newton" ;
+    gmeow:comment "The force dimension M·L·T⁻² is realized by the SI derived unit newton (kg·m·s⁻²); qudt:unit/N is the authoritative unit anchor and follows ISO 80000-1's exponent-vector model. relatedMatch (dimension realized by unit), cited not re-minted." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathForceDimensionQudt a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:forceDimension ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://qudt.org/vocab/quantitykind/Force> ;
+    logic:sourceEndpoint math:forceDimension ; logic:targetEndpoint <http://qudt.org/vocab/quantitykind/Force> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quantitykind:Force" ;
+    gmeow:comment "math:forceDimension (M·L·T⁻²) aligns to the QUDT quantity kind Force. closeMatch: a derived dimension and the derived quantity kind are close counterparts. Full IRI by reference." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
+gmeow:eqMathForceDimensionWikidata a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
+    gmeow:alignSubject math:forceDimension ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q11402 ;
+    logic:sourceEndpoint math:forceDimension ; logic:targetEndpoint wd:Q11402 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "force" ;
+    gmeow:comment "math:forceDimension is the dimension of the physical quantity force; wd:Q11402 (force) is the Wikidata identity hub for that quantity. relatedMatch (dimension of the quantity), cited not re-minted." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    logic:morphismClass logic:AffineCorrespondence ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly .
+
 # --- Quantity and dimension → OM 2 (align, don't spine) --------------------- #
 # The /resource/ IRIs below are OM 2's own canonical class identities: om-2.0.rdf
 # declares <owl:Class rdf:about="&om;Quantity"> and <owl:Class rdf:about="&om;Dimension">

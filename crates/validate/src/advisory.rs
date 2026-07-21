@@ -35,6 +35,9 @@ use gmeow_errors::render::nq_escape;
 use gmeow_errors::{
     Advice, Diag, FindingCategory, Grade, Location, Rule, Severity, Standpoint, register_code,
 };
+use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationReport, ValidationResult};
+use purrdf::shapes::term::Term as ShaclTerm;
+use sha2::{Digest, Sha256};
 
 // ── Standpoint & modality constants ─────────────────────────────────────────
 
@@ -371,25 +374,274 @@ impl Advisory {
     }
 }
 
-/// The single fixed demonstrator advisory (D1/D3/D4): emits a Note finding
-/// distinct from compliance errors on every normal-completion run, so `gmeow
-/// validate` surfaces the advisory tier before harvested advisory rules land
-/// (D3 replaces this demonstrator; find it via the `"advisory-demonstrator"`
-/// tag).
+// ── Advisory bridge: data-matched Info constraints → Note advisories ────────
+
+/// The `logic:formalizes` back-reference every derived constraint shape carries — the
+/// gmeow-domain term the advisory constraint concerns (the advice's provenance).
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// The help page every harvested advisory rule links to.
+const ADVICE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/advice";
+/// The formalized term's positive how-to prose — surfaced on the advisory as a corrective
+/// `suggestion` (D3 acceptance criterion: `gmeow:howToUse` populates `suggestions`).
+const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
+/// The formalized term's applicability prose — surfaced on the advisory as contextual
+/// guidance (D3 acceptance criterion: `gmeow:useWhen` surfaces as guidance).
+const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
+/// The canonical source language every authored guidance literal carries; the public
+/// `@en`/`@zh`/`@fr` projections are never the surfaced text.
+const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
+
+/// The IRI string of a SHACL term, or `None` for a blank node / literal.
+fn shacl_iri(term: &ShaclTerm) -> Option<String> {
+    match term {
+        ShaclTerm::NamedNode(n) => Some(n.as_str().to_owned()),
+        _ => None,
+    }
+}
+
+/// The local name of an IRI (after the last `/` or `#`), sanitised to the IRI-safe
+/// code alphabet so it can key a `deonticRecommendation` claim IRI.
+fn code_local(iri: &str) -> String {
+    let raw = iri.rsplit(['/', '#']).next().unwrap_or(iri);
+    raw.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-') {
+                c
+            } else {
+                '-'
+            }
+        })
+        .collect()
+}
+
+/// A stable 12-hex-char digest of a focus-node IRI — makes each `(constraint, focus)`
+/// match's advisory code unique (so [`project_compliance_assessment`] never sees a
+/// duplicate code) and deterministic across runs (SHA-256, not a process hasher).
+fn focus_digest(focus: &str) -> String {
+    let digest = Sha256::digest(focus.as_bytes());
+    let mut hex = String::with_capacity(12);
+    for b in digest.iter().take(6) {
+        use std::fmt::Write;
+        let _ = write!(hex, "{b:02x}");
+    }
+    hex
+}
+
+/// The gmeow-domain term the derived `shape_iri` `logic:formalizes` (its advice
+/// provenance), read from the `shapes` graph. `None` when the shape carries none.
+fn shape_formalizes(shapes: &purrdf::RdfDataset, shape_iri: &str) -> Option<String> {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let (Some(subj), Some(pred)) = (
+        graph_id(shapes, shape_iri),
+        graph_id(shapes, LOGIC_FORMALIZES),
+    ) else {
+        return None;
+    };
+    shapes
+        .quads_for_pattern(Some(subj), Some(pred), None, GraphMatch::Any)
+        .find_map(|q| match shapes.resolve(q.o) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        })
+}
+
+/// Resolve an IRI to its interned dataset id (small local helper).
+fn graph_id(ds: &purrdf::RdfDataset, iri: &str) -> Option<purrdf::TermId> {
+    ds.term_id_by_value(&purrdf::TermValue::iri(iri))
+}
+
+/// The `term`'s canonical source-language (`@x-gmeow-english`) prose for the annotation
+/// `prop` (e.g. `gmeow:howToUse` / `gmeow:useWhen`), read from `ontology`. `None` when the
+/// term carries no such source-language literal — an `@en`/`@zh`/`@fr` projection is never
+/// returned. The single reader both suggestion (`howToUse`) and guidance (`useWhen`)
+/// surfacing route through, so an advisory carries the term's OWN prose, not a paraphrase.
+fn term_source_prose(ontology: &purrdf::RdfDataset, term: &str, prop: &str) -> Option<String> {
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+    let (Some(subj), Some(pred)) = (graph_id(ontology, term), graph_id(ontology, prop)) else {
+        return None;
+    };
+    ontology
+        .quads_for_pattern(Some(subj), Some(pred), None, GraphMatch::Any)
+        .find_map(|q| match ontology.resolve(q.o) {
+            TermRef::Literal {
+                lexical,
+                language: Some(lang),
+                ..
+            } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
+            _ => None,
+        })
+}
+
+/// Build one Note [`Advisory`] from a matched advisory constraint — the single source
+/// both the pipeline (result-based) and CLI (finding-based) splits construct through.
 ///
-/// SINGLE-SOURCED (D4): the CLI path
-/// ([`crate::validate_all`]) and the pipeline path
-/// (`crates/pipeline/src/stages/validate.rs::ValidateStage::run`) both call
-/// this function rather than each inlining their own `Advisory::note(...)`
-/// builder, so the two consumer surfaces can never drift apart.
-pub fn advisory_demonstrator() -> Advisory {
-    Advisory::note(
-        crate::codes::ADVICE_TIER_ACTIVE,
-        "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested.",
+/// The focus node (the individual whose data matched the anti-pattern guard) is the
+/// advised subject (`gmeow:observedFeature`); `message` is the advice (the constraint's
+/// formalized-term `gmeow:avoidWhen` prose); the code `advice.<shape-local>.<focus-digest>`
+/// is injective per match and identifies the governing constraint (its provenance is the
+/// shape's `logic:formalizes`, carried as a `formalizes:<term>` tag).
+///
+/// The whole prose surface of the formalized term is made machine-active here (D3): the
+/// term's `gmeow:howToUse` becomes a corrective `suggestion` and its `gmeow:useWhen` becomes
+/// a contextual-guidance `suggestion`, both read (source-language) from `ontology`. So a
+/// harvested advisory carries `avoidWhen` (as the message) + `howToUse` + `useWhen` — the
+/// term's own prose, never a paraphrase.
+fn build_advisory(
+    shape_iri: Option<&str>,
+    focus_iri: Option<&str>,
+    message: &str,
+    shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
+) -> Advisory {
+    let shape_local = shape_iri.map_or_else(|| "constraint".to_owned(), code_local);
+    let digest = focus_digest(focus_iri.unwrap_or_default());
+    let code = format!("{}{}.{}", crate::codes::ADVICE_FAMILY, shape_local, digest);
+    let mut advisory = Advisory::note(code, message.to_owned())
+        .with_tag("advisory-harvested")
+        .with_help_uri(ADVICE_HELP_URI);
+    if let Some(focus) = focus_iri {
+        advisory = advisory.with_subject_iri(focus.to_owned());
+    }
+    if let Some(term) = shape_iri.and_then(|s| shape_formalizes(shapes, s)) {
+        advisory = advisory.with_tag(format!("formalizes:{term}"));
+        // The formalized term's positive prose rides the advisory: howToUse as the corrective
+        // suggestion, useWhen as contextual guidance (each surfaced only when the term authors
+        // it — honest absence otherwise).
+        if let Some(how_to_use) = term_source_prose(ontology, &term, GMEOW_HOW_TO_USE) {
+            advisory = advisory.with_suggestion(how_to_use);
+        }
+        if let Some(use_when) = term_source_prose(ontology, &term, GMEOW_USE_WHEN) {
+            advisory = advisory.with_suggestion(format!("Use when: {use_when}"));
+        }
+    }
+    advisory
+}
+
+/// One matched advisory-constraint [`ValidationResult`] → a Note [`Advisory`].
+fn advisory_from_result(
+    r: &ValidationResult,
+    shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
+) -> Advisory {
+    let message = r
+        .message
+        .clone()
+        .unwrap_or_else(|| "advisory constraint matched".to_owned());
+    build_advisory(
+        shacl_iri(&r.source_shape).as_deref(),
+        shacl_iri(&r.focus_node).as_deref(),
+        &message,
+        shapes,
+        ontology,
     )
-    .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
-    .with_help_uri("https://blackcatinformatics.ca/gmeow/advice")
-    .with_tag("advisory-demonstrator")
+}
+
+/// Split ADVISORY findings out of an already-projected [`gmeow_errors::Report`] — the
+/// CLI twin of [`split_advisory_results`] (which works on raw results before projection).
+///
+/// The CLI interns all SHACL findings (including the Info-severity advisory ones as
+/// `shacl.*`) through cached phases, so the split happens on the projected report: each
+/// `Severity::Info`, `shacl.*` finding whose recorded source shape carries a
+/// `logic:formalizes` is an advisory-constraint match — it is REMOVED from `report` (its
+/// raw `shacl.*` form suppressed) and returned as a Note [`Advisory`] for the dual
+/// projection. Fires from a DATA MATCH; a report with no such finding yields none.
+///
+/// `ontology` carries the formalized terms' `gmeow:howToUse` / `gmeow:useWhen` prose that each
+/// advisory surfaces as suggestions/guidance (the CLI passes the validated bundle dataset).
+#[must_use]
+pub fn split_advisory_findings(
+    report: &mut gmeow_errors::Report,
+    shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
+) -> Vec<Advisory> {
+    let mut advisories = Vec::new();
+    let mut retained = Vec::with_capacity(report.findings.len());
+    for finding in std::mem::take(&mut report.findings) {
+        let is_shacl = finding.code.starts_with(crate::codes::SHACL_FAMILY);
+        let shape_iri = finding.detail.as_deref().and_then(|d| {
+            d.strip_prefix("source shape: ")
+                .map(|s| s.trim().to_owned())
+        });
+        let is_advisory = finding.severity == Severity::Info
+            && is_shacl
+            && shape_iri
+                .as_deref()
+                .is_some_and(|s| shape_formalizes(shapes, s).is_some());
+        if is_advisory {
+            let focus = finding.primary_location().and_then(|l| l.logical.clone());
+            advisories.push(build_advisory(
+                shape_iri.as_deref(),
+                focus.as_deref(),
+                &finding.message,
+                shapes,
+                ontology,
+            ));
+        } else {
+            retained.push(finding);
+        }
+    }
+    report.findings = retained;
+    advisories.sort_by(|a, b| a.code.cmp(&b.code));
+    // One advice per (constraint, focus): collapse a shape matched more than once on the same
+    // focus (identical `advice.<shape-local>.<focus-digest>` code) so the claim emitter never sees
+    // a duplicate — mirrors `split_advisory_results`.
+    advisories.dedup_by(|a, b| a.code == b.code);
+    advisories
+}
+
+/// Split a SHACL [`ValidationReport`] into (retained hard/warning results, advisory
+/// Note projections). An `Info`-severity result is ADVISORY — it comes from a
+/// `logic:severity "Info"` advisory constraint (the only Info constraints authored),
+/// so its raw `shacl.*` finding is SUPPRESSED (removed from `retained`) and re-projected
+/// through the advisory dual-projection as a `Severity::Note` finding + a
+/// `deonticRecommendation` `gmeow:ComplianceAssessment`. The advisory fires from a DATA
+/// MATCH — the guard matched an individual — never merely because a rule exists.
+///
+/// Deterministic: advisories are sorted by code, and the retained results preserve the
+/// engine's order. The `shapes` graph is read for each advisory shape's `logic:formalizes`
+/// provenance term; `ontology` carries the formalized terms' `gmeow:howToUse` /
+/// `gmeow:useWhen` prose each advisory surfaces (the pipeline passes the source graph).
+#[must_use]
+pub fn split_advisory_results(
+    report: ValidationReport,
+    shapes: &purrdf::RdfDataset,
+    ontology: &purrdf::RdfDataset,
+) -> (ValidationReport, Vec<Advisory>) {
+    let mut retained = Vec::new();
+    let mut advisories = Vec::new();
+    for result in report.results {
+        if matches!(result.severity, ShaclSeverity::Info) {
+            advisories.push(advisory_from_result(&result, shapes, ontology));
+        } else {
+            retained.push(result);
+        }
+    }
+    advisories.sort_by(|a, b| a.code.cmp(&b.code));
+    // One advice per (constraint, focus): the SAME advisory constraint matching the SAME focus
+    // node is ONE piece of advice, but the engine can surface it more than once (a shape present
+    // twice in the shape union, or duplicate SPARQL solution rows), and the code
+    // `advice.<shape-local>.<focus-digest>` is identical for those. Collapse them so the claim
+    // emitter never sees a duplicate code — otherwise `project_compliance_assessment` hard-fails.
+    advisories.dedup_by(|a, b| a.code == b.code);
+    debug_assert!(
+        advisories.windows(2).all(|w| w[0].code != w[1].code),
+        "advisory codes must be unique per (constraint, focus) match after dedup"
+    );
+    // Recompute conformance for the RETAINED set: advisory Info matches were the reason
+    // the run was non-conforming iff they were the only results, but they never gate — so
+    // once they are lifted out, the retained report conforms unless a real Violation
+    // remains. (Without this, suppressing the only result leaves conforms=false with an
+    // empty result set, which the diagnostics fallback wrongly reports as a hard error.)
+    let conforms = !retained
+        .iter()
+        .any(|r| matches!(r.severity, ShaclSeverity::Violation));
+    (
+        ValidationReport {
+            conforms,
+            results: retained,
+        },
+        advisories,
+    )
 }
 
 // ── ComplianceAssessment RDF emitter (D4) ───────────────────────────────────
@@ -734,14 +986,210 @@ mod tests {
         assert_eq!(claim.subject_iri, None);
     }
 
+    // ── Advisory bridge: data-matched Info constraints → Note advisories ─────
+
+    fn result(
+        severity: ShaclSeverity,
+        shape: &str,
+        focus: &str,
+        message: &str,
+    ) -> ValidationResult {
+        use purrdf::shapes::term::{NamedNode, Term};
+        ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked(focus)),
+            result_path: None,
+            path_structure: None,
+            value: None,
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#SPARQLConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked(shape)),
+            severity,
+            message: Some(message.to_owned()),
+            source_box_roles: Vec::new(),
+            path_box_roles: Vec::new(),
+            result_box_roles: Vec::new(),
+            attributions: Vec::new(),
+        }
+    }
+
+    /// An `Info`-severity result (from an advisory constraint) is lifted into a Note
+    /// advisory carrying the focus node as subject and the shape's `logic:formalizes`
+    /// provenance, its raw `shacl.*` finding SUPPRESSED; a `Violation` result is retained
+    /// for the hard diagnostics report. The advisory fires from the DATA MATCH.
+    #[test]
+    fn split_advisory_lifts_info_results_and_retains_violations() {
+        let shapes = purrdf::parse_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              <https://ex/advShape> logic:formalizes gmeow:Entity .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("shapes parse");
+        // The ontology carries the formalized term's positive prose: howToUse → the advisory's
+        // corrective suggestion, useWhen → contextual guidance (D3 acceptance criteria).
+        let ontology = purrdf::parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\"@x-gmeow-english ;\n\
+                gmeow:useWhen \"Use for a genuinely category-neutral resource.\"@x-gmeow-english .\n",
+            "text/turtle",
+            None,
+        )
+        .expect("ontology parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/thing",
+                    "prefer a more specific sortal than bare gmeow:Entity",
+                ),
+                result(
+                    ShaclSeverity::Violation,
+                    "https://ex/hardShape",
+                    "https://data/bad",
+                    "a required value is missing",
+                ),
+            ],
+        };
+
+        let (retained, advisories) = split_advisory_results(report, &shapes, &ontology);
+
+        // The hard violation is retained; the Info result was suppressed.
+        assert_eq!(retained.results.len(), 1);
+        assert_eq!(retained.results[0].severity, ShaclSeverity::Violation);
+
+        // Exactly one Note advisory, subject = the matched focus node, provenance tag.
+        assert_eq!(advisories.len(), 1);
+        let advisory = &advisories[0];
+        assert_eq!(advisory.severity, Severity::Note);
+        assert!(advisory.code.starts_with(crate::codes::ADVICE_FAMILY));
+        assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
+        assert_eq!(
+            advisory.message,
+            "prefer a more specific sortal than bare gmeow:Entity"
+        );
+        assert!(advisory.tags.iter().any(|t| t == "advisory-harvested"));
+        assert!(
+            advisory
+                .tags
+                .iter()
+                .any(|t| t == "formalizes:https://blackcatinformatics.ca/gmeow/Entity"),
+            "the advisory carries its constraint's logic:formalizes provenance: {:?}",
+            advisory.tags
+        );
+        // howToUse populates the suggestions verbatim; useWhen is surfaced as guidance.
+        assert!(
+            advisory
+                .suggestions
+                .iter()
+                .any(|s| s == "Type each instance with its most specific sortal."),
+            "gmeow:howToUse must populate the advisory's suggestions: {:?}",
+            advisory.suggestions
+        );
+        assert!(
+            advisory
+                .suggestions
+                .iter()
+                .any(|s| s == "Use when: Use for a genuinely category-neutral resource."),
+            "gmeow:useWhen must surface as contextual guidance: {:?}",
+            advisory.suggestions
+        );
+
+        // Its claim wing carries the deonticRecommendation modality and the subject.
+        let claim = advisory.project().claim;
+        assert_eq!(claim.modality_iri, DEONTIC_RECOMMENDATION_IRI);
+        assert_eq!(claim.subject_iri.as_deref(), Some("https://data/thing"));
+    }
+
+    /// Two matches of the SAME advisory constraint at DIFFERENT focus nodes get distinct
+    /// injective codes (so the claim emitter never sees a duplicate) and both project.
+    #[test]
+    fn split_advisory_distinct_foci_get_distinct_codes() {
+        let shapes = purrdf::parse_dataset(
+            b"<https://ex/advShape> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Entity> .\n",
+            "application/n-triples",
+            None,
+        )
+        .expect("shapes parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/a",
+                    "advice",
+                ),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/b",
+                    "advice",
+                ),
+            ],
+        };
+        let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
+        assert_eq!(advisories.len(), 2);
+        assert_ne!(
+            advisories[0].code, advisories[1].code,
+            "distinct foci → distinct codes"
+        );
+        // No duplicate-code panic when both distinct-focus claims project to N-Quads.
+        let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
+        let _ = project_compliance_assessment(&claims, "https://ex/graph");
+    }
+
+    /// The SAME advisory constraint matching the SAME focus more than once (a shape present twice
+    /// in the shape union, or duplicate SPARQL solution rows) is ONE advice: the duplicate
+    /// `advice.<shape>.<focus-digest>` results collapse to a single advisory, so the claim emitter
+    /// never sees a duplicate code (which would hard-fail `project_compliance_assessment`).
+    #[test]
+    fn split_advisory_dedups_duplicate_shape_focus_matches() {
+        let shapes = purrdf::parse_dataset(
+            b"<https://ex/advShape> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Entity> .\n",
+            "application/n-triples",
+            None,
+        )
+        .expect("shapes parse");
+        let report = ValidationReport {
+            conforms: false,
+            results: vec![
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/dup",
+                    "advice",
+                ),
+                result(
+                    ShaclSeverity::Info,
+                    "https://ex/advShape",
+                    "https://data/dup",
+                    "advice",
+                ),
+            ],
+        };
+        let (_retained, advisories) = split_advisory_results(report, &shapes, &shapes);
+        assert_eq!(
+            advisories.len(),
+            1,
+            "duplicate (shape, focus) Info matches must collapse to one advisory: {advisories:?}"
+        );
+        // And the collapsed set projects to N-Quads with no duplicate-code panic.
+        let claims: Vec<AdvisoryClaim> = advisories.iter().map(|a| a.project().claim).collect();
+        let _ = project_compliance_assessment(&claims, "https://ex/graph");
+    }
+
     // ── (D4) project_compliance_assessment ──────────────────────────────────
 
     const DEMO_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
-    /// The demonstrator-style claim: code `advice.tier.active`, all defaults.
+    /// The demonstrator-style claim: code `advice.sample.demo`, all defaults.
     fn demo_claim() -> AdvisoryClaim {
         Advisory::note(
-            "advice.tier.active",
+            "advice.sample.demo",
             "prefer the active-voice recommendation phrasing",
         )
         .project()
@@ -936,7 +1384,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "confidence out of range")]
     fn out_of_range_confidence_hard_fails() {
-        let claim = Advisory::note("advice.tier.active", "prefer the active-voice phrasing")
+        let claim = Advisory::note("advice.sample.demo", "prefer the active-voice phrasing")
             .with_confidence(1.5)
             .project()
             .claim;
@@ -960,10 +1408,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "duplicate code")]
     fn duplicate_code_hard_fails() {
-        let a = Advisory::note("advice.tier.active", "first ruling")
+        let a = Advisory::note("advice.sample.demo", "first ruling")
             .project()
             .claim;
-        let b = Advisory::note("advice.tier.active", "second, conflicting ruling")
+        let b = Advisory::note("advice.sample.demo", "second, conflicting ruling")
             .with_confidence(0.25)
             .project()
             .claim;
