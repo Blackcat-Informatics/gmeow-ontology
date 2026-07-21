@@ -2490,7 +2490,8 @@ gmeow:GmnArgRole
     gmeow:useWhen "Use as the closed value vocabulary for the named role a GMN operator's ordered operand slot fills."@x-gmeow-english .
 
 gmeow:GmnArgSlot
-    a owl:Class ;
+    a logic:Kind ,
+        owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Argument Slot"@x-gmeow-english ;
     skos:definition "An ordered, named operand slot in a GMN operator signature: a reified carrier holding exactly one zero-based gmeow:gmnArgIndex (operand position), one gmeow:gmnArgSort (the operand's syntactic sort, a gmeow:GmnSort), and one gmeow:gmnArgRole (the named role it fills, a gmeow:GmnArgRole). An operator declares its slots through gmeow:gmnOperandSorts; slot order is carried by the integer gmeow:gmnArgIndex, never by RDF list ordering, mirroring the lang:FormSlot idiom so two encodings of one signature are one signature. It is the position-and-role carrier, NOT the operand value itself and NOT the sort or role vocabularies it points at."@x-gmeow-english ;
