@@ -66,6 +66,9 @@ const OWL_DATATYPE_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#datatype
 const OWL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
 const OWL_RATIONAL: &str = "http://www.w3.org/2002/07/owl#rational";
 const OWL_REAL: &str = "http://www.w3.org/2002/07/owl#real";
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
 
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -84,6 +87,48 @@ const XSD_MAX_LENGTH: &str = "http://www.w3.org/2001/XMLSchema#maxLength";
 const XSD_PATTERN: &str = "http://www.w3.org/2001/XMLSchema#pattern";
 
 const RULE_NAME: &str = "refute:datatype-value-space";
+
+/// The predicates the datatype value-space fragment fully consumes and proves
+/// complete over — exactly the vocabulary [`Model::scan`] interprets (the
+/// value-space shape, cardinality/existential scaffolding, and facet plumbing) plus
+/// the RDF-list plumbing that carries `owl:oneOf` enumerations and
+/// `owl:withRestrictions` facet lists. A case carrying ANY predicate outside this
+/// allowlist — and not a declared `owl:DatatypeProperty` value edge (see the dynamic
+/// `Model::datatype_props` check at the call site) — is refused a `Consistent`
+/// certificate: a class-construction axiom (`owl:complementOf`/`unionOf`/
+/// `disjointWith`/`equivalentClass`/`subClassOf`), an identity axiom
+/// (`owl:sameAs`/`differentFrom`/`inverseOf`), or an object-property assertion could
+/// carry an inconsistency (or a further constraint) this per-obligation analysis
+/// never inspects, so its mere presence is an honest obstruction rather than a
+/// silent guess. A proven CLASH is unaffected by this gate — it stays decisive
+/// regardless (mirrors [`super::counting::ALLOWED_CARDINALITY_PREDICATES`]).
+const ALLOWED_DATATYPE_PREDICATES: &[&str] = &[
+    RDF_TYPE,
+    RDF_FIRST,
+    RDF_REST,
+    OWL_ON_PROPERTY,
+    OWL_SOME_VALUES_FROM,
+    OWL_ALL_VALUES_FROM,
+    OWL_CARDINALITY,
+    OWL_MIN_CARDINALITY,
+    OWL_QUALIFIED_CARDINALITY,
+    OWL_MIN_QUALIFIED_CARDINALITY,
+    OWL_MAX_CARDINALITY,
+    OWL_MAX_QUALIFIED_CARDINALITY,
+    RDFS_RANGE,
+    OWL_ON_DATATYPE,
+    OWL_WITH_RESTRICTIONS,
+    OWL_DATATYPE_COMPLEMENT_OF,
+    OWL_ONE_OF,
+    XSD_MIN_INCLUSIVE,
+    XSD_MAX_INCLUSIVE,
+    XSD_MIN_EXCLUSIVE,
+    XSD_MAX_EXCLUSIVE,
+    XSD_LENGTH,
+    XSD_MIN_LENGTH,
+    XSD_MAX_LENGTH,
+    XSD_PATTERN,
+];
 
 /// The `math:`-grounded finite value-space cardinalities of named datatypes.
 ///
@@ -161,6 +206,39 @@ pub(crate) fn decide(edb: &RdfDataset) -> Option<RefutationCertificate> {
                 )
             },
         ));
+    }
+
+    // Whole-case completeness: a `Consistent` verdict is licensed only when EVERY
+    // predicate present is either datatype value-space scaffolding this decider
+    // consumes and proves complete over, or a declared `owl:DatatypeProperty` value
+    // edge (the decider's own per-obligation analysis already reasons over its
+    // range / value-space membership). Anything else — a class-construction axiom,
+    // an identity axiom, an unrelated object-property assertion — could carry an
+    // inconsistency (decidable by a sibling family) this per-obligation analysis
+    // never inspects, so its mere presence is an honest obstruction. This is the
+    // gate that stops a proven-elsewhere `casesplit`/`counting` inconsistency from
+    // being masked by a `Consistent` short-circuit (soundness by construction).
+    for predicate in &model.predicates {
+        if !ALLOWED_DATATYPE_PREDICATES.contains(&predicate.as_str())
+            && !model.datatype_props.contains(predicate)
+        {
+            obstructions.insert(format!(
+                "datatype value-space fragment: unhandled predicate <{predicate}> may interact \
+                 with the value-space obligation"
+            ));
+        }
+    }
+    // A declared `owl:DatatypeProperty` that is ALSO functional / inverse-functional
+    // carries an identity-collapse obligation (two distinct literal values forced
+    // equal, or a merged-subject pair) this decider does not reason over — mirrors
+    // the counting decider's identical property-characteristic gate.
+    for object in &model.type_objects {
+        if object == OWL_FUNCTIONAL_PROPERTY || object == OWL_INVERSE_FUNCTIONAL_PROPERTY {
+            obstructions.insert(format!(
+                "datatype value-space fragment: property characteristic <{object}> may interact \
+                 with the value-space obligation"
+            ));
+        }
     }
 
     Some(certify_membership(
@@ -750,6 +828,10 @@ struct Model {
     lists: BTreeMap<String, Vec<RdfTerm>>,
     /// `(world, subject, property) → asserted literal values`.
     values: BTreeMap<(String, String, String), Vec<RdfLiteral>>,
+    /// Every predicate IRI present (for the whole-case completeness gate).
+    predicates: BTreeSet<String>,
+    /// Every `rdf:type` object IRI present.
+    type_objects: BTreeSet<String>,
 }
 
 fn resource_key(term: &RdfTerm) -> Option<String> {
@@ -782,6 +864,8 @@ impl Model {
             facet_carrier: BTreeMap::new(),
             lists: BTreeMap::new(),
             values: BTreeMap::new(),
+            predicates: BTreeSet::new(),
+            type_objects: BTreeSet::new(),
         };
         // raw first/rest edges for the literal-aware list walk.
         let mut first: BTreeMap<String, RdfTerm> = BTreeMap::new();
@@ -794,6 +878,7 @@ impl Model {
                 Some(s) => s,
                 None => continue,
             };
+            m.predicates.insert(predicate.to_owned());
             match predicate {
                 RDF_TYPE => {
                     if let RdfTerm::Iri(o) = &quad.object
@@ -802,6 +887,7 @@ impl Model {
                         m.datatype_props.insert(subject.clone());
                     }
                     if let Some(class) = resource_key(&quad.object) {
+                        m.type_objects.insert(class.clone());
                         m.types
                             .entry((world.clone(), subject.clone()))
                             .or_default()
