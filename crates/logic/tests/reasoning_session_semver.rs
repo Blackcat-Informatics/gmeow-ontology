@@ -93,8 +93,14 @@ use session_common::*;
 /// `reason/refute/{casesplit,counting,datatype}.rs` into a single canonical definition in
 /// `reason/refute.rs` (folded via `include_str!` into `native_contract_hash()`), so the raw
 /// source-content digest moves; this is a pure refactor and no reasoning verdict changes.
+/// Re-blessed once more for the DL existential-chase materialization backstop: `reason/dl.rs`
+/// (the `≥n` obligation bound + chase-incomplete withhold) and `physical/chase.rs` (the
+/// budget-bounded `join_atoms`/`head_satisfied` working set) are folded via `include_str!`
+/// into `native_contract_hash()`, so the raw source-content digest moves; the change only
+/// turns a previously-OOM super-polynomial materialization into a sound INCOMPLETE withhold
+/// and no reasoning verdict on any decided input changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "9438ab472fe2bf0e72ab39cc8a1c8a3a87d2ad18769c9dde54557ab3a5ad6563";
+    "d27e301f3d3592f3120a6a99474f3e39c38def7a0778c6a2c00cd83f1ee43d76";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -125,8 +131,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the native contract hash is one of the seven folded
 /// identity axes and moves with the changed `reason/refute.rs` engine source, while the
 /// fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the DL existential-chase materialization backstop (see the
+/// engine-descriptor golden above): the native contract hash folds the changed
+/// `reason/dl.rs` + `physical/chase.rs` source, so the session identity moves with it, while
+/// the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e22a0bbf9591833595b8c9be98c8fb4ab06f0685bb473e9e1f90cf1db1ac4f3d";
+    "6966da60098bcfb26e5a9cb81f2e215e34a39ed6735b1f770a372c600c46d24b";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

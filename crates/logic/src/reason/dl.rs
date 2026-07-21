@@ -52,6 +52,58 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+// ── Chase materialization backstop (sound withhold under a resource bound) ─────
+//
+// The DL existential chase runs a weakly/jointly-acyclic CERTIFIED program, so it is
+// guaranteed to TERMINATE — but not in tractable space. A certified program can still
+// mint a super-polynomial (up to double-exponential) witness model: a large exact
+// cardinality (e.g. an `owl:cardinality 127` restriction feeding an inverse/equivalent-
+// class cycle, W3C `WebOnt-I5.1-010`) fans out witnesses whose full materialization
+// exhausts memory long before the fixpoint closes. Running such a program unbudgeted
+// OOMs the process rather than deciding it.
+//
+// These two bounds are HARD memory ceilings on that terminating path. Exceeding EITHER
+// stops the chase and records an honest INCOMPLETE withhold (a `DlGap`) — never a wrong
+// `consistent`/`inconsistent` decision (the incomplete-never-wrong contract). Both are
+// set FAR above the largest materialization any decided W3C OWL 2 (EL + Full) corpus
+// case needs (measured max total facts is in the low hundreds; measured max chase steps
+// likewise), so no currently-decided case can reach them — they only ever trip on a
+// genuinely explosive input, exactly where the reasoner must withhold instead of grow.
+//
+// `CHASE_STEP_BACKSTOP` caps committed derivations within ONE `route_chase` invocation
+// (the `StepGovernor` unit); `MAX_CHASE_FACTS` caps the cumulative fact set the outer
+// alternating fixed-point accumulates across invocations. Together they bound both the
+// single-call blow-up and the multi-round accumulation.
+const CHASE_STEP_BACKSTOP: u64 = 20_000;
+const MAX_CHASE_FACTS: usize = 500_000;
+
+/// The largest `≥n` existential obligation the native restricted chase will lower into a
+/// concrete witness-inventing rule.
+///
+/// A cardinality minimum `≥n` (`owl:cardinality`/`owl:minCardinality`/the qualified
+/// forms) lowers to a rule that invents `n` distinct witnesses AND asserts their
+/// `n·(n−1)/2` pairwise `owl:differentFrom` — a QUADRATIC head. A very large `n` (the
+/// W3C `WebOnt-description-logic-907` case declares `owl:cardinality 60000`, i.e. ~1.8
+/// billion difference atoms) exhausts memory just BUILDING that rule, before any chase
+/// step runs. Beyond this bound the obligation is not lowered; the run withholds an
+/// honest INCOMPLETE instead (the native chase cannot materialize a witness set that
+/// large), never a wrong decision and never an out-of-memory abort. It is set far above
+/// the largest `≥n` any decided W3C OWL 2 (EL + Full) case needs (their measured chase
+/// step counts are in the low single digits), so no currently-decided case regresses.
+const MAX_EXISTENTIAL_WITNESSES: usize = 512;
+
+/// Reserved internal marker predicate recorded in the closure when the existential
+/// chase stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before reaching its
+/// fixpoint. It is NOT an RDF entailment; [`verdict_from_inferred`] reads its presence
+/// and folds it into [`DlVerdict::gaps`] as a sound withhold, and it appears in the
+/// closure ONLY on an input that actually hit the bound (never on a decided case).
+const CHASE_INCOMPLETE_MARKER_PRED: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseMaterializationIncomplete";
+
+/// The reserved subject the [`CHASE_INCOMPLETE_MARKER_PRED`] marker fact carries.
+const CHASE_INCOMPLETE_MARKER_SUBJECT: &str =
+    "https://blackcatinformatics.ca/gmeow/logic/reason#chaseBackstop";
+
 // ── Out-of-fragment DL/Full constructs the native path CANNOT soundly decide ───
 //
 // These are inventoried in `CONSTRUCT_COVERAGE` so `scan_coverage` marks them
@@ -1378,8 +1430,14 @@ pub(crate) fn authored_existential_rules(
 fn structured_existential_rules(
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
-) -> BTreeMap<String, Vec<crate::physical::ExistentialRule>> {
+) -> (
+    BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    bool,
+) {
     use crate::rule_ir::{EvalAtom, EvalTerm};
+    // Whether any `≥n` obligation exceeded `MAX_EXISTENTIAL_WITNESSES` and was NOT
+    // lowered — the caller records an honest INCOMPLETE withhold for it.
+    let mut oversized_withheld = false;
 
     const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     let datatype_properties = quads_by_subject(edb)
@@ -1401,6 +1459,13 @@ fn structured_existential_rules(
             continue;
         }
         for (needed, on_class) in existential_obligations(restriction) {
+            // A `≥n` beyond the materialization bound is not lowered: building its
+            // n·(n−1)/2-atom quadratic head would exhaust memory before the chase runs.
+            // Withhold an honest INCOMPLETE instead of constructing an unbounded rule.
+            if needed > MAX_EXISTENTIAL_WITNESSES {
+                oversized_withheld = true;
+                continue;
+            }
             let witnesses = (0..needed)
                 .map(|ordinal| format!("?witness{ordinal}"))
                 .collect::<Vec<_>>();
@@ -1457,16 +1522,47 @@ fn structured_existential_rules(
                 });
         }
     }
-    by_world
+    (by_world, oversized_withheld)
 }
 
+/// Record the sound INCOMPLETE withhold marker on the closure: the existential chase
+/// stopped at [`CHASE_STEP_BACKSTOP`]/[`MAX_CHASE_FACTS`] before its fixpoint closed,
+/// so the run cannot certify a `consistent`/`inconsistent` decision.
+///
+/// The marker is idempotent (recorded once) and lives ONLY in `inferred` — it is never
+/// inserted into `facts`, so it cannot perturb any downstream rule firing;
+/// [`verdict_from_inferred`] reads its presence and folds it into [`DlVerdict::gaps`].
+fn record_chase_materialization_withhold(inferred: &mut Vec<InferredAxiom>) {
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        return;
+    }
+    inferred.push(InferredAxiom {
+        subject: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        predicate: CHASE_INCOMPLETE_MARKER_PRED.to_owned(),
+        object: format!("<{CHASE_INCOMPLETE_MARKER_SUBJECT}>"),
+        world: CHASE_INCOMPLETE_MARKER_SUBJECT.to_owned(),
+        is_edb: false,
+        rule_name: Some("dl:chase-materialization-backstop".to_owned()),
+        premises: Vec::new(),
+    });
+}
+
+/// Run the structured existential chase over each world's rules.
+///
+/// Returns the per-world chase certificates and whether the chase was cut short by the
+/// materialization backstop ([`CHASE_STEP_BACKSTOP`]) in ANY world — an exhausted world
+/// yields a sound partial prefix, and the caller records the withhold and stops.
 fn run_structured_existential_chase(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
     rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
     witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
-) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+) -> gmeow_errors::Result<(Vec<crate::reason::ChaseCertificate>, bool)> {
     let mut certificates = Vec::new();
+    let mut incomplete = false;
     for (world, rules) in rules_by_world {
         if rules.is_empty() {
             continue;
@@ -1481,8 +1577,13 @@ fn run_structured_existential_chase(
             })
             .collect::<Vec<_>>();
         let registry = witness_registries.entry(world.clone()).or_default();
-        let (admission, outcome) =
-            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
+        let (admission, outcome) = crate::physical::route_chase_with_registry_backstopped(
+            world,
+            &edb,
+            rules,
+            CHASE_STEP_BACKSTOP,
+            registry,
+        )?;
         let budgeted = match outcome {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -1494,6 +1595,11 @@ fn run_structured_existential_chase(
                 }));
             }
         };
+        // A certified program that hit the step backstop terminated INCOMPLETE: its rows
+        // are a sound prefix, but the fixpoint is not closed, so the run must withhold.
+        if budgeted.status == crate::seam::BudgetStatus::Exhausted {
+            incomplete = true;
+        }
         certificates.push(crate::reason::ChaseCertificate {
             world: world.clone(),
             admission,
@@ -1548,7 +1654,7 @@ fn run_structured_existential_chase(
             );
         }
     }
-    Ok(certificates)
+    Ok((certificates, incomplete))
 }
 
 /// Add DL-only finite consistency consequences to the closure.
@@ -1581,7 +1687,13 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     Vec<crate::physical::WitnessDerivation>,
 )> {
     let restrictions = read_restrictions(edb);
-    let mut existential_rules = structured_existential_rules(&restrictions, edb);
+    let (mut existential_rules, oversized_existential) =
+        structured_existential_rules(&restrictions, edb);
+    // An over-large `≥n` obligation was not lowered (its quadratic head would exhaust
+    // memory to even build): record the honest INCOMPLETE withhold up front.
+    if oversized_existential {
+        record_chase_materialization_withhold(inferred);
+    }
     // Merge authored general existential rules (arbitrary body/head) into the same
     // per-world map, so they are certified per-world and shipped alongside the
     // OWL-restriction certificates.
@@ -2403,12 +2515,22 @@ pub(crate) fn augment_inferred_with_dl_certificates(
             }
         }
 
-        certificates.extend(run_structured_existential_chase(
+        let (chase_certificates, chase_incomplete) = run_structured_existential_chase(
             inferred,
             &mut facts,
             &existential_rules,
             &mut witness_registries,
-        )?);
+        )?;
+        certificates.extend(chase_certificates);
+
+        // Sound withhold under the resource bound: a single-invocation blow-up trips the
+        // step backstop (`chase_incomplete`); a slow multi-round accumulation trips the
+        // cumulative fact ceiling. Either way the fixpoint is not closed, so record the
+        // INCOMPLETE marker and stop rather than growing the closure toward OOM.
+        if chase_incomplete || facts.len() > MAX_CHASE_FACTS {
+            record_chase_materialization_withhold(inferred);
+            break;
+        }
 
         if facts.len() == before {
             break;
@@ -2550,12 +2672,12 @@ fn augment_with_extra_dl_clashes(
             .collect();
         thing_rules.insert(world, rules);
     }
-    certificates.extend(run_structured_existential_chase(
-        inferred,
-        facts,
-        &thing_rules,
-        witness_registries,
-    )?);
+    let (thing_certificates, thing_incomplete) =
+        run_structured_existential_chase(inferred, facts, &thing_rules, witness_registries)?;
+    certificates.extend(thing_certificates);
+    if thing_incomplete {
+        record_chase_materialization_withhold(inferred);
+    }
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
     // An individual typed a restriction on owl:bottomObjectProperty /
@@ -3443,7 +3565,24 @@ pub(crate) fn verdict_from_inferred(
     let consistent = inconsistencies.is_empty();
 
     let coverage = scan_coverage(edb)?;
-    let gaps = gaps_from_unsupported(&coverage.unsupported);
+    let mut gaps = gaps_from_unsupported(&coverage.unsupported);
+    // Fold the existential-chase materialization backstop into the verdict as a sound
+    // INCOMPLETE withhold: the chase stopped before its fixpoint closed (a certified-but-
+    // super-polynomial materialization), so the run cannot certify consistency. The
+    // marker rides `inferred` (never `edb`), so this is the only place a runtime resource
+    // bound can reach the verdict — it forces `gaps` non-empty (incomplete-never-wrong),
+    // never a wrong decided answer.
+    if inferred
+        .iter()
+        .any(|ax| ax.predicate == CHASE_INCOMPLETE_MARKER_PRED)
+    {
+        gaps.push(DlGap::new(
+            "reason.dl-gap.chase-materialization-bound",
+            "the DL existential chase reached its materialization backstop before closing \
+             its fixpoint; the consistency verdict is withheld as incomplete rather than \
+             decided under an unbounded materialization",
+        ));
+    }
     // Fold the fragment-certified refutation kernel's FAMILY-SCOPED withhold (a
     // present family shape whose completeness bound did not close) into the verdict as
     // an honest, ledger-identified boundary finding. Empty on the committed bundle and

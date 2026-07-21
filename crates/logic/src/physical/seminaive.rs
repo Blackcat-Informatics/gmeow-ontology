@@ -305,6 +305,20 @@ impl StepGovernor {
     pub(crate) fn charge(&mut self) {
         self.consumed = self.consumed.saturating_add(1);
     }
+
+    /// The per-call working-set cap a budgeted consumer may materialize, as a `usize`.
+    ///
+    /// `None` (unbudgeted) is [`usize::MAX`] — no cap, byte-identical to the pre-budget
+    /// behavior — so this only bounds an explicitly budgeted run. A budgeted run can
+    /// never COMMIT more than `limit` derivations, so it never needs to hold more than
+    /// `limit` pending solutions/rows at once; capping an intermediate materialization
+    /// at this value bounds a single round's memory to the same ceiling as the whole
+    /// derivation, turning a super-polynomial per-round blow-up into a sound
+    /// `Exhausted` withhold instead of an out-of-memory abort.
+    pub(crate) fn solution_cap(&self) -> usize {
+        self.limit
+            .map_or(usize::MAX, |l| usize::try_from(l).unwrap_or(usize::MAX))
+    }
 }
 
 // ── Index-selected semi-naive join ────────────────────────────────────────────────
