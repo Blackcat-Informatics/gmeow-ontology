@@ -20,9 +20,16 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 SELECT ?node ?access WHERE {
     { ?node logic:necessarily ?body } UNION { ?node logic:possibly ?body }
     ?node logic:overAccessibility ?access .
-    FILTER (
-        ?access = logic:accessibleFrom
-        || STRSTARTS(STR(?access), "https://blackcatinformatics.ca/gmeow/modalForce")
-    )
+    # Allowlist, not denylist: the argument MUST be one of the six typed accessibility
+    # relations. Anything else — the blurred logic:accessibleFrom union, a
+    # gmeow:modalForce* standpoint value, or ANY other untyped relation — is a mistyping.
+    FILTER (?access NOT IN (
+        logic:epistemicallyPossible,
+        logic:doxasticallyAccessible,
+        logic:deonticallyIdeal,
+        logic:temporallySucceeds,
+        logic:counterfactuallyCloser,
+        gmeow:sharpens
+    ))
 }
 ORDER BY ?node ?access

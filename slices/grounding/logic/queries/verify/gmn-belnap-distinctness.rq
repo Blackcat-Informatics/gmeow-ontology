@@ -30,25 +30,26 @@ SELECT ?signA ?signB ?cpA ?cpB WHERE {
     }
     ?signA gmeow:gmnCandidateTarget ?gradeA .
     ?signB gmeow:gmnCandidateTarget ?otherB .
-    FILTER (STR(?signA) < STR(?signB))
-    {
-        ?signA gmeow:gmnCodepoints ?cpA .
-    }
-    UNION
-    {
-        ?signA gmeow:gmnCandidateDenotation ?denA .
-        ?denA gmeow:gmnDenotationGrapheme ?graphemeA .
-        ?graphemeA gmeow:gmnCodepoints ?cpA .
-    }
-    {
-        ?signB gmeow:gmnCodepoints ?cpB .
-    }
-    UNION
-    {
-        ?signB gmeow:gmnCandidateDenotation ?denB .
-        ?denB gmeow:gmnDenotationGrapheme ?graphemeB .
-        ?graphemeB gmeow:gmnCodepoints ?cpB .
-    }
+    # Order-independent pairing. ?gradeA ranges over grade signs only; ?otherB adds the
+    # classical ⊤/⊥ and the non-result states. For a grade↔grade pair we dedup the symmetric
+    # ordering by IRI (STR(?signA) < STR(?signB)); for a grade↔non-grade pair the grade is
+    # always ?signA, so we match REGARDLESS of IRI order — a ⊤/⊥/non-result sign that sorts
+    # before the grade must not slip through. ?signA != ?signB drops the trivial self-pair.
+    FILTER (
+        ?signA != ?signB
+        && (
+            STR(?signA) < STR(?signB)
+            || ?otherB NOT IN (
+                logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth, logic:BelnapNeither,
+                logic:InfoSupported, logic:InfoOpposed, logic:InfoBoth, logic:InfoNeither
+            )
+        )
+    )
+    # A sign's codepoints are read directly (a named-key sign such as ⊤/⊥) or through its
+    # adopted grapheme; the property-path alternative flattens the two into one indexed
+    # traversal rather than an outer-scope-independent nested UNION.
+    ?signA gmeow:gmnCodepoints | gmeow:gmnCandidateDenotation/gmeow:gmnDenotationGrapheme/gmeow:gmnCodepoints ?cpA .
+    ?signB gmeow:gmnCodepoints | gmeow:gmnCandidateDenotation/gmeow:gmnDenotationGrapheme/gmeow:gmnCodepoints ?cpB .
     FILTER (?cpA = ?cpB || ?gradeA = ?otherB)
 }
 ORDER BY ?signA ?signB

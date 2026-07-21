@@ -31,7 +31,10 @@ SELECT ?target ?sort ?formA ?formB ?precA ?precB WHERE {
     ?formB gmeow:gmnFixity gmeow:gmnFixityInfix ;
            gmeow:gmnResultSort ?sort ;
            gmeow:gmnPrecedence ?precB .
-    FILTER (STR(?formA) < STR(?formB))
+    # STR(?formA) < STR(?formB) dedups each distinct-form pair once; ?formA = ?formB adds the
+    # self-clash case so ONE form carrying two different gmnPrecedence values in the same fiber
+    # is caught too (a normal single-precedence form yields precA = precB and never fires).
+    FILTER (STR(?formA) < STR(?formB) || ?formA = ?formB)
     FILTER (?precA != ?precB)
 }
 ORDER BY ?target ?sort ?formA ?formB

@@ -481,3 +481,75 @@ fn gmn_glyph_fallback_global_unique_fires_on_cross_plane_collision() {
          logic: target and a math: target sharing an ASCII fallback key"
     );
 }
+
+#[test]
+fn gmn_modal_accessibility_typed_fires_on_untyped_relation() {
+    // A box modal node pinned to an ARBITRARY relation that is neither one of the six typed
+    // accessibility relations nor the bare logic:accessibleFrom union nor a modal-force value.
+    // The denylist form of the gate would have let this through; the allowlist form rejects any
+    // relation outside the closed typed set.
+    let injection = format!(
+        "{PREFIXES}
+        ex:untypedModalNode logic:necessarily ex:someBodyFormula ;
+            logic:overAccessibility ex:homebrewRelation .
+        "
+    );
+    let graph = merged_plus(&injection);
+    let rows = violation_rows(&graph, MODAL_ACCESSIBILITY_Q);
+    assert_eq!(
+        rows, 1,
+        "the modal gate must reject a modal node pinned to a relation outside the six typed \
+         accessibility relations, not only the two hard-coded bad values"
+    );
+}
+
+#[test]
+fn gmn_belnap_distinctness_fires_on_top_collision_regardless_of_iri_order() {
+    // A ⊤ (logic:Top, a NON-grade) sign that shares the shipped logic:BelnapTrue codepoint
+    // U+25CF, minted with an http://example.org/ IRI that sorts BEFORE the shipped grade sign's
+    // https://blackcatinformatics.ca/ IRI. Under the old STR(?signA) < STR(?signB) filter — which
+    // could only place the grade in ?signA and demanded it sort first — this collision was
+    // invisible. The order-independent gate catches it because ?otherB (logic:Top) is a
+    // non-grade, so no IRI ordering is required.
+    let injection = format!(
+        "{PREFIXES}
+        ex:aTopCollision a gmeow:GmnSymbolCandidate ;
+            gmeow:gmnCandidateTarget logic:Top ;
+            gmeow:gmnCodepoints \"U+25CF\" .
+        "
+    );
+    let graph = merged_plus(&injection);
+    let rows = violation_rows(&graph, BELNAP_DISTINCTNESS_Q);
+    assert_eq!(
+        rows, 1,
+        "the belnap gate must catch a grade sign colliding on codepoint with a ⊤/⊥ sign even when \
+         the non-grade sign's IRI sorts first — the order-dependent filter missed this"
+    );
+}
+
+#[test]
+fn gmn_logic_precedence_fibered_fires_on_single_form_two_precedences() {
+    // ONE infix logic-plane form carrying TWO gmnPrecedence values in the same result-sort fiber.
+    // The old STR(?formA) < STR(?formB) filter excluded the ?formA = ?formB case, so a single
+    // self-clashing form was never caught; the same-form arm now catches it.
+    let injection = format!(
+        "{PREFIXES}
+        ex:selfClashOp a owl:ObjectProperty .
+        ex:formTwoPrec a lang:Form ;
+            lang:inSignSystem gmeow:gmnModelNotation ;
+            gmeow:gmnFixity gmeow:gmnFixityInfix ;
+            gmeow:gmnResultSort gmeow:gmnSortFormula ;
+            gmeow:gmnPrecedence 10 , 20 .
+        ex:denTwoPrec lang:denotationContext gmeow:gmnLogicGlyphContext ;
+            lang:denotationTarget ex:selfClashOp ;
+            lang:denotedForm ex:formTwoPrec .
+        "
+    );
+    let graph = merged_plus(&injection);
+    let rows = violation_rows(&graph, PRECEDENCE_FIBERED_Q);
+    assert_eq!(
+        rows, 2,
+        "the precedence gate must catch one form bound at two precedences in a single fiber: the \
+         two ordered (precA, precB) solutions of the self-clash"
+    );
+}
