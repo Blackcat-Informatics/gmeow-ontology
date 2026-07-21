@@ -1453,6 +1453,128 @@ gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
 
 
 # =========================================================================== #
+# Benchmark observation — the dogfooded whole-bundle census fold.               #
+# A gmeow:BenchmarkObservation records a DETERMINISTIC property of the FINISHED  #
+# bundle (a fixed-point census), measured OFF-GATE, committed as a baseline,     #
+# and projected byte-stably — integer counts + boolean verdicts + a stable       #
+# digest ONLY, never a wall-clock / thread-count / peak-RSS measure. Sibling of   #
+# the engine-cost ledger vocabulary; the gmeow:shaclValidationCensus individual   #
+# is kept byte-consistent with bench/validate-census.json by the pipeline drift   #
+# gate (crates/pipeline/src/stages/bench.rs).                                     #
+# =========================================================================== #
+
+gmeow:BenchmarkObservation
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Benchmark Observation"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A deterministic, GTS-foldable observation of a whole-bundle benchmark or census — a property of the FINISHED gmeow.gts (a fixed point), so it is measured OFF-GATE, committed as a baseline, and projected byte-stably rather than computed live. It carries integer counts, boolean verdicts, and stable content digests ONLY; the raw wall-clock is non-deterministic and is NEVER folded (it stays PR/issue evidence). Grounds in prose as a gmeow:SocialObject: the observation exists by the project's own recording convention, a description, not a physical thing."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus a gmeow:BenchmarkObservation ; gmeow:observedConforms true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:observedConforms
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "observed conforms"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The recorded whole-bundle SHACL conformance verdict (sh:conforms) of a gmeow:BenchmarkObservation: true iff the validation produced no results. Deterministic and foldable."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:observedConforms true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:shapeCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "shape count"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The number of shapes in the enforced SHACL shape union an observation was taken over (node shapes together with their nested property shapes). A deterministic structural count."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:shapeCount \"128\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:constraintCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "constraint count"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The number of constraints across every shape in the enforced SHACL shape union an observation was taken over. A deterministic structural count."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:constraintCount \"512\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:findingCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "finding count"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The number of validation results (findings) a whole-bundle SHACL census recorded — zero on a conforming bundle. A deterministic count."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:findingCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:focusNodeCount
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "focus node count"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The number of DISTINCT finding-bearing focus nodes a whole-bundle SHACL census recorded — focus nodes that produced at least one validation result; zero on a conforming bundle. A deterministic count."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:focusNodeCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportsParallelFocusEval
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "supports parallel focus eval"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The STATIC engine-capability fact recorded by an observation: whether the SHACL engine evaluates focus nodes in parallel. A constant capability, NOT a runtime thread-count or wall-clock measure, so it is deterministic and foldable."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:supportsParallelFocusEval true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:reportDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "report digest"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable blake3 fingerprint (64 lowercase-hex characters) of the sorted finding set an observation recorded — a pure function of the findings, so it is a byte-stable drift signal. A seeded placeholder carries the all-zero digest."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:reportDigest \"0000000000000000000000000000000000000000000000000000000000000000\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:observationSeeded
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "observation seeded"@x-gmeow-english ;
+    rdfs:domain gmeow:BenchmarkObservation ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether an observation is still an honest zero PLACEHOLDER awaiting its off-gate refresh (true) or has been measured (false). A seed is constrained to the pure zero placeholder — all counts zero, the all-zero digest — so it can never be mistaken for measured data."@x-gmeow-english ;
+    skos:example "gmeow:shaclValidationCensus gmeow:observationSeeded true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# The dogfooded whole-bundle SHACL validation census individual. SEEDED zero
+# placeholder — the measured counts are recorded off-gate by
+# `make maint-validate-census` (`gmeow-dev validate --emit-census`) and committed in
+# lock-step with bench/validate-census.json (the pipeline drift gate proves the two
+# never diverge). This block is the exact Turtle render_census_individual_ttl() emits.
+gmeow:shaclValidationCensus
+    a gmeow:BenchmarkObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "SHACL validation census"@x-gmeow-english ;
+    skos:definition "The dogfooded whole-bundle SHACL validation census: the conformance verdict, enforced shape/constraint counts, finding count, finding-bearing focus-node count, and stable finding-graph digest of the finished bundle. A deterministic, foldable observation measured off-gate (make maint-validate-census) and committed; the raw parallel-SHACL wall-time is PR/issue evidence, never folded. Kept byte-consistent with bench/validate-census.json by the pipeline drift gate."@x-gmeow-english ;
+    gmeow:observationSeeded true ;
+    gmeow:observedConforms true ;
+    gmeow:supportsParallelFocusEval true ;
+    gmeow:shapeCount "0"^^xsd:nonNegativeInteger ;
+    gmeow:constraintCount "0"^^xsd:nonNegativeInteger ;
+    gmeow:findingCount "0"^^xsd:nonNegativeInteger ;
+    gmeow:focusNodeCount "0"^^xsd:nonNegativeInteger ;
+    gmeow:reportDigest "0000000000000000000000000000000000000000000000000000000000000000" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+
+# =========================================================================== #
 # Expected-output inventory (gmeow:expectsGeneratedOutput) — the                #
 # INDEPENDENTLY-AUTHORED completeness oracle: every non-terminal committed      #
 # generated/ path the pipeline must produce, hand-authored (NOT carrier-emitted #
@@ -1466,6 +1588,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/bench/cost-ledger.md",
     "generated/bench/leaderboard.md",
     "generated/bench/soak.md",
+    "generated/bench/validate-census.md",
     "generated/briefs/authoring-packets.nt",
     "generated/catalog/constraint-catalog.nq",
     "generated/catalog/glossary.md",

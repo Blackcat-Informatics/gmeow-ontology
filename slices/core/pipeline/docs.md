@@ -52,6 +52,20 @@ bound stage's `capabilities` / `consumes` / `requiresResource` / typed dataflow 
 declaration (single source of truth — RDF and Rust cannot disagree). None of these is optional or
 repairable.
 
+## Benchmark observations (the dogfooded census fold)
+
+A `gmeow:BenchmarkObservation` records a **deterministic** property of the *finished* bundle — a
+fixed-point census — so it is measured **off-gate**, committed as a baseline, and projected
+byte-stably rather than computed live (the same shape as the engine-cost ledger). It carries integer
+counts, boolean verdicts, and stable content digests **only**; the raw wall-clock is non-deterministic
+and is **never** folded (it stays PR/issue evidence). The flagship instance is
+`gmeow:shaclValidationCensus`: the whole-bundle SHACL census — `gmeow:observedConforms`,
+`gmeow:shapeCount`, `gmeow:constraintCount`, `gmeow:findingCount`, `gmeow:focusNodeCount`,
+`gmeow:reportDigest`, and the static `gmeow:supportsParallelFocusEval` capability constant. It is
+measured by `make maint-validate-census` and kept byte-consistent with `bench/validate-census.json` by
+the pipeline drift gate; `gmeow:observationSeeded` marks an honest zero placeholder awaiting its first
+refresh.
+
 ## Consumer
 
 The `gmeow-pipeline` crate. The migrated `meta:gate-generator-registry` queries
