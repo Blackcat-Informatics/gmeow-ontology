@@ -3,6 +3,20 @@
   "findings": [
     {
       "severity": "warning",
+      "code": "slice-quality.advice-coverage.no-repo-root",
+      "message": "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisAdviceCoverage: Author a central advice carrier in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names. For an avoidWhen cell: a logic:Constraint + logic:Formula whose data-matching guard detects the anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term, logic:adviceSourceField logic:ProseFieldAvoidWhen, and logic:message set to the term's verbatim avoidWhen prose — so it fires a deonticRecommendation Note when an individual matches. For a useWhen cell: a logic:AdviceGuidance that logic:formalizes the term, with logic:adviceSourceField logic:ProseFieldUseWhen and logic:message the verbatim useWhen prose. The native verify gate holds each message to the term's current prose. The domain slice keeps only its prose; the carrier lives centrally and formalizes the term.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.axis-advice",
       "message": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent.",
       "tool": "slice-quality",
@@ -103,6 +117,13 @@
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
       "message": "fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisAdviceCoverage: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -220,6 +241,11 @@
     }
   ],
   "rules": [
+    {
+      "id": "slice-quality.advice-coverage.no-repo-root",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-advice-coverage-no-repo-root",
+      "default_severity": "warning"
+    },
     {
       "id": "slice-quality.axis-advice",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-axis-advice",

@@ -1,0 +1,30 @@
+# Negative test: a GMN math operator that denotes a math: owl:ObjectProperty is an
+# inherently binary relation, so the operator form its denotation names MUST declare
+# gmeow:gmnArity 2. The current population is the three math relational operators
+# math:hasElement (∈), math:subsetOf (⊆), and math:functionComposition (∘); each
+# carries a binary infix form of arity 2, so this query returns no rows.
+#
+# Scope note: the query is deliberately scoped to the math: namespace. The logic
+# connectives (logic:not, logic:forall, logic:exists, ...) are ALSO owl:ObjectProperty,
+# but they encode the AST parent→operand edge of a formula node — their notation arity
+# is the operand count (¬ and the quantifiers are unary), NOT the RDF-relation binarity —
+# so they are a distinct signature governed by the logic AST, never this math-operator
+# law. logic:Type relations (math:lessThanRel, math:greaterThanRel) and owl:Class
+# targets are not owl:ObjectProperty at all, so the antecedent simply does not match them.
+#
+# Any returned row is a violation: a math ObjectProperty operator whose denoting form is
+# not arity 2, or declares no arity at all — the exact signature gap a downstream
+# operator-precedence parser must never see.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?form ?target ?arity WHERE {
+    ?den lang:denotationTarget ?target ;
+         lang:denotedForm ?form .
+    ?target a owl:ObjectProperty .
+    FILTER (STRSTARTS(STR(?target), "https://blackcatinformatics.ca/math/"))
+    OPTIONAL { ?form gmeow:gmnArity ?arity }
+    FILTER (!BOUND(?arity) || ?arity != 2)
+}
+ORDER BY ?form

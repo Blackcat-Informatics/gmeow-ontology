@@ -4,6 +4,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
 @prefix lexinfo: <http://www.lexinfo.net/ontology/3.0/lexinfo#> .
 @prefix wn: <https://globalwordnet.github.io/schemas/wn#> .
@@ -51,6 +52,32 @@ gmeow:mapsetLangWebAnnotation a gmeow:MappingSet ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lang-web-annotation" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Text-position anchor bridges onto the W3C Web Annotation vocabulary." .
+
+# GMN math notation <-> math: expression AST --------------------------------
+# The declared grounding law that a GMN math record (the @μ-scoped surface of
+# gmeow:gmnModelNotation) is a notation of the canonical math: expression AST, never a
+# rival identity. It is an asymmetric lens: get = parse (a well-formed GMN math record is
+# read INTO a math:MathematicalExpression) and put = render (a math: expression is written
+# BACK to its canonical GMN record). The notation is subsumed by the AST — the AST is the
+# richer canon and the record its scoped view — so the relation is logic:SubsumedBy and the
+# rung is logic:WellBehavedLens (the lens rung whose claimable laws are logic:GetPut and
+# logic:PutGet). This record is a DECLARATION and law-status only: the executable parser and
+# writer (the get/put legs themselves) are a separate downstream deliverable, so the
+# preservation judgment is the honest floor logic:SoundUnderApproximation — the covered glyph
+# fragment round-trips faithfully, the full notation is under-approximated until the executor
+# discharges the lens laws.
+
+gmeow:eqLangGmnMathNotationAst a logic:GroundingCorrespondence ;
+    rdfs:label "GMN math notation to math: expression-AST grounding lens"@x-gmeow-english ;
+    skos:definition "The grounding correspondence declaring that the @μ-scoped GMN math notation (gmeow:gmnModelNotation) renders the canonical math: expression AST (math:MathematicalExpression): a GMN math glyph is a lang:Rendering/lang:Denotation of the AST term, a sibling of math:ExpressionRendering, never a second identity. An asymmetric lens with get = parse (notation into AST) and put = render (AST back to canonical notation). Declaration and law status only; the executable parser/writer is a separate deliverable, so the preservation judgment is the honest floor logic:SoundUnderApproximation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:sourceEndpoint gmeow:gmnModelNotation ;
+    logic:targetEndpoint math:MathematicalExpression ;
+    logic:correspondenceRelation logic:SubsumedBy ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    gmeow:comment "get = parse (GMN math record to math:MathematicalExpression); put = render (math:MathematicalExpression to canonical GMN math record). The operator forms carry the checked fixity/precedence/arity signature the GMN signature-coherence verify gates enforce, so the lens legs read a complete signature rather than free-floating notation." .
 
 # OntoLex-Lemon --------------------------------------------------------------
 

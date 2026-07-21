@@ -90,6 +90,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/grounding/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/grounding/logic/examples/conjectures.ttl", // logic:candidateCategory/candidateProjectionBehavior/conjectureLifecycleState/conjectureDischargeVerdict → shared governance and Belnap-lifecycle value individuals defined in module.ttl, untyped standalone; the bare logic:Formula/GoalExpression/ContradictionWitness AST leaves (the denotation seam) have no closed-world schema entry standalone
     "slices/grounding/math/examples/measure-and-dimension.ttl", // math:exponentOfDimension → the shared SI base-dimension individuals (massDimension/lengthDimension/timeDimension) defined in module.ttl, untyped standalone; math:withRespectTo/hasDimension sh:class Measure/Dimension → the subclass-typed measure and dimension nodes (LebesgueMeasure/DerivedDimension) lack the subClassOf chain standalone
+    "slices/grounding/math/examples/gmn-dimension-roundtrip.ttl", // the force = ∫ a dm scene: math:exponentOfDimension → the shared SI base-dimension individuals (massDimension/lengthDimension/timeDimension) untyped standalone; math:hasDimension sh:class Dimension → the DerivedDimension nodes lack the subClassOf chain standalone; math:Quantity gmeow:hasReferenceFrame → the shared gmeow:referenceFrameSI frame's FrameProfile is carried against the module — illustrative, validated unioned with the module by make validate
     "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
     "slices/grounding/math/examples/homomorphic-encryption.ttl", // math:encryptOperation/evaluateOperation/decryptOperation → gmeow:Activity process individuals, and the preservation law → a logic:Formula AST (the denotation seam), with no closed-world schema entry standalone
     "slices/grounding/math/examples/analysis-and-geometry.ttl", // math:operator/manifoldStructureKind/complementSemantics/convergenceMode/limitMode → shared binder/structure-kind/semantics/mode individuals (differentiationBinder/lorentzianStructure/setTheoreticComplement/absoluteConvergence/limitTwoSided) defined in module.ttl, untyped standalone; the bare math:MathematicalObject/MathematicalExpression AST leaves (worldlineExpr, originPoint, seriesLimit) have no closed-world schema entry
@@ -154,7 +155,6 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/documents/examples/web-presence.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
     "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
-    "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
     // Bucket A (lang: grounding graft) — the example references shared lang:/logic:
     // grounding individuals (rendering/denotation/preservation kinds, sign-system
     // kinds, scripts, the seed lang:english) that are typed in the grounding slices
@@ -237,10 +237,20 @@ fn rel(repo: &Path, path: &Path) -> String {
 }
 
 /// Whether `dataset` conforms to the merged `shapes` per the native SHACL engine.
+///
+/// SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/`Warning`
+/// results (e.g. the advisory-tier `logic:severity "Info"` constraints) are
+/// non-gating per spec, so the engine's own `conforms` flag (which flips false
+/// on ANY result) is not the right signal here. Recompute it the same way
+/// `gmeow_validate::advisory::split_advisory_results` does for its retained
+/// set: conforms iff no result carries `Severity::Violation`.
 fn conforms_to_shacl(dataset: &Arc<RdfDataset>, shapes: &Shapes) -> bool {
-    engine::validate_dataset(dataset.as_ref(), shapes)
-        .expect("validate_dataset over a frozen dataset is infallible")
-        .conforms
+    let report = engine::validate_dataset(dataset.as_ref(), shapes)
+        .expect("validate_dataset over a frozen dataset is infallible");
+    !report
+        .results
+        .iter()
+        .any(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
 }
 
 fn gmeow_namespaces() -> json_schema::Namespaces {
