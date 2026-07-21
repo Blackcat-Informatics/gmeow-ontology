@@ -1595,13 +1595,16 @@ fn scan_result_string_error_type(
     }
 }
 
-/// Competing RDF / SHACL / OWL / Turtle / SPARQL implementations. purrdf is gmeow's SOLE
-/// RDF-1.2 + SHACL + SPARQL + GTS engine (SUBSUME / EXTEND / ENHANCE): a first-party crate that
-/// declared a SECOND RDF stack would be a competing, weaker source of parse / validate /
-/// serialize / closure truth — exactly the hand-rolled-vs-purrdf duplication this project
-/// removes. A transitive occurrence pulled in BY purrdf is fine; a first-party manifest entry
-/// is not. (`oxiri`/`oxigraph`-family and `spargebra`/`sparesults` are the crates purrdf's
-/// S-series natively replaced.)
+/// Manifest-dependency ban list for competing RDF / SHACL / OWL / Turtle / SPARQL stacks. purrdf
+/// is gmeow's SOLE RDF-1.2 + SHACL + SPARQL + GTS engine (SUBSUME / EXTEND / ENHANCE): a
+/// first-party crate that declares one of these as a Cargo dependency would be pulling in a
+/// second, competing, weaker engine alongside purrdf. A transitive occurrence pulled in BY
+/// purrdf is fine; a first-party manifest entry is not. (`oxiri`/`oxigraph`-family and
+/// `spargebra`/`sparesults` are the crates purrdf's S-series natively replaced.) This list, and
+/// the gate below that walks it, govern Cargo.toml dependency declarations ONLY — they read no
+/// source code and therefore cannot see, and make no claim to catch, a hand-rolled
+/// reimplementation of RDF/Turtle/SHACL parsing written directly in first-party source instead
+/// of calling purrdf.
 const BANNED_RDF_STACK_CRATES: &[&str] = &[
     "oxrdf",
     "oxttl",
@@ -1626,12 +1629,19 @@ const BANNED_RDF_STACK_CRATES: &[&str] = &[
     "shacl_validation",
 ];
 
-/// Delegation-purity invariant: no `crates/*/Cargo.toml` may declare a competing RDF / SHACL
-/// stack (see [`BANNED_RDF_STACK_CRATES`]). purrdf is the single RDF-1.2 / SHACL / SPARQL
-/// engine, so all parse / validate / serialize / subclass-closure work delegates to it rather
-/// than reimplementing it or importing a rival. Uses the same toml key-lookup as the
-/// error-crate ban, so `oxrdf.workspace = true`, `oxrdf = "0.2"`, and `oxrdf = { … }` are all
-/// caught identically — a dependency-table key lookup, not a source or comment scan.
+/// Delegation-purity invariant (manifest-only): no `crates/*/Cargo.toml` may declare a competing
+/// RDF / SHACL stack as a dependency (see [`BANNED_RDF_STACK_CRATES`]). purrdf is the single
+/// RDF-1.2 / SHACL / SPARQL engine gmeow ships, so a first-party crate that imports one of the
+/// banned crates would be pulling in a second, rival engine. Uses the same toml key-lookup as
+/// the error-crate ban, so `oxrdf.workspace = true`, `oxrdf = "0.2"`, and `oxrdf = { … }` are
+/// all caught identically — a dependency-table key lookup, not a source or comment scan.
+///
+/// Mechanism, precisely: this gate ONLY inspects the `[dependencies]` / `[dev-dependencies]` /
+/// `[build-dependencies]` tables of each first-party `Cargo.toml`. It does not read crate
+/// source, so it cannot detect — and makes no claim to prevent — a hand-rolled reimplementation
+/// of RDF/Turtle/SHACL parse, validate, serialize, or subclass-closure logic written directly in
+/// first-party Rust instead of calling purrdf. Catching that class of violation is a code-review
+/// responsibility, not this gate's.
 fn check_rdf_stack_is_purrdf_only(root: &Path, report: &mut RepoStaticReport) {
     let crates_dir = root.join("crates");
     if !crates_dir.is_dir() {
