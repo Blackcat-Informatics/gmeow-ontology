@@ -51,9 +51,8 @@ use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use super::{
     Decision, FragmentFamily, NothingClash, RefutationCertificate, Witness, WitnessEvidence,
-    certify_membership,
+    certify_membership, is_rational_tower, parse_rational, resource_key, world_key,
 };
-use crate::facts::skolem_iri;
 
 // ── IRI constants ────────────────────────────────────────────────────────────────
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -100,7 +99,6 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_FLOAT: &str = "http://www.w3.org/2001/XMLSchema#float";
 const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
 const OWL_RATIONAL: &str = "http://www.w3.org/2002/07/owl#rational";
-const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 const RULE_CARDINALITY: &str = "refute:counting-cardinality";
@@ -1029,22 +1027,6 @@ fn ind_key(world: &str, individual: &str) -> String {
 
 // ── Term / literal helpers ───────────────────────────────────────────────────────
 
-fn resource_key(term: &RdfTerm) -> Option<String> {
-    match term {
-        RdfTerm::Iri(iri) => Some(iri.clone()),
-        RdfTerm::BlankNode(id) => Some(skolem_iri(id)),
-        RdfTerm::Literal(_) | RdfTerm::Triple(_) => None,
-    }
-}
-
-fn world_key(graph: &Option<RdfTerm>) -> String {
-    match graph {
-        Some(RdfTerm::Iri(iri)) => iri.clone(),
-        Some(RdfTerm::BlankNode(id)) => skolem_iri(id),
-        _ => crate::reason::rl::DEFAULT_WORLD.to_owned(),
-    }
-}
-
 fn literal_usize(term: &RdfTerm) -> Option<u128> {
     match term {
         RdfTerm::Literal(l) => l.lexical_form.trim().parse::<u128>().ok(),
@@ -1091,38 +1073,6 @@ fn literal_value_key(l: &RdfLiteral) -> String {
             .unwrap_or_else(|| format!("Qraw\u{1f}{lexical}")),
         Some(dt) => format!("D\u{1f}{dt}\u{1f}{}", l.lexical_form),
     }
-}
-
-fn parse_rational(text: &str) -> Option<Rational> {
-    if let Some((num, den)) = text.split_once('/') {
-        let num: i128 = num.trim().parse().ok()?;
-        let den: i128 = den.trim().parse().ok()?;
-        Rational::new(num, den).ok()
-    } else {
-        Rational::parse_decimal(text).ok()
-    }
-}
-
-fn is_rational_tower(dt: &str) -> bool {
-    matches!(
-        dt.strip_prefix(XSD),
-        Some(
-            "decimal"
-                | "integer"
-                | "long"
-                | "int"
-                | "short"
-                | "byte"
-                | "nonNegativeInteger"
-                | "positiveInteger"
-                | "nonPositiveInteger"
-                | "negativeInteger"
-                | "unsignedLong"
-                | "unsignedInt"
-                | "unsignedShort"
-                | "unsignedByte"
-        )
-    )
 }
 
 #[cfg(test)]

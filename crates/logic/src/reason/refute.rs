@@ -48,7 +48,10 @@ use std::collections::BTreeSet;
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
-use purrdf::RdfDataset;
+use gmeow_math::Rational;
+use purrdf::{RdfDataset, RdfTerm};
+
+use crate::facts::skolem_iri;
 
 /// Family 5 — the datatype value-space sub-decider (Task 3, the first REAL family).
 pub(crate) mod datatype;
@@ -59,6 +62,69 @@ pub(crate) mod counting;
 /// Families 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
 /// union-disjoint / malformed-list sub-decider (Task 5).
 pub(crate) mod casesplit;
+
+// ── Shared term / world / value helpers (used by every family sub-decider) ──────
+
+/// The XSD namespace prefix, shared by the datatype value-space and counting
+/// deciders' rational-tower classification.
+const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
+
+/// Canonicalize an RDF term into its resource key: the IRI itself, or a stable
+/// skolem IRI for a blank node. `None` for a literal or RDF-star triple term
+/// (neither names a resource).
+pub(crate) fn resource_key(term: &RdfTerm) -> Option<String> {
+    match term {
+        RdfTerm::Iri(iri) => Some(iri.clone()),
+        RdfTerm::BlankNode(id) => Some(skolem_iri(id)),
+        RdfTerm::Literal(_) | RdfTerm::Triple(_) => None,
+    }
+}
+
+/// Canonicalize a quad's named-graph term into its world key: the IRI itself, a
+/// stable skolem IRI for a blank node, or the default world when absent.
+pub(crate) fn world_key(graph: &Option<RdfTerm>) -> String {
+    match graph {
+        Some(RdfTerm::Iri(iri)) => iri.clone(),
+        Some(RdfTerm::BlankNode(id)) => skolem_iri(id),
+        _ => crate::reason::rl::DEFAULT_WORLD.to_owned(),
+    }
+}
+
+/// Parse an `owl:rational` lexical form (`num/den` or an integer) into an exact
+/// [`Rational`].
+pub(crate) fn parse_rational(text: &str) -> Option<Rational> {
+    if let Some((num, den)) = text.split_once('/') {
+        let num: i128 = num.trim().parse().ok()?;
+        let den: i128 = den.trim().parse().ok()?;
+        Rational::new(num, den).ok()
+    } else {
+        Rational::parse_decimal(text).ok()
+    }
+}
+
+/// Whether `dt` is a member of the `xsd:decimal`/`xsd:integer` tower the exact-ℚ
+/// value space models.
+pub(crate) fn is_rational_tower(dt: &str) -> bool {
+    matches!(
+        dt.strip_prefix(XSD),
+        Some(
+            "decimal"
+                | "integer"
+                | "long"
+                | "int"
+                | "short"
+                | "byte"
+                | "nonNegativeInteger"
+                | "positiveInteger"
+                | "nonPositiveInteger"
+                | "negativeInteger"
+                | "unsignedLong"
+                | "unsignedInt"
+                | "unsignedShort"
+                | "unsignedByte"
+        )
+    )
+}
 
 /// The certified-complete construct families the kernel decides. Each name is the
 /// stable identity a family sub-decider (Tasks 3/4/5) registers under and that

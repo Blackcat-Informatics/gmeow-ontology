@@ -40,9 +40,9 @@ use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use super::{
     BoundKind, CountBound, Decision, FragmentFamily, NothingClash, RefutationCertificate, Witness,
-    WitnessEvidence, certify_membership,
+    WitnessEvidence, certify_membership, is_rational_tower, parse_rational, resource_key,
+    world_key,
 };
-use crate::facts::skolem_iri;
 
 // ── IRI constants (local to the subsolver) ──────────────────────────────────────
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -834,22 +834,6 @@ struct Model {
     type_objects: BTreeSet<String>,
 }
 
-fn resource_key(term: &RdfTerm) -> Option<String> {
-    match term {
-        RdfTerm::Iri(iri) => Some(iri.clone()),
-        RdfTerm::BlankNode(id) => Some(skolem_iri(id)),
-        RdfTerm::Literal(_) | RdfTerm::Triple(_) => None,
-    }
-}
-
-fn world_key(graph: &Option<RdfTerm>) -> String {
-    match graph {
-        Some(RdfTerm::Iri(iri)) => iri.clone(),
-        Some(RdfTerm::BlankNode(id)) => skolem_iri(id),
-        _ => crate::reason::rl::DEFAULT_WORLD.to_owned(),
-    }
-}
-
 impl Model {
     fn scan(edb: &RdfDataset) -> Self {
         let mut m = Model {
@@ -1424,42 +1408,6 @@ fn parse_value(lit: &RdfLiteral) -> Option<Value> {
         Some(dt) if is_rational_tower(dt) => Rational::parse_decimal(lexical).ok().map(Value::Rat),
         Some(_) => None,
     }
-}
-
-/// Parse an `owl:rational` lexical form (`num/den` or an integer) into an exact
-/// [`Rational`].
-fn parse_rational(text: &str) -> Option<Rational> {
-    if let Some((num, den)) = text.split_once('/') {
-        let num: i128 = num.trim().parse().ok()?;
-        let den: i128 = den.trim().parse().ok()?;
-        Rational::new(num, den).ok()
-    } else {
-        Rational::parse_decimal(text).ok()
-    }
-}
-
-/// Whether `dt` is a member of the `xsd:decimal`/`xsd:integer` tower the exact-ℚ
-/// value space models.
-fn is_rational_tower(dt: &str) -> bool {
-    matches!(
-        dt.strip_prefix(XSD),
-        Some(
-            "decimal"
-                | "integer"
-                | "long"
-                | "int"
-                | "short"
-                | "byte"
-                | "nonNegativeInteger"
-                | "positiveInteger"
-                | "nonPositiveInteger"
-                | "negativeInteger"
-                | "unsignedLong"
-                | "unsignedInt"
-                | "unsignedShort"
-                | "unsignedByte"
-        )
-    )
 }
 
 /// Resolve a NAMED datatype IRI into a value space.

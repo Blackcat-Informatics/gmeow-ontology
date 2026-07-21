@@ -88,8 +88,13 @@ use session_common::*;
 /// Re-blessed once more when the coverage-gate determinism/refusal `#[cfg(test)]` tests were
 /// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
 /// byte content moves the engine descriptor; no reasoning verdict changes.
+/// Re-blessed once more for the G12 refutation-kernel helper consolidation: `resource_key`,
+/// `world_key`, `is_rational_tower`, and `parse_rational` moved from
+/// `reason/refute/{casesplit,counting,datatype}.rs` into a single canonical definition in
+/// `reason/refute.rs` (folded via `include_str!` into `native_contract_hash()`), so the raw
+/// source-content digest moves; this is a pure refactor and no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "97fce16e2924e8652f56cc64e1c9116b157039d20bb4cf495039c125581e74b9";
+    "9438ab472fe2bf0e72ab39cc8a1c8a3a87d2ad18769c9dde54557ab3a5ad6563";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -116,8 +121,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
 /// byte content (folded into the session identity axis) moves; the fixed edge-only input's
 /// reasoning verdict is unchanged and the engine descriptor hash is untouched.
+/// Re-blessed once more for the G12 refutation-kernel helper consolidation (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `reason/refute.rs` engine source, while the
+/// fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "6cf3fb7b4a6a16936b31fd5389515dc864f91343d6357deabc43ca5e506801db";
+    "e22a0bbf9591833595b8c9be98c8fb4ab06f0685bb473e9e1f90cf1db1ac4f3d";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

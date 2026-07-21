@@ -50,9 +50,8 @@ use purrdf::{RdfDataset, RdfTerm};
 
 use super::{
     Decision, FragmentFamily, NothingClash, RefutationCertificate, Witness, WitnessEvidence,
-    certify_membership,
+    certify_membership, resource_key, world_key,
 };
-use crate::facts::skolem_iri;
 
 // ── IRI constants ────────────────────────────────────────────────────────────────
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -354,22 +353,6 @@ struct WorldData {
 
 struct Scan {
     worlds: BTreeMap<String, WorldData>,
-}
-
-fn resource_key(term: &RdfTerm) -> Option<String> {
-    match term {
-        RdfTerm::Iri(iri) => Some(iri.clone()),
-        RdfTerm::BlankNode(id) => Some(skolem_iri(id)),
-        RdfTerm::Literal(_) | RdfTerm::Triple(_) => None,
-    }
-}
-
-fn world_key(graph: &Option<RdfTerm>) -> String {
-    match graph {
-        Some(RdfTerm::Iri(iri)) => iri.clone(),
-        Some(RdfTerm::BlankNode(id)) => skolem_iri(id),
-        _ => crate::reason::rl::DEFAULT_WORLD.to_owned(),
-    }
 }
 
 impl Scan {
@@ -1511,11 +1494,11 @@ mod tests {
     fn w3c_verdict(dir: &std::path::Path, slug: &str) -> Option<String> {
         let text = std::fs::read_to_string(dir.join(slug).join("profile.json")).ok()?;
         let needle = "\"w3c_published_verdict\"";
-        let after = &text[text.find(needle)? + needle.len()..];
-        let after = &after[after.find(':')? + 1..];
-        let start = after.find('"')? + 1;
-        let end = after[start..].find('"')? + start;
-        Some(after[start..end].to_owned())
+        let (_, after_key) = text.split_once(needle)?;
+        let (_, after_colon) = after_key.split_once(':')?;
+        let (_, after_open_quote) = after_colon.split_once('"')?;
+        let (value, _) = after_open_quote.split_once('"')?;
+        Some(value.to_owned())
     }
 
     fn decision_token(edb: &RdfDataset) -> Option<&'static str> {
