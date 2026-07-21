@@ -2433,6 +2433,75 @@ gmeow:GmnFixity
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the closed value vocabulary for GMN operator fixity — the placement discipline (prefix, infix, postfix, bracketing) an operator's surface syntax follows."@x-gmeow-english .
 
+gmeow:GmnSort
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Sort"@x-gmeow-english ;
+    skos:definition "The closed sort (syntactic category) vocabulary of the GMN signature type discipline: what kind of thing a GMN operator consumes or produces. Its instances are exactly the eight named individuals gmeow:gmnSortFormula, gmeow:gmnSortConcept, gmeow:gmnSortTerm, gmeow:gmnSortVariable, gmeow:gmnSortJudgment, gmeow:gmnSortContext, gmeow:gmnSortTruthValue and gmeow:gmnSortAccessibilityType. An operator names its produced sort through gmeow:gmnResultSort and its ordered operand sorts through the gmeow:GmnArgSlot carriers of gmeow:gmnOperandSorts, making the signature machine-checkable data rather than parser lore. It is a sort of the notation's type discipline, NOT a gmeow:GmnSigilRole (a record-kind sigil) and NOT a gmeow:GmnFixity (an operand-placement value)."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicNecessarily gmeow:gmnResultSort gmeow:gmnSortFormula ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a ninth sort without a design revision of the dialect — the set is closed by the signature grammar — and avoid using a sort to carry a record kind or a fixity, which are gmeow:GmnSigilRole and gmeow:GmnFixity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each GMN operator's gmeow:gmnResultSort and each of its operand slots' gmeow:gmnArgSort at one of the eight seeded sort individuals so the signature is decidable from data."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed value vocabulary for the syntactic sort of a GMN operator's result and operands."@x-gmeow-english .
+
+gmeow:GmnAssociativity
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Associativity"@x-gmeow-english ;
+    skos:definition "The closed associativity value vocabulary of GMN operators: how a run of one operator at equal gmeow:gmnPrecedence groups. Its instances are exactly the four named individuals gmeow:gmnAssocLeft, gmeow:gmnAssocRight, gmeow:gmnAssocNone and gmeow:gmnAssocAssociative. An operator names its grouping through gmeow:gmnAssociativity, resolving precedence ties the integer gmeow:gmnPrecedence leaves open. It is a grouping discipline, NOT the binding-strength integer gmeow:gmnPrecedence and NOT the placement value gmeow:GmnFixity."@x-gmeow-english ;
+    skos:example "ex:gmnAndOp gmeow:gmnAssociativity gmeow:gmnAssocAssociative ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a fifth associativity individual — the class is closed by the grammar — and avoid conflating semantic associativity (a flatten-under-canonical-identity fact) with the parse-grouping value here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each GMN operator at one associativity individual so equal-precedence runs parse deterministically."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed value vocabulary for how a GMN operator's equal-precedence run groups."@x-gmeow-english .
+
+gmeow:GmnArityKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Arity Kind"@x-gmeow-english ;
+    skos:definition "The closed arity-kind vocabulary of GMN operators: the shape of an operator's operand count. Its instances are exactly the three named individuals gmeow:gmnArityKindFixed (a fixed operand count carried by gmeow:gmnArity), gmeow:gmnArityKindVariadic (an unbounded operand run, as for flattened logic:and / logic:or) and gmeow:gmnArityKindBinder (a variable-binding operator such as logic:forall / logic:exists / the modal box and diamond, whose quantifier body scope is marked by gmeow:gmnMaximalScope). An operator names its arity kind through gmeow:gmnArityKind. It is the arity SHAPE, NOT the integer count gmeow:gmnArity, which a fixed-arity operator additionally carries."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicForall gmeow:gmnArityKind gmeow:gmnArityKindBinder ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a fourth arity kind — the class is closed by the grammar — and avoid using it in place of the integer gmeow:gmnArity for a fixed-arity operator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each GMN operator at one arity-kind individual; pair a fixed-arity operator with gmeow:gmnArity and a binder with gmeow:gmnMaximalScope."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed value vocabulary for the shape of a GMN operator's operand count — fixed, variadic, or binding."@x-gmeow-english .
+
+gmeow:GmnArgRole
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Argument Role"@x-gmeow-english ;
+    skos:definition "The closed argument-role vocabulary of GMN operator signatures: the named role an ordered operand slot fills. Its instances are exactly the six named individuals gmeow:gmnArgRoleAntecedent, gmeow:gmnArgRoleConsequent, gmeow:gmnArgRoleContext, gmeow:gmnArgRoleSuccedent, gmeow:gmnArgRoleOverAccessibility and gmeow:gmnArgRoleBody. A gmeow:GmnArgSlot names its role through gmeow:gmnArgRole, binding the slot to the canonical logic: carrier it fills (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional. It is the slot's ROLE, NOT its syntactic sort gmeow:GmnSort and NOT its ordinal gmeow:gmnArgIndex."@x-gmeow-english ;
+    skos:example "ex:implSlot0 gmeow:gmnArgRole gmeow:gmnArgRoleAntecedent ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a role individual for a purely positional operand with no canonical logic: carrier — use the ordinal gmeow:gmnArgIndex — and avoid overloading one role across two distinct logic: carriers."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Point each gmeow:GmnArgSlot's gmeow:gmnArgRole at one seeded role individual matching the canonical logic: carrier the operand fills."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed value vocabulary for the named role a GMN operator's ordered operand slot fills."@x-gmeow-english .
+
+gmeow:GmnArgSlot
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Argument Slot"@x-gmeow-english ;
+    skos:definition "An ordered, named operand slot in a GMN operator signature: a reified carrier holding exactly one zero-based gmeow:gmnArgIndex (operand position), one gmeow:gmnArgSort (the operand's syntactic sort, a gmeow:GmnSort), and one gmeow:gmnArgRole (the named role it fills, a gmeow:GmnArgRole). An operator declares its slots through gmeow:gmnOperandSorts; slot order is carried by the integer gmeow:gmnArgIndex, never by RDF list ordering, mirroring the lang:FormSlot idiom so two encodings of one signature are one signature. It is the position-and-role carrier, NOT the operand value itself and NOT the sort or role vocabularies it points at."@x-gmeow-english ;
+    skos:example "ex:implSlot0 a gmeow:GmnArgSlot ; gmeow:gmnArgIndex 0 ; gmeow:gmnArgSort gmeow:gmnSortFormula ; gmeow:gmnArgRole gmeow:gmnArgRoleAntecedent ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid encoding operand order in RDF list position — use the integer gmeow:gmnArgIndex — and avoid a slot that omits its index, sort, or role; the signature carrier requires all three."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnArgSlot per operand, set its zero-based gmeow:gmnArgIndex, point gmeow:gmnArgSort at a gmeow:GmnSort and gmeow:gmnArgRole at a gmeow:GmnArgRole, and attach it to the operator through gmeow:gmnOperandSorts."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the ordered, named operand-slot carrier of a GMN operator signature."@x-gmeow-english .
+
 gmeow:GmnSymbolCandidate
     a logic:Kind , owl:Class ;
     logic:subClassOf gmeow:InformationObject ;
@@ -2762,6 +2831,136 @@ gmeow:gmnArity
     gmeow:howToUse "Set one integer on every audited operator candidate and executable operator form; pair it with fixity and precedence."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to make an operator's operand count explicit at the GMN parsing boundary."@x-gmeow-english .
+
+gmeow:gmnResultSort
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn result sort"@x-gmeow-english ;
+    skos:definition "Names the syntactic sort a GMN operator produces. Domain a GMN operator sign (a lang:Form or lang:Lexeme of the gmeow:gmnModelNotation sign system), range gmeow:GmnSort (stated in prose). Exactly one result sort per operator; paired with the ordered operand sorts of gmeow:gmnOperandSorts to make the operator's signature checkable data."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicNecessarily gmeow:gmnResultSort gmeow:gmnSortFormula ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting a result sort on anything but an operator sign, and avoid two result sorts on one operator — a signature produces exactly one sort."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each GMN operator at one gmeow:GmnSort through this edge; declare its operands through gmeow:gmnOperandSorts."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the syntactic sort a GMN operator yields."@x-gmeow-english .
+
+gmeow:gmnOperandSorts
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn operand sorts"@x-gmeow-english ;
+    skos:definition "Relates a GMN operator sign to each of its ordered operand slots — the gmeow:GmnArgSlot carriers whose gmeow:gmnArgIndex fixes operand position and whose gmeow:gmnArgSort and gmeow:gmnArgRole name each operand's sort and role. Multi-valued; the operand-sort list is realized as indexed slot carriers rather than RDF list ordering, mirroring lang:formSlot, so two encodings of one signature are one signature. Domain a GMN operator sign, range gmeow:GmnArgSlot (stated in prose)."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicImplies gmeow:gmnOperandSorts ex:implSlot0 , ex:implSlot1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying operand order in RDF list position rather than the slot's gmeow:gmnArgIndex, and avoid attaching bare sorts here — each operand is a gmeow:GmnArgSlot carrying its index, sort, and role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one gmeow:GmnArgSlot per operand; set each slot's zero-based gmeow:gmnArgIndex, gmeow:gmnArgSort, and gmeow:gmnArgRole."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare a GMN operator's ordered, named operand slots as signature data."@x-gmeow-english .
+
+gmeow:gmnArgSort
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn argument sort"@x-gmeow-english ;
+    skos:definition "Names the syntactic sort of one operand slot. Domain gmeow:GmnArgSlot, range gmeow:GmnSort (stated in prose). Exactly one sort per slot; the operand-level counterpart of the operator-level gmeow:gmnResultSort."@x-gmeow-english ;
+    skos:example "ex:implSlot0 gmeow:gmnArgSort gmeow:gmnSortFormula ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting an argument sort on anything but a gmeow:GmnArgSlot, and avoid two sorts on one slot."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each gmeow:GmnArgSlot at one gmeow:GmnSort through this edge."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the syntactic sort a GMN operator's operand slot accepts."@x-gmeow-english .
+
+gmeow:gmnArgIndex
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn argument index"@x-gmeow-english ;
+    skos:definition "The zero-based ordinal position of an operand slot in a GMN operator signature. Domain gmeow:GmnArgSlot, range xsd:nonNegativeInteger (stated in prose). Indexes are unique per operator and, in strict canonical mode, zero-based and contiguous; operand order is carried by this integer, never by RDF list ordering, mirroring lang:slotIndex."@x-gmeow-english ;
+    skos:example "ex:implSlot1 gmeow:gmnArgIndex 1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid gaps or duplicate indexes within one operator's slot set, and avoid inferring order from triple or list position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one zero-based integer per gmeow:GmnArgSlot so operand order is decidable from data."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to fix the ordinal position of a GMN operator's operand slot."@x-gmeow-english .
+
+gmeow:gmnArgRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn argument role"@x-gmeow-english ;
+    skos:definition "Names the role an operand slot fills. Domain gmeow:GmnArgSlot, range gmeow:GmnArgRole (stated in prose). Binds the slot to the canonical logic: carrier it renders (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional."@x-gmeow-english ;
+    skos:example "ex:implSlot1 gmeow:gmnArgRole gmeow:gmnArgRoleConsequent ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting a role on anything but a gmeow:GmnArgSlot, and avoid two roles on one slot."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each gmeow:GmnArgSlot at one gmeow:GmnArgRole matching the canonical logic: carrier the operand fills."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the role a GMN operator's operand slot fills."@x-gmeow-english .
+
+gmeow:gmnAssociativity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn associativity"@x-gmeow-english ;
+    skos:definition "Names the associativity of a GMN operator. Domain a GMN operator sign, range gmeow:GmnAssociativity (stated in prose). Exactly one of the four closed associativity individuals per operator; resolves equal-gmeow:gmnPrecedence grouping the integer precedence leaves open."@x-gmeow-english ;
+    skos:example "ex:gmnAndOp gmeow:gmnAssociativity gmeow:gmnAssocAssociative ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting associativity on anything but an operator sign, and avoid encoding precedence into it — binding strength is the integer gmeow:gmnPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each GMN operator at one gmeow:GmnAssociativity individual; pair it with gmeow:gmnPrecedence and gmeow:gmnFixity."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare how a GMN operator's equal-precedence run groups."@x-gmeow-english .
+
+gmeow:gmnArityKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn arity kind"@x-gmeow-english ;
+    skos:definition "Names the arity kind of a GMN operator — fixed, variadic, or binder. Domain a GMN operator sign, range gmeow:GmnArityKind (stated in prose). Exactly one arity kind per operator; a fixed operator additionally carries the integer gmeow:gmnArity, and a binder carries gmeow:gmnMaximalScope."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicForall gmeow:gmnArityKind gmeow:gmnArityKindBinder ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting an arity kind on anything but an operator sign, and avoid using it in place of the integer gmeow:gmnArity for a fixed-arity operator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each GMN operator at one gmeow:GmnArityKind individual; pair a fixed operator with gmeow:gmnArity and a binder with gmeow:gmnMaximalScope."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the shape of a GMN operator's operand count."@x-gmeow-english .
+
+gmeow:gmnMaximalScope
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn maximal scope"@x-gmeow-english ;
+    skos:definition "Whether a binder GMN operator (arity kind gmeow:gmnArityKindBinder — a quantifier logic:forall / logic:exists or a modal logic:necessarily / logic:possibly) takes MAXIMAL scope, extending its body as far to the right as the grammar allows rather than stopping at the next operator. Domain a binder operator sign, range xsd:boolean (stated in prose). True marks the standard maximal-scope reading; its absence or false marks a bracket-delimited binder."@x-gmeow-english ;
+    skos:example "gmeow:gmnFormLogicForall gmeow:gmnMaximalScope true ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting maximal scope on a non-binder operator, and avoid using it to encode precedence — scope extent and binding strength are distinct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set true on a binder operator whose body extends maximally to the right; pair it with gmeow:gmnArityKindBinder."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare a GMN binder's body-scope extent so quantifier and modal parsing is decidable from data."@x-gmeow-english .
+
+gmeow:gmnGlyphInScope
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn glyph in scope"@x-gmeow-english ;
+    skos:definition "Whether a canonical grounding term is in scope for a GMN glyph plane — the coverage marker a glyph-plane audit joins against to find which in-scope terms still lack a bound glyph. Domain a canonical grounding term (a logic:, math:, or gmeow: term the plane renders), range xsd:boolean (stated in prose). True asserts the term belongs to the plane's denominator; it is DISTINCT from gmeow:gmnGlyphNamedKeyRuled, which rules a term out of the gap denominator as a named-key / not-a-gap non-target."@x-gmeow-english ;
+    skos:example "logic:necessarily gmeow:gmnGlyphInScope true ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid marking a term in scope for a plane it has no glyph target in, and avoid using this marker to rule a named-key non-target out of the gap denominator — that is gmeow:gmnGlyphNamedKeyRuled."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert true on each canonical term a GMN glyph plane is responsible for rendering so the coverage anti-join has a complete denominator."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to enrol a canonical grounding term in a GMN glyph plane's coverage denominator."@x-gmeow-english .
+
+gmeow:gmnGlyphNamedKeyRuled
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn glyph named-key ruled"@x-gmeow-english ;
+    skos:definition "Whether a canonical grounding term is explicitly ruled a named-key / not-a-gap non-target of a GMN glyph plane — a term that is deliberately rendered by its named key rather than a dedicated glyph, so a coverage anti-join must NOT false-fire on it as a missing glyph. Domain a canonical grounding term, range xsd:boolean (stated in prose). True excludes the term from the gap denominator; it is DISTINCT from gmeow:gmnGlyphInScope, which enrols an in-scope term that DOES want a glyph."@x-gmeow-english ;
+    skos:example "logic:InfoUndetermined gmeow:gmnGlyphNamedKeyRuled true ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid ruling out a term that genuinely wants a dedicated glyph — mark it gmeow:gmnGlyphInScope instead — and avoid using this marker as a silent omission with no recorded named-key rationale."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert true on a canonical term that a glyph plane deliberately renders by named key so the gap anti-join skips it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to rule a named-key non-target out of a GMN glyph plane's gap denominator."@x-gmeow-english .
 
 gmeow:gmnDenotationGrapheme
     a owl:ObjectProperty ;
@@ -3602,6 +3801,168 @@ gmeow:gmnFixityBracketing
     rdfs:label "bracketing"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     skos:definition "The bracketing fixity: the operator is a paired open/close form written around its operands."@x-gmeow-english .
+
+# --- GMN sort individuals (closed) ------------------------------------------- #
+
+gmeow:gmnSortFormula
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "formula sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The formula sort: a truth-valued sentence, the sort of a logic:Formula. The result sort of the connectives, quantifiers, and modal operators."@x-gmeow-english .
+
+gmeow:gmnSortConcept
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "concept sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The concept sort: a Description Logic concept expression. The operand and result sort of the concept-forming operators logic:conceptIntersection and logic:conceptUnion."@x-gmeow-english .
+
+gmeow:gmnSortTerm
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "term sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The term sort: a first-order term — an individual, a literal, or a compound function term. Distinct from the variable sort, which is the bindable subclass of terms."@x-gmeow-english .
+
+gmeow:gmnSortVariable
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "variable sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The variable sort: a bindable first-order variable, the sort a binder operator (quantifier or modal) binds. The specialized bindable counterpart of the term sort."@x-gmeow-english .
+
+gmeow:gmnSortJudgment
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "judgment sort"@x-gmeow-english ;
+    skos:definition "The judgment sort: a proof-obligation or entailment judgment, the sort of a logic:Sequent (Γ ⊢ φ). The result sort of the derivability and entailment turnstiles logic:derives and logic:entails. Distinct from the formula sort, which is a sentence rather than an obligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSortContext
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "context sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The context sort: a premise context Γ — a set or ordered multiset of formulae, the antecedent side of a logic:Sequent carried by logic:sequentContext. Distinct from the formula sort, which is a single sentence."@x-gmeow-english .
+
+gmeow:gmnSortTruthValue
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "truth-value sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The truth-value sort: a raw logic:BelnapBilattice value (a logic:TruthValue). Distinct from the formula sort — a truth value is an algebra element, not a sentence — and from the concept sort."@x-gmeow-english .
+
+gmeow:gmnSortAccessibilityType
+    a owl:NamedIndividual , gmeow:GmnSort ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "accessibility-type sort"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The accessibility-type sort: a typed accessibility relation (logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, or gmeow:sharpens), the sort of the operand a modal operator carries on logic:overAccessibility. It is a relation-type parameter, never the bare logic:accessibleFrom union."@x-gmeow-english .
+
+# --- GMN associativity individuals (closed) --------------------------------- #
+
+gmeow:gmnAssocLeft
+    a owl:NamedIndividual , gmeow:GmnAssociativity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "left-associative"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Left associativity: an equal-precedence run groups from the left, so a ∘ b ∘ c parses as (a ∘ b) ∘ c."@x-gmeow-english .
+
+gmeow:gmnAssocRight
+    a owl:NamedIndividual , gmeow:GmnAssociativity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "right-associative"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Right associativity: an equal-precedence run groups from the right, so a ∘ b ∘ c parses as a ∘ (b ∘ c) — the usual reading of implication."@x-gmeow-english .
+
+gmeow:gmnAssocNone
+    a owl:NamedIndividual , gmeow:GmnAssociativity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "non-associative"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Non-associativity: an equal-precedence run does not chain, so a ∘ b ∘ c is a parse error requiring explicit bracketing."@x-gmeow-english .
+
+gmeow:gmnAssocAssociative
+    a owl:NamedIndividual , gmeow:GmnAssociativity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "fully associative"@x-gmeow-english ;
+    skos:definition "Full associativity: grouping is immaterial because the operator is semantically associative and flattens under its canonical identity — the reading of conjunction and disjunction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- GMN arity-kind individuals (closed) ------------------------------------ #
+
+gmeow:gmnArityKindFixed
+    a owl:NamedIndividual , gmeow:GmnArityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "fixed arity"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Fixed arity: the operator takes a fixed operand count, carried by the integer gmeow:gmnArity — the shape of logic:not (one) or logic:antecedent+logic:consequent implication (two)."@x-gmeow-english .
+
+gmeow:gmnArityKindVariadic
+    a owl:NamedIndividual , gmeow:GmnArityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "variadic arity"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Variadic arity: the operator takes an unbounded operand run — the shape of the flattened logic:and and logic:or, whose canonical identity absorbs nesting."@x-gmeow-english .
+
+gmeow:gmnArityKindBinder
+    a owl:NamedIndividual , gmeow:GmnArityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "binder arity"@x-gmeow-english ;
+    skos:definition "Binder arity: the operator binds one or more variables over a body — the shape of the quantifiers logic:forall and logic:exists and the modal operators logic:necessarily and logic:possibly, whose body-scope extent is marked by gmeow:gmnMaximalScope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- GMN argument-role individuals (closed) --------------------------------- #
+
+gmeow:gmnArgRoleAntecedent
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "antecedent role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The antecedent role: the operand slot that fills the canonical logic:antecedent — the hypothesis of an implication. Paired with the consequent role."@x-gmeow-english .
+
+gmeow:gmnArgRoleConsequent
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "consequent role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The consequent role: the operand slot that fills the canonical logic:consequent — the conclusion of an implication. Paired with the antecedent role."@x-gmeow-english .
+
+gmeow:gmnArgRoleContext
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "context role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The context role: the operand slot that fills the canonical logic:sequentContext — the premise context Γ of a sequent. Paired with the succedent role."@x-gmeow-english .
+
+gmeow:gmnArgRoleSuccedent
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "succedent role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The succedent role: the operand slot that fills the canonical logic:sequentSuccedent — the conclusion φ of a sequent. Paired with the context role."@x-gmeow-english .
+
+gmeow:gmnArgRoleOverAccessibility
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "over-accessibility role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The over-accessibility role: the operand slot that fills the canonical logic:overAccessibility — the typed accessibility relation a modal operator is evaluated over. Its slot sort is the accessibility-type sort."@x-gmeow-english .
+
+gmeow:gmnArgRoleBody
+    a owl:NamedIndividual , gmeow:GmnArgRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "body role"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The body role: the operand slot that fills the scoped body of a binder — the formula a quantifier (logic:forall / logic:exists) or a modal operator (logic:necessarily / logic:possibly) ranges over."@x-gmeow-english .
+
+# --- GMN glyph-plane in-scope markers for cross-slice named-key targets ------ #
+# The logic: terms carry their gmeow:gmnGlyphInScope markers in logic/module.ttl;
+# these two named-key targets live in other slices, so their in-scope markers are
+# asserted here in the GMN plane's own slice, referencing the term IRIs.
+gmeow:Attack gmeow:gmnGlyphInScope true .
+gmeow:Standpoint gmeow:gmnGlyphInScope true .
 
 # --- GMN symbol-disposition and evidence-basis individuals (closed) -------- #
 
