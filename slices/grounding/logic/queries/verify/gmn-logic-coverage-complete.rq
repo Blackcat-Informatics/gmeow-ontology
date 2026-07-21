@@ -34,7 +34,10 @@ SELECT ?t WHERE {
                     logic:requires ?paired .
         ?pairedCand gmeow:gmnCandidateTarget ?paired .
     }
-    # compositional coverage: a reified node class assembled by its signed operators
-    FILTER NOT EXISTS { ?t a owl:Class }
+    # compositional coverage: logic:Sequent is the ONE reified proof-obligation node
+    # class assembled by its signed turnstile operators (⊢/⊨), never an atomic sign. Exempt
+    # exactly that term — NOT every owl:Class, which would silently excuse any uncovered
+    # in-scope class from the coverage anti-join.
+    FILTER (?t != logic:Sequent)
 }
 ORDER BY ?t
