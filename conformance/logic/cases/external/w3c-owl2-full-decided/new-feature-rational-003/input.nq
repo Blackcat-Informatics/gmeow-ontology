@@ -10,7 +10,7 @@ _:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#oneOf> _:rdfx
 _:rdfxml_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> "0.3333333333333333"^^<http://www.w3.org/2001/XMLSchema#decimal> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
 _:rdfxml_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_00000000000000000000000004 <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
 _:rdfxml_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> "1/3"^^<http://www.w3.org/2002/07/owl#rational> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
-_:rdfxml_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
 _:rdfxml_00000000000000000000000005 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
 _:rdfxml_00000000000000000000000005 <http://www.w3.org/2002/07/owl#minCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
 _:rdfxml_00000000000000000000000005 <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/dp> <https://gmeow.example/w3c-owl2-full/new-feature-rational-003/w> .
