@@ -47,6 +47,9 @@ const LOGIC_FALLBACK_UNIQUENESS_Q: &str = include_str!(
 const GLOBAL_FALLBACK_UNIQUE_Q: &str = include_str!(
     "../../../slices/grounding/lang/queries/verify/gmn-glyph-fallback-global-unique.rq"
 );
+const GLYPH_SCOPE_DISJOINT_Q: &str = include_str!(
+    "../../../slices/grounding/logic/queries/verify/gmn-logic-glyph-scope-disjoint.rq"
+);
 
 /// Parse one grounding slice's `module.ttl` into a dataset.
 fn grounding_module(slice: &str) -> Arc<RdfDataset> {
@@ -551,5 +554,37 @@ fn gmn_logic_precedence_fibered_fires_on_single_form_two_precedences() {
         rows, 2,
         "the precedence gate must catch one form bound at two precedences in a single fiber: the \
          two ordered (precA, precB) solutions of the self-clash"
+    );
+}
+
+// ── gmn-logic-glyph-scope-disjoint ───────────────────────────────────────────────
+
+#[test]
+fn gmn_logic_glyph_scope_disjoint_has_no_violations() {
+    let graph = merged_grounding_graph();
+    let rows = violation_rows(&graph, GLYPH_SCOPE_DISJOINT_Q);
+    assert_eq!(
+        rows, 0,
+        "gmn-logic-glyph-scope-disjoint.rq must return zero rows against the shipped graph: no \
+         term carries BOTH gmnGlyphInScope and gmnGlyphNamedKeyRuled"
+    );
+}
+
+#[test]
+fn gmn_logic_glyph_scope_disjoint_fires_on_both_markers() {
+    // One term marked BOTH in-scope for a rendered glyph AND ruled to a named key — the
+    // partition violation that would let the coverage gate silently exempt an in-scope term.
+    let injection = format!(
+        "{PREFIXES}
+        ex:doubleMarkedTerm gmeow:gmnGlyphInScope true ;
+            gmeow:gmnGlyphNamedKeyRuled true .
+        "
+    );
+    let graph = merged_plus(&injection);
+    let rows = violation_rows(&graph, GLYPH_SCOPE_DISJOINT_Q);
+    assert_eq!(
+        rows, 1,
+        "the disjointness gate must return exactly the one injected term carrying both the \
+         in-scope and named-key-ruled markers"
     );
 }
