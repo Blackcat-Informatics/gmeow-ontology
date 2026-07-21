@@ -4,16 +4,16 @@ expression: coverage
 ---
 {
   "docs/missing-annotation-coat": 4473,
-  "docs/missing-competency-rationale": 6057,
+  "docs/missing-competency-rationale": 6062,
   "docs/missing-definition": 1,
   "docs/missing-example": 4453,
-  "docs/missing-fixture-pair": 6065,
+  "docs/missing-fixture-pair": 6070,
   "docs/missing-label": 1,
-  "docs/missing-prose-quality": 6261,
+  "docs/missing-prose-quality": 6266,
   "docs/missing-realized-state": 81,
-  "docs/missing-scope-note": 6180,
-  "docs/missing-test-reach": 5624,
-  "docs/missing-translation-coverage": 4098,
+  "docs/missing-scope-note": 6184,
+  "docs/missing-test-reach": 5629,
+  "docs/missing-translation-coverage": 4103,
   "docs/missing-usage-advice": 4461,
-  "docs/missing-worked-instance": 5547
+  "docs/missing-worked-instance": 5552
 }
