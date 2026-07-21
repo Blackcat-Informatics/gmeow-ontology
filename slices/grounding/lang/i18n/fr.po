@@ -676,3 +676,157 @@ msgstr "Contrainte d'injectivité d'alias du dictionnaire GMN"
 msgctxt "https://blackcatinformatics.ca/lang/GmnDictionaryAliasInjectivityConstraint|skos:definition"
 msgid "A closed-world integrity constraint requiring entries in one gmeow:GmnDictionary that share a gmeow:gmnDictionaryEntryAlias to name the same gmeow:gmnDictionaryEntryTerm; one alias never reads back as two terms."
 msgstr "Une contrainte d'intégrité en monde clos exigeant que les entrées d'un même gmeow:GmnDictionary partageant un gmeow:gmnDictionaryEntryAlias nomment le même gmeow:gmnDictionaryEntryTerm ; un même alias ne se relit jamais comme deux termes."
+
+# --- GMN math symbology plane: number-type classes, operator families, extended real line & poles ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNaturalNumberClass|rdfs:label"
+msgid "GMN candidate: the natural-number class ℕ"
+msgstr "candidat GMN : la classe des entiers naturels ℕ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNaturalNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:NaturalNumber."
+msgstr "La décision auditée de constructeur structuré pour la classe d’éléments math:NaturalNumber."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathIntegerClass|rdfs:label"
+msgid "GMN candidate: the integer class ℤ"
+msgstr "candidat GMN : la classe des entiers relatifs ℤ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathIntegerClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:Integer."
+msgstr "La décision auditée de constructeur structuré pour la classe d’éléments math:Integer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRationalNumberClass|rdfs:label"
+msgid "GMN candidate: the rational-number class ℚ"
+msgstr "candidat GMN : la classe des nombres rationnels ℚ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRationalNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:RationalNumber."
+msgstr "La décision auditée de constructeur structuré pour la classe d’éléments math:RationalNumber."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRealNumberClass|rdfs:label"
+msgid "GMN candidate: the real-number class ℝ"
+msgstr "candidat GMN : la classe des nombres réels ℝ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathRealNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:RealNumber."
+msgstr "La décision auditée de constructeur structuré pour la classe d’éléments math:RealNumber."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathComplexNumberClass|rdfs:label"
+msgid "GMN candidate: the complex-number class ℂ"
+msgstr "candidat GMN : la classe des nombres complexes ℂ"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathComplexNumberClass|skos:definition"
+msgid "The audited structured-constructor ruling for the element class math:ComplexNumber."
+msgstr "La décision auditée de constructeur structuré pour la classe d’éléments math:ComplexNumber."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathSupersetOf|rdfs:label"
+msgid "GMN candidate: superset ⊇"
+msgstr "candidat GMN : sur-ensemble ⊇"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathSupersetOf|skos:definition"
+msgid "The audited named-key ruling for the non-strict superset relation math:supersetRel rendered ⊇."
+msgstr "La décision auditée de clé nommée pour la relation de sur-ensemble non stricte math:supersetRel rendue ⊇."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLessOrEqual|rdfs:label"
+msgid "GMN candidate: less-or-equal ≤"
+msgstr "candidat GMN : inférieur ou égal ≤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathLessOrEqual|skos:definition"
+msgid "The audited named-key ruling for the non-strict order relation math:lessOrEqualRel rendered ≤."
+msgstr "La décision auditée de clé nommée pour la relation d’ordre non stricte math:lessOrEqualRel rendue ≤."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGreaterOrEqual|rdfs:label"
+msgid "GMN candidate: greater-or-equal ≥"
+msgstr "candidat GMN : supérieur ou égal ≥"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathGreaterOrEqual|skos:definition"
+msgid "The audited named-key ruling for the non-strict converse-order relation math:greaterOrEqualRel rendered ≥."
+msgstr "La décision auditée de clé nommée pour la relation d’ordre inverse non stricte math:greaterOrEqualRel rendue ≥."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSubset|rdfs:label"
+msgid "GMN candidate: proper subset ⊂"
+msgstr "candidat GMN : sous-ensemble strict ⊂"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSubset|skos:definition"
+msgid "The audited structured-constructor ruling for proper (strict) subset rendered ⊂, over the non-strict relation math:subsetOf."
+msgstr "La décision auditée de constructeur structuré pour le sous-ensemble strict rendu ⊂, sur la relation non stricte math:subsetOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSuperset|rdfs:label"
+msgid "GMN candidate: proper superset ⊃"
+msgstr "candidat GMN : sur-ensemble strict ⊃"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathProperSuperset|skos:definition"
+msgid "The audited structured-constructor ruling for proper (strict) superset rendered ⊃, over the non-strict relation math:supersetRel."
+msgstr "La décision auditée de constructeur structuré pour le sur-ensemble strict rendu ⊃, sur la relation non stricte math:supersetRel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExtendedRealLine|rdfs:label"
+msgid "GMN candidate: extended real line ℝ̄"
+msgstr "candidat GMN : droite réelle achevée ℝ̄"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathExtendedRealLine|skos:definition"
+msgid "The audited named-key ruling for the signed extended real line math:ExtendedRealLine rendered ℝ̄."
+msgstr "La décision auditée de clé nommée pour la droite réelle achevée signée math:ExtendedRealLine rendue ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathPositiveInfinity|rdfs:label"
+msgid "GMN candidate: positive infinity +∞"
+msgstr "candidat GMN : plus l’infini +∞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathPositiveInfinity|skos:definition"
+msgid "The audited named-key ruling for the positive pole math:PositiveInfinity rendered +∞."
+msgstr "La décision auditée de clé nommée pour le pôle positif math:PositiveInfinity rendu +∞."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegativeInfinity|rdfs:label"
+msgid "GMN candidate: negative infinity −∞"
+msgstr "candidat GMN : moins l’infini −∞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateMathNegativeInfinity|skos:definition"
+msgid "The audited named-key ruling for the negative pole math:NegativeInfinity rendered −∞."
+msgstr "La décision auditée de clé nommée pour le pôle négatif math:NegativeInfinity rendu −∞."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathSupersetOf|rdfs:label"
+msgid "the GMN superset named key `supseteq`"
+msgstr "la clé nommée GMN de sur-ensemble « supseteq »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathSupersetOf|skos:definition"
+msgid "The binary infix GMN named-key form `supseteq` for the non-strict superset relation math:supersetRel at the relational precedence band; the ⊇ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "La forme GMN à clé nommée, infixe binaire, « supseteq » pour la relation de sur-ensemble non stricte math:supersetRel à la bande de précédence relationnelle ; le signe ⊇ est conservé comme notation d’affichage car il se fragmente sous le BPE fixé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLessOrEqual|rdfs:label"
+msgid "the GMN less-or-equal named key `leq`"
+msgstr "la clé nommée GMN d’inférieur ou égal « leq »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathLessOrEqual|skos:definition"
+msgid "The binary infix GMN named-key form `leq` for the non-strict order relation math:lessOrEqualRel at the relational precedence band."
+msgstr "La forme GMN à clé nommée, infixe binaire, « leq » pour la relation d’ordre non stricte math:lessOrEqualRel à la bande de précédence relationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathGreaterOrEqual|rdfs:label"
+msgid "the GMN greater-or-equal named key `geq`"
+msgstr "la clé nommée GMN de supérieur ou égal « geq »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathGreaterOrEqual|skos:definition"
+msgid "The binary infix GMN named-key form `geq` for the non-strict converse-order relation math:greaterOrEqualRel at the relational precedence band."
+msgstr "La forme GMN à clé nommée, infixe binaire, « geq » pour la relation d’ordre inverse non stricte math:greaterOrEqualRel à la bande de précédence relationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathExtendedRealLine|rdfs:label"
+msgid "the GMN extended-real-line named key `extreal`"
+msgstr "la clé nommée GMN de droite réelle achevée « extreal »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathExtendedRealLine|skos:definition"
+msgid "The constant GMN named-key form `extreal` for the signed extended real line math:ExtendedRealLine; the ℝ̄ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "La forme GMN constante à clé nommée « extreal » pour la droite réelle achevée signée math:ExtendedRealLine ; le signe ℝ̄ est conservé comme notation d’affichage car il se fragmente sous le BPE fixé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathPositiveInfinity|rdfs:label"
+msgid "the GMN positive-infinity named key `posinf`"
+msgstr "la clé nommée GMN de plus l’infini « posinf »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathPositiveInfinity|skos:definition"
+msgid "The constant GMN named-key form `posinf` for the positive pole math:PositiveInfinity; the signed +∞ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "La forme GMN constante à clé nommée « posinf » pour le pôle positif math:PositiveInfinity ; le signe signé +∞ est conservé comme notation d’affichage car il se fragmente sous le BPE fixé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathNegativeInfinity|rdfs:label"
+msgid "the GMN negative-infinity named key `neginf`"
+msgstr "la clé nommée GMN de moins l’infini « neginf »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormMathNegativeInfinity|skos:definition"
+msgid "The constant GMN named-key form `neginf` for the negative pole math:NegativeInfinity; the signed −∞ sign is retained as display notation because it fragments under the pinned BPE."
+msgstr "La forme GMN constante à clé nommée « neginf » pour le pôle négatif math:NegativeInfinity ; le signe signé −∞ est conservé comme notation d’affichage car il se fragmente sous le BPE fixé."

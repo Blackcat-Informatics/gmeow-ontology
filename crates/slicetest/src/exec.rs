@@ -759,12 +759,26 @@ fn run_conformance_cell(
 
     match ec.outcome {
         Outcome::Conforms => {
-            if codes.is_empty() {
-                Ok(())
-            } else {
-                let locations = report
+            // SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/
+            // `Warning` results (e.g. the advisory-tier `logic:severity "Info"`
+            // constraints) are non-gating per spec, so an advisory finding must
+            // NOT turn an "expected conformance" cell into a failure. Filter to
+            // Violation-severity results before deciding (mirrors
+            // `gmeow_validate::advisory::split_advisory_results`'s recomputed
+            // `conforms`, and `crates/validate/tests/example_sweep.rs`'s
+            // `conforms_to_shacl`).
+            let violations = || {
+                report
                     .results
                     .iter()
+                    .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+            };
+            if violations().next().is_none() {
+                Ok(())
+            } else {
+                let codes: BTreeSet<String> =
+                    violations().map(|r| finding_from_shacl(r).code).collect();
+                let locations = violations()
                     .map(|result| {
                         let finding = finding_from_shacl(result);
                         let path = result

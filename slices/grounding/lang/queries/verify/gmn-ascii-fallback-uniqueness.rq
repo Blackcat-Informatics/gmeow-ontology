@@ -1,0 +1,27 @@
+# Negative test: within the GMN math plane, the gmeow:gmnAsciiFallback keys are a SECOND
+# parseable notation (the ASCII stream a downstream writer/parser must round-trip when the
+# Unicode sign is not adopted). Two DISTINCT math operators/targets sharing one ASCII
+# fallback would make that stream ambiguous, so each math-plane fallback MUST be unique
+# across distinct targets. Any returned row is a collision: two candidates with different
+# math: targets declaring the same fallback key.
+#
+# Two candidates with the SAME target (e.g. ⊆ and ⊂ both over math:subsetOf) legitimately
+# carry DIFFERENT fallbacks and are never a collision; the ?targetA != ?targetB filter
+# keeps the gate to genuine cross-operator key clashes. The current math-plane keys (nat,
+# int, rat, real, cplx, is_nat…, in, subseteq, supseteq, leq, geq, propsubset, propsupset,
+# extreal, posinf, neginf, …) are pairwise distinct across targets, so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fallback ?candA ?candB ?targetA ?targetB WHERE {
+    ?candA a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetA ;
+           gmeow:gmnAsciiFallback ?fallback .
+    ?candB a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetB ;
+           gmeow:gmnAsciiFallback ?fallback .
+    FILTER (STRSTARTS(STR(?targetA), "https://blackcatinformatics.ca/math/"))
+    FILTER (STRSTARTS(STR(?targetB), "https://blackcatinformatics.ca/math/"))
+    FILTER (STR(?candA) < STR(?candB))
+    FILTER (?targetA != ?targetB)
+}
+ORDER BY ?fallback ?candA ?candB

@@ -683,6 +683,7 @@ https://blackcatinformatics.ca/gmeow/weightingPolicy
 https://blackcatinformatics.ca/gmeow/what3words
 https://blackcatinformatics.ca/gmeow/withMetric
 https://blackcatinformatics.ca/logic/actionResource
+https://blackcatinformatics.ca/logic/adviceSourceField
 https://blackcatinformatics.ca/logic/antecedent
 https://blackcatinformatics.ca/logic/candidateCategory
 https://blackcatinformatics.ca/logic/candidateContract

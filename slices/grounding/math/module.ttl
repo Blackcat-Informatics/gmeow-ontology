@@ -2045,6 +2045,45 @@ math:dimensionless
     rdfs:label "dimensionless (1)"@x-gmeow-english ;
     skos:definition "The dimensionless dimension: the zero vector, the identity of the dimension vector space. The dimension of a ratio of commensurable quantities, a probability, a correlation, or an angle."@x-gmeow-english .
 
+# --- Coherent derived dimensions ------------------------------------------- #
+# The canonical anchor for a named coherent SI derived quantity, so its external
+# unit provenance (QUDT, Wikidata, ISO 80000) has a stable math: subject to align.
+# Force M·L·T⁻² is the worked showcase — the exponent vector Newton's second law
+# fixes (dim(mass) + dim(acceleration)). Additional coherent derived dimensions
+# are minted the same way (structured exponent cells only; the dimensionVector
+# string stays a computed projection, never authored here).
+
+math:forceDimension
+    a owl:NamedIndividual , math:DerivedDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "force dimension (M¹L¹T⁻²)"@x-gmeow-english ;
+    skos:definition "The dimension of force, M·L·T⁻² — the coherent SI derived quantity realized by the newton (kg·m·s⁻²). A math:DerivedDimension whose structured exponent cells are mass¹, length¹, time⁻²; it is exactly dim(mass) + dim(acceleration) in the ℚ-vector space of dimensions (Newton's second law). The canonical subject its external unit provenance aligns to (QUDT, Wikidata, ISO 80000 in the math mappings)."@x-gmeow-english ;
+    math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent .
+
+math:forceMassExponent
+    a owl:NamedIndividual , math:DimensionExponent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "force: mass exponent 1 (M¹)"@x-gmeow-english ;
+    skos:definition "The mass cell of the force dimension's exponent vector: math:massDimension raised to the exact-rational power 1/1. One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+
+math:forceLengthExponent
+    a owl:NamedIndividual , math:DimensionExponent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "force: length exponent 1 (L¹)"@x-gmeow-english ;
+    skos:definition "The length cell of the force dimension's exponent vector: math:lengthDimension raised to the exact-rational power 1/1. One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+
+math:forceTimeExponent
+    a owl:NamedIndividual , math:DimensionExponent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "force: time exponent −2 (T⁻²)"@x-gmeow-english ;
+    skos:definition "The time cell of the force dimension's exponent vector: math:timeDimension raised to the exact-rational power −2/1 (the inverse-square-time of Newton's second law). One of the three math:baseDimensionExponent cells of math:forceDimension (M¹L¹T⁻²)."@x-gmeow-english ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
 # --- Measure and dimension failure classes ---------------------------------- #
 
 math:IncompleteMeasure
