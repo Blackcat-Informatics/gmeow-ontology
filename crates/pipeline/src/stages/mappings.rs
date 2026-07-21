@@ -397,10 +397,15 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // PREFIX_REGISTRY authority: the importable `gmeow:CorePrefixes` SHACL set
     // and the JSON-LD `@context`. Deterministic by construction (const-derived),
     // so they ride the `generated/` drift gate and fold into `gmeow.gts` exactly
-    // like the FnO catalog, with no new pipeline stage.
+    // like the FnO catalog, with no new pipeline stage. `emit_core_prefixes`
+    // never emits `skos:definition`/`rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
+    // the T-Box `owl:Ontology` header it mints — complete exactly those three.
     artifacts.insert(
         CORE_PREFIXES_PATH.to_string(),
-        canon_fanout_ttl(&emit_core_prefixes(&vocab))?,
+        canon_fanout_ttl(&complete_core_prefixes_abox(
+            &emit_core_prefixes(&vocab),
+            &vocab,
+        ))?,
     );
     artifacts.insert(
         JSONLD_CONTEXT_PATH.to_string(),
@@ -409,10 +414,16 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
 
     // First-class RDF list functions (§5) — six FnO primitives backed by the
     // reasoning layer's recursive rdf:List resolution. Fixed content, deterministic;
-    // folds into gmeow.gts like the FnO catalog.
+    // folds into gmeow.gts like the FnO catalog. `emit_list_functions` (like the
+    // FnO catalog's `to_quads`) never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole`
+    // for its A-Box `fno:Function`/`fno:Output`/`fno:Parameter` individuals —
+    // complete them the same way `logic-compile`'s `fno.rs` does.
     artifacts.insert(
         LIST_FUNCTIONS_PATH.to_string(),
-        canon_fanout_ttl(&emit_list_functions(&vocab))?,
+        canon_fanout_ttl(&complete_list_functions_abox(
+            &emit_list_functions(&vocab),
+            &vocab,
+        ))?,
     );
 
     Ok(CompiledMappings {
@@ -626,6 +637,101 @@ fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
                 message: format!("canonicalize RDF projection: {e}"),
             })
         })
+}
+
+/// Complete `gmeow:CorePrefixes`' A-Box structural-annotation gap:
+/// `purrdf::slice::prefix_emit::emit_core_prefixes` mints the importable SHACL
+/// prefix set as `a owl:Ontology` with an `rdfs:label`/`rdfs:comment` (bare `@en`,
+/// retagged to the `x-gmeow-english` carrier here by [`retag_core_prefixes_english`])
+/// but NEVER a `skos:definition`, `rdfs:isDefinedBy`, or `gmeow:graphBoxRole`. `CorePrefixes` is a T-Box document (an ontology header
+/// describing a declared prefix set), never an assertional individual, so it
+/// carries [`gmeow_errors::abox::BOX_TBOX`] rather than the A-Box
+/// [`gmeow_errors::abox::BOX_ABOX`] every other completion in this module uses.
+/// Appended as full-IRI Turtle triples so `canon_fanout_ttl` folds them into the
+/// same canonicalization pass as `body`.
+/// Retag the bare public `@en` tag `emit_core_prefixes` mints on the
+/// `gmeow:CorePrefixes` `rdfs:label` / `rdfs:comment` to the `x-gmeow-english`
+/// carrier tag. `CorePrefixes` is an INTERNAL importable SHACL prefix set — not a
+/// Principle-17 external lowering — so its GMEOW-authored English prose owes the
+/// carrier tag like every other internal term (only its `skos:definition`, minted
+/// below, already carries it). Keyed on the label/comment predicate so no other
+/// literal is touched; the object literal value never itself contains `"@en`.
+fn retag_core_prefixes_english(body: &str) -> String {
+    body.lines()
+        .map(|line| {
+            let annotation = line.contains("#label>")
+                || line.contains("#comment>")
+                || line.contains("rdfs:label")
+                || line.contains("rdfs:comment");
+            if annotation {
+                line.replace(
+                    "\"@en",
+                    &format!("\"@{}", gmeow_errors::abox::X_GMEOW_ENGLISH),
+                )
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn complete_core_prefixes_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
+    let body = retag_core_prefixes_english(body);
+    let subject = vocab.core_prefixes_iri();
+    const DEFINITION: &str = "The importable SHACL prefix set (`sh:declare`) covering every \
+        namespace prefix in the mapping-DSL prefix registry; reference it from a SHACL shape \
+        via `sh:prefixes gmeow:CorePrefixes` instead of redeclaring prefixes per shape.";
+    format!(
+        "{body}\n\
+         <{subject}> <{definition_pred}> \"{definition}\"@{carrier} .\n\
+         <{subject}> <{is_defined_by_pred}> <{ontology_iri}> .\n\
+         <{subject}> <{graph_box_role_pred}> <{box_tbox}> .\n",
+        definition_pred = gmeow_errors::abox::SKOS_DEFINITION,
+        definition = gmeow_errors::render::nq_escape(DEFINITION),
+        carrier = gmeow_errors::abox::X_GMEOW_ENGLISH,
+        is_defined_by_pred = gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+        ontology_iri = vocab.ontology_iri(),
+        graph_box_role_pred = gmeow_errors::abox::GRAPH_BOX_ROLE,
+        box_tbox = gmeow_errors::abox::BOX_TBOX,
+    )
+}
+
+/// Complete the first-class RDF list-functions catalog's A-Box structural-
+/// annotation gap: `purrdf::slice::list_functions::emit_list_functions` routes
+/// through the SAME `purrdf::fno::to_quads` serializer `logic-compile`'s FnO
+/// catalog uses, so it inherits the identical gap — `rdfs:isDefinedBy`/
+/// `gmeow:graphBoxRole` are NEVER emitted for any subject. Unlike the FnO
+/// catalog, every `fno:Function`/`fno:Output`/`fno:Parameter` individual here
+/// already carries a real `rdfs:label`/`skos:definition` from the catalog model
+/// (`list_functions_catalog` populates both fields for all three), so only the
+/// two structural predicates need completing. Re-derives the catalog MODEL
+/// (public, deterministic, side-effect-free) purely to enumerate the subject
+/// IRIs — `body`'s serialized text (with its own retag/tag choices) is passed
+/// through unmodified, only appended to, so this never diverges from what
+/// `emit_list_functions` actually emitted.
+fn complete_list_functions_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
+    let catalog = purrdf::slice::list_functions::list_functions_catalog(vocab);
+    let mut subjects: Vec<&str> = Vec::new();
+    for func in &catalog.functions {
+        subjects.push(&func.iri);
+        subjects.push(&func.output.iri);
+    }
+    for param in &catalog.params {
+        subjects.push(&param.iri);
+    }
+    let mut out = body.to_owned();
+    for subject in subjects {
+        out.push_str(&format!(
+            "<{subject}> <{is_defined_by_pred}> <{graph}> .\n\
+             <{subject}> <{graph_box_role_pred}> <{box_abox}> .\n",
+            is_defined_by_pred = gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+            graph = catalog.document_iri,
+            graph_box_role_pred = gmeow_errors::abox::GRAPH_BOX_ROLE,
+            box_abox = gmeow_errors::abox::BOX_ABOX,
+        ));
+    }
+    out
 }
 
 /// Assemble the FINAL `generated/logic/projection-report.ttl` over the UNION of the
@@ -1984,6 +2090,144 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                     .iter()
                     .any(|t| t.contains(&format!("gmeow/{name}>"))),
                 "missing function {name}"
+            );
+        }
+    }
+
+    /// Errors from `structural_lint_dataset` whose message names one of the four
+    /// A-Box structural-annotation predicates this task completes — deliberately
+    /// excludes the (separately tracked) language-tag-discipline codes, so this
+    /// stays a precise "zero A-Box findings" check, not "zero findings at all".
+    fn abox_annotation_errors<'a>(errors: &'a [String], subject: &str) -> Vec<&'a String> {
+        const MISSING_MARKERS: [&str; 4] = [
+            "is missing rdfs:label",
+            "is missing skos:definition",
+            "is missing rdfs:isDefinedBy",
+            "is missing gmeow:graphBoxRole",
+        ];
+        errors
+            .iter()
+            .filter(|e| e.contains(subject) && MISSING_MARKERS.iter().any(|m| e.contains(m)))
+            .collect()
+    }
+
+    /// Shift-left: drive the SAME native structural lint `make validate-gts` runs
+    /// (`gmeow_validate::lint::structural_lint_dataset`) over `complete_core_prefixes_abox`'s
+    /// real output, so a missing/incorrect A-Box annotation on the minted
+    /// `gmeow:CorePrefixes` T-Box header reds HERE — a fast `cargo nextest -p
+    /// gmeow-pipeline` — rather than only surfacing at the next expensive
+    /// `make validate-gts`. Mirrors `provenance_graph.rs`'s
+    /// `minted_individuals_satisfy_the_assertional_abox_contract`.
+    #[test]
+    fn core_prefixes_completion_satisfies_the_structural_contract() {
+        use gmeow_validate::lint::{
+            LintConfig, default_annotation_predicates, structural_lint_dataset,
+        };
+
+        let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+        let subject = vocab.core_prefixes_iri();
+        let completed = complete_core_prefixes_abox(&emit_core_prefixes(&vocab), &vocab);
+        // The real bundle supplies `gmeow:boxTBox a gmeow:GraphBoxRole` from the
+        // kernel slice (`slices/vocabulary.ttl` et al. already reference
+        // `gmeow:boxTBox` as a role); add it here so the role-typing check has its
+        // declaration to resolve against (same pattern as `release.rs`'s
+        // `minted_attestations_satisfy_the_assertional_contract`).
+        let doc = format!(
+            "{completed}<{}> <{}> <https://blackcatinformatics.ca/gmeow/GraphBoxRole> .\n",
+            gmeow_errors::abox::BOX_TBOX,
+            gmeow_errors::abox::RDF_TYPE,
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None)
+            .expect("parse the completed core-prefixes turtle");
+
+        let cfg = LintConfig {
+            namespace: crate::gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: crate::gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: default_annotation_predicates().into_iter().collect(),
+        };
+        let report = structural_lint_dataset(&ds, &cfg);
+        let errors = report.errors();
+        let core_prefixes_errors = abox_annotation_errors(&errors, &subject);
+        assert!(
+            core_prefixes_errors.is_empty(),
+            "gmeow:CorePrefixes must satisfy the T-Box structural-annotation contract \
+             (rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole): \
+             {core_prefixes_errors:?}"
+        );
+        // Do NOT add gmeow:boxABox to a T-Box owl:Ontology header.
+        assert!(
+            !completed.contains(gmeow_errors::abox::BOX_ABOX),
+            "gmeow:CorePrefixes is a T-Box header — it must never carry gmeow:boxABox"
+        );
+        // The label/comment `emit_core_prefixes` mints with a bare `@en` must be
+        // retagged to the carrier tag — CorePrefixes is an internal ontology, not an
+        // external lowering, so it owes the carrier-tag discipline.
+        assert!(
+            !errors
+                .iter()
+                .any(|e| e.contains(&subject) && e.contains("external language tag 'en'")),
+            "gmeow:CorePrefixes label/comment must carry x-gmeow-english, not bare @en: {errors:?}"
+        );
+        assert!(
+            !completed.contains("\"@en"),
+            "no bare @en may survive on the completed CorePrefixes A-Box: {completed}"
+        );
+    }
+
+    /// Shift-left: same pattern as `core_prefixes_completion_satisfies_the_structural_contract`,
+    /// over `complete_list_functions_abox`'s real output — every A-Box
+    /// `fno:Function`/`fno:Output`/`fno:Parameter` individual it mints must satisfy
+    /// the full four-predicate contract.
+    #[test]
+    fn list_functions_completion_satisfies_the_structural_contract() {
+        use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+
+        let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+        let catalog = purrdf::slice::list_functions::list_functions_catalog(&vocab);
+        let completed = complete_list_functions_abox(&emit_list_functions(&vocab), &vocab);
+        // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
+        // kernel slice; add it here so the role-typing check has its declaration.
+        let doc = format!(
+            "{completed}<{}> <{}> <https://blackcatinformatics.ca/gmeow/GraphBoxRole> .\n",
+            gmeow_errors::abox::BOX_ABOX,
+            gmeow_errors::abox::RDF_TYPE,
+        );
+        let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None)
+            .expect("parse the completed list-functions turtle");
+
+        let cfg = LintConfig {
+            namespace: crate::gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: crate::gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            selector_tokens: Default::default(),
+            core_slice_iris: Default::default(),
+            annotation_predicates: Default::default(),
+        };
+        let report = structural_lint_dataset(&ds, &cfg);
+        let errors = report.errors();
+
+        let mut subjects: Vec<String> = Vec::new();
+        for func in &catalog.functions {
+            subjects.push(func.iri.clone());
+            subjects.push(func.output.iri.clone());
+        }
+        for param in &catalog.params {
+            subjects.push(param.iri.clone());
+        }
+        assert_eq!(
+            subjects.len(),
+            6 + 6 + 7,
+            "expected 6 functions + 6 outputs + 7 params"
+        );
+
+        for subject in &subjects {
+            let subject_errors = abox_annotation_errors(&errors, subject);
+            assert!(
+                subject_errors.is_empty(),
+                "{subject} must satisfy the A-Box structural-annotation contract \
+                 (rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole): \
+                 {subject_errors:?}"
             );
         }
     }

@@ -310,7 +310,10 @@ fn add(out: &mut Vec<RdfQuad>, s: &str, p: &str, o: RdfTerm) {
 }
 
 fn lit_en(s: &str) -> RdfTerm {
-    RdfTerm::literal(RdfLiteral::language_tagged(s, "en"))
+    RdfTerm::literal(RdfLiteral::language_tagged(
+        s,
+        gmeow_errors::abox::X_GMEOW_ENGLISH,
+    ))
 }
 
 fn lit_int(n: u64) -> RdfTerm {

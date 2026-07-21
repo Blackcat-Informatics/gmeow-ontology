@@ -7,17 +7,24 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ev:    <https://blackcatinformatics.ca/gmeow/evals/corpus/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 ev:readme a gmeow:Document ;
-    rdfs:label "README.md"@en ;
+    rdfs:label "README.md"@x-gmeow-english ;
     gmeow:sourceLocation "README.md" ;
     gmeow:contentDigest "blake3:03a4a7a8ec206e1c3dfb5803a131f2a1c32586145d5cf11822f7fb5ca61e6263" ;
     gmeow:contentDigest "sha256:6530e01b7d84ca30c18091c9bfa5ee804e3f746116ac13ddbbd9fcec55803641" ;
-    gmeow:contentDigest "md5:a8c45dc1ed397aeca04e9d95d45b62f1" .
+    gmeow:contentDigest "md5:a8c45dc1ed397aeca04e9d95d45b62f1" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/corpus.ttl> ;
+    skos:definition "GMEOW's top-level README.md, dogfooded as an eval-corpus document: the harness reads it at its sourceLocation and pins the scored version by contentDigest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ev:constitution a gmeow:Document ;
-    rdfs:label "CONSTITUTION.md"@en ;
+    rdfs:label "CONSTITUTION.md"@x-gmeow-english ;
     gmeow:sourceLocation "CONSTITUTION.md" ;
     gmeow:contentDigest "blake3:9d24cebbaa95509ad570cd4bf01de51f7822adbf041125a882dfc6a0f693f212" ;
     gmeow:contentDigest "sha256:aadf5f78e9dd0ada8cf25f38cfc1876ca470832356ee64a9ba95bd92f48760b4" ;
-    gmeow:contentDigest "md5:8caf0b783ca1dc31cd914b8c06c95a49" .
+    gmeow:contentDigest "md5:8caf0b783ca1dc31cd914b8c06c95a49" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/corpus.ttl> ;
+    skos:definition "GMEOW's CONSTITUTION.md, dogfooded as an eval-corpus document: the harness reads it at its sourceLocation and pins the scored version by contentDigest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
