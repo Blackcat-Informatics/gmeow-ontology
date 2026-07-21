@@ -1787,3 +1787,22 @@ suggestions/guidance.
   logic's fr/cmn translation coverage, or reconcile the aspirational 1.0
   afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
   a logic-slice / rubric-governance task independent of #1374.
+
+## 2026-07-21 — #1410 / A-Box annotation contract → drive validate-gts to zero, stage-2 gap remediation (branch paudley/1410-abox-annotation-contract)
+
+- SCOPED-OUT (external FAIR metadata carries the private-use carrier tag, not public BCP-47):
+  crates/pipeline/src/stages/metadata.rs emits generated/metadata/{void.ttl,dcat.ttl} — the
+  VOID dataset/linkset descriptions and the DCAT catalog — with rdfs:label / dcterms:title /
+  dcterms:description tagged @x-gmeow-english (stage-1 change). These are external FAIR harvest
+  artifacts (a VOID .well-known discovery endpoint, a DCAT catalog) whose harvesters expect a
+  public BCP-47 tag; @x-gmeow-* is a valid private-use subtag so nothing breaks, but a harvester
+  will not recognize the prose as English. NOT a validate-gts concern: these two files ride as
+  OPAQUE byte-projection archive members (no gmeow:FanoutExtraction rdf-fanout row in
+  slices/core/pipeline/module.ttl), so they are NOT in the flattened linted closure and produce
+  zero validate-gts findings — confirmed by the stage-2 completion-adversary. Left unchanged in
+  this PR because it is tangential to #1410's gate goal and reverting an opaque, unlinted external
+  artifact on a fold-topology inference (rather than a gate observation) carried more risk than
+  value under the run's no-validate-gts constraint. FORWARD PATH: emit public @en (not the carrier
+  tag) for the externally-published VOID/DCAT metadata surface — these are external commitment-
+  shifted views like the RO-Crate/FnO lowerings, which the lint now explicitly exempts precisely
+  because they carry public tags for external consumers.
