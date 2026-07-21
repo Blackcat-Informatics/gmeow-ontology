@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: W3C
 @prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .
 @prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
-@prefix ex: <https://gmeow.example/w3c-owl2-full-divergence/owl2-rl-rules-ifp-differentfrom/> .
+@prefix ex: <https://gmeow.example/w3c-owl2-full-decided/owl2-rl-rules-ifp-differentfrom/> .
 
 ex:owl2-rl-rules-ifp-differentfrom a otest:ConsistencyTest ;
     otest:identifier "owl2-rl-rules-ifp-differentfrom" ;

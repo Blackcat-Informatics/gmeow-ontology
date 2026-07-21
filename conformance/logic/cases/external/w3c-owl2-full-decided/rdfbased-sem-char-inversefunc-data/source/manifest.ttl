@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: W3C
 @prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .
 @prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
-@prefix ex: <https://gmeow.example/w3c-owl2-full-divergence/rdfbased-sem-char-inversefunc-data/> .
+@prefix ex: <https://gmeow.example/w3c-owl2-full-decided/rdfbased-sem-char-inversefunc-data/> .
 
 ex:rdfbased-sem-char-inversefunc-data a otest:ConsistencyTest ;
     otest:identifier "rdfbased-sem-char-inversefunc-data" ;

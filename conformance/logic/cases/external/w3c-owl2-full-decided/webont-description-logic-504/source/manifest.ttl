@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: W3C
 @prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .
 @prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
-@prefix ex: <https://gmeow.example/w3c-owl2-full-divergence/webont-description-logic-504/> .
+@prefix ex: <https://gmeow.example/w3c-owl2-full-decided/webont-description-logic-504/> .
 
 ex:webont-description-logic-504 a otest:InconsistencyTest ;
     otest:identifier "webont-description-logic-504" ;
