@@ -191,6 +191,37 @@ fn ontouml_soundness_failure(case_dir: &Path) -> Option<String> {
     }
 }
 
+/// Per-corpus case-count floors for the non-`divergence`-lane corpora this
+/// sweep actually walks (the `divergence` lanes are skipped in the loop below
+/// and are deliberately absent here). Each constant is a floor on that one
+/// corpus's case count, not an exact pin: legitimate future additions to a
+/// corpus still pass. Summed into [`MIN_CHECKED_TOTAL`] below, so a
+/// lane-routing regression that skips (or empties) any one of these corpora —
+/// most notably the `decided` lane — drops `checked` under the sum and trips
+/// the coverage-floor assertion, rather than silently passing against a
+/// stale, pre-`decided`-lane magic number.
+const MIN_ENTAILMENT_MINI: usize = 4;
+const MIN_ONTOUML_MINI: usize = 8;
+const MIN_SZS_MINI: usize = 3;
+const MIN_TPTP_MINI: usize = 6;
+const MIN_W3C_MINI: usize = 2;
+const MIN_W3C_OWL2_EL: usize = 19;
+const MIN_W3C_OWL2_FULL: usize = 261;
+const MIN_W3C_OWL2_FULL_DECIDED: usize = 32;
+
+/// The coverage floor for `checked` below: the sum of the per-corpus floors
+/// above (4 + 8 + 3 + 6 + 2 + 19 + 261 + 32 == 335), i.e. the true current
+/// total case count this sweep checks. Dropping the 32-case `decided` lane
+/// alone (or any other lane above) is enough to fail this assertion.
+const MIN_CHECKED_TOTAL: usize = MIN_ENTAILMENT_MINI
+    + MIN_ONTOUML_MINI
+    + MIN_SZS_MINI
+    + MIN_TPTP_MINI
+    + MIN_W3C_MINI
+    + MIN_W3C_OWL2_EL
+    + MIN_W3C_OWL2_FULL
+    + MIN_W3C_OWL2_FULL_DECIDED;
+
 /// The set of `status` strings in a case's committed `expected/verdicts.json`.
 fn committed_statuses(case_dir: &Path) -> BTreeSet<String> {
     let path = case_dir.join("expected").join("verdicts.json");
@@ -293,10 +324,12 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 38,
-        "expected ≥38 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
-         tptp-mini ×6, ontouml-mini ×8, w3c-owl2-full-decided ×32; the *-divergence \
-         lanes are excluded above, but the `decided` lane is NOT — its committed \
+        checked >= MIN_CHECKED_TOTAL,
+        "expected ≥{MIN_CHECKED_TOTAL} external cases (entailment-mini ×{MIN_ENTAILMENT_MINI}, \
+         szs-mini ×{MIN_SZS_MINI}, w3c-mini ×{MIN_W3C_MINI}, w3c-owl2-el ×{MIN_W3C_OWL2_EL}, \
+         tptp-mini ×{MIN_TPTP_MINI}, ontouml-mini ×{MIN_ONTOUML_MINI}, \
+         w3c-owl2-full ×{MIN_W3C_OWL2_FULL}, w3c-owl2-full-decided ×{MIN_W3C_OWL2_FULL_DECIDED}; \
+         the *-divergence lanes are excluded above, but the `decided` lane is NOT — its committed \
          verdict == the W3C-declared verdict by construction), found {checked}"
     );
     assert!(
