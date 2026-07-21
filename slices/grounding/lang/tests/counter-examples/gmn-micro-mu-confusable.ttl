@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: two distinct graphemes of the GMN script related by
+# gmeow:gmnConfusableWith — U+00B5 MICRO SIGN and U+03BC GREEK SMALL LETTER MU, the
+# canonical UTS #39 skeleton pair for μ admitted into one inventory (fires
+# lang:GmnConfusableGlyph via the sh:sparql of lang:GmnConfusableGlyphShape). Both
+# graphemes are otherwise well-formed: grounded in the repertoire, canonical codepoints,
+# DISTINCT codepoint values (U+00B5 vs U+03BC, so lang:GmnGlyphCollisionShape stays quiet),
+# and each carries its measured gmeow:gmnGlyphTokenCost feed (so
+# lang:GmnScriptGlyphCoverageShape's total glyph-cost coverage stays satisfied and
+# lang:GmnUncostedScriptGlyph stays quiet) — exactly the one confusable-pair finding fires.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gMicroSign , ex:gGreekMu .
+
+ex:gMicroSign a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+00B5" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne ;
+    gmeow:gmnConfusableWith ex:gGreekMu .
+
+ex:gGreekMu a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+03BC" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .

@@ -306,6 +306,17 @@ fn shacl_rows() -> Vec<ShaclRow> {
             worked: "gmn-script-glyph-canonical.ttl",
         },
         ShaclRow {
+            // The μ confusable pair (U+00B5 MICRO SIGN vs U+03BC GREEK SMALL LETTER MU): two
+            // distinct, individually well-formed graphemes linked by gmeow:gmnConfusableWith,
+            // so ONLY lang:GmnConfusableGlyph fires (distinct codepoints keep GmnGlyphCollision
+            // quiet). Distinct from the record-initial @μ sigil ruling, which resolves the
+            // sigil-vs-in-record-symbol reading structurally, never as a glyph collision.
+            counter: "gmn-micro-mu-confusable.ttl",
+            class: "GmnConfusableGlyph",
+            trips: &["GmnConfusableGlyph"],
+            worked: "gmn-script-glyph-canonical.ttl",
+        },
+        ShaclRow {
             counter: "gmn-glyph-collision.ttl",
             class: "GmnGlyphCollision",
             trips: &["GmnGlyphCollision"],

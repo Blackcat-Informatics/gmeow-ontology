@@ -1764,3 +1764,26 @@ This is a pre-existing native/wasm boundary, not a regression, and the issue's n
 make the advisory split wasm-compatible (or add a wasm-side enrichment pass) so `validate_json` in
 the browser/wasm consumer also re-projects the Info match as the Note `advice.*` finding with its
 suggestions/guidance.
+
+## 2026-07-20 — issue #1374 (GMN mathematical symbology plane)
+
+- fr/cmn translation of the new GMN math-symbology terms is PARTIAL. The change adds
+  ~95 new GMN sign-inventory terms (number-type classes, set/order operator families
+  ⊇ ≤ ≥ ⊂ ⊃, extended real line ℝ̄ + poles ±∞, and their Form/Denotation records) to
+  slices/grounding/lang/module.ttl, but only 19 of them received authored fr + cmn
+  translations in slices/grounding/lang/i18n/{fr,zh}.po — the number sufficient to
+  restore the lang axisTranslationCoverage floor after the additions widened the
+  localizable set. The remaining ~76 new terms carry English labels/definitions with
+  no fr/cmn translation. FORWARD PATH: complete fr + cmn translation for the remaining
+  new GMN terms in a translation pass (the .po msgctxt "term|predicate" keys are the
+  authoring seam); this raises lang translation coverage rather than merely holding
+  the floor.
+- Merged with the logic slice's axisTranslationCoverage make-check floor red (measured
+  0.7617 < committed rubric floor 1.0) under verbatim maintainer sign-off ("Sign off +
+  merge via ghprsq"). This is a human-signed-off descope of the green-gate requirement
+  for a PRE-EXISTING, not-#1374 condition: slices/grounding/logic/ is byte-identical to
+  origin/main (git diff origin/main -- slices/grounding/logic/ = 0 lines) and main's own
+  CI was already red on it. #1374 does not touch the logic slice. FORWARD PATH: complete
+  logic's fr/cmn translation coverage, or reconcile the aspirational 1.0
+  afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
+  a logic-slice / rubric-governance task independent of #1374.
