@@ -10517,7 +10517,7 @@ msgstr "可推导（⊢）"
 
 msgctxt "https://blackcatinformatics.ca/logic/derives|skos:definition"
 msgid "Syntactic derivability — the proof-theoretic turnstile ⊢: relates a premise context Γ to a logic:Formula obtainable from it by a finite proof in the governing calculus, established by exhibiting a derivation. It is NEVER the semantic logic:entails (⊨): derivability is provability in a fixed calculus while entailment is truth in every model, so the two are DISTINCT relations that MUST NOT be conflated or collapsed onto one edge — soundness and completeness are the separate meta-theorems relating them, per the ISO/IEC 24707 Common Logic model-theoretic semantics against which a calculus is judged. Domain a premise context (a logic:Sequent antecedent), range logic:Formula (stated in prose, matching the kernel convention)."
-msgstr "语法可推导性——证明论转折号 ⊢：将前提语境 Γ 关联到可在支配演算中由有限证明得到的 logic:Formula，通过展示一个推导而确立。它绝不是语义的 logic:entails（⊨）：可推导性是在固定演算中的可证性，而蕴涵是在每个模型中的真；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——可靠性与完全性是关联二者的各自独立的元定理，依据据以评判演算的 ISO/IEC 24707 Common Logic 模型论语义。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
+msgstr "语法可推导性——证明论断定符号 ⊢：将前提语境 Γ 关联到可在支配演算中由有限证明得到的 logic:Formula，通过展示一个推导而确立。它绝不是语义的 logic:entails（⊨）：可推导性是在固定演算中的可证性，而蕴涵是在每个模型中的真；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——可靠性与完全性是关联二者的各自独立的元定理，依据据以评判演算的 ISO/IEC 24707 Common Logic 模型论语义。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/entails|rdfs:label"
 msgid "entails"
@@ -10525,7 +10525,7 @@ msgstr "蕴涵（⊨）"
 
 msgctxt "https://blackcatinformatics.ca/logic/entails|skos:definition"
 msgid "Semantic entailment — the model-theoretic double turnstile ⊨: relates a premise context Γ to a logic:Formula true in every model of Γ, established by the absence of a countermodel. It is NEVER the syntactic logic:derives (⊢): entailment is truth in every model while derivability is provability in a fixed calculus, so the two are DISTINCT relations that MUST NOT be conflated or collapsed onto one edge — ISO/IEC 24707 Common Logic fixes this model-theoretic notion of entailment, which a sound and complete calculus's derivability then matches. Domain a premise context (a logic:Sequent antecedent), range logic:Formula (stated in prose, matching the kernel convention)."
-msgstr "语义蕴涵——模型论双转折号 ⊨：将前提语境 Γ 关联到在 Γ 的每个模型中均为真的 logic:Formula，通过不存在反模型而确立。它绝不是语法的 logic:derives（⊢）：蕴涵是在每个模型中的真，而可推导性是在固定演算中的可证性；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——ISO/IEC 24707 Common Logic 固定了这一模型论的蕴涵概念，可靠且完全的演算之可推导性便与之相符。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
+msgstr "语义蕴涵——模型论双断定符号 ⊨：将前提语境 Γ 关联到在 Γ 的每个模型中均为真的 logic:Formula，通过不存在反模型而确立。它绝不是语法的 logic:derives（⊢）：蕴涵是在每个模型中的真，而可推导性是在固定演算中的可证性；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——ISO/IEC 24707 Common Logic 固定了这一模型论的蕴涵概念，可靠且完全的演算之可推导性便与之相符。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/necessarily|rdfs:label"
 msgid "necessarily"
@@ -10581,7 +10581,7 @@ msgstr "相继式"
 
 msgctxt "https://blackcatinformatics.ca/logic/Sequent|skos:definition"
 msgid "A proof-obligation node Γ ⊢ φ: a reified judgment pairing an antecedent context Γ (its premise formulae, carried by logic:sequentContext) with a single succedent logic:Formula φ (its conclusion, carried by logic:sequentSuccedent). It is the unit a logic:derives claim is checked against — the syntactic obligation whose discharge is a proof — DISTINCT from a logic:Formula (a sentence, not an obligation) and from a logic:Rule (a productive Horn+NAF derivation, not a one-off proof goal). Its turnstile is the syntactic logic:derives (⊢); the matching semantic obligation reads with logic:entails (⊨)."
-msgstr "一个证明义务节点 Γ ⊢ φ：将前件语境 Γ（其前提公式，由 logic:sequentContext 承载）与唯一的后承 logic:Formula φ（其结论，由 logic:sequentSuccedent 承载）配对的具体化判断。它是一个 logic:derives 主张据以校验的单位——其了结即为一个证明的语法义务——与 logic:Formula（一个语句，而非义务）以及 logic:Rule（一条产生式的 Horn+NAF 推导，而非一次性的证明目标）相异。其转折号为语法的 logic:derives（⊢）；相应的语义义务以 logic:entails（⊨）读出。"
+msgstr "一个证明义务节点 Γ ⊢ φ：将前件语境 Γ（其前提公式，由 logic:sequentContext 承载）与唯一的后承 logic:Formula φ（其结论，由 logic:sequentSuccedent 承载）配对的具体化判断。它是一个 logic:derives 主张据以校验的单位——其了结即为一个证明的语法义务——与 logic:Formula（一个语句，而非义务）以及 logic:Rule（一条产生式的 Horn+NAF 推导，而非一次性的证明目标）相异。其断定符号为语法的 logic:derives（⊢）；相应的语义义务以 logic:entails（⊨）读出。"
 
 msgctxt "https://blackcatinformatics.ca/logic/sequentContext|rdfs:label"
 msgid "sequent context"

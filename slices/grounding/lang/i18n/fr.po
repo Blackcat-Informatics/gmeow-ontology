@@ -1783,7 +1783,7 @@ msgstr "sorte de terme"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|skos:definition"
 msgid "The term sort: a first-order term — an individual, a literal, or a compound function term. Distinct from the variable sort, which is the bindable subclass of terms."
-msgstr "La sorte de terme : un terme du premier ordre — un individu, un littéral ou un terme fonctionnel composé. Distincte de la sorte de variable, qui est la sous-classe liable des termes."
+msgstr "La sorte de terme : un terme du premier ordre — un individu, un littéral ou un terme fonctionnel composé. Distincte de la sorte de variable, qui est la sous-classe des termes susceptible d'être liée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTruthValue|rdfs:label"
 msgid "truth-value sort"
@@ -1799,4 +1799,4 @@ msgstr "sorte de variable"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|skos:definition"
 msgid "The variable sort: a bindable first-order variable, the sort a binder operator (quantifier or modal) binds. The specialized bindable counterpart of the term sort."
-msgstr "La sorte de variable : une variable du premier ordre liable, la sorte qu'un opérateur lieur (quantificateur ou modal) lie. Le pendant liable spécialisé de la sorte de terme."
+msgstr "La sorte de variable : une variable du premier ordre susceptible d'être liée, la sorte qu'un opérateur lieur (quantificateur ou modal) lie. Le pendant spécialisé, susceptible d'être lié, de la sorte de terme."

@@ -1083,19 +1083,19 @@ msgstr "针对描述逻辑概念并构造子 logic:conceptUnion（呈现为 ⊔�
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|rdfs:label"
 msgid "GMN candidate: derivability turnstile ⊢"
-msgstr "GMN 候选：可推导性转折号 ⊢"
+msgstr "GMN 候选：可推导性断定符号 ⊢"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|skos:definition"
 msgid "The audited named-key ruling for the syntactic derivability turnstile logic:derives rendered ⊢, kept distinct from the semantic ⊨."
-msgstr "针对语法可推导性转折号 logic:derives（呈现为 ⊢）的已审定命名键裁定，与语义的 ⊨ 保持相异。"
+msgstr "针对语法可推导性断定符号 logic:derives（呈现为 ⊢）的已审定命名键裁定，与语义的 ⊨ 保持相异。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|rdfs:label"
 msgid "GMN candidate: entailment turnstile ⊨"
-msgstr "GMN 候选：蕴涵转折号 ⊨"
+msgstr "GMN 候选：蕴涵断定符号 ⊨"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|skos:definition"
 msgid "The audited named-key ruling for the semantic entailment turnstile logic:entails rendered ⊨, kept distinct from the syntactic ⊢."
-msgstr "针对语义蕴涵转折号 logic:entails（呈现为 ⊨）的已审定命名键裁定，与语法的 ⊢ 保持相异。"
+msgstr "针对语义蕴涵断定符号 logic:entails（呈现为 ⊨）的已审定命名键裁定，与语法的 ⊢ 保持相异。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEquivalent|rdfs:label"
 msgid "GMN candidate: logic:equivalentClass as ≡"
@@ -1183,7 +1183,7 @@ msgstr "GMN Belnap 二者皆的指称"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapBoth|skos:definition"
 msgid "The executable scoped meaning assignment from the GMN ◉ form to the raw glut value logic:BelnapBoth."
-msgstr "从 GMN ◉ 形式到原始过定值 logic:BelnapBoth 的可执行受限含义赋值。"
+msgstr "从 GMN ◉ 形式到原始过定盈余值 logic:BelnapBoth 的可执行受限含义赋值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapFalse|rdfs:label"
 msgid "denotation of GMN Belnap false"
@@ -1199,7 +1199,7 @@ msgstr "GMN Belnap 二者皆非的指称"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapNeither|skos:definition"
 msgid "The executable scoped meaning assignment from the GMN ◌ form to the raw gap value logic:BelnapNeither."
-msgstr "从 GMN ◌ 形式到原始欠定值 logic:BelnapNeither 的可执行受限含义赋值。"
+msgstr "从 GMN ◌ 形式到原始欠定空缺值 logic:BelnapNeither 的可执行受限含义赋值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapTrue|rdfs:label"
 msgid "denotation of GMN Belnap true"
@@ -1423,7 +1423,7 @@ msgstr "GMN 可推导性键「derives」"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicDerives|skos:definition"
 msgid "The binary infix GMN named-key form `derives` for the syntactic proof-theoretic turnstile logic:derives (Γ ⊢ φ); the ⊢ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the semantic entailment turnstile ⊨."
-msgstr "用于语法证明论转折号 logic:derives（Γ ⊢ φ）的二元中缀 GMN 具名键形式「derives」；⊢ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语义蕴涵转折号 ⊨ 保持结构性相异。"
+msgstr "用于语法证明论断定符号 logic:derives（Γ ⊢ φ）的二元中缀 GMN 具名键形式「derives」；⊢ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语义蕴涵断定符号 ⊨ 保持结构性相异。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|rdfs:label"
 msgid "the GMN entailment key `entails`"
@@ -1431,7 +1431,7 @@ msgstr "GMN 蕴涵键「entails」"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|skos:definition"
 msgid "The binary infix GMN named-key form `entails` for the semantic model-theoretic turnstile logic:entails (Γ ⊨ φ); the ⊨ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the syntactic derivability turnstile ⊢."
-msgstr "用于语义模型论转折号 logic:entails（Γ ⊨ φ）的二元中缀 GMN 具名键形式「entails」；⊨ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语法可推导性转折号 ⊢ 保持结构性相异。"
+msgstr "用于语义模型论断定符号 logic:entails（Γ ⊨ φ）的二元中缀 GMN 具名键形式「entails」；⊨ 字形因在固定 BPE 下会碎裂而仍为显示记法。与语法可推导性断定符号 ⊢ 保持结构性相异。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEquivalent|rdfs:label"
 msgid "the GMN class-equivalence operator"
@@ -1639,7 +1639,7 @@ msgstr "可推导性语境槽位"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesContext|skos:definition"
 msgid "The first operand slot of the derivability turnstile: the premise context Γ, at index 0 in the context role."
-msgstr "可推导性转折号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
+msgstr "可推导性断定符号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|rdfs:label"
 msgid "derivability succedent slot"
@@ -1647,7 +1647,7 @@ msgstr "可推导性后承槽位"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|skos:definition"
 msgid "The second operand slot of the derivability turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
-msgstr "可推导性转折号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
+msgstr "可推导性断定符号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|rdfs:label"
 msgid "entailment context slot"
@@ -1655,7 +1655,7 @@ msgstr "蕴涵语境槽位"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|skos:definition"
 msgid "The first operand slot of the entailment turnstile: the premise context Γ, at index 0 in the context role."
-msgstr "蕴涵转折号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
+msgstr "蕴涵断定符号的第一操作数槽位：前提语境 Γ，在语境角色中位于索引 0。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|rdfs:label"
 msgid "entailment succedent slot"
@@ -1663,7 +1663,7 @@ msgstr "蕴涵后承槽位"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|skos:definition"
 msgid "The second operand slot of the entailment turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
-msgstr "蕴涵转折号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
+msgstr "蕴涵断定符号的第二操作数槽位：后承 logic:Formula φ，在后承角色中位于索引 1。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotExistsBody|rdfs:label"
 msgid "exists body slot"
@@ -1775,7 +1775,7 @@ msgstr "判断种类"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortJudgment|skos:definition"
 msgid "The judgment sort: a proof-obligation or entailment judgment, the sort of a logic:Sequent (Γ ⊢ φ). The result sort of the derivability and entailment turnstiles logic:derives and logic:entails. Distinct from the formula sort, which is a sentence rather than an obligation."
-msgstr "判断种类：一个证明义务或蕴涵判断，即 logic:Sequent（Γ ⊢ φ）的种类。可推导性与蕴涵转折号 logic:derives 与 logic:entails 的结果种类。与公式种类相异，后者是语句而非义务。"
+msgstr "判断种类：一个证明义务或蕴涵判断，即 logic:Sequent（Γ ⊢ φ）的种类。可推导性与蕴涵断定符号 logic:derives 与 logic:entails 的结果种类。与公式种类相异，后者是语句而非义务。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|rdfs:label"
 msgid "term sort"
