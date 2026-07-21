@@ -181,6 +181,17 @@ const SEARCH_BUDGET: u64 = 400_000;
 /// bottoms out into an opaque atom rather than looping).
 const RESOLVE_DEPTH: u32 = 64;
 
+/// The maximum case-split search RECURSION depth (nested nondeterministic branch
+/// points along one DFS path). The step [`SEARCH_BUDGET`] alone is NOT a recursion
+/// guard: a cyclic class expression (e.g. `_:B = B ⊓ (_:B ⊔ C)`) makes `pick_branch`
+/// re-offer a non-progressing disjunct branch, so the DFS recurses one native stack
+/// frame per step and SIGABRTs on stack exhaustion (~6500 frames) long before the
+/// 400 000-step budget. This explicit bound keeps recursion FINITE and, like the
+/// budget, WITHHOLDS ([`SearchResult::Bound`]) rather than crash or guess. Chosen an
+/// order of magnitude above the deepest branch nesting any decided corpus case needs
+/// (measured tens) and an order of magnitude below the native stack limit.
+const SEARCH_DEPTH: u32 = 1024;
+
 // ── The registered sub-decider entrypoint ───────────────────────────────────────
 
 /// The [`super::SubDecider`] for the case-split / complement / union-disjoint /
@@ -578,7 +589,7 @@ impl Scan {
             }
         }
 
-        match search(&mut state, &ctx, &mut budget) {
+        match search(&mut state, &ctx, &mut budget, 0) {
             SearchResult::Unsat => WorldOutcome::Inconsistent(ctx.clashes(w, world)),
             SearchResult::Bound => WorldOutcome::OutOfFragment(format!(
                 "case-split search budget exceeded in world <{world}>"
@@ -1204,9 +1215,10 @@ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Vec<Action>> {
 }
 
 /// The bounded depth-first case-split search: `Sat` if any branch saturates open,
-/// `Unsat` if every branch closes, `Bound` if the budget is exhausted first.
-fn search(state: &mut State, ctx: &Ctx, budget: &mut u64) -> SearchResult {
-    if *budget == 0 {
+/// `Unsat` if every branch closes, `Bound` if the budget or recursion-depth bound is
+/// exhausted first.
+fn search(state: &mut State, ctx: &Ctx, budget: &mut u64, depth: u32) -> SearchResult {
+    if *budget == 0 || depth >= SEARCH_DEPTH {
         return SearchResult::Bound;
     }
     match saturate(state, ctx, budget) {
@@ -1233,7 +1245,7 @@ fn search(state: &mut State, ctx: &Ctx, budget: &mut u64) -> SearchResult {
                 if clashed {
                     continue;
                 }
-                match search(&mut child, ctx, budget) {
+                match search(&mut child, ctx, budget, depth + 1) {
                     SearchResult::Sat => return SearchResult::Sat,
                     SearchResult::Bound => return SearchResult::Bound,
                     SearchResult::Unsat => {}
