@@ -2466,7 +2466,7 @@ gmeow:GmnArityKind
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Arity Kind"@x-gmeow-english ;
-    skos:definition "The closed arity-kind vocabulary of GMN operators: the shape of an operator's operand count. Its instances are exactly the three named individuals gmeow:gmnArityKindFixed (a fixed operand count carried by gmeow:gmnArity), gmeow:gmnArityKindVariadic (an unbounded operand run, as for flattened logic:and / logic:or) and gmeow:gmnArityKindBinder (a variable-binding operator such as logic:forall / logic:exists / the modal box and diamond, whose quantifier body scope is marked by gmeow:gmnMaximalScope). An operator names its arity kind through gmeow:gmnArityKind. It is the arity SHAPE, NOT the integer count gmeow:gmnArity, which a fixed-arity operator additionally carries."@x-gmeow-english ;
+    skos:definition "The closed arity-kind vocabulary of GMN operators: the shape of an operator's operand count. Its instances are exactly the three named individuals gmeow:gmnArityKindFixed (a fixed operand count carried by gmeow:gmnArity), gmeow:gmnArityKindVariadic (an unbounded operand run, as for flattened logic:and / logic:or) and gmeow:gmnArityKindBinder (a variable-binding operator such as logic:forall / logic:exists, whose quantifier body scope is marked by gmeow:gmnMaximalScope; the modal box and diamond are NOT binders but fixed-arity prefix operators). An operator names its arity kind through gmeow:gmnArityKind. It is the arity SHAPE, NOT the integer count gmeow:gmnArity, which a fixed-arity operator additionally carries."@x-gmeow-english ;
     skos:example "gmeow:gmnFormLogicForall gmeow:gmnArityKind gmeow:gmnArityKindBinder ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid minting a fourth arity kind — the class is closed by the grammar — and avoid using it in place of the integer gmeow:gmnArity for a fixed-arity operator."@x-gmeow-english ;
@@ -2928,14 +2928,14 @@ gmeow:gmnMaximalScope
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn maximal scope"@x-gmeow-english ;
-    skos:definition "Whether a binder GMN operator (arity kind gmeow:gmnArityKindBinder — a quantifier logic:forall / logic:exists or a modal logic:necessarily / logic:possibly) takes MAXIMAL scope, extending its body as far to the right as the grammar allows rather than stopping at the next operator. Domain a binder operator sign, range xsd:boolean (stated in prose). True marks the standard maximal-scope reading; its absence or false marks a bracket-delimited binder."@x-gmeow-english ;
+    skos:definition "Whether a binder GMN operator (arity kind gmeow:gmnArityKindBinder — a quantifier logic:forall / logic:exists) takes MAXIMAL scope, extending its body as far to the right as the grammar allows rather than stopping at the next operator. It does NOT apply to the modal operators logic:necessarily / logic:possibly, which are fixed-arity prefix operators that bind tightly rather than binders. Domain a binder operator sign, range xsd:boolean (stated in prose). True marks the standard maximal-scope reading; its absence or false marks a bracket-delimited binder."@x-gmeow-english ;
     skos:example "gmeow:gmnFormLogicForall gmeow:gmnMaximalScope true ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid asserting maximal scope on a non-binder operator, and avoid using it to encode precedence — scope extent and binding strength are distinct."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set true on a binder operator whose body extends maximally to the right; pair it with gmeow:gmnArityKindBinder."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use to declare a GMN binder's body-scope extent so quantifier and modal parsing is decidable from data."@x-gmeow-english .
+    gmeow:useWhen "Use to declare a GMN binder's body-scope extent so quantifier parsing is decidable from data; the modal box and diamond, being fixed-arity operators, do not use it."@x-gmeow-english .
 
 gmeow:gmnGlyphInScope
     a owl:DatatypeProperty ;
@@ -3911,7 +3911,7 @@ gmeow:gmnArityKindBinder
     a owl:NamedIndividual , gmeow:GmnArityKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "binder arity"@x-gmeow-english ;
-    skos:definition "Binder arity: the operator binds one or more variables over a body — the shape of the quantifiers logic:forall and logic:exists and the modal operators logic:necessarily and logic:possibly, whose body-scope extent is marked by gmeow:gmnMaximalScope."@x-gmeow-english ;
+    skos:definition "Binder arity: the operator binds one or more variables over a body, extending its scope maximally — the shape of the quantifiers logic:forall and logic:exists, whose body-scope extent is marked by gmeow:gmnMaximalScope. The modal operators logic:necessarily and logic:possibly are NOT binders: they are fixed-arity prefix operators (gmeow:gmnArityKindFixed, arity two — a typed accessibility relation and a body formula) that bind tightly at high precedence, never taking maximal scope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # --- GMN argument-role individuals (closed) --------------------------------- #
