@@ -50,6 +50,7 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/embedding-projection/> .
 @prefix gr:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
@@ -62,11 +63,14 @@
 #    projection below inherits this confidential classification (P15).
 # ===========================================================================
 ex:bookshelfPack a gmeow:InformationObject ;
-    rdfs:label "Project Lillith bookshelf source pack (packed RDF/GTS)"@en ;
+    rdfs:label "Project Lillith bookshelf source pack (packed RDF/GTS)"@x-gmeow-english ;
     gmeow:contentDigest       "blake3:b0015e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5" ;
     gmeow:gtsHeadId           "blake3:c1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
     gmeow:hasSensitivity      gmeow:sensitivityConfidential ;
-    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
+    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The canonical, content-addressed, confidential Project Lillith bookshelf source pack — the exact RDF/GTS bytes every embedding projection in this scene is generated over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 2. Embedding family A + its EFFECTIVE vector spaces (PURREMB v1 family/space split).
@@ -82,17 +86,29 @@ ex:bookshelfPack a gmeow:InformationObject ;
 #    carries only the effective dimension / metric / normalization / prefix policy.
 # ===========================================================================
 ex:bgeM3 a gmeow:SoftwareAgent ;
-    rdfs:label "BGE-M3 embedding model"@en .
+    rdfs:label "BGE-M3 embedding model"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The BGE-M3 embedding model that generates ex:familyA's stored matrix."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 ex:onnxRuntime a gmeow:SoftwareAgent ;
-    rdfs:label "ONNX Runtime inference engine (v1.17, CPU execution provider)"@en .
+    rdfs:label "ONNX Runtime inference engine (v1.17, CPU execution provider)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The ONNX Runtime inference engine (v1.17, CPU execution provider) that ex:familyA and ex:familyB both run their embedding models on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:poolingMean a gmeow:PoolingKind ;
-    rdfs:label "mean"@x-gmeow-english .
+    rdfs:label "mean"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "Mean pooling, the pooling kind ex:familyA's generation contract uses to reduce token embeddings to one vector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 ex:normalizationL2 a gmeow:NormalizationKind ;
-    rdfs:label "L2"@x-gmeow-english .
+    rdfs:label "L2"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "L2 normalization, the normalization kind used by ex:vscA and ex:vscAprefix."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:familyA a gmeow:EmbeddingFamily ;
-    rdfs:label "BGE-M3 embedding family (generation contract, 1024-d stored matrix)"@en ;
+    rdfs:label "BGE-M3 embedding family (generation contract, 1024-d stored matrix)"@x-gmeow-english ;
     gmeow:embeddingModel         ex:bgeM3 ;
     gmeow:inferenceEngine        ex:onnxRuntime ;
     gmeow:tokenizerContract      "blake3:3e90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e" ;
@@ -103,16 +119,22 @@ ex:familyA a gmeow:EmbeddingFamily ;
     gmeow:vectorDtype            "float32" ;
     gmeow:vectorByteOrder        gmeow:byteOrderLittleEndian ;
     gmeow:quantizationContract   "none" ;
-    gmeow:contentDigest          "blake3:fa71a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d70" .
+    gmeow:contentDigest          "blake3:fa71a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d70" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The BGE-M3 embedding family: the model + full generation contract that produces and stores the 1024-d matrix ONCE, effective over as both ex:vscA (full) and ex:vscAprefix (256-d Matryoshka prefix)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:vscA a gmeow:VectorSpaceContract ;
-    rdfs:label "bookshelf effective space A (familyA, full 1024-d, cosine, L2)"@en ;
+    rdfs:label "bookshelf effective space A (familyA, full 1024-d, cosine, L2)"@x-gmeow-english ;
     gmeow:effectiveOfFamily    ex:familyA ;
     gmeow:embeddingDimensions  "1024"^^xsd:positiveInteger ;
     gmeow:distanceMetric       gmeow:distanceMetricCosine ;
     gmeow:normalizationKind    ex:normalizationL2 ;
     gmeow:matryoshkaPolicy     gmeow:matryoshkaFixed ;
-    gmeow:contentDigest        "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" .
+    gmeow:contentDigest        "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0001" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The full 1024-d effective vector space over ex:familyA (cosine, L2), the space ex:bookshelfProjA and its derived indexes commit to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The Matryoshka PREFIX effective space over the SAME familyA stored matrix: a
 # declared 256-d leading prefix, sharing familyA's stored 1024-d matrix WITHOUT
@@ -120,13 +142,16 @@ ex:vscA a gmeow:VectorSpaceContract ;
 # comparison between an ex:vscA (1024-d) vector and an ex:vscAprefix (256-d) vector
 # is a cross-space comparison, decidable by digest inequality.
 ex:vscAprefix a gmeow:VectorSpaceContract ;
-    rdfs:label "bookshelf effective space A/prefix (familyA, 256-d Matryoshka prefix, cosine, L2)"@en ;
+    rdfs:label "bookshelf effective space A/prefix (familyA, 256-d Matryoshka prefix, cosine, L2)"@x-gmeow-english ;
     gmeow:effectiveOfFamily    ex:familyA ;
     gmeow:embeddingDimensions  "256"^^xsd:positiveInteger ;
     gmeow:distanceMetric       gmeow:distanceMetricCosine ;
     gmeow:normalizationKind    ex:normalizationL2 ;
     gmeow:matryoshkaPolicy     gmeow:matryoshkaPrefix ;
-    gmeow:contentDigest        "blake3:9ab3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8092" .
+    gmeow:contentDigest        "blake3:9ab3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8092" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The declared 256-d Matryoshka-prefix effective space over ex:familyA's SAME stored 1024-d matrix, a distinct-digest cross-space counterpart to ex:vscA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 3. Vector targets — one row→resource binding per vector, each with an EXACT
@@ -144,19 +169,25 @@ ex:vscAprefix a gmeow:VectorSpaceContract ;
 #    Each carries a gmeow:targetOrdinal as a NON-identifying seek hint only.
 # ===========================================================================
 ex:tgtDoc a gmeow:VectorTarget ;
-    rdfs:label "row 0 → the list-archive document"@en ;
+    rdfs:label "row 0 → the list-archive document"@x-gmeow-english ;
     gmeow:vectorTargetKind gmeow:vectorTargetDocument ;
     gmeow:targetsResource  gr:mail-archive ;
-    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger .
+    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "Vector target row 0 of ex:targetSetA: the whole gr:mail-archive document, identified via gmeow:targetsResource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:tgtChunk a gmeow:VectorTarget ;
-    rdfs:label "row 1 → a retrieval-sized chunk, pinned by its own digest"@en ;
+    rdfs:label "row 1 → a retrieval-sized chunk, pinned by its own digest"@x-gmeow-english ;
     gmeow:vectorTargetKind gmeow:vectorTargetChunk ;
     gmeow:contentDigest    "blake3:4444444455556666777788889999000011112222aaaabbbbccccddddeeee0003" ;
     gmeow:targetParent     ex:tgtDoc ;
     gmeow:targetByteStart  "1024"^^xsd:nonNegativeInteger ;
     gmeow:targetByteEnd    "2048"^^xsd:nonNegativeInteger ;
-    gmeow:targetOrdinal    "1"^^xsd:nonNegativeInteger .
+    gmeow:targetOrdinal    "1"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "Vector target row 1 of ex:targetSetA: a retrieval-sized chunk of ex:tgtDoc, pinned by its own gmeow:contentDigest rather than by ordinal alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The statement-term reifier, authored in the base-quad-foldable reification form
 # (rdf:Statement + rdf:subject/rdf:predicate/rdf:object) so it rides the fold to
@@ -167,13 +198,20 @@ ex:tgtChunk a gmeow:VectorTarget ;
 ex:stmtReifierMaintains a rdf:Statement ;
     rdf:subject   gr:rel-maintains ;
     rdf:predicate gmeow:relationshipTarget ;
-    rdf:object    gr:desc-buildsys .
+    rdf:object    gr:desc-buildsys ;
+    rdfs:label "reifier: 'Mara maintains the build system'"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The base-quad-foldable rdf:Statement reifier for the triple 'Mara maintains the build system' (gr:rel-maintains gmeow:relationshipTarget gr:desc-buildsys), the resource ex:tgtStmt's gmeow:targetsResource points at."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:tgtStmt a gmeow:VectorTarget ;
-    rdfs:label "row 2 → the reified statement 'Mara maintains the build system'"@en ;
+    rdfs:label "row 2 → the reified statement 'Mara maintains the build system'"@x-gmeow-english ;
     gmeow:vectorTargetKind gmeow:vectorTargetStatement ;
     gmeow:targetsResource  ex:stmtReifierMaintains ;
-    gmeow:targetOrdinal    "2"^^xsd:nonNegativeInteger .
+    gmeow:targetOrdinal    "2"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "Vector target row 2 of ex:targetSetA: a STATEMENT-term target identified via ex:stmtReifierMaintains, the reifier for 'Mara maintains the build system'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The ordered target NAMESPACE projection A's matrix rows map to (row 0 → doc,
 # row 1 → chunk, row 2 → statement). Its gmeow:contentDigest is a GMEOW BLAKE3 digest
@@ -183,9 +221,12 @@ ex:tgtStmt a gmeow:VectorTarget ;
 # NOT equal to this BLAKE3 digest. The two are cross-checked as agreeing references to
 # one referent, never equated byte-for-byte.
 ex:targetSetA a gmeow:TargetSet ;
-    rdfs:label "projection A target set (row order: document, chunk, statement)"@en ;
+    rdfs:label "projection A target set (row order: document, chunk, statement)"@x-gmeow-english ;
     gmeow:contentDigest   "blake3:3333333344445555666677778888999900001111aaaabbbbccccddddeeee0002" ;
-    gmeow:targetSetMember ex:tgtDoc , ex:tgtChunk , ex:tgtStmt .
+    gmeow:targetSetMember ex:tgtDoc , ex:tgtChunk , ex:tgtStmt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The ordered target set ex:bookshelfProjA's matrix rows map to: document (ex:tgtDoc), chunk (ex:tgtChunk), statement (ex:tgtStmt), in that row order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 4. The projection A — the whole .purremb pack. It AGGREGATES graphrag
@@ -198,38 +239,53 @@ ex:targetSetA a gmeow:TargetSet ;
 #      * gmeow:reproducibleWithinTolerance + a stated gmeow:reproducibilityTolerance (R4)
 # ===========================================================================
 ex:embRowDoc a gmeow:Embedding ;
-    rdfs:label "embedding of the list-archive document"@en ;
+    rdfs:label "embedding of the list-archive document"@x-gmeow-english ;
     gmeow:embeddingOf    gr:mail-archive ;
     gmeow:embeddingModel ex:bgeM3 ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
     gmeow:vectorRef      "s3://lillith/purremb/bookshelf/A/row-0"^^xsd:anyURI ;
-    gmeow:contentDigest  "blake3:99990000111122223333444455556666777788889999aaaabbbbcccc0000a001" .
+    gmeow:contentDigest  "blake3:99990000111122223333444455556666777788889999aaaabbbbcccc0000a001" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The embedding row for the list-archive document, aggregated into ex:bookshelfProjA and ex:bookshelfProjPublic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:embRowChunk a gmeow:Embedding ;
-    rdfs:label "embedding of the retrieval chunk"@en ;
+    rdfs:label "embedding of the retrieval chunk"@x-gmeow-english ;
     gmeow:embeddingOf    gr:chunk-7 ;
     gmeow:embeddingModel ex:bgeM3 ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
     gmeow:vectorRef      "s3://lillith/purremb/bookshelf/A/row-1"^^xsd:anyURI ;
-    gmeow:contentDigest  "blake3:aaaa0000111122223333444455556666777788889999bbbbccccdddd0000a002" .
+    gmeow:contentDigest  "blake3:aaaa0000111122223333444455556666777788889999bbbbccccdddd0000a002" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The embedding row for the retrieval chunk gr:chunk-7, aggregated into ex:bookshelfProjA and ex:bookshelfProjACopy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:tol1 a math:Quantity ;
-    rdfs:label "reproducibility tolerance: max per-component absolute difference"@en ;
+    rdfs:label "reproducibility tolerance: max per-component absolute difference"@x-gmeow-english ;
     math:hasDimension  math:dimensionless ;
-    math:quantityValue "0.000001"^^xsd:decimal .
+    math:quantityValue "0.000001"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The stated reproducibility tolerance (max per-component absolute difference) ex:bookshelfProjA's gmeow:reproducibleWithinTolerance level commits to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:projBuildActivity a gmeow:Activity ;
-    rdfs:label "purremb bookshelf projection build (space A)"@en .
+    rdfs:label "purremb bookshelf projection build (space A)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The build activity that generated ex:bookshelfProjA (space A) from ex:bookshelfPack."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The external content-addressed chunk source text — kept OUTSIDE the graph by
 # reference (P12); the binding carries only its digest and a caller-supplied role.
 ex:extChunkText a gmeow:ExternalBinding ;
-    rdfs:label "external content-addressed chunk source text"@en ;
+    rdfs:label "external content-addressed chunk source text"@x-gmeow-english ;
     gmeow:contentDigest "blake3:e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d0008" ;
-    gmeow:externalRole  "content-addressed chunk source text (kept external, P12)" .
+    gmeow:externalRole  "content-addressed chunk source text (kept external, P12)" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The external binding to the chunk's source text, kept out of the graph by content-addressed reference (P12), bound by ex:bookshelfProjA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:bookshelfProjA a gmeow:EmbeddingProjection ;
-    rdfs:label "bookshelf embedding projection A (.purremb)"@en ;
+    rdfs:label "bookshelf embedding projection A (.purremb)"@x-gmeow-english ;
     gmeow:aggregatesEmbedding      ex:embRowDoc , ex:embRowChunk ;
     gmeow:hasVectorSpaceContract   ex:vscA ;
     gmeow:hasTargetSet             ex:targetSetA ;
@@ -243,7 +299,10 @@ ex:bookshelfProjA a gmeow:EmbeddingProjection ;
     gmeow:reproducibilityLevel     gmeow:reproducibleWithinTolerance ;
     gmeow:reproducibilityTolerance ex:tol1 ;
     gmeow:wasDerivedFrom           ex:bookshelfPack ;
-    gmeow:wasGeneratedBy           ex:projBuildActivity .
+    gmeow:wasGeneratedBy           ex:projBuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The whole .purremb embedding projection A: the lossy pack aggregating ex:embRowDoc / ex:embRowChunk over ex:vscA, the CANONICAL GENERATED LOSSY PROJECTION of ex:bookshelfPack this worked example demonstrates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 5. The lossy-lens correspondence — the HONEST verdict for the pack ↔ vector
@@ -270,7 +329,10 @@ ex:corrProjA a logic:Correspondence ;
     logic:morphismClass          logic:BridgeView ;
     logic:morphismKind           logic:CommitmentShiftingBridge ;
     logic:hasDeterminacy         logic:Vague ;
-    logic:mnemomorphic           false .
+    logic:mnemomorphic           false ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The honest lossy-lens correspondence between ex:bookshelfPack and ex:vscA: a ValidationOnly BridgeView verdict that a vector VALIDATES proximity but does NOT ENTAIL the source's meaning."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 6. Profile surfaces — the container view and the sidecar-manifest view of ONE
@@ -279,20 +341,26 @@ ex:corrProjA a logic:Correspondence ;
 #    C5b model-contract-digest, C5c target-table-digest).
 # ===========================================================================
 ex:containerSurfaceA a gmeow:ProfileSurface ;
-    rdfs:label "container view of projection A"@en ;
+    rdfs:label "container view of projection A"@x-gmeow-english ;
     gmeow:profileSurfaceOf          ex:bookshelfProjA ;
     gmeow:profileSurfaceKind        gmeow:surfaceContainer ;
     gmeow:recordsSourceDigest        "sha256:8e75a99f5c0ee19e5d808eacd18272a29f1eefc1cc09e0840f80abcc805dd4f7" ;
     gmeow:recordsModelContractDigest "sha256:6e4016ce69d81eac3f2d37e6ad182e7229f76a7afb7cb4eeff51182dcf76e031" ;
-    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" .
+    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The container-view profile surface of ex:bookshelfProjA, agreeing with ex:manifestSurfaceA on the shared source/model-contract/target-table digests (C5a/C5b/C5c)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:manifestSurfaceA a gmeow:ProfileSurface ;
-    rdfs:label "sidecar-manifest view of projection A"@en ;
+    rdfs:label "sidecar-manifest view of projection A"@x-gmeow-english ;
     gmeow:profileSurfaceOf          ex:bookshelfProjA ;
     gmeow:profileSurfaceKind        gmeow:surfaceManifest ;
     gmeow:recordsSourceDigest        "sha256:8e75a99f5c0ee19e5d808eacd18272a29f1eefc1cc09e0840f80abcc805dd4f7" ;
     gmeow:recordsModelContractDigest "sha256:6e4016ce69d81eac3f2d37e6ad182e7229f76a7afb7cb4eeff51182dcf76e031" ;
-    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" .
+    gmeow:recordsTargetTableDigest   "sha256:88e766d4022744f4a1438b28eb4ffb38cd0dad6222c3bc1ce136b04d4ba6447d" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The sidecar-manifest profile surface of ex:bookshelfProjA, agreeing with ex:containerSurfaceA on the shared source/model-contract/target-table digests (C5a/C5b/C5c)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 7. Derived rebuildable index + append-only supersession. ex:annIndexA is a
@@ -304,15 +372,21 @@ ex:manifestSurfaceA a gmeow:ProfileSurface ;
 #    RETIRED index, so the audit trail is intact (R3).
 # ===========================================================================
 ex:recall1 a math:Quantity ;
-    rdfs:label "measured recall of ex:annIndexA vs exact search"@en ;
+    rdfs:label "measured recall of ex:annIndexA vs exact search"@x-gmeow-english ;
     math:hasDimension  math:dimensionless ;
-    math:quantityValue "0.985"^^xsd:decimal .
+    math:quantityValue "0.985"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The measured recall of ex:annIndexA against exact search, ex:annIndexA's gmeow:approximationRecall value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:indexBuildActivity a gmeow:Activity ;
-    rdfs:label "HNSW index build over projection A"@en .
+    rdfs:label "HNSW index build over projection A"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The build activity that generated ex:annIndexA, the retired HNSW accelerator over ex:bookshelfProjA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:annIndexA a gmeow:DerivedVectorIndex ;
-    rdfs:label "HNSW accelerator over projection A (retired)"@en ;
+    rdfs:label "HNSW accelerator over projection A (retired)"@x-gmeow-english ;
     gmeow:indexOfProjection  ex:bookshelfProjA ;
     gmeow:indexOverSpace     ex:vscA ;
     gmeow:approximationRecall ex:recall1 ;
@@ -326,18 +400,27 @@ ex:annIndexA a gmeow:DerivedVectorIndex ;
     logic:supersededBy       ex:annIndexA2 ;
     logic:validUntilState    ex:rebuildState ;
     logic:retiredByTransaction ex:rebuildTxn ;
-    logic:activeInState      ex:priorState .
+    logic:activeInState      ex:priorState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The retired, non-authoritative HNSW accelerator over ex:bookshelfProjA, superseded by ex:annIndexA2 via the append-only supersession quartet — never erased, still bound to ex:retrievalEventOld for the audit trail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:recall2 a math:Quantity ;
-    rdfs:label "measured recall of ex:annIndexA2 vs exact search"@en ;
+    rdfs:label "measured recall of ex:annIndexA2 vs exact search"@x-gmeow-english ;
     math:hasDimension  math:dimensionless ;
-    math:quantityValue "0.991"^^xsd:decimal .
+    math:quantityValue "0.991"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The measured recall of ex:annIndexA2 against exact search, ex:annIndexA2's gmeow:approximationRecall value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:rebuildActivity a gmeow:Activity ;
-    rdfs:label "HNSW index rebuild over projection A"@en .
+    rdfs:label "HNSW index rebuild over projection A"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The rebuild activity that generated ex:annIndexA2, the successor accelerator superseding ex:annIndexA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:annIndexA2 a gmeow:DerivedVectorIndex ;
-    rdfs:label "HNSW accelerator over projection A (rebuilt successor)"@en ;
+    rdfs:label "HNSW accelerator over projection A (rebuilt successor)"@x-gmeow-english ;
     gmeow:indexOfProjection  ex:bookshelfProjA ;
     gmeow:indexOverSpace     ex:vscA ;
     gmeow:approximationRecall ex:recall2 ;
@@ -347,21 +430,27 @@ ex:annIndexA2 a gmeow:DerivedVectorIndex ;
     gmeow:indexLossContract  "recall@10>=0.99" ;
     gmeow:distanceMetric     gmeow:distanceMetricCosine ;
     gmeow:contentDigest      "blake3:dddd0000111122223333444455556666777788889999eeeeffff00110000a005" ;
-    gmeow:wasGeneratedBy     ex:rebuildActivity .
+    gmeow:wasGeneratedBy     ex:rebuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The rebuilt successor HNSW accelerator over ex:bookshelfProjA that supersedes ex:annIndexA, with a tighter recall@10 loss contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # The transaction-path nodes the supersession quartet points at (labelled
 # instance anchors; their range is stated in prose in the logic module).
-ex:priorState  rdfs:label "path state where ex:annIndexA was the active accelerator"@en .
-ex:rebuildState rdfs:label "successor path state where ex:annIndexA is retired"@en .
-ex:rebuildTxn  rdfs:label "the rebuild transaction step that retired ex:annIndexA"@en .
+ex:priorState  rdfs:label "path state where ex:annIndexA was the active accelerator"@x-gmeow-english .
+ex:rebuildState rdfs:label "successor path state where ex:annIndexA is retired"@x-gmeow-english .
+ex:rebuildTxn  rdfs:label "the rebuild transaction step that retired ex:annIndexA"@x-gmeow-english .
 
 # The old retrieval event stays bound to the RETIRED index (audit trail, R3).
 ex:retrievalEventOld a gmeow:RetrievalEvent ;
-    rdfs:label "retrieval against the retired index"@en ;
+    rdfs:label "retrieval against the retired index"@x-gmeow-english ;
     gmeow:forQuery    "who maintained the build system?" ;
     gmeow:againstIndex ex:annIndexA ;
     gmeow:atTime      "2026-06-02T10:00:00Z"^^xsd:dateTime ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The retrieval event that queried the now-RETIRED ex:annIndexA — kept bound to the retired index rather than reattached, so the audit trail stays intact (R3)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 8. A SECOND vector space over the SAME source (CT9). Different model,
@@ -371,11 +460,20 @@ ex:retrievalEventOld a gmeow:RetrievalEvent ;
 #    matching source digest and head id (C1 / C6 pass again).
 # ===========================================================================
 ex:miniLm a gmeow:SoftwareAgent ;
-    rdfs:label "all-MiniLM-L6 embedding model"@en .
+    rdfs:label "all-MiniLM-L6 embedding model"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The all-MiniLM-L6 embedding model that generates ex:familyB's stored matrix."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 ex:poolingCls a gmeow:PoolingKind ;
-    rdfs:label "CLS-token"@x-gmeow-english .
+    rdfs:label "CLS-token"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "CLS-token pooling, the pooling kind ex:familyB's generation contract uses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 ex:normalizationNone a gmeow:NormalizationKind ;
-    rdfs:label "none"@x-gmeow-english .
+    rdfs:label "none"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "No normalization, the normalization kind used by ex:vscB."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # Family B — a SECOND generation contract (different model / pooling /
 # tokenizer-preprocessing-chunking contracts / digest; same v1-legal dense
@@ -383,7 +481,7 @@ ex:normalizationNone a gmeow:NormalizationKind ;
 # independent 384-d stored matrix. Its full effective space ex:vscB is a
 # legitimately independent projection of the identical confidential pack.
 ex:familyB a gmeow:EmbeddingFamily ;
-    rdfs:label "MiniLM embedding family (generation contract, 384-d stored matrix)"@en ;
+    rdfs:label "MiniLM embedding family (generation contract, 384-d stored matrix)"@x-gmeow-english ;
     gmeow:embeddingModel         ex:miniLm ;
     gmeow:inferenceEngine        ex:onnxRuntime ;
     gmeow:tokenizerContract      "blake3:5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809100" ;
@@ -394,30 +492,42 @@ ex:familyB a gmeow:EmbeddingFamily ;
     gmeow:vectorDtype            "float32" ;
     gmeow:vectorByteOrder        gmeow:byteOrderLittleEndian ;
     gmeow:quantizationContract   "none" ;
-    gmeow:contentDigest          "blake3:fb82c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001b" .
+    gmeow:contentDigest          "blake3:fb82c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091001b" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The MiniLM embedding family: a second, independent generation contract producing a 384-d stored matrix over the same ex:bookshelfPack source, effective as ex:vscB."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:vscB a gmeow:VectorSpaceContract ;
-    rdfs:label "bookshelf effective space B (familyB, full 384-d, dot)"@en ;
+    rdfs:label "bookshelf effective space B (familyB, full 384-d, dot)"@x-gmeow-english ;
     gmeow:effectiveOfFamily    ex:familyB ;
     gmeow:embeddingDimensions  "384"^^xsd:positiveInteger ;
     gmeow:distanceMetric       gmeow:distanceMetricDotProduct ;
     gmeow:normalizationKind    ex:normalizationNone ;
     gmeow:matryoshkaPolicy     gmeow:matryoshkaFixed ;
-    gmeow:contentDigest        "blake3:5555555566667777888899990000111122223333aaaabbbbccccddddeeee0004" .
+    gmeow:contentDigest        "blake3:5555555566667777888899990000111122223333aaaabbbbccccddddeeee0004" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The full 384-d effective vector space over ex:familyB (dot product, no normalization), the space ex:bookshelfProjB commits to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:embRowB a gmeow:Embedding ;
-    rdfs:label "space-B embedding of the list-archive document"@en ;
+    rdfs:label "space-B embedding of the list-archive document"@x-gmeow-english ;
     gmeow:embeddingOf    gr:mail-archive ;
     gmeow:embeddingModel ex:miniLm ;
     gmeow:distanceMetric gmeow:distanceMetricDotProduct ;
     gmeow:vectorRef      "s3://lillith/purremb/bookshelf/B/row-0"^^xsd:anyURI ;
-    gmeow:contentDigest  "blake3:bbbb0000111122223333444455556666777788889999ccccddddeeee0000a003" .
+    gmeow:contentDigest  "blake3:bbbb0000111122223333444455556666777788889999ccccddddeeee0000a003" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The space-B embedding row for the list-archive document, aggregated into ex:bookshelfProjB."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:projBuildActivityB a gmeow:Activity ;
-    rdfs:label "purremb bookshelf projection build (space B)"@en .
+    rdfs:label "purremb bookshelf projection build (space B)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The build activity that generated ex:bookshelfProjB (space B) from ex:bookshelfPack."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:bookshelfProjB a gmeow:EmbeddingProjection ;
-    rdfs:label "bookshelf embedding projection B (.purremb)"@en ;
+    rdfs:label "bookshelf embedding projection B (.purremb)"@x-gmeow-english ;
     gmeow:aggregatesEmbedding      ex:embRowB ;
     gmeow:hasVectorSpaceContract   ex:vscB ;
     gmeow:projectionSource         ex:bookshelfPack ;
@@ -428,7 +538,10 @@ ex:bookshelfProjB a gmeow:EmbeddingProjection ;
     gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
     gmeow:reproducibilityLevel     gmeow:regenerableOnly ;
     gmeow:wasDerivedFrom           ex:bookshelfPack ;
-    gmeow:wasGeneratedBy           ex:projBuildActivityB .
+    gmeow:wasGeneratedBy           ex:projBuildActivityB ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "A second, legitimately independent embedding projection of ex:bookshelfPack, committing to ex:vscB (384-d) — CT9's independent second vector space over the same source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 9. Cross-space similarity WITH its justifying correspondence (CT3 positive /
@@ -440,9 +553,12 @@ ex:bookshelfProjB a gmeow:EmbeddingProjection ;
 #    correspondence is required — the guard's distinct-digest condition is false.
 # ===========================================================================
 ex:score1 a math:Quantity ;
-    rdfs:label "cross-space proximity score (weighable, logic:Vague)"@en ;
+    rdfs:label "cross-space proximity score (weighable, logic:Vague)"@x-gmeow-english ;
     math:hasDimension  math:dimensionless ;
-    math:quantityValue "0.83"^^xsd:decimal .
+    math:quantityValue "0.83"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The cross-space proximity score measured by ex:crossObs between ex:bookshelfProjA and ex:bookshelfProjB, a weighable logic:Vague quantity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # Projection B's operand row for the cross-space comparison: the list-archive
 # document as embedded in projection B's independent 384-d space (gr:mail-archive,
@@ -450,13 +566,16 @@ ex:score1 a math:Quantity ;
 # exact identity (gmeow:targetsResource) so C4 passes, and it is the RIGHT operand
 # ex:crossObs's gmeow:similarityScore actually measured against ex:tgtChunk.
 ex:tgtDocB a gmeow:VectorTarget ;
-    rdfs:label "projection B row 0 → the list-archive document (384-d space)"@en ;
+    rdfs:label "projection B row 0 → the list-archive document (384-d space)"@x-gmeow-english ;
     gmeow:vectorTargetKind gmeow:vectorTargetDocument ;
     gmeow:targetsResource  gr:mail-archive ;
-    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger .
+    gmeow:targetOrdinal    "0"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "Projection B's row-0 vector target: the list-archive document as embedded in the independent 384-d space, the RIGHT operand of ex:crossObs's similarity comparison."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:crossObs a gmeow:SimilarityObservation ;
-    rdfs:label "cross-space proximity: projection A vs projection B"@en ;
+    rdfs:label "cross-space proximity: projection A vs projection B"@x-gmeow-english ;
     gmeow:comparesLeft       ex:bookshelfProjA ;
     gmeow:comparesRight      ex:bookshelfProjB ;
     gmeow:comparesLeftTarget  ex:tgtChunk ;
@@ -464,7 +583,10 @@ ex:crossObs a gmeow:SimilarityObservation ;
     gmeow:overVectorSpace    ex:vscA ;
     gmeow:withMetric         gmeow:distanceMetricCosine ;
     gmeow:similarityScore    ex:score1 ;
-    gmeow:queryContext       "align the bookshelf under the two embedding spaces (internal filter)" .
+    gmeow:queryContext       "align the bookshelf under the two embedding spaces (internal filter)" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The cross-space similarity observation comparing ex:bookshelfProjA against ex:bookshelfProjB, whose distinct-digest vector spaces (ex:vscA / ex:vscB) are justified by ex:crossCorr — a graded proximity CLAIM, never an equivalence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:crossCorr a logic:Correspondence ;
     rdfs:label "vector space A ↔ vector space B (affine, shared-component alignment)"@x-gmeow-english ;
@@ -475,15 +597,21 @@ ex:crossCorr a logic:Correspondence ;
     logic:correspondenceRelation logic:Overlaps ;
     logic:morphismClass          logic:AffineCorrespondence ;
     logic:hasDeterminacy         logic:Vague ;
-    logic:mnemomorphic           false .
+    logic:mnemomorphic           false ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The justifying affine correspondence between ex:vscA and ex:vscB that ex:crossObs's cross-space comparison requires (gmeow:CrossSpaceComparisonConstraint, C2)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:score2 a math:Quantity ;
-    rdfs:label "within-space proximity score"@en ;
+    rdfs:label "within-space proximity score"@x-gmeow-english ;
     math:hasDimension  math:dimensionless ;
-    math:quantityValue "0.97"^^xsd:decimal .
+    math:quantityValue "0.97"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The within-space proximity score measured by ex:inObs between ex:bookshelfProjA and ex:bookshelfProjACopy, both over ex:vscA."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:inObs a gmeow:SimilarityObservation ;
-    rdfs:label "within-space proximity: projection A vs its re-serialized copy"@en ;
+    rdfs:label "within-space proximity: projection A vs its re-serialized copy"@x-gmeow-english ;
     gmeow:comparesLeft       ex:bookshelfProjA ;
     gmeow:comparesRight      ex:bookshelfProjACopy ;
     gmeow:comparesLeftTarget  ex:tgtDoc ;
@@ -491,7 +619,10 @@ ex:inObs a gmeow:SimilarityObservation ;
     gmeow:overVectorSpace    ex:vscA ;
     gmeow:withMetric         gmeow:distanceMetricCosine ;
     gmeow:similarityScore    ex:score2 ;
-    gmeow:queryContext       "nearest neighbours within space A (no bridge required)" .
+    gmeow:queryContext       "nearest neighbours within space A (no bridge required)" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The within-space similarity observation comparing ex:bookshelfProjA against ex:bookshelfProjACopy, both sharing ex:vscA — no justifying correspondence required, since the guard's distinct-digest condition is false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 10. Declassification act (CT7 positive path / C3). ex:bookshelfProjPublic is a
@@ -507,16 +638,25 @@ ex:inObs a gmeow:SimilarityObservation ;
 #     unattributed act would never authorize the drop (P15).
 # ===========================================================================
 ex:declassReview a gmeow:Activity ;
-    rdfs:label "disclosure review authorizing the internal view"@en .
+    rdfs:label "disclosure review authorizing the internal view"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The disclosure review activity that authorized the sensitivity drop recorded by ex:declassAct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:disclosureReviewer a gmeow:Person ;
-    rdfs:label "disclosure-control reviewer who authorized the drop"@en .
+    rdfs:label "disclosure-control reviewer who authorized the drop"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The disclosure-control reviewer associated with ex:declassAct, the authorizing agent for the sensitivity drop."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:declassBuildActivity a gmeow:Activity ;
-    rdfs:label "purremb bookshelf projection build (declassified internal view)"@en .
+    rdfs:label "purremb bookshelf projection build (declassified internal view)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The build activity that generated ex:bookshelfProjPublic, the declassified internal view of ex:bookshelfPack."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:bookshelfProjPublic a gmeow:EmbeddingProjection ;
-    rdfs:label "bookshelf embedding projection — internal (declassified) view"@en ;
+    rdfs:label "bookshelf embedding projection — internal (declassified) view"@x-gmeow-english ;
     gmeow:aggregatesEmbedding      ex:embRowDoc ;
     gmeow:hasVectorSpaceContract   ex:vscA ;
     gmeow:projectionSource         ex:bookshelfPack ;
@@ -527,14 +667,20 @@ ex:bookshelfProjPublic a gmeow:EmbeddingProjection ;
     gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
     gmeow:reproducibilityLevel     gmeow:reproducibleExact ;
     gmeow:wasDerivedFrom           ex:bookshelfPack ;
-    gmeow:wasGeneratedBy           ex:declassBuildActivity .
+    gmeow:wasGeneratedBy           ex:declassBuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The declassified, lower-sensitivity (internal) view of ex:bookshelfPack, authorized by ex:declassAct — its sensitivity drop is explicit and reviewable, never silent (P15)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:declassAct a gmeow:DeclassificationAct ;
-    rdfs:label "declassification of the internal bookshelf view"@en ;
+    rdfs:label "declassification of the internal bookshelf view"@x-gmeow-english ;
     gmeow:declassifies     ex:bookshelfProjPublic ;
     gmeow:wasGeneratedBy   ex:declassReview ;
     gmeow:wasAssociatedWith ex:disclosureReviewer ;
-    gmeow:wasDerivedFrom   ex:bookshelfPack .
+    gmeow:wasDerivedFrom   ex:bookshelfPack ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The reviewable declassification act authorizing ex:bookshelfProjPublic's sensitivity drop from confidential to internal, carrying its reviewing invocation and authorizing agent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
 # 11. Copy retains policy (R2). ex:bookshelfProjACopy is a re-serialized copy of
@@ -543,10 +689,13 @@ ex:declassAct a gmeow:DeclassificationAct ;
 #     own valid source-digest / head-id bindings so C1 / C6 pass for it too.
 # ===========================================================================
 ex:copyActivity a gmeow:Activity ;
-    rdfs:label "re-serialization of projection A"@en .
+    rdfs:label "re-serialization of projection A"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "The re-serialization activity that generated ex:bookshelfProjACopy from ex:bookshelfProjA's source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 ex:bookshelfProjACopy a gmeow:EmbeddingProjection ;
-    rdfs:label "bookshelf embedding projection A — re-serialized copy"@en ;
+    rdfs:label "bookshelf embedding projection A — re-serialized copy"@x-gmeow-english ;
     gmeow:aggregatesEmbedding      ex:embRowChunk ;
     gmeow:hasVectorSpaceContract   ex:vscA ;
     gmeow:projectionSource         ex:bookshelfPack ;
@@ -557,4 +706,7 @@ ex:bookshelfProjACopy a gmeow:EmbeddingProjection ;
     gmeow:hasDisclosurePolicy      gmeow:policyInternalOnly ;
     gmeow:reproducibilityLevel     gmeow:reproducibleExact ;
     gmeow:wasDerivedFrom           ex:bookshelfPack ;
-    gmeow:wasGeneratedBy           ex:copyActivity .
+    gmeow:wasGeneratedBy           ex:copyActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    skos:definition "A re-serialized copy of ex:bookshelfProjA that RETAINS the source derivation, confidential classification, and disclosure policy — no orphaning on copy (R2)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
