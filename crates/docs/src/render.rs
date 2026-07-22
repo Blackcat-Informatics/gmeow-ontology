@@ -7363,7 +7363,7 @@ mod tests {
         }
     }
 
-    /// D6 (issue #765): the "What GMEOW enforces" page renders the advice
+    /// D6: the "What GMEOW enforces" page renders the advice
     /// recommendation tier as a DISTINCT section from the compliance rules, headed by
     /// the single `#advice-` anchor and carrying each realized term's verbatim
     /// avoid/use/how-to prose. Self-contained (a hand-built model), so it proves the

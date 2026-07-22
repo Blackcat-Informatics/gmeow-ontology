@@ -52,7 +52,7 @@ const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
 /// discipline enforces.
 const GMEOW_REQUIRES_FRAME: &str = "https://blackcatinformatics.ca/gmeow/requiresFrame";
 
-// ── Advice-catalog projection (D6, issue #765) ──────────────────────────────
+// ── Advice-catalog projection (D6) ──────────────────────────────────────────
 // The realized advice carriers whose verbatim prose the advice section documents.
 /// `logic:Constraint` — the class of the advisory anti-pattern carriers (an
 /// `avoidWhen` prohibition realized at `logic:severity "Info"`).
@@ -94,7 +94,7 @@ fn local_name(iri: &str) -> &str {
 
 /// The verbatim advice prose harvested for one governed term, each field a sorted set
 /// (a term MAY bear several `avoidWhen` constraints; sets keep the projection stable
-/// and non-lossy as #1476 harvests more).
+/// and non-lossy as the advice-harvest uplift lane harvests more).
 #[derive(Default)]
 struct AdviceProse {
     /// `gmeow:avoidWhen` prohibition prose (each realized Info `logic:Constraint`).
@@ -700,7 +700,7 @@ mod tests {
         );
     }
 
-    /// D6 (issue #765): the advice-catalog projection emits one `gmeow:AdviceEntry`
+    /// D6: the advice-catalog projection emits one `gmeow:AdviceEntry`
     /// per governed term with a realized advice carrier (today `gmeow:Entity` and
     /// `gmeow:Event`), each hung beneath the `advice.` family rule and carrying the
     /// three deontic-modality prose legs. Falsifiable: if `emit_advice_entries` were

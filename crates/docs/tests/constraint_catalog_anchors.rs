@@ -97,7 +97,7 @@ fn every_finding_code_resolves_to_a_live_catalog_anchor() {
     );
 }
 
-/// D6 (issue #765): the `#advice-` section anchor — the single static resolution
+/// D6: the `#advice-` section anchor — the single static resolution
 /// target of every `advice.*` finding code — must appear EXACTLY ONCE on the page.
 /// It heads the distinct Advice section; the `advice.` family rule must therefore be
 /// pulled OUT of the compliance category grouping (which would emit a second

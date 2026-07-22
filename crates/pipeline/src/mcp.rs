@@ -6444,7 +6444,7 @@ mod tests {
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
         assert!(consumer_tools.contains("\"validate_local\""));
-        // `advise` — the recommendation companion of `validate_local` (D6, #765).
+        // `advise` — the recommendation companion of `validate_local` (D6).
         assert!(consumer_tools.contains("\"advise\""));
         assert!(consumer_tools.contains("\"docs_search\""));
         assert!(consumer_tools.contains("\"counter_examples\""));
@@ -8957,7 +8957,7 @@ mod tests {
          <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
          <https://blackcatinformatics.ca/gmeow/Entity> .\n";
 
-    /// AC2 (issue #765): `advise` returns the non-gating RECOMMENDATIONS a claim
+    /// AC2: `advise` returns the non-gating RECOMMENDATIONS a claim
     /// trips — driven over the REAL JSON-RPC `handle_message` dispatch. A bare-Entity
     /// claim surfaces the Entity avoid/use/how-to advice, `ok:true`.
     #[test]

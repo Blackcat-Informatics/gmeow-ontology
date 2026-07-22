@@ -149,7 +149,7 @@ const GMEOW_RULE_CATEGORY: &str = "https://blackcatinformatics.ca/gmeow/ruleCate
 const GMEOW_RULE_SEVERITY: &str = "https://blackcatinformatics.ca/gmeow/ruleSeverity";
 const GMEOW_RULE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/ruleHelpUri";
 const GMEOW_APPLIES_TO_TERM: &str = "https://blackcatinformatics.ca/gmeow/appliesToTerm";
-// The advice-catalog projection (D6, issue #765): the recommendation tier.
+// The advice-catalog projection (D6): the recommendation tier.
 const GMEOW_ADVICE_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/AdviceEntry";
 const GMEOW_ADVICE_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceAvoidWhen";
 const GMEOW_ADVICE_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceUseWhen";
