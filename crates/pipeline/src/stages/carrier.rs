@@ -1162,6 +1162,15 @@ fn rdf_fanout_members(
             out.insert(path, bytes);
         }
     }
+    // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
+    // lifted NodeKind::Annotation axioms (issue #1200). Read off the stage-export-skos-surface
+    // product; it is a single RDF `.ttl` member, so it folds as its own
+    // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
+    for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
     // product (already emitted canonically).
     let gufo = upstream
@@ -3730,6 +3739,9 @@ impl SnapshotStage {
                 "stage-export-glossary".to_string(),
                 "stage-export-profiles".to_string(),
                 "stage-export-research-objects".to_string(),
+                // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
+                // folded as its own graph/fanout/skos named graph by rdf_fanout_members.
+                "stage-export-skos-surface".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
