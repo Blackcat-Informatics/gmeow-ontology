@@ -1768,3 +1768,25 @@ tools + `gmeow candidate` CLI sharing one core. All six issue acceptance criteri
   logic's fr/cmn translation coverage, or reconcile the aspirational 1.0
   afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
   a logic-slice / rubric-governance task independent of #1374.
+
+## 2026-07-21 — issue #1373 (GMN logic glyph-enrichment / operator symbology plane)
+
+- Modal-EVALUATION reasoner bridge (crates/logic/src/foundation.rs evaluate_modal_formulas,
+  wired into the production reasoning driver evaluate() at foundation.rs:3424) evaluates a
+  modal formula whose body is a SINGLE GROUND ATOM only. A □/◇ whose body is a compound
+  formula (∧/∨/¬/→) or a nested modal is a HARD FAIL (explicit foundation_err boundary, never
+  a silent partial evaluation), so no wrong modal verdict is ever produced. This delivers the
+  user-authorized "frontend ST + reasoner evaluation bridge" scope expansion (beyond #1373's
+  glyph-plane requirement, which needs only modal SIGNS — those are delivered and gated) at a
+  scoped-down body expressiveness. FORWARD PATH: recursive per-world sub-formula evaluation
+  (thread the world through a compound body, mirroring the frontend standard-translation the
+  A′ frontend already performs), lifting the single-atom restriction.
+- The modal reasoning capability (frontend parse_formula standard-translation branch +
+  evaluate_modal_formulas) is reachable-but-UNTRIGGERED on shipped content: no modal
+  logic:Formula is authored in any frontend/reasoner-ingested source (module.ttl declares only
+  the operator property defs; examples/ are not ingested by the logic frontend). The capability
+  is exercised by unit tests over the real parse and foundation paths (gmeow-logic-compile
+  754/754; gmeow-logic modal foundation tests), not by a shipped modal instance. Authoring a
+  modal formula into a reasoner-ingested source is #1377's (GMN-1 parser/writer) ingestion
+  scope, which #1373 explicitly lists as out of scope. FORWARD PATH: when #1377 lands the
+  parser, a parsed modal record exercises this bridge end-to-end on the shipped bundle.
