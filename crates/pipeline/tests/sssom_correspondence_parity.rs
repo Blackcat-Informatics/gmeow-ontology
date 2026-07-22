@@ -4,7 +4,7 @@
 //!
 //! Proves the full oxigraph-free rail end-to-end on real data: parse the DSL + slice
 //! mapping sources natively into one merged `RdfDataset`, lower every
-//! `gmeow:TermEquivalence` via `gmeow_logic_compile::projections::sssom::lower_sssom`,
+//! native alignment cells via `gmeow_logic_compile::projections::sssom::lower_sssom`,
 //! and assert each emitted TSV is byte-identical to the committed
 //! `generated/mappings/*.sssom.tsv`. The committed artifacts are the source of truth
 //! (the historical oxigraph emitter already matches them), so new-lowering == committed

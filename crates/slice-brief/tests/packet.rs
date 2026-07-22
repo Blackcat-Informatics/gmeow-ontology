@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Light behavioural tests over the `slices/grounding/logic` slice — it ships
-//! fr/zh `.po` catalogs AND external `gmeow:TermEquivalence` alignments, so the
+//! fr/zh `.po` catalogs AND external native alignment cells, so the
 //! cross-lingual JOIN (present cell), the batch hard-fail, exemplar shortfall, and
 //! determinism are exercised on real data. The one case `logic` can no longer
 //! demonstrate — an EXPLICIT-ABSENT zh incidence, now that `logic` is fully

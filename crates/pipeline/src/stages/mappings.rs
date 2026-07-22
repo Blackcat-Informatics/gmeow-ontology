@@ -199,11 +199,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         }));
     }
 
-    // DSL mapping-purity gate: alignment linkage flows from slices. A
-    // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
-    // restatement in the wrong place — it must live in the slice that defines its
-    // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
-    // makes update / strict sync / `make check` reject a stray cell.
+    // DSL mapping-purity gate: alignment linkage flows from slices. A native
+    // alignment cell authored under `dsl/mappings/` is a linkage restatement in the
+    // wrong place — it must live in the slice that defines its subject term.
+    // Hard-fail before emitting any artifact (no-optionality); this makes update /
+    // strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -460,7 +460,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
 /// sorts + dedups them.
 ///
 /// A correspondence whose binding emits NO put fragment (Unsupported — e.g. `mapSiocTopic`),
-/// or a `gmeow:TermEquivalence` cell (no profile), is left untouched: it carries no
+/// or a native alignment cell (no profile), is left untouched: it carries no
 /// discharged section law, which is exactly the intended exclusion (AC3). A non-injective
 /// rung yields no claim (`discharge_laws` returns empty), so it too passes through.
 ///
@@ -478,8 +478,8 @@ fn discharge_correspondence_laws(
 
     let mut rebuilt: Vec<Correspondence> = Vec::new();
     for corr in &aligned.correspondences.correspondences {
-        // Only a per-profile binding correspondence knows its profile (a TermEquivalence cell
-        // is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
+        // Only a per-profile binding correspondence knows its profile (a native alignment
+        // cell is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
         let fragment_pair = match (
             aligned.correspondence_profiles.get(&corr.iri),
             corr.get_leg.as_deref(),

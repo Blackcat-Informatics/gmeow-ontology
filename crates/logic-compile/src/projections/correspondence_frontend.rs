@@ -9,7 +9,7 @@
 //! Two cell kinds feed the program, each reusing the SAME typed derivation its dialect
 //! lowering already trusts — never a forked mapping:
 //!
-//! * a `gmeow:TermEquivalence` cell (the SSSOM 1:1 band): its relation + morphism class
+//! * a native alignment cell (the SSSOM 1:1 band): its relation + morphism class
 //!   come from `sssom::sssom_band` (so the typed node and the rendered SSSOM TSV agree
 //!   by construction), its confidence from `gmeow:confidence`, and its evidence strength
 //!   from the justification band ([`evidence_strength_of_justification`]);
@@ -122,7 +122,7 @@ pub struct TypedRelation {
 /// term-equivalence and a projection binding can never collide on a key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum NaturalKey {
-    /// A `gmeow:TermEquivalence` cell, keyed by its `(subject, predicate, object)` triple
+    /// A native alignment cell, keyed by its `(subject, predicate, object)` triple
     /// (one subject may align to several objects, so the whole triple is the identity).
     Equivalence {
         subject: String,
@@ -144,7 +144,7 @@ pub struct CorrespondenceLookup {
     by_key: BTreeMap<NaturalKey, TypedRelation>,
     /// Correspondence IRI → the profile of the `gmeow:ProjectionMapping` binding it was
     /// minted from. Only per-profile binding correspondences carry a profile (a
-    /// `gmeow:TermEquivalence` cell is not profile-scoped and is absent here). Consumed by
+    /// native alignment cell is not profile-scoped and is absent here). Consumed by
     /// the mappings stage to pair a correspondence with its OWN per-binding get/put CONSTRUCT
     /// fragments for executed lens-law discharge — the per-profile UNION query is the wrong
     /// unit (a single UNION branch's law must be checked in isolation).
@@ -152,7 +152,7 @@ pub struct CorrespondenceLookup {
 }
 
 impl CorrespondenceLookup {
-    /// The materialized typed relation of a `gmeow:TermEquivalence` cell, keyed by its
+    /// The materialized typed relation of a native alignment cell, keyed by its
     /// `(subject, predicate, object)` triple.
     ///
     /// # Errors
@@ -174,7 +174,7 @@ impl CorrespondenceLookup {
         self.by_key.get(&key).copied().ok_or_else(|| {
             Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "no materialized correspondence for TermEquivalence cell \
+                    "no materialized correspondence for alignment cell \
                      ({subject}, {predicate}, {obj}) — every authored cell must be transpiled"
                 ),
             })
@@ -231,7 +231,7 @@ impl CorrespondenceLookup {
 }
 
 /// Transpile the authored `dsl/mappings/` cells into a typed [`CorrespondenceProgram`]:
-/// one [`Correspondence`] per `gmeow:TermEquivalence` cell and one per
+/// one [`Correspondence`] per native alignment cell and one per
 /// `gmeow:ProjectionMapping` per-profile binding. Thin wrapper over
 /// [`transpile_correspondences_indexed`] for callers that need only the program.
 ///
@@ -271,32 +271,32 @@ pub fn transpile_correspondences_indexed(
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
     let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
 
-    // ── gmeow:TermEquivalence cells (the SSSOM 1:1 band) ───────────────────────────
-    for cell in equivalence_cells(dsl_view) {
+    // ── Native alignment cells (the SSSOM 1:1 band) ────────────────────────────────
+    for cell in equivalence_cells(dsl_view)? {
         // Relation + morphism class from the SAME band the SSSOM ledger gate uses.
         let (relation, derived_class) = sssom_band(&cell.predicate);
         let authored_class = parse_logic_enum(
             cell.morphism_class.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:morphismClass",
             MorphismClass::from_local,
         )?;
         let authored_kind = parse_logic_enum(
             cell.morphism_kind.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:morphismKind",
             MorphismKind::from_local,
         )?;
         let preservation = parse_logic_enum(
             cell.preservation.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:preservationKind",
             PreservationKind::from_local,
         )?;
         if cell.grounding && cell.justification.is_none() {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                    "grounding alignment cell ({}, {}, {}) must explicitly author \
                      gmeow:justification",
                     cell.subject, cell.predicate, cell.obj
                 ),
@@ -311,7 +311,7 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                    "grounding alignment cell ({}, {}, {}) must explicitly author \
                      logic:sourceEndpoint, logic:targetEndpoint, logic:morphismClass, \
                      logic:morphismKind, and logic:preservationKind",
                     cell.subject, cell.predicate, cell.obj
@@ -324,8 +324,8 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) endpoints must agree with \
-                     gmeow:alignSubject and gmeow:alignObject",
+                    "grounding alignment cell ({}, {}, {}) endpoints must agree with \
+                     the match subject and object",
                     cell.subject, cell.predicate, cell.obj
                 ),
             }));
@@ -340,7 +340,7 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must pair logic:BridgeView with \
+                    "grounding alignment cell ({}, {}, {}) must pair logic:BridgeView with \
                      logic:CommitmentShiftingBridge (and only that pair)",
                     cell.subject, cell.predicate, cell.obj
                 ),
