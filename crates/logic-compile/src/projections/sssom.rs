@@ -529,8 +529,80 @@ fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
         .collect()
 }
 
+/// The five `skos:*Match` predicate local-names an RDF-1.2 alignment cell may carry. A
+/// reified statement whose predicate is one of these AND whose annotation block carries
+/// the `gmeow:sssomFile` discriminator is an alignment cell; anything else (a bare
+/// `skos:exactMatch` A-Box coreference with no reifier/annotation) is NOT.
+fn is_skos_match_predicate(predicate: &str) -> bool {
+    let local = predicate
+        .rsplit(['#', '/', ':'])
+        .next()
+        .unwrap_or(predicate);
+    matches!(
+        local,
+        "exactMatch" | "closeMatch" | "broadMatch" | "narrowMatch" | "relatedMatch"
+    )
+}
+
+/// Read every native-form alignment cell: one RDF-1.2 asserting-annotation on a
+/// `skos:*Match` triple whose reifier carries the `gmeow:sssomFile` discriminator. This
+/// is the PRIMARY (canonical native) reader; [`extract_equivalences`] also runs the
+/// legacy `gmeow:align*` cell reader and both feed the SAME `EquivalenceCell` vec.
+///
+/// The discriminator is load-bearing: a bare `ex:x skos:exactMatch ex:y` with no reifier
+/// (instance coreference — `examples/authority-links.ttl`, `music/fixtures/*`) has no
+/// reified statement here at all, and a reified `skos:*Match` without `gmeow:sssomFile` is
+/// skipped, so A-Box coreference is never swept into the alignment corpus.
+fn extract_native_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
+    for stmt in view.reified_statements() {
+        if !is_skos_match_predicate(&stmt.predicate) {
+            continue;
+        }
+        // The discriminator: an alignment cell MUST annotate its match triple with
+        // gmeow:sssomFile. Absent → not an alignment cell (skip).
+        let Some(sssom_file) = view.annotation_literal(&stmt.reifier, GM_SSSOM_FILE) else {
+            continue;
+        };
+        // The match object must be an IRI (the align object); a literal/blank object is a
+        // malformed cell, dropped silently here (the authoring gate rejects it upstream).
+        let Some(object_iri_v) = stmt.object.as_iri().map(str::to_owned) else {
+            continue;
+        };
+        let confidence = view
+            .annotation_literal(&stmt.reifier, GM_CONFIDENCE)
+            .and_then(|t| t.parse::<f64>().ok());
+        out.push(EquivalenceCell {
+            subject: stmt.subject.clone(),
+            // The match triple's predicate IS the SSSOM/correspondence relation.
+            predicate: stmt.predicate.clone(),
+            obj: object_iri_v,
+            confidence,
+            justification: view.annotation_iri(&stmt.reifier, GM_JUSTIFICATION),
+            morphism_class: view.annotation_iri(&stmt.reifier, LOGIC_MORPHISM_CLASS),
+            morphism_kind: view.annotation_iri(&stmt.reifier, LOGIC_MORPHISM_KIND),
+            preservation: view.annotation_iri(&stmt.reifier, LOGIC_PRESERVATION_KIND),
+            source_endpoint: view.annotation_iri(&stmt.reifier, LOGIC_SOURCE_ENDPOINT),
+            target_endpoint: view.annotation_iri(&stmt.reifier, LOGIC_TARGET_ENDPOINT),
+            grounding: view.annotation_has_type(&stmt.reifier, LOGIC_GROUNDING_CORRESPONDENCE),
+            comment: view
+                .annotation_literal(&stmt.reifier, GM_COMMENT)
+                .unwrap_or_default(),
+            lossy_drops: view.annotation_literals(&stmt.reifier, GM_LOSSY_DROP),
+            sssom_file,
+            subject_label: view
+                .annotation_literal(&stmt.reifier, GM_SUBJECT_LABEL)
+                .unwrap_or_default(),
+            object_label: view
+                .annotation_literal(&stmt.reifier, GM_OBJECT_LABEL)
+                .unwrap_or_default(),
+        });
+    }
+}
+
 fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
     let _ = RDF_TYPE; // documented surface; subjects_of_type uses it internally.
+    // The canonical native RDF-1.2 reader runs first (the primary path).
+    extract_native_equivalences(view, out);
     let grounding: BTreeSet<String> = view
         .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
         .into_iter()
@@ -1092,6 +1164,219 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
                 "http://www.w3.org/ns/odrl/2/reproduce".to_owned(),
                 "https://schema.org/name".to_owned(),
             ])
+        );
+    }
+
+    /// Transpile + lower a native-form corpus, returning the typed program and the SSSOM
+    /// sets so a test can assert BOTH artifacts materialize from one shared derivation.
+    fn transpile_and_lower(
+        ttl: &[u8],
+    ) -> gmeow_errors::Result<(
+        crate::projections::correspondence::CorrespondenceProgram,
+        SssomLowering,
+    )> {
+        let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse native ttl");
+        let view = DslView::new(&ds);
+        let empty = purrdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let (program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &DslView::new(&empty),
+            )?;
+        let lowering = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup)?;
+        Ok((program, lowering))
+    }
+
+    /// The CANONICAL native alignment-cell form (issue #1200 R4/AC3). Each cell is one
+    /// RDF-1.2 asserting-annotation `s skos:*Match o {| … |}`; the reifier's annotation
+    /// block carries the SSSOM/correspondence fields. `gmeow:sssomFile` is the REQUIRED
+    /// discriminator. The migration tool must emit byte-compatible output of this shape.
+    const NATIVE_PROLOGUE: &str = "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+";
+
+    #[test]
+    fn native_five_match_predicates_materialize_row_and_correspondence() {
+        use crate::ir::{CorrespondenceRelation, MorphismClass};
+        // predicate local-name → (expected relation, expected morphism class from the band).
+        let cases: &[(&str, CorrespondenceRelation, MorphismClass)] = &[
+            (
+                "exactMatch",
+                CorrespondenceRelation::Equiv,
+                MorphismClass::WellBehavedLens,
+            ),
+            (
+                "closeMatch",
+                CorrespondenceRelation::Overlaps,
+                MorphismClass::AffineCorrespondence,
+            ),
+            (
+                "broadMatch",
+                CorrespondenceRelation::Subsumes,
+                MorphismClass::LossyLens,
+            ),
+            (
+                "narrowMatch",
+                CorrespondenceRelation::SubsumedBy,
+                MorphismClass::LossyLens,
+            ),
+            (
+                "relatedMatch",
+                CorrespondenceRelation::RelatedMatch,
+                MorphismClass::AffineCorrespondence,
+            ),
+        ];
+        for (local, relation, mclass) in cases {
+            let ttl = format!(
+                "{NATIVE_PROLOGUE}
+gmeow:VirtualLocation skos:{local} schema:VirtualLocation {{|
+    gmeow:sssomFile      \"gmeow-places.sssom.tsv\" ;
+    gmeow:justification  semapv:ManualMappingCuration ;
+    gmeow:confidence     0.9
+|}} .
+"
+            );
+            let (program, lowering) =
+                transpile_and_lower(ttl.as_bytes()).expect("native cell lowers");
+
+            // One typed correspondence, carrying the band-derived relation + class.
+            assert_eq!(program.correspondences.len(), 1, "{local}");
+            let corr = &program.correspondences[0];
+            assert_eq!(corr.relation, *relation, "{local} relation");
+            assert_eq!(corr.morphism_class, *mclass, "{local} class");
+
+            // One SSSOM row into the discriminator's file.
+            let tsv = lowering
+                .sets
+                .get("gmeow-places.sssom.tsv")
+                .unwrap_or_else(|| panic!("{local}: set emitted"));
+            assert!(
+                tsv.contains(&format!(
+                    "gmeow:VirtualLocation\tskos:{local}\tschema:VirtualLocation\tsemapv:ManualMappingCuration\t0.9\t"
+                )),
+                "{local} row:\n{tsv}"
+            );
+        }
+    }
+
+    #[test]
+    fn native_grounding_cell_preserves_all_fields_and_passes_invariants() {
+        let ttl = format!(
+            "{NATIVE_PROLOGUE}
+logic:Individual skos:closeMatch gufo:Individual {{|
+    a                       logic:GroundingCorrespondence ;
+    gmeow:sssomFile         \"gmeow-logic.sssom.tsv\" ;
+    gmeow:justification     semapv:ManualMappingCuration ;
+    logic:sourceEndpoint    logic:Individual ;
+    logic:targetEndpoint    gufo:Individual ;
+    logic:morphismClass     logic:AffineCorrespondence ;
+    logic:morphismKind      logic:InstitutionMorphism ;
+    logic:preservationKind  logic:SoundUnderApproximation
+|}} .
+"
+        );
+        let (program, lowering) =
+            transpile_and_lower(ttl.as_bytes()).expect("grounding native cell lowers");
+
+        // The cell reads back as a grounding correspondence with every field preserved.
+        let cells = equivalence_cells(&DslView::new(
+            &purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse"),
+        ));
+        assert_eq!(cells.len(), 1);
+        let cell = &cells[0];
+        assert!(cell.grounding);
+        assert_eq!(cell.sssom_file, "gmeow-logic.sssom.tsv");
+        assert_eq!(
+            cell.justification.as_deref(),
+            Some("https://w3id.org/semapv/vocab/ManualMappingCuration")
+        );
+        assert_eq!(
+            cell.source_endpoint.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/Individual")
+        );
+        assert_eq!(
+            cell.target_endpoint.as_deref(),
+            Some("http://purl.org/nemo/gufo#Individual")
+        );
+        assert_eq!(
+            cell.morphism_class.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/AffineCorrespondence")
+        );
+        assert_eq!(
+            cell.preservation.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/SoundUnderApproximation")
+        );
+
+        // The grounding correspondence and its SSSOM row both materialize.
+        assert_eq!(program.correspondences.len(), 1);
+        assert!(program.correspondences[0].grounding);
+        assert!(
+            lowering
+                .sets
+                .get("gmeow-logic.sssom.tsv")
+                .expect("set emitted")
+                .contains("logic:Individual\tskos:closeMatch\tgufo:Individual")
+        );
+    }
+
+    #[test]
+    fn native_grounding_cell_missing_preservation_hard_fails() {
+        // Same grounding cell as above but with logic:preservationKind DROPPED — the
+        // grounding invariant must hard-fail with the same diagnostic the legacy reader did.
+        let ttl = format!(
+            "{NATIVE_PROLOGUE}
+logic:Individual skos:closeMatch gufo:Individual {{|
+    a                       logic:GroundingCorrespondence ;
+    gmeow:sssomFile         \"gmeow-logic.sssom.tsv\" ;
+    gmeow:justification     semapv:ManualMappingCuration ;
+    logic:sourceEndpoint    logic:Individual ;
+    logic:targetEndpoint    gufo:Individual ;
+    logic:morphismClass     logic:AffineCorrespondence ;
+    logic:morphismKind      logic:InstitutionMorphism
+|}} .
+"
+        );
+        let err = match transpile_and_lower(ttl.as_bytes()) {
+            Ok(_) => panic!("missing preservation must fail"),
+            Err(err) => err,
+        };
+        assert!(
+            err.message().contains("preservationKind"),
+            "diagnostic should name the missing field: {err}"
+        );
+    }
+
+    #[test]
+    fn bare_skos_exactmatch_without_sssomfile_is_ignored() {
+        // A-Box coreference: a bare (un-annotated) skos:exactMatch with no reifier and no
+        // gmeow:sssomFile discriminator MUST NOT be swept into the alignment corpus.
+        let ttl = format!(
+            "{NATIVE_PROLOGUE}
+gmeow:Thing skos:exactMatch schema:Thing .
+
+# A reified skos:*Match WITHOUT gmeow:sssomFile is also NOT an alignment cell.
+gmeow:Other skos:exactMatch schema:Other {{|
+    gmeow:confidence 0.5
+|}} .
+"
+        );
+        let (program, lowering) =
+            transpile_and_lower(ttl.as_bytes()).expect("no cells still lowers cleanly");
+        assert!(
+            program.correspondences.is_empty(),
+            "no alignment cell should be extracted"
+        );
+        assert!(lowering.sets.is_empty(), "no SSSOM set should be emitted");
+        assert!(
+            equivalence_cells(&DslView::new(
+                &purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse")
+            ))
+            .is_empty()
         );
     }
 

@@ -16,7 +16,7 @@
 
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::ir::BlankScope;
-use purrdf::{RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{RdfDataset, RdfTerm, TermId, TermRef, TermValue};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
@@ -58,6 +58,84 @@ impl DslTerm {
     /// Whether this term is a blank node.
     pub fn is_blank(&self) -> bool {
         matches!(self, DslTerm::Blank { .. })
+    }
+}
+
+/// One RDF-1.2 reified statement: a reifier node binding a base `(subject, predicate,
+/// object)` triple. The value-space twin of an `owned_reifiers()` row the alignment
+/// reader keys its native-form annotation reads off (`s p o {| … |}` in Turtle 1.2).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReifiedStatement {
+    /// The reifier handle naming this triple occurrence — the key the `annotation_*`
+    /// accessors read the attached `(predicate, object)` pairs off.
+    pub reifier: DslTerm,
+    /// The reified triple's subject, in string form (an IRI, or a blank-node label).
+    pub subject: String,
+    /// The reified triple's predicate IRI.
+    pub predicate: String,
+    /// The reified triple's object term.
+    pub object: DslTerm,
+}
+
+/// The IRI / blank-label key of a value-space reifier term (a literal can never be a
+/// reifier, so it has no key). Keying on `I:`/`B:` string form makes annotation matching
+/// robust to the blank-node scope the owned `RdfTerm::BlankNode(label)` does not carry.
+fn reifier_key(term: &DslTerm) -> Option<String> {
+    match term {
+        DslTerm::Iri(iri) => Some(format!("I:{iri}")),
+        DslTerm::Blank { label, .. } => Some(format!("B:{label}")),
+        DslTerm::Literal { .. } => None,
+    }
+}
+
+/// The reifier key of an owned [`RdfTerm`] (the counterpart to [`reifier_key`]).
+fn reifier_key_rdf(term: &RdfTerm) -> Option<String> {
+    match term {
+        RdfTerm::Iri(iri) => Some(format!("I:{iri}")),
+        RdfTerm::BlankNode(label) => Some(format!("B:{label}")),
+        _ => None,
+    }
+}
+
+/// Lower an owned [`RdfTerm`] into the value-space [`DslTerm`] the emitters read.
+fn dslterm_of_rdf(term: &RdfTerm) -> DslTerm {
+    match term {
+        RdfTerm::Iri(iri) => DslTerm::Iri(iri.clone()),
+        RdfTerm::BlankNode(label) => DslTerm::Blank {
+            label: label.clone(),
+            scope: BlankScope::DEFAULT,
+        },
+        RdfTerm::Literal(lit) => DslTerm::Literal {
+            lexical: lit.lexical_form.clone(),
+            datatype: lit.datatype.clone().unwrap_or_default(),
+            language: lit.language.clone(),
+        },
+        // A triple-term subject/object is never read by the alignment DSL; surface it as
+        // an empty blank so Iri/Literal matchers skip it (mirrors `term_of`).
+        RdfTerm::Triple(_) => DslTerm::Blank {
+            label: String::new(),
+            scope: BlankScope::DEFAULT,
+        },
+    }
+}
+
+/// The subject/predicate string of an owned [`RdfTerm`] in reified-statement position
+/// (an IRI or a blank-node label; a triple-term collapses to empty).
+fn subject_string_of_rdf(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(iri) => iri.clone(),
+        RdfTerm::BlankNode(label) => label.clone(),
+        RdfTerm::Literal(lit) => lit.lexical_form.clone(),
+        RdfTerm::Triple(_) => String::new(),
+    }
+}
+
+/// The deterministic sort key of a value-space object term.
+fn object_sort_key(term: &DslTerm) -> String {
+    match term {
+        DslTerm::Iri(iri) => iri.clone(),
+        DslTerm::Blank { label, .. } => label.clone(),
+        DslTerm::Literal { lexical, .. } => lexical.clone(),
     }
 }
 
@@ -321,6 +399,113 @@ impl<'a> DslView<'a> {
         }
         out
     }
+
+    // ── RDF-1.2 reifier / annotation read surface ────────────────────────────────
+    //
+    // The RDF-1.2 asserting-annotation form `s p o {| pred obj ; … |}` records the base
+    // triple in a SEPARATE reifier side-table (a reifier node bound to the `(s,p,o)`
+    // triple) and each annotation as a `(reifier, pred, obj)` row — NOT as plain quads.
+    // These accessors twin `object_iri` / `object_literal` / `subjects_of_type` but keyed
+    // on a reifier, scoped (like the rest of `DslView`) to the DEFAULT graph.
+
+    /// Every RDF-1.2 reified statement in the default graph, sorted deterministically by
+    /// `(subject, predicate, object-string)` — the native-form alignment reader's input.
+    pub fn reified_statements(&self) -> Vec<ReifiedStatement> {
+        let mut out: Vec<ReifiedStatement> = self
+            .ds
+            .owned_reifiers()
+            .filter(|r| r.graph.is_none())
+            .map(|r| ReifiedStatement {
+                reifier: dslterm_of_rdf(&r.reifier),
+                subject: subject_string_of_rdf(&r.statement.subject),
+                predicate: r.statement.predicate.clone(),
+                object: dslterm_of_rdf(&r.statement.object),
+            })
+            .collect();
+        out.sort_by(|a, b| {
+            (&a.subject, &a.predicate, object_sort_key(&a.object)).cmp(&(
+                &b.subject,
+                &b.predicate,
+                object_sort_key(&b.object),
+            ))
+        });
+        out
+    }
+
+    /// The first IRI object of the annotation `<reifier> <pred> ?o`, or `None`.
+    pub fn annotation_iri(&self, reifier: &DslTerm, pred: &str) -> Option<String> {
+        let key = reifier_key(reifier)?;
+        self.ds.owned_annotations().find_map(|a| {
+            if a.graph.is_some()
+                || a.predicate != pred
+                || reifier_key_rdf(&a.reifier).as_deref() != Some(key.as_str())
+            {
+                return None;
+            }
+            match a.object {
+                RdfTerm::Iri(iri) => Some(iri),
+                _ => None,
+            }
+        })
+    }
+
+    /// The lexical form of the first literal object of the annotation `<reifier> <pred>
+    /// ?o`, or `None`.
+    pub fn annotation_literal(&self, reifier: &DslTerm, pred: &str) -> Option<String> {
+        let key = reifier_key(reifier)?;
+        self.ds.owned_annotations().find_map(|a| {
+            if a.graph.is_some()
+                || a.predicate != pred
+                || reifier_key_rdf(&a.reifier).as_deref() != Some(key.as_str())
+            {
+                return None;
+            }
+            match a.object {
+                RdfTerm::Literal(lit) => Some(lit.lexical_form),
+                _ => None,
+            }
+        })
+    }
+
+    /// The lexical forms of ALL literal objects of the annotation `<reifier> <pred> ?o`,
+    /// sorted — the multi-valued counterpart of [`Self::annotation_literal`].
+    pub fn annotation_literals(&self, reifier: &DslTerm, pred: &str) -> Vec<String> {
+        let Some(key) = reifier_key(reifier) else {
+            return Vec::new();
+        };
+        let mut out: Vec<String> = self
+            .ds
+            .owned_annotations()
+            .filter_map(|a| {
+                if a.graph.is_some()
+                    || a.predicate != pred
+                    || reifier_key_rdf(&a.reifier).as_deref() != Some(key.as_str())
+                {
+                    return None;
+                }
+                match a.object {
+                    RdfTerm::Literal(lit) => Some(lit.lexical_form),
+                    _ => None,
+                }
+            })
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// Whether the reifier carries the annotation `<reifier> rdf:type <type_iri>` — the
+    /// value-space check the grounding-flag read (`a logic:GroundingCorrespondence`) uses.
+    pub fn annotation_has_type(&self, reifier: &DslTerm, type_iri: &str) -> bool {
+        let Some(key) = reifier_key(reifier) else {
+            return false;
+        };
+        self.ds.owned_annotations().any(|a| {
+            a.graph.is_none()
+                && a.predicate == RDF_TYPE
+                && reifier_key_rdf(&a.reifier).as_deref() == Some(key.as_str())
+                && matches!(&a.object, RdfTerm::Iri(iri) if iri == type_iri)
+        })
+    }
 }
 
 #[cfg(test)]
@@ -421,5 +606,81 @@ mod tests {
             .filter_map(|t| t.as_iri().map(str::to_owned))
             .collect();
         assert_eq!(items, vec![format!("{EX}x"), format!("{EX}y")]);
+    }
+
+    #[test]
+    fn reified_statement_and_annotation_accessors_round_trip() {
+        use purrdf::{RdfAnnotation, RdfLiteral, RdfReifier, RdfTerm, RdfTriple};
+
+        let subj = format!("{EX}VirtualLocation");
+        let pred = "http://www.w3.org/2004/02/skos/core#closeMatch";
+        let obj = format!("{EX}Target");
+        let reifier = RdfTerm::iri(format!("{EX}cell1"));
+        let base = RdfTriple::new(
+            RdfTerm::iri(&subj),
+            pred,
+            RdfTerm::iri(&obj),
+        );
+
+        let mut b = RdfDatasetBuilder::new();
+        b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base));
+        // An IRI annotation, two literal annotations under one predicate (multi), a typed
+        // annotation (the grounding flag), and a numeric literal.
+        b.push_owned_annotation(&RdfAnnotation::new(
+            reifier.clone(),
+            format!("{EX}justification"),
+            RdfTerm::iri("https://w3id.org/semapv/vocab/ManualMappingCuration"),
+        ));
+        b.push_owned_annotation(&RdfAnnotation::new(
+            reifier.clone(),
+            format!("{EX}lossyDrop"),
+            RdfTerm::literal(RdfLiteral::simple("beta")),
+        ));
+        b.push_owned_annotation(&RdfAnnotation::new(
+            reifier.clone(),
+            format!("{EX}lossyDrop"),
+            RdfTerm::literal(RdfLiteral::simple("alpha")),
+        ));
+        b.push_owned_annotation(&RdfAnnotation::new(
+            reifier.clone(),
+            format!("{EX}confidence"),
+            RdfTerm::literal(RdfLiteral::simple("0.9")),
+        ));
+        b.push_owned_annotation(&RdfAnnotation::new(
+            reifier.clone(),
+            RDF_TYPE,
+            RdfTerm::iri(format!("{EX}GroundingCorrespondence")),
+        ));
+        let ds = b.freeze().expect("freeze rdf-1.2 dataset");
+        let v = DslView::new(&ds);
+
+        let stmts = v.reified_statements();
+        assert_eq!(stmts.len(), 1);
+        let stmt = &stmts[0];
+        assert_eq!(stmt.reifier, DslTerm::Iri(format!("{EX}cell1")));
+        assert_eq!(stmt.subject, subj);
+        assert_eq!(stmt.predicate, pred);
+        assert_eq!(stmt.object, DslTerm::Iri(obj.clone()));
+
+        assert_eq!(
+            v.annotation_iri(&stmt.reifier, &format!("{EX}justification")),
+            Some("https://w3id.org/semapv/vocab/ManualMappingCuration".to_owned())
+        );
+        assert_eq!(
+            v.annotation_literal(&stmt.reifier, &format!("{EX}confidence")),
+            Some("0.9".to_owned())
+        );
+        assert_eq!(
+            v.annotation_literals(&stmt.reifier, &format!("{EX}lossyDrop")),
+            vec!["alpha".to_owned(), "beta".to_owned()]
+        );
+        assert!(v.annotation_has_type(&stmt.reifier, &format!("{EX}GroundingCorrespondence")));
+        assert!(!v.annotation_has_type(&stmt.reifier, &format!("{EX}Nope")));
+        // A predicate/reifier miss yields nothing.
+        assert_eq!(v.annotation_iri(&stmt.reifier, &format!("{EX}missing")), None);
+        assert_eq!(
+            v.annotation_literal(&DslTerm::Iri(format!("{EX}other")), &format!("{EX}confidence")),
+            None
+        );
     }
 }
