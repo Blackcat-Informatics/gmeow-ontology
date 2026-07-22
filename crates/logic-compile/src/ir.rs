@@ -40,6 +40,39 @@ pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 /// (`logic:expandsToFacet`).
 pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
 
+/// The internal `@x-gmeow-english` private-use carrier language tag every lifted /
+/// projected annotation literal carries (never bare `en`). Mirrors
+/// `gmeow_errors::abox::X_GMEOW_ENGLISH`; duplicated here so the compile crate's lift /
+/// projection boundary has no dependency edge into the errors crate's A-Box module.
+pub const X_GMEOW_ENGLISH_TAG: &str = "x-gmeow-english";
+
+/// The exact set of surface annotation predicate IRIs lifted into first-class
+/// [`NodeKind::Annotation`] axioms (`isSupersetOf` SKOS/RDFS). The single source of truth
+/// shared by every lift and un-deny site (frontend, adapter, and the pipeline's
+/// compile-logic-input denylist) so they can never drift. Everything else in the `skos:`
+/// namespace — notably the `skos:*Match` alignment surface — is intentionally NOT here: it
+/// is owned by the correspondence derivation, not the annotation lift.
+pub const ANNOTATION_LIFT_PREDS: &[&str] = &[
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2000/01/rdf-schema#comment",
+    "http://www.w3.org/2004/02/skos/core#definition",
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "http://www.w3.org/2004/02/skos/core#altLabel",
+    "http://www.w3.org/2004/02/skos/core#scopeNote",
+];
+
+/// Whether a lifted annotation predicate carries semantically load-bearing prose the put
+/// leg must preserve (`skos:definition`, `rdfs:comment`) versus a droppable display hint
+/// (`rdfs:label`, `skos:prefLabel`/`altLabel`/`scopeNote`). Drives the `load_bearing` bit on
+/// the lifted [`NodeKind::Annotation`] axiom.
+pub fn annotation_pred_is_load_bearing(predicate: &str) -> bool {
+    matches!(
+        predicate,
+        "http://www.w3.org/2000/01/rdf-schema#comment"
+            | "http://www.w3.org/2004/02/skos/core#definition"
+    )
+}
+
 // --------------------------------------------------------------------------- //
 // Enums — single source of truth, local names taken verbatim from module.ttl
 // --------------------------------------------------------------------------- //

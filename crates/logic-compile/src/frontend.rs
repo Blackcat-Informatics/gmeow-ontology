@@ -44,12 +44,13 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
-    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
-    Correspondence, EvaluationMode, Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr,
-    ReasoningContract, ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity,
-    ShapeTarget, ShapeValue, Term, ValidationShapeIr, VariableSortScope,
+    ANNOTATION_LIFT_PREDS, AggregateBalance, AggregateComparator, AggregateComparison,
+    AggregateRhs, AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr,
+    ConstraintProvenance, ContextualScope, Correspondence, EvaluationMode, Formula, JoinAggregate,
+    JoinLeg, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, NodeKind,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
+    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr, VariableSortScope, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
 };
 use super::restriction;
 
@@ -428,6 +429,83 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
         .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
         .map(|quad| term_str(&quad.object))
         .collect()
+}
+
+/// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
+/// [`NodeKind::Annotation`] axioms — the inbound half of `logic: isSupersetOf SKOS/RDFS`.
+/// Each `<term> <annotation-pred> "literal"@x-gmeow-english` triple becomes one annotation
+/// axiom carrying the surface predicate verbatim, so the SKOS/RDFS annotation surface
+/// round-trips through the canonical IR and the generated SKOS surface is a projection of
+/// these axioms rather than an authored second source.
+///
+/// The `@x-gmeow-english` carrier discipline is honored **fail-closed**: an annotation
+/// literal that carries a *different* language tag is a discipline violation and emits a
+/// blocking `NON_CARRIER_ANNOTATION_LANG` diagnostic (never silently normalized). Only
+/// carrier-tagged literals are lifted — mirroring the structural-lint guard, which flags a
+/// wrong tag and passes an untagged literal (internal terms are always carrier-tagged).
+fn extract_annotation_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LogicAxiom> {
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
+            continue;
+        }
+        // Annotations belong on named terms; a blank-node subject is a structural
+        // interior (a restriction / formula node), never a term carrying a display label.
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        let Node::Lit { lexical, lang, .. } = &quad.object else {
+            // A non-literal object on an annotation predicate is malformed authoring
+            // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
+            continue;
+        };
+        match lang.as_deref() {
+            Some(X_GMEOW_ENGLISH_TAG) => {}
+            Some(other) => {
+                // Fail closed: a carrier-discipline violation is a hard error, never a
+                // silent retag. (R2/AC2)
+                diagnostics.push(Diagnostic::error(
+                    "NON_CARRIER_ANNOTATION_LANG",
+                    format!(
+                        "annotation literal on <{}> {} carries language tag @{other}, not the \
+                         internal @{X_GMEOW_ENGLISH_TAG} carrier tag; annotations must use the \
+                         carrier tag",
+                        subject_str(&quad.subject),
+                        p_str,
+                    ),
+                    Some(subject_str(&quad.subject)),
+                ));
+                continue;
+            }
+            // Untagged / typed literal: not a carrier annotation (internal display
+            // annotations are always carrier-tagged). Left to any other reader (e.g.
+            // rdfs:comment caveats); not lifted as a display annotation.
+            None => continue,
+        }
+        match LogicAxiom::new(
+            subject_str(&quad.subject),
+            p_str,
+            lexical.clone(),
+            true,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(
+                ax.with_node_kind(NodeKind::Annotation)
+                    .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
+            ),
+            Err(exc) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_ANNOTATION",
+                exc.message().to_owned(),
+                Some(subject_str(&quad.subject)),
+            )),
+        }
+    }
+    axioms
 }
 
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
@@ -5571,6 +5649,9 @@ pub fn parse_logic_dataset(
 
     let plain_axioms = extract_axioms(store, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
+    // Lift the RDFS/SKOS annotation surface into first-class NodeKind::Annotation axioms
+    // (logic: isSupersetOf SKOS/RDFS); fail-closed on a non-carrier language tag.
+    let annotation_axioms = extract_annotation_axioms(store, &mut diagnostics);
 
     // Read the top-level `logic:Formula` trees, then ROUTE a trivially-Horn leaf (a reified
     // ordinary triple: an IRI relation over two non-sequence-marker arguments) to its axiom
@@ -5613,6 +5694,7 @@ pub fn parse_logic_dataset(
         .into_iter()
         .chain(scoped_axioms)
         .chain(horn_axioms)
+        .chain(annotation_axioms)
     {
         if seen.insert(content_dedup_key(&ax)) {
             all_axioms.push(ax);

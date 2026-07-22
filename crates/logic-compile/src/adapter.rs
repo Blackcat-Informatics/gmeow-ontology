@@ -43,8 +43,8 @@ use super::graphutil::{
     subject_str, subjects_with, term_is_blank, term_is_literal, term_str,
 };
 use super::ir::{
-    ContextualScope, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule,
-    ReasoningContract,
+    ANNOTATION_LIFT_PREDS, ContextualScope, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram,
+    LogicRule, NodeKind, ReasoningContract, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
 };
 use super::restriction::{
     LiftedTriple, RestrictionVocab, datarange_node_labels, enumeration_node_labels,
@@ -112,11 +112,14 @@ const OWL_CHARACTERISTIC_TO_LOGIC: &[(&str, &str)] = &[
     ("IrreflexiveProperty", "irreflexiveProperty"),
 ];
 
-/// OWL/RDFS meta-annotation predicates that carry no structural logic payload.
+/// OWL/RDFS meta predicates that carry no structural logic payload AND are not lifted as
+/// first-class annotations. `rdfs:label`/`rdfs:comment` are DELIBERATELY absent — they are now
+/// lifted into `NodeKind::Annotation` axioms (`ANNOTATION_LIFT_PREDS`) exactly as the frontend
+/// twin lifts them, so an owl:/rdfs:-authored construct and its logic:-authored twin normalize
+/// to identical annotation axioms (the IR-isomorphism gate). `seeAlso`/`isDefinedBy` and the
+/// `owl:` versioning/imports predicates carry no annotation payload and stay skipped.
 fn rdfs_skip_preds() -> HashSet<String> {
     [
-        rdfs("label"),
-        rdfs("comment"),
         rdfs("seeAlso"),
         rdfs("isDefinedBy"),
         owl("versionIRI"),
@@ -446,6 +449,76 @@ fn warn(code: &str, message: String, subject: Option<String>) -> Diagnostic {
     }
 }
 
+fn err(code: &str, message: String, subject: Option<String>) -> Diagnostic {
+    Diagnostic {
+        severity: Severity::Error,
+        code: code.to_owned(),
+        message,
+        subject,
+    }
+}
+
+/// Lift the RDFS/SKOS annotation surface into first-class [`NodeKind::Annotation`] axioms —
+/// the owl/rdfs-authored TWIN of `frontend::extract_annotation_axioms`. Both sites lift the
+/// SAME `ANNOTATION_LIFT_PREDS` the SAME way (carrier tag fail-closed, load-bearing bit) so an
+/// owl:/rdfs:-authored construct and its logic:-authored twin normalize to identical annotation
+/// axioms and `assert_ir_isomorphic` stays green. Returns fully-built axioms (node_kind +
+/// load_bearing set) rather than `MappedAxiom`s, since those two fields must survive to the
+/// program for the full-program equality the isomorphism gate's fast path checks.
+fn extract_annotation_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LogicAxiom> {
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
+            continue;
+        }
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        let Node::Lit { lexical, lang, .. } = &quad.object else {
+            continue;
+        };
+        match lang.as_deref() {
+            Some(X_GMEOW_ENGLISH_TAG) => {}
+            Some(other) => {
+                diagnostics.push(err(
+                    "NON_CARRIER_ANNOTATION_LANG",
+                    format!(
+                        "annotation literal on <{}> {p_str} carries language tag @{other}, not \
+                         the internal @{X_GMEOW_ENGLISH_TAG} carrier tag",
+                        subject_str(&quad.subject),
+                    ),
+                    Some(subject_str(&quad.subject)),
+                ));
+                continue;
+            }
+            None => continue,
+        }
+        match LogicAxiom::new(
+            subject_str(&quad.subject),
+            p_str,
+            lexical.clone(),
+            true,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(
+                ax.with_node_kind(NodeKind::Annotation)
+                    .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
+            ),
+            Err(exc) => diagnostics.push(warn(
+                "MALFORMED_ANNOTATION",
+                exc.message().to_owned(),
+                Some(subject_str(&quad.subject)),
+            )),
+        }
+    }
+    axioms
+}
+
 // --------------------------------------------------------------------------- //
 // Public API
 // --------------------------------------------------------------------------- //
@@ -517,6 +590,15 @@ pub fn adapt_legacy_dataset(
                 exc.message().to_owned(),
                 Some(m.subject),
             )),
+        }
+    }
+
+    // Lift the RDFS/SKOS annotation surface as first-class NodeKind::Annotation axioms — the
+    // twin of the frontend lift, so an owl:/rdfs:-authored annotation and its logic: twin
+    // normalize identically (the isomorphism gate). Deduped through the same content key.
+    for ax in extract_annotation_axioms(store, &mut diagnostics) {
+        if seen.insert(axiom_key(&ax)) {
+            axioms.push(ax);
         }
     }
 
