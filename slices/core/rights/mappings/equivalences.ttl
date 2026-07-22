@@ -37,805 +37,816 @@ gmeow:mapsetRights a gmeow:MappingSet ;
 
 # --- ODRL: the deontic policy model (every odrl: term the projection emits) --- #
 
-gmeow:eqRights002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:Set ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "projected as an odrl:Set (the concrete, rule-bearing policy subclass)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:RightsStatement skos:relatedMatch odrl:Set {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "projected as an odrl:Set (the concrete, rule-bearing policy subclass)"
+|} .
 
-gmeow:eqRights004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:statementAbout ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:target ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ; gmeow:comment "the asset a policy / rule governs" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:statementAbout skos:closeMatch odrl:target {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "the asset a policy / rule governs"
+|} .
 
-gmeow:eqRights005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleTarget ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:target ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "the asset a single rule regulates" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleTarget skos:closeMatch odrl:target {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "the asset a single rule regulates"
+|} .
 
-gmeow:eqRights006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPermission ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:permission ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "a policy's permission rule" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasPermission skos:closeMatch odrl:permission {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a policy's permission rule"
+|} .
 
-gmeow:eqRights007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasProhibition ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:prohibition ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "a policy's prohibition rule" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasProhibition skos:closeMatch odrl:prohibition {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a policy's prohibition rule"
+|} .
 
-gmeow:eqRights008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDuty ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:obligation ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "a policy-level duty / obligation" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasDuty skos:closeMatch odrl:obligation {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a policy-level duty / obligation"
+|} .
 
-gmeow:eqRights009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDuty ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:duty ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "the permission-scoped duty form of an obligation" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasDuty skos:relatedMatch odrl:duty {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "the permission-scoped duty form of an obligation"
+|} .
 
-gmeow:eqRights010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Rule ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Rule ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "the abstract deontic rule" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Rule skos:closeMatch odrl:Rule {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "the abstract deontic rule"
+|} .
 
-gmeow:eqRights011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Permission ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Permission ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "permission rule class" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Permission skos:closeMatch odrl:Permission {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "permission rule class"
+|} .
 
-gmeow:eqRights012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Prohibition ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Prohibition ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "prohibition rule class" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Prohibition skos:closeMatch odrl:Prohibition {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "prohibition rule class"
+|} .
 
-gmeow:eqRights013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Duty ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Duty ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "duty rule class" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Duty skos:closeMatch odrl:Duty {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "duty rule class"
+|} .
 
-gmeow:eqRights014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleAction ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:action ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "the regulated action of a rule" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleAction skos:closeMatch odrl:action {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the regulated action of a rule"
+|} .
 
-gmeow:eqRights015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleAssignee ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:assignee ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "the party a rule applies to" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleAssignee skos:closeMatch odrl:assignee {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the party a rule applies to"
+|} .
 
-gmeow:eqRights016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:License ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Offer ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "a licence offered to recipients is an ODRL Offer" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:License skos:closeMatch odrl:Offer {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a licence offered to recipients is an ODRL Offer"
+|} .
 
-gmeow:eqRights017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licensor ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:assigner ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "the party granting the licence" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:licensor skos:closeMatch odrl:assigner {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "the party granting the licence"
+|} .
 
-gmeow:eqRights018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licensee ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:assignee ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "the party receiving the licence" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:licensee skos:closeMatch odrl:assignee {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "the party receiving the licence"
+|} .
 
 # --- dcterms / PREMIS / RightsStatements.org --- #
 
-gmeow:eqRights020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:License ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:LicenseDocument ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "a licence document" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:License skos:closeMatch dcterms:LicenseDocument {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a licence document"
+|} .
 
-gmeow:eqRights022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dcterms:RightsStatement ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "the dcterms rights-statement class (a human-readable rights string in practice)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:RightsStatement skos:relatedMatch dcterms:RightsStatement {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the dcterms rights-statement class (a human-readable rights string in practice)"
+|} .
 
-gmeow:eqRights023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatus ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject premis:RightsStatus ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ; gmeow:comment "the PREMIS 3 rights-status of an object (preservation rights)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatus skos:relatedMatch premis:RightsStatus {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "the PREMIS 3 rights-status of an object (preservation rights)"
+|} .
 
-gmeow:eqRights024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusInCopyright ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/InC/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org In Copyright" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusInCopyright skos:closeMatch <https://rightsstatements.org/vocab/InC/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org In Copyright"
+|} .
 
-gmeow:eqRights025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNoKnownCopyright ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/NKC/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org No Known Copyright" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNoKnownCopyright skos:closeMatch <https://rightsstatements.org/vocab/NKC/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org No Known Copyright"
+|} .
 
-gmeow:eqRights026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNotEvaluated ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/CNE/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org Copyright Not Evaluated" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNotEvaluated skos:closeMatch <https://rightsstatements.org/vocab/CNE/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org Copyright Not Evaluated"
+|} .
 
-gmeow:eqRights027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusPublicDomain ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://creativecommons.org/publicdomain/mark/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ; gmeow:comment "the Creative Commons Public Domain Mark" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusPublicDomain skos:closeMatch <https://creativecommons.org/publicdomain/mark/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "the Creative Commons Public Domain Mark"
+|} .
 
 # --- schema.org rights cluster (also EDOAL-declared via the projection) --- #
 
-gmeow:eqRights034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trademark ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:Brand ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "the trademark RIGHT relates to (is not) the brand it protects" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Trademark skos:relatedMatch schema:Brand {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the trademark RIGHT relates to (is not) the brand it protects"
+|} .
 
-gmeow:eqRights041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPermission ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:permits ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "CC REL permits (the licence-level allowed actions)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasPermission skos:relatedMatch cc:permits {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "CC REL permits (the licence-level allowed actions)"
+|} .
 
-gmeow:eqRights042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDuty ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:requires ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "CC REL requires (the licence-level required actions)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasDuty skos:relatedMatch cc:requires {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "CC REL requires (the licence-level required actions)"
+|} .
 
-gmeow:eqRights043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasProhibition ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:prohibits ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "CC REL prohibits (the licence-level forbidden actions)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasProhibition skos:relatedMatch cc:prohibits {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "CC REL prohibits (the licence-level forbidden actions)"
+|} .
 
 # --- Action value vocabulary → ODRL actions + CC REL classes --- #
 
-gmeow:eqRights045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionReproduce ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:Reproduction ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "CC REL Reproduction" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionReproduce skos:closeMatch cc:Reproduction {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CC REL Reproduction"
+|} .
 
-gmeow:eqRights047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionDistribute ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:Distribution ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "CC REL Distribution" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionDistribute skos:closeMatch cc:Distribution {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CC REL Distribution"
+|} .
 
-gmeow:eqRights049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionDerive ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:DerivativeWorks ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "CC REL Derivative Works" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionDerive skos:closeMatch cc:DerivativeWorks {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CC REL Derivative Works"
+|} .
 
-gmeow:eqRights051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionCommercialize ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:CommercialUse ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "CC REL Commercial Use (a prohibition under NC licences)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionCommercialize skos:closeMatch cc:CommercialUse {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CC REL Commercial Use (a prohibition under NC licences)"
+|} .
 
-gmeow:eqRights056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionAttribute ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:Attribution ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "CC REL Attribution" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionAttribute skos:closeMatch cc:Attribution {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CC REL Attribution"
+|} .
 
-gmeow:eqRights058 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionShareAlike ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:ShareAlike ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "CC REL Share Alike" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionShareAlike skos:closeMatch cc:ShareAlike {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CC REL Share Alike"
+|} .
 
-gmeow:eqRights059 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionRetainNotice ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cc:Notice ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "CC REL Notice (retain copyright/licence notices)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:actionRetainNotice skos:closeMatch cc:Notice {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CC REL Notice (retain copyright/licence notices)"
+|} .
 
-gmeow:eqRights063 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLicense ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject spdx:licenseDeclared ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.65 ; gmeow:comment "the declared licence of an SPDX package/file (the SBOM use)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasLicense skos:relatedMatch spdx:licenseDeclared {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.65 ;
+    gmeow:comment "the declared licence of an SPDX package/file (the SBOM use)"
+|} .
 
-gmeow:eqRights064 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLicense ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject spdx:licenseConcluded ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "the concluded licence of an SPDX package/file (analyst-determined)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasLicense skos:relatedMatch spdx:licenseConcluded {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the concluded licence of an SPDX package/file (analyst-determined)"
+|} .
 
 # --- Dublin Core rights — maximal: license / LicenseDocument / rightsHolder (above)
 # plus accessRights, rights (free-text), dateCopyrighted, and dc elements 1.1. --- #
 
-gmeow:eqRights065 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAccessibleForFree ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dcterms:accessRights ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ; gmeow:comment "free-access flag relates to the DC access-rights statement (boolean vs. policy text)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:isAccessibleForFree skos:relatedMatch dcterms:accessRights {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "free-access flag relates to the DC access-rights statement (boolean vs. policy text)"
+|} .
 
-gmeow:eqRights068 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightNotice ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dc:rights ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "the DC elements 1.1 rights term (as used on the GMEOW root ontology)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightNotice skos:relatedMatch dc:rights {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the DC elements 1.1 rights term (as used on the GMEOW root ontology)"
+|} .
 
 # --- ODRL constraint algebra + deontic logic (the rights LOGIC, rights facility) --- #
 
-gmeow:eqRights069 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Constraint ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:Constraint ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "an ODRL constraint" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Constraint skos:closeMatch odrl:Constraint {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "an ODRL constraint"
+|} .
 
-gmeow:eqRights070 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LogicalConstraint ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:LogicalConstraint ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "an ODRL logical constraint" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:LogicalConstraint skos:closeMatch odrl:LogicalConstraint {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "an ODRL logical constraint"
+|} .
 
-gmeow:eqRights071 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleConstraint ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:constraint ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "a rule's constraint" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleConstraint skos:closeMatch odrl:constraint {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a rule's constraint"
+|} .
 
-gmeow:eqRights072 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:leftOperand ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:leftOperand ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ; gmeow:comment "the constraint left operand" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:leftOperand skos:closeMatch odrl:leftOperand {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the constraint left operand"
+|} .
 
-gmeow:eqRights073 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:constraintOperator ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:operator ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ; gmeow:comment "the constraint operator" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:constraintOperator skos:closeMatch odrl:operator {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the constraint operator"
+|} .
 
-gmeow:eqRights074 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightOperand ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:rightOperand ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ; gmeow:comment "the constraint right operand value" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:rightOperand skos:closeMatch odrl:rightOperand {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the constraint right operand value"
+|} .
 
-gmeow:eqRights075 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightOperandReference ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:rightOperandReference ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "the IRI-valued right operand" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:rightOperandReference skos:closeMatch odrl:rightOperandReference {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the IRI-valued right operand"
+|} .
 
-gmeow:eqRights076 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:constraintLogic ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:operator ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "the logical-constraint operator (and/or/xone)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:constraintLogic skos:relatedMatch odrl:operator {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the logical-constraint operator (and/or/xone)"
+|} .
 
-gmeow:eqRights077 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:logicConstraintMember ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:operand ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "a logical constraint's member" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:logicConstraintMember skos:closeMatch odrl:operand {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a logical constraint's member"
+|} .
 
-gmeow:eqRights080 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:conflictStrategy ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:conflict ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "the policy conflict-resolution strategy" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:conflictStrategy skos:closeMatch odrl:conflict {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "the policy conflict-resolution strategy"
+|} .
 
-gmeow:eqRights081 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:Asset ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.3 ; gmeow:comment "the governed asset is an odrl:Asset (the statement targets it)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:RightsStatement skos:relatedMatch odrl:Asset {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.3 ;
+    gmeow:comment "the governed asset is an odrl:Asset (the statement targets it)"
+|} .
 
-gmeow:eqRights082 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleAssignee ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:Party ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ; gmeow:comment "a rule's party is an odrl:Party" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleAssignee skos:relatedMatch odrl:Party {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a rule's party is an odrl:Party"
+|} .
 
 # --- ODRL action vocabulary (open value set) --- #
 
-gmeow:eqRights165 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:logicAnd ; gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject odrl:and ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "and (all) (odrl:and)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:logicAnd skos:exactMatch odrl:and {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "and (all) (odrl:and)"
+|} .
 
-gmeow:eqRights166 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:logicOr ; gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject odrl:or ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "or (any) (odrl:or)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:logicOr skos:exactMatch odrl:or {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "or (any) (odrl:or)"
+|} .
 
-gmeow:eqRights167 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:logicXone ; gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject odrl:xone ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "exactly one (odrl:xone)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:logicXone skos:exactMatch odrl:xone {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "exactly one (odrl:xone)"
+|} .
 
-gmeow:eqRights168 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:logicAndSequence ; gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject odrl:andSequence ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ; gmeow:comment "and (ordered) (odrl:andSequence)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:logicAndSequence skos:exactMatch odrl:andSequence {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "and (ordered) (odrl:andSequence)"
+|} .
 
-gmeow:eqRights172 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusInCopyrightEuOrphanWork ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/InC-OW-EU/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org InC-OW-EU" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusInCopyrightEuOrphanWork skos:closeMatch <https://rightsstatements.org/vocab/InC-OW-EU/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org InC-OW-EU"
+|} .
 
-gmeow:eqRights173 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusInCopyrightEducationalUse ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/InC-EDU/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org InC-EDU" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusInCopyrightEducationalUse skos:closeMatch <https://rightsstatements.org/vocab/InC-EDU/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org InC-EDU"
+|} .
 
-gmeow:eqRights174 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusInCopyrightNonCommercialUse ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/InC-NC/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org InC-NC" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusInCopyrightNonCommercialUse skos:closeMatch <https://rightsstatements.org/vocab/InC-NC/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org InC-NC"
+|} .
 
-gmeow:eqRights175 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusInCopyrightRightsholderUnlocatable ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/InC-RUU/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org InC-RUU" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusInCopyrightRightsholderUnlocatable skos:closeMatch <https://rightsstatements.org/vocab/InC-RUU/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org InC-RUU"
+|} .
 
-gmeow:eqRights176 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNoCopyrightContractualRestrictions ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/NoC-CR/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org NoC-CR" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNoCopyrightContractualRestrictions skos:closeMatch <https://rightsstatements.org/vocab/NoC-CR/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org NoC-CR"
+|} .
 
-gmeow:eqRights177 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNoCopyrightNonCommercialOnly ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/NoC-NC/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org NoC-NC" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNoCopyrightNonCommercialOnly skos:closeMatch <https://rightsstatements.org/vocab/NoC-NC/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org NoC-NC"
+|} .
 
-gmeow:eqRights178 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/NoC-OKLR/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org NoC-OKLR" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions skos:closeMatch <https://rightsstatements.org/vocab/NoC-OKLR/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org NoC-OKLR"
+|} .
 
-gmeow:eqRights179 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusNoCopyrightUnitedStates ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/NoC-US/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org NoC-US" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusNoCopyrightUnitedStates skos:closeMatch <https://rightsstatements.org/vocab/NoC-US/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org NoC-US"
+|} .
 
-gmeow:eqRights180 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusUndetermined ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <https://rightsstatements.org/vocab/UND/1.0/> ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ; gmeow:comment "RightsStatements.org UND" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightStatusUndetermined skos:closeMatch <https://rightsstatements.org/vocab/UND/1.0/> {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "RightsStatements.org UND"
+|} .
 
 # --- CC REL (additional licence-resource terms) --- #
 
-gmeow:eqRights182 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:acquireLicensePage ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:morePermissions ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "CC REL more-permissions page" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:acquireLicensePage skos:relatedMatch cc:morePermissions {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "CC REL more-permissions page"
+|} .
 
-gmeow:eqRights183 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:Work ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "a CC REL Work" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:CreativeWork skos:relatedMatch cc:Work {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a CC REL Work"
+|} .
 
-gmeow:eqRights184 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licenseText ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cc:legalcode ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "CC REL legal-code reference" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:licenseText skos:relatedMatch cc:legalcode {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "CC REL legal-code reference"
+|} .
 
 # --- schema.org (access conditions + digital-document permissions) --- #
 
-gmeow:eqRights186 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Permission ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:DigitalDocumentPermission ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "a schema.org digital-document permission" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Permission skos:relatedMatch schema:DigitalDocumentPermission {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "a schema.org digital-document permission"
+|} .
 
-gmeow:eqRights187 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPermission ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:hasDigitalDocumentPermission ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "schema.org has-permission" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasPermission skos:relatedMatch schema:hasDigitalDocumentPermission {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "schema.org has-permission"
+|} .
 
 # --- SPDX (listed-licence detail) --- #
 
-gmeow:eqRights188 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:License ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject spdx:ListedLicense ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "an SPDX listed licence" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:License skos:closeMatch spdx:ListedLicense {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "an SPDX listed licence"
+|} .
 
-gmeow:eqRights192 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Copyright ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject premis:Copyright ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "PREMIS 3 copyright basis" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Copyright skos:closeMatch premis:Copyright {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "PREMIS 3 copyright basis"
+|} .
 
-gmeow:eqRights193 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:License ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject premis:License ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "PREMIS 3 licence basis" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:License skos:closeMatch premis:License {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "PREMIS 3 licence basis"
+|} .
 
-gmeow:eqRights194 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ruleAction ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject premis:act ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "the PREMIS act a rights basis allows" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:ruleAction skos:relatedMatch premis:act {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the PREMIS act a rights basis allows"
+|} .
 
-gmeow:eqRights195 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Permission ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject premis:allows ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ; gmeow:comment "PREMIS rights-granted (allows)" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Permission skos:relatedMatch premis:allows {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "PREMIS rights-granted (allows)"
+|} .
 
-gmeow:eqRights196 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Prohibition ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject premis:restriction ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ; gmeow:comment "a PREMIS restriction" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Prohibition skos:relatedMatch premis:restriction {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "a PREMIS restriction"
+|} .
 
-gmeow:eqRights197 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Constraint ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject premis:restriction ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.5 ; gmeow:comment "a PREMIS rights restriction" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:Constraint skos:relatedMatch premis:restriction {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "a PREMIS rights restriction"
+|} .
 
 # --- W3C Ontology for Media Resources (ma-ont) --- #
 
-gmeow:eqRights198 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightNotice ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ma:copyright ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ; gmeow:comment "ma-ont copyright statement" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightNotice skos:closeMatch ma:copyright {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "ma-ont copyright statement"
+|} .
 
-gmeow:eqRights199 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightHolder ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ma:isCopyrightedBy ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ; gmeow:comment "ma-ont copyrighted-by" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:copyrightHolder skos:relatedMatch ma:isCopyrightedBy {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "ma-ont copyrighted-by"
+|} .
 
-gmeow:eqRights200 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasRightsStatement ; gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ma:hasPolicy ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ; gmeow:comment "ma-ont policy link" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasRightsStatement skos:closeMatch ma:hasPolicy {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "ma-ont policy link"
+|} .
 
-gmeow:eqRights201 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPermission ; gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ma:hasPermissions ; gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.55 ; gmeow:comment "ma-ont permissions" ;
-    gmeow:sssomFile "gmeow-rights.sssom.tsv" .
+gmeow:hasPermission skos:relatedMatch ma:hasPermissions {|
+    gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "ma-ont permissions"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqPrivacy007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDataSubject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:hasDataSubject ;
+gmeow:hasDataSubject skos:closeMatch dpv:hasDataSubject {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "the data-subject property in both vocabularies" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the data-subject property in both vocabularies"
+|} .
 
-gmeow:eqPrivacy008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDataController ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:hasDataController ;
+gmeow:hasDataController skos:closeMatch dpv:hasDataController {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "the data-controller property in both vocabularies" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the data-controller property in both vocabularies"
+|} .
 
-gmeow:eqPrivacy009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PrivacyNotice ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:PrivacyNotice ;
+gmeow:PrivacyNotice skos:closeMatch dpv:PrivacyNotice {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the privacy-notice concept in both vocabularies" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the privacy-notice concept in both vocabularies"
+|} .
 
-gmeow:eqPrivacy010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PrivacyNotice ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:PrivacyPolicy ;
+gmeow:PrivacyNotice skos:closeMatch schema:PrivacyPolicy {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org privacy policy (a CreativeWork)" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "schema.org privacy policy (a CreativeWork)"
+|} .
 
-gmeow:eqPrivacy011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPrivacyNotice ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:hasNotice ;
+gmeow:hasPrivacyNotice skos:closeMatch dpv:hasNotice {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DPV hasNotice links a process to its notice; GMEOW hasPrivacyNotice is domain-free" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV hasNotice links a process to its notice; GMEOW hasPrivacyNotice is domain-free"
+|} .
 
-gmeow:eqPrivacy012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPrivacyNotice ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:publishingPrinciples ;
+gmeow:hasPrivacyNotice skos:relatedMatch schema:publishingPrinciples {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema.org publishing principles (may include privacy policy)" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "schema.org publishing principles (may include privacy policy)"
+|} .
 
-gmeow:eqPrivacy013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionProcessPersonalData ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject odrl:use ;
+gmeow:actionProcessPersonalData skos:closeMatch odrl:use {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "processing personal data is the privacy-scoped form of odrl:use" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "processing personal data is the privacy-scoped form of odrl:use"
+|} .
 
-gmeow:eqPrivacy014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:actionProcessPersonalData ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dpv:Processing ;
+gmeow:actionProcessPersonalData skos:relatedMatch dpv:Processing {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "DPV Processing is a class (process/activity), not an action value; relatedMatch is the best fit" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV Processing is a class (process/activity), not an action value; relatedMatch is the best fit"
+|} .
 
-gmeow:eqPrivacy015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDataSubject ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:assignee ;
+gmeow:hasDataSubject skos:relatedMatch odrl:assignee {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "the data subject is the party to whom the privacy policy applies (ODRL assignee analogue)" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the data subject is the party to whom the privacy policy applies (ODRL assignee analogue)"
+|} .
 
-gmeow:eqPrivacy016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDataController ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:assigner ;
+gmeow:hasDataController skos:relatedMatch odrl:assigner {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "the data controller is the party issuing the privacy policy (ODRL assigner analogue)" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the data controller is the party issuing the privacy policy (ODRL assigner analogue)"
+|} .
 
-gmeow:eqWikidata006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Copyright ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1297822 ;
+gmeow:Copyright skos:closeMatch wd:Q1297822 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "copyright" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyright"
+|} .
 
-gmeow:eqWikidata007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trademark ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q167270 ;
+gmeow:Trademark skos:closeMatch wd:Q167270 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "trademark" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "trademark"
+|} .
 
-gmeow:eqWikidata008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:License ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q79719 ;
+gmeow:License skos:closeMatch wd:Q79719 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "license"
+|} .
 
-gmeow:eqWikidata009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Mark ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q431289 ;
+gmeow:Mark skos:closeMatch wd:Q431289 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:objectLabel "brand" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "brand"
+|} .
 
-gmeow:eqWikidata010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLicense ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P275 ;
+gmeow:hasLicense skos:relatedMatch wd:P275 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "copyright license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyright license"
+|} .
 
-gmeow:eqWikidata011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatus ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P6216 ;
+gmeow:copyrightStatus skos:relatedMatch wd:P6216 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "copyright status" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyright status"
+|} .
 
-gmeow:eqWikidata012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightHolder ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P3931 ;
+gmeow:copyrightHolder skos:relatedMatch wd:P3931 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "copyright holder" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyright holder"
+|} .
 
-gmeow:eqWikidata013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:trademarkMark ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P1716 ;
+gmeow:trademarkMark skos:relatedMatch wd:P1716 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:objectLabel "brand" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "brand"
+|} .
 
-gmeow:eqWikidata014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licenseFamilyCC ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q284742 ;
+gmeow:licenseFamilyCC skos:closeMatch wd:Q284742 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "Creative Commons license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "Creative Commons license"
+|} .
 
-gmeow:eqWikidata015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:copyrightStatusPublicDomain ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q19652 ;
+gmeow:copyrightStatusPublicDomain skos:closeMatch wd:Q19652 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "public domain" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "public domain"
+|} .
 
-gmeow:eqWikidata016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licenseFamilyCopyleft ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1139274 ;
+gmeow:licenseFamilyCopyleft skos:closeMatch wd:Q1139274 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "copyleft license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyleft license"
+|} .
 
-gmeow:eqWikidata017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licenseFamilyProprietary ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q3238057 ;
+gmeow:licenseFamilyProprietary skos:closeMatch wd:Q3238057 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "proprietary license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "proprietary license"
+|} .
 
-gmeow:eqWikidata018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:licenseFamilyPermissive ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1437937 ;
+gmeow:licenseFamilyPermissive skos:closeMatch wd:Q1437937 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:objectLabel "permissive free software license" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "permissive free software license"
+|} .
 
-gmeow:eqWikidata019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeCopyright ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1297822 ;
+gmeow:rightsTypeCopyright skos:closeMatch wd:Q1297822 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "copyright" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "copyright"
+|} .
 
-gmeow:eqWikidata020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeTrademark ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q167270 ;
+gmeow:rightsTypeTrademark skos:closeMatch wd:Q167270 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "trademark" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "trademark"
+|} .
 
-gmeow:eqWikidata021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypePatent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q253623 ;
+gmeow:rightsTypePatent skos:closeMatch wd:Q253623 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "patent" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "patent"
+|} .
 
-gmeow:eqWikidata022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeIndustrialDesign ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q252799 ;
+gmeow:rightsTypeIndustrialDesign skos:closeMatch wd:Q252799 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "industrial design right" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "industrial design right"
+|} .
 
-gmeow:eqWikidata023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeTradeSecret ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q602938 ;
+gmeow:rightsTypeTradeSecret skos:closeMatch wd:Q602938 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "trade secret" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "trade secret"
+|} .
 
-gmeow:eqWikidata024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeRelatedRights ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q489344 ;
+gmeow:rightsTypeRelatedRights skos:closeMatch wd:Q489344 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "related rights" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "related rights"
+|} .
 
-gmeow:eqWikidata025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeMoralRights ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1057599 ;
+gmeow:rightsTypeMoralRights skos:closeMatch wd:Q1057599 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "moral rights" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "moral rights"
+|} .
 
-gmeow:eqWikidata026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypeDatabaseRight ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q688416 ;
+gmeow:rightsTypeDatabaseRight skos:closeMatch wd:Q688416 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "database right" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "database right"
+|} .
 
-gmeow:eqWikidata027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:rightsTypePlantBreedersRights ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q695112 ;
+gmeow:rightsTypePlantBreedersRights skos:closeMatch wd:Q695112 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "plant breeders' rights" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "plant breeders' rights"
+|} .
 
-gmeow:eqWikidata028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q3935748 ;
+gmeow:RightsStatement skos:relatedMatch wd:Q3935748 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:objectLabel "Rights Expression Language" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "Rights Expression Language"
+|} .
 
-gmeow:eqWikidata029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q930582 ;
+gmeow:RightsStatement skos:relatedMatch wd:Q930582 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:objectLabel "MPEG-21" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "MPEG-21"
+|} .

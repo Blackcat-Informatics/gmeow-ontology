@@ -8,15 +8,13 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqWikidata050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:languageCode ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:P424 ;
+gmeow:languageCode skos:relatedMatch wd:P424 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Wikimedia language code" ;
-    gmeow:comment "Wikidata P424 is the Wikimedia language code; GMEOW languageCode uses BCP-47. Related but not identical." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:comment "Wikidata P424 is the Wikimedia language code; GMEOW languageCode uses BCP-47. Related but not identical."
+|} .
 
 # --------------------------------------------------------------------------- #
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #

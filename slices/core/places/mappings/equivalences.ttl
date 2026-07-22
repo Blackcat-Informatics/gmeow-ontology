@@ -49,341 +49,257 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (stream-to-trajectory design): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added: indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (celestial-frame design): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (robotic-frame design): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (biological-sequence design): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (geocoding design): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (spatial-measurement design): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates. Added (cadastral design): Cadastral / land-administration realm bridging to ISO 19152 LADM (LA_SpatialUnit, LA_RRR, LA_Party, LA_BoundaryFace) and INSPIRE Cadastral Parcels (CadastralParcel, CadastralBoundary, CadastralZoning, BasicPropertyUnit, nationalCadastralReference) by reference. Added (vertical/maritime/aviation-zone design): Maritime / aviation zones aligned to MRGID ontology (direct), AIXM / UNCLOS / IHO S-100 via Wikidata hub; vertical-dimension reference frames (altitude MSL, flight level, AGL, depth MSL, chart datum).".
 
-gmeow:eqPlaces001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:VirtualLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:VirtualLocation ;
+gmeow:VirtualLocation skos:closeMatch schema:VirtualLocation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Geometry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:Geometry ;
+gmeow:Geometry skos:closeMatch geo:Geometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeType ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gvp:placeType ;
+gmeow:placeType skos:closeMatch gvp:placeType {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCountry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Country ;
+gmeow:placeTypeCountry skos:closeMatch schema:Country {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCountry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:A ;
+gmeow:placeTypeCountry skos:closeMatch gn:A {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqPlaces006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCountry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q6256 ;
+gmeow:placeTypeCountry skos:closeMatch wd:Q6256 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:City ;
+gmeow:placeTypeCity skos:closeMatch schema:City {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:P ;
+gmeow:placeTypeCity skos:closeMatch gn:P {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeCity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q515 ;
+gmeow:placeTypeCity skos:closeMatch wd:Q515 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeAdministrativeArea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:AdministrativeArea ;
+gmeow:placeTypeAdministrativeArea skos:closeMatch schema:AdministrativeArea {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeAdministrativeArea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:A ;
+gmeow:placeTypeAdministrativeArea skos:closeMatch gn:A {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeBuilding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:S ;
+gmeow:placeTypeBuilding skos:closeMatch gn:S {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqPlaces013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeBuilding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q41176 ;
+gmeow:placeTypeBuilding skos:closeMatch wd:Q41176 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeRoom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q180516 ;
+gmeow:placeTypeRoom skos:closeMatch wd:Q180516 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeNaturalFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:T ;
+gmeow:placeTypeNaturalFeature skos:closeMatch gn:T {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqPlaces016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:sfWithin ;
+gmeow:containedInPlace skos:closeMatch geo:sfWithin {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:parentFeature ;
+gmeow:containedInPlace skos:closeMatch gn:parentFeature {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isPartOf ;
+gmeow:containedInPlace skos:closeMatch dcterms:isPartOf {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqPlaces019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P131 ;
+gmeow:containedInPlace skos:closeMatch wdt:P131 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasGeometry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:hasGeometry ;
+gmeow:hasGeometry skos:closeMatch geo:hasGeometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:asWKT ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:asWKT ;
+gmeow:asWKT skos:closeMatch geo:asWKT {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCoordinates ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:geo ;
+gmeow:hasCoordinates skos:closeMatch schema:geo {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:latitude ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wgs84:lat ;
+gmeow:latitude skos:closeMatch wgs84:lat {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:longitude ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wgs84:long ;
+gmeow:longitude skos:closeMatch wgs84:long {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:elevation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wgs84:alt ;
+gmeow:elevation skos:closeMatch wgs84:alt {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:elevation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:elevation ;
+gmeow:elevation skos:closeMatch schema:elevation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:locatedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:location ;
+gmeow:locatedAt skos:closeMatch schema:location {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqPlaces028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:streetAddress ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:streetAddress ;
+gmeow:streetAddress owl:equivalentProperty schema:streetAddress {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqPlaces029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:streetAddress ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:street-address ;
+gmeow:streetAddress skos:closeMatch vcard:street-address {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:extendedAddress ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:extended-address ;
+gmeow:extendedAddress skos:closeMatch vcard:extended-address {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:postOfficeBox ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:postOfficeBoxNumber ;
+gmeow:postOfficeBox skos:closeMatch schema:postOfficeBoxNumber {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:postOfficeBox ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:post-office-box ;
+gmeow:postOfficeBox skos:closeMatch vcard:post-office-box {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:addressLocality ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:addressLocality ;
+gmeow:addressLocality owl:equivalentProperty schema:addressLocality {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqPlaces034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:addressLocality ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:locality ;
+gmeow:addressLocality skos:closeMatch vcard:locality {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:addressRegion ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:addressRegion ;
+gmeow:addressRegion owl:equivalentProperty schema:addressRegion {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqPlaces036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:addressRegion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:region ;
+gmeow:addressRegion skos:closeMatch vcard:region {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:postalCode ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:postalCode ;
+gmeow:postalCode owl:equivalentProperty schema:postalCode {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqPlaces038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:postalCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:postal-code ;
+gmeow:postalCode skos:closeMatch vcard:postal-code {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:countryCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:addressCountry ;
+gmeow:countryCode skos:closeMatch schema:addressCountry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:countryCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:country-name ;
+gmeow:countryCode skos:closeMatch vcard:country-name {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqPlaces041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:addressPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:address ;
+gmeow:addressPlace skos:closeMatch schema:address {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqPlaces042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timezone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:tz ;
+gmeow:timezone skos:closeMatch vcard:tz {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
 # gmeow:alternateName was RETIRED (place-naming design, Principle 6): a place's multilingual
 # /historical names are now co-equal gmeow:PlaceName appellations borne via
@@ -393,390 +309,306 @@ gmeow:eqPlaces042 a gmeow:TermEquivalence ;
 # PROJECTION layer as the downcast of NON-selected place names — deliberately NOT
 # term-level equivalences, because GMEOW recognises no primary-vs-alternate ranking.
 
-gmeow:eqPlaces047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Location ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E53_Place ;
+gmeow:Location skos:closeMatch crm:E53_Place {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "Place" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Place"
+|} .
 
-gmeow:eqPlaces048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Location ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000029 ;
+gmeow:Location skos:closeMatch bfo:BFO_0000029 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "site" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "site"
+|} .
 
-gmeow:eqPlaces049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Location ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000006 ;
+gmeow:Location skos:closeMatch bfo:BFO_0000006 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "spatial region" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "spatial region"
+|} .
 
-gmeow:eqPlaces050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:proximity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:distance ;
+gmeow:proximity skos:closeMatch schema:distance {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "schema.org:distance is a flat property with range QuantitativeValue or Text; GMEOW proximity is a reified Measurement with frame-declared metric kind. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "schema.org:distance is a flat property with range QuantitativeValue or Text; GMEOW proximity is a reified Measurement with frame-declared metric kind. Directional lossy projection."
+|} .
 
 # Pose / Orientation alignments. GMEOW separates position (SpatialCoordinates)
 # from pose; the compound Pose+Orientation design aligns by reference to the IEEE
 # 1872-2015 CORA/POS ontology (pos:QuantitativePose, pos:OrientationMeasure) and
 # to Wikidata items for the mathematical concepts.
 
-gmeow:eqPlaces051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Pose ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pos:QuantitativePose ;
+gmeow:Pose skos:closeMatch pos:QuantitativePose {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "Quantitative Pose" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Quantitative Pose"
+|} .
 
-gmeow:eqPlaces052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Orientation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pos:OrientationMeasure ;
+gmeow:Orientation skos:closeMatch pos:OrientationMeasure {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "Orientation Measure" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Orientation Measure"
+|} .
 
-gmeow:eqPlaces053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPose ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pos:pose ;
+gmeow:hasPose skos:closeMatch pos:pose {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPosePosition ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pos:posePosition ;
+gmeow:hasPosePosition skos:closeMatch pos:posePosition {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPoseOrientation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pos:poseOrientation ;
+gmeow:hasPoseOrientation skos:closeMatch pos:poseOrientation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Pose ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1055020 ;
+gmeow:Pose skos:closeMatch wd:Q1055020 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "pose" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "pose"
+|} .
 
-gmeow:eqPlaces057 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quaternionX ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q462283 ;
+gmeow:quaternionX skos:closeMatch wd:Q462283 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "quaternion" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "quaternion"
+|} .
 
-gmeow:eqPlaces058 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quaternionY ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q462283 ;
+gmeow:quaternionY skos:closeMatch wd:Q462283 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "quaternion" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "quaternion"
+|} .
 
-gmeow:eqPlaces059 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quaternionZ ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q462283 ;
+gmeow:quaternionZ skos:closeMatch wd:Q462283 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "quaternion" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "quaternion"
+|} .
 
-gmeow:eqPlaces060 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quaternionW ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q462283 ;
+gmeow:quaternionW skos:closeMatch wd:Q462283 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "quaternion" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "quaternion"
+|} .
 
-gmeow:eqPlaces061 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:yaw ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q465493 ;
+gmeow:yaw skos:closeMatch wd:Q465493 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Euler angles" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Euler angles"
+|} .
 
-gmeow:eqPlaces062 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pitch ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q465493 ;
+gmeow:pitch skos:closeMatch wd:Q465493 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Euler angles" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Euler angles"
+|} .
 
-gmeow:eqPlaces063 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roll ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q465493 ;
+gmeow:roll skos:closeMatch wd:Q465493 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Euler angles" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Euler angles"
+|} .
 
-gmeow:eqPlaces064 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eulerOrder ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q465493 ;
+gmeow:eulerOrder skos:closeMatch wd:Q465493 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Euler angles" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Euler angles"
+|} .
 
-gmeow:eqPlaces065 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:heading ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q41154 ;
+gmeow:heading skos:closeMatch wd:Q41154 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "heading" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "heading"
+|} .
 
-gmeow:eqPlaces066 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:bearing ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q123429 ;
+gmeow:bearing skos:closeMatch wd:Q123429 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "bearing" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "bearing"
+|} .
 
 # --------------------------------------------------------------------------- #
 # time-scoped place design — Terrestrial realm deepening: new term alignments
 # --------------------------------------------------------------------------- #
 
 # LinkedGeoData
-gmeow:eqPlaces067 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lgdo:Place ;
+gmeow:Place skos:closeMatch lgdo:Place {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces068 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lgdo:parentPlace ;
+gmeow:containedInPlace skos:closeMatch lgdo:parentPlace {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
 # CIDOC-CRM + CRMgeo
-gmeow:eqPlaces069 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:JurisdictionTenure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E4_Period ;
+gmeow:JurisdictionTenure skos:closeMatch crm:E4_Period {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "Period" ;
-    gmeow:comment "CIDOC-CRM E4_Period captures the time-spanned governance period; GMEOW JurisdictionTenure adds the place×polity relator structure and standpoint indexing." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E4_Period captures the time-spanned governance period; GMEOW JurisdictionTenure adds the place×polity relator structure and standpoint indexing."
+|} .
 
-gmeow:eqPlaces070 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PlaceNaming ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E41_Appellation ;
+gmeow:PlaceNaming skos:closeMatch crm:E41_Appellation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Appellation" ;
-    gmeow:comment "CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval."
+|} .
 
-gmeow:eqPlaces071 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmgeo:SP5_Geometric_Place_Expression ;
+gmeow:Place skos:closeMatch crmgeo:SP5_Geometric_Place_Expression {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:objectLabel "Geometric Place Expression" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Geometric Place Expression"
+|} .
 
 # Pleiades
-gmeow:eqPlaces072 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pleiades:Place ;
+gmeow:Place skos:closeMatch pleiades:Place {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces073 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPlaceName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pleiades:Name ;
+gmeow:hasPlaceName skos:closeMatch pleiades:Name {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
 # WHG (World Historical Gazetteer)
-gmeow:eqPlaces074 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject whg:Place ;
+gmeow:Place skos:closeMatch whg:Place {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces075 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:authorityLink ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject whg:closeMatch ;
+gmeow:authorityLink skos:closeMatch whg:closeMatch {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
 # GeoSPARQL simple-features — GeometryType values
-gmeow:eqPlaces076 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypePoint ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:Point ;
+gmeow:geometryTypePoint skos:closeMatch sf:Point {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces077 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypeLineString ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:LineString ;
+gmeow:geometryTypeLineString skos:closeMatch sf:LineString {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces078 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypePolygon ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:Polygon ;
+gmeow:geometryTypePolygon skos:closeMatch sf:Polygon {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces079 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypeMultiPoint ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:MultiPoint ;
+gmeow:geometryTypeMultiPoint skos:closeMatch sf:MultiPoint {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces080 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypeMultiLineString ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:MultiLineString ;
+gmeow:geometryTypeMultiLineString skos:closeMatch sf:MultiLineString {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces081 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryTypeMultiPolygon ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sf:MultiPolygon ;
+gmeow:geometryTypeMultiPolygon skos:closeMatch sf:MultiPolygon {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
 # GeoSPARQL — asGeoJSON
-gmeow:eqPlaces082 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:asGeoJSON ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:asGeoJSON ;
+gmeow:asGeoJSON skos:closeMatch geo:asGeoJSON {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
 # Wikidata — new terms
-gmeow:eqPlaces083 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:JurisdictionTenure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q19517 ;
+gmeow:JurisdictionTenure skos:closeMatch wd:Q19517 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:objectLabel "sovereignty" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "sovereignty"
+|} .
 
-gmeow:eqPlaces084 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ContainmentTenure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P131 ;
+gmeow:ContainmentTenure skos:closeMatch wdt:P131 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "located in the administrative territorial entity" ;
-    gmeow:comment "Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing."
+|} .
 
-gmeow:eqPlaces085 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeSupersedes ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1365 ;
+gmeow:placeSupersedes skos:closeMatch wdt:P1365 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "replaces" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "replaces"
+|} .
 
-gmeow:eqPlaces086 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeSupersededBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1366 ;
+gmeow:placeSupersededBy skos:closeMatch wdt:P1366 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "replaced by" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "replaced by"
+|} .
 
 # --------------------------------------------------------------------------- #
 # OGC Moving Features / ISO 19141 (trajectory design)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces087 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LocationState ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mf:TemporalGeometry ;
+gmeow:LocationState skos:closeMatch mf:TemporalGeometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:objectLabel "temporal geometry" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "temporal geometry"
+|} .
 
-gmeow:eqPlaces088 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trajectory ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mf:TemporalTrajectory ;
+gmeow:Trajectory skos:closeMatch mf:TemporalTrajectory {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "temporal trajectory" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "temporal trajectory"
+|} .
 
 # --------------------------------------------------------------------------- #
 # CIDOC-CRM E92 / CRMgeo SP1 — Spacetime Volume
@@ -784,66 +616,54 @@ gmeow:eqPlaces088 a gmeow:TermEquivalence ;
 # volume composed of LocationState samples.
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces112 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LocationState ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E92_Spacetime_Volume ;
+gmeow:LocationState skos:closeMatch crm:E92_Spacetime_Volume {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "Spacetime Volume" ;
-    gmeow:comment "CIDOC-CRM E92 Spacetime Volume — a 4D point set; GMEOW LocationState is a discrete slice (location + time + pose) of it" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E92 Spacetime Volume — a 4D point set; GMEOW LocationState is a discrete slice (location + time + pose) of it"
+|} .
 
-gmeow:eqPlaces113 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LocationState ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmgeo:SP1_Spacetime_Volume ;
+gmeow:LocationState skos:closeMatch crmgeo:SP1_Spacetime_Volume {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "Spacetime Volume" ;
-    gmeow:comment "CRMgeo SP1 Spacetime Volume — the geospatial extension of CIDOC E92" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CRMgeo SP1 Spacetime Volume — the geospatial extension of CIDOC E92"
+|} .
 
-gmeow:eqPlaces114 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trajectory ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crm:E92_Spacetime_Volume ;
+gmeow:Trajectory skos:relatedMatch crm:E92_Spacetime_Volume {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "Spacetime Volume" ;
-    gmeow:comment "a Trajectory is a continuous spacetime volume (relatedMatch, not closeMatch — a trajectory is a path, not any arbitrary volume)" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "a Trajectory is a continuous spacetime volume (relatedMatch, not closeMatch — a trajectory is a path, not any arbitrary volume)"
+|} .
 
 # --------------------------------------------------------------------------- #
 # capacity/occupancy/utilization design — Capacity / Occupancy / Utilization
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces089 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Capacity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject brick:Capacity ;
+gmeow:Capacity skos:closeMatch brick:Capacity {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Brick Capacity is a class for the max number of entities a space can hold; GMEOW Capacity is a reified Measurement with location, scalar result, and provenance." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Brick Capacity is a class for the max number of entities a space can hold; GMEOW Capacity is a reified Measurement with location, scalar result, and provenance."
+|} .
 
-gmeow:eqPlaces090 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Occupancy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject brick:Occupancy ;
+gmeow:Occupancy skos:closeMatch brick:Occupancy {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance."
+|} .
 
-gmeow:eqPlaces091 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCapacity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:maximumAttendeeCapacity ;
+gmeow:hasCapacity skos:closeMatch schema:maximumAttendeeCapacity {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema.org maximumAttendeeCapacity is a flat integer property on Place/Event; GMEOW hasCapacity links to a reified Capacity Measurement. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "schema.org maximumAttendeeCapacity is a flat integer property on Place/Event; GMEOW hasCapacity links to a reified Capacity Measurement. Directional lossy projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # regulatory-overlay design — Regulatory Overlays (zoning, protected areas, restricted
@@ -851,493 +671,387 @@ gmeow:eqPlaces091 a gmeow:TermEquivalence ;
 # --------------------------------------------------------------------------- #
 
 # RegulatoryOverlay class alignments
-gmeow:eqPlaces092 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RegulatoryOverlay ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:AdministrativeArea ;
+gmeow:RegulatoryOverlay skos:closeMatch schema:AdministrativeArea {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces093 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RegulatoryOverlay ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1055894 ;
+gmeow:RegulatoryOverlay skos:closeMatch wd:Q1055894 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "administrative territorial entity" ;
-    gmeow:comment "Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage."
+|} .
 
 # RegulatoryOverlayType value alignments
-gmeow:eqPlaces094 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeZoning ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q160730 ;
+gmeow:overlayTypeZoning skos:closeMatch wd:Q160730 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "zoning" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "zoning"
+|} .
 
-gmeow:eqPlaces095 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeProtectedArea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1041938 ;
+gmeow:overlayTypeProtectedArea skos:closeMatch wd:Q1041938 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "protected area" ;
-    gmeow:comment "IUCN management categories (Ia–VI) are additional classifications on the protected area, not subclasses." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "IUCN management categories (Ia–VI) are additional classifications on the protected area, not subclasses."
+|} .
 
-gmeow:eqPlaces096 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeRestrictedAirspace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2574180 ;
+gmeow:overlayTypeRestrictedAirspace skos:closeMatch wd:Q2574180 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "no-fly zone" ;
-    gmeow:comment "AIXM airspace types (prohibited, restricted, danger, TRA, TSA) are specific kinds of restricted airspace, aligned by reference in data via skos:exactMatch to the relevant AIXM code list values." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "AIXM airspace types (prohibited, restricted, danger, TRA, TSA) are specific kinds of restricted airspace, aligned by reference in data via skos:exactMatch to the relevant AIXM code list values."
+|} .
 
-gmeow:eqPlaces097 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeSanctions ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1540287 ;
+gmeow:overlayTypeSanctions skos:closeMatch wd:Q1540287 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "sanctions" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "sanctions"
+|} .
 
-gmeow:eqPlaces098 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeElectoralDistrict ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q171441 ;
+gmeow:overlayTypeElectoralDistrict skos:closeMatch wd:Q171441 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "electoral district" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "electoral district"
+|} .
 
-gmeow:eqPlaces099 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypePostalZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q37447 ;
+gmeow:overlayTypePostalZone skos:closeMatch wd:Q37447 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "postal code" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "postal code"
+|} .
 
-gmeow:eqPlaces100 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeCivilTimeZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject time:TimeZone ;
+gmeow:overlayTypeCivilTimeZone skos:closeMatch time:TimeZone {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "OWL-Time TimeZone is a temporal reference position; GMEOW overlayTypeCivilTimeZone adds the regulatory authority and time-scoped interval, treating the timezone as a government-decreed spatial overlay." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "OWL-Time TimeZone is a temporal reference position; GMEOW overlayTypeCivilTimeZone adds the regulatory authority and time-scoped interval, treating the timezone as a government-decreed spatial overlay."
+|} .
 
-gmeow:eqPlaces101 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeCivilTimeZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q12868 ;
+gmeow:overlayTypeCivilTimeZone skos:closeMatch wd:Q12868 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "time zone" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "time zone"
+|} .
 
-gmeow:eqPlaces102 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeFishingZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1285733 ;
+gmeow:overlayTypeFishingZone skos:closeMatch wd:Q1285733 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "exclusive economic zone" ;
-    gmeow:comment "UNCLOS Article 55 defines the EEZ; GMEOW models it as a regulatory overlay with authority, time scope, and deontic rules. Maritime-specific depth bounds use overlayLowerBound / overlayUpperBound." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "UNCLOS Article 55 defines the EEZ; GMEOW models it as a regulatory overlay with authority, time scope, and deontic rules. Maritime-specific depth bounds use overlayLowerBound / overlayUpperBound."
+|} .
 
-gmeow:eqPlaces103 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeCustomsZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q783930 ;
+gmeow:overlayTypeCustomsZone skos:closeMatch wd:Q783930 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "customs territory" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "customs territory"
+|} .
 
 # Property alignments
-gmeow:eqPlaces104 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayAuthority ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:organizer ;
+gmeow:overlayAuthority skos:closeMatch schema:organizer {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "schema.org organizer is a loose match for the authority that imposed a regulatory overlay; GMEOW overlayAuthority is specifically the governing body (state, international organization, indigenous council) that decreed the regulation. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "schema.org organizer is a loose match for the authority that imposed a regulatory overlay; GMEOW overlayAuthority is specifically the governing body (state, international organization, indigenous council) that decreed the regulation. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces105 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayRegulation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:legislation ;
+gmeow:overlayRegulation skos:closeMatch schema:legislation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema.org legislation is a CreativeWork subclass for laws; GMEOW overlayRegulation links to a machine-readable RightsStatement (deontic rules). Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "schema.org legislation is a CreativeWork subclass for laws; GMEOW overlayRegulation links to a machine-readable RightsStatement (deontic rules). Directional lossy projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # stream-to-trajectory design — SOSA streaming + SensorThings API
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces108 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Stream ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sta:Datastream ;
+gmeow:Stream skos:closeMatch sta:Datastream {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "SensorThings Datastream groups observations by sensor + observed property." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "SensorThings Datastream groups observations by sensor + observed property."
+|} .
 
-gmeow:eqPlaces109 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LocationState ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sta:HistoricalLocation ;
+gmeow:LocationState skos:closeMatch sta:HistoricalLocation {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time."
+|} .
 
-gmeow:eqPlaces110 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LocationState ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Sample ;
+gmeow:LocationState skos:closeMatch sosa:Sample {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "A LocationState in a stream is a sample of the entity's trajectory." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "A LocationState in a stream is a sample of the entity's trajectory."
+|} .
 
-gmeow:eqPlaces111 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trajectory ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject sta:Datastream ;
+gmeow:Trajectory skos:relatedMatch sta:Datastream {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream."
+|} .
 
 # --------------------------------------------------------------------------- #
 # the design — Indoor realm: BOT / ifcOWL bridging
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces115 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeBuilding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:Building ;
+gmeow:placeTypeBuilding skos:closeMatch bot:Building {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces116 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeBuilding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ifc:IfcBuilding ;
+gmeow:placeTypeBuilding skos:closeMatch ifc:IfcBuilding {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms."
+|} .
 
-gmeow:eqPlaces117 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeFloor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:Storey ;
+gmeow:placeTypeFloor skos:closeMatch bot:Storey {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces118 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeFloor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ifc:IfcBuildingStorey ;
+gmeow:placeTypeFloor skos:closeMatch ifc:IfcBuildingStorey {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms."
+|} .
 
-gmeow:eqPlaces119 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeRoom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:Space ;
+gmeow:placeTypeRoom skos:closeMatch bot:Space {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces120 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeRoom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ifc:IfcSpace ;
+gmeow:placeTypeRoom skos:closeMatch ifc:IfcSpace {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms."
+|} .
 
-gmeow:eqPlaces121 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeSite ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:Site ;
+gmeow:placeTypeSite skos:closeMatch bot:Site {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqPlaces122 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeSite ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ifc:IfcSite ;
+gmeow:placeTypeSite skos:closeMatch ifc:IfcSite {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms."
+|} .
 
-gmeow:eqPlaces123 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:Zone ;
+gmeow:Place skos:closeMatch bot:Zone {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact."
+|} .
 
-gmeow:eqPlaces124 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containsPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:containsZone ;
+gmeow:containsPlace skos:closeMatch bot:containsZone {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Direct alignment: both gmeow:containsPlace and bot:containsZone represent parent→child containment." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Direct alignment: both gmeow:containsPlace and bot:containsZone represent parent→child containment."
+|} .
 
-gmeow:eqPlaces125 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:adjacentTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bot:adjacentZone ;
+gmeow:adjacentTo skos:closeMatch bot:adjacentZone {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
 # --------------------------------------------------------------------------- #
 # virtual-location design — Virtual Location Type + Network Address Space
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces126 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NetworkAddress ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject wd:Q11135 ;
+gmeow:NetworkAddress skos:broadMatch wd:Q11135 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "IP address" ;
-    gmeow:comment "Wikidata Q11135 is the general IP address concept; GMEOW NetworkAddress is the frame-relative coordinate abstraction that covers IPv4, IPv6, MAC, DNS, URL, port, and BGP-AS." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q11135 is the general IP address concept; GMEOW NetworkAddress is the frame-relative coordinate abstraction that covers IPv4, IPv6, MAC, DNS, URL, port, and BGP-AS."
+|} .
 
-gmeow:eqPlaces127 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeIPv4 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q11103 ;
+gmeow:networkAddressTypeIPv4 skos:closeMatch wd:Q11103 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "IPv4" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "IPv4"
+|} .
 
-gmeow:eqPlaces128 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeIPv6 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2551624 ;
+gmeow:networkAddressTypeIPv6 skos:closeMatch wd:Q2551624 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "IPv6" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "IPv6"
+|} .
 
-gmeow:eqPlaces129 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeMAC ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q20484 ;
+gmeow:networkAddressTypeMAC skos:closeMatch wd:Q20484 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "MAC address" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "MAC address"
+|} .
 
-gmeow:eqPlaces130 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeDNS ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q32635 ;
+gmeow:networkAddressTypeDNS skos:closeMatch wd:Q32635 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "domain name" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "domain name"
+|} .
 
-gmeow:eqPlaces131 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeURL ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q42253 ;
+gmeow:networkAddressTypeURL skos:closeMatch wd:Q42253 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "URL" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "URL"
+|} .
 
-gmeow:eqPlaces132 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypeBGP ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q11155 ;
+gmeow:networkAddressTypeBGP skos:closeMatch wd:Q11155 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "Border Gateway Protocol" ;
-    gmeow:comment "Wikidata Q11155 is the BGP protocol; GMEOW networkAddressTypeBGP refers to the autonomous-system number used in BGP routing. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q11155 is the BGP protocol; GMEOW networkAddressTypeBGP refers to the autonomous-system number used in BGP routing. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces133 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:virtualLocationTypeWebsite ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:WebPage ;
+gmeow:virtualLocationTypeWebsite skos:closeMatch schema:WebPage {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces134 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:virtualLocationTypeSocialMediaPage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:ProfilePage ;
+gmeow:virtualLocationTypeSocialMediaPage skos:closeMatch schema:ProfilePage {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqPlaces135 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:virtualLocationTypeVideoConference ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1326624 ;
+gmeow:virtualLocationTypeVideoConference skos:closeMatch wd:Q1326624 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:objectLabel "video conference" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "video conference"
+|} .
 
-gmeow:eqPlaces136 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:networkAddressTypePort ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q8187 ;
+gmeow:networkAddressTypePort skos:closeMatch wd:Q8187 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "port" ;
-    gmeow:comment "Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number."
+|} .
 
 # --------------------------------------------------------------------------- #
 # celestial-frame design — Celestial realm: IVOA / UAT / SWEET / SIMBAD bridging
 # --------------------------------------------------------------------------- #
 
 # IVOA refframe — direct vocabulary matches
-gmeow:eqPlaces137 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameICRS ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/ICRS> ;
+gmeow:referenceFrameICRS skos:closeMatch <http://www.ivoa.net/rdf/refframe/ICRS> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces138 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameFK5 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/FK5> ;
+gmeow:referenceFrameFK5 skos:closeMatch <http://www.ivoa.net/rdf/refframe/FK5> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces139 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameGalactic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/galactic> ;
+gmeow:referenceFrameGalactic skos:closeMatch <http://www.ivoa.net/rdf/refframe/galactic> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
 # IVOA refposition — direct vocabulary matches
-gmeow:eqPlaces140 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:refOriginTopocentric ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/TOPOCENTER> ;
+gmeow:refOriginTopocentric skos:closeMatch <http://www.ivoa.net/rdf/refposition/TOPOCENTER> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces141 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:refOriginGeocentric ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/GEOCENTER> ;
+gmeow:refOriginGeocentric skos:closeMatch <http://www.ivoa.net/rdf/refposition/GEOCENTER> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces142 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:refOriginBarycentric ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/BARYCENTER> ;
+gmeow:refOriginBarycentric skos:closeMatch <http://www.ivoa.net/rdf/refposition/BARYCENTER> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqPlaces143 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:refOriginHeliocentric ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/HELIOCENTER> ;
+gmeow:refOriginHeliocentric skos:closeMatch <http://www.ivoa.net/rdf/refposition/HELIOCENTER> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
 # IVOA object-type (SIMBAD) — direct vocabulary matches
-gmeow:eqPlaces144 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:celestialObjectTypeStar ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/star> ;
+gmeow:celestialObjectTypeStar skos:closeMatch <http://www.ivoa.net/rdf/object-type/star> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces145 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:celestialObjectTypeGalaxy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/galaxy> ;
+gmeow:celestialObjectTypeGalaxy skos:closeMatch <http://www.ivoa.net/rdf/object-type/galaxy> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces146 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:celestialObjectTypePlanet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/planet> ;
+gmeow:celestialObjectTypePlanet skos:closeMatch <http://www.ivoa.net/rdf/object-type/planet> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqPlaces147 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:celestialObjectTypeNebula ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/nebula> ;
+gmeow:celestialObjectTypeNebula skos:closeMatch <http://www.ivoa.net/rdf/object-type/nebula> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
 # UAT — conceptual alignments (published by IVOA)
-gmeow:eqPlaces148 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CelestialLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/uat#astronomical-objects> ;
+gmeow:CelestialLocation skos:closeMatch <http://www.ivoa.net/rdf/uat#astronomical-objects> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "astronomical objects" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "astronomical objects"
+|} .
 
-gmeow:eqPlaces149 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:celestialObjectTypePlanet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://www.ivoa.net/rdf/uat#planets> ;
+gmeow:celestialObjectTypePlanet skos:closeMatch <http://www.ivoa.net/rdf/uat#planets> {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "planets" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "planets"
+|} .
 
 # SWEET and SLSO: no stable published RDF IRIs found at the time of authoring.
 # Alignments are documented as comment-only placeholders following the
@@ -1345,626 +1059,498 @@ gmeow:eqPlaces149 a gmeow:TermEquivalence ;
 # If SWEET or SLSO publish stable IRIs in future, add TermEquivalence rows here.
 
 # Mathematical / n-D reference frames (mathematical-frame design)
-gmeow:eqPlaces150 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameRealmMathematical ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q395 ;
+gmeow:frameRealmMathematical skos:closeMatch wd:Q395 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "mathematics" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "mathematics"
+|} .
 
-gmeow:eqPlaces151 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameKindManifold ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q203920 ;
+gmeow:frameKindManifold skos:closeMatch wd:Q203920 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "manifold" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "manifold"
+|} .
 
-gmeow:eqPlaces152 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameKindHilbert ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q190056 ;
+gmeow:frameKindHilbert skos:closeMatch wd:Q190056 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "Hilbert space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Hilbert space"
+|} .
 
-gmeow:eqPlaces153 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameKindPhaseSpace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q185821 ;
+gmeow:frameKindPhaseSpace skos:closeMatch wd:Q185821 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "phase space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "phase space"
+|} .
 
-gmeow:eqPlaces154 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFramePhaseSpace3DOF ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q185821 ;
+gmeow:referenceFramePhaseSpace3DOF skos:closeMatch wd:Q185821 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "phase space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "phase space"
+|} .
 
-gmeow:eqPlaces155 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameHilbertSpace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q190056 ;
+gmeow:referenceFrameHilbertSpace skos:closeMatch wd:Q190056 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "Hilbert space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Hilbert space"
+|} .
 
-gmeow:eqPlaces156 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotArm6DOF ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2151981 ;
+gmeow:referenceFrameRobotArm6DOF skos:closeMatch wd:Q2151981 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "robotic arm" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "robotic arm"
+|} .
 
-gmeow:eqPlaces157 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameLatentVectorSpace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q107154297 ;
+gmeow:referenceFrameLatentVectorSpace skos:closeMatch wd:Q107154297 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "latent space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "latent space"
+|} .
 
-gmeow:eqPlaces158 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateMatrix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mls:Feature ;
+gmeow:CoordinateMatrix skos:closeMatch mls:Feature {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Feature" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Feature"
+|} .
 
 # --------------------------------------------------------------------------- #
 # robotic-frame design — Robotic realm: IEEE 1872-2015 CORA / KnowRob / SOMA bridging
 # --------------------------------------------------------------------------- #
 
 # Wikidata concept alignments for robotic realm terms
-gmeow:eqPlaces159 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameRealmRobotic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q170978 ;
+gmeow:frameRealmRobotic skos:closeMatch wd:Q170978 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "robotics" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "robotics"
+|} .
 
-gmeow:eqPlaces160 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:frameKindConfigurationSpace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1156912 ;
+gmeow:frameKindConfigurationSpace skos:closeMatch wd:Q1156912 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "configuration space" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "configuration space"
+|} .
 
 # IEEE 1872-2015 CORA — robot taxonomy
-gmeow:eqPlaces161 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cora:Robot ;
+gmeow:referenceFrameRobotBase skos:relatedMatch cora:Robot {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "Robot" ;
-    gmeow:comment "CORA Robot is the physical device; GMEOW referenceFrameRobotBase is the Cartesian coordinate frame anchored to that device. The alignment is structural, not identity." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CORA Robot is the physical device; GMEOW referenceFrameRobotBase is the Cartesian coordinate frame anchored to that device. The alignment is structural, not identity."
+|} .
 
-gmeow:eqPlaces162 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cora:RoboticSystem ;
+gmeow:referenceFrameRobotBase skos:relatedMatch cora:RoboticSystem {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "RoboticSystem" ;
-    gmeow:comment "CORA RoboticSystem is the system-level concept; GMEOW referenceFrameRobotBase is its spatial reference frame. Structural alignment only." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "CORA RoboticSystem is the system-level concept; GMEOW referenceFrameRobotBase is its spatial reference frame. Structural alignment only."
+|} .
 
 # KnowRob — robot knowledge base
-gmeow:eqPlaces163 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotSLAM ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject knowrob:SemanticEnvironmentMap ;
+gmeow:referenceFrameRobotSLAM skos:relatedMatch knowrob:SemanticEnvironmentMap {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "SemanticEnvironmentMap" ;
-    gmeow:comment "KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories."
+|} .
 
-gmeow:eqPlaces164 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Trajectory ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject knowrob:RobotBaseTrajectory ;
+gmeow:Trajectory skos:broadMatch knowrob:RobotBaseTrajectory {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "RobotBaseTrajectory" ;
-    gmeow:comment "KnowRob RobotBaseTrajectory is a time-ordered path of robot base poses; GMEOW Trajectory is the generalised time-ordered path of LocationStates for any entity." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "KnowRob RobotBaseTrajectory is a time-ordered path of robot base poses; GMEOW Trajectory is the generalised time-ordered path of LocationStates for any entity."
+|} .
 
-gmeow:eqPlaces165 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotCspace6DOF ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject knowrob:Joint ;
+gmeow:referenceFrameRobotCspace6DOF skos:relatedMatch knowrob:Joint {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "Joint" ;
-    gmeow:comment "KnowRob Joint represents a single mechanical joint; GMEOW referenceFrameRobotCspace6DOF is the 6-dimensional configuration-space frame whose axes are joint angles. The alignment is compositional: a C-space frame is defined by its joints." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "KnowRob Joint represents a single mechanical joint; GMEOW referenceFrameRobotCspace6DOF is the 6-dimensional configuration-space frame whose axes are joint angles. The alignment is compositional: a C-space frame is defined by its joints."
+|} .
 
-gmeow:eqPlaces166 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject knowrob:FrameOfReference ;
+gmeow:ReferenceFrame skos:closeMatch knowrob:FrameOfReference {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "FrameOfReference" ;
-    gmeow:comment "KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent."
+|} .
 
 # SOMA — agent ontology
-gmeow:eqPlaces167 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject soma:ArtificialAgent ;
+gmeow:referenceFrameRobotBase skos:relatedMatch soma:ArtificialAgent {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "ArtificialAgent" ;
-    gmeow:comment "SOMA ArtificialAgent is the agent-level concept; GMEOW referenceFrameRobotBase is the spatial reference frame attached to that agent. Structural alignment only." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "SOMA ArtificialAgent is the agent-level concept; GMEOW referenceFrameRobotBase is the spatial reference frame attached to that agent. Structural alignment only."
+|} .
 
 # --------------------------------------------------------------------------- #
 # biological-sequence design — Biological-sequence realm: FALDO / Sequence Ontology / GFF3
 # --------------------------------------------------------------------------- #
 
 # FALDO alignments
-gmeow:eqPlaces168 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SequenceCoordinates ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject faldo:Region ;
+gmeow:SequenceCoordinates skos:closeMatch faldo:Region {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "Region" ;
-    gmeow:comment "FALDO Region models interval coordinates via begin/end; GMEOW SequenceCoordinates carries explicit start/end/strand and reference-assembly linkage." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "FALDO Region models interval coordinates via begin/end; GMEOW SequenceCoordinates carries explicit start/end/strand and reference-assembly linkage."
+|} .
 
-gmeow:eqPlaces169 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceStart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject faldo:begin ;
+gmeow:sequenceStart skos:closeMatch faldo:begin {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "begin" ;
-    gmeow:comment "FALDO begin is a property on a Region; GMEOW sequenceStart is an explicit positiveInteger property on SequenceCoordinates." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "FALDO begin is a property on a Region; GMEOW sequenceStart is an explicit positiveInteger property on SequenceCoordinates."
+|} .
 
-gmeow:eqPlaces170 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceEnd ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject faldo:end ;
+gmeow:sequenceEnd skos:closeMatch faldo:end {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "end" ;
-    gmeow:comment "FALDO end is a property on a Region; GMEOW sequenceEnd is an explicit positiveInteger property on SequenceCoordinates." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "FALDO end is a property on a Region; GMEOW sequenceEnd is an explicit positiveInteger property on SequenceCoordinates."
+|} .
 
-gmeow:eqPlaces171 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:strandForward ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject faldo:ForwardStrandPosition ;
+gmeow:strandForward skos:exactMatch faldo:ForwardStrandPosition {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "ForwardStrandPosition" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "ForwardStrandPosition"
+|} .
 
-gmeow:eqPlaces172 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:strandReverse ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject faldo:ReverseStrandPosition ;
+gmeow:strandReverse skos:exactMatch faldo:ReverseStrandPosition {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "ReverseStrandPosition" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "ReverseStrandPosition"
+|} .
 
-gmeow:eqPlaces173 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:inReferenceAssembly ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject faldo:reference ;
+gmeow:inReferenceAssembly skos:closeMatch faldo:reference {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "reference" ;
-    gmeow:comment "FALDO reference links a Position to its sequence; GMEOW inReferenceAssembly links SequenceCoordinates to a ReferenceFrame (the assembly)." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "FALDO reference links a Position to its sequence; GMEOW inReferenceAssembly links SequenceCoordinates to a ReferenceFrame (the assembly)."
+|} .
 
 # Sequence Ontology alignments
-gmeow:eqPlaces174 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SequenceFeatureType ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject so:0000110 ;
+gmeow:SequenceFeatureType skos:closeMatch so:0000110 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "sequence_feature" ;
-    gmeow:comment "SO sequence_feature is the root class for all sequence features; GMEOW SequenceFeatureType is the open value vocabulary of feature kinds." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "SO sequence_feature is the root class for all sequence features; GMEOW SequenceFeatureType is the open value vocabulary of feature kinds."
+|} .
 
-gmeow:eqPlaces175 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeGene ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000704 ;
+gmeow:sequenceFeatureTypeGene skos:exactMatch so:0000704 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "gene" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "gene"
+|} .
 
-gmeow:eqPlaces176 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeExon ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000147 ;
+gmeow:sequenceFeatureTypeExon skos:exactMatch so:0000147 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "exon" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "exon"
+|} .
 
-gmeow:eqPlaces177 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeIntron ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000188 ;
+gmeow:sequenceFeatureTypeIntron skos:exactMatch so:0000188 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "intron" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "intron"
+|} .
 
-gmeow:eqPlaces178 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeCDS ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000316 ;
+gmeow:sequenceFeatureTypeCDS skos:exactMatch so:0000316 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "CDS" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "CDS"
+|} .
 
-gmeow:eqPlaces179 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeSNP ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000694 ;
+gmeow:sequenceFeatureTypeSNP skos:exactMatch so:0000694 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "SNP" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "SNP"
+|} .
 
-gmeow:eqPlaces180 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sequenceFeatureTypeChromosome ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject so:0000340 ;
+gmeow:sequenceFeatureTypeChromosome skos:exactMatch so:0000340 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "chromosome" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "chromosome"
+|} .
 
 # Wikidata alignments
-gmeow:eqPlaces181 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:BiologicalSequenceLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q106227 ;
+gmeow:BiologicalSequenceLocation skos:closeMatch wd:Q106227 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "genomic location" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "genomic location"
+|} .
 
-gmeow:eqPlaces182 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SequenceFeature ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q7187 ;
+gmeow:SequenceFeature skos:relatedMatch wd:Q7187 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "gene" ;
-    gmeow:comment "Wikidata Q7187 is the prototypical sequence feature (gene); GMEOW SequenceFeature is the general class for any feature on a biological sequence." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q7187 is the prototypical sequence feature (gene); GMEOW SequenceFeature is the general class for any feature on a biological sequence."
+|} .
 
-gmeow:eqPlaces183 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameGRCh38 ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q20966585 ;
+gmeow:referenceFrameGRCh38 skos:exactMatch wd:Q20966585 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:objectLabel "GRCh38" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "GRCh38"
+|} .
 
-gmeow:eqPlaces184 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:strandForward ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q6432361 ;
+gmeow:strandForward skos:closeMatch wd:Q6432361 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "sense strand" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "sense strand"
+|} .
 
-gmeow:eqPlaces185 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:strandReverse ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q22809711 ;
+gmeow:strandReverse skos:closeMatch wd:Q22809711 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "antisense strand" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "antisense strand"
+|} .
 
 # --------------------------------------------------------------------------- #
 # geocoding design — Geocoding frames: Plus Codes / what3words / geohash / MGRS /
 # UN-LOCODE / linear referencing (mile-marker)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces186 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Geocode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q283821 ;
+gmeow:Geocode skos:closeMatch wd:Q283821 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "geocode" ;
-    gmeow:comment "Wikidata Q283821 is the general concept of a geocode; GMEOW Geocode is the upper-ontology-grounded class with frame-relativity (P11)." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q283821 is the general concept of a geocode; GMEOW Geocode is the upper-ontology-grounded class with frame-relativity (P11)."
+|} .
 
-gmeow:eqPlaces187 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFramePlusCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q28402346 ;
+gmeow:referenceFramePlusCode skos:closeMatch wd:Q28402346 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "Open Location Code" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Open Location Code"
+|} .
 
-gmeow:eqPlaces188 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameWhat3Words ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q16256185 ;
+gmeow:referenceFrameWhat3Words skos:closeMatch wd:Q16256185 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "what3words" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "what3words"
+|} .
 
-gmeow:eqPlaces189 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameGeohash ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1508087 ;
+gmeow:referenceFrameGeohash skos:closeMatch wd:Q1508087 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "geohash" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "geohash"
+|} .
 
-gmeow:eqPlaces190 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameMGRS ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1472666 ;
+gmeow:referenceFrameMGRS skos:closeMatch wd:Q1472666 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "Military Grid Reference System" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "Military Grid Reference System"
+|} .
 
-gmeow:eqPlaces191 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameUNLocode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q16254001 ;
+gmeow:referenceFrameUNLocode skos:closeMatch wd:Q16254001 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "UN/LOCODE" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "UN/LOCODE"
+|} .
 
-gmeow:eqPlaces192 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameMileMarker ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1617265 ;
+gmeow:referenceFrameMileMarker skos:closeMatch wd:Q1617265 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "linear referencing" ;
-    gmeow:comment "Wikidata Q1617265 is the general concept of linear referencing; GMEOW referenceFrameMileMarker is the frame for distance-along-a-line coordinates." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata Q1617265 is the general concept of linear referencing; GMEOW referenceFrameMileMarker is the frame for distance-along-a-line coordinates."
+|} .
 
-gmeow:eqPlaces193 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:plusCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P3826 ;
+gmeow:plusCode skos:closeMatch wdt:P3826 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Open Location Code" ;
-    gmeow:comment "Wikidata P3826 is the Open Location Code property; GMEOW plusCode is the datatype property on a Geocode instance." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata P3826 is the Open Location Code property; GMEOW plusCode is the datatype property on a Geocode instance."
+|} .
 
-gmeow:eqPlaces194 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geohash ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P2506 ;
+gmeow:geohash skos:closeMatch wdt:P2506 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "geohash" ;
-    gmeow:comment "Wikidata P2506 is the geohash property; GMEOW geohash is the datatype property on a Geocode instance." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Wikidata P2506 is the geohash property; GMEOW geohash is the datatype property on a Geocode instance."
+|} .
 
 # --------------------------------------------------------------------------- #
 # spatial-measurement design — SpatialMeasurement / CoordinateObservation place-domain alignments
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces195 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SpatialMeasurement ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject geo:SpatialObject ;
+gmeow:SpatialMeasurement skos:relatedMatch geo:SpatialObject {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GeoSPARQL SpatialObject is the broad top class for anything with spatial representation; GMEOW SpatialMeasurement is an observation relator, not a spatial object itself. Related match only." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GeoSPARQL SpatialObject is the broad top class for anything with spatial representation; GMEOW SpatialMeasurement is an observation relator, not a spatial object itself. Related match only."
+|} .
 
-gmeow:eqPlaces196 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateObservation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject geo:Feature ;
+gmeow:CoordinateObservation skos:relatedMatch geo:Feature {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "GeoSPARQL Feature is a spatial thing with a geometry; GMEOW CoordinateObservation is the act of assigning that geometry. Related match only." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GeoSPARQL Feature is a spatial thing with a geometry; GMEOW CoordinateObservation is the act of assigning that geometry. Related match only."
+|} .
 
-gmeow:eqPlaces197 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCoordinateObservation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject geo:hasGeometry ;
+gmeow:hasCoordinateObservation skos:relatedMatch geo:hasGeometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "gmeow:hasCoordinateObservation links a place to its coordinate observation relator; geo:hasGeometry links a feature to its geometry. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "gmeow:hasCoordinateObservation links a place to its coordinate observation relator; geo:hasGeometry links a feature to its geometry. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces198 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:coordinateResult ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject geo:asWKT ;
+gmeow:coordinateResult skos:relatedMatch geo:asWKT {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "coordinateResult points to a GeoCoordinates entity; geo:asWKT is a literal property on a Geometry. The projection layer bridges them via the CoordinateObservation path." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "coordinateResult points to a GeoCoordinates entity; geo:asWKT is a literal property on a Geometry. The projection layer bridges them via the CoordinateObservation path."
+|} .
 
-gmeow:eqPlaces199 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryResult ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject geo:hasGeometry ;
+gmeow:geometryResult skos:relatedMatch geo:hasGeometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "geometryResult points to a Geometry entity; geo:hasGeometry links a feature to its geometry. Related match because the subject roles differ (observation vs. feature)." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "geometryResult points to a Geometry entity; geo:hasGeometry links a feature to its geometry. Related match because the subject roles differ (observation vs. feature)."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Cadastral / land administration — ISO 19152 LADM + INSPIRE CP (cadastral design)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqPlaces200 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ladm:LA_SpatialUnit ;
+gmeow:Place skos:closeMatch ladm:LA_SpatialUnit {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW Place is broader: it covers any geographic location, while LADM LA_SpatialUnit is specifically a spatial unit in a land-administration context. A Place typed as placeTypeParcel is the closest match." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW Place is broader: it covers any geographic location, while LADM LA_SpatialUnit is specifically a spatial unit in a land-administration context. A Place typed as placeTypeParcel is the closest match."
+|} .
 
-gmeow:eqPlaces201 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:placeTypeParcel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cp:CadastralParcel ;
+gmeow:placeTypeParcel skos:closeMatch cp:CadastralParcel {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A GMEOW Place with placeTypeParcel corresponds to an INSPIRE CadastralParcel — a single area of Earth surface under homogeneous real property rights." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "A GMEOW Place with placeTypeParcel corresponds to an INSPIRE CadastralParcel — a single area of Earth surface under homogeneous real property rights."
+|} .
 
-gmeow:eqPlaces202 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LandTenure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ladm:LA_RRR ;
+gmeow:LandTenure skos:closeMatch ladm:LA_RRR {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW LandTenure bridges Place × Agent × RightsStatement, while LADM LA_RRR covers rights, restrictions, and responsibilities over a spatial unit. Close semantic match but different structural decomposition." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW LandTenure bridges Place × Agent × RightsStatement, while LADM LA_RRR covers rights, restrictions, and responsibilities over a spatial unit. Close semantic match but different structural decomposition."
+|} .
 
-gmeow:eqPlaces203 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LandTenure ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cp:BasicPropertyUnit ;
+gmeow:LandTenure skos:closeMatch cp:BasicPropertyUnit {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "INSPIRE BasicPropertyUnit represents a unit of property with homogeneous rights; GMEOW LandTenure is the time-scoped rights relationship itself. Related but not identical scope." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "INSPIRE BasicPropertyUnit represents a unit of property with homogeneous rights; GMEOW LandTenure is the time-scoped rights relationship itself. Related but not identical scope."
+|} .
 
-gmeow:eqPlaces204 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ladm:LA_RRR ;
+gmeow:RightsStatement skos:closeMatch ladm:LA_RRR {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW RightsStatement (deontic rules: permissions, prohibitions, duties) maps to LADM LA_RRR (rights, restrictions, responsibilities). Both are machine-readable statements of the rights situation." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW RightsStatement (deontic rules: permissions, prohibitions, duties) maps to LADM LA_RRR (rights, restrictions, responsibilities). Both are machine-readable statements of the rights situation."
+|} .
 
-gmeow:eqPlaces205 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Geometry ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cp:CadastralBoundary ;
+gmeow:Geometry skos:relatedMatch cp:CadastralBoundary {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "GMEOW Geometry is the general geometric construct; INSPIRE CadastralBoundary is a specific geometry type representing a parcel boundary." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW Geometry is the general geometric construct; INSPIRE CadastralBoundary is a specific geometry type representing a parcel boundary."
+|} .
 
-gmeow:eqPlaces206 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Geometry ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ladm:LA_BoundaryFace ;
+gmeow:Geometry skos:relatedMatch ladm:LA_BoundaryFace {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "GMEOW Geometry is the general geometric construct; LADM LA_BoundaryFace is a specific 2D boundary face element." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW Geometry is the general geometric construct; LADM LA_BoundaryFace is a specific 2D boundary face element."
+|} .
 
-gmeow:eqPlaces207 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ladm:LA_Party ;
+gmeow:Agent skos:closeMatch ladm:LA_Party {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW Agent is broader (any entity capable of action), but within the land-administration context it aligns to LADM LA_Party (a person or organisation with rights)." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW Agent is broader (any entity capable of action), but within the land-administration context it aligns to LADM LA_Party (a person or organisation with rights)."
+|} .
 
-gmeow:eqPlaces208 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RegulatoryOverlay ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cp:CadastralZoning ;
+gmeow:RegulatoryOverlay skos:closeMatch cp:CadastralZoning {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "INSPIRE CadastralZoning is a specific kind of spatial regulatory overlay (cadastral hierarchy); GMEOW RegulatoryOverlay with overlayTypeZoning is the closest general match." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "INSPIRE CadastralZoning is a specific kind of spatial regulatory overlay (cadastral hierarchy); GMEOW RegulatoryOverlay with overlayTypeZoning is the closest general match."
+|} .
 
-gmeow:eqPlaces209 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CadastralReference ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cp:nationalCadastralReference ;
+gmeow:CadastralReference skos:closeMatch cp:nationalCadastralReference {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW CadastralReference is the reified structured identifier; INSPIRE nationalCadastralReference is the property carrying the identifier. Close structural match." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "GMEOW CadastralReference is the reified structured identifier; INSPIRE nationalCadastralReference is the property carrying the identifier. Close structural match."
+|} .
 
-gmeow:eqPlaces210 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject cp:nationalCadastralReference ;
+gmeow:referenceValue skos:closeMatch cp:nationalCadastralReference {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "The literal value of a GMEOW CadastralReference directly corresponds to INSPIRE's nationalCadastralReference property value." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "The literal value of a GMEOW CadastralReference directly corresponds to INSPIRE's nationalCadastralReference property value."
+|} .
 
-gmeow:eqPlaces211 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCadastralReference ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cp:referencePoint ;
+gmeow:hasCadastralReference skos:relatedMatch cp:referencePoint {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Weak match: GMEOW hasCadastralReference links a Place to its cadastral identifier; INSPIRE referencePoint is a geometric point within the cadastral object. Different semantics." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Weak match: GMEOW hasCadastralReference links a Place to its cadastral identifier; INSPIRE referencePoint is a geometric point within the cadastral object. Different semantics."
+|} .
 
-gmeow:eqPlaces212 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:tenureTypeOwnership ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1406325 ;
+gmeow:tenureTypeOwnership skos:closeMatch wd:Q1406325 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "ownership" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "ownership"
+|} .
 
-gmeow:eqPlaces214 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:tenureTypeEasement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q188814 ;
+gmeow:tenureTypeEasement skos:closeMatch wd:Q188814 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "easement" ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:objectLabel "easement"
+|} .
 
 # --------------------------------------------------------------------------- #
 # vertical/maritime/aviation-zone design — Maritime / aviation zones: AIXM / UNCLOS / MRGID / IHO S-100
@@ -1972,350 +1558,276 @@ gmeow:eqPlaces214 a gmeow:TermEquivalence ;
 
 # MRGID (Marine Regions) — direct ontology alignment
 
-gmeow:eqPlaces215 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mrg:Place ;
+gmeow:Place skos:closeMatch mrg:Place {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Place" ;
-    gmeow:comment "Marine Regions Place is a geographic feature in the marine domain; GMEOW Place is the general geographic location superclass. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Marine Regions Place is a geographic feature in the marine domain; GMEOW Place is the general geographic location superclass. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces216 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasGeometry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mrg:hasGeometry ;
+gmeow:hasGeometry skos:closeMatch mrg:hasGeometry {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "hasGeometry" ;
-    gmeow:comment "Marine Regions hasGeometry links a place to its geometry; aligned to GMEOW hasGeometry." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Marine Regions hasGeometry links a place to its geometry; aligned to GMEOW hasGeometry."
+|} .
 
-gmeow:eqPlaces217 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mrg:isPartOf ;
+gmeow:containedInPlace skos:closeMatch mrg:isPartOf {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "isPartOf" ;
-    gmeow:comment "Marine Regions isPartOf expresses administrative/mereological containment; GMEOW containedInPlace is the transitive geographic containment relation. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Marine Regions isPartOf expresses administrative/mereological containment; GMEOW containedInPlace is the transitive geographic containment relation. Directional lossy projection."
+|} .
 
-gmeow:eqPlaces218 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RegulatoryOverlay ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mrg:MaritimeBoundary ;
+gmeow:RegulatoryOverlay skos:closeMatch mrg:MaritimeBoundary {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:objectLabel "MaritimeBoundary" ;
-    gmeow:comment "Marine Regions MaritimeBoundary is a maritime-specific regulatory boundary; GMEOW RegulatoryOverlay is the general time-scoped regulatory overlay. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Marine Regions MaritimeBoundary is a maritime-specific regulatory boundary; GMEOW RegulatoryOverlay is the general time-scoped regulatory overlay. Directional lossy projection."
+|} .
 
 # AIXM / aviation alignments (via Wikidata hub — AIXM has no canonical RDF)
 
-gmeow:eqPlaces219 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeControlZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1419773 ;
+gmeow:overlayTypeControlZone skos:closeMatch wd:Q1419773 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "control zone" ;
-    gmeow:comment "ICAO control zone (CTR); AIXM airspace type aligned via Wikidata hub." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ICAO control zone (CTR); AIXM airspace type aligned via Wikidata hub."
+|} .
 
-gmeow:eqPlaces220 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeTerminalControlArea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1419800 ;
+gmeow:overlayTypeTerminalControlArea skos:closeMatch wd:Q1419800 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "terminal control area" ;
-    gmeow:comment "ICAO terminal control area (TMA/TCA); AIXM airspace type aligned via Wikidata hub." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ICAO terminal control area (TMA/TCA); AIXM airspace type aligned via Wikidata hub."
+|} .
 
-gmeow:eqPlaces221 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeFlightInformationRegion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1433404 ;
+gmeow:overlayTypeFlightInformationRegion skos:closeMatch wd:Q1433404 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "flight information region" ;
-    gmeow:comment "ICAO flight information region (FIR); AIXM airspace type aligned via Wikidata hub." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ICAO flight information region (FIR); AIXM airspace type aligned via Wikidata hub."
+|} .
 
-gmeow:eqPlaces222 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeNOTAM ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1067111 ;
+gmeow:overlayTypeNOTAM skos:closeMatch wd:Q1067111 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "NOTAM" ;
-    gmeow:comment "Notice to Airmen (NOTAM) — temporary aeronautical information; aligned to Wikidata." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Notice to Airmen (NOTAM) — temporary aeronautical information; aligned to Wikidata."
+|} .
 
-gmeow:eqPlaces223 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeAirway ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1419606 ;
+gmeow:overlayTypeAirway skos:closeMatch wd:Q1419606 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "airway" ;
-    gmeow:comment "ICAO airway; AIXM route/airspace type aligned via Wikidata hub." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "ICAO airway; AIXM route/airspace type aligned via Wikidata hub."
+|} .
 
 # UNCLOS / maritime alignments (via Wikidata)
 
-gmeow:eqPlaces224 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeTerritorialSea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q161645 ;
+gmeow:overlayTypeTerritorialSea skos:closeMatch wd:Q161645 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "territorial sea" ;
-    gmeow:comment "UNCLOS Article 3 territorial sea; aligned to Wikidata." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "UNCLOS Article 3 territorial sea; aligned to Wikidata."
+|} .
 
-gmeow:eqPlaces225 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeContiguousZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2166707 ;
+gmeow:overlayTypeContiguousZone skos:closeMatch wd:Q2166707 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "contiguous zone" ;
-    gmeow:comment "UNCLOS Article 33 contiguous zone; aligned to Wikidata." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "UNCLOS Article 33 contiguous zone; aligned to Wikidata."
+|} .
 
-gmeow:eqPlaces226 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeContinentalShelf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q182658 ;
+gmeow:overlayTypeContinentalShelf skos:closeMatch wd:Q182658 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "continental shelf" ;
-    gmeow:comment "UNCLOS Article 76 continental shelf; aligned to Wikidata." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "UNCLOS Article 76 continental shelf; aligned to Wikidata."
+|} .
 
-gmeow:eqPlaces227 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeHighSeas ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q165182 ;
+gmeow:overlayTypeHighSeas skos:closeMatch wd:Q165182 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "high seas" ;
-    gmeow:comment "UNCLOS Article 86 high seas; aligned to Wikidata." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "UNCLOS Article 86 high seas; aligned to Wikidata."
+|} .
 
-gmeow:eqPlaces228 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:overlayTypeMarineProtectedArea ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1041938 ;
+gmeow:overlayTypeMarineProtectedArea skos:closeMatch wd:Q1041938 {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "protected area" ;
-    gmeow:comment "Marine protected area (IUCN / OSPAR); aligned to Wikidata protected area. Directional lossy: the Wikidata item is broader than marine-only." ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+    gmeow:comment "Marine protected area (IUCN / OSPAR); aligned to Wikidata protected area. Directional lossy: the Wikidata item is broader than marine-only."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:Place ;
+gmeow:Place owl:equivalentClass schema:Place {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Country ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Place ;
+schema:Country rdfs:subClassOf gmeow:Place {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject geo:Feature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:Place ;
+geo:Feature skos:closeMatch gmeow:Place {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqClasses038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:GeoCoordinates ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:GeoCoordinates ;
+gmeow:GeoCoordinates owl:equivalentClass schema:GeoCoordinates {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject geo:Geometry ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:Geometry ;
+geo:Geometry skos:closeMatch gmeow:Geometry {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqDcTerms024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:spatialCoverage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:spatial ;
+gmeow:spatialCoverage skos:closeMatch dcterms:spatial {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DCTerms spatial — the spatial extent or scope of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms spatial — the spatial extent or scope of a creative work"
+|} .
 
-gmeow:eqFibo001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-cur:Currency ;
+gmeow:ReferenceFrame skos:closeMatch fibo-fnd-acc-cur:Currency {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmCurrency" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmCurrency"
+|} .
 
-gmeow:eqFibo002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-cur:hasCurrency ;
+gmeow:hasReferenceFrame skos:closeMatch fibo-fnd-acc-cur:hasCurrency {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "links a monetary amount to its currency frame" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "links a monetary amount to its currency frame"
+|} .
 
-gmeow:eqIso4217001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameUSD ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:USD ;
+gmeow:referenceFrameUSD skos:exactMatch fibo-iso4217:USD {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "US Dollar" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "US Dollar"
+|} .
 
-gmeow:eqIso4217002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameEUR ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:EUR ;
+gmeow:referenceFrameEUR skos:exactMatch fibo-iso4217:EUR {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Euro" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Euro"
+|} .
 
-gmeow:eqIso4217003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameGBP ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:GBP ;
+gmeow:referenceFrameGBP skos:exactMatch fibo-iso4217:GBP {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "British Pound" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "British Pound"
+|} .
 
-gmeow:eqIso4217004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameJPY ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:JPY ;
+gmeow:referenceFrameJPY skos:exactMatch fibo-iso4217:JPY {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Japanese Yen" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Japanese Yen"
+|} .
 
-gmeow:eqIso4217005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameCAD ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:CAD ;
+gmeow:referenceFrameCAD skos:exactMatch fibo-iso4217:CAD {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Canadian Dollar" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Canadian Dollar"
+|} .
 
-gmeow:eqIso4217006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameCHF ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:CHF ;
+gmeow:referenceFrameCHF skos:exactMatch fibo-iso4217:CHF {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Swiss Franc" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Swiss Franc"
+|} .
 
-gmeow:eqIso4217007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameAUD ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:AUD ;
+gmeow:referenceFrameAUD skos:exactMatch fibo-iso4217:AUD {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Australian Dollar" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Australian Dollar"
+|} .
 
-gmeow:eqIso4217008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameCNY ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject fibo-iso4217:CNY ;
+gmeow:referenceFrameCNY skos:exactMatch fibo-iso4217:CNY {|
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Chinese Yuan" ;
-    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+    gmeow:comment "Chinese Yuan"
+|} .
 
-gmeow:eqProperties028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:latitude ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:latitude ;
+gmeow:latitude owl:equivalentProperty schema:latitude {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:longitude ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:longitude ;
+gmeow:longitude owl:equivalentProperty schema:longitude {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containedInPlace ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:containedInPlace ;
+gmeow:containedInPlace owl:equivalentProperty schema:containedInPlace {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqQudt001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:Unit ;
+gmeow:ReferenceFrame skos:closeMatch qudt:Unit {|
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmMeasurement" ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmMeasurement"
+|} .
 
-gmeow:eqQudt002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:unit ;
+gmeow:hasReferenceFrame skos:closeMatch qudt:unit {|
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "contextual — links a quantity value to its unit-of-measure frame" ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+    gmeow:comment "contextual — links a quantity value to its unit-of-measure frame"
+|} .
 
-gmeow:eqQudt003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Axis ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:QuantityKind ;
+gmeow:Axis skos:closeMatch qudt:QuantityKind {|
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "an axis defines the kind of quantity being measured (length, time, temperature, etc.)" ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+    gmeow:comment "an axis defines the kind of quantity being measured (length, time, temperature, etc.)"
+|} .
 
-gmeow:eqWikidata003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q2221906 ;
+gmeow:Place skos:exactMatch wd:Q2221906 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "geographic location" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "geographic location"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Colourspace alignment refusal (Principle 5) — this slice owns the colourspace

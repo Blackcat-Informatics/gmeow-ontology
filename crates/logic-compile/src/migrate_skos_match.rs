@@ -231,15 +231,29 @@ fn read_legacy(view: &DslView) -> Vec<LegacyCell> {
 
 // ── Extraction: bundled NATIVE reader (faithful copy of the Task-7 reader) ──────────
 
-/// The five `skos:*Match` predicate local-names a native alignment cell may carry.
-fn is_skos_match_predicate(predicate: &str) -> bool {
+/// The alignment predicate local-names a native alignment cell may carry — the SAME set the
+/// Task-7 reader's `is_alignment_predicate` accepts (the five `skos:*Match` plus the OWL/RDFS
+/// alignment predicates the authored `gmeow:alignPredicate` surface also used:
+/// `owl:equivalentClass`/`equivalentProperty`, `rdfs:subClassOf`/`subPropertyOf`,
+/// `owl:sameAs`). Must stay in lockstep with that reader or the round-trip gate would abort
+/// the ~88 OWL/RDFS cells the corpus authors.
+fn is_alignment_predicate(predicate: &str) -> bool {
     let local = predicate
         .rsplit(['#', '/', ':'])
         .next()
         .unwrap_or(predicate);
     matches!(
         local,
-        "exactMatch" | "closeMatch" | "broadMatch" | "narrowMatch" | "relatedMatch"
+        "exactMatch"
+            | "closeMatch"
+            | "broadMatch"
+            | "narrowMatch"
+            | "relatedMatch"
+            | "equivalentClass"
+            | "equivalentProperty"
+            | "sameAs"
+            | "subClassOf"
+            | "subPropertyOf"
     )
 }
 
@@ -251,7 +265,7 @@ fn is_skos_match_predicate(predicate: &str) -> bool {
 fn read_native(view: &DslView) -> Vec<CellFacts> {
     let mut out = Vec::new();
     for stmt in view.reified_statements() {
-        if !is_skos_match_predicate(&stmt.predicate) {
+        if !is_alignment_predicate(&stmt.predicate) {
             continue;
         }
         let Some(sssom_file) = view.annotation_literal(&stmt.reifier, GM_SSSOM_FILE) else {

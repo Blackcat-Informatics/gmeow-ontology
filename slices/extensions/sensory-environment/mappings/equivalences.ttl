@@ -75,91 +75,73 @@ gmeow:mapsetSensoryEnvironment a gmeow:MappingSet ;
 # SOSA / SSN
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSenv001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:SensoryObservation skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "SOSA does not distinguish observation types; a sensory observation is a kind of sosa:Observation. Already aligned in observations.ttl; repeated here for completeness of the sensory-environment mapping set." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; a sensory observation is a kind of sosa:Observation. Already aligned in observations.ttl; repeated here for completeness of the sensory-environment mapping set."
+|} .
 
-gmeow:eqSenv002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryEnvironment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:FeatureOfInterest ;
+gmeow:SensoryEnvironment skos:closeMatch sosa:FeatureOfInterest {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "A SensoryEnvironment is the feature of interest that sensory observations are about — the ambient conditions at a location×time." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "A SensoryEnvironment is the feature of interest that sensory observations are about — the ambient conditions at a location×time."
+|} .
 
-gmeow:eqSenv003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateMatrix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Result ;
+gmeow:CoordinateMatrix skos:closeMatch sosa:Result {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:CoordinateMatrix is specifically a multi-dimensional numeric result with frame, unit, and determinacy." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "sosa:Result is broader (any result); gmeow:CoordinateMatrix is specifically a multi-dimensional numeric result with frame, unit, and determinacy."
+|} .
 
-gmeow:eqSenv004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMeasuredCondition ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasResult ;
+gmeow:hasMeasuredCondition skos:closeMatch sosa:hasResult {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A measured condition is the result of a sensory observation. Directional: GMEOW reifies the environment separately from the observation." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "A measured condition is the result of a sensory observation. Directional: GMEOW reifies the environment separately from the observation."
+|} .
 
-gmeow:eqSenv005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryPerception ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:SensoryPerception skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A SensoryPerception is a standpoint-indexed observation; SOSA does not distinguish observation types. The vantage (perceiver) aligns to sosa:madeBySensor." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "A SensoryPerception is a standpoint-indexed observation; SOSA does not distinguish observation types. The vantage (perceiver) aligns to sosa:madeBySensor."
+|} .
 
 # --------------------------------------------------------------------------- #
 # psychological/cognitive axes — Mental Functioning Ontology (MF) and Emotion Ontology (MFOEM)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSenv006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MentalReferenceFrame ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject obomf:0000020 ;
+gmeow:MentalReferenceFrame skos:relatedMatch obomf:0000020 {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "mental process" ;
-    gmeow:comment "A MentalReferenceFrame is a reference system for mental/subjective coordinates, not a process itself; it is related to the mental processes (MF) that produce or consume coordinates in it." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "A MentalReferenceFrame is a reference system for mental/subjective coordinates, not a process itself; it is related to the mental processes (MF) that produce or consume coordinates in it."
+|} .
 
-gmeow:eqSenv007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryPerception ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject obomf:0000019 ;
+gmeow:SensoryPerception skos:broadMatch obomf:0000019 {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "perceptual process" ;
-    gmeow:comment "A SensoryPerception is a standpoint-indexed perceptual claim; obomf:perceptual process is the broader BFO-based process class. Directional: GMEOW adds the reference-frame coordinate result and standpoint indexing." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "A SensoryPerception is a standpoint-indexed perceptual claim; obomf:perceptual process is the broader BFO-based process class. Directional: GMEOW adds the reference-frame coordinate result and standpoint indexing."
+|} .
 
-gmeow:eqSenv008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameAffectiveCircumplex ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mfoem:000195 ;
+gmeow:referenceFrameAffectiveCircumplex skos:relatedMatch mfoem:000195 {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "affective process" ;
-    gmeow:comment "The Russell affective circumplex frame models the valence×arousal space in which affective processes (MFOEM) are situated. The frame is the reference system, not the process itself." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "The Russell affective circumplex frame models the valence×arousal space in which affective processes (MFOEM) are situated. The frame is the reference system, not the process itself."
+|} .
 
-gmeow:eqSenv009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:referenceFrameAffectiveCircumplex ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mfoem:000001 ;
+gmeow:referenceFrameAffectiveCircumplex skos:relatedMatch mfoem:000001 {|
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "emotion process" ;
-    gmeow:comment "The affective circumplex frame is a coordinate reference system for emotion processes (MFOEM); the frame itself is not an emotion." ;
-    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+    gmeow:comment "The affective circumplex frame is a coordinate reference system for emotion processes (MFOEM); the frame itself is not an emotion."
+|} .

@@ -533,14 +533,33 @@ fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
 /// reified statement whose predicate is one of these AND whose annotation block carries
 /// the `gmeow:sssomFile` discriminator is an alignment cell; anything else (a bare
 /// `skos:exactMatch` A-Box coreference with no reifier/annotation) is NOT.
-fn is_skos_match_predicate(predicate: &str) -> bool {
+/// Whether a reified statement's predicate is one the alignment lattice classifies — the
+/// full set the SSSOM band ([`sssom_relation`]) recognizes, NOT only the five `skos:*Match`
+/// names. The authored `gmeow:alignPredicate` surface carried OWL/RDFS alignment predicates
+/// too (`owl:equivalentClass`/`equivalentProperty`, `rdfs:subClassOf`/`subPropertyOf`,
+/// `owl:sameAs`), so the native reader must accept them as well or the greenfield migration
+/// could never delete the align* path (those cells would have no native home). Note: an
+/// alignment cell lives ONLY in a Mapping-role file (`slices/**/mappings/`), which the
+/// object-level authored graph (`source_load::authored_files`) never loads, so an asserted
+/// `owl:equivalentClass` here is alignment metadata that never enters OWL closure — and the
+/// `gmeow:sssomFile` annotation remains the authoritative discriminator on top of this check.
+fn is_alignment_predicate(predicate: &str) -> bool {
     let local = predicate
         .rsplit(['#', '/', ':'])
         .next()
         .unwrap_or(predicate);
     matches!(
         local,
-        "exactMatch" | "closeMatch" | "broadMatch" | "narrowMatch" | "relatedMatch"
+        "exactMatch"
+            | "closeMatch"
+            | "broadMatch"
+            | "narrowMatch"
+            | "relatedMatch"
+            | "equivalentClass"
+            | "equivalentProperty"
+            | "sameAs"
+            | "subClassOf"
+            | "subPropertyOf"
     )
 }
 
@@ -555,7 +574,7 @@ fn is_skos_match_predicate(predicate: &str) -> bool {
 /// skipped, so A-Box coreference is never swept into the alignment corpus.
 fn extract_native_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
     for stmt in view.reified_statements() {
-        if !is_skos_match_predicate(&stmt.predicate) {
+        if !is_alignment_predicate(&stmt.predicate) {
             continue;
         }
         // The discriminator: an alignment cell MUST annotate its match triple with
@@ -1199,6 +1218,59 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
 @prefix gufo:  <http://purl.org/nemo/gufo#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 ";
+
+    #[test]
+    fn native_owl_and_rdfs_alignment_predicates_are_read() {
+        // The authored gmeow:alignPredicate surface carried OWL/RDFS alignment predicates
+        // (owl:equivalentClass/equivalentProperty/sameAs, rdfs:subClassOf/subPropertyOf), not
+        // only the five skos:*Match names — 88 such cells exist in the corpus. The native
+        // reader MUST read them too, else the greenfield align* deletion would orphan them.
+        use crate::ir::{CorrespondenceRelation, MorphismClass};
+        let cases: &[(&str, &str, CorrespondenceRelation, MorphismClass)] = &[
+            (
+                "owl",
+                "equivalentClass",
+                CorrespondenceRelation::Equiv,
+                MorphismClass::WellBehavedLens,
+            ),
+            (
+                "owl",
+                "equivalentProperty",
+                CorrespondenceRelation::Equiv,
+                MorphismClass::WellBehavedLens,
+            ),
+            (
+                "rdfs",
+                "subClassOf",
+                CorrespondenceRelation::Subsumes,
+                MorphismClass::LossyLens,
+            ),
+            (
+                "rdfs",
+                "subPropertyOf",
+                CorrespondenceRelation::Subsumes,
+                MorphismClass::LossyLens,
+            ),
+        ];
+        for (pfx, local, relation, mclass) in cases {
+            let ttl = format!(
+                "{NATIVE_PROLOGUE}@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+gmeow:OnlineAccount {pfx}:{local} schema:Thing {{|
+    gmeow:sssomFile      \"gmeow-accounts.sssom.tsv\" ;
+    gmeow:justification  semapv:ManualMappingCuration ;
+    gmeow:confidence     0.9
+|}} .
+"
+            );
+            let (program, _lowering) =
+                transpile_and_lower(ttl.as_bytes()).expect("native owl/rdfs cell lowers");
+            assert_eq!(program.correspondences.len(), 1, "{pfx}:{local}");
+            let corr = &program.correspondences[0];
+            assert_eq!(corr.relation, *relation, "{pfx}:{local} relation");
+            assert_eq!(corr.morphism_class, *mclass, "{pfx}:{local} class");
+        }
+    }
 
     #[test]
     fn native_five_match_predicates_materialize_row_and_correspondence() {

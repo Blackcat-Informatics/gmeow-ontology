@@ -13,162 +13,124 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:Person ;
+gmeow:Person owl:equivalentClass schema:Person {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "person" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "person"
+|} .
 
-gmeow:eqClasses002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject foaf:Person ;
+gmeow:Person owl:equivalentClass foaf:Person {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "person" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "person"
+|} .
 
-gmeow:eqClasses003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject gedcom:Individual ;
+gmeow:Person owl:equivalentClass gedcom:Individual {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "genealogical individual is a person" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "genealogical individual is a person"
+|} .
 
-gmeow:eqClasses004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Organization ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:Organization ;
+gmeow:Organization owl:equivalentClass schema:Organization {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:Organization owl:equivalentClass foaf:Organization {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+org:FormalOrganization rdfs:subClassOf gmeow:Organization {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "formal org is an organization"
+|} .
 
-gmeow:eqClasses005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Organization ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject foaf:Organization ;
+gmeow:Group owl:equivalentClass foaf:Group {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqClasses006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject org:FormalOrganization ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Organization ;
+gmeow:description skos:closeMatch dcterms:description {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:comment "formal org is an organization" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqClasses009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Group ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject foaf:Group ;
+gmeow:name owl:equivalentProperty schema:name {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:name owl:equivalentProperty foaf:name {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:name skos:closeMatch vcard:fn {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:description owl:equivalentProperty schema:description {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:description skos:closeMatch dcterms:description {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:description skos:closeMatch vcard:note {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8
+|} .
+
+gmeow:hasWebPage skos:closeMatch schema:url {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8
+|} .
+
+gmeow:hasWebPage skos:closeMatch foaf:homepage {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8
+|} .
+
+gmeow:Person skos:exactMatch wd:Q5 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:objectLabel "human"
+|} .
 
-gmeow:eqDcTerms002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:description ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:description ;
+gmeow:Organization skos:exactMatch wd:Q43229 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:objectLabel "organization"
+|} .
 
-gmeow:eqProperties001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:name ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:name ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:name ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject foaf:name ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:name ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:fn ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:description ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:description ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:description ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:description ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:description ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:note ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasWebPage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:url ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasWebPage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:homepage ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqWikidata001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q5 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:objectLabel "human" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
-
-gmeow:eqWikidata002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Organization ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q43229 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:objectLabel "organization" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
-
-gmeow:eqWikidata054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Group ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q874405 ;
+gmeow:Group skos:closeMatch wd:Q874405 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "social group" ;
-    gmeow:comment "Wikidata 'social group' is broader than GMEOW Group (which includes non-social collectives). Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:comment "Wikidata 'social group' is broader than GMEOW Group (which includes non-social collectives). Directional lossy projection."
+|} .

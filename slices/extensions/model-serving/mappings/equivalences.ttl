@@ -41,72 +41,58 @@ gmeow:mapsetModelServing a gmeow:MappingSet ;
 
 # ── OpenTelemetry-GenAI (the observability seam) ─────────────────────────────
 # gmeow:AgentSession ↔ an OTel trace / gen_ai.conversation.id.
-gmeow:eqModelServing001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AgentSession ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject otelgenai:conversation ;
+gmeow:AgentSession skos:relatedMatch otelgenai:conversation {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the session aggregate ↔ an OTel trace whose spans carry gen_ai.* (gen_ai.conversation.id); a structural (EDOAL) correspondence surfaced as a loose term row — the endurant subject/tenure the session carries has no OTel counterpart" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the session aggregate ↔ an OTel trace whose spans carry gen_ai.* (gen_ai.conversation.id); a structural (EDOAL) correspondence surfaced as a loose term row — the endurant subject/tenure the session carries has no OTel counterpart"
+|} .
 
 # gmeow:RuntimeExecution ↔ an OTel agent root span (gen_ai.agent.*).
-gmeow:eqModelServing002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RuntimeExecution ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject otelgenai:agent ;
+gmeow:RuntimeExecution skos:relatedMatch otelgenai:agent {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the occurrent running of a deployment ↔ an OTel agent root span (gen_ai.agent.id / .name, gen_ai.operation.name = create_agent/invoke_agent); the span captures the process, not the deployment relator it runs" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the occurrent running of a deployment ↔ an OTel agent root span (gen_ai.agent.id / .name, gen_ai.operation.name = create_agent/invoke_agent); the span captures the process, not the deployment relator it runs"
+|} .
 
 # gmeow:ModelDeployment provider ↔ gen_ai.system.
-gmeow:eqModelServing003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelDeployment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject otelgenai:system ;
+gmeow:ModelDeployment skos:relatedMatch otelgenai:system {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "the served, callable realization's provider/service ↔ gen_ai.system (e.g. anthropic); OTel records the serving provider as a flat attribute, dropping the deployment's artifact·host·endpoint·interval binding structure" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the served, callable realization's provider/service ↔ gen_ai.system (e.g. anthropic); OTel records the serving provider as a flat attribute, dropping the deployment's artifact·host·endpoint·interval binding structure"
+|} .
 
 # gmeow:ModelArtifact version ↔ gen_ai.request.model / gen_ai.response.model.
-gmeow:eqModelServing004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelArtifact ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject otelgenai:request-model ;
+gmeow:ModelArtifact skos:relatedMatch otelgenai:request-model {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.45 ;
-    gmeow:comment "the served model artifact's identity ↔ gen_ai.request.model / gen_ai.response.model; OTel carries the model name as a span attribute, dropping the content-digested artifact identity" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the served model artifact's identity ↔ gen_ai.request.model / gen_ai.response.model; OTel carries the model name as a span attribute, dropping the content-digested artifact identity"
+|} .
 
 # ── ML-metadata (the LLM-ops hub) ────────────────────────────────────────────
 # gmeow:ModelArtifact ↔ mls:Model (the trained model).
-gmeow:eqModelServing005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelArtifact ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mls:Model ;
+gmeow:ModelArtifact skos:closeMatch mls:Model {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "the content-digested served model ↔ mls:Model, ML-Schema's trained-model artifact; a close but not exact match — mls:Model is the learned model, gmeow:ModelArtifact adds the distribution/versioning framing aligned by reference to the software slice" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the content-digested served model ↔ mls:Model, ML-Schema's trained-model artifact; a close but not exact match — mls:Model is the learned model, gmeow:ModelArtifact adds the distribution/versioning framing aligned by reference to the software slice"
+|} .
 
 # gmeow:ModelDeployment ↔ mls:Implementation (the executable realization).
-gmeow:eqModelServing006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelDeployment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mls:Implementation ;
+gmeow:ModelDeployment skos:relatedMatch mls:Implementation {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the served, callable realization ↔ mls:Implementation, ML-Schema's executable implementation of an algorithm; relatedMatch only — a gmeow:ModelDeployment additionally binds a service identity, host, endpoint, and serving interval" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "the served, callable realization ↔ mls:Implementation, ML-Schema's executable implementation of an algorithm; relatedMatch only — a gmeow:ModelDeployment additionally binds a service identity, host, endpoint, and serving interval"
+|} .
 
 # gmeow:RuntimeExecution ↔ mls:Run (an execution of an implementation).
-gmeow:eqModelServing007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RuntimeExecution ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject mls:Run ;
+gmeow:RuntimeExecution skos:relatedMatch mls:Run {|
+    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.55 ;
-    gmeow:comment "a particular running of a deployment ↔ mls:Run, ML-Schema's execution of an implementation on data; relatedMatch — mls:Run is training/evaluation-centred, gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur" ;
-    gmeow:sssomFile "gmeow-model-serving.sssom.tsv" .
+    gmeow:comment "a particular running of a deployment ↔ mls:Run, ML-Schema's execution of an implementation on data; relatedMatch — mls:Run is training/evaluation-centred, gmeow:RuntimeExecution is a serving occurrent within which gmeow:ModelInvocation events occur"
+|} .

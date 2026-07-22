@@ -30,171 +30,139 @@ gmeow:mapsetCognition a gmeow:MappingSet ;
 # knowledge of a subject. exactMatch (not closeMatch) so a source schema:knowsAbout
 # lifts to an ASSERTED gmeow:knowsAbout fact (the QID-anchored subject preserved),
 # outranking the narrower gmeow:hasSkill→schema:knowsAbout projection collision.
-gmeow:eqCognition001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsAbout ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:knowsAbout ;
+gmeow:knowsAbout skos:exactMatch schema:knowsAbout {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "schema:knowsAbout — an agent's knowledge of a subject — is exactly the gmeow:knowsAbout level of the four-level knowledge spectrum; the finer levels (understands, hasMastered) are GMEOW enrichment that down-collapses to this flat target." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "schema:knowsAbout — an agent's knowledge of a subject — is exactly the gmeow:knowsAbout level of the four-level knowledge spectrum; the finer levels (understands, hasMastered) are GMEOW enrichment that down-collapses to this flat target."
+|} .
 
 # FOAF — interest. closeMatch: foaf:interest points at a page about a topic of
 # interest, while gmeow:interestedIn points at the subject itself, so the match
 # is close but not exact.
-gmeow:eqCognition002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:interestedIn ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:interest ;
+gmeow:interestedIn skos:closeMatch foaf:interest {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "foaf:interest is a page about a topic of interest to the agent; gmeow:interestedIn links the agent directly to the subject. CloseMatch only — the indirection through a page is lossy." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "foaf:interest is a page about a topic of interest to the agent; gmeow:interestedIn links the agent directly to the subject. CloseMatch only — the indirection through a page is lossy."
+|} .
 
 # FOAF — focus. closeMatch used as requested, but the semantics are a stretch:
 # foaf:focus relates a SKOS concept to its real-world focal entity, not to
 # momentary attention. Documented as the honest floor.
-gmeow:eqCognition003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:attendsTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:focus ;
+gmeow:attendsTo skos:closeMatch foaf:focus {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "foaf:focus maps a SKOS concept to its underlying focal entity; gmeow:attendsTo is an agent's momentary attention toward a subject. closeMatch is directional and lossy — attention is broader and agent-centred." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "foaf:focus maps a SKOS concept to its underlying focal entity; gmeow:attendsTo is an agent's momentary attention toward a subject. closeMatch is directional and lossy — attention is broader and agent-centred."
+|} .
 
 # Native knowledge-depth scale → Bloom's revised taxonomy. Band-level relatedMatch:
 # both taxonomies order cognitive depth, but the rungs do not correspond one-to-one.
-gmeow:eqCognition004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q1774565 ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch wd:Q1774565 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "Wikidata Q1774565 'Bloom Taxonomy' — band-level relatedMatch to the native knowledge-depth scale. Anderson & Krathwohl's revised Bloom's taxonomy is the intended framework; no crisp rung-to-rung equivalence is asserted." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q1774565 'Bloom Taxonomy' — band-level relatedMatch to the native knowledge-depth scale. Anderson & Krathwohl's revised Bloom's taxonomy is the intended framework; no crisp rung-to-rung equivalence is asserted."
+|} .
 
 # Native knowledge-depth scale → SOLO taxonomy. No single stable RDF concept IRI
 # exists; the canonical Wikipedia article is used as a namespace-level target.
-gmeow:eqCognition005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject <https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome> ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch <https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome> {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "SOLO taxonomy (Biggs & Collis) — band-level relatedMatch to the native knowledge-depth scale. No stable RDF vocabulary namespace exists, so the Wikipedia article is used as the canonical reference target." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "SOLO taxonomy (Biggs & Collis) — band-level relatedMatch to the native knowledge-depth scale. No stable RDF vocabulary namespace exists, so the Wikipedia article is used as the canonical reference target."
+|} .
 
 # Native knowledge-depth scale → Dreyfus model of skill acquisition.
-gmeow:eqCognition006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q5307365 ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch wd:Q5307365 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "Wikidata Q5307365 'Dreyfus model of skill acquisition' — band-level relatedMatch to the native knowledge-depth scale. Dreyfus stages are about skill proficiency, not objectual knowledge, so the alignment is loose and by reference only." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q5307365 'Dreyfus model of skill acquisition' — band-level relatedMatch to the native knowledge-depth scale. Dreyfus stages are about skill proficiency, not objectual knowledge, so the alignment is loose and by reference only."
+|} .
 
 # Native knowledge-depth scale → ESCO competency-framework namespace.
-gmeow:eqCognition007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject esco-base: ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch <http://data.europa.eu/esco/> {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "ESCO (European Skills, Competences, Qualifications and Occupations) namespace — band-level relatedMatch. ESCO organises knowledge, skills and competences; no single term corresponds to the whole GMEOW depth axis." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "ESCO (European Skills, Competences, Qualifications and Occupations) namespace — band-level relatedMatch. ESCO organises knowledge, skills and competences; no single term corresponds to the whole GMEOW depth axis."
+|} .
 
 # Native knowledge-depth scale → CTDL/ASN competency-framework namespace.
-gmeow:eqCognition008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ctdlasn: ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch <https://credreg.net/ctdlasn/terms/> {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "CTDL/ASN (Credential Transparency Description Language / Achievement Standards Network) namespace — band-level relatedMatch. The framework describes competency frameworks and statements; the correspondence to GMEOW's depth axis is loose." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "CTDL/ASN (Credential Transparency Description Language / Achievement Standards Network) namespace — band-level relatedMatch. The framework describes competency frameworks and statements; the correspondence to GMEOW's depth axis is loose."
+|} .
 
 # Native knowledge-depth scale → O*NET competency-framework namespace.
-gmeow:eqCognition009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject onet: ;
+gmeow:scaleKnowledgeDepth skos:relatedMatch <https://www.onetcenter.org/> {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "O*NET (Occupational Information Network) namespace — band-level relatedMatch. O*NET's Knowledge content-model area is conceptually adjacent to the GMEOW knowledge-depth axis, but no single term gives a crisp alignment." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "O*NET (Occupational Information Network) namespace — band-level relatedMatch. O*NET's Knowledge content-model area is conceptually adjacent to the GMEOW knowledge-depth axis, but no single term gives a crisp alignment."
+|} .
 
 # SUMO / CYC — objectual knowing concepts. SUMO knows is propositional; GMEOW
 # isAwareOf / knowsAbout are objectual, so the match is relatedMatch only.
 # CYC has no stable, resolvable RDF namespace and is referenced in prose only.
-gmeow:eqCognition010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAwareOf ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject sumo:knows ;
+gmeow:isAwareOf skos:relatedMatch sumo:knows {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "SUMO knows is propositional (agent knows a formula); gmeow:isAwareOf is objectual (agent is aware of a subject). relatedMatch only. CYC objectual knows concepts are conceptually adjacent but have no stable resolvable RDF namespace and are referenced in prose." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "SUMO knows is propositional (agent knows a formula); gmeow:isAwareOf is objectual (agent is aware of a subject). relatedMatch only. CYC objectual knows concepts are conceptually adjacent but have no stable resolvable RDF namespace and are referenced in prose."
+|} .
 
-gmeow:eqCognition011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsAbout ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject sumo:knows ;
+gmeow:knowsAbout skos:relatedMatch sumo:knows {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "SUMO knows is propositional; gmeow:knowsAbout is objectual familiarity with a subject. relatedMatch only. CYC objectual knows concepts are conceptually adjacent but have no stable resolvable RDF namespace and are referenced in prose." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "SUMO knows is propositional; gmeow:knowsAbout is objectual familiarity with a subject. relatedMatch only. CYC objectual knows concepts are conceptually adjacent but have no stable resolvable RDF namespace and are referenced in prose."
+|} .
 
 # Wikidata — knowledge.
-gmeow:eqCognition012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsAbout ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q9081 ;
+gmeow:knowsAbout skos:relatedMatch wd:Q9081 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata Q9081 'knowledge' — entity-page verified 2026-06-18. relatedMatch: Q9081 is the general concept, while gmeow:knowsAbout is a specific epistemic relation." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q9081 'knowledge' — entity-page verified 2026-06-18. relatedMatch: Q9081 is the general concept, while gmeow:knowsAbout is a specific epistemic relation."
+|} .
 
 # Wikidata — attention.
-gmeow:eqCognition013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:attendsTo ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q6501338 ;
+gmeow:attendsTo skos:relatedMatch wd:Q6501338 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata Q6501338 'attention' — entity-page verified 2026-06-18. Issue-supplied Q327954 resolved to 'torch' and was rejected." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q6501338 'attention' — entity-page verified 2026-06-18. Issue-supplied Q327954 resolved to 'torch' and was rejected."
+|} .
 
 # Wikidata — curiosity.
-gmeow:eqCognition014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:curiousAbout ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q366791 ;
+gmeow:curiousAbout skos:relatedMatch wd:Q366791 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata Q366791 'curiosity' — entity-page verified 2026-06-18. Issue-supplied Q179637 resolved to 'prisoner of war' and was rejected." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q366791 'curiosity' — entity-page verified 2026-06-18. Issue-supplied Q179637 resolved to 'prisoner of war' and was rejected."
+|} .
 
 # Wikidata — mastery.
-gmeow:eqCognition015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMastered ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q12770764 ;
+gmeow:hasMastered skos:relatedMatch wd:Q12770764 {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata Q12770764 'mastery' — entity-page verified 2026-06-18. Issue-supplied Q1016098 resolved to 'Mautes' (French commune) and was rejected." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "Wikidata Q12770764 'mastery' — entity-page verified 2026-06-18. Issue-supplied Q1016098 resolved to 'Mautes' (French commune) and was rejected."
+|} .
 
 # OpenCyc — objectual knowing-about. CYC knowsAbout relates an IntelligentAgent to
 # a THING (not a proposition), so it aligns with GMEOW's objectual gmeow:knowsAbout.
 # The 2012-05-10 readable OpenCyc IRI is used; live resolution depends on the
 # OpenCyc semantic-web endpoint, which has been intermittent (stability caveat).
-gmeow:eqCognition016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsAbout ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cyc:knowsAbout ;
+gmeow:knowsAbout skos:relatedMatch cyc:knowsAbout {|
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "OpenCyc knowsAbout (http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout) — an IntelligentAgent knows something about a THING; objectual, not propositional. relatedMatch to gmeow:knowsAbout only. OpenCyc endpoint stability is a known caveat." ;
-    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+    gmeow:comment "OpenCyc knowsAbout (http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout) — an IntelligentAgent knows something about a THING; objectual, not propositional. relatedMatch to gmeow:knowsAbout only. OpenCyc endpoint stability is a known caveat."
+|} .

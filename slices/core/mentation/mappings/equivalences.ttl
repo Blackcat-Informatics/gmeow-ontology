@@ -46,11 +46,9 @@ gmeow:mapsetMentation a gmeow:MappingSet ;
 # Confidence is moderate: BFO process is broad (any occurrent with temporal extension
 # that is not a temporal region), and gmeow:MentalProcess adds the experiencer/mind
 # constraint; the overlap is genuine but the semantics are not identical.
-gmeow:eqMentation001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MentalProcess ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject bfo:BFO_0000015 ;
+gmeow:MentalProcess skos:relatedMatch bfo:BFO_0000015 {|
+    gmeow:sssomFile "gmeow-mentation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "a mental process is a process (BFO_0000015: a occurrent that has some temporal proper part and is not a temporal region); loose match — BFO process is very broad and does not imply an experiencer" ;
-    gmeow:sssomFile "gmeow-mentation.sssom.tsv" .
+    gmeow:comment "a mental process is a process (BFO_0000015: a occurrent that has some temporal proper part and is not a temporal region); loose match — BFO process is very broad and does not imply an experiencer"
+|} .

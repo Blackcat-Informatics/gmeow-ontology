@@ -45,14 +45,9 @@ gmeow:mapsetImagination a gmeow:MappingSet ;
 # gmeow:originGenerated is a CONTENT-ORIGIN value attached to a claim for reality-monitoring;
 # the overlap is the generative-origin concept, hence a deliberately low-confidence
 # relatedMatch (not closeMatch), and only for the generated value, not the whole vocabulary.
-gmeow:eqImagination001 a gmeow:TermEquivalence ;
-    rdfs:label "originGenerated ↔ prov:Generation relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:originGenerated — a reality-monitoring content-origin value marking machine-synthesised content — and prov:Generation, the provenance activity by which an entity comes into being. The shared notion is generative origin; the concepts are not co-extensional (one is a content-origin value, the other an activity-provenance type)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
-    gmeow:alignSubject gmeow:originGenerated ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Generation ;
+gmeow:originGenerated skos:relatedMatch prov:Generation {|
+    gmeow:sssomFile "gmeow-imagination.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "gmeow:originGenerated marks content whose source is a generative process (machine synthesis); prov:Generation is the activity by which an entity comes into being. The shared notion is generative origin, but PROV is activity-provenance and gmeow:originGenerated is a reality-monitoring content-origin value — loose relatedMatch only." ;
-    gmeow:sssomFile "gmeow-imagination.sssom.tsv" .
+    gmeow:comment "gmeow:originGenerated marks content whose source is a generative process (machine synthesis); prov:Generation is the activity by which an entity comes into being. The shared notion is generative origin, but PROV is activity-provenance and gmeow:originGenerated is a reality-monitoring content-origin value — loose relatedMatch only."
+|} .
