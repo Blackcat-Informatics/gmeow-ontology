@@ -373,6 +373,7 @@ fn node_kind_values_match_module_ttl() {
         NodeKind::ActionSchema,
         NodeKind::ValidationShape,
         NodeKind::Correspondence,
+        NodeKind::Annotation,
     ]
     .iter()
     .map(|k| k.as_str())

@@ -153,6 +153,12 @@ pub enum NodeKind {
     /// `logic:Correspondence` — the reserved ninth kind (the correspondence calculus
     /// fills its body; see `design/LOGIC-CORRESPONDENCE.md`).
     Correspondence,
+    /// `logic:Annotation` — a lifted RDFS/SKOS annotation axiom (`rdfs:label`,
+    /// `rdfs:comment`, `skos:definition`/`prefLabel`/`altLabel`/`scopeNote`) carried as a
+    /// first-class IR node so the SKOS/RDFS annotation surface round-trips (`logic:` is a
+    /// genuine `isSupersetOf` SKOS). The predicate stays the surface annotation IRI verbatim;
+    /// the object is the literal value; projecting back out re-emits the surface triple.
+    Annotation,
 }
 
 impl NodeKind {
@@ -168,6 +174,7 @@ impl NodeKind {
             Self::ActionSchema => "ActionSchema",
             Self::ValidationShape => "ValidationShape",
             Self::Correspondence => "Correspondence",
+            Self::Annotation => "Annotation",
         }
     }
 
@@ -188,6 +195,7 @@ impl NodeKind {
             "ActionSchema" => Self::ActionSchema,
             "ValidationShape" => Self::ValidationShape,
             "Correspondence" => Self::Correspondence,
+            "Annotation" => Self::Annotation,
             _ => return None,
         })
     }
