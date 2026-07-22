@@ -61,6 +61,21 @@ pub const ANNOTATION_LIFT_PREDS: &[&str] = &[
     "http://www.w3.org/2004/02/skos/core#scopeNote",
 ];
 
+/// The ownership root for every GMEOW-authored namespace (`gmeow:`, `logic:`, `lang:`,
+/// `math:`, and the graph IRIs all sit under it). Only subjects under this root are lifted as
+/// first-class annotations: an external alignment-target / example subject (schema.org,
+/// Wikidata, gUFO, …) legitimately carries its own `@en` label, which is that vocabulary's
+/// metadata, not GMEOW's annotation surface — and is exactly what the structural-lint carrier
+/// guard scopes out too. Scoping the lift here keeps the generated SKOS surface a projection of
+/// OUR terms and keeps the fail-closed carrier check from firing on foreign labels.
+pub const GMEOW_AUTHORED_BASE: &str = "https://blackcatinformatics.ca/";
+
+/// Whether an annotation subject IRI is a GMEOW-authored term (under [`GMEOW_AUTHORED_BASE`]),
+/// i.e. a term whose annotations are part of GMEOW's own SKOS/RDFS surface.
+pub fn subject_is_gmeow_authored(subject: &str) -> bool {
+    subject.starts_with(GMEOW_AUTHORED_BASE)
+}
+
 /// Whether a lifted annotation predicate carries semantically load-bearing prose the put
 /// leg must preserve (`skos:definition`, `rdfs:comment`) versus a droppable display hint
 /// (`rdfs:label`, `skos:prefLabel`/`altLabel`/`scopeNote`). Drives the `load_bearing` bit on

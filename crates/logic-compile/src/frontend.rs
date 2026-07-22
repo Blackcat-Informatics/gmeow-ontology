@@ -51,6 +51,7 @@ use super::ir::{
     PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
     SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
     ValidationShapeIr, VariableSortScope, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
+    subject_is_gmeow_authored,
 };
 use super::restriction;
 
@@ -456,6 +457,13 @@ fn extract_annotation_axioms(
         // Annotations belong on named terms; a blank-node subject is a structural
         // interior (a restriction / formula node), never a term carrying a display label.
         if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        // Only GMEOW-authored subjects are lifted: a foreign alignment-target / example
+        // subject carries its own external-vocabulary label (@en, …), which is that
+        // vocabulary's metadata, not GMEOW's SKOS/RDFS surface, and must not be lifted or
+        // carrier-checked (mirrors the structural-lint scoping).
+        if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
             continue;
         }
         let Node::Lit { lexical, lang, .. } = &quad.object else {

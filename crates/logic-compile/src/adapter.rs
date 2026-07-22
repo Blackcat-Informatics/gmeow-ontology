@@ -45,6 +45,7 @@ use super::graphutil::{
 use super::ir::{
     ANNOTATION_LIFT_PREDS, ContextualScope, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram,
     LogicRule, NodeKind, ReasoningContract, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
+    subject_is_gmeow_authored,
 };
 use super::restriction::{
     LiftedTriple, RestrictionVocab, datarange_node_labels, enumeration_node_labels,
@@ -476,6 +477,11 @@ fn extract_annotation_axioms(
             continue;
         }
         if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        // Only GMEOW-authored subjects are lifted (see the frontend twin): a foreign subject's
+        // external-vocabulary label is not GMEOW's annotation surface.
+        if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
             continue;
         }
         let Node::Lit { lexical, lang, .. } = &quad.object else {

@@ -17,6 +17,7 @@ const PREFIXES: &str = "\
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix gm:    <https://blackcatinformatics.ca/gmeow/> .
 ";
 
 fn adapt(ttl: &str) -> (LogicProgram, Vec<Diagnostic>) {
@@ -40,7 +41,7 @@ fn adapt_empty_graph_raises() {
 // ── RDFS/SKOS annotation lift (issue #1200 R1/R2) ────────────────────────────
 
 const ANNOTATED_TERM: &str = r#"
-ex:Widget rdfs:label "Widget"@x-gmeow-english ;
+gm:Widget rdfs:label "Widget"@x-gmeow-english ;
     rdfs:comment "A widget, canonically."@x-gmeow-english ;
     skos:definition "The canonical widget concept."@x-gmeow-english ;
     skos:prefLabel "widget"@x-gmeow-english ;
@@ -82,11 +83,38 @@ fn annotation_lift_owl_and_logic_twins_isomorphic() {
 }
 
 #[test]
+fn annotation_lift_ignores_foreign_subject_labels() {
+    // A foreign alignment-target / example subject (schema.org) carries its own @en label:
+    // that is the external vocabulary's metadata, NOT GMEOW's annotation surface. It must be
+    // neither lifted nor carrier-checked (no diagnostic).
+    let (prog, diags) = parse_logic_str(
+        &format!(
+            "{PREFIXES}@prefix schema: <https://schema.org/> .\n\
+             schema:Thing rdfs:label \"Thing\"@en ; skos:definition \"An external thing.\"@en ."
+        ),
+        None,
+    )
+    .expect("parse ok");
+    assert!(
+        prog.axioms
+            .iter()
+            .all(|a| a.node_kind != NodeKind::Annotation),
+        "a foreign subject's label must NOT be lifted as a GMEOW annotation"
+    );
+    assert!(
+        !diags
+            .iter()
+            .any(|d| d.code == "NON_CARRIER_ANNOTATION_LANG"),
+        "a foreign @en label is not a carrier-discipline violation"
+    );
+}
+
+#[test]
 fn annotation_lift_fails_closed_on_non_carrier_tag() {
     // A non-carrier language tag is a discipline violation: a blocking diagnostic is emitted
     // and NO annotation axiom is produced (never a silent retag). (R2/AC2)
     let (prog, diags) = parse_logic_str(
-        &format!("{PREFIXES}\nex:Bad rdfs:label \"Widget\"@en ."),
+        &format!("{PREFIXES}\ngm:Bad rdfs:label \"Widget\"@en ."),
         None,
     )
     .expect("parse ok");
