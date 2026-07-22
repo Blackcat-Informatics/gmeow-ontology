@@ -994,9 +994,7 @@ fn parse_nt(body: &str) -> gmeow_errors::Result<Vec<ParsedTriple>> {
             purrdf::RdfTerm::Iri(iri) => iri,
             purrdf::RdfTerm::BlankNode(label) => label,
             purrdf::RdfTerm::Literal(_) | purrdf::RdfTerm::Triple(_) => {
-                return Err(result_err(
-                    "graph/reasoning: non-node subject".to_owned(),
-                ));
+                return Err(result_err("graph/reasoning: non-node subject".to_owned()));
             }
         };
         let object = match quad.object {

@@ -5537,7 +5537,9 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         // the closed subset honest). The predicate is always an IRI in purrdf's `RdfQuad`.
         let s = match &quad.subject {
             RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {
-                intern_nt_term(&quad.subject, &mut terms, &mut seen, || malformed("subject"))?
+                intern_nt_term(&quad.subject, &mut terms, &mut seen, || {
+                    malformed("subject")
+                })?
             }
             RdfTerm::Literal(_) | RdfTerm::Triple(_) => return Err(malformed("subject")),
         };

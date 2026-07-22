@@ -1746,7 +1746,7 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
                  earlier huff0 encoders panic compressing the gmeow.gts bundle; do not downgrade"
             )),
             None => report.error(format!(
-                "Cargo.lock structured-zstd version {version:?} is unparseable"
+                "Cargo.lock structured-zstd version {version:?} is unparsable"
             )),
         }
     }
@@ -1754,7 +1754,7 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
 
 /// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
 /// manifests compare equal iff they name the same source. Returns `None` (with a parse error
-/// recorded) only when the manifest itself is unreadable/unparseable; a missing `purrdf` key
+/// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
 /// yields a distinct `absent` key so a drift to "no purrdf" is still caught.
 fn purrdf_source_key(
     manifest_path: &Path,
@@ -1783,7 +1783,9 @@ fn purrdf_source_key(
     } else {
         manifest.get("dependencies")
     };
-    let dep = deps.and_then(toml::Value::as_table).and_then(|t| t.get("purrdf"));
+    let dep = deps
+        .and_then(toml::Value::as_table)
+        .and_then(|t| t.get("purrdf"));
     Some(match dep {
         None => "absent".to_owned(),
         Some(toml::Value::String(version)) => format!("registry;version={version}"),
@@ -3064,7 +3066,9 @@ mod tests {
         );
         write(
             &root.join("fuzz/Cargo.toml"),
-            &format!("[package]\nname = \"gmeow-fuzz\"\nversion = \"0.0.0\"\nedition = \"2021\"\n\n[dependencies]\n{fuzz_dep}\n"),
+            &format!(
+                "[package]\nname = \"gmeow-fuzz\"\nversion = \"0.0.0\"\nedition = \"2021\"\n\n[dependencies]\n{fuzz_dep}\n"
+            ),
         );
     }
 
@@ -3083,7 +3087,11 @@ mod tests {
         let root = temp.path();
         write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, PURRDF_GIT_TAG_8);
         write_lock_with_structured_zstd(root, "0.0.49");
-        assert!(pin_gate_errors(root).is_empty(), "{:?}", pin_gate_errors(root));
+        assert!(
+            pin_gate_errors(root).is_empty(),
+            "{:?}",
+            pin_gate_errors(root)
+        );
     }
 
     #[test]
@@ -3094,7 +3102,8 @@ mod tests {
         write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, "purrdf = \"0.7\"");
         let errs = pin_gate_errors(root);
         assert!(
-            errs.iter().any(|e| e.contains("fuzz/Cargo.toml") && e.contains("purrdf")),
+            errs.iter()
+                .any(|e| e.contains("fuzz/Cargo.toml") && e.contains("purrdf")),
             "{errs:?}"
         );
     }
@@ -3103,10 +3112,14 @@ mod tests {
     fn pin_gate_flags_fuzz_purrdf_tag_drift() {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path();
-        let fuzz_old = "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.7.0\" }";
+        let fuzz_old =
+            "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.7.0\" }";
         write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, fuzz_old);
         let errs = pin_gate_errors(root);
-        assert!(errs.iter().any(|e| e.contains("fuzz/Cargo.toml")), "{errs:?}");
+        assert!(
+            errs.iter().any(|e| e.contains("fuzz/Cargo.toml")),
+            "{errs:?}"
+        );
     }
 
     #[test]
@@ -3117,7 +3130,8 @@ mod tests {
         write_lock_with_structured_zstd(root, "0.0.40");
         let errs = pin_gate_errors(root);
         assert!(
-            errs.iter().any(|e| e.contains("structured-zstd") && e.contains("0.0.49")),
+            errs.iter()
+                .any(|e| e.contains("structured-zstd") && e.contains("0.0.49")),
             "{errs:?}"
         );
     }

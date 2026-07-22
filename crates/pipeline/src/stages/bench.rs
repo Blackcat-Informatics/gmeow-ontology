@@ -1218,9 +1218,8 @@ impl ValidateCensus {
     /// [`RuleParallelCost::validate`]): no-optionality forbids rendering a census that
     /// silently misrepresents the bundle.
     pub fn validate(&self) -> Result<(), gmeow_errors::Diag> {
-        let err = |message: String| {
-            Err(gmeow_errors::Diag::of_kind(crate::error::Parse { message }))
-        };
+        let err =
+            |message: String| Err(gmeow_errors::Diag::of_kind(crate::error::Parse { message }));
         // The digest is exactly 64 lowercase-hex characters (blake3, stable form).
         let digest_ok = self.report_blake3.len() == 64
             && self
@@ -1314,7 +1313,8 @@ records the real values off-gate. This banner is the honest provenance marker (n
             .to_string()
     } else {
         "> MEASURED — the counts below are a deterministic projection of the committed census \
-baseline, measured off-gate over the whole bundle.".to_string()
+baseline, measured off-gate over the whole bundle."
+            .to_string()
     };
 
     let lines: Vec<String> = vec![
@@ -1428,7 +1428,11 @@ pub fn measure_validate_census(
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
-            result.value.as_ref().map(ToString::to_string).unwrap_or_default(),
+            result
+                .value
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
             result.severity,
         ));
     }
@@ -1724,7 +1728,10 @@ mod tests {
         write_census(tmp.path(), &census);
         let err = render_validate_census(tmp.path())
             .expect_err("a seeded census with non-zero counts must be rejected");
-        assert!(err.message().contains("SEEDED validate-census must be the zero placeholder"));
+        assert!(
+            err.message()
+                .contains("SEEDED validate-census must be the zero placeholder")
+        );
     }
 
     #[test]
@@ -1748,10 +1755,8 @@ mod tests {
         let root = repo_root();
         let census = load_validate_census(&root).expect("load committed census baseline");
         let block = render_census_individual_ttl(&census);
-        let module = std::fs::read_to_string(
-            root.join("slices/core/pipeline/module.ttl"),
-        )
-        .expect("read pipeline module.ttl");
+        let module = std::fs::read_to_string(root.join("slices/core/pipeline/module.ttl"))
+            .expect("read pipeline module.ttl");
         assert!(
             module.contains(&block),
             "the committed gmeow:shaclValidationCensus individual drifted from \
@@ -1771,7 +1776,8 @@ mod tests {
         let committed = std::fs::read(root.join(VALIDATE_CENSUS_PATH))
             .expect("committed generated/bench/validate-census.md exists");
         assert_eq!(
-            built, &committed,
+            built,
+            &committed,
             "generated/bench/validate-census.md drifted from committed (len built {} vs committed {})",
             built.len(),
             committed.len()

@@ -3927,7 +3927,9 @@ ex:aggv a logic:AggregateConstraint ;\n\
         // Violation = no typed Denotation points back at $this.
         assert!(b.contains("FILTER NOT EXISTS"), "{b}");
         assert!(
-            b.contains("?s a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://ex/Denotation> ."),
+            b.contains(
+                "?s a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://ex/Denotation> ."
+            ),
             "{b}"
         );
         assert!(
