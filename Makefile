@@ -70,7 +70,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate validate-gts gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
+	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
 	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
@@ -117,9 +117,6 @@ check-lint:
 
 validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
-
-validate-gts: ## Validate the materialized/staged generated/dist/gmeow.gts bundle.
-	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
 	$(GMEOW_DEV) reason --mode native
