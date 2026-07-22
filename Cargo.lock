@@ -3135,7 +3135,7 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 [[package]]
 name = "purrdf"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-columnar",
  "purrdf-entail",
@@ -3156,7 +3156,7 @@ dependencies = [
 [[package]]
 name = "purrdf-columnar"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-core",
  "structured-zstd",
@@ -3165,7 +3165,7 @@ dependencies = [
 [[package]]
 name = "purrdf-core"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "ahash",
  "csv",
@@ -3180,7 +3180,7 @@ dependencies = [
 [[package]]
 name = "purrdf-entail"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "ahash",
  "hashbrown 0.15.5",
@@ -3191,12 +3191,12 @@ dependencies = [
 [[package]]
 name = "purrdf-events"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 
 [[package]]
 name = "purrdf-gts"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "aes-gcm",
  "ahash",
@@ -3218,12 +3218,12 @@ dependencies = [
 [[package]]
 name = "purrdf-iri"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 
 [[package]]
 name = "purrdf-rdf"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "ahash",
  "ciborium",
@@ -3251,7 +3251,7 @@ dependencies = [
 [[package]]
 name = "purrdf-shapes"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-iri",
  "purrdf-rdf",
@@ -3269,7 +3269,7 @@ dependencies = [
 [[package]]
 name = "purrdf-shex"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3282,7 +3282,7 @@ dependencies = [
 [[package]]
 name = "purrdf-slice"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "hex",
  "petgraph",
@@ -3298,7 +3298,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-algebra"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "memchr",
  "purrdf-iri",
@@ -3309,7 +3309,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-eval"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "ahash",
  "getrandom 0.3.4",
@@ -3331,7 +3331,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-results"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-core",
 ]
@@ -3339,7 +3339,7 @@ dependencies = [
 [[package]]
 name = "purrdf-validate"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3352,7 +3352,7 @@ dependencies = [
 [[package]]
 name = "purrdf-xsd"
 version = "0.8.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.1#a3bb1f6389f624e1e281d4726ab6816be8fbc50a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=762388c05c27062b8535ebbf2b2f660b1107b690#762388c05c27062b8535ebbf2b2f660b1107b690"
 
 [[package]]
 name = "pxfm"
