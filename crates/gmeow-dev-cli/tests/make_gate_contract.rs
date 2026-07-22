@@ -157,6 +157,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "rust-build",
         "rust-gate",
         "validate",
+        "validate-gts",
         "constitution-check",
         "crate-check",
         "audit",
