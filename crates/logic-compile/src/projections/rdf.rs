@@ -15,7 +15,9 @@ use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 use std::collections::BTreeMap;
 
 use super::super::graphutil::sha256_12;
-use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
+use super::super::ir::{
+    Formula, LogicAxiom, LogicModality, LogicProgram, NodeKind, Term, X_GMEOW_ENGLISH_TAG,
+};
 use super::super::restriction;
 use super::{
     GMEOW_NS, LOGIC_NS, OWL_NS, OverclaimError, ProjectionResult, RDF_NS, RDF_TYPE, RDFS_NS,
@@ -584,6 +586,16 @@ pub fn project_owl_dl(
         {
             continue;
         }
+        // Lifted RDFS/SKOS annotations are valid OWL annotation assertions — carry them
+        // through the grounding view losslessly, with the carrier tag re-attached.
+        if axiom.node_kind == NodeKind::Annotation {
+            g.add_lit(
+                &axiom.subject,
+                &axiom.predicate,
+                RdfLiteral::language_tagged(axiom.obj.clone(), X_GMEOW_ENGLISH_TAG),
+            );
+            continue;
+        }
         if pred == RDF_TYPE {
             if let Some(gufo_type) = gufo_for_sort(obj) {
                 g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type);
@@ -779,6 +791,16 @@ pub fn project_owl_el(
             || enumerations.contains_key(&axiom.subject)
             || dataranges.contains_key(&axiom.subject)
         {
+            continue;
+        }
+        // Lifted RDFS/SKOS annotations are valid OWL annotation assertions — EL-safe as plain
+        // annotation triples; carry them through losslessly with the carrier tag re-attached.
+        if axiom.node_kind == NodeKind::Annotation {
+            g.add_lit(
+                &axiom.subject,
+                &axiom.predicate,
+                RdfLiteral::language_tagged(axiom.obj.clone(), X_GMEOW_ENGLISH_TAG),
+            );
             continue;
         }
         // A subClassOf / equivalentClass edge into a dropped class expression must not
@@ -981,6 +1003,18 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
     // Axioms (skipping rule-structural predicates — re-emitted as Rule nodes).
     for axiom in &program.axioms {
         if rule_struct_preds.contains(&axiom.predicate) {
+            continue;
+        }
+        // A lifted RDFS/SKOS annotation re-emits the surface triple with the invariant
+        // x-gmeow-english carrier tag re-attached (the ExactPreservation round-trip:
+        // put ∘ get = id). Routing through add_obj would emit an UNTYPED literal
+        // (RdfLiteral::simple), dropping the tag and breaking the round-trip on re-parse.
+        if axiom.node_kind == NodeKind::Annotation {
+            g.add_lit(
+                &axiom.subject,
+                &axiom.predicate,
+                RdfLiteral::language_tagged(axiom.obj.clone(), X_GMEOW_ENGLISH_TAG),
+            );
             continue;
         }
         g.add_obj(
