@@ -1,10 +1,10 @@
 {
-  "seeded": true,
+  "seeded": false,
   "supports_parallel_focus_eval": true,
-  "conforms": true,
-  "shape_count": 0,
-  "constraint_count": 0,
-  "focus_node_count": 0,
-  "finding_count": 0,
-  "report_blake3": "0000000000000000000000000000000000000000000000000000000000000000"
+  "conforms": false,
+  "shape_count": 4834,
+  "constraint_count": 6717,
+  "focus_node_count": 322,
+  "finding_count": 322,
+  "report_blake3": "214bdbf49266516c83c8620bce57793ac20ad7aa802fcb5017b4ee67a410ad17"
 }

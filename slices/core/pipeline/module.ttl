@@ -1563,14 +1563,14 @@ gmeow:shaclValidationCensus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "SHACL validation census"@x-gmeow-english ;
     skos:definition "The dogfooded whole-bundle SHACL validation census: the conformance verdict, enforced shape/constraint counts, finding count, finding-bearing focus-node count, and stable finding-graph digest of the finished bundle. A deterministic, foldable observation measured off-gate (make maint-validate-census) and committed; the raw parallel-SHACL wall-time is PR/issue evidence, never folded. Kept byte-consistent with bench/validate-census.json by the pipeline drift gate."@x-gmeow-english ;
-    gmeow:observationSeeded true ;
-    gmeow:observedConforms true ;
+    gmeow:observationSeeded false ;
+    gmeow:observedConforms false ;
     gmeow:supportsParallelFocusEval true ;
-    gmeow:shapeCount "0"^^xsd:nonNegativeInteger ;
-    gmeow:constraintCount "0"^^xsd:nonNegativeInteger ;
-    gmeow:findingCount "0"^^xsd:nonNegativeInteger ;
-    gmeow:focusNodeCount "0"^^xsd:nonNegativeInteger ;
-    gmeow:reportDigest "0000000000000000000000000000000000000000000000000000000000000000" ;
+    gmeow:shapeCount "4834"^^xsd:nonNegativeInteger ;
+    gmeow:constraintCount "6717"^^xsd:nonNegativeInteger ;
+    gmeow:findingCount "322"^^xsd:nonNegativeInteger ;
+    gmeow:focusNodeCount "322"^^xsd:nonNegativeInteger ;
+    gmeow:reportDigest "214bdbf49266516c83c8620bce57793ac20ad7aa802fcb5017b4ee67a410ad17" ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 
