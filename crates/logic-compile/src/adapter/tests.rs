@@ -61,8 +61,8 @@ fn annotation_lift_produces_six_first_class_annotation_axioms() {
     // The prose annotations (skos:definition, rdfs:comment) are load-bearing; the display
     // labels are droppable hints.
     for a in &anns {
-        let want_load_bearing = a.predicate.ends_with("#comment")
-            || a.predicate.ends_with("core#definition");
+        let want_load_bearing =
+            a.predicate.ends_with("#comment") || a.predicate.ends_with("core#definition");
         assert_eq!(
             a.load_bearing, want_load_bearing,
             "load_bearing bit for predicate {}",
@@ -125,8 +125,9 @@ fn annotation_lift_fails_closed_on_non_carrier_tag() {
         "a non-carrier-tagged annotation must NOT be lifted"
     );
     assert!(
-        diags.iter().any(|d| d.code == "NON_CARRIER_ANNOTATION_LANG"
-            && d.severity == Severity::Error),
+        diags
+            .iter()
+            .any(|d| d.code == "NON_CARRIER_ANNOTATION_LANG" && d.severity == Severity::Error),
         "a blocking NON_CARRIER_ANNOTATION_LANG diagnostic is emitted"
     );
 }
@@ -217,21 +218,18 @@ fn adapt_owl_equivalent_disjoint_inverse() {
          ex:A owl:disjointWith ex:C .
          ex:p owl:inverseOf ex:q .",
     );
-    assert!(
-        prog.axioms
-            .iter()
-            .any(|a| a.predicate == logic("equivalentClass"))
-    );
-    assert!(
-        prog.axioms
-            .iter()
-            .any(|a| a.predicate == logic("disjointWith"))
-    );
-    assert!(
-        prog.axioms
-            .iter()
-            .any(|a| a.predicate == logic("inverseOf"))
-    );
+    assert!(prog
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("equivalentClass")));
+    assert!(prog
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("disjointWith")));
+    assert!(prog
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("inverseOf")));
 }
 
 #[test]
@@ -416,12 +414,10 @@ fn roundtrip_owl_hasvalue_literal_equals_logic() {
     )
     .0;
     // The literal filler round-trips (obj_is_literal preserved on both surfaces).
-    assert!(
-        prog_owl
-            .axioms
-            .iter()
-            .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal)
-    );
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal));
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 
@@ -450,12 +446,10 @@ fn roundtrip_owl_min_cardinality_equals_logic() {
             owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .",
     )
     .0;
-    assert!(
-        prog_owl
-            .axioms
-            .iter()
-            .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal)
-    );
+    assert!(prog_owl
+        .axioms
+        .iter()
+        .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal));
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 

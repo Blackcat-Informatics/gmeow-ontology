@@ -61,6 +61,11 @@ pub mod ir;
 // The single loss store: one substrate DiagLedger every loss serialization
 // (transcode / coherence certificate / F2 projection report) projects from.
 pub mod loss_ledger;
+// Run-once migration of legacy `gmeow:TermEquivalence` align* cells into the native
+// RDF-1.2 statement-annotated `skos:*Match` form (issue #1200 R4 / Task 8). A targeted
+// text splice with a per-file refuse-to-write self-check (field round-trip + SSSOM
+// byte-identity) driven by the `xtask migrate-skos-match` subcommand.
+pub mod migrate_skos_match;
 // Shared N-Triples term codecs (escape only, no bracket/quote wrapping) used by the
 // xcl/clif/cgif dialects' embedded canonical N-Triples RDF channel.
 mod nt;
