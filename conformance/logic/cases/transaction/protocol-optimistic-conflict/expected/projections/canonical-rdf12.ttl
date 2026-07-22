@@ -4,6 +4,6 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
-<https://example.org/transaction/protocol-optimistic-conflict/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> .
 <https://blackcatinformatics.ca/logic/contract/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningContract> .
 <https://blackcatinformatics.ca/logic/contract/_000001> <https://blackcatinformatics.ca/logic/evolution> <https://blackcatinformatics.ca/logic/TransactionPathEvolution> .
+<https://example.org/transaction/protocol-optimistic-conflict/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> .

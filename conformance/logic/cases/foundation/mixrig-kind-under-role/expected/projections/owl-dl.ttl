@@ -7,5 +7,5 @@
 <https://example.org/foundation/mixrig-kind-under-role/HonorsStudent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#SubKind> .
 <https://example.org/foundation/mixrig-kind-under-role/HonorsStudent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://example.org/foundation/mixrig-kind-under-role/HonorsStudent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/foundation/mixrig-kind-under-role/Student> .
-<https://example.org/foundation/mixrig-kind-under-role/Student> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://example.org/foundation/mixrig-kind-under-role/Student> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Role> .
+<https://example.org/foundation/mixrig-kind-under-role/Student> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
