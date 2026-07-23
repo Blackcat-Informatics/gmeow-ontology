@@ -308,6 +308,14 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
             hasher.update(&[2]);
             hasher.update(&value.to_le_bytes());
         }
+        // A ground quoted-triple term hashes its components recursively under a distinct
+        // tag, so a triple-bearing goal's compiled plan is content-keyed without collision.
+        QTerm::Triple { s, p, o } => {
+            hasher.update(&[3]);
+            hash_qterm(hasher, s);
+            hash_qterm(hasher, p);
+            hash_qterm(hasher, o);
+        }
         QTerm::Struct(_) => {
             // G13: hashing an arena-local `NodeId::index()` into the compiled-plan cache
             // key would risk cross-arena collisions (two DIFFERENT structured terms from

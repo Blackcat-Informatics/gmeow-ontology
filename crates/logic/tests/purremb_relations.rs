@@ -124,6 +124,31 @@ fn descriptor_for(
     algebra_identity: &str,
     dimension: RelationAnnotationDimension,
 ) -> gmeow_logic::external_relation::RelationProviderDescriptor {
+    descriptor_for_kind(
+        fixture,
+        relation,
+        artifact_root_hex,
+        policy,
+        source_mode,
+        algebra_identity,
+        dimension,
+        vec![ColumnKind::Iri, ColumnKind::Iri],
+    )
+}
+
+/// A descriptor whose binary (query, candidate) argument schema uses the given column
+/// kinds — e.g. `[ColumnKind::TripleTerm, ColumnKind::TripleTerm]` for a triple-term corpus.
+#[allow(clippy::too_many_arguments)]
+fn descriptor_for_kind(
+    fixture: &Fixture,
+    relation: &str,
+    artifact_root_hex: &str,
+    policy: RetrievalPolicy,
+    source_mode: SourceVerificationMode,
+    algebra_identity: &str,
+    dimension: RelationAnnotationDimension,
+    columns: Vec<ColumnKind>,
+) -> gmeow_logic::external_relation::RelationProviderDescriptor {
     let _ = fixture;
     let generation = purremb_generation_iri(GEN_BASE, artifact_root_hex, policy, source_mode);
     purremb_descriptor(
@@ -131,7 +156,7 @@ fn descriptor_for(
         generation,
         "https://example.org/model/purremb-embedding-v1",
         relation,
-        vec![ColumnKind::Iri, ColumnKind::Iri],
+        columns,
         dimension,
         algebra_identity.to_owned(),
         ascending_order(),
@@ -292,6 +317,92 @@ fn exact_full_space_returns_metric_ordered_iri_rows() {
         ]
     );
     // Distance annotation is carried, never epistemic confidence.
+    let dimensions: BTreeSet<&str> = result
+        .answer
+        .answers
+        .iter()
+        .flat_map(|answer| &answer.derivations)
+        .flat_map(|derivation| &derivation.provider_sources)
+        .map(|source| source.annotation_dimension_iri.as_str())
+        .collect();
+    assert!(dimensions.contains(RelationAnnotationDimension::Distance.iri()));
+    assert!(!dimensions.contains(RelationAnnotationDimension::EpistemicConfidence.iri()));
+}
+
+// --------------------------------------------------------------------------- //
+// RDF 1.2 triple-term targets: a quoted-triple query drives retrieval end-to-end
+// through the query-goal grammar, and the candidates round-trip as triple terms.
+// --------------------------------------------------------------------------- //
+
+#[test]
+fn triple_term_query_returns_metric_ordered_statement_candidates() {
+    let (fixture, terms) = support::statement_corpus_f32(
+        "triple-e2e",
+        DistanceMetric::SquaredEuclidean,
+        &[
+            ("s0", "o0", &[0.0, 0.0]),
+            ("s1", "o1", &[1.0, 0.0]),
+            ("s2", "o2", &[3.0, 0.0]),
+        ],
+    );
+    let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
+    let contract = AnnotationContract::exact();
+    let binding = open_binding(
+        &fixture,
+        RetrievalPolicy::ExactFullSpace,
+        SourceVerificationMode::Exact,
+    );
+    let descriptor = descriptor_for_kind(
+        &fixture,
+        RELATION,
+        binding.artifact_root_hex(),
+        RetrievalPolicy::ExactFullSpace,
+        SourceVerificationMode::Exact,
+        algebra.identity(),
+        RelationAnnotationDimension::Distance,
+        vec![ColumnKind::TripleTerm, ColumnKind::TripleTerm],
+    );
+    let provider =
+        PurrembRetrievalProvider::with_profile(binding, descriptor, Box::new(annotate), None)
+            .expect("valid provider contract");
+    let providers = providers_for(&provider, 8, RelationProviderBudget::new(8, 64).unwrap());
+    let store = anchor_store();
+
+    // The bound query term is a quoted triple naming an in-corpus statement row.
+    let program = parse_query_program(
+        ":- prefix(ex, 'https://example.org/').\n\
+         ?- ex:relation/vector(<<( ex:s0 ex:p ex:o0 )>>, D).\n",
+    )
+    .expect("triple-term retrieval goal");
+    let result = dispatch_query_annotated_with_relations(
+        &snapshot(&store),
+        WORLD,
+        &program,
+        PROFILE,
+        &Budget::default(),
+        RelationAnnotationRequest::new(
+            AnnotationRequest::new(&algebra, &contract, no_fact_score),
+            &providers,
+        ),
+    )
+    .expect("complete triple-term retrieval");
+
+    assert_eq!(result.answer.status, BudgetStatus::Ok);
+    // Each candidate D binds to a statement's quoted-triple surface, metric-ordered
+    // (s0 at distance 0 is its own nearest, then s1, then s2).
+    let ordered: Vec<String> = result
+        .answer
+        .answers
+        .iter()
+        .map(|answer| answer.binding["D"].clone())
+        .collect();
+    let expect = |index: usize| {
+        let (subject, predicate, object) = &terms[index];
+        format!("<<( <{subject}> <{predicate}> <{object}> )>>")
+    };
+    assert_eq!(ordered, vec![expect(0), expect(1), expect(2)]);
+
+    // The annotation stays a distance dimension, never epistemic confidence.
     let dimensions: BTreeSet<&str> = result
         .answer
         .answers
@@ -1348,12 +1459,13 @@ fn vague_similarity_preservation_is_carried_into_the_answer() {
 }
 
 // --------------------------------------------------------------------------- //
-// Focused map_row assertions for target kinds that cannot ride a query goal.
+// Focused map_row assertions over a heterogeneous statement/document artifact.
 //
-// The query-goal grammar carries no RDF-star quoted-triple term, so a bound
-// triple-term query cannot be expressed through dispatch. The reconstruction and
-// unsupported-kind rejection are therefore driven directly against the public
-// `PurrembTargetMapper` over a real verified statement/document artifact.
+// Triple-term retrieval itself is exercised end-to-end through the query-goal grammar's
+// quoted-triple term (see `triple_term_query_returns_metric_ordered_statement_candidates`).
+// This test isolates the reconstruction fidelity and the unsupported-kind (`Document`)
+// rejection at the `PurrembTargetMapper` boundary, where a single row's mapping can be
+// asserted in isolation against a real verified statement/document artifact.
 // --------------------------------------------------------------------------- //
 
 #[test]

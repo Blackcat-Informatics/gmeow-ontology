@@ -618,9 +618,9 @@ pub fn iri_corpus_with_digest_only_f32(
 
 /// A statement/document fixture: the target set holds two RDF 1.2 statement (quoted
 /// triple) rows plus one external `Document` row, so `map_row` can be driven directly
-/// for the triple-term reconstruction and the unsupported-kind rejection. The bound
-/// triple-term query cannot be expressed in the query-goal grammar, so this fixture is
-/// consumed by focused `map_row` assertions rather than end-to-end dispatch.
+/// for the triple-term reconstruction and the unsupported-kind rejection. End-to-end
+/// triple-term retrieval is covered separately over [`statement_corpus_f32`]; this mixed
+/// fixture isolates the per-row `Document` rejection at the mapper boundary.
 pub struct StatementFixture {
     /// The verified artifact bytes.
     pub artifact_bytes: Vec<u8>,
@@ -829,4 +829,102 @@ pub fn statement_and_document_fixture() -> StatementFixture {
         document_row,
         statement_terms: statement_terms_by_row,
     }
+}
+
+/// Build a triple-only corpus: each row is an RDF 1.2 statement (quoted triple)
+/// `<<( ex:{subject} ex:p ex:{object} )>>` carrying the given embedding vector, sharing the
+/// predicate `ex:p`. Unlike [`statement_and_document_fixture`] there is no unsupported
+/// `Document` row, so every candidate reconstructs as a triple term and the corpus drives
+/// end-to-end through the query-goal grammar's quoted-triple term. Returns the fixture and
+/// each input row's `(subject, predicate, object)` IRIs (in the input order, which is the
+/// vector-to-triple association; internal matrix-row order is target-id sorted).
+#[must_use]
+pub fn statement_corpus_f32(
+    tag: &str,
+    metric: DistanceMetric,
+    rows: &[(&str, &str, &[f64])],
+) -> (Fixture, Vec<(String, String, String)>) {
+    use purrdf::{RdfGraphTarget, RdfStatementTarget, RelationKind, TargetRelation};
+
+    let (source, source_bytes, dataset_target) = empty_source();
+    let graph = RdfGraphTarget {
+        dataset_id: dataset_target.id,
+        graph_name: None,
+    }
+    .into_target(true)
+    .expect("default graph target");
+
+    let predicate_iri = format!("{EX}p");
+    let (predicate, _) = iri_target("p");
+    let mut component_targets = vec![predicate.clone()];
+    let mut relations = Vec::new();
+    let mut matrix_targets = Vec::new();
+    let mut statement_terms = Vec::new();
+    for (subject_local, object_local, vector) in rows {
+        let subject_iri = format!("{EX}{subject_local}");
+        let object_iri = format!("{EX}{object_local}");
+        let (subject, _) = iri_target(subject_local);
+        let (object, _) = iri_target(object_local);
+        let statement = RdfStatementTarget {
+            graph: graph.id,
+            subject: subject.id,
+            predicate: predicate.id,
+            object: object.id,
+        }
+        .into_target(true, None)
+        .expect("statement target");
+        relations.push(TargetRelation::builtin(
+            graph.id,
+            RelationKind::GraphStatement,
+            statement.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementSubject,
+            subject.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementPredicate,
+            predicate.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementObject,
+            object.id,
+        ));
+        component_targets.push(subject);
+        component_targets.push(object);
+        matrix_targets.push(MatrixTargetSpec {
+            target: statement,
+            iri: None,
+            vector: vector.to_vec(),
+        });
+        statement_terms.push((subject_iri, predicate_iri.clone(), object_iri));
+    }
+    relations.push(TargetRelation::builtin(
+        dataset_target.id,
+        RelationKind::DatasetGraph,
+        graph.id,
+    ));
+    matrix_targets.sort_by_key(|row| row.target.id);
+
+    let dimension = rows[0].2.len() as u32;
+    let mut aux_targets = vec![graph];
+    aux_targets.extend(component_targets);
+    let fixture = build(BuildSpec {
+        tag: tag.to_owned(),
+        source,
+        source_bytes,
+        dataset_target,
+        dtype: VectorDtype::F32,
+        metric,
+        dimensionality: DimensionalityPolicy::fixed(dimension, PrefixPostprocessing::None)
+            .expect("fixed dimensionality"),
+        matrix_targets,
+        aux_targets,
+        relations,
+        token_spans: Vec::new(),
+    });
+    (fixture, statement_terms)
 }
