@@ -858,6 +858,28 @@ impl ValidationRun {
             advisory_claims.push(projection.claim);
             report.add_rule(advisory.rule());
         }
+        // D5 abductive tier (CLI twin of the pipeline wiring): the constructive "what to ADD"
+        // wing. Each corroborated candidate is a warrant-as-Finding (attached first, its DiagRef
+        // captured) plus an advisory whose diag carries a genuine finding→finding antecedent to
+        // that warrant, so the warrant join resolves non-DARK. The producer runs the native
+        // conjecture engine over an ISOLATED scenario world per candidate; `dataset` is only
+        // READ, never mutated. Both wings ride the same dual-projection loop → the `gmeow` CLI
+        // surfaces D5 with closed warrant edges.
+        let abductive_budget = gmeow_logic::query_ir::Budget {
+            max_answers: None,
+            max_steps: Some(5_000_000),
+        };
+        for suggestion in crate::abductive::abductive_advisories(&dataset, &abductive_budget) {
+            let warrant_ref =
+                advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+            let projection = suggestion.advisory.project();
+            advisory_ledger.attach(
+                projection.diag.with_antecedents([warrant_ref]),
+                StageId::new("validate.advisory"),
+            );
+            advisory_claims.push(projection.claim);
+            report.add_rule(suggestion.advisory.rule());
+        }
         // Flat findings after the ledger is fully attached (findings("validate") reads the batch).
         for note in advisory_ledger.findings("validate") {
             report.add_finding(note);

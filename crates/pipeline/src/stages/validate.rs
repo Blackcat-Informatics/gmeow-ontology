@@ -346,6 +346,32 @@ impl Stage for ValidateStage {
             advisory_claims.push(projection.claim);
             report.add_rule(advisory.rule());
         }
+        // D5 abductive tier: the constructive "what to ADD" wing. Each corroborated candidate
+        // is a WARRANT-as-Finding (attached first so it earns a real fingerprint_iri, its
+        // DiagRef captured) plus an advisory whose diag carries a genuine finding→finding
+        // `findingAntecedent` to that warrant — so the root-cause meta-fold resolves the warrant
+        // join non-DARK (ledger identity), not a bare string. The producer runs the native
+        // conjecture engine over an ISOLATED scenario world per candidate; `source_dataset` is
+        // only READ, never mutated (nothing is auto-asserted). Both wings ride the SAME
+        // advisory dual-projection loop below: flat Note advisory + warrant findings →
+        // `graph/diagnostics`, `deonticRecommendation` claim → `graph/norm-claims`.
+        let abductive_budget = gmeow_logic::query_ir::Budget {
+            max_answers: None,
+            max_steps: Some(5_000_000),
+        };
+        for suggestion in
+            gmeow_validate::abductive::abductive_advisories(source_dataset.as_ref(), &abductive_budget)
+        {
+            let warrant_ref =
+                advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+            let projection = suggestion.advisory.project();
+            advisory_ledger.attach(
+                projection.diag.with_antecedents([warrant_ref]),
+                StageId::new("validate.advisory"),
+            );
+            advisory_claims.push(projection.claim);
+            report.add_rule(suggestion.advisory.rule());
+        }
         // The flat findings are added after the ledger is fully attached (findings("validate")
         // reads the whole batch), keeping their genuine ledger identity.
         for advisory_finding in advisory_ledger.findings("validate") {
