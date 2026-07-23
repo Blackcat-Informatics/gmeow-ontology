@@ -338,7 +338,10 @@ fn merge_slice_artifacts(
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
+pub(crate) fn merge_dsl(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<Arc<RdfDataset>, SliceError> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
