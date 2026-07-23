@@ -208,6 +208,17 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
+        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
+        // #21/#20). A productive functor over the glyph signature: it consumes
+        // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
+        // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
+        // each through five verifiers, and attaches the certified corpus (+ typed rejections)
+        // as graph/gmn-training-corpus (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-gmn-training-corpus",
+            "gmn-training-corpus",
+            &["stage-compile-logic", "stage-mappings"],
+        ),
         // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
         // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
         // It reads the authored slice sources directly, but consumes the four
@@ -344,6 +355,9 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus",
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",

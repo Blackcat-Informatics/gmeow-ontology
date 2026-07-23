@@ -958,6 +958,22 @@ fn assemble_carrier(
             .project_named_graph(goal_directed_iri),
         goal_directed_iri,
     )?);
+    // graph/gmn-training-corpus ← the rejection-sampled, proof-carrying GMN training corpus
+    // (and its typed rejections), read off the stage-gmn-training-corpus product's attached
+    // named graph and folded into gmeow.gts (dual carriage, exactly like graph/goal-directed).
+    // Bundle-internal (no committed byte artifact) and excluded from the object-level EDB
+    // (gts_compose folds only the default graph).
+    let gmn_training = upstream.get("stage-gmn-training-corpus").ok_or_else(|| {
+        stage_err("missing stage-gmn-training-corpus product for the GMN training corpus graph")
+    })?;
+    let gmn_training_iri = crate::stages::gmn_training_corpus::GRAPH_GMN_TRAINING_CORPUS;
+    datasets.push(rooted_in_graph(
+        &gmn_training
+            .bundle()
+            .dataset()
+            .project_named_graph(gmn_training_iri),
+        gmn_training_iri,
+    )?);
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
     if conformance.quad_count() != 0 {
         datasets.push(conformance);
@@ -3749,6 +3765,9 @@ impl SnapshotStage {
                 // committed schema from disk and lag a regenerate behind (the bytes
                 // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
                 "stage-export-json-schema".to_string(),
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus".to_string(),
                 // The native proof-carrying backward engine's checked answers + proof
                 // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
                 "stage-goal-directed".to_string(),
