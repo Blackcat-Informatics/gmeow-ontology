@@ -647,7 +647,10 @@ fn extract_native_equivalences(
 /// The native RDF-1.2 reader is the SOLE alignment-cell reader — the legacy
 /// reified-type alignment cell path was removed (greenfield, no separately-authored
 /// second path).
-fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) -> gmeow_errors::Result<()> {
+fn extract_equivalences(
+    view: &DslView,
+    out: &mut Vec<EquivalenceCell>,
+) -> gmeow_errors::Result<()> {
     extract_native_equivalences(view, out)
 }
 

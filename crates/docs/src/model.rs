@@ -56,7 +56,6 @@ const GMEOW_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GMEOW_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
 const GMEOW_SET_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/setComment";
 
-
 // ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
 const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
 const SKOS_EXAMPLE: &str = "http://www.w3.org/2004/02/skos/core#example";

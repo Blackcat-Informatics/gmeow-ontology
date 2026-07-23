@@ -85,7 +85,10 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
 /// (e.g. `gmeow:mappedFrom`) now that native alignment cells carry no bespoke `gmeow:eqXxx`
 /// cell IRI. Stable, collision-free, and IRI-legal.
 pub fn alignment_provenance_iri(subject: &str, predicate: &str, object: &str) -> String {
-    correspondence_iri("term-equivalence", &format!("{subject}|{predicate}|{object}"))
+    correspondence_iri(
+        "term-equivalence",
+        &format!("{subject}|{predicate}|{object}"),
+    )
 }
 
 /// Parse an optional `logic:` enum IRI authored on a mapping cell. The mapping SHACL

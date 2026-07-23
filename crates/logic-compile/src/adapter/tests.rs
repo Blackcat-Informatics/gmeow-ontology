@@ -221,18 +221,21 @@ fn adapt_owl_equivalent_disjoint_inverse() {
          ex:A owl:disjointWith ex:C .
          ex:p owl:inverseOf ex:q .",
     );
-    assert!(prog
-        .axioms
-        .iter()
-        .any(|a| a.predicate == logic("equivalentClass")));
-    assert!(prog
-        .axioms
-        .iter()
-        .any(|a| a.predicate == logic("disjointWith")));
-    assert!(prog
-        .axioms
-        .iter()
-        .any(|a| a.predicate == logic("inverseOf")));
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.predicate == logic("equivalentClass"))
+    );
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.predicate == logic("disjointWith"))
+    );
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.predicate == logic("inverseOf"))
+    );
 }
 
 #[test]
@@ -417,10 +420,12 @@ fn roundtrip_owl_hasvalue_literal_equals_logic() {
     )
     .0;
     // The literal filler round-trips (obj_is_literal preserved on both surfaces).
-    assert!(prog_owl
-        .axioms
-        .iter()
-        .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal));
+    assert!(
+        prog_owl
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("hasValue") && a.obj_is_literal)
+    );
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 
@@ -449,10 +454,12 @@ fn roundtrip_owl_min_cardinality_equals_logic() {
             owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .",
     )
     .0;
-    assert!(prog_owl
-        .axioms
-        .iter()
-        .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal));
+    assert!(
+        prog_owl
+            .axioms
+            .iter()
+            .any(|a| a.predicate == logic("minCardinality") && a.obj == "1" && a.obj_is_literal)
+    );
     assert!(assert_ir_isomorphic(&prog_logic, &prog_owl).is_ok());
 }
 

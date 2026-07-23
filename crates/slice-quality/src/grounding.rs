@@ -177,7 +177,7 @@ fn logic_local<'a>(value: Option<&'a str>, allowed: &[&str]) -> Option<&'a str> 
 /// consistent grounding envelope the correspondence compiler accepts. The grounding annotations
 /// live on the cell's reifier (a side table), so they are read off the `EquivalenceCell` the
 /// canonical reader resolves rather than off flat graph triples.
-fn is_native_validated_grounding_term_cell(cell: &EquivalenceCell) -> bool {
+pub(crate) fn is_native_validated_grounding_term_cell(cell: &EquivalenceCell) -> bool {
     if !cell.grounding || cell.justification.is_none() {
         return false;
     }

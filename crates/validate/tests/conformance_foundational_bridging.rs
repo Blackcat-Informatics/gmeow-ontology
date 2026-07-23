@@ -73,8 +73,8 @@ fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
         gmeow_logic_compile::projections::correspondence_frontend::CorrespondenceLookup,
     )> {
         let ttl = std::fs::read_to_string(repo_root().join(rel)).expect("fixture must read");
-        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-            .expect("fixture must parse");
+        let ds =
+            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture must parse");
         let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
         gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
             &view, &view,
@@ -82,8 +82,10 @@ fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
     }
 
     assert!(
-        transpile("slices/grounding/logic/tests/conformance-fixtures/grounding-bridge-wellformed.ttl")
-            .is_ok(),
+        transpile(
+            "slices/grounding/logic/tests/conformance-fixtures/grounding-bridge-wellformed.ttl"
+        )
+        .is_ok(),
         "a complete grounding bridge must transpile"
     );
 
@@ -117,10 +119,16 @@ fn native_bridge_records(path: &std::path::Path) -> Vec<BridgeRecord> {
         .into_iter()
         .filter(|c| c.grounding)
         .map(|c| BridgeRecord {
-            iri: gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri(
-                &c.subject, &c.predicate, &c.obj,
-            ),
-            source: c.source_endpoint.clone().unwrap_or_else(|| c.subject.clone()),
+            iri:
+                gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri(
+                    &c.subject,
+                    &c.predicate,
+                    &c.obj,
+                ),
+            source: c
+                .source_endpoint
+                .clone()
+                .unwrap_or_else(|| c.subject.clone()),
             predicate: c.predicate.clone(),
             target: c.target_endpoint.clone().unwrap_or_else(|| c.obj.clone()),
             file: c.sssom_file.clone(),

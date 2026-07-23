@@ -64,10 +64,6 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 /// `owl:AllDisjointClasses` — the one non-`logic:`-namespaced grounding-target type
 /// (a named disjointness axiom a shape may formalize).
 const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
-/// `gmeow:alignObject` — the object-side link of a correspondence cell naming the
-/// external term. A raw `rdfs:subClassOf`/`owl:equivalentClass` to an external object
-/// is NOT this and is no longer exempt (it counts as second-source residue).
-const GM_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
 const GM_TO_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/toPredicate";
 const GM_TO_CLASS: &str = "https://blackcatinformatics.ca/gmeow/toClass";
 const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget";
@@ -184,17 +180,93 @@ fn resolvable_grounding(ds: &RdfDataset, subject: TermId) -> bool {
     false
 }
 
-/// Whether `(subject, predicate)` is the target-bearing edge of a COMPLETE authored
-/// grounding correspondence. Both accepted frontends are recognized: direct
-/// `alignObject`, and the sole binding target of a marked `ProjectionMapping`.
-fn is_validated_grounding_target(ds: &RdfDataset, subject: TermId, predicate: TermId) -> bool {
+/// The native alignment cells' base triples, split for the residue enumeration. The
+/// canonical reader is `O(reifiers)`, so this is collected ONCE per enumeration and
+/// consulted per construct — never re-read inside the quad loop.
+struct AlignmentBridges {
+    /// Every native alignment cell base triple `(s, p, o)` — a first-class RDF-1.2
+    /// correspondence record (identified by its `gmeow:sssomFile` reifier), not
+    /// hand-authored second-source residue.
+    all: BTreeSet<(TermId, TermId, TermId)>,
+    /// The subset carrying a complete grounding envelope
+    /// (`is_native_validated_grounding_term_cell`): exempt ONLY on the vocabulary's
+    /// owner surface (the C1e owner boundary).
+    grounding: BTreeSet<(TermId, TermId, TermId)>,
+}
+
+impl AlignmentBridges {
+    fn collect(ds: &RdfDataset) -> Self {
+        let mut all = BTreeSet::new();
+        let mut grounding = BTreeSet::new();
+        for cell in crate::grounding::native_alignment_cells(ds) {
+            let (Some(s), Some(p), Some(o)) = (
+                id(ds, &cell.subject),
+                id(ds, &cell.predicate),
+                id(ds, &cell.obj),
+            ) else {
+                continue;
+            };
+            all.insert((s, p, o));
+            if crate::grounding::is_native_validated_grounding_term_cell(&cell) {
+                grounding.insert((s, p, o));
+            }
+        }
+        Self { all, grounding }
+    }
+}
+
+/// Whether the enumerated triple `(subject, predicate, object)` is a by-reference
+/// alignment/bridge link exempt from the ungrounded residue on `surface_iri`. Three
+/// frontends are recognized:
+///
+/// * a NATIVE grounding correspondence (complete envelope on the reifier) — exempt
+///   ONLY on the vocabulary's owner surface (C1e: an external grounding term has one
+///   authoring home);
+/// * any OTHER native alignment cell base triple with at least one EXTERNAL endpoint —
+///   a first-class correspondence record, exempt on every surface (an internal
+///   `gmeow`-to-`gmeow` cell stays in the residue as a genuine second source);
+/// * the node-authored `ProjectionMapping` frontend (not migrated) — its flat
+///   `logic:targetEndpoint`, or the sole `toClass`/`toPredicate`/`edoalTarget` binding
+///   target of a validated mapping, on the owner surface with an external object.
+fn is_bridge_exempt(
+    ds: &RdfDataset,
+    subject: TermId,
+    predicate: TermId,
+    object: TermId,
+    surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+    bridges: &AlignmentBridges,
+) -> bool {
+    let external =
+        |t: TermId| matches!(ds.resolve(t), TermRef::Iri(iri) if !iri.starts_with(GMEOW));
+    let triple = (subject, predicate, object);
+    if bridges.grounding.contains(&triple) {
+        return surface_iri == vocab.owner;
+    }
+    // An ordinary (non-grounding) native alignment cell is a first-class correspondence
+    // record only where the counted surface is the STRUCTURAL rdfs taxonomy: a domain
+    // slice aligning its term to/from an external class via `rdfs:subClassOf` is a
+    // correspondence, not hand-authored TBox. For a TYPED-axiom foundational vocabulary
+    // (gUFO/BFO/…) only a COMPLETE grounding correspondence is exempt — an incomplete
+    // cell targeting it stays in the residue as an unwarranted grounding.
+    if vocab.count_kind == CountKind::StructuralAxiom
+        && bridges.all.contains(&triple)
+        && (external(subject) || external(object))
+    {
+        return true;
+    }
+    // The node-authored ProjectionMapping frontend is exempt only on the owner surface
+    // when its target edge points at an external object.
+    if surface_iri != vocab.owner || !external(object) {
+        return false;
+    }
     let Some(predicate_iri) = (match ds.resolve(predicate) {
         TermRef::Iri(iri) => Some(iri),
         _ => None,
     }) else {
         return false;
     };
-    if predicate_iri == GM_ALIGN_OBJECT || predicate_iri == LOGIC_TARGET_ENDPOINT {
+    if predicate_iri == LOGIC_TARGET_ENDPOINT {
         return match ds.resolve(subject) {
             TermRef::Iri(cell) => crate::grounding::is_validated_grounding_correspondence(ds, cell),
             _ => false,
@@ -251,6 +323,7 @@ fn enumerate_structural_axiom(
     }
     let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
     let mut out = Vec::new();
+    let bridges = AlignmentBridges::collect(ds);
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let TermRef::Iri(p_iri) = ds.resolve(q.p) else {
             continue;
@@ -261,10 +334,6 @@ fn enumerate_structural_axiom(
         if !seen.insert((q.s, q.p, q.o)) {
             continue;
         }
-        let o_iri = match ds.resolve(q.o) {
-            TermRef::Iri(iri) => Some(iri),
-            _ => None,
-        };
         let key = format!(
             "{}|{}|{}",
             term_key(ds, q.s),
@@ -272,11 +341,9 @@ fn enumerate_structural_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A structural axiom is exempt only when it is the target edge of a complete
-        // grounding correspondence. Raw structural triples never satisfy that contract.
-        let is_bridge = surface_iri == vocab.owner
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
-            && is_validated_grounding_target(ds, q.s, q.p);
+        // A structural axiom is exempt only when it is the target edge of a native
+        // alignment correspondence. Raw hand-authored structural triples never are.
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
         out.push(Construct {
             key,
             grounded,
@@ -367,6 +434,7 @@ fn enumerate_typed_axiom(
     }
     let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
     let mut out = Vec::new();
+    let bridges = AlignmentBridges::collect(ds);
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let p_iri = match ds.resolve(q.p) {
             TermRef::Iri(iri) => Some(iri),
@@ -399,17 +467,13 @@ fn enumerate_typed_axiom(
             term_key(ds, q.o)
         );
         let grounded = resolvable_grounding(ds, q.s);
-        // A by-reference bridge is exempt ONLY when this is the target-bearing edge of
-        // a complete `logic:GroundingCorrespondence`: either direct `alignObject`, or
-        // the sole target of a marked single-binding ProjectionMapping. A raw
-        // rdfs/owl edge remains second-source residue.
-        // C1e strict owner boundary: the validated-cell exemption applies ONLY on the
-        // vocabulary's OWNER surface. A correspondence cell (or any bridge) authored in
-        // a non-owner slice stays in the residue — external terms of a vocabulary may be
-        // authored only at their owner grounding slice's mapping boundary.
-        let is_bridge = surface_iri == vocab.owner
-            && o_iri.is_some_and(|o| !o.starts_with(GMEOW))
-            && is_validated_grounding_target(ds, q.s, q.p);
+        // A by-reference bridge is exempt when this is the base triple of a native
+        // alignment correspondence (a grounding correspondence on its owner surface, or
+        // any other external-facing alignment cell) or the target edge of a validated
+        // ProjectionMapping. A raw hand-authored rdfs/owl edge remains second-source
+        // residue. C1e strict owner boundary: the grounding-correspondence exemption
+        // applies ONLY on the vocabulary's OWNER surface.
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
         out.push(Construct {
             key,
             grounded,
@@ -610,43 +674,44 @@ mod tests {
 
     #[test]
     fn validated_correspondence_cell_is_exempt() {
+        // A native RDF-1.2 grounding correspondence: the envelope rides the reifier, so
+        // the only external-facing flat triple is the asserted match base triple, and it
+        // is subtracted as a by-reference bridge on the owner surface.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 gmeow:justification gmeow:ManualMappingCuration ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
-        // Both external target-bearing triples belong to one complete grounding cell.
         assert_eq!(residue(&ds, &vocab), 0);
     }
 
     #[test]
     fn validated_cell_on_non_owner_surface_still_counts() {
         // The SAME validated cell that is exempt on the owner surface counts when
-        // measured on a non-owner surface — strict owner boundary (C1e).
+        // measured on a non-owner surface — strict owner boundary (C1e). The single
+        // asserted match base triple is the one external-facing flat triple.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 gmeow:justification gmeow:ManualMappingCuration ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
@@ -657,45 +722,74 @@ mod tests {
                 &vocab,
                 "https://blackcatinformatics.ca/gmeow/slices/kernel"
             ),
-            2 // alignObject + explicit targetEndpoint both count off the owner surface
+            1 // the match base triple counts off the owner surface
         );
     }
 
     #[test]
-    fn alignobject_without_justification_is_not_exempt() {
+    fn grounding_cell_without_justification_is_not_exempt() {
+        // A native grounding cell missing its warrant (no gmeow:justification) is an
+        // incomplete grounding correspondence; targeting a TYPED-axiom foundational
+        // vocabulary, its match base triple stays in the residue.
         let ds = ds_of(
             r#"
-            gmeow:eqKind a gmeow:TermEquivalence, logic:GroundingCorrespondence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                a logic:GroundingCorrespondence ;
                 gmeow:sssomFile "grounding.sssom.tsv" ;
                 logic:sourceEndpoint gmeow:MyKind ;
                 logic:targetEndpoint gufo:Kind ;
                 logic:morphismClass logic:WellBehavedLens ;
                 logic:morphismKind logic:InstitutionMorphism ;
-                logic:preservationKind logic:SoundUnderApproximation .
-            "#,
-        );
-        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
-        // A grounding frontend lacking its warrant is invalid; neither external edge is exempt.
-        assert_eq!(residue(&ds, &vocab), 2);
-    }
-
-    #[test]
-    fn ordinary_term_equivalence_no_longer_opens_the_owner_boundary() {
-        let ds = ds_of(
-            r#"
-            gmeow:eqKind a gmeow:TermEquivalence ;
-                gmeow:alignSubject gmeow:MyKind ;
-                gmeow:alignPredicate skos:exactMatch ;
-                gmeow:alignObject gufo:Kind ;
-                gmeow:sssomFile "ordinary.sssom.tsv" ;
-                gmeow:justification gmeow:ManualMappingCuration .
+                logic:preservationKind logic:SoundUnderApproximation
+            |} .
             "#,
         );
         let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
         assert_eq!(residue(&ds, &vocab), 1);
+    }
+
+    #[test]
+    fn ordinary_alignment_to_typed_vocab_stays_in_residue() {
+        // A bare native alignment cell (no grounding envelope) to a TYPED-axiom
+        // foundational vocabulary is not a warranted grounding correspondence; its match
+        // base triple counts, never opening the owner boundary.
+        let ds = ds_of(
+            r#"
+            gmeow:MyKind skos:exactMatch gufo:Kind {|
+                gmeow:sssomFile "ordinary.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+        assert_eq!(residue(&ds, &vocab), 1);
+    }
+
+    #[test]
+    fn structural_domain_alignment_cell_is_exempt() {
+        // A domain slice aligning an external class into the gmeow taxonomy via a native
+        // rdfs:subClassOf cell is a first-class correspondence record, not hand-authored
+        // second-source rdfs — subtracted from the STRUCTURAL residue on any surface.
+        let ds = ds_of(
+            r#"
+            gufo:Kind rdfs:subClassOf gmeow:MyKind {|
+                gmeow:sssomFile "classes.sssom.tsv" ;
+                gmeow:justification gmeow:ManualMappingCuration
+            |} .
+            "#,
+        );
+        let mut vocab = alignment_vocab("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        vocab.count_kind = CountKind::StructuralAxiom;
+        vocab.counted_predicates =
+            vec!["http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()];
+        assert_eq!(
+            residue_for_surface(
+                &ds,
+                &vocab,
+                "https://blackcatinformatics.ca/gmeow/slices/documents"
+            ),
+            0
+        );
     }
 
     #[test]

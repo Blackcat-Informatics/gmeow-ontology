@@ -144,8 +144,12 @@ pub fn render_skos_surface_from_axioms(
     // The native Turtle codec emits canonical, deterministic Turtle (value-sorted rows),
     // so repeated runs are byte-identical regardless of insertion order. All projected
     // quads live in the default graph → `SerializeGraph::DefaultGraph` is faithful.
-    let bytes = serialize_dataset(dataset.as_ref(), "text/turtle", SerializeGraph::DefaultGraph)
-        .map_err(|e| parse_err(format!("skos-surface: serialize failed: {e}")))?;
+    let bytes = serialize_dataset(
+        dataset.as_ref(),
+        "text/turtle",
+        SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| parse_err(format!("skos-surface: serialize failed: {e}")))?;
     let body = String::from_utf8(bytes)
         .map_err(|e| parse_err(format!("skos-surface: non-UTF8 serialization: {e}")))?;
     let body = format!("{}\n", body.trim_end_matches('\n'));

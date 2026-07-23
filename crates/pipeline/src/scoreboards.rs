@@ -17,13 +17,13 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
-use gmeow_logic_compile::ingest::DslView;
-use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
-use gmeow_logic_compile::projections::sssom::equivalence_cells;
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Location, Report, ResultExt, Severity, StageId,
     Standpoint, register_code,
 };
+use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
+use gmeow_logic_compile::projections::sssom::equivalence_cells;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
     flat_dataset_from_quads, parse_dataset, serialize_dataset,
@@ -1336,10 +1336,7 @@ fn load_cells(root: &Path) -> gmeow_errors::Result<Vec<CellInput>> {
             subject: cell.subject.clone(),
             predicate_curie: predicate_curie(&cell.predicate),
             object: cell.obj.clone(),
-            confidence: cell
-                .confidence
-                .map(|c| c.to_string())
-                .unwrap_or_default(),
+            confidence: cell.confidence.map(|c| c.to_string()).unwrap_or_default(),
         });
     }
     Ok(cells)

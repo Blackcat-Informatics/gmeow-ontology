@@ -84,7 +84,8 @@ fn emit_dsl_stats_native(
             message: format!("dsl-stats emission failed: {m}"),
         })
     };
-    let store = correspondence_lower::merge_dsl(root, catalog).map_err(|e| stage_err(e.to_string()))?;
+    let store =
+        correspondence_lower::merge_dsl(root, catalog).map_err(|e| stage_err(e.to_string()))?;
     let view = DslView::new(store.as_ref());
 
     // cells_by_set + equivalences: every native alignment cell keyed by its sssomFile.

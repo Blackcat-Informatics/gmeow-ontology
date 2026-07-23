@@ -64,7 +64,7 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
 ///
 /// Returns [`SliceError`] on a filesystem error reading the scanned tree (a
 /// missing `dsl/mappings/` is not an error — it simply contributes no sources), or
-/// on a malformed alignment cell / unparseable Turtle surfaced by the canonical
+/// on a malformed alignment cell / unparsable Turtle surfaced by the canonical
 /// native reader.
 pub fn lint_dsl_mapping_purity(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let mut files: Vec<PathBuf> = Vec::new();
@@ -87,7 +87,9 @@ pub fn lint_dsl_mapping_purity(root: &Path) -> Result<Vec<ProjectionDiagnostic>,
             .map_err(|e| SliceError::Parse(format!("{rel}: {e}")))?;
         let view = DslView::new(&dataset);
         let count = equivalence_cells(&view)
-            .map_err(|e| SliceError::Parse(format!("{rel}: malformed alignment cell: {}", e.message())))?
+            .map_err(|e| {
+                SliceError::Parse(format!("{rel}: malformed alignment cell: {}", e.message()))
+            })?
             .len();
         if count == 0 {
             continue;

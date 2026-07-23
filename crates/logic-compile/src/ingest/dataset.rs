@@ -616,11 +616,7 @@ mod tests {
         let pred = "http://www.w3.org/2004/02/skos/core#closeMatch";
         let obj = format!("{EX}Target");
         let reifier = RdfTerm::iri(format!("{EX}cell1"));
-        let base = RdfTriple::new(
-            RdfTerm::iri(&subj),
-            pred,
-            RdfTerm::iri(&obj),
-        );
+        let base = RdfTriple::new(RdfTerm::iri(&subj), pred, RdfTerm::iri(&obj));
 
         let mut b = RdfDatasetBuilder::new();
         b.push_owned_reifier(&RdfReifier::new(reifier.clone(), base));
@@ -677,9 +673,15 @@ mod tests {
         assert!(v.annotation_has_type(&stmt.reifier, &format!("{EX}GroundingCorrespondence")));
         assert!(!v.annotation_has_type(&stmt.reifier, &format!("{EX}Nope")));
         // A predicate/reifier miss yields nothing.
-        assert_eq!(v.annotation_iri(&stmt.reifier, &format!("{EX}missing")), None);
         assert_eq!(
-            v.annotation_literal(&DslTerm::Iri(format!("{EX}other")), &format!("{EX}confidence")),
+            v.annotation_iri(&stmt.reifier, &format!("{EX}missing")),
+            None
+        );
+        assert_eq!(
+            v.annotation_literal(
+                &DslTerm::Iri(format!("{EX}other")),
+                &format!("{EX}confidence")
+            ),
             None
         );
     }

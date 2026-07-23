@@ -43,14 +43,32 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
 
     let mut actual = BTreeSet::new();
     for c in &cells {
-        let source = c.source_endpoint.clone().unwrap_or_else(|| c.subject.clone());
+        let source = c
+            .source_endpoint
+            .clone()
+            .unwrap_or_else(|| c.subject.clone());
         let target = c.target_endpoint.clone().unwrap_or_else(|| c.obj.clone());
-        assert!(source.starts_with(MATH), "{source} must be oriented from math:");
-        assert_eq!(source, c.subject, "source endpoint must equal the match subject");
+        assert!(
+            source.starts_with(MATH),
+            "{source} must be oriented from math:"
+        );
+        assert_eq!(
+            source, c.subject,
+            "source endpoint must equal the match subject"
+        );
         assert_eq!(target, c.obj, "target endpoint must equal the match object");
-        assert!(c.morphism_class.is_some(), "{source} requires a morphismClass");
-        assert!(c.morphism_kind.is_some(), "{source} requires a morphismKind");
-        assert!(c.preservation.is_some(), "{source} requires a preservationKind");
+        assert!(
+            c.morphism_class.is_some(),
+            "{source} requires a morphismClass"
+        );
+        assert!(
+            c.morphism_kind.is_some(),
+            "{source} requires a morphismKind"
+        );
+        assert!(
+            c.preservation.is_some(),
+            "{source} requires a preservationKind"
+        );
         assert!(c.confidence.is_some(), "{source} requires a confidence");
         actual.insert((source, target, c.sssom_file.clone()));
     }
@@ -108,14 +126,19 @@ fn native_cells(
     path: &std::path::Path,
 ) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
     let ttl = std::fs::read_to_string(path).expect("read mapping catalog");
-    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("catalog must parse");
+    let ds =
+        purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("catalog must parse");
     let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-    gmeow_logic_compile::projections::sssom::equivalence_cells(&view).expect("native cells must read")
+    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
+        .expect("native cells must read")
 }
 
 /// Native grounding alignment cells (those carrying the `logic:GroundingCorrespondence` envelope).
 fn native_grounding_cells(
     path: &std::path::Path,
 ) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
-    native_cells(path).into_iter().filter(|c| c.grounding).collect()
+    native_cells(path)
+        .into_iter()
+        .filter(|c| c.grounding)
+        .collect()
 }
