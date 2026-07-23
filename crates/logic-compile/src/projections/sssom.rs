@@ -65,30 +65,30 @@ pub struct EquivalenceCell {
     pub predicate: String,
     pub obj: String,
     pub confidence: Option<f64>,
-    pub(crate) justification: Option<String>,
+    pub justification: Option<String>,
     /// Optional authored law-spine rung. Absent cells retain the predicate-derived SSSOM
     /// default; grounding bridges author this explicitly so a commitment shift can never
     /// be flattened into an ordinary lens.
-    pub(crate) morphism_class: Option<String>,
+    pub morphism_class: Option<String>,
     /// Optional authored satisfaction/commitment qualifier.
-    pub(crate) morphism_kind: Option<String>,
+    pub morphism_kind: Option<String>,
     /// Optional authored per-correspondence preservation judgment.
-    pub(crate) preservation: Option<String>,
+    pub preservation: Option<String>,
     /// Explicit source endpoint of a grounding correspondence. Ordinary SSSOM cells may
     /// omit it; grounding cells must carry it and it must agree with the match subject.
-    pub(crate) source_endpoint: Option<String>,
+    pub source_endpoint: Option<String>,
     /// Explicit target endpoint of a grounding correspondence. Ordinary SSSOM cells may
     /// omit it; grounding cells must carry it and it must agree with the match object.
-    pub(crate) target_endpoint: Option<String>,
+    pub target_endpoint: Option<String>,
     /// Whether the frontend cell is explicitly a `logic:GroundingCorrespondence`.
-    pub(crate) grounding: bool,
+    pub grounding: bool,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
     /// concurrent composition serializes, a per-outcome compensation is omitted). Folded
     /// into the report's per-correspondence residue, distinct from the human `comment`.
     lossy_drops: Vec<String>,
-    sssom_file: String,
+    pub sssom_file: String,
     subject_label: String,
     pub object_label: String,
 }
