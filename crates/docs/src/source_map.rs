@@ -57,6 +57,37 @@ pub enum LinkResolution {
     },
 }
 
+/// The classification of an authored markdown link, resolved through the single
+/// [`SourceToPageMap`] authority. This is the ONE decision surface every document
+/// renderer (the site graft/child pages, and the print/PDF inliner) consults to
+/// decide how to re-emit a `[text](target)` destination — so no renderer invents a
+/// second notion of "internal vs. off-corpus vs. external".
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DocLinkResolution {
+    /// The target is not an internal source-document reference (an explicit scheme
+    /// `http:`/`mailto:`, a protocol-relative `//…`, a site-absolute `/…`, or an
+    /// empty destination): the caller keeps the URL exactly as authored.
+    External,
+    /// The target resolves to a page IN the corpus (a within-slice document and,
+    /// when a fragment was given, a known heading anchor). The caller links to that
+    /// generated page/anchor.
+    Corpus(TargetLocation),
+    /// The target is a relative reference that leaves this slice's document corpus —
+    /// another slice, a repo `docs/` file, or a non-markdown asset. The caller
+    /// absolutizes it to the published site (a declared cross-link loss), never a
+    /// live in-corpus link.
+    OffCorpus,
+    /// A relative within-slice markdown/anchor reference that resolves to NO document
+    /// or heading — a genuine dangling internal link. The caller HARD-FAILS (a broken
+    /// link in authored slice markdown is fixed at the source, never rendered).
+    Dangling {
+        /// The best available description of what failed to resolve.
+        target: String,
+        /// The requested anchor slug, when the link carried a fragment.
+        anchor: Option<String>,
+    },
+}
+
 /// One document's listing entry for a slice's child-document index.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DocumentEntry {
@@ -115,6 +146,11 @@ pub struct SourceToPageMap {
     /// Per-slice child-document listing (excludes the top-level `docs.md`), sorted
     /// by source path.
     children: BTreeMap<String, Vec<DocumentEntry>>,
+    /// page path → the owning document's injective node slug. The inverse of the
+    /// per-document `node_slug`, so a resolver that only has a target page (the
+    /// print inliner minting a collision-free Typst label) can recover the injective
+    /// identity without a scan.
+    page_node_slug: BTreeMap<String, String>,
 }
 
 impl SourceToPageMap {
@@ -128,6 +164,7 @@ impl SourceToPageMap {
         let mut by_source: BTreeMap<(String, String), DocEntry> = BTreeMap::new();
         let mut pages: BTreeMap<String, PageAnchors> = BTreeMap::new();
         let mut children: BTreeMap<String, Vec<DocumentEntry>> = BTreeMap::new();
+        let mut page_node_slug: BTreeMap<String, String> = BTreeMap::new();
         // page path → the (slice-iri, source-path) that first claimed it, for the
         // page-collision hard-fail.
         let mut page_owner: BTreeMap<String, (String, String)> = BTreeMap::new();
@@ -171,6 +208,7 @@ impl SourceToPageMap {
                     n += 1;
                 }
                 used_node_slugs.insert(node_slug.clone());
+                page_node_slug.insert(page.clone(), node_slug.clone());
 
                 let is_slice_page = doc.source_path == SLICE_PAGE_SOURCE;
                 by_source.insert(
@@ -210,6 +248,7 @@ impl SourceToPageMap {
             by_source,
             pages,
             children,
+            page_node_slug,
         })
     }
 
@@ -283,6 +322,49 @@ impl SourceToPageMap {
         self.resolve(from_slice, &target_path, fragment)
     }
 
+    /// Classify an authored markdown link `[text](target)` as written INSIDE the
+    /// document `(from_slice, from_path)` into a [`DocLinkResolution`] — the single
+    /// decision the site and print renderers both consume. Mirrors the resolver's
+    /// path handling: an explicit scheme / site-absolute / empty destination is
+    /// [`External`](DocLinkResolution::External); a relative non-markdown asset or a
+    /// reference that climbs above the slice root is
+    /// [`OffCorpus`](DocLinkResolution::OffCorpus); a within-slice markdown/anchor
+    /// reference resolves through [`resolve_link`](Self::resolve_link) to
+    /// [`Corpus`](DocLinkResolution::Corpus) or (when nothing matches)
+    /// [`Dangling`](DocLinkResolution::Dangling).
+    pub fn classify_doc_link(
+        &self,
+        from_slice: &str,
+        from_path: &str,
+        target: &str,
+    ) -> DocLinkResolution {
+        if target.is_empty() {
+            return DocLinkResolution::External;
+        }
+        let (path_part, _fragment) = split_fragment(target);
+        // A non-fragment path is classified before resolution; a pure `#fragment`
+        // (empty path) is a same-document anchor and falls straight to the resolver.
+        if !path_part.is_empty() {
+            if is_external_link(path_part) {
+                return DocLinkResolution::External;
+            }
+            // Only relative markdown→markdown references can name a corpus document.
+            if !path_part.ends_with(".md") {
+                return DocLinkResolution::OffCorpus;
+            }
+            // A `..`-climb above the slice root leaves this slice-scoped corpus.
+            if escapes_slice_root(from_path, path_part) {
+                return DocLinkResolution::OffCorpus;
+            }
+        }
+        match self.resolve_link(from_slice, from_path, target) {
+            LinkResolution::Resolved(loc) => DocLinkResolution::Corpus(loc),
+            LinkResolution::Dangling { target, anchor } => {
+                DocLinkResolution::Dangling { target, anchor }
+            }
+        }
+    }
+
     /// A slice's child documents (every non-slice-page markdown), sorted by logical
     /// path, each carrying its title, source path, raw digest, and generated page —
     /// the provenance the slice-page renderer's document index shows. Empty for a
@@ -317,6 +399,25 @@ impl SourceToPageMap {
     pub fn is_slice_page(&self, slice_iri: &str, source_path: &str) -> bool {
         let key = (slice_iri.to_string(), normalize_logical_path(source_path));
         self.by_source.get(&key).is_some_and(|e| e.is_slice_page)
+    }
+
+    /// Whether `page` (a trailing-slash generated page path, e.g. `slices/zoo/` or
+    /// `slices/zoo/documents/design/A/`) is a page the map minted for some document.
+    /// This is the single authority the mdbook / site link rewriters consult to
+    /// decide whether a resolved cross-document target names a real corpus page (so a
+    /// within-book link that resolves here MUST be an emitted chapter — a resolved
+    /// document page that is somehow not emitted is a hard-fail dangling link, never a
+    /// silent externalization).
+    pub fn is_known_page(&self, page: &str) -> bool {
+        self.pages.contains_key(page)
+    }
+
+    /// The injective node slug of the document whose generated page is `page`, or
+    /// `None` when no document maps there. The inverse of
+    /// [`node_slug`](Self::node_slug); the print inliner uses it to mint a
+    /// collision-free Typst label for a link that resolves only to a target page.
+    pub fn node_slug_of_page(&self, page: &str) -> Option<&str> {
+        self.page_node_slug.get(page).map(String::as_str)
     }
 }
 
@@ -377,6 +478,31 @@ fn is_external_link(path: &str) -> bool {
         (Some(_), None) => true,
         _ => false,
     }
+}
+
+/// Whether a relative link `..`-climbs above the slice root when joined against the
+/// linking document's directory — i.e. it targets something OUTSIDE this slice's
+/// document corpus (another slice, a repo-level doc). The resolver silently clamps
+/// such an escape; this reports it so [`SourceToPageMap::classify_doc_link`] can
+/// classify the reference as off-corpus rather than mis-resolving it.
+fn escapes_slice_root(from_path: &str, link_path: &str) -> bool {
+    let mut depth = match from_path.rsplit_once('/') {
+        Some((dir, _)) => dir.split('/').filter(|s| !s.is_empty()).count(),
+        None => 0,
+    };
+    for seg in link_path.split('/') {
+        match seg {
+            "" | "." => {}
+            ".." => {
+                if depth == 0 {
+                    return true;
+                }
+                depth -= 1;
+            }
+            _ => depth += 1,
+        }
+    }
+    false
 }
 
 /// Join a relative link path against the directory of `from_path`, resolving `.`

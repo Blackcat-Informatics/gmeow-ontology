@@ -19,6 +19,51 @@ expression: typ
 
 = Slice: #"Demo slice"
 
+#metadata(none) <gdoc-slices-demo>
+
+#heading(level: 2)[#"Demo Guide"] <gdoc-slices-demo--demo-guide>
+
+
+#"The demo guide thesis sentence introduces the slice narrative for readers."
+
+
+#heading(level: 3)[#"Architecture"] <gdoc-slices-demo--architecture>
+
+
+#"See "#link(<gdoc-slices-demo-documents-design-design--rationale>)[#"the design rationale"]#" for the full argument."
+
+
+#table(
+  columns: 2,
+  table.header([#"Field"], [#"Value"], ),
+  [#"Owner"],
+  [#"demo team"],
+  [#"Status"],
+  [#"built"],
+)
+
+
+#raw(block: true, lang: "rust", "fn demo_guide_snippet() -> u32 { 42 }")
+
+#metadata(none) <gdoc-slices-demo-documents-design-design>
+
+#heading(level: 2)[#"Design Notes"] <gdoc-slices-demo-documents-design-design--design-notes>
+
+
+#"Prose about the demonstration design and its motivating constraints."
+
+
+#heading(level: 3)[#"Rationale"] <gdoc-slices-demo-documents-design-design--rationale>
+
+
+#"Return to "#link(<gdoc-slices-demo--architecture>)[#"the guide architecture"]#" for context."
+
+
+- #"first design point"
+- #"second design point"
+
+#raw(block: true, lang: "turtle", "ex:a a gmeow:Foo .")
+
 == #"gmeow:Foo"
 
 *#"Foo"* #h(0.5em) Class

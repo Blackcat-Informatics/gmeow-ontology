@@ -11,8 +11,8 @@ use std::collections::BTreeMap;
 use docs_print::{compile_pdf, embedded_font_digest, pdf_text_layer, render_typ};
 use gmeow_docs::formats::{DocFormat, format_capabilities};
 use gmeow_docs::model::{
-    DocCompetency, DocFlowEdge, DocLinkage, DocPipeline, DocSlice, DocStage, DocTerm,
-    DocTermCategory, DocsModel, ReasoningVerdict,
+    DocCompetency, DocFlowEdge, DocLinkage, DocMarkdownDocument, DocPipeline, DocSlice, DocStage,
+    DocTerm, DocTermCategory, DocsModel, ReasoningVerdict,
 };
 
 /// The per-format capability partitions for every format (the loss appendix
@@ -24,10 +24,69 @@ fn losses() -> Vec<gmeow_docs::formats::FormatCapabilities> {
         .collect()
 }
 
-/// One demo slice.
+const DEMO_SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slice/demo";
+
+/// A demo markdown document (guide or child) for the print inliner tests.
+fn demo_doc(source_path: &str, title: &str, source_text: &str) -> DocMarkdownDocument {
+    DocMarkdownDocument {
+        slice_iri: DEMO_SLICE_IRI.to_string(),
+        slice_slug: "demo".to_string(),
+        source_path: source_path.to_string(),
+        title: title.to_string(),
+        source_text: source_text.to_string(),
+        raw_digest: format!("digest-of-{source_path}"),
+    }
+}
+
+/// The guide (`docs.md`) + one child document (`design/DESIGN.md`) for the demo
+/// slice. They carry prose, headings, a GFM table, a fenced code block, a list, and
+/// INTRA-CORPUS cross-document links WITH anchors in both directions — the full
+/// surface the PDF text-layer test asserts survives compilation.
+fn demo_documents() -> Vec<DocMarkdownDocument> {
+    let guide = "\
+# Demo Guide
+
+The demo guide thesis sentence introduces the slice narrative for readers.
+
+## Architecture
+
+See [the design rationale](design/DESIGN.md#rationale) for the full argument.
+
+| Field | Value |
+| --- | --- |
+| Owner | demo team |
+| Status | built |
+
+```rust
+fn demo_guide_snippet() -> u32 { 42 }
+```
+";
+    let child = "\
+# Design Notes
+
+Prose about the demonstration design and its motivating constraints.
+
+## Rationale
+
+Return to [the guide architecture](../docs.md#architecture) for context.
+
+- first design point
+- second design point
+
+```turtle
+ex:a a gmeow:Foo .
+```
+";
+    vec![
+        demo_doc("docs.md", "Demo Guide", guide),
+        demo_doc("design/DESIGN.md", "Design Notes", child),
+    ]
+}
+
+/// One demo slice, carrying the demo guide + child documents.
 fn demo_slice() -> DocSlice {
     DocSlice {
-        iri: "https://blackcatinformatics.ca/gmeow/slice/demo".to_string(),
+        iri: DEMO_SLICE_IRI.to_string(),
         label: Some("Demo".to_string()),
         title: Some("Demo slice".to_string()),
         tier: None,
@@ -37,7 +96,7 @@ fn demo_slice() -> DocSlice {
         profiles: Vec::new(),
         depends_on: Vec::new(),
         artifacts: Vec::new(),
-        documents: Vec::new(),
+        documents: demo_documents(),
         has_thesis_sentence: false,
         realized_state_complete: false,
     }
@@ -331,6 +390,101 @@ fn pdf_text_layer_omits_provenance_chain_without_a_pipeline() {
         !text.contains("provenance chain"),
         "a pipeline-free model must not fabricate a provenance-chain paragraph"
     );
+}
+
+/// Task 4: the print projection inlines each slice's GUIDE and CHILD documents
+/// before its term material, and the compiled PDF's extractable text layer must
+/// carry their prose, headings, table content, and code — not merely the Typst
+/// source. This is the falsifiable production-surface gate: it greps
+/// [`pdf_text_layer`] (which walks the SAME frame tree `compile_pdf` serializes),
+/// so if the document inliner silently stopped laying out (or a rendering bug
+/// dropped a block), this reds.
+#[test]
+fn pdf_text_layer_carries_guide_and_child_document_content() {
+    let model = fixture_model();
+    // The fixture's demo slice carries the guide + one child document.
+    assert!(
+        model.slices.iter().any(|s| !s.documents.is_empty()),
+        "the demo fixture must carry inlined documents for this gate to mean anything"
+    );
+
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+
+    // Ordering in the Typst source: the guide + child documents are emitted BEFORE
+    // the slice's generated term material (`== gmeow:Foo`).
+    let slice_at = typ.find("= Slice:").expect("slice chapter present");
+    let guide_at = typ[slice_at..]
+        .find("demo guide thesis sentence")
+        .expect("guide prose present");
+    let child_at = typ[slice_at..]
+        .find("Prose about the demonstration design")
+        .expect("child prose present");
+    let term_at = typ[slice_at..]
+        .find("gmeow:Foo")
+        .expect("term material present");
+    assert!(
+        guide_at < child_at && child_at < term_at,
+        "documents must render guide → child → term material (guide {guide_at}, child {child_at}, \
+         term {term_at})"
+    );
+
+    // The gate: prose, headings, table cells, and code from BOTH the guide and the
+    // child must survive all the way into the compiled PDF's text layer.
+    let text = pdf_text_layer(&typ, &fixture_bib()).expect("pdf text layer extraction must work");
+    for needle in [
+        // Guide: heading, prose, table cells, code.
+        "Demo Guide",
+        "Architecture",
+        "demo guide thesis sentence",
+        "Owner",
+        "demo team",
+        "demo_guide_snippet",
+        // Child: heading, prose, list item, code.
+        "Design Notes",
+        "Rationale",
+        "Prose about the demonstration design",
+        "first design point",
+        "ex:a a gmeow:Foo",
+    ] {
+        assert!(
+            text.contains(needle),
+            "PDF text layer missing {needle:?}; the inlined guide/child document content did not \
+             survive compilation:\n{text}"
+        );
+    }
+}
+
+/// Task 4: an intra-corpus cross-document link (guide → child, with an anchor)
+/// must lower to a resolvable Typst INTERNAL reference (`#link(<label>)`) whose
+/// target label is actually emitted in the PDF, so the reference resolves inside
+/// the document rather than dangling or pointing off-site. A missing label would
+/// make `compile_pdf` error; this asserts the source shape AND that it compiles.
+#[test]
+fn intra_corpus_links_lower_to_internal_references() {
+    let model = fixture_model();
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+
+    // The guide links `design/DESIGN.md#rationale`; that lowers to an internal
+    // label reference, and the child's `## Rationale` heading carries the SAME
+    // label — so the reference and its target are both present.
+    let internal_refs = typ.matches("#link(<gdoc-").count();
+    assert!(
+        internal_refs >= 2,
+        "expected the two intra-corpus cross-document links to lower to internal `#link(<gdoc-…>)` \
+         references, found {internal_refs}"
+    );
+    // No intra-corpus document link may masquerade as a live absolute term/site
+    // link: the demo documents reference only each other, so every emitted
+    // `#link("…")` (quoted URL form) would be a fabricated external link. There are
+    // none here.
+    assert!(
+        !typ.contains("#link(\"https://blackcatinformatics.ca/gmeow/docs/"),
+        "the demo documents carry no off-corpus links, so none must be absolutized to the site"
+    );
+
+    // It must compile (a dangling internal label would be a Typst error).
+    let pdf = compile_pdf(&typ, &fixture_bib()).expect("intra-corpus internal references compile");
+    assert!(pdf.starts_with(b"%PDF"));
 }
 
 #[test]

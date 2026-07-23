@@ -31,7 +31,9 @@ use crate::exec::ExecutableDocsData;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
-use crate::source_map::{LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open};
+use crate::source_map::{
+    DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
+};
 use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
@@ -4180,25 +4182,14 @@ fn rewrite_doc_target(
         };
     }
 
-    // Absolute / scheme-qualified / site-absolute / protocol-relative: external.
-    if is_offsite_target(path_part) {
-        return target.to_string();
-    }
-
-    // Only relative markdown→markdown references are rewritten through the map; any
-    // other relative reference (a `.ttl`, an image, a directory) is off-corpus.
-    if !path_part.ends_with(".md") {
-        return absolutize_offsite(target);
-    }
-
-    // A relative `.md` reference that escapes the slice root cannot name a document
-    // in THIS slice's corpus (the resolver is slice-scoped) — externalize it.
-    if escapes_slice_root(from_path, path_part) {
-        return absolutize_offsite(target);
-    }
-
-    match map.resolve_link(from_slice, from_path, target) {
-        LinkResolution::Resolved(loc) => {
+    // Everything with a path portion is CLASSIFIED by the single authority
+    // (`SourceToPageMap::classify_doc_link`) — the site renderer never re-derives
+    // "internal vs. off-corpus vs. external"; it only formats the classification for
+    // its own (site-relative) output.
+    match map.classify_doc_link(from_slice, from_path, target) {
+        DocLinkResolution::External => target.to_string(),
+        DocLinkResolution::OffCorpus => absolutize_offsite(target),
+        DocLinkResolution::Corpus(loc) => {
             let target_dir = loc.page.strip_suffix('/').unwrap_or(&loc.page);
             let href = rel(page_dir, target_dir);
             match loc.anchor {
@@ -4206,51 +4197,12 @@ fn rewrite_doc_target(
                 None => format!("{href}index.md"),
             }
         }
-        LinkResolution::Dangling { .. } => panic!(
+        DocLinkResolution::Dangling { .. } => panic!(
             "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
              link `{target}` — fix the link in the slice's markdown (it names no document in the \
              slice)"
         ),
     }
-}
-
-/// True when a link target is not a relative source-document reference: it carries
-/// an explicit URI scheme (`http:`, `mailto:`, …), is protocol-relative (`//…`),
-/// or is site-absolute (`/…`).
-fn is_offsite_target(path: &str) -> bool {
-    if path.starts_with('/') {
-        return true;
-    }
-    match (path.find(':'), path.find('/')) {
-        (Some(colon), Some(slash)) => colon < slash,
-        (Some(_), None) => true,
-        _ => false,
-    }
-}
-
-/// Whether a relative link `..`-climbs above the slice root when joined against the
-/// linking document's directory — i.e. it targets something OUTSIDE this slice's
-/// document corpus (another slice, a repo-level doc). Mirrors the resolver's own
-/// join, but reports the escape the resolver silently clamps, so the caller can
-/// externalize rather than hard-fail on an off-corpus reference.
-fn escapes_slice_root(from_path: &str, link_path: &str) -> bool {
-    let mut depth = match from_path.rsplit_once('/') {
-        Some((dir, _)) => dir.split('/').filter(|s| !s.is_empty()).count(),
-        None => 0,
-    };
-    for seg in link_path.split('/') {
-        match seg {
-            "" | "." => {}
-            ".." => {
-                if depth == 0 {
-                    return true;
-                }
-                depth -= 1;
-            }
-            _ => depth += 1,
-        }
-    }
-    false
 }
 
 /// Absolutize an off-corpus relative reference to the published documentation site,

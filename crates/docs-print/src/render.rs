@@ -26,6 +26,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::formats::{Capability, DocFormat, FormatCapabilities};
 use gmeow_docs::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
+use gmeow_docs::source_map::SourceToPageMap;
+
+use crate::doc_render::render_document;
+
+/// The logical source path of the slice-page markdown (`docs.md`) — the guide whose
+/// prose is grafted onto the slice, rendered before the slice's child documents and
+/// term material.
+const SLICE_GUIDE_SOURCE: &str = "docs.md";
 
 /// The FAIR-metadata gate this document's FAIR statement cites. Held as a literal
 /// so a text test can assert its presence in the rendered source.
@@ -141,6 +149,13 @@ fn title_page(out: &mut String, model: &DocsModel) {
 // ── Slice chapters + term entries ──────────────────────────────────────────
 
 fn slice_chapters(out: &mut String, model: &DocsModel) {
+    // The single link authority, rebuilt from the model (a pure function of its
+    // already-validated document set — the SAME map the HTML site and the mdbook
+    // consult). It resolves every intra-corpus document link the inlined guides and
+    // child documents carry, and mints their collision-free Typst labels.
+    let map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+
     for slice in &model.slices {
         let terms: Vec<&DocTerm> = model
             .terms
@@ -150,6 +165,48 @@ fn slice_chapters(out: &mut String, model: &DocsModel) {
         // A slice with no documented terms still gets a chapter, so the outline
         // is a total projection of the slice catalog (honest empty state).
         out.push_str(&format!("= Slice: {}\n\n", disp(&slice_title(slice))));
+
+        // 1) The GUIDE: the slice's `docs.md` prose, inlined directly (headings
+        //    demoted one level so they sit under the `= Slice:` chapter).
+        if let Some(guide) = slice
+            .documents
+            .iter()
+            .find(|d| d.source_path == SLICE_GUIDE_SOURCE)
+            && let Some(page) = map.page_of(&slice.iri, &guide.source_path)
+        {
+            let page = page.to_string();
+            render_document(
+                out,
+                &guide.source_text,
+                &slice.iri,
+                &guide.source_path,
+                &page,
+                1,
+                &map,
+            );
+        }
+
+        // 2) The CHILD documents (every non-`docs.md` markdown), in the map's
+        //    path-sorted order — the SAME order and set the HTML/mdbook emit.
+        for entry in map.slice_children(&slice.iri) {
+            if let Some(doc) = slice
+                .documents
+                .iter()
+                .find(|d| d.source_path == entry.source_path)
+            {
+                render_document(
+                    out,
+                    &doc.source_text,
+                    &slice.iri,
+                    &doc.source_path,
+                    &entry.page,
+                    1,
+                    &map,
+                );
+            }
+        }
+
+        // 3) The generated TERM material, last.
         if terms.is_empty() {
             out.push_str("_No documented terms in this slice._\n\n");
             continue;

@@ -251,12 +251,14 @@ fn book_bodies_are_rewrite_of_single_authority() {
     let site = render_book(&model, &exec);
     let pages = book_pages(&model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    let page_map = gmeow_docs::source_map::SourceToPageMap::build(&model).expect("map builds");
 
     for page in &pages {
         let expected = rewrite_book_links(
             &to_markdown_exec(&model, page, &exec),
             &page.dir(),
             &chapters,
+            &page_map,
         )
         .body;
         let actual = String::from_utf8(
@@ -313,6 +315,96 @@ fn link_targets(body: &str) -> Vec<String> {
         }
     }
     out
+}
+
+/// Resolve a page-relative link against a page directory into a canonical
+/// site-relative path (no `./` / `../`); `None` if it escapes the site root.
+/// Mirrors the renderer's own join, so the test resolves links the same way the
+/// book does.
+fn resolve_rel(page_dir: &str, path: &str) -> Option<String> {
+    let mut parts: Vec<&str> = if page_dir.is_empty() {
+        Vec::new()
+    } else {
+        page_dir.split('/').collect()
+    };
+    for seg in path.split('/') {
+        match seg {
+            "" | "." => {}
+            ".." => {
+                parts.pop()?;
+            }
+            other => parts.push(other),
+        }
+    }
+    Some(parts.join("/"))
+}
+
+#[test]
+fn book_cross_document_links_resolve_inside_the_book() {
+    // Task 3: every intra-book cross-document link (and its anchor) in an emitted
+    // slice/child-document chapter must resolve to a chapter the book actually
+    // emits — with `create-missing = false`, a dangling relative link would fail
+    // `mdbook build`. Off-corpus references are absolutized (external) upstream and
+    // are not relative, so they are skipped here. This asserts the single
+    // `SourceToPageMap` authority leaves NO dangling internal document link, and
+    // that at least one cross-document ANCHOR resolves to an injected `<a id>`.
+    let site = common::cached_book();
+    let mut checked_anchor = false;
+    for (path, bytes) in &site.files {
+        let is_doc_chapter = path.starts_with("src/slices/") && path.ends_with("/index.md");
+        if !is_doc_chapter {
+            continue;
+        }
+        let page_dir = path
+            .strip_prefix("src/")
+            .and_then(|p| p.strip_suffix("/index.md"))
+            .expect("doc chapter path shape");
+        let body = std::str::from_utf8(bytes).expect("chapter is UTF-8");
+        for target in link_targets(body) {
+            // Skip absolute / external / anchor-only / site-absolute links.
+            if target.is_empty()
+                || target.starts_with('#')
+                || target.starts_with('/')
+                || target.starts_with("mailto:")
+                || target.contains("://")
+            {
+                continue;
+            }
+            let (path_part, anchor) = match target.split_once('#') {
+                Some((p, a)) => (p, Some(a)),
+                None => (target.as_str(), None),
+            };
+            // Only relative links into another chapter are checked (images/assets
+            // in the book point at real chapter index.md files here).
+            let Some(canonical) = resolve_rel(page_dir, path_part) else {
+                continue;
+            };
+            if !canonical.ends_with("/index.md") {
+                continue;
+            }
+            let key = format!("src/{canonical}");
+            assert!(
+                site.files.contains_key(&key),
+                "chapter {path} links {target:?} → {key}, which is not an emitted chapter \
+                 (a dangling internal cross-document link)"
+            );
+            if let Some(anchor) = anchor
+                && !anchor.is_empty()
+            {
+                let tgt = std::str::from_utf8(&site.files[&key]).expect("target chapter is UTF-8");
+                assert!(
+                    tgt.contains(&format!("<a id=\"{anchor}\">")),
+                    "chapter {path} links {target:?} but the target chapter {key} has no \
+                     matching `<a id=\"{anchor}\">` anchor"
+                );
+                checked_anchor = true;
+            }
+        }
+    }
+    assert!(
+        checked_anchor,
+        "expected at least one resolved cross-document anchor link in the book to verify"
+    );
 }
 
 #[test]

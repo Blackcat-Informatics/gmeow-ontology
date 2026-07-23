@@ -58,5 +58,6 @@ pub use render::{
     render_site_lang_exec, render_site_lang_exec_with_diagrams, to_html, to_markdown,
 };
 pub use source_map::{
-    DocumentEntry, HeadingAnchor, LinkResolution, SourceToPageMap, TargetLocation,
+    DocLinkResolution, DocumentEntry, HeadingAnchor, LinkResolution, SourceToPageMap,
+    TargetLocation,
 };

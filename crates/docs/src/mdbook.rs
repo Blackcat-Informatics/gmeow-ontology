@@ -28,7 +28,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
-use crate::render::{Page, Site, book_pages, term_slug, to_markdown_exec};
+use crate::render::{Page, Site, book_pages, slice_slug, term_slug, to_markdown_exec};
+use crate::source_map::SourceToPageMap;
 
 /// The absolute base URL of the published documentation site. The model carries
 /// no canonical site/base URL field, so this single constant defines it. Every
@@ -59,6 +60,13 @@ pub struct LinkRewrite {
 pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    // The single link-rewrite authority, rebuilt from the model (a pure function of
+    // its already-validated document set — the same total build the site render and
+    // the RDF projection perform). It is the ONE authority that decides whether a
+    // resolved cross-document link names a real corpus page, and it is what the
+    // `SliceDocument` child-chapter nesting in `summary_md` reads.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
     // The SINGLE collision-resolution authority (see [`dir_winners`]): both the
     // chapter body writer below and `summary_md`'s table of contents consult
     // this SAME map, so a colliding chapter path is only ever body-written and
@@ -71,7 +79,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // `src`), so the summary rides inside the source tree, not at the book root.
     files.insert(
         "src/SUMMARY.md".to_string(),
-        summary_md(model, &pages, &winners).into_bytes(),
+        summary_md(model, &pages, &winners, &page_map).into_bytes(),
     );
 
     for (i, page) in pages.iter().enumerate() {
@@ -82,7 +90,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
             continue;
         }
         let body = to_markdown_exec(model, page, exec);
-        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters);
+        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters, &page_map);
         let path = chapter_src_path(&page.dir());
         files.insert(path, rewritten.body.into_bytes());
     }
@@ -100,10 +108,42 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
 /// [`summary_md`] resolve a collision by consulting THIS map, so the ToC link
 /// label always names the exact page whose body is shipped at that path —
 /// there is no second, independently-dedup'd notion of "the winner".
+///
+/// The FIRST-wins fold is the LEGACY term-slug behavior and applies ONLY to
+/// term pages: two distinct term IRIs that lossily slugify to one path differ
+/// only in that slug, so collapsing them is not a silent capability loss.
+///
+/// The child-document namespace is NOT allowed a silent winner. Child-document
+/// page paths (`Page::SliceDocument`) are minted through
+/// [`SourceToPageMap::build`], which HARD-FAILS on any two distinct documents
+/// mapping to one generated page path, so every child-document chapter dir is
+/// unique by construction. A collision that involves a child-document page
+/// therefore signals a broken invariant, never a benign slug fold — it is a hard
+/// failure naming BOTH colliding pages, so the new namespace can never quietly
+/// drop a document behind a first-wins pick.
 fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
+    use std::collections::btree_map::Entry;
     let mut winners: BTreeMap<String, usize> = BTreeMap::new();
     for (i, page) in pages.iter().enumerate() {
-        winners.entry(page.dir()).or_insert(i);
+        match winners.entry(page.dir()) {
+            Entry::Vacant(slot) => {
+                slot.insert(i);
+            }
+            Entry::Occupied(slot) => {
+                let first = &pages[*slot.get()];
+                if matches!(page, Page::SliceDocument { .. })
+                    || matches!(first, Page::SliceDocument { .. })
+                {
+                    panic!(
+                        "chapter dir {:?} collides between {first:?} and {page:?} — child-document \
+                         page paths are minted through SourceToPageMap and MUST be unique; a \
+                         collision here means the page-path scheme was violated",
+                        page.dir()
+                    );
+                }
+                // Legacy term-slug fold: keep the first, the shared collision winner.
+            }
+        }
     }
     winners
 }
@@ -115,10 +155,12 @@ fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
 pub fn book_external_links(model: &DocsModel, exec: &ExecutableDocsData) -> BTreeSet<String> {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
     let mut all: BTreeSet<String> = BTreeSet::new();
     for page in &pages {
         let body = to_markdown_exec(model, page, exec);
-        all.extend(rewrite_book_links(&body, &page.dir(), &chapters).external);
+        all.extend(rewrite_book_links(&body, &page.dir(), &chapters, &page_map).external);
     }
     all
 }
@@ -189,7 +231,12 @@ fn toml_escape(s: &str) -> String {
 /// category index, slices under the slice index, concerns under the concern
 /// index, recipes / learning-paths under their indexes, and the logic
 /// compiler-product pages under the logic index.
-fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usize>) -> String {
+fn summary_md(
+    model: &DocsModel,
+    pages: &[Page],
+    winners: &BTreeMap<String, usize>,
+    map: &SourceToPageMap,
+) -> String {
     // Bucket the child pages, preserving the book_pages order within each bucket.
     let mut slices: Vec<&Page> = Vec::new();
     let mut concerns: Vec<&Page> = Vec::new();
@@ -254,6 +301,7 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
         match page {
             Page::Landing
             | Page::Slice(_)
+            | Page::SliceDocument { .. }
             | Page::Concern(_)
             | Page::Recipe(_)
             | Page::LearningPath(_)
@@ -282,10 +330,37 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
         };
         for child in children {
             summary_entry(&mut out, model, child, 1);
+            // A slice's child documents (`Page::SliceDocument`) nest ONE level deeper
+            // under their slice, in the SAME path-sorted order the book emits their
+            // chapters (`SourceToPageMap::slice_children`). This is the single place
+            // the child-document table of contents is derived, so the ToC nesting can
+            // never disagree with the emitted chapter set.
+            if let Page::Slice(slug) = *child {
+                for doc_page in slice_document_pages(model, map, slug) {
+                    summary_entry(&mut out, model, &doc_page, 2);
+                }
+            }
         }
     }
 
     out
+}
+
+/// The `Page::SliceDocument` pages of the slice whose slug is `slug`, in the
+/// map's path-sorted child order (the SAME order [`crate::render::pages`] emits
+/// the child chapters, and the same set — every non-`docs.md` markdown source).
+/// Empty when the slug names no slice or the slice has no child documents.
+fn slice_document_pages(model: &DocsModel, map: &SourceToPageMap, slug: &str) -> Vec<Page> {
+    let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
+        return Vec::new();
+    };
+    map.slice_children(&slice.iri)
+        .into_iter()
+        .map(|entry| Page::SliceDocument {
+            slice: slice.iri.clone(),
+            path: entry.source_path,
+        })
+        .collect()
 }
 
 /// Push one `SUMMARY.md` list entry at `depth` (2 spaces per level).
@@ -327,7 +402,22 @@ fn link_text(text: &str) -> String {
 ///   `mdbook build` from failing on a link to a page the book does not emit.
 ///
 /// Links inside fenced code blocks are left verbatim.
-pub fn rewrite_book_links(body: &str, page_dir: &str, chapters: &BTreeSet<String>) -> LinkRewrite {
+///
+/// `map` is the single [`SourceToPageMap`] link authority. For a resolved
+/// cross-document target that names a real corpus page, the map confirms it is a
+/// document chapter the book emits (so the link stays relative and resolves inside
+/// the book); a target the map recognizes as a corpus page but that is somehow NOT
+/// emitted as a chapter is a hard-fail dangling internal link, never a silent
+/// externalization. A link the upstream document rewrite already absolutized to
+/// [`PUBLISHED_SITE_BASE`] (an off-corpus document reference) is folded back into
+/// the SAME [`LinkRewrite::external`] ledger, so there is one — and only one —
+/// notion of "what the book points off-site to".
+pub fn rewrite_book_links(
+    body: &str,
+    page_dir: &str,
+    chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
+) -> LinkRewrite {
     let mut out = String::with_capacity(body.len());
     let mut external: BTreeSet<String> = BTreeSet::new();
     let mut in_fence = false;
@@ -344,7 +434,7 @@ pub fn rewrite_book_links(body: &str, page_dir: &str, chapters: &BTreeSet<String
             out.push_str(line);
             continue;
         }
-        rewrite_line(line, page_dir, chapters, &mut out, &mut external);
+        rewrite_line(line, page_dir, chapters, map, &mut out, &mut external);
     }
 
     LinkRewrite {
@@ -358,6 +448,7 @@ fn rewrite_line(
     line: &str,
     page_dir: &str,
     chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
     out: &mut String,
     external: &mut BTreeSet<String>,
 ) {
@@ -371,7 +462,7 @@ fn rewrite_line(
         let close = open + rel_close;
         let target = &line[open..close];
         out.push_str(&line[cursor..open]);
-        out.push_str(&rewrite_target(target, page_dir, chapters, external));
+        out.push_str(&rewrite_target(target, page_dir, chapters, map, external));
         // Keep the closing ')' with the following span.
         cursor = close;
     }
@@ -383,9 +474,19 @@ fn rewrite_target(
     target: &str,
     page_dir: &str,
     chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
     external: &mut BTreeSet<String>,
 ) -> String {
-    // Absolute / scheme-qualified / anchor-only / protocol-relative: leave as is.
+    // A link the upstream document rewrite already absolutized to the published
+    // site (an off-corpus cross-document reference) is recorded in the ONE external
+    // ledger — no second, parallel notion of "what the book drops" — then left as
+    // the absolute URL it already is (it can never dangle a chapter).
+    if let Some(rest) = target.strip_prefix(PUBLISHED_SITE_BASE) {
+        external.insert(rest.to_string());
+        return target.to_string();
+    }
+
+    // Other absolute / scheme-qualified / anchor-only / protocol-relative: leave as is.
     if target.is_empty()
         || target.starts_with('#')
         || target.starts_with('/')
@@ -405,16 +506,28 @@ fn rewrite_target(
         return target.to_string();
     };
 
-    if let Some(dir) = chapter_dir_of(&canonical)
-        && chapters.contains(&dir)
-    {
-        // A real chapter: keep the link relative, normalize the extension.
-        let md = if let Some(stem) = path_part.strip_suffix(".html") {
-            format!("{stem}.md")
-        } else {
-            path_part.to_string()
-        };
-        return format!("{md}{suffix}");
+    if let Some(dir) = chapter_dir_of(&canonical) {
+        if chapters.contains(&dir) {
+            // A real chapter: keep the link relative, normalize the extension.
+            let md = if let Some(stem) = path_part.strip_suffix(".html") {
+                format!("{stem}.md")
+            } else {
+                path_part.to_string()
+            };
+            return format!("{md}{suffix}");
+        }
+        // The single link authority: if the map recognizes this canonical path as a
+        // real corpus document page, it MUST have been emitted as a chapter above.
+        // A resolved cross-document link that lands on a known page which the book
+        // did not emit is a dangling internal link — a hard failure, never a quiet
+        // externalization that would hide a broken cross-reference.
+        if map.is_known_page(&format!("{dir}/")) {
+            panic!(
+                "book chapter link {target:?} on page {page_dir:?} resolves to the known corpus \
+                 document page {dir:?}/ but no chapter was emitted for it — a dangling internal \
+                 cross-document link"
+            );
+        }
     }
 
     // A dropped surface: externalize to the published site and record it.
