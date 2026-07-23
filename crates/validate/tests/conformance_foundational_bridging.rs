@@ -10,7 +10,6 @@
 mod conformance_support;
 use conformance_support::*;
 
-use gmeow_validate::store::{parse_file_dataset, shacl_validate_dataset};
 use std::collections::BTreeSet;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
@@ -25,7 +24,6 @@ const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const SH: &str = "http://www.w3.org/ns/shacl#";
 const SKOS: &str = "http://www.w3.org/2004/02/skos/core#";
 
-const ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 
@@ -64,68 +62,72 @@ fn catalog_path() -> std::path::PathBuf {
 
 #[test]
 fn grounding_bridge_fixture_pair_enforces_explicit_preservation() {
-    let shapes_ttl = std::fs::read_to_string(repo_root().join("shapes/mapping-dsl-shapes.ttl"))
-        .expect("mapping DSL shapes must be readable");
-    let shapes =
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("mapping DSL shapes must parse");
+    // The SHACL `TermEquivalenceShape` was retired with the align* cell form; the grounding
+    // well-formedness gate now lives in the fail-closed Rust correspondence transpiler. A
+    // complete native grounding bridge transpiles; one missing logic:preservationKind
+    // hard-fails naming preservationKind.
+    fn transpile(
+        rel: &str,
+    ) -> gmeow_errors::Result<(
+        gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
+        gmeow_logic_compile::projections::correspondence_frontend::CorrespondenceLookup,
+    )> {
+        let ttl = std::fs::read_to_string(repo_root().join(rel)).expect("fixture must read");
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("fixture must parse");
+        let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
+        gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view, &view,
+        )
+    }
 
-    let positive =
-        parse_file_dataset(&repo_root().join(
-            "slices/grounding/logic/tests/conformance-fixtures/grounding-bridge-wellformed.ttl",
-        ))
-        .expect("positive grounding bridge fixture must parse");
-    let positive_report = shacl_validate_dataset(&positive, &shapes);
     assert!(
-        positive_report.conforms,
-        "complete grounding bridge must conform: {:?}",
-        positive_report.results
+        transpile("slices/grounding/logic/tests/conformance-fixtures/grounding-bridge-wellformed.ttl")
+            .is_ok(),
+        "a complete grounding bridge must transpile"
     );
 
-    let negative = parse_file_dataset(&repo_root().join(
+    let err = transpile(
         "slices/grounding/logic/tests/counter-examples/grounding-bridge-missing-preservation.ttl",
-    ))
-    .expect("negative grounding bridge fixture must parse");
-    let negative_report = shacl_validate_dataset(&negative, &shapes);
+    )
+    .expect_err("a grounding bridge without logic:preservationKind must be rejected");
     assert!(
-        !negative_report.conforms,
-        "a grounding bridge without logic:preservationKind must be rejected"
-    );
-    assert!(
-        format!("{:?}", negative_report.results).contains("preservationKind"),
-        "the negative fixture must fail for its missing preservation judgment: {:?}",
-        negative_report.results
+        err.message().contains("preservationKind"),
+        "the negative fixture must fail for its missing preservation judgment: {err}"
     );
 }
 
 fn records() -> Vec<BridgeRecord> {
-    let graph = GraphStore::parse_ttl_file(&catalog_path());
-    graph
-        .subjects_of_type(GROUNDING_CORRESPONDENCE)
+    native_bridge_records(&catalog_path())
+}
+
+/// Read every native grounding alignment cell from `path` as a [`BridgeRecord`].
+/// The legacy gmeow:TermEquivalence / gmeow:GroundingCorrespondence cell NODE with
+/// alignSubject/Predicate/Object was deleted; grounding cells are now native RDF-1.2
+/// statement-annotated match triples whose envelope lives on the reifier (a side table).
+/// Re-parse the file WITHOUT flattening (GraphStore flattens, which drops the reifier side
+/// tables) and read through the canonical `equivalence_cells` reader.
+fn native_bridge_records(path: &std::path::Path) -> Vec<BridgeRecord> {
+    let ttl = std::fs::read_to_string(path).expect("read grounding bridge catalog");
+    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .expect("grounding-bridges.ttl must parse");
+    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
+    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
+        .expect("native alignment cells must read")
         .into_iter()
-        .map(|cell| {
-            assert!(
-                graph.has(Some(&cell), Some(RDF_TYPE), Some(TERM_EQUIVALENCE)),
-                "{cell} must also be a gmeow:TermEquivalence frontend cell"
-            );
-            BridgeRecord {
-                iri: cell.clone(),
-                source: exactly_one(graph.objects(&cell, ALIGN_SUBJECT), &cell, "alignSubject"),
-                predicate: exactly_one(
-                    graph.objects(&cell, ALIGN_PREDICATE),
-                    &cell,
-                    "alignPredicate",
-                ),
-                target: exactly_one(graph.objects(&cell, ALIGN_OBJECT), &cell, "alignObject"),
-                file: exactly_one(graph.objects_lex(&cell, SSSOM_FILE), &cell, "sssomFile"),
-                class: exactly_one(graph.objects(&cell, MORPHISM_CLASS), &cell, "morphismClass"),
-                kind: exactly_one(graph.objects(&cell, MORPHISM_KIND), &cell, "morphismKind"),
-                preservation: exactly_one(
-                    graph.objects(&cell, PRESERVATION_KIND),
-                    &cell,
-                    "preservationKind",
-                ),
-                confidence: exactly_one(graph.objects_lex(&cell, CONFIDENCE), &cell, "confidence"),
-            }
+        .filter(|c| c.grounding)
+        .map(|c| BridgeRecord {
+            iri: gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri(
+                &c.subject, &c.predicate, &c.obj,
+            ),
+            source: c.source_endpoint.clone().unwrap_or_else(|| c.subject.clone()),
+            predicate: c.predicate.clone(),
+            target: c.target_endpoint.clone().unwrap_or_else(|| c.obj.clone()),
+            file: c.sssom_file.clone(),
+            class: c.morphism_class.clone().unwrap_or_default(),
+            kind: c.morphism_kind.clone().unwrap_or_default(),
+            preservation: c.preservation.clone().unwrap_or_default(),
+            confidence: c.confidence.map(|v| v.to_string()).unwrap_or_default(),
         })
         .collect()
 }
@@ -376,69 +378,37 @@ fn audited_foundation_rows_use_only_warranted_relations() {
 
 #[test]
 fn yamato_catalog_pins_material_quantity_and_quality_value() {
-    let graph = GraphStore::parse_ttl_file(
+    let records = native_bridge_records(
         &repo_root().join("slices/grounding/logic/mappings/foundation-bridges.ttl"),
     );
-    let yamato_cells: Vec<String> = graph
-        .subjects_of_type(GROUNDING_CORRESPONDENCE)
-        .into_iter()
-        .filter(|cell| {
-            graph
-                .objects_lex(cell, SSSOM_FILE)
-                .contains("gmeow-logic-yamato.sssom.tsv")
-        })
-        .collect();
     assert!(
-        !yamato_cells.is_empty(),
+        records
+            .iter()
+            .any(|r| r.file == "gmeow-logic-yamato.sssom.tsv"),
         "the YAMATO grounding catalog must remain non-empty"
     );
 
-    for (cell, source, target, confidence) in [
+    for (source, target, confidence) in [
         (
-            "https://blackcatinformatics.ca/gmeow/eqLogicYamatoQuantity",
             logic("Quantity"),
             format!("{YAMATO}amount_of_matter"),
             "0.9",
         ),
         (
-            "https://blackcatinformatics.ca/gmeow/eqLogicYamatoQualityValue",
             logic("QualityValue"),
             format!("{YAMATO}quality_value"),
             "0.85",
         ),
     ] {
-        assert_eq!(
-            exactly_one(graph.objects(cell, ALIGN_SUBJECT), cell, "alignSubject"),
-            source
-        );
-        assert_eq!(
-            exactly_one(graph.objects(cell, ALIGN_OBJECT), cell, "alignObject"),
-            target
-        );
-        assert_eq!(
-            exactly_one(graph.objects(cell, ALIGN_PREDICATE), cell, "alignPredicate"),
-            format!("{SKOS}closeMatch")
-        );
-        assert_eq!(
-            exactly_one(graph.objects(cell, MORPHISM_CLASS), cell, "morphismClass"),
-            BRIDGE_VIEW
-        );
-        assert_eq!(
-            exactly_one(graph.objects(cell, MORPHISM_KIND), cell, "morphismKind"),
-            COMMITMENT_SHIFTING
-        );
-        assert_eq!(
-            exactly_one(
-                graph.objects(cell, PRESERVATION_KIND),
-                cell,
-                "preservationKind"
-            ),
-            VALIDATION_ONLY
-        );
-        assert_eq!(
-            exactly_one(graph.objects_lex(cell, CONFIDENCE), cell, "confidence"),
-            confidence
-        );
+        let r = records
+            .iter()
+            .find(|r| r.source == source && r.target == target)
+            .unwrap_or_else(|| panic!("missing YAMATO grounding cell {source} → {target}"));
+        assert_eq!(r.predicate, format!("{SKOS}closeMatch"));
+        assert_eq!(r.class, BRIDGE_VIEW);
+        assert_eq!(r.kind, COMMITMENT_SHIFTING);
+        assert_eq!(r.preservation, VALIDATION_ONLY);
+        assert_eq!(r.confidence, confidence);
     }
 }
 

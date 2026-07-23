@@ -10,84 +10,49 @@
 mod conformance_support;
 use conformance_support::*;
 
-use gmeow_validate::store::{parse_file_dataset, shacl_validate_dataset};
 use std::collections::BTreeSet;
 
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 
-const SOURCE_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
-const TARGET_ENDPOINT: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
-
 #[test]
-fn quantity_bridge_catalog_conforms_to_the_mapping_dsl() {
-    let shapes_ttl = std::fs::read_to_string(repo_root().join("shapes/mapping-dsl-shapes.ttl"))
-        .expect("mapping DSL shapes must be readable");
-    let shapes =
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("mapping DSL shapes must parse");
-    let catalog = parse_file_dataset(
-        &repo_root().join("slices/grounding/math/mappings/quantity-bridges.ttl"),
+fn quantity_bridge_catalog_transpiles_clean() {
+    // Alignment-cell well-formedness moved from the mapping SHACL (the deleted
+    // `TermEquivalenceShape`) into the fail-closed Rust correspondence transpiler; the math
+    // quantity bridge catalog must transpile clean (every cell carries its complete envelope).
+    let ttl = std::fs::read_to_string(
+        repo_root().join("slices/grounding/math/mappings/quantity-bridges.ttl"),
     )
-    .expect("quantity bridge catalog must parse");
-    let report = shacl_validate_dataset(&catalog, &shapes);
-    assert!(
-        report.conforms,
-        "complete math quantity bridges must conform: {:?}",
-        report.results
-    );
+    .expect("quantity bridge catalog must read");
+    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .expect("quantity bridge catalog must parse");
+    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
+    gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
+        &view, &view,
+    )
+    .expect("the math quantity bridge catalog must transpile clean");
 }
 
 #[test]
 fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
-    let catalog = GraphStore::parse_ttl_file(
+    // Native grounding cells (the align* cell node was deleted): read the reifier-preserving
+    // parse through the canonical `equivalence_cells` reader.
+    let cells = native_grounding_cells(
         &repo_root().join("slices/grounding/math/mappings/quantity-bridges.ttl"),
     );
-    let cells = catalog.subjects_of_type(GROUNDING_CORRESPONDENCE);
     assert!(!cells.is_empty(), "the quantity catalog must not be empty");
 
     let mut actual = BTreeSet::new();
-    for cell in cells {
-        assert!(
-            catalog.has(Some(&cell), Some(RDF_TYPE), Some(TERM_EQUIVALENCE)),
-            "{cell} must also be a gmeow:TermEquivalence frontend cell"
-        );
-        let source = exactly_one(catalog.objects(&cell, ALIGN_SUBJECT), &cell, "alignSubject");
-        let target = exactly_one(catalog.objects(&cell, ALIGN_OBJECT), &cell, "alignObject");
-        assert!(
-            source.starts_with(MATH),
-            "{cell} must be oriented from math:"
-        );
-        assert_eq!(
-            exactly_one(
-                catalog.objects(&cell, SOURCE_ENDPOINT),
-                &cell,
-                "sourceEndpoint"
-            ),
-            source,
-            "{cell} source endpoint must equal alignSubject"
-        );
-        assert_eq!(
-            exactly_one(
-                catalog.objects(&cell, TARGET_ENDPOINT),
-                &cell,
-                "targetEndpoint"
-            ),
-            target,
-            "{cell} target endpoint must equal alignObject"
-        );
-        exactly_one(
-            catalog.objects(&cell, MORPHISM_CLASS),
-            &cell,
-            "morphismClass",
-        );
-        exactly_one(catalog.objects(&cell, MORPHISM_KIND), &cell, "morphismKind");
-        exactly_one(
-            catalog.objects(&cell, PRESERVATION_KIND),
-            &cell,
-            "preservationKind",
-        );
-        exactly_one(catalog.objects_lex(&cell, CONFIDENCE), &cell, "confidence");
-        let file = exactly_one(catalog.objects_lex(&cell, SSSOM_FILE), &cell, "sssomFile");
-        actual.insert((source, target, file));
+    for c in &cells {
+        let source = c.source_endpoint.clone().unwrap_or_else(|| c.subject.clone());
+        let target = c.target_endpoint.clone().unwrap_or_else(|| c.obj.clone());
+        assert!(source.starts_with(MATH), "{source} must be oriented from math:");
+        assert_eq!(source, c.subject, "source endpoint must equal the match subject");
+        assert_eq!(target, c.obj, "target endpoint must equal the match object");
+        assert!(c.morphism_class.is_some(), "{source} requires a morphismClass");
+        assert!(c.morphism_kind.is_some(), "{source} requires a morphismKind");
+        assert!(c.preservation.is_some(), "{source} requires a preservationKind");
+        assert!(c.confidence.is_some(), "{source} requires a confidence");
+        actual.insert((source, target, c.sssom_file.clone()));
     }
 
     let expected = BTreeSet::from([
@@ -128,15 +93,29 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
         expected.difference(&actual).collect::<Vec<_>>()
     );
 
-    let observations = GraphStore::parse_ttl_file(
-        &repo_root().join("slices/core/observations/mappings/equivalences.ttl"),
-    );
-    for cell in observations.subjects_of_type(TERM_EQUIVALENCE) {
-        for source in observations.objects(&cell, ALIGN_SUBJECT) {
-            assert!(
-                source != format!("{MATH}Quantity") && source != format!("{MATH}quantityValue"),
-                "observation catalog re-authors math-owned source {source} in {cell}"
-            );
-        }
+    for c in native_cells(&repo_root().join("slices/core/observations/mappings/equivalences.ttl")) {
+        assert!(
+            c.subject != format!("{MATH}Quantity") && c.subject != format!("{MATH}quantityValue"),
+            "observation catalog re-authors math-owned source {} in a native alignment cell",
+            c.subject
+        );
     }
+}
+
+/// Every native alignment cell in `path`, via the canonical reader over a reifier-preserving
+/// parse (GraphStore flattens, dropping the reifier side tables the reader needs).
+fn native_cells(
+    path: &std::path::Path,
+) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
+    let ttl = std::fs::read_to_string(path).expect("read mapping catalog");
+    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("catalog must parse");
+    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
+    gmeow_logic_compile::projections::sssom::equivalence_cells(&view).expect("native cells must read")
+}
+
+/// Native grounding alignment cells (those carrying the `logic:GroundingCorrespondence` envelope).
+fn native_grounding_cells(
+    path: &std::path::Path,
+) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
+    native_cells(path).into_iter().filter(|c| c.grounding).collect()
 }
