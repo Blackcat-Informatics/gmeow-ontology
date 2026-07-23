@@ -75,6 +75,10 @@ mod physical;
 pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
+/// Verified PURREMB external-relation provider: a query-scoped nearest-neighbour relation
+/// over a fully verified embedding artifact, exposing retrieved RDF 1.2 identities to the
+/// native annotated relational evaluator as derived query inputs.
+pub mod purremb_relation;
 pub mod provenance;
 pub mod query_ir;
 pub mod reason;
