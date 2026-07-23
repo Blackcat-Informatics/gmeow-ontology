@@ -127,6 +127,9 @@ The public `gmeow mcp` server reads only the bundled `gmeow.gts` snapshot:
 | `llms_full(lang?)` | Return the complete inlined bundled vocabulary index |
 | `doc_card(term, lang?)` | Return a prompt-ready Markdown card for one term |
 | `okf_index(lang?)` | Return the OKF manifest JSON envelope |
+| `gmn_validate(gmn)` | Validate a GMN-1 document against the shipped codebook + validator tier; returns `{ok, conformant}` or the typed `lang:Gmn*Failure` class — the external LLM's entry to the GMN `@err` repair loop |
+| `gmn_expand(gmn)` | Expand a GMN-1 document to its GMN-0 normal form (alias/glyph → full IRI) as canonical N-Quads, with an internal round-trip witness |
+| `gmn_explain(glyph)` | Resolve a GMN operator glyph to its `lang:Denotation` + `gmnFixity`/`gmnPrecedence`/`gmnArity` and its controlled-NL gloss; an unknown glyph returns an honest typed miss |
 | `store_claim(text, source?, confidence?, according_to?, dry_run?)` | Append one attributed memory claim (executed as a transaction; `dry_run` for a non-committing sandbox run) |
 | `recall(query?, min_confidence?, limit?, include_suppressed?)` | Recall memory claims |
 | `revise_belief(claim_id, reason?, superseded_by?, dry_run?)` | Suppress a stale claim without deletion (the `store_claim` compensation; `dry_run` for a non-committing sandbox run) |
