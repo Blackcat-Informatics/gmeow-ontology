@@ -412,6 +412,12 @@ pub enum Commands {
         /// PURREMB MODE. Source-verification mode: `exact` or `certified`.
         #[arg(long = "source-mode", default_value = "certified")]
         source_mode: String,
+        /// PURREMB MODE. RDF 1.2 term kind of the corpus target rows, applied to
+        /// both the query and candidate columns: `iri` (default), `triple-term`,
+        /// or `literal`. A `triple-term` corpus is queried with a `<<( s p o )>>`
+        /// goal term and its candidates round-trip as quoted triples.
+        #[arg(long = "term-kind", default_value = "iri")]
+        term_kind: String,
         /// The provider relation IRI referenced by `--program` (fixed arity 2,
         /// both arguments IRIs). Table mode carries a
         /// `logic:SimilarityAnnotation`; PURREMB mode carries a
@@ -1353,6 +1359,7 @@ pub fn run() -> i32 {
             postprocessing,
             retrieval_policy,
             source_mode,
+            term_kind,
             relation,
             provider_iri,
             model_iri,
@@ -1379,6 +1386,7 @@ pub fn run() -> i32 {
                 postprocessing,
                 retrieval_policy,
                 source_mode,
+                term_kind,
                 relation,
                 provider_iri,
                 model_iri,
@@ -1409,6 +1417,7 @@ struct HybridQueryInputs {
     postprocessing: String,
     retrieval_policy: String,
     source_mode: String,
+    term_kind: String,
     relation: String,
     provider_iri: String,
     model_iri: String,
@@ -1506,6 +1515,7 @@ fn dispatch_hybrid_query(
                     postprocessing: &inputs.postprocessing,
                     retrieval_policy: &inputs.retrieval_policy,
                     source_mode: &inputs.source_mode,
+                    term_kind: &inputs.term_kind,
                     per_call_limit: inputs.per_call_limit,
                     max_calls: inputs.max_calls,
                     max_rows: inputs.max_rows,

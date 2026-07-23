@@ -22,8 +22,8 @@ use purrdf::{
     AppliedStage, ArtifactIdentity, ArtifactIdentityKind, CanonicalMetadataInput,
     CertifiedPurrpckSource, ContentDigest, DimensionalityPolicy, DistanceMetric, EmbeddingBuilder,
     EmbeddingFamilyContract, EmbeddingView, MatrixInput, MatrixRow, PrefixPostprocessing,
-    ProjectionSpec, RdfDatasetBuilder, RdfTermTarget, StageImplementation, TargetSet, VectorDtype,
-    verify_embedding,
+    ProjectionSpec, RdfDatasetBuilder, RdfGraphTarget, RdfStatementTarget, RdfTermTarget,
+    RelationKind, StageImplementation, TargetRelation, TargetSet, VectorDtype, verify_embedding,
 };
 
 /// Shared IRI namespace: `ex:` expands to this in the query program, so a target
@@ -191,6 +191,154 @@ fn build_fixture() -> Fixture {
     }
 }
 
+/// Build a tiny valid `.purremb` artifact of three RDF 1.2 statement (quoted-triple)
+/// targets sharing predicate `ex:p`, over a distinct-vector cosine matrix. Each statement
+/// reconstructs losslessly to a `TermValue::Triple`, so a bound in-corpus quoted-triple
+/// query resolves and the retrieved rows round-trip as `<<( s p o )>>` terms — the
+/// production-surface proof of the RDF 1.2 triple-term retrieval path.
+fn build_statement_fixture() -> Fixture {
+    let dataset = RdfDatasetBuilder::new()
+        .freeze()
+        .expect("empty RDF dataset");
+    let (source, source_bytes) =
+        CertifiedPurrpckSource::from_dataset(&dataset).expect("certified source pack");
+    let dataset_target = source.dataset_target(true).expect("dataset target");
+
+    let contract = family_contract();
+    let family = contract.derive().expect("derived family");
+
+    let graph = RdfGraphTarget {
+        dataset_id: dataset_target.id,
+        graph_name: None,
+    }
+    .into_target(true)
+    .expect("default graph target");
+    let predicate = RdfTermTarget::Iri(format!("{NS}p"))
+        .into_target(true, None)
+        .expect("predicate target");
+
+    let mut component_targets = vec![predicate.clone()];
+    let mut relations = Vec::new();
+    let mut statement_targets = Vec::new();
+    for index in 0..3u8 {
+        let subject = RdfTermTarget::Iri(format!("{NS}s{index}"))
+            .into_target(true, None)
+            .expect("subject target");
+        let object = RdfTermTarget::Iri(format!("{NS}o{index}"))
+            .into_target(true, None)
+            .expect("object target");
+        let statement = RdfStatementTarget {
+            graph: graph.id,
+            subject: subject.id,
+            predicate: predicate.id,
+            object: object.id,
+        }
+        .into_target(true, None)
+        .expect("statement target");
+        relations.push(TargetRelation::builtin(
+            graph.id,
+            RelationKind::GraphStatement,
+            statement.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementSubject,
+            subject.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementPredicate,
+            predicate.id,
+        ));
+        relations.push(TargetRelation::builtin(
+            statement.id,
+            RelationKind::StatementObject,
+            object.id,
+        ));
+        component_targets.push(subject);
+        component_targets.push(object);
+        statement_targets.push(statement);
+    }
+    relations.push(TargetRelation::builtin(
+        dataset_target.id,
+        RelationKind::DatasetGraph,
+        graph.id,
+    ));
+
+    let set = TargetSet::new(statement_targets.iter().map(|target| target.id).collect())
+        .expect("statement target set");
+
+    let mut targets = vec![dataset_target, graph];
+    targets.extend(component_targets);
+    targets.extend(statement_targets.iter().cloned());
+
+    let metadata = CanonicalMetadataInput {
+        source,
+        family_contracts: vec![contract],
+        targets,
+        target_sets: vec![set.clone()],
+        relations,
+        token_spans: Vec::new(),
+        external_bindings: Vec::new(),
+        indexes: Vec::new(),
+        extensions: Vec::new(),
+    };
+
+    // Distinct, non-zero rows so cosine distances are finite and the ordering is
+    // deterministic; s0 is the query so its own row is nearest.
+    let vectors = [[1.0_f32, 2.0], [2.0, 1.0], [3.0, 1.0]];
+    let rows = statement_targets
+        .iter()
+        .zip(vectors)
+        .map(|(target, vector)| MatrixRow::new(target.id, vector.to_vec()))
+        .collect();
+    let matrix = MatrixInput {
+        family_id: family.id,
+        target_set_id: set.id,
+        stored_dimension: 2,
+        rows,
+        projections: vec![ProjectionSpec::derive(
+            family.id,
+            2,
+            PrefixPostprocessing::None,
+        )],
+    };
+
+    let mut builder = EmbeddingBuilder::from_typed_metadata(metadata);
+    builder.add_f32_matrix(matrix);
+    let artifact_bytes = builder.build().expect("built PURREMB artifact").bytes;
+
+    let mut view = EmbeddingView::from_bytes(&artifact_bytes).expect("structural view");
+    verify_embedding(&mut view).expect("verified view");
+    let matrix_view = view.matrices().next().expect("one stored matrix");
+    let vector_space = view
+        .projections()
+        .next()
+        .expect("one effective projection")
+        .vector_space_id();
+    let identities = FixtureIdentities {
+        target_set: matrix_view.target_set_id().to_hex(),
+        family: matrix_view.family_id().to_hex(),
+        vector_space: vector_space.to_hex(),
+        matrix: matrix_view.id().to_hex(),
+    };
+
+    Fixture {
+        artifact_bytes,
+        source_bytes,
+        identities,
+    }
+}
+
+/// The triple-term query program: the goal binds every retrieved candidate statement to
+/// `C`, querying by the in-corpus quoted triple `<<( ex:s0 ex:p ex:o0 )>>`.
+fn statement_program_src() -> String {
+    format!(
+        ":- prefix(ex, '{NS}').\n\
+         ?- ex:rel/near(<<( ex:s0 ex:p ex:o0 )>>, C).\n"
+    )
+}
+
 /// The query program: an IDB rule fires the PURREMB relation for the bound
 /// in-corpus query IRI, and the goal binds every retrieved candidate IRI.
 fn program_src() -> String {
@@ -280,6 +428,62 @@ fn purremb_hybrid_query_prints_answers_and_retrieval_receipt() {
                 )))
                 .and(predicate::str::contains("policy=exact-full-space"))
                 .and(predicate::str::contains("source-mode=certified")),
+        );
+}
+
+/// A well-formed verified-PURREMB query over an RDF 1.2 statement (triple-term) corpus,
+/// selected with `--term-kind triple-term`: the shipped binary binds each retrieved
+/// candidate to its quoted-triple surface `<<( s p o )>>` and prints the retrieval receipt.
+/// This is the production-surface proof that non-IRI targets round-trip end-to-end.
+#[test]
+fn purremb_hybrid_query_triple_term_corpus_returns_quoted_triple_candidates() {
+    let fixture = build_statement_fixture();
+    let ids = &fixture.identities;
+    let tmp = tempfile::TempDir::new().expect("temp dir");
+    let purremb = tmp.path().join("corpus.purremb");
+    let source = tmp.path().join("corpus.purrpck");
+    let program = tmp.path().join("query.logic");
+    let facts = tmp.path().join("facts.ttl");
+    std::fs::write(&purremb, &fixture.artifact_bytes).expect("write artifact");
+    std::fs::write(&source, &fixture.source_bytes).expect("write source");
+    std::fs::write(&program, statement_program_src()).expect("write program");
+    std::fs::write(&facts, facts_ttl()).expect("write facts");
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--purremb")
+        .arg(&purremb)
+        .arg("--source")
+        .arg(&source)
+        .args(["--relation", RELATION])
+        .args(["--target-set", &ids.target_set])
+        .args(["--family", &ids.family])
+        .args(["--vector-space", &ids.vector_space])
+        .args(["--matrix", &ids.matrix])
+        .args(["--metric", "cosine"])
+        .args(["--effective-dimension", "2"])
+        .args(["--dtype", "f32"])
+        .args(["--postprocessing", "none"])
+        .args(["--retrieval-policy", "exact-full-space"])
+        .args(["--source-mode", "certified"])
+        .args(["--term-kind", "triple-term"])
+        .assert()
+        .success()
+        .stdout(
+            // The bound query is itself an in-corpus statement row, returned at distance
+            // zero; the candidate binds to its RDF 1.2 quoted-triple surface.
+            predicate::str::contains(
+                "answer C=<<( <https://example.org/s0> <https://example.org/p> \
+                 <https://example.org/o0> )>>",
+            )
+            .and(predicate::str::contains("annotation-distance="))
+            .and(predicate::str::contains("status Ok"))
+            .and(predicate::str::contains("purremb-receipt"))
+            .and(predicate::str::contains(format!("matrix={}", ids.matrix))),
         );
 }
 

@@ -1284,6 +1284,9 @@ pub struct PurrembHybridQuery<'a> {
     pub retrieval_policy: &'a str,
     /// Source-verification mode.
     pub source_mode: &'a str,
+    /// RDF 1.2 term kind of the corpus rows (both query and candidate columns):
+    /// `iri`, `triple-term`, or `literal`.
+    pub term_kind: &'a str,
     /// Ordered-prefix row limit pushed into the provider on each call.
     pub per_call_limit: usize,
     /// Deterministic operation-wide provider call budget.
@@ -1367,6 +1370,20 @@ fn parse_source_mode(value: &str) -> Result<SourceVerificationMode, String> {
         "certified" => Ok(SourceVerificationMode::Certified),
         other => Err(format!(
             "unknown source-verification mode '{other}' (expected exact or certified)"
+        )),
+    }
+}
+
+/// Resolve the `--term-kind` selector to the corpus's RDF 1.2 column kind, applied to
+/// both the query and candidate columns. A `triple-term` corpus is queried with a
+/// `<<( s p o )>>` goal term; `literal` selects any-datatype literal targets.
+fn parse_term_kind(value: &str) -> Result<ColumnKind, String> {
+    match value {
+        "iri" => Ok(ColumnKind::Iri),
+        "triple-term" => Ok(ColumnKind::TripleTerm),
+        "literal" => Ok(ColumnKind::Literal { datatype: None }),
+        other => Err(format!(
+            "unknown term kind '{other}' (expected iri, triple-term, or literal)"
         )),
     }
 }
@@ -1455,6 +1472,16 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
             );
         }
     };
+    let term_kind = match parse_term_kind(args.term_kind) {
+        Ok(kind) => kind,
+        Err(detail) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB selection: {detail}"),
+            );
+        }
+    };
     let policy = selection.policy;
 
     // The caller owns these byte buffers for the whole dispatch: the binding
@@ -1514,7 +1541,10 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
         generation_iri,
         args.model_iri,
         args.relation,
-        vec![ColumnKind::Iri, ColumnKind::Iri],
+        // Both slots carry the corpus term kind: `resolve_mode` chooses the candidate
+        // slot per call by bound-ness, so whichever slot is the candidate must gate the
+        // emitted target kind correctly.
+        vec![term_kind.clone(), term_kind],
         RelationAnnotationDimension::Distance,
         algebra_iri,
         ordering,
