@@ -29,13 +29,22 @@ use gmeow_lang_bridge::{
 };
 
 /// The grammar formalisms whose surface legs must all parse back to ONE canonical tree — the
-/// codec-precedence leg is asserted separately below. THIS is the single extension point:
-/// when the GBNF / Lark serializers land, add `Formalism::Gbnf` / `Formalism::Lark` here and
-/// every leg is held to the same canonical tree with no other change. The `gmn1-ecosystem`
-/// ontology names all five tree-producing views now
-/// (`gmeow:gmnViewCodec` / `Ebnf` / `Abnf` / `Gbnf` / `Lark`); the parse arms for GBNF/Lark
-/// do not exist yet, so they are deliberately NOT referenced here.
-const FORMALISMS: &[Formalism] = &[Formalism::Ebnf, Formalism::Abnf];
+/// codec-precedence leg is asserted separately below. The `gmn1-ecosystem` ontology names all
+/// four tree-producing surface views (`gmeow:gmnViewEbnf` / `Abnf` / `Gbnf` / `Lark`, beside
+/// the codec view), and all four serialize/parse arms now exist, so all four legs are held to
+/// the same canonical tree here. The graph-derived glyph grammar is a pure alternation of string
+/// terminals (`glyphToken ::= '…' | '…'`) — it carries none of the GBNF/Lark blocking constructs
+/// (no set-difference, bounded repetition, or left-recursion), so every formalism represents it
+/// faithfully and the four-way canonical-tree agreement below holds. (The FULL `gmn.ebnf` parser
+/// grammar carries a `#xD? #xA` hex terminal in its `EOL` production; hex codepoints render as
+/// fixed-width GBNF/Lark char-class escapes and round-trip faithfully, so the registry's GBNF/Lark
+/// PROJECTION of that whole grammar is a REAL Exact artifact — not a SoundUnder placeholder.)
+const FORMALISMS: &[Formalism] = &[
+    Formalism::Ebnf,
+    Formalism::Abnf,
+    Formalism::Gbnf,
+    Formalism::Lark,
+];
 
 /// Read a file relative to the lang slice root.
 fn lang_slice_file(rel: &str) -> Vec<u8> {

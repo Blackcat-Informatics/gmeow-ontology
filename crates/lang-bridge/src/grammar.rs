@@ -295,6 +295,74 @@ fn quote_terminal(f: Formalism, value: &str) -> String {
     }
 }
 
+/// Render a single Unicode codepoint (given as its hex-digit string, any width) as a GBNF/Lark
+/// character-class escape: `\xHH` for a codepoint ≤ 0xFF, `\uHHHH` for ≤ 0xFFFF, else
+/// `\UHHHHHHHH` — the fixed-width forms llama.cpp GBNF and Lark's Python-regex core both accept.
+/// The digits are re-derived from the codepoint VALUE, so `#xD` and `#x0D` both render `\x0D`; the
+/// inverse [`parse_single_codepoint_escape`] re-reads the codepoint and normalizes it back, so the
+/// leading-zero width the escape imposes is not part of identity.
+fn hex_codepoint_escape(hex_digits: &str) -> String {
+    match u32::from_str_radix(hex_digits, 16) {
+        Ok(cp) if cp <= 0xFF => format!("\\x{cp:02X}"),
+        Ok(cp) if cp <= 0xFFFF => format!("\\u{cp:04X}"),
+        Ok(cp) => format!("\\U{cp:08X}"),
+        // A hex string the parser accepted but that overflows u32 cannot denote a Unicode
+        // codepoint; keep the raw digits so nothing is invented (unreachable for parsed input).
+        Err(_) => format!("\\x{hex_digits}"),
+    }
+}
+
+/// Normalize a parsed codepoint hex string to its minimal uppercase spelling (leading zeros
+/// stripped): `0D` and `d` both become `D`. A hex terminal denotes a CODEPOINT, so leading zeros
+/// carry no information — normalizing on ingest is lossless and makes the fixed-width GBNF/Lark
+/// escape round-trip to the same [`RuleExpr::Hex`] the authored `#xD` lifts to.
+fn normalize_codepoint_hex(hex_digits: &str) -> String {
+    u32::from_str_radix(hex_digits, 16)
+        .map(|cp| format!("{cp:X}"))
+        .unwrap_or_else(|_| hex_digits.to_uppercase())
+}
+
+/// If `s` is EXACTLY one fixed-width GBNF/Lark codepoint escape (`\xHH`, `\uHHHH`, or
+/// `\UHHHHHHHH`), return its codepoint hex digits (normalized minimal-uppercase); else `None`.
+/// The exact-width, exact-shape check keeps a genuine character class (`a-z`, `^…`, a literal
+/// backslash member) from being mistaken for a codepoint escape.
+fn parse_single_codepoint_escape(s: &str) -> Option<String> {
+    let bytes = s.as_bytes();
+    if bytes.first() != Some(&b'\\') || bytes.len() < 2 {
+        return None;
+    }
+    let width = match bytes[1] {
+        b'x' => 2,
+        b'u' => 4,
+        b'U' => 8,
+        _ => return None,
+    };
+    let digits = &s[2..];
+    if digits.len() == width && digits.bytes().all(|b| b.is_ascii_hexdigit()) {
+        Some(normalize_codepoint_hex(digits))
+    } else {
+        None
+    }
+}
+
+/// Classify a GBNF/Lark character-class body: a lone codepoint escape lifts to
+/// [`RuleExpr::Hex`], an `escape-escape` pair to [`RuleExpr::Range`], and anything else is a
+/// verbatim [`RuleExpr::CharClass`] — the inverse of the GBNF/Lark serialization of those nodes.
+fn classify_gbnf_lark_class(body: &str) -> RuleExpr {
+    if let Some(cp) = parse_single_codepoint_escape(body) {
+        return RuleExpr::Hex(cp);
+    }
+    if let Some((lo, hi)) = body.split_once('-')
+        && let (Some(l), Some(h)) = (
+            parse_single_codepoint_escape(lo),
+            parse_single_codepoint_escape(hi),
+        )
+    {
+        return RuleExpr::Range(l, h);
+    }
+    RuleExpr::CharClass(body.to_owned())
+}
+
 /// Serialize one body expression under a formalism, wrapping in a grouping when the node's
 /// precedence falls below `parent_min`.
 fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) {
@@ -320,28 +388,59 @@ fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) 
                 out.push(']');
             }
         },
-        RuleExpr::Hex(h) => {
-            out.push_str(match f {
-                Formalism::Ebnf => "#x",
-                Formalism::Abnf => "%x",
-                // A bare hex terminal has no round-trip-faithful GBNF/Lark node; it is a
-                // blocking construct and the render gate emits no artifact, so serialization
-                // is never reached here.
-                Formalism::Gbnf | Formalism::Lark => unreachable!(
-                    "Hex is a GBNF/Lark blocking construct; the render gate emits no artifact"
-                ),
-            });
-            out.push_str(h);
-        }
-        RuleExpr::Range(lo, hi) => {
-            // Numeric ranges are an ABNF construct; an EBNF grammar carries ranges inside a
-            // `CharClass` instead, so an EBNF `Range` never arises from a parse.
-            debug_assert_eq!(f, Formalism::Abnf, "Range is an ABNF-only construct");
-            out.push_str("%x");
-            out.push_str(lo);
-            out.push('-');
-            out.push_str(hi);
-        }
+        RuleExpr::Hex(h) => match f {
+            Formalism::Ebnf => {
+                out.push_str("#x");
+                out.push_str(h);
+            }
+            Formalism::Abnf => {
+                out.push_str("%x");
+                out.push_str(h);
+            }
+            // GBNF spells a single codepoint terminal as a one-member character class carrying a
+            // fixed-width hex escape (`[\x0D]`) — the round-trip-faithful llama.cpp form.
+            Formalism::Gbnf => {
+                out.push('[');
+                out.push_str(&hex_codepoint_escape(h));
+                out.push(']');
+            }
+            // Lark spells it as a regex terminal over the same fixed-width escape (`/\x0D/`).
+            Formalism::Lark => {
+                out.push('/');
+                out.push_str(&hex_codepoint_escape(h));
+                out.push('/');
+            }
+        },
+        RuleExpr::Range(lo, hi) => match f {
+            // ABNF's native numeric range terminal (`%xLO-HI`).
+            Formalism::Abnf => {
+                out.push_str("%x");
+                out.push_str(lo);
+                out.push('-');
+                out.push_str(hi);
+            }
+            // GBNF / Lark spell a codepoint range as a two-endpoint character class over
+            // fixed-width hex escapes (`[\x0D-\x0A]` / `/[\x0D-\x0A]/`).
+            Formalism::Gbnf => {
+                out.push('[');
+                out.push_str(&hex_codepoint_escape(lo));
+                out.push('-');
+                out.push_str(&hex_codepoint_escape(hi));
+                out.push(']');
+            }
+            Formalism::Lark => {
+                out.push_str("/[");
+                out.push_str(&hex_codepoint_escape(lo));
+                out.push('-');
+                out.push_str(&hex_codepoint_escape(hi));
+                out.push_str("]/");
+            }
+            // An EBNF grammar carries codepoint ranges inside a `CharClass`, so an EBNF `Range`
+            // never arises from a parse.
+            Formalism::Ebnf => {
+                unreachable!("Range is not an EBNF construct (EBNF ranges live in a CharClass)")
+            }
+        },
         RuleExpr::Alt(parts) => {
             let sep = match f {
                 Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => " | ",
@@ -544,11 +643,12 @@ fn collect_refs(e: &RuleExpr, out: &mut BTreeSet<String>) {
 // registry's `abnf_blocking_constructs` gate for the two formalisms this module adds.
 
 /// Enumerate the constructs a canonical grammar carries that the GBNF surface cannot represent:
-/// the set-difference operator `A - B` (GBNF has no difference), a bare hex / numeric-range
-/// terminal, a bounded repetition (no round-trip-faithful GBNF node), and — crucially —
-/// LEFT-RECURSION, which a constrained-decode expander cannot enter. Empty ⇒ the grammar is
-/// within the GBNF-expressible, round-trip-faithful fragment. GBNF DOES express character
-/// classes (`[a-z]`, `[^…]`), so a [`RuleExpr::CharClass`] is never a blocker.
+/// the set-difference operator `A - B` (GBNF has no difference), a bounded repetition (no
+/// round-trip-faithful GBNF node), and — crucially — LEFT-RECURSION, which a constrained-decode
+/// expander cannot enter. Empty ⇒ the grammar is within the GBNF-expressible, round-trip-faithful
+/// fragment. GBNF DOES express character classes (`[a-z]`, `[^…]`) and codepoint terminals /
+/// ranges as fixed-width hex escapes (`[\x0D]`, `[\x0D-\x0A]`), so a [`RuleExpr::CharClass`],
+/// [`RuleExpr::Hex`], or [`RuleExpr::Range`] is never a blocker.
 pub fn gbnf_blocking_constructs(canon: &Grammar) -> Vec<String> {
     let mut out = Vec::new();
     for rule in &canon.rules {
@@ -567,9 +667,10 @@ pub fn gbnf_blocking_constructs(canon: &Grammar) -> Vec<String> {
 
 /// Enumerate the constructs a canonical grammar carries that the Lark surface cannot represent.
 /// Lark's blocking set is NARROWER than GBNF's: its Earley/LALR core handles left-recursion
-/// (never a blocker) and it expresses character classes natively as `/[…]/` regex terminals (a
-/// [`RuleExpr::CharClass`] is never a blocker). What remains is the set-difference operator
-/// `A - B`, a bare hex / numeric-range terminal, and a bounded repetition — none of which have
+/// (never a blocker) and it expresses character classes natively as `/[…]/` regex terminals, plus
+/// codepoint terminals / ranges as fixed-width regex escapes (`/\x0D/`, `/[\x0D-\x0A]/`), so a
+/// [`RuleExpr::CharClass`], [`RuleExpr::Hex`], or [`RuleExpr::Range`] is never a blocker. What
+/// remains is the set-difference operator `A - B` and a bounded repetition — neither of which has
 /// a round-trip-faithful Lark node in this codec. Empty ⇒ the grammar is Lark-expressible.
 pub fn lark_blocking_constructs(canon: &Grammar) -> Vec<String> {
     let mut out = Vec::new();
@@ -593,14 +694,6 @@ fn collect_surface_blockers(formalism: &str, rule: &str, e: &RuleExpr, out: &mut
             collect_surface_blockers(formalism, rule, a, out);
             collect_surface_blockers(formalism, rule, b, out);
         }
-        RuleExpr::Hex(h) => out.push(format!(
-            "rule '{rule}': bare hex terminal '#x{h}' has no round-trip-faithful {formalism} node \
-             (author it as a character class or literal)"
-        )),
-        RuleExpr::Range(lo, hi) => out.push(format!(
-            "rule '{rule}': numeric range terminal '%x{lo}-{hi}' has no round-trip-faithful \
-             {formalism} node (author it as a character class)"
-        )),
         RuleExpr::Repeat(min, max, x) => {
             out.push(format!(
                 "rule '{rule}': bounded repetition '{}*{}' has no round-trip-faithful {formalism} \
@@ -611,7 +704,13 @@ fn collect_surface_blockers(formalism: &str, rule: &str, e: &RuleExpr, out: &mut
             ));
             collect_surface_blockers(formalism, rule, x, out);
         }
-        RuleExpr::Ref(_) | RuleExpr::Terminal(_) | RuleExpr::CharClass(_) => {}
+        // A hex codepoint terminal and a codepoint range both render as a fixed-width GBNF/Lark
+        // char-class escape (`[\x0D]` / `[\x0D-\x0A]`) that round-trips exactly — never blockers.
+        RuleExpr::Ref(_)
+        | RuleExpr::Terminal(_)
+        | RuleExpr::CharClass(_)
+        | RuleExpr::Hex(_)
+        | RuleExpr::Range(_, _) => {}
         RuleExpr::Seq(parts) | RuleExpr::Alt(parts) => {
             for p in parts {
                 collect_surface_blockers(formalism, rule, p, out);
@@ -1102,7 +1201,10 @@ impl ExprParser {
     }
 
     /// Read a char-class body `[...]` verbatim up to the FIRST `]` (W3C EBNF classes do not
-    /// escape `]`; a backslash inside is a literal member).
+    /// escape `]`; a backslash inside is a literal member). Under GBNF the body is then
+    /// classified — a lone codepoint escape lifts to [`RuleExpr::Hex`], an `escape-escape` pair to
+    /// [`RuleExpr::Range`] — so the fixed-width GBNF hex forms round-trip; an EBNF class is always
+    /// a verbatim [`RuleExpr::CharClass`] (EBNF spells hex `#xNN`, never `\xNN`).
     fn parse_char_class(&mut self) -> Result<RuleExpr, IngestDiagnostic> {
         self.bump(); // '['
         let start = self.pos;
@@ -1110,11 +1212,21 @@ impl ExprParser {
             if c == ']' {
                 let body: String = self.chars[start..self.pos].iter().collect();
                 self.bump(); // ']'
-                return Ok(RuleExpr::CharClass(body));
+                return Ok(self.classify_class_body(body));
             }
             self.pos += 1;
         }
         Err(unmodeled("unterminated '[' character class".to_owned()))
+    }
+
+    /// Lift a bracketed class body to a [`RuleExpr`]: GBNF/Lark bodies are classified (a codepoint
+    /// escape → `Hex`, an escape range → `Range`, else `CharClass`); EBNF/ABNF bodies are always a
+    /// verbatim `CharClass`.
+    fn classify_class_body(&self, body: String) -> RuleExpr {
+        match self.formalism {
+            Formalism::Gbnf | Formalism::Lark => classify_gbnf_lark_class(&body),
+            Formalism::Ebnf | Formalism::Abnf => RuleExpr::CharClass(body),
+        }
     }
 
     /// Read a quoted terminal. EBNF/ABNF content is verbatim (the content never contains its own
@@ -1155,35 +1267,62 @@ impl ExprParser {
         Err(unmodeled(format!("unterminated {quote}-quoted terminal")))
     }
 
-    /// Read a Lark regex character-class terminal `/[…]/`: the only regex form this codec emits
-    /// (a [`RuleExpr::CharClass`] rendered under Lark). The class body between `[` and `]` is
-    /// retained verbatim, exactly as [`parse_char_class`](Self::parse_char_class) does, so a
-    /// Lark class round-trips to the same node an EBNF/GBNF `[…]` does. A `/…/` that is not a
-    /// bracketed class is not modeled (this codec never emits a general regex).
+    /// Read a Lark regex terminal `/…/`. Two shapes are emitted by this codec: a bracketed
+    /// character class `/[…]/` (a [`RuleExpr::CharClass`], or a `Range` when the body is an
+    /// `escape-escape` pair), and a bare fixed-width codepoint escape `/\xHH/` (a
+    /// [`RuleExpr::Hex`]). The class body is retained verbatim exactly as
+    /// [`parse_char_class`](Self::parse_char_class) does, so a Lark class round-trips to the same
+    /// node an EBNF/GBNF `[…]` does. Any other `/…/` is not modeled (this codec never emits a
+    /// general regex).
     fn parse_lark_regex_class(&mut self) -> Result<RuleExpr, IngestDiagnostic> {
         self.bump(); // '/'
-        if self.bump() != Some('[') {
-            return Err(unmodeled(
-                "Lark regex terminal is not a bracketed character class '/[…]/'".to_owned(),
-            ));
-        }
-        let start = self.pos;
-        while let Some(c) = self.peek() {
-            if c == ']' {
-                let body: String = self.chars[start..self.pos].iter().collect();
-                self.bump(); // ']'
-                if self.bump() != Some('/') {
-                    return Err(unmodeled(
-                        "Lark regex character class not closed with '/'".to_owned(),
-                    ));
+        match self.peek() {
+            Some('[') => {
+                self.bump(); // '['
+                let start = self.pos;
+                while let Some(c) = self.peek() {
+                    if c == ']' {
+                        let body: String = self.chars[start..self.pos].iter().collect();
+                        self.bump(); // ']'
+                        if self.bump() != Some('/') {
+                            return Err(unmodeled(
+                                "Lark regex character class not closed with '/'".to_owned(),
+                            ));
+                        }
+                        return Ok(classify_gbnf_lark_class(&body));
+                    }
+                    self.pos += 1;
                 }
-                return Ok(RuleExpr::CharClass(body));
+                Err(unmodeled(
+                    "unterminated Lark regex character class".to_owned(),
+                ))
             }
-            self.pos += 1;
+            // A single codepoint escape terminal `/\xHH/` — the round-trip form for a hex terminal.
+            Some('\\') => {
+                let start = self.pos;
+                while let Some(c) = self.peek() {
+                    if c == '/' {
+                        let body: String = self.chars[start..self.pos].iter().collect();
+                        self.bump(); // '/'
+                        return parse_single_codepoint_escape(&body).map(RuleExpr::Hex).ok_or_else(
+                            || {
+                                unmodeled(format!(
+                                    "Lark regex terminal '/{body}/' is not a single codepoint \
+                                     escape or a bracketed character class"
+                                ))
+                            },
+                        );
+                    }
+                    self.pos += 1;
+                }
+                Err(unmodeled("unterminated Lark regex terminal".to_owned()))
+            }
+            _ => Err(unmodeled(
+                "Lark regex terminal is not a bracketed character class '/[…]/' or a codepoint \
+                 escape '/\\xHH/'"
+                    .to_owned(),
+            )),
         }
-        Err(unmodeled(
-            "unterminated Lark regex character class".to_owned(),
-        ))
     }
 
     /// Read an EBNF `#xNN` hexadecimal terminal.

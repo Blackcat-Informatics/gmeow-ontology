@@ -68,10 +68,23 @@ fn every_emission_worthy_class_maps_to_a_registered_target() {
     }
     // An unlisted class is a hard fail, never a silent gap.
     assert!(assert_registry_covers("Nonexistent").is_err());
-    // Every registered target name is one of the four this task ships.
+    // Every registered target name is one this project ships (the four grammar surfaces plus
+    // the lexical/morphosyntax targets).
     let names: Vec<&str> = registry().iter().map(|t| t.name()).collect();
-    for expected in ["ontolex-lemon", "conllu", "ebnf", "abnf"] {
+    for expected in ["ontolex-lemon", "conllu", "ebnf", "abnf", "gbnf", "lark"] {
         assert!(names.contains(&expected), "missing target {expected}");
+    }
+    // Functor totality for Grammar now demands ALL FOUR grammar surfaces — dropping GBNF or Lark
+    // is a hard fail, not a silent loss of that constrained-decode surface.
+    let (_, grammar_targets) = EMISSION_WORTHY_CLASSES
+        .iter()
+        .find(|(c, _)| *c == "Grammar")
+        .expect("Grammar is emission-worthy");
+    for surface in ["ebnf", "abnf", "gbnf", "lark"] {
+        assert!(
+            grammar_targets.contains(&surface),
+            "Grammar coverage must demand the {surface} surface"
+        );
     }
 }
 
@@ -164,6 +177,198 @@ fn abnf_target_is_honest_lossy_for_char_class_grammars() {
         "the EBNF character classes must be enumerated unsupported"
     );
     assert!(!e.round_trip_holds);
+}
+
+// ── GBNF / Lark: version-keyed GMN glyph-grammar surfaces ───────────────────────────
+
+/// A representable GMN glyph grammar (pure alternation of string-terminal glyphs, an entry rule
+/// referencing it) — no hex, numeric-range, set-difference, bounded repetition, or left-recursion,
+/// so it is faithful under BOTH the GBNF and Lark surfaces. Named `gmn` because the GBNF/Lark
+/// targets are scoped to the graph-derived `gmn` glyph grammar alone.
+const GMN_REPRESENTABLE_EBNF: &str = "gmnDoc ::= glyphToken\nglyphToken ::= '+' | 'π' | '¬'\n";
+/// A GMN grammar whose `EOL` production carries the `#xD? #xA` hex terminals the real
+/// `grammars/gmn.ebnf` uses — a hex codepoint terminal, which BOTH surfaces render as a
+/// fixed-width char-class escape (`[\x0D]` / `/\x0D/`) and round-trip faithfully.
+const GMN_HEX_EBNF: &str =
+    "gmnDoc ::= glyphToken EOL\nglyphToken ::= '+' | 'π'\nEOL ::= #xD? #xA\n";
+/// A GMN grammar carrying the set-difference operator `A - B` — the genuinely unrepresentable
+/// construct (neither surface has a difference operator), so its projection is an honest
+/// SoundUnder with NO artifact. This keeps the registry's SoundUnder path falsifiable now that
+/// hex/range are representable.
+const GMN_DIFF_EBNF: &str =
+    "gmnDoc ::= glyphToken body\nglyphToken ::= '+' | 'π'\nbody ::= any - '\"'\nany ::= [a-z]\n";
+
+#[test]
+fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragment() {
+    for surface in ["gbnf", "lark"] {
+        let input = LangProjectionInput {
+            grammars: vec![NamedSource {
+                name: "gmn".to_owned(),
+                bytes: GMN_REPRESENTABLE_EBNF.as_bytes().to_vec(),
+            }],
+            gmn_dialect_major: Some("1".to_owned()),
+            ..Default::default()
+        };
+        let emissions = target(surface).emit(&input).expect("emit");
+        assert_eq!(emissions.len(), 1, "{surface}: one gmn glyph-grammar emission");
+        let e = &emissions[0];
+        // Representable ⇒ exact correspondence, measured round-trip, structural-inverse leg pair.
+        assert!(
+            is_exact_correspondence(&e.correspondence),
+            "{surface}: a representable glyph grammar carries an exact correspondence"
+        );
+        assert!(e.round_trip_holds, "{surface}: the re-parse must be isomorphic");
+        let (get, put) = e.leg_pair.as_ref().expect("leg pair");
+        assert!(exact_round_trip_holds(get, put), "{surface}: put ∘ get = id");
+        // The artifact is keyed UNDER the version subtree (gmn1/v<major>/<surface>/gmn.<surface>),
+        // never the flat surface path the EBNF/ABNF targets use.
+        let artifact = e.artifacts.first().expect("one artifact");
+        assert_eq!(
+            artifact.path_suffix,
+            format!("gmn1/v1/{surface}/gmn.{surface}"),
+            "{surface}: artifact lives under the version-keyed GMN subtree"
+        );
+        assert!(!artifact.is_rdf, "{surface}: a grammar surface is not RDF");
+        // The emitted grammar CARRIES the graph-derived glyph production and every glyph.
+        let text = std::str::from_utf8(&artifact.bytes).unwrap();
+        assert!(
+            text.contains("glyphToken"),
+            "{surface}: the glyph production is present:\n{text}"
+        );
+        for glyph in ["+", "π", "¬"] {
+            assert!(text.contains(glyph), "{surface}: missing {glyph:?} in:\n{text}");
+        }
+        // Re-parses to the SAME canonical tree as the EBNF source (identity is the tree).
+        let formalism = if surface == "gbnf" {
+            Formalism::Gbnf
+        } else {
+            Formalism::Lark
+        };
+        let reparsed = parse_grammar(&artifact.bytes, formalism).expect("re-parse");
+        let source = EbnfBridge.to_grammar(GMN_REPRESENTABLE_EBNF.as_bytes()).unwrap();
+        assert_eq!(reparsed.canonicalize().rules, source.canonicalize().rules);
+    }
+}
+
+#[test]
+fn gbnf_and_lark_emit_versioned_exact_artifact_for_the_hex_bearing_real_gmn_shape() {
+    for surface in ["gbnf", "lark"] {
+        let input = LangProjectionInput {
+            grammars: vec![NamedSource {
+                name: "gmn".to_owned(),
+                bytes: GMN_HEX_EBNF.as_bytes().to_vec(),
+            }],
+            gmn_dialect_major: Some("1".to_owned()),
+            ..Default::default()
+        };
+        let e = &target(surface).emit(&input).expect("emit")[0];
+        // Representable ⇒ exact correspondence and a measured round-trip: the `#xD? #xA` hex line
+        // renders as fixed-width char-class escapes that reparse to the SAME tree.
+        assert!(
+            is_exact_correspondence(&e.correspondence),
+            "{surface}: the hex-bearing gmn grammar is representable and exact"
+        );
+        assert_eq!(e.lossy_kind, PreservationKind::Exact);
+        assert!(e.round_trip_holds, "{surface}: the re-parse must be isomorphic");
+        let artifact = e.artifacts.first().expect("one artifact");
+        assert_eq!(
+            artifact.path_suffix,
+            format!("gmn1/v1/{surface}/gmn.{surface}"),
+            "{surface}: the hex-bearing grammar ships a real versioned artifact"
+        );
+        // The hex escapes are present in BOTH directions (rendered, and re-parseable to `Hex`).
+        let text = std::str::from_utf8(&artifact.bytes).unwrap();
+        let cr_escape = if surface == "gbnf" { "[\\x0D]" } else { "/\\x0D/" };
+        assert!(
+            text.contains(cr_escape),
+            "{surface}: the `#xD` terminal renders as {cr_escape}:\n{text}"
+        );
+        let formalism = if surface == "gbnf" {
+            Formalism::Gbnf
+        } else {
+            Formalism::Lark
+        };
+        let reparsed = parse_grammar(&artifact.bytes, formalism).expect("re-parse");
+        let source = EbnfBridge.to_grammar(GMN_HEX_EBNF.as_bytes()).unwrap();
+        assert_eq!(
+            reparsed.canonicalize().rules,
+            source.canonicalize().rules,
+            "{surface}: the hex-bearing artifact re-parses to the SAME canonical tree"
+        );
+    }
+}
+
+#[test]
+fn gbnf_and_lark_are_honest_soundunder_for_a_difference_bearing_gmn_grammar() {
+    for surface in ["gbnf", "lark"] {
+        let input = LangProjectionInput {
+            grammars: vec![NamedSource {
+                name: "gmn".to_owned(),
+                bytes: GMN_DIFF_EBNF.as_bytes().to_vec(),
+            }],
+            gmn_dialect_major: Some("1".to_owned()),
+            ..Default::default()
+        };
+        let e = &target(surface).emit(&input).expect("emit")[0];
+        // NOT exact — the set-difference operator has no round-trip-faithful GBNF/Lark node.
+        assert!(!is_exact_correspondence(&e.correspondence), "{surface}: lossy");
+        assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
+        // No fabricated artifact — a partial rendering that cannot round-trip is never emitted.
+        assert!(
+            e.artifacts.is_empty(),
+            "{surface}: a non-expressible grammar emits no artifact"
+        );
+        // The blocking construct is enumerated (carried and flagged, never a silent skip).
+        assert!(
+            e.unsupported.iter().any(|u| u.contains("set-difference")),
+            "{surface}: the set-difference operator must be enumerated unsupported: {:?}",
+            e.unsupported
+        );
+        assert!(!e.round_trip_holds);
+    }
+}
+
+#[test]
+fn gbnf_and_lark_hard_fail_when_the_version_major_is_absent() {
+    for surface in ["gbnf", "lark"] {
+        // A gmn glyph grammar is present but the graph-resolved dialect major is not — the
+        // version-keyed path is a mandatory capability, so this is a HARD FAIL, never a default.
+        let input = LangProjectionInput {
+            grammars: vec![NamedSource {
+                name: "gmn".to_owned(),
+                bytes: GMN_REPRESENTABLE_EBNF.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        let error = target(surface)
+            .emit(&input)
+            .expect_err("a version-keyed GMN surface cannot default its major");
+        assert_eq!(error.failure_class, LangFailure::SilentIngestDrop);
+        assert!(
+            error.construct.contains("dialect major is absent"),
+            "{surface}: the missing major must hard-fail explicitly: {error:?}"
+        );
+    }
+}
+
+#[test]
+fn gbnf_and_lark_fold_a_no_source_row_when_no_gmn_grammar_is_present() {
+    for surface in ["gbnf", "lark"] {
+        // No `gmn` grammar in the composed model ⇒ honest empty emission (the driver folds one
+        // no-source row); crucially NOT a hard fail on the absent major.
+        let input = LangProjectionInput {
+            grammars: vec![NamedSource {
+                name: "turtle".to_owned(),
+                bytes: TURTLE_EBNF.as_bytes().to_vec(),
+            }],
+            ..Default::default()
+        };
+        let emissions = target(surface).emit(&input).expect("emit");
+        assert!(
+            emissions.is_empty(),
+            "{surface}: no gmn grammar ⇒ no emission (turtle is not a GMN constrained-decode surface)"
+        );
+    }
 }
 
 // ── OntoLex: SoundUnder, DERIVED from the lossy-lens correspondence ─────────────────

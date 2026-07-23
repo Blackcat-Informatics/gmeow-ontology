@@ -662,6 +662,145 @@ mod tests {
         }
     }
 
+    /// The subject IRI of the `lang:ProjectionEmission` record carrying
+    /// `lang:projectionTargetName "<target>"` in the sorted N-Triples corpus.
+    fn emission_subject_for(nt: &str, target: &str) -> String {
+        let needle = format!(" <{}> \"{target}\" .", iri(LANG_NS, "projectionTargetName"));
+        let line = nt
+            .lines()
+            .find(|l| l.ends_with(&needle))
+            .unwrap_or_else(|| panic!("no projection emission for target {target:?}"));
+        line[..line.find(' ').unwrap()]
+            .trim_matches(|c| c == '<' || c == '>')
+            .to_owned()
+    }
+
+    /// The GBNF/Lark projection targets lower the SAME graph-derived `gmn` glyph-grammar bytes the
+    /// EBNF target lifts. The real `grammars/gmn.ebnf` carries a `#xD? #xA` hex terminal in its
+    /// `EOL` production — a hex codepoint terminal both surfaces render as a fixed-width char-class
+    /// escape (`[\x0D]` / `/\x0D/`) — so the WHOLE grammar is GBNF- and Lark-expressible and ships
+    /// a REAL constrained-decode artifact under `gmn1/v<major>/<surface>/gmn.<surface>`. This is
+    /// the flagship req-#12 deliverable: a genuine, usable constrained-decode grammar, never a
+    /// SoundUnder placeholder.
+    #[test]
+    fn gbnf_and_lark_project_the_graph_derived_gmn_grammar_as_real_constrained_decode_artifacts() {
+        use gmeow_lang_bridge::{Formalism, distinguished_rule, parse_grammar};
+
+        let catalog = repo_catalog();
+        let input = collect_input(Some(&catalog)).expect("collect projection input");
+        let dictionary = input
+            .gmn_dictionary
+            .as_ref()
+            .expect("grounding/lang supplies the one carrier GMN dictionary");
+        let expected_production = dictionary.glyph_registry().render_glyph_token_production();
+        let major = input
+            .gmn_dialect_major
+            .as_deref()
+            .expect("grounding/lang supplies the graph-resolved GMN dialect major");
+        let corpus = build_corpus(Some(&catalog)).expect("build projection corpus");
+        let nt = String::from_utf8(corpus.ntriples.clone()).expect("utf8");
+
+        // Positive control: the graph-derived closed glyph production DOES flow into the projected
+        // gmn grammar (the EBNF artifact carries it verbatim) — so the GBNF/Lark artifacts below
+        // are of the SAME graph-derived grammar, never a fallback-leaking one.
+        let ebnf = corpus
+            .artifacts
+            .iter()
+            .find(|(path, _)| path == "generated/projections/lang/ebnf/gmn.ebnf")
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+            .expect("the generated GMN EBNF artifact exists");
+        assert!(
+            ebnf.lines().any(|line| line == expected_production),
+            "the EBNF projection must carry the graph-derived glyph production:\n{ebnf}"
+        );
+        assert!(
+            !ebnf.contains("math__Addition"),
+            "no prefix-fallback leakage in the graph-derived production:\n{ebnf}"
+        );
+
+        // The distinguished start symbol the constrained-decode consumer resolves — derived from
+        // the SAME canonical tree the projection serializes (led-first in the artifact).
+        let source_grammar =
+            gmeow_lang_bridge::EbnfBridge.to_grammar(ebnf.as_bytes()).expect("gmn EBNF re-parses");
+        let entry = distinguished_rule(&source_grammar.canonicalize());
+
+        for (surface, ext, formalism) in [
+            ("gbnf", "gbnf", Formalism::Gbnf),
+            ("lark", "lark", Formalism::Lark),
+        ] {
+            // The REAL deliverable: an ACTUAL artifact under the version-keyed subtree.
+            let versioned = format!("generated/projections/lang/gmn1/v{major}/{surface}/gmn.{ext}");
+            let artifact = corpus
+                .artifacts
+                .iter()
+                .find(|(p, _)| *p == versioned)
+                .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+                .unwrap_or_else(|| {
+                    panic!("the {surface} constrained-decode artifact must ship at {versioned}")
+                });
+
+            // It carries the graph-derived glyph production (every glyph present) and NO
+            // prefix-fallback leakage.
+            assert!(
+                artifact.lines().any(|l| l.trim_start().starts_with("glyphToken")),
+                "the {surface} artifact must carry the glyphToken production:\n{artifact}"
+            );
+            for glyph in ["+", "π", "¬", "*"] {
+                assert!(
+                    artifact.contains(glyph),
+                    "the {surface} artifact is missing graph-derived glyph {glyph:?}:\n{artifact}"
+                );
+            }
+            assert!(
+                !artifact.contains("math__Addition"),
+                "no prefix-fallback leakage in the {surface} artifact:\n{artifact}"
+            );
+
+            // It is a valid constrained-decode grammar: the distinguished start/root rule leads
+            // the file (the entry every GBNF `root` / Lark `start` consumer resolves from).
+            let first_rule_line = artifact
+                .lines()
+                .find(|l| !l.trim().is_empty())
+                .expect("a rule line");
+            assert!(
+                first_rule_line.starts_with(&entry),
+                "the {surface} artifact must lead with the distinguished start rule {entry:?}, \
+                 got: {first_rule_line}"
+            );
+
+            // It genuinely re-parses to the SAME canonical tree as the graph-derived source — a
+            // measured round-trip, not a declared one.
+            let reparsed = parse_grammar(artifact.as_bytes(), formalism)
+                .unwrap_or_else(|d| panic!("the {surface} artifact must re-parse: {d:?}"));
+            assert_eq!(
+                reparsed.canonicalize().rules,
+                source_grammar.canonicalize().rules,
+                "the {surface} artifact must re-parse to the graph-derived canonical tree"
+            );
+
+            // The ledger records an EXACT emission with a measured-true round-trip (never a
+            // SoundUnder placeholder for the flagship deliverable).
+            let subject = emission_subject_for(&nt, surface);
+            assert!(
+                nt.contains(&triple(
+                    &subject,
+                    &iri(LOGIC_NS, "preservationKind"),
+                    &PreservationKind::Exact.iri()
+                )),
+                "the {surface} emission must record Exact preservation"
+            );
+            assert!(
+                nt.contains(&triple_typed(
+                    &subject,
+                    &iri(LANG_NS, "roundTripHolds"),
+                    "true",
+                    XSD_BOOLEAN
+                )),
+                "the {surface} emission's round-trip is measured true"
+            );
+        }
+    }
+
     #[test]
     fn ontolex_forward_projects_the_lexeme_inventory() {
         let catalog = repo_catalog();

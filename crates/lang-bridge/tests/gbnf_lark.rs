@@ -17,9 +17,15 @@
 //!    cannot enter) yields an ENUMERATED blocking entry and NO artifact — never a fabricated
 //!    best-effort rendering. Lark's blocking set is genuinely narrower (its Earley/LALR core
 //!    handles left-recursion), which the same grammars make falsifiable.
+//!
+//! 3. **Hex codepoints and codepoint ranges ARE representable.** Both surfaces express a hex
+//!    terminal (`#xD`) and a codepoint range as fixed-width char-class escapes (GBNF `[\x0D]` /
+//!    `[\x0D-\x0A]`, Lark `/\x0D/` / `/[\x0D-\x0A]/`), so they round-trip faithfully and are never
+//!    blockers — the real `grammars/gmn.ebnf` (whose `EOL ::= #xD? #xA` production carries hex) is
+//!    therefore fully GBNF- and Lark-projectable.
 
 use gmeow_lang_bridge::{
-    Formalism, Grammar, GrammarRule, distinguished_rule, gbnf_blocking_constructs,
+    Formalism, Grammar, GrammarRule, RuleExpr, distinguished_rule, gbnf_blocking_constructs,
     lark_blocking_constructs, parse_grammar, serialize_grammar,
 };
 
@@ -33,8 +39,8 @@ fn base(ebnf: &str) -> Grammar {
 
 /// The representative, cross-formalism-expressible grammars — every construct here is within
 /// BOTH the GBNF and Lark surfaces (refs, string literals, character classes, alternation,
-/// sequence, `*` / `+` / `?`, and precedence-forcing groups). No set-difference, no bare hex,
-/// no bounded repetition, no left-recursion, so neither formalism blocks them.
+/// sequence, `*` / `+` / `?`, precedence-forcing groups, AND hex codepoint terminals). No
+/// set-difference, no bounded repetition, no left-recursion, so neither formalism blocks them.
 fn representative_rules() -> Vec<Vec<GrammarRule>> {
     vec![
         // Precedence stress: a lower-binding child nested in a tighter context only round-trips
@@ -49,6 +55,28 @@ fn representative_rules() -> Vec<Vec<GrammarRule>> {
         base("list ::= item list?\nitem ::= 'x'\n").rules,
         // Nested repetition over a grouped sequence: `term (op term)*`.
         base("expr ::= term (op term)*\nterm ::= 'n'\nop ::= '+' | '-'\n").rules,
+        // Bare hex codepoint terminals under `?` and juxtaposition — the SHAPE of the real
+        // `gmn.ebnf` `EOL ::= #xD? #xA` line, projected as fixed-width char-class escapes. `#x203F`
+        // (> 0xFF) exercises the 4-digit `\u` escape width. Hex is spelled MINIMALLY here (the
+        // canonical codepoint spelling), so it round-trips to the identical `Hex` node.
+        base("eol ::= cr? lf\ncr ::= #xD\nlf ::= #xA\nwide ::= #x203F\n").rules,
+    ]
+}
+
+/// A grammar carrying a codepoint RANGE node (`Range`). Ranges only arise from an ABNF-authored
+/// `%xLO-HI` (an EBNF author writes ranges inside a `CharClass`), so the range grammar is built
+/// on the shared `RuleExpr` tree directly — the surface views must still render `[\xLO-\xHI]` /
+/// `/[\xLO-\xHI]/` and reparse it to the SAME `Range`.
+fn range_rules() -> Vec<GrammarRule> {
+    vec![
+        GrammarRule {
+            name: "ascii".to_owned(),
+            body: RuleExpr::Range("20".to_owned(), "7E".to_owned()),
+        },
+        GrammarRule {
+            name: "digit".to_owned(),
+            body: RuleExpr::Range("30".to_owned(), "39".to_owned()),
+        },
     ]
 }
 
@@ -73,7 +101,9 @@ fn assert_round_trip(base_rules: &[GrammarRule], formalism: Formalism) {
 
 #[test]
 fn gbnf_and_lark_round_trip_via_shared_tree() {
-    for rules in representative_rules() {
+    let mut corpus = representative_rules();
+    corpus.push(range_rules());
+    for rules in corpus {
         // Guard the premise: a representative grammar blocks under NEITHER formalism, so the
         // round-trip below is genuinely exercising the surface, not a vacuous skip.
         let canon = Grammar {
@@ -94,6 +124,93 @@ fn gbnf_and_lark_round_trip_via_shared_tree() {
         assert_round_trip(&rules, Formalism::Gbnf);
         assert_round_trip(&rules, Formalism::Lark);
     }
+}
+
+/// Hex codepoint terminals and codepoint ranges are NOT blockers for either surface: each renders
+/// as a fixed-width char-class escape and PARSES BACK to the SAME `Hex` / `Range` node. This is
+/// the property that makes the real `gmn.ebnf` (`EOL ::= #xD? #xA`) a genuine GBNF/Lark
+/// constrained-decode deliverable rather than an honest SoundUnder.
+#[test]
+fn hex_and_range_round_trip_faithfully_through_gbnf_and_lark() {
+    // The EOL-shaped hex grammar, canonical (minimal codepoint spellings).
+    let hex = base("eol ::= cr? lf\ncr ::= #xD\nlf ::= #xA\nwide ::= #x203F\n");
+    let range = Grammar {
+        formalism: Formalism::Ebnf,
+        rules: range_rules(),
+    }
+    .canonicalize();
+
+    for canon in [&hex, &range] {
+        assert!(
+            gbnf_blocking_constructs(canon).is_empty(),
+            "hex/range must not block GBNF: {:?}",
+            gbnf_blocking_constructs(canon)
+        );
+        assert!(
+            lark_blocking_constructs(canon).is_empty(),
+            "hex/range must not block Lark: {:?}",
+            lark_blocking_constructs(canon)
+        );
+        for formalism in [Formalism::Gbnf, Formalism::Lark] {
+            assert_round_trip(&canon.rules, formalism);
+        }
+    }
+
+    // The exact escape SPELLING each surface emits, both directions — the hex terminal `#xD`
+    // (codepoint 0x0D, a 2-digit `\x` escape), `#x203F` (a 4-digit `\u` escape), and a
+    // `0x20-0x7E` range.
+    let gbnf = serialize_grammar(&Grammar {
+        formalism: Formalism::Gbnf,
+        rules: hex.rules.clone(),
+    });
+    assert!(gbnf.contains("[\\x0D]"), "GBNF hex escape for #xD:\n{gbnf}");
+    assert!(
+        gbnf.contains("[\\u203F]"),
+        "GBNF 4-digit hex escape for #x203F:\n{gbnf}"
+    );
+    let lark = serialize_grammar(&Grammar {
+        formalism: Formalism::Lark,
+        rules: hex.rules.clone(),
+    });
+    assert!(lark.contains("/\\x0D/"), "Lark hex escape for #xD:\n{lark}");
+    assert!(
+        lark.contains("/\\u203F/"),
+        "Lark 4-digit hex escape for #x203F:\n{lark}"
+    );
+
+    // Non-minimal authoring (`#x00B7`) normalizes losslessly on GBNF ingest: it renders to the
+    // codepoint's minimal escape (`[\xB7]`) and reparses to the codepoint-equal `Hex("B7")`.
+    let nonminimal = base("wide ::= #x00B7\n");
+    let gbnf_nm = serialize_grammar(&Grammar {
+        formalism: Formalism::Gbnf,
+        rules: nonminimal.rules.clone(),
+    });
+    assert!(
+        gbnf_nm.contains("[\\xB7]"),
+        "non-minimal #x00B7 renders as the minimal codepoint escape:\n{gbnf_nm}"
+    );
+    let reparsed = parse_grammar(gbnf_nm.as_bytes(), Formalism::Gbnf).expect("reparse");
+    assert_eq!(
+        reparsed.rules[0].body,
+        RuleExpr::Hex("B7".to_owned()),
+        "the GBNF ingest normalizes the codepoint to its minimal spelling"
+    );
+    let gbnf_range = serialize_grammar(&Grammar {
+        formalism: Formalism::Gbnf,
+        rules: range.rules.clone(),
+    });
+    assert!(
+        gbnf_range.contains("[\\x20-\\x7E]"),
+        "GBNF range escape:\n{gbnf_range}"
+    );
+    let lark_range = serialize_grammar(&Grammar {
+        formalism: Formalism::Lark,
+        rules: range.rules.clone(),
+    });
+    assert!(
+        lark_range.contains("/[\\x20-\\x7E]/"),
+        "Lark range escape:\n{lark_range}"
+    );
 }
 
 /// The GBNF (and Lark) render decision, mirroring the registry's ABNF gate: a blocked grammar

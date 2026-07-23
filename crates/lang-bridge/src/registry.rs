@@ -35,8 +35,9 @@ use crate::gmn1_codec::{
 };
 use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
 use crate::grammar::{
-    EbnfBridge, Formalism, Grammar, RuleExpr, grammar_correspondence, grammar_leg_pair,
-    grammar_to_ntriples, parse_grammar, serialize_grammar,
+    EbnfBridge, Formalism, Grammar, RuleExpr, gbnf_blocking_constructs, grammar_correspondence,
+    grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
+    serialize_grammar,
 };
 use crate::nif::NifBridge;
 use crate::ontolex::OntoLexTarget;
@@ -173,6 +174,8 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
         Box::new(ConlluTarget),
         Box::new(EbnfTarget),
         Box::new(AbnfTarget),
+        Box::new(GbnfTarget),
+        Box::new(LarkTarget),
         Box::new(TeiBridge),
         Box::new(NifBridge),
         Box::new(SemafBridge),
@@ -185,7 +188,7 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
 /// cover it (functor totality). The registry-completeness gate asserts each class maps to
 /// ≥1 registered target; extend this as Tasks 3–4 add targets (TEI/NIF/SemAF/BCP-47/…).
 pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
-    ("Grammar", &["ebnf", "abnf"]),
+    ("Grammar", &["ebnf", "abnf", "gbnf", "lark"]),
     ("Lexeme", &["ontolex-lemon"]),
     // A composed form lowers to the CoNLL-U morphosyntax surface AND (document-scale) to TEI.
     ("ComposedForm", &["conllu", "tei"]),
@@ -373,6 +376,175 @@ impl LangProjectionTarget for AbnfTarget {
             }
         }
         Ok(emissions)
+    }
+}
+
+// ── GBNF / Lark (GMN constrained-decode surfaces) ──────────────────────────────────
+
+/// The GBNF grammar projection target (llama.cpp constrained-decode notation): renders the
+/// GRAPH-DERIVED GMN glyph grammar — the SAME render-substituted `gmn` bytes the EBNF/ABNF
+/// targets lift from `input.grammars` — into GBNF. GBNF is a GMN-ecosystem surface, so its
+/// artifact lives under the version-keyed `gmn1/v<major>/gbnf/…` subtree, never the flat
+/// `gbnf/…` path the EBNF/ABNF targets use. A grammar carrying a construct GBNF cannot round-trip
+/// (set-difference, a bare hex / numeric-range terminal, a bounded repetition, or left-recursion —
+/// see [`gbnf_blocking_constructs`]) is an honest [`PreservationKind::SoundUnder`] emission
+/// enumerating those constructs and emitting NO artifact, mirroring [`AbnfTarget`]'s blocking
+/// branch — never a fabricated best-effort GBNF that would not round-trip.
+struct GbnfTarget;
+
+impl LangProjectionTarget for GbnfTarget {
+    fn name(&self) -> &'static str {
+        "gbnf"
+    }
+
+    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        gmn_glyph_grammar_emissions(
+            input,
+            Formalism::Gbnf,
+            "gbnf",
+            "gbnf",
+            gbnf_blocking_constructs,
+        )
+    }
+}
+
+/// The Lark grammar projection target (Earley/LALR constrained-parse notation): renders the same
+/// graph-derived GMN glyph grammar into Lark. Its artifact lives under `gmn1/v<major>/lark/…`.
+/// Lark's blocking set is narrower than GBNF's (it expresses character classes natively as `/[…]/`
+/// regex terminals and its Earley core handles left-recursion, so neither is a blocker — see
+/// [`lark_blocking_constructs`]); the remaining blockers (set-difference, a bare hex /
+/// numeric-range terminal, a bounded repetition) are handled with the SAME honest SoundUnder-no-
+/// artifact discipline as [`GbnfTarget`] and [`AbnfTarget`].
+struct LarkTarget;
+
+impl LangProjectionTarget for LarkTarget {
+    fn name(&self) -> &'static str {
+        "lark"
+    }
+
+    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        gmn_glyph_grammar_emissions(
+            input,
+            Formalism::Lark,
+            "lark",
+            "lark",
+            lark_blocking_constructs,
+        )
+    }
+}
+
+/// Lower the GRAPH-DERIVED GMN glyph grammar (the `gmn` entry of `input.grammars`, whose bytes
+/// `collect_input` already render-substituted from the executable glyph registry) into a
+/// GMN-ecosystem grammar surface (`formalism`), keyed under the version subtree
+/// `gmn1/v<major>/<target>/<name>.<ext>`. Parses the shared bytes ONCE to the single canonical
+/// [`RuleExpr`] tree (never a second glyph→grammar render path), then serializes in `formalism`.
+///
+/// Scoped to the `gmn` grammar ALONE (GBNF/Lark are GMN constrained-decode surfaces, not general
+/// grammar projections like EBNF/ABNF): an input with no `gmn` grammar yields an honest empty Vec
+/// (the driver folds one no-source row). The version major is a mandatory capability for the
+/// keyed path — its absence with a `gmn` grammar present is a HARD FAIL (no-optionality), mirroring
+/// [`Gmn1Target`], never a constant default.
+///
+/// The `gmn` grammar's `lang:Grammar` RDF is emitted ONCE by the EBNF target; this emission points
+/// at the SAME content-addressed source IRI (derived from the canonical EBNF serialization) and
+/// never re-emits it (`source_rdf` empty), exactly like [`AbnfTarget`]. A grammar with a
+/// `blocking`-set construct emits NO artifact and carries the SoundUnder judgment enumerating every
+/// blocker — never a fabricated partial rendering.
+fn gmn_glyph_grammar_emissions(
+    input: &LangProjectionInput,
+    formalism: Formalism,
+    target: &str,
+    ext: &str,
+    blocking_constructs: impl Fn(&Grammar) -> Vec<String>,
+) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+    let Some(source) = input.grammars.iter().find(|g| g.name == "gmn") else {
+        // No GMN glyph grammar in the composed model: honest no-source (the driver folds the row).
+        return Ok(Vec::new());
+    };
+    // The version major keys the artifact path; like the GMN-1 codec's dictionary it is a
+    // mandatory capability — a gmn-grammar-driven emission with no resolved major hard-fails
+    // rather than defaulting to a constant.
+    let major = input
+        .gmn_dialect_major
+        .as_deref()
+        .ok_or_else(|| IngestDiagnostic {
+            failure_class: LangFailure::SilentIngestDrop,
+            construct: format!(
+                "resolved GMN dialect major is absent; the version-keyed {target} grammar-surface \
+                 path cannot default"
+            ),
+        })?;
+
+    let grammar = EbnfBridge.to_grammar(&source.bytes)?;
+    let canon = grammar.canonicalize();
+    // The gmn grammar's lang:Grammar RDF is emitted once by the EBNF target — this emission
+    // points at the SAME source IRI (derived from the canonical EBNF serialization) and never
+    // re-emits it.
+    let ebnf_text = serialize_grammar(&canon);
+    let source_iri = grammar_iri_for(&ebnf_text);
+
+    let blocking = blocking_constructs(&canon);
+    if blocking.is_empty() {
+        // Representable: render the ONE canonical tree under `formalism` and hold it to the same
+        // round-trip bar as EBNF.
+        let view = Grammar {
+            formalism,
+            rules: canon.rules.clone(),
+        };
+        let text = serialize_grammar(&view);
+        let round_trip_holds = grammar_round_trips(&view);
+        let mut loss = LossLedger::new();
+        Ok(vec![LangEmission {
+            artifacts: vec![EmittedArtifact {
+                path_suffix: format!("gmn1/v{major}/{target}/{}.{ext}", source.name),
+                bytes: text.clone().into_bytes(),
+                is_rdf: false,
+            }],
+            correspondence: grammar_correspondence(&text),
+            ledger: vec![grammar_ledger_row(
+                &mut loss,
+                target,
+                &source.name,
+                PreservationKind::Exact,
+                Vec::new(),
+            )],
+            loss,
+            leg_pair: Some(grammar_leg_pair()),
+            emitted_reading_count: None,
+            source_iri,
+            unsupported: NON_CF_SIDE_CONDITIONS
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect(),
+            round_trip_holds,
+            lossy_kind: PreservationKind::Exact,
+            source_rdf: Vec::new(),
+        }])
+    } else {
+        // Not representable: emit no artifact (a partial rendering would be fabrication), carry
+        // the SoundUnder judgment, and enumerate every blocking construct.
+        let mut unsupported = blocking;
+        unsupported.extend(NON_CF_SIDE_CONDITIONS.iter().map(|s| (*s).to_owned()));
+        let mut loss = LossLedger::new();
+        Ok(vec![LangEmission {
+            artifacts: Vec::new(),
+            correspondence: lossy_grammar_correspondence(&ebnf_text),
+            ledger: vec![grammar_ledger_row(
+                &mut loss,
+                target,
+                &source.name,
+                PreservationKind::SoundUnder,
+                unsupported.clone(),
+            )],
+            loss,
+            leg_pair: None,
+            emitted_reading_count: None,
+            source_iri,
+            unsupported,
+            round_trip_holds: false,
+            lossy_kind: PreservationKind::SoundUnder,
+            source_rdf: Vec::new(),
+        }])
     }
 }
 
