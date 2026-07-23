@@ -580,7 +580,7 @@ gmeow:findingRemediation
     gmeow:useWhen "Use to carry a finding's rule-level fix guidance on the occurrence so consumers render 'how to fix this' without re-resolving the rule."@x-gmeow-english .
 
 # ════════════════════════════════════════════════════════════════════════════
-# The advice-catalog projection (D6, issue #765).
+# The advice-catalog projection: the recommendation tier.
 #
 # The advisory peer of gmeow:ValidationRule. Where a ValidationRule is the
 # standing definition of an ENFORCED (compliance) check, a gmeow:AdviceEntry is

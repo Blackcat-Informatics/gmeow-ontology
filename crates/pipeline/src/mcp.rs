@@ -6444,7 +6444,7 @@ mod tests {
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
         assert!(consumer_tools.contains("\"validate_local\""));
-        // `advise` — the recommendation companion of `validate_local` (D6).
+        // `advise` — the recommendation companion of `validate_local`.
         assert!(consumer_tools.contains("\"advise\""));
         assert!(consumer_tools.contains("\"docs_search\""));
         assert!(consumer_tools.contains("\"counter_examples\""));

@@ -52,7 +52,7 @@ const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
 /// discipline enforces.
 const GMEOW_REQUIRES_FRAME: &str = "https://blackcatinformatics.ca/gmeow/requiresFrame";
 
-// ── Advice-catalog projection (D6) ──────────────────────────────────────────
+// ── Advice-catalog projection ────────────────────────────────────────────────
 // The realized advice carriers whose verbatim prose the advice section documents.
 /// `logic:Constraint` — the class of the advisory anti-pattern carriers (an
 /// `avoidWhen` prohibition realized at `logic:severity "Info"`).
@@ -500,7 +500,7 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, gmeow_errors::Diag>
         }
     }
 
-    // ── Advice-catalog entries (D6): the recommendation tier, projected from the
+    // ── Advice-catalog entries: the recommendation tier, projected from the
     // realized advice carriers and hung beneath the `advice.` family rule. Emitted
     // into the same buffer so they ride the same sort/dedup/canonical fold. ────────
     emit_advice_entries(&mut out, dataset)?;
@@ -700,7 +700,7 @@ mod tests {
         );
     }
 
-    /// D6: the advice-catalog projection emits one `gmeow:AdviceEntry`
+    /// The advice-catalog projection emits one `gmeow:AdviceEntry`
     /// per governed term with a realized advice carrier (today `gmeow:Entity` and
     /// `gmeow:Event`), each hung beneath the `advice.` family rule and carrying the
     /// three deontic-modality prose legs. Falsifiable: if `emit_advice_entries` were

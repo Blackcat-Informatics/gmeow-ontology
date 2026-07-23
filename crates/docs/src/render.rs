@@ -5060,7 +5060,7 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
         }
     }
 
-    // ── The Advice section (D6): the recommendation tier, a distinct top-level
+    // ── The Advice section: the recommendation tier, a distinct top-level
     // section headed by the `advice.` family rule's `#advice-` anchor. ────────────
     md_advice_section(&mut out, model, &from);
     out
@@ -7363,7 +7363,7 @@ mod tests {
         }
     }
 
-    /// D6: the "What GMEOW enforces" page renders the advice
+    /// The "What GMEOW enforces" page renders the advice
     /// recommendation tier as a DISTINCT section from the compliance rules, headed by
     /// the single `#advice-` anchor and carrying each realized term's verbatim
     /// avoid/use/how-to prose. Self-contained (a hand-built model), so it proves the
