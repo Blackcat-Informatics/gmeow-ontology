@@ -141,18 +141,50 @@ pub fn render_skos_surface_from_axioms(
     let dataset = builder
         .freeze()
         .map_err(|e| parse_err(format!("skos-surface: freeze failed: {e}")))?;
-    // The native Turtle codec emits canonical, deterministic Turtle (value-sorted rows),
-    // so repeated runs are byte-identical regardless of insertion order. All projected
-    // quads live in the default graph → `SerializeGraph::DefaultGraph` is faithful.
+    // All projected quads live in the default graph → `SerializeGraph::DefaultGraph` is
+    // faithful. Every row of this surface is an independent one-line triple (all
+    // IRIs/literals, no blank nodes or `;`/`,` grouping), so we can canonicalize the
+    // serializer's output by sorting its rows.
     let bytes = serialize_dataset(
         dataset.as_ref(),
         "text/turtle",
         SerializeGraph::DefaultGraph,
     )
     .map_err(|e| parse_err(format!("skos-surface: serialize failed: {e}")))?;
-    let body = String::from_utf8(bytes)
+    let raw = String::from_utf8(bytes)
         .map_err(|e| parse_err(format!("skos-surface: non-UTF8 serialization: {e}")))?;
-    let body = format!("{}\n", body.trim_end_matches('\n'));
+    // purrdf 0.8.x's parallel de-dup serializer does NOT pin its row order across runs
+    // (the order varies with thread scheduling under load). Partition the `@prefix`/
+    // `@base` directives from the triple rows and sort each block bytewise so the
+    // projection is byte-deterministic regardless of thread timing — the guarantee the
+    // `skos_surface_is_byte_identical_to_committed` gate depends on.
+    let mut directives: Vec<&str> = Vec::new();
+    let mut triples: Vec<&str> = Vec::new();
+    for line in raw.lines() {
+        let line = line.trim_end();
+        if line.is_empty() {
+            continue;
+        }
+        if line.starts_with('@') || line.starts_with("PREFIX ") || line.starts_with("BASE ") {
+            directives.push(line);
+        } else {
+            triples.push(line);
+        }
+    }
+    directives.sort_unstable();
+    triples.sort_unstable();
+    let mut body = String::new();
+    for directive in &directives {
+        body.push_str(directive);
+        body.push('\n');
+    }
+    if !directives.is_empty() && !triples.is_empty() {
+        body.push('\n');
+    }
+    for triple in &triples {
+        body.push_str(triple);
+        body.push('\n');
+    }
     Ok(format!("{HEADER}{body}"))
 }
 
