@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: datatype-value-space/length-facet-empty
+# AC (Family 5b, native datatype value-space refutation): an xsd LENGTH facet makes
+# a constrained datatype EMPTY, and an individual is forced to inhabit it — an
+# inconsistency the native forward chase cannot see (it carries no datatype
+# value-space reasoning) but the datatype value-space refutation sub-decider
+# (crates/logic/src/reason/refute/datatype.rs) decides soundly and completely.
+#
+# The world-scoped EDB (input.nq) types the individual `a` to `∃dp.D`, where D is
+# `xsd:string` restricted by `xsd:minLength 5` and `xsd:maxLength 3`. No string has
+# length ≥ 5 AND ≤ 3, so the constrained datatype's value space is EMPTY; the
+# existential forces `a` to carry a `dp`-value drawn from that empty space, so the
+# world is INCONSISTENT. The subsolver materializes `type(a, owl:Nothing)` and the
+# datatype-facet families are promoted from the honest gap set to `decided`, so the
+# native token is a clean `inconsistent` (empty `gaps`) rather than `incomplete`.
+#
+# verdict_mode=consistency: the OWL EDB is the world-scoped N-Quads in input.nq,
+# decided by the native DL path (gmeow_logic::reason::dl_consistency); this file
+# exists only to satisfy the per-case anatomy and is NOT compiled in consistency
+# mode.
+#
+# Graph-isolation note: this fixture lives in the conformance corpus, OUTSIDE the
+# production owl:imports closure by construction — it can never make the production
+# ontology appear inconsistent.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .

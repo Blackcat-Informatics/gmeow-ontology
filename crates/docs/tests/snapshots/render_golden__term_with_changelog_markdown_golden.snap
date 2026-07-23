@@ -75,7 +75,7 @@ A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. 
 
 ## Usage Advice
 
-- **Scope:** The recommendation sibling of gmeow:ValidationRule: both are catalog entries, but a ValidationRule is an enforced check \(its findings gate or warn\) while an AdviceEntry documents non\-gating advice \(the advice\.\* Note tier that only recommends\)\. Distinct class so the two deontic tiers — compliance and advice — render as distinct catalog sections while sharing the anchor authority\. Kept subsumption\-free \(unlike gmeow:ValidationRule ⊑ gmeow:InformationObject\): the diagnostics slice ratchets its hand\-authored rdfs subsumption residue downward, so a new catalog class adds no ungrounded rdfs:subClassOf — the logic: foundation stereotype \(logic:AbstractIndividualType\) carries its grounding\.
+- **Scope:** The recommendation sibling of gmeow:ValidationRule: both are catalog entries, but a ValidationRule is an enforced check \(its findings gate or warn\) while an AdviceEntry documents non\-gating advice \(the advice\.\* Note tier that only recommends\)\. Distinct class so the two deontic tiers — compliance and advice — render as distinct catalog sections while sharing the anchor authority\. Its ⊑ gmeow:InformationObject is grounded in logic: \(logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection\) rather than hand\-authored — giving parity with gmeow:ValidationRule ⊑ gmeow:InformationObject in the derived graph while adding no hand\-authored rdfs subsumption residue, since the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf\.
 - **Example:** ex:adviceEntity a gmeow:AdviceEntry ; gmeow:appliesToTerm gmeow:Entity ; gmeow:documentedByRule \<https://blackcatinformatics\.ca/gmeow/rule/family/advice\> ; gmeow:adviceAvoidWhen "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies…" \.
 - **Use when:** Use to record the definition of a harvested recommendation as a first\-class, queryable RDF entity — the machine\-readable advice catalog that lets an advisory finding code resolve to the avoid/use/how\-to prose it recommends for a governed term\.
 - **Avoid when:** Avoid authoring AdviceEntry individuals by hand as the source of truth — they are generated from the reasoned graph's realized advice carriers — and avoid using one where a gmeow:ValidationRule \(an enforced check\) is meant; the AdviceEntry is a non\-gating recommendation, not a check that fails the gate\.
@@ -112,7 +112,7 @@ A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. 
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/AdviceEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AdviceEntry@blake3:9ba2d4fd476a9625700922c551d282acd8a1d8a95687d4413164edca28fe1287`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AdviceEntry@blake3:e22e0d712d893c0ecb411adced45022a7cd9465df9e85319a59208e8487b024d`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

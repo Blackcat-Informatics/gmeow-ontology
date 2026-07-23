@@ -2111,12 +2111,13 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             .collect()
     }
 
-    /// Shift-left: drive the SAME native structural lint `make validate-gts` runs
+    /// Shift-left: drive the SAME native structural lint the whole-bundle SHACL
+    /// validation (`make validate` / the pipeline stage-validate) runs
     /// (`gmeow_validate::lint::structural_lint_dataset`) over `complete_core_prefixes_abox`'s
     /// real output, so a missing/incorrect A-Box annotation on the minted
     /// `gmeow:CorePrefixes` T-Box header reds HERE — a fast `cargo nextest -p
     /// gmeow-pipeline` — rather than only surfacing at the next expensive
-    /// `make validate-gts`. Mirrors `provenance_graph.rs`'s
+    /// whole-bundle SHACL validation. Mirrors `provenance_graph.rs`'s
     /// `minted_individuals_satisfy_the_assertional_abox_contract`.
     #[test]
     fn core_prefixes_completion_satisfies_the_structural_contract() {

@@ -15,7 +15,7 @@
 //! renderer can canonicalize them into both the byte artifact and the carrier graph.
 //! Without it, an up-set finding (Error / blocking category / Binding) rides the
 //! diagnostics graph missing its verdict and `gmeow:GateFatalUpsetShape` fires under
-//! `validate-gts`.
+//! the authored-source `make validate` / stage-validate SHACL pass.
 //!
 //! The rule and the `gmeow:categoryBlocking` map are READ from the authored source
 //! graph (the validate stage's base-graph bytes), never re-typed here — exactly the
