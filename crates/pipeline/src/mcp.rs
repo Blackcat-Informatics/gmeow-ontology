@@ -937,13 +937,26 @@ impl McpView {
         })
     }
 
-    /// The complete inlined index (`llms-full.txt`) for `requested`.
-    fn llms_full_text(&self, requested: Vec<String>) -> String {
+    /// The complete inlined index (`llms-full.txt`) for `requested`, carrying the graph-derived
+    /// GMN-1 teachability primer. A carrier that fails to yield the primer's GMN-1 codebook is a
+    /// HARD FAIL (no-optionality), never a silently primer-less complete form.
+    fn llms_full_text(&self, requested: Vec<String>) -> gmeow_errors::Result<String> {
         let title = self.title.clone();
         let version = self.version.clone();
         let modeled_defs = self.modeled_defs();
-        self.with_terms(requested, |terms| {
-            export::consumer_llms_full(terms, &title, &version, &modeled_defs)
+        let primer = self.gmn1_primer()?;
+        Ok(self.with_terms(requested, |terms| {
+            export::consumer_llms_full(terms, &title, &version, &modeled_defs, &primer)
+        }))
+    }
+
+    /// The graph-derived GMN-1 teachability primer over THIS view's carrier dataset — shared by
+    /// the `llms_full` surface and the `gmeow://ontology/gmn1-primer` resource.
+    fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs::gmn1_primer::Gmn1Primer> {
+        gmeow_docs::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("build GMN-1 teachability primer: {e}"),
+            })
         })
     }
 
@@ -2417,6 +2430,13 @@ impl McpServer {
                 "text/plain",
             ),
             resource(
+                "gmeow://ontology/gmn1-primer",
+                "gmn1-primer",
+                "The ~500-token graph-derived GMN-1 teachability primer (record sigils, \
+                 operator glyph table, repair loop).",
+                "text/plain",
+            ),
+            resource(
                 "gmeow://ontology/okf-index",
                 "okf-index",
                 "OKF manifest JSON envelope.",
@@ -2579,7 +2599,7 @@ impl McpServer {
 
     fn tool_llms_full(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
-        Ok(self.view.llms_full_text(requested))
+        self.view.llms_full_text(requested)
     }
 
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -3654,8 +3674,12 @@ impl McpServer {
         match base {
             "gmeow://ontology/llms.txt" => Ok(("text/plain", self.view.llms_txt_text(requested))),
             "gmeow://ontology/llms-full.txt" => {
-                Ok(("text/plain", self.view.llms_full_text(requested)))
+                self.view.llms_full_text(requested).map(|t| ("text/plain", t))
             }
+            "gmeow://ontology/gmn1-primer" => self
+                .view
+                .gmn1_primer()
+                .map(|p| ("text/plain", p.resource_text())),
             "gmeow://ontology/okf-index" => {
                 Ok(("application/json", self.view.okf_index_json(requested)))
             }
@@ -12369,5 +12393,65 @@ mod tests {
                 "{name} advertises its required arg `{req}`: {tool}"
             );
         }
+    }
+
+    /// The GMN-1 teachability primer is exposed as a CONSUMER MCP resource
+    /// (`gmeow://ontology/gmn1-primer`, served off the bundle alone), advertised in
+    /// `resources/list` and readable through `resources/read` — a self-contained, graph-derived,
+    /// budget-bounded card carrying the record sigils, the operator glyph table, and the repair
+    /// loop. The shared `llms_full` surface carries the same primer section.
+    #[test]
+    fn gmn1_primer_resource_is_advertised_and_readable() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Advertised in the consumer resource list.
+        let list = consumer.resources_result();
+        let resources = list["resources"].as_array().expect("resources array");
+        assert!(
+            resources
+                .iter()
+                .any(|r| r["uri"] == "gmeow://ontology/gmn1-primer"),
+            "the gmn1-primer resource must be advertised: {list}"
+        );
+
+        // Readable through resources/read, with the primer heading + a repair card + an operator
+        // glyph row present (the graph-derived teaching surface).
+        let read = consumer.read_resource_result("gmeow://ontology/gmn1-primer");
+        assert!(read.get("isError").is_none(), "primer read must succeed: {read}");
+        let text = read["contents"][0]["text"].as_str().expect("primer text");
+        assert!(
+            text.contains(&format!("## {}", gmn1_primer_heading())),
+            "the primer resource must carry its heading: {text}"
+        );
+        assert!(
+            text.contains("gmeow:GmnErr"),
+            "the primer resource must teach the @err repair record"
+        );
+        assert!(
+            text.contains("⊑ (infix"),
+            "the primer resource must carry the operator glyph table (⊑ subsumption row)"
+        );
+
+        // The same primer section rides the shared `llms_full` surface.
+        let full = consumer
+            .view
+            .llms_full_text(vec!["en".to_string()])
+            .expect("llms_full builds with the primer");
+        assert!(
+            full.contains(&format!("## {}", gmn1_primer_heading())),
+            "llms_full must carry the primer section"
+        );
+    }
+
+    /// The primer heading constant, re-exposed for the resource test (the shared docs const).
+    fn gmn1_primer_heading() -> &'static str {
+        gmeow_docs::gmn1_primer::PRIMER_HEADING
     }
 }

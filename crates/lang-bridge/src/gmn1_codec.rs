@@ -894,6 +894,22 @@ impl GmnGlyphRegistry {
             .collect()
     }
 
+    /// Every `(sigil, ascii_fallback)` READ binding for one denoted term, in stable key
+    /// order — the keyboard-typable spelling a glyph accepts as an alias on input (the
+    /// glyph table's `alias` column). Mirrors [`Self::bindings_for_term`] over the
+    /// ASCII-fallback table; the GMN-1 primer joins each operator's glyph to its alias
+    /// through this so a fresh model that cannot emit the Unicode glyph still has the
+    /// typable form to fall back to.
+    #[must_use]
+    pub fn fallbacks_for_term(&self, iri: &str) -> Vec<(&str, &str)> {
+        self.fallback_to_term
+            .iter()
+            .filter_map(|((sigil, fallback, _), term)| {
+                (term == iri).then_some((sigil.as_str(), fallback.as_str()))
+            })
+            .collect()
+    }
+
     fn unique_term_binding(&self, iri: &str, sigil: &str) -> Option<(&GmnGlyphSignature, &String)> {
         let mut exact = self
             .term_to_glyph
