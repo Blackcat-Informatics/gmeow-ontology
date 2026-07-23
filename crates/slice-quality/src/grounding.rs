@@ -211,7 +211,12 @@ pub(crate) fn is_native_validated_grounding_term_cell(cell: &EquivalenceCell) ->
 /// Read every native alignment cell (via the canonical `equivalence_cells` reader), so grounding
 /// scoring reads the SAME cells the correspondence derivation does — no second, drifting reader.
 pub(crate) fn native_alignment_cells(ds: &RdfDataset) -> Vec<EquivalenceCell> {
-    equivalence_cells(&DslView::new(ds)).unwrap_or_default()
+    // Fail closed: a malformed native alignment cell is a hard error, never a silent empty
+    // read. Swallowing the reader error would let the grounding axes (linkage / identity /
+    // dc) report a vacuous 1.0 pass on a corrupt slice — the exact opposite of the carrier
+    // fail-closed discipline the rest of this surface enforces.
+    equivalence_cells(&DslView::new(ds))
+        .expect("native alignment cell extraction must not fail during slice-quality scoring")
 }
 
 /// Every valid grounding frontend cell, keyed by identity, in deterministic order. Native
