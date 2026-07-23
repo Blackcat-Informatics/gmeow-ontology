@@ -49,8 +49,8 @@ use purrdf::{
     ArtifactRoot, BlankScope, DistanceMetric, EmbeddingError, EmbeddingView, FamilyId, MatrixId,
     MatrixView, PrefixPostprocessing, ProjectionId, RdfTextDirection, ResidentEmbeddingCertificate,
     SourceVerificationMode, TargetId, TargetKind, TargetSetId, TargetSetView, TermValue,
-    TlvWireType, VectorDtype, VectorSpaceId, canonical_tlv, reopen_prevalidated,
-    verify_embedding, verify_embedding_source,
+    TlvWireType, VectorDtype, VectorSpaceId, canonical_tlv, reopen_prevalidated, verify_embedding,
+    verify_embedding_source,
 };
 
 use crate::external_relation::{
@@ -177,7 +177,9 @@ pub enum PurrembBindingError {
 impl fmt::Display for PurrembBindingError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Verification(detail) => write!(formatter, "PURREMB verification failed: {detail}"),
+            Self::Verification(detail) => {
+                write!(formatter, "PURREMB verification failed: {detail}")
+            }
             Self::Selection(detail) => write!(formatter, "PURREMB selection rejected: {detail}"),
             Self::ProfileMismatch(detail) => {
                 write!(formatter, "PURREMB profile-surface mismatch: {detail}")
@@ -513,7 +515,8 @@ fn validate_selection(
     }
 
     // Effective/prefix dimension must fit inside the stored family dimension.
-    if selection.effective_dimension == 0 || selection.effective_dimension > family.stored_dimension()
+    if selection.effective_dimension == 0
+        || selection.effective_dimension > family.stored_dimension()
     {
         return Err(PurrembBindingError::Selection(
             "effective dimension is zero or exceeds the stored family dimension".to_owned(),
@@ -780,8 +783,8 @@ struct TargetIdentityFields<'a> {
 
 impl<'a> TargetIdentityFields<'a> {
     fn parse(bytes: &'a [u8]) -> Result<Self, PurrembMapError> {
-        let iterator =
-            canonical_tlv(bytes).map_err(|error| PurrembMapError::MalformedIdentity(error.to_string()))?;
+        let iterator = canonical_tlv(bytes)
+            .map_err(|error| PurrembMapError::MalformedIdentity(error.to_string()))?;
         let entries = iterator
             .map(|entry| (entry.tag, entry.wire_type, entry.value))
             .collect();
@@ -1736,7 +1739,9 @@ impl<'a, E> PurrembRetrievalProvider<'a, E> {
 
     /// Resolve the single bound query slot and single unbound candidate slot of a moded
     /// call, rejecting any other mode shape.
-    fn resolve_mode(call: &RelationCall) -> Result<(usize, usize, &TermValue), RelationProviderError> {
+    fn resolve_mode(
+        call: &RelationCall,
+    ) -> Result<(usize, usize, &TermValue), RelationProviderError> {
         if call.bounds.len() != 2 {
             return Err(rejected("retrieval call is not the binary retrieval shape"));
         }
@@ -1753,9 +1758,7 @@ impl<'a, E> PurrembRetrievalProvider<'a, E> {
                 }
                 None => {
                     if candidate_slot.replace(index).is_some() {
-                        return Err(rejected(
-                            "retrieval call leaves more than one slot unbound",
-                        ));
+                        return Err(rejected("retrieval call leaves more than one slot unbound"));
                     }
                 }
             }
@@ -1862,7 +1865,12 @@ where
         for (rank, candidate) in selected.into_iter().enumerate() {
             let candidate_term = self
                 .mapper
-                .map_row(&self.binding.view, &target_set, candidate.row, candidate_kind)
+                .map_row(
+                    &self.binding.view,
+                    &target_set,
+                    candidate.row,
+                    candidate_kind,
+                )
                 .map_err(|error| rejected(&error.to_string()))?;
             let mut arguments = vec![TermValue::iri(String::new()); 2];
             arguments[query_slot] = query_term.clone();
@@ -2077,7 +2085,7 @@ mod tests {
 
     #[test]
     fn purremb_order_key_round_trips() {
-        for value in [-1234.5_f64, -1.0, -0.0, 0.0, 3.14159, 1e12] {
+        for value in [-1234.5_f64, -1.0, -0.0, 0.0, 2.5, 1e12] {
             let restored = from_total_order_bits(total_order_bits(value));
             assert_eq!(restored.to_bits(), value.to_bits());
         }
@@ -2160,7 +2168,9 @@ mod tests {
         let algebra = VectorSpaceScopedAlgebra::with_cross_space_refusal(BTreeSet::new());
         let left = SpaceTaggedScore::single(1.0, space_id(1), 1);
         let right = SpaceTaggedScore::single(2.0, space_id(1), 1);
-        let product = algebra.multiply(&left, &right).expect("same space combines");
+        let product = algebra
+            .multiply(&left, &right)
+            .expect("same space combines");
         assert!((product.score.distance() - 3.0).abs() < 1e-9);
         assert_eq!(product.spaces.len(), 1);
     }

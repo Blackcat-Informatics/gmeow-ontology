@@ -131,6 +131,12 @@ gmeow-cost-measure = { path = "../cost-measure" }
 # `cachegrind` sets stay off, so the dev-dep surface (and its build RAM) is minimal
 # — same build-RAM rationale as the criterion pin above.
 iai-callgrind = "0.16.1"
+# memmap2 + tempfile: the PURREMB relation-provider matrix asserts heap-backed
+# (Vec<u8>) vs memory-mapped artifact bytes yield byte-identical dispatch answers.
+# The immutable-mmap path is the module's documented borrow-stability case; the
+# temp file is written once and mapped read-only. Versions match the workspace lock.
+memmap2 = "0.9"
+tempfile = "3"
 
 [[bench]]
 name = "foundation"
