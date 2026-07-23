@@ -5769,7 +5769,15 @@ pub fn resolve_term_slugs(terms: &[DocTerm]) -> BTreeMap<String, String> {
 
 /// A filesystem-safe slug from a slice IRI's last path segment.
 pub fn slice_slug(slice: &DocSlice) -> String {
-    slugify(local_name(&slice.iri))
+    slice_slug_of_iri(&slice.iri)
+}
+
+/// The slice slug derived directly from a slice IRI — the same slug
+/// [`slice_slug`] yields, without needing a materialized [`DocSlice`]. Used by
+/// [`crate::model::DocMarkdownDocument`] collection during model build, before the
+/// owning `DocSlice` is fully assembled.
+pub fn slice_slug_of_iri(iri: &str) -> String {
+    slugify(local_name(iri))
 }
 
 /// A filesystem-safe slug from a concern IRI's last path segment.
@@ -7554,6 +7562,7 @@ mod tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             has_thesis_sentence: false,
             realized_state_complete: false,
         });

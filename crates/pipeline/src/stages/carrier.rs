@@ -5761,6 +5761,7 @@ mod ustar_tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             has_thesis_sentence: false,
             realized_state_complete: false,
         };

@@ -89,6 +89,21 @@ gmeow:DocumentedMappingSet
     gmeow:howToUse "Let the docs projection mint one per compiled mapping set; follow gmeow:documents to the set and gmeow:docUrl to the linkages index."@x-gmeow-english ;
     gmeow:useWhen "Use to name the RDF record for a mapping set's documentation when querying which mapping sets are documented on the linkages surface."@x-gmeow-english .
 
+gmeow:DocumentedDocument
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Document"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation-projection record for one canonical slice-Markdown source (the slice's docs.md, or any recursively-discovered text/markdown file such as a design/*.md). It gmeow:documents the owning slice IRI and carries the source's gmeow:docSourcePath, gmeow:docTitle, gmeow:docRawDigest, and the gmeow:docUrl of the page the single source-to-page authority resolved it to. Distinct from the slice itself and from the gmeow:DocumentedSlice manifest record: this record stands for one rendered prose document, minted per discovered Markdown source by the docs projection."@x-gmeow-english ;
+    skos:example "ex:entryDocZooArchitecture a gmeow:DocumentedDocument ; gmeow:documents ex:sliceZoo ; gmeow:docSourcePath \"design/ARCHITECTURE.md\" ; gmeow:docTitle \"Architecture\" ; gmeow:docUrl \"slices/zoo/documents/design/architecture/\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it in place of the gmeow:DocumentedSlice record (that stands for the slice's manifest page, not a prose document), and avoid hand-authoring it: it is a regenerated projection of the slice's Markdown sources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per discovered slice Markdown source; follow gmeow:documents to the owning slice and gmeow:docUrl to the resolved rendered page."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the RDF record for one rendered slice document when querying which Markdown sources are documented and where their pages live."@x-gmeow-english .
+
 gmeow:DocEvidence
     a logic:Kind ,
         owl:Class ;
@@ -263,7 +278,7 @@ gmeow:docUrl
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc url"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The site-relative path of a documentation record's rendered page (e.g. \"terms/{slug}/index.html\", \"slices/{slug}/index.html\", \"linkages/index.html\"). A relative path string, not an absolute IRI, so the rendered site is relocatable. Carried by every documentation-entry record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet)."@x-gmeow-english ;
+    skos:definition "The site-relative path of a documentation record's rendered page (e.g. \"terms/{slug}/index.html\", \"slices/{slug}/index.html\", \"linkages/index.html\"). A relative path string, not an absolute IRI, so the rendered site is relocatable. Carried by every documentation-entry record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet / gmeow:DocumentedDocument)."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docUrl \"terms/cat/index.html\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing an absolute URL (the path is site-relative so the site can be relocated) and avoid using it for anything but the record's own rendered page."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1142,6 +1157,51 @@ gmeow:docSearchDefinition
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Let the docs projection carry the record's own definition when present; match a docs_search query against it as a secondary field below the label."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the real definition prose of a documentation record so an offline docs_search can match on the definition text."@x-gmeow-english .
+
+gmeow:docSourcePath
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedDocument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc source path"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The normalized logical source path of a gmeow:DocumentedDocument, relative within its owning slice (forward-slash separators, no leading './' or '/', e.g. \"design/ARCHITECTURE.md\"). The stable sort key and provenance handle back to the authored Markdown source the rendered page projects."@x-gmeow-english ;
+    skos:example "ex:entryDocZooArchitecture gmeow:docSourcePath \"design/ARCHITECTURE.md\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid carrying an absolute or slice-external path here — the value is always slice-relative and normalized; a non-UTF-8 or colliding source hard-fails at discovery rather than emitting a malformed path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry each document's normalized slice-relative source path; follow it back to the authored Markdown, and use it as the deterministic ordering key over a slice's documents."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry and query the authored source path a rendered documentation page projects."@x-gmeow-english .
+
+gmeow:docTitle
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedDocument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc title"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The title of a gmeow:DocumentedDocument — the first ATX H1 of the Markdown source when present, else a humanized fallback from the filename stem (\"design/ARCHITECTURE.md\" → \"Architecture\"). The label shown for the document in its owning slice's child-document index and in the search corpus."@x-gmeow-english ;
+    skos:example "ex:entryDocZooArchitecture gmeow:docTitle \"Architecture\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid emitting it empty — a source with no H1 falls back to the humanized filename, never a vacuous title."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry each document's H1-or-humanized title; render it as the child-document link text and index it in the docs search corpus."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry and query the human title of a rendered documentation page."@x-gmeow-english .
+
+gmeow:docRawDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedDocument ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc raw digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The content-address digest of a gmeow:DocumentedDocument's raw source bytes — the same raw digest the slice artifact record carries. The provenance handle proving which exact source bytes a rendered page projects, and the change-detection key that invalidates the docs render cache when a source edits."@x-gmeow-english ;
+    skos:example "ex:entryDocZooArchitecture gmeow:docRawDigest \"9f2b…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a semantic or canonicalized digest here — this is the RAW byte digest, so it changes on any source edit including whitespace, which is exactly what the cache-invalidation contract requires."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry each document's raw source digest; use it to prove source provenance and to key the render cache."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry and query the content address of the source bytes a rendered documentation page projects."@x-gmeow-english .
 
 gmeow:docSearchAdvice
     a owl:DatatypeProperty ;
