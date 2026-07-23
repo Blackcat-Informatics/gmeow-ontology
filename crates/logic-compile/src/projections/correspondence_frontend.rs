@@ -79,6 +79,15 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
     format!("{LOGIC_NAMESPACE}correspondence/{tag}/{hex}")
 }
 
+/// The content-addressed correspondence identity IRI for an alignment keyed by its
+/// `(subject, predicate, object)` triple — the SAME digest scheme the transpiler mints for
+/// a non-grounding term-equivalence. Exposed for consumers that record alignment provenance
+/// (e.g. `gmeow:mappedFrom`) now that native alignment cells carry no bespoke `gmeow:eqXxx`
+/// cell IRI. Stable, collision-free, and IRI-legal.
+pub fn alignment_provenance_iri(subject: &str, predicate: &str, object: &str) -> String {
+    correspondence_iri("term-equivalence", &format!("{subject}|{predicate}|{object}"))
+}
+
 /// Parse an optional `logic:` enum IRI authored on a mapping cell. The mapping SHACL
 /// shape constrains these values too, but the compiler remains fail-closed when called
 /// directly: a foreign namespace or unknown local name is never silently treated as the

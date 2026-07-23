@@ -17,6 +17,9 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
+use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
+use gmeow_logic_compile::projections::sssom::equivalence_cells;
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Location, Report, ResultExt, Severity, StageId,
     Standpoint, register_code,
@@ -1318,37 +1321,25 @@ fn load_cells(root: &Path) -> gmeow_errors::Result<Vec<CellInput>> {
         }));
     }
     let store = dataset_from_files(&paths)?;
-    let rows = select_rows(
-        &store,
-        r#"
-PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-SELECT ?cell ?subj ?pred ?obj ?confidence
-WHERE {
-    ?cell a gmeow:TermEquivalence ;
-          gmeow:alignSubject ?subj ;
-          gmeow:alignPredicate ?pred ;
-          gmeow:alignObject ?obj .
-    OPTIONAL { ?cell gmeow:confidence ?confidence . }
-}
-ORDER BY ?cell
-"#,
-    )?;
+    // The legacy `gmeow:TermEquivalence` + `alignSubject/Predicate/Object` cell form was
+    // deleted; alignment cells are now native RDF-1.2 statement-annotated match triples.
+    // Read them through the ONE canonical reader (`equivalence_cells`) instead of a bespoke
+    // SPARQL query, so this consumer can never drift from the correspondence derivation.
+    // Native cells carry no bespoke cell IRI, so provenance keys on the content-addressed
+    // correspondence identity IRI (`alignment_provenance_iri`) — a strict improvement over
+    // the old opaque `gmeow:eqXxx` label.
+    let view = DslView::new(store.as_ref());
     let mut cells = Vec::new();
-    for row in rows {
-        if row.len() < 4
-            || row[0].is_empty()
-            || row[1].is_empty()
-            || row[2].is_empty()
-            || row[3].is_empty()
-        {
-            continue;
-        }
+    for cell in equivalence_cells(&view)? {
         cells.push(CellInput {
-            iri: row[0].clone(),
-            subject: row[1].clone(),
-            predicate_curie: predicate_curie(&row[2]),
-            object: row[3].clone(),
-            confidence: row.get(4).cloned().unwrap_or_default(),
+            iri: alignment_provenance_iri(&cell.subject, &cell.predicate, &cell.obj),
+            subject: cell.subject.clone(),
+            predicate_curie: predicate_curie(&cell.predicate),
+            object: cell.obj.clone(),
+            confidence: cell
+                .confidence
+                .map(|c| c.to_string())
+                .unwrap_or_default(),
         });
     }
     Ok(cells)
