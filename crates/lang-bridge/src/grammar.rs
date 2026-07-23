@@ -559,9 +559,7 @@ pub fn serialize_grammar(g: &Grammar) -> String {
         // Lead with the distinguished entry rule (GBNF `root` / Lark `start`), then the rest in
         // name order — a deterministic emission order, not part of structural identity.
         let entry = distinguished_rule(g);
-        ordered.sort_by(|a, b| {
-            (a.name != entry, &a.name).cmp(&(b.name != entry, &b.name))
-        });
+        ordered.sort_by(|a, b| (a.name != entry, &a.name).cmp(&(b.name != entry, &b.name)));
     }
     let mut out = String::new();
     for r in &ordered {
@@ -1304,14 +1302,14 @@ impl ExprParser {
                     if c == '/' {
                         let body: String = self.chars[start..self.pos].iter().collect();
                         self.bump(); // '/'
-                        return parse_single_codepoint_escape(&body).map(RuleExpr::Hex).ok_or_else(
-                            || {
+                        return parse_single_codepoint_escape(&body)
+                            .map(RuleExpr::Hex)
+                            .ok_or_else(|| {
                                 unmodeled(format!(
                                     "Lark regex terminal '/{body}/' is not a single codepoint \
                                      escape or a bracketed character class"
                                 ))
-                            },
-                        );
+                            });
                     }
                     self.pos += 1;
                 }

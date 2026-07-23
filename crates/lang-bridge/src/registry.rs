@@ -30,12 +30,12 @@ use crate::bcp47::Bcp47Target;
 use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::conllu::ConlluTarget;
 use crate::emit::{digest16, ntriples_sorted};
+use crate::gmn_metrics::{TokenMetrics, compute_token_metrics};
+use crate::gmn_migrate::tag_schema_version;
 use crate::gmn1_codec::{
     CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
 use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
-use crate::gmn_metrics::{TokenMetrics, compute_token_metrics};
-use crate::gmn_migrate::tag_schema_version;
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, gbnf_blocking_constructs, grammar_correspondence,
     grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
@@ -628,7 +628,9 @@ impl LangProjectionTarget for Gmn1Target {
             input.gmn_grammar_source.as_ref(),
             input.gmn_dialect_major.as_deref(),
         ) {
-            emissions.push(gmn1_conformance_pack_emission(dict, codebook, grammar, major));
+            emissions.push(gmn1_conformance_pack_emission(
+                dict, codebook, grammar, major,
+            ));
         }
         // The bundle-level token-metric measurement product: the DERIVED 7-vector over the
         // grounding corpus, gated by the SOUND compression bound. Needs the dictionary (to
@@ -884,8 +886,7 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// `gmnCodebookCurrent` / `gmnPackCurrent` name the current codebook / pack.
 const GMN_METRICS_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsCurrent";
 /// The token-metrics projection get-leg step (distinct from the codec and pack legs).
-const GMN1_METRICS_GET_LEG: &str =
-    "https://blackcatinformatics.ca/lang/gmn1MetricsProjectStep";
+const GMN1_METRICS_GET_LEG: &str = "https://blackcatinformatics.ca/lang/gmn1MetricsProjectStep";
 
 /// The bundle-level token-metric measurement emission: ONE RDF artifact
 /// (`gmn1/v<major>/token-metrics.ttl`, `is_rdf: true`) carrying the DERIVED 7-metric vector
@@ -990,16 +991,32 @@ fn token_metrics_triples(metrics: &TokenMetrics, dict: &GmnDictionary) -> Vec<St
             metrics.gmn_worst_case_tokens as f64,
             true,
         ),
-        ("gmn_realistic_tokens", metrics.gmn_realistic_tokens as f64, true),
+        (
+            "gmn_realistic_tokens",
+            metrics.gmn_realistic_tokens as f64,
+            true,
+        ),
         (
             "turtle_best_case_tokens",
             metrics.turtle_best_case_tokens as f64,
             true,
         ),
         ("gmn_ascii_bytes", metrics.gmn_ascii_bytes as f64, true),
-        ("gmn_nonascii_bytes", metrics.gmn_nonascii_bytes as f64, true),
-        ("turtle_bytes_on_disk", metrics.turtle_bytes_on_disk as f64, true),
-        ("jsonld_bytes_on_disk", metrics.jsonld_bytes_on_disk as f64, true),
+        (
+            "gmn_nonascii_bytes",
+            metrics.gmn_nonascii_bytes as f64,
+            true,
+        ),
+        (
+            "turtle_bytes_on_disk",
+            metrics.turtle_bytes_on_disk as f64,
+            true,
+        ),
+        (
+            "jsonld_bytes_on_disk",
+            metrics.jsonld_bytes_on_disk as f64,
+            true,
+        ),
     ];
 
     let mut out = Vec::new();
@@ -1022,7 +1039,11 @@ fn token_metrics_triples(metrics: &TokenMetrics, dict: &GmnDictionary) -> Vec<St
         } else {
             format!("{value:.6}")
         };
-        out.push(triple(GMN_METRICS_IRI, &g("observationResult"), &metric_iri));
+        out.push(triple(
+            GMN_METRICS_IRI,
+            &g("observationResult"),
+            &metric_iri,
+        ));
         out.push(triple(&metric_iri, RDF_TYPE, &m("Quantity")));
         out.push(triple(&metric_iri, &m("hasDimension"), &m("dimensionless")));
         out.push(typed(&metric_iri, &m("quantityValue"), &lex, XSD_DECIMAL));
@@ -1030,7 +1051,10 @@ fn token_metrics_triples(metrics: &TokenMetrics, dict: &GmnDictionary) -> Vec<St
     }
     // The version-provenance stamp, via the shared tag_schema_version quad (rendered here so
     // the metrics product carries the SAME `gmeow:gmnSchemaVersion` stamp every GMN record does).
-    out.push(render_schema_version(&tag_schema_version(GMN_METRICS_IRI, dict)));
+    out.push(render_schema_version(&tag_schema_version(
+        GMN_METRICS_IRI,
+        dict,
+    )));
     out
 }
 
@@ -1193,7 +1217,11 @@ fn gmn1_verbalizer_emission(
 /// crossing subject (so the corpus never trips `lang:SurfaceLeakInContentKey`). The corpus
 /// subject `gmeow:references` its units and carries the version stamp; the whole set is sorted
 /// + deduped by [`ntriples_sorted`], so two runs over the same forms serialize byte-identically.
-fn verbalization_triples(pairs: &[VerbalizedPair], dict: &GmnDictionary, exact: bool) -> Vec<String> {
+fn verbalization_triples(
+    pairs: &[VerbalizedPair],
+    dict: &GmnDictionary,
+    exact: bool,
+) -> Vec<String> {
     let g = |local: &str| format!("{GMEOW_NS}{local}");
     let l = |local: &str| format!("{LANG_NS}{local}");
     let lo = |local: &str| format!("{LOGIC_NS}{local}");
@@ -1217,20 +1245,30 @@ fn verbalization_triples(pairs: &[VerbalizedPair], dict: &GmnDictionary, exact: 
     // faithful producer of the crossings, not a form-view emission that flattens an epistemic
     // stratum, so its lang:ProjectionEmission never carries (and never needs to disclose) a
     // flattened Translation.
-    out.push(triple(GMN_VERBALIZER_IRI, RDF_TYPE, &g("InformationObject")));
+    out.push(triple(
+        GMN_VERBALIZER_IRI,
+        RDF_TYPE,
+        &g("InformationObject"),
+    ));
     out.push(triple(&english_sign_system, RDF_TYPE, &l("SignSystem")));
 
     for pair in pairs {
         // Content-addressed identities for the crossing, its correspondence, and both surfaces.
         let key = format!("{}\u{1f}{}", pair.form.term_iri, pair.form.fixity);
-        let unit = format!("{EXAMPLE_BASE}gmn-verbalization-unit/{}", digest16("gmn-verb-unit", &key));
+        let unit = format!(
+            "{EXAMPLE_BASE}gmn-verbalization-unit/{}",
+            digest16("gmn-verb-unit", &key)
+        );
         let corr = format!(
             "{EXAMPLE_BASE}gmn-verbalization-correspondence/{}",
             digest16("gmn-verb-corr", &key)
         );
         let gmn_surface = format!(
             "{EXAMPLE_BASE}gmn-verbalization-surface/{}",
-            digest16("gmn-verb-surface-gmn", &format!("{key}\u{1f}{}", pair.gmn_surface))
+            digest16(
+                "gmn-verb-surface-gmn",
+                &format!("{key}\u{1f}{}", pair.gmn_surface)
+            )
         );
         let nl_surface = format!(
             "{EXAMPLE_BASE}gmn-verbalization-surface/{}",
@@ -1250,14 +1288,34 @@ fn verbalization_triples(pairs: &[VerbalizedPair], dict: &GmnDictionary, exact: 
         // does not round-trip carries the honest validation-only rung with no witness.
         out.push(triple(&corr, RDF_TYPE, &lo("Correspondence")));
         if exact {
-            out.push(triple(&corr, &lo("preservationKind"), &lo("ExactPreservation")));
-            out.push(triple(&corr, &lo("correspondenceRelation"), &lo("Subsumes")));
-            out.push(triple(&corr, &lo("morphismClass"), &lo("SectionRetraction")));
+            out.push(triple(
+                &corr,
+                &lo("preservationKind"),
+                &lo("ExactPreservation"),
+            ));
+            out.push(triple(
+                &corr,
+                &lo("correspondenceRelation"),
+                &lo("Subsumes"),
+            ));
+            out.push(triple(
+                &corr,
+                &lo("morphismClass"),
+                &lo("SectionRetraction"),
+            ));
             out.push(triple(&corr, &lo("hasDeterminacy"), &lo("Crisp")));
             out.push(boolean(&corr, &lo("mnemomorphic"), true));
         } else {
-            out.push(triple(&corr, &lo("preservationKind"), &lo("ValidationOnly")));
-            out.push(triple(&corr, &lo("correspondenceRelation"), &lo("RelatedMatch")));
+            out.push(triple(
+                &corr,
+                &lo("preservationKind"),
+                &lo("ValidationOnly"),
+            ));
+            out.push(triple(
+                &corr,
+                &lo("correspondenceRelation"),
+                &lo("RelatedMatch"),
+            ));
             out.push(triple(&corr, &lo("morphismClass"), &lo("BridgeView")));
             out.push(triple(&corr, &lo("hasDeterminacy"), &lo("Vague")));
             out.push(boolean(&corr, &lo("mnemomorphic"), false));
@@ -1629,8 +1687,8 @@ mod pack_tests {
                 .collect();
             paths.sort();
             for path in paths {
-                let bytes = std::fs::read(&path)
-                    .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+                let bytes =
+                    std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
                 if String::from_utf8_lossy(&bytes).contains("blackcatinformatics.ca/lang/") {
                     let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("src");
                     corpus.push(NamedSource {
@@ -1703,7 +1761,10 @@ mod pack_tests {
             .iter()
             .find(|a| a.path_suffix == versioned_path)
             .unwrap_or_else(|| panic!("metrics artifact keyed at {versioned_path}"));
-        assert!(artifact.is_rdf, "the metrics artifact is an RDF serialization");
+        assert!(
+            artifact.is_rdf,
+            "the metrics artifact is an RDF serialization"
+        );
 
         // Byte-deterministic across runs.
         assert_eq!(
@@ -1723,7 +1784,10 @@ mod pack_tests {
             crate::is_exact_correspondence(&first.correspondence),
             "the metrics carry an exact correspondence"
         );
-        assert!(first.round_trip_holds, "the metrics round-trip is measured true");
+        assert!(
+            first.round_trip_holds,
+            "the metrics round-trip is measured true"
+        );
 
         let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
         // The measurement subject is a gmeow:Measurement bound to codebook + notation.
@@ -1786,8 +1850,7 @@ mod pack_tests {
         );
 
         // The gate's left side is EXACTLY the non-ASCII-byte-fallback formula — not total bytes.
-        let expected_worst =
-            metrics.gmn_ascii_bytes.div_ceil(4) + metrics.gmn_nonascii_bytes;
+        let expected_worst = metrics.gmn_ascii_bytes.div_ceil(4) + metrics.gmn_nonascii_bytes;
         assert_eq!(
             metrics.gmn_worst_case_tokens, expected_worst,
             "gmn_worst_case_tokens must be ceil(ascii/4)+nonascii, not total bytes \
@@ -1869,7 +1932,10 @@ mod pack_tests {
         // and both the per-source .gmn and the conformance pack are present.
         let paths = build(&major);
         let prefix = format!("gmn1/v{major}/");
-        assert!(!paths.is_empty(), "at least the conformance pack is emitted");
+        assert!(
+            !paths.is_empty(),
+            "at least the conformance pack is emitted"
+        );
         for path in &paths {
             assert!(
                 path.starts_with(&prefix),
@@ -1881,14 +1947,19 @@ mod pack_tests {
             "the bundle conformance pack is emitted under the versioned subtree: {paths:?}"
         );
         assert!(
-            paths.iter().any(|p| p.ends_with("gmn-grounding-glyphs.gmn")),
+            paths
+                .iter()
+                .any(|p| p.ends_with("gmn-grounding-glyphs.gmn")),
             "the per-source GMN artifact is emitted under the versioned subtree: {paths:?}"
         );
 
         // Falsifiability: the key comes from the THREADED (graph-resolved) major, not a
         // hardcoded string. Re-key under a synthetic major and every path moves — a literal
         // in the emitter would leave them under v1 and fail here.
-        assert_ne!(major, "7", "the resolved major differs from the synthetic bump");
+        assert_ne!(
+            major, "7",
+            "the resolved major differs from the synthetic bump"
+        );
         for path in build("7") {
             assert!(
                 path.starts_with("gmn1/v7/"),

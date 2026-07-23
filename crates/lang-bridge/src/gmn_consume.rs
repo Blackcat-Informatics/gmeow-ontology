@@ -64,7 +64,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{RdfDataset, RdfQuad, RdfTerm};
 
-use crate::gmn1_codec::{Gmn0Model, GmnDictionary, Gmn1Error, gmn1_write};
+use crate::gmn1_codec::{Gmn0Model, Gmn1Error, GmnDictionary, gmn1_write};
 
 /// `gmeow:gmnContentRing` — the claim-scoped content-subject → ring classification tag the
 /// consume filter reads (distinct from the envelope-scoped `gmeow:gmnSecurityRing`).
@@ -399,14 +399,19 @@ pub fn consume_project(
             continue;
         }
         if let (RdfTerm::Iri(subject), RdfTerm::Iri(ring)) = (&quad.subject, &quad.object) {
-            tags.entry(subject.clone()).or_default().insert(ring.clone());
+            tags.entry(subject.clone())
+                .or_default()
+                .insert(ring.clone());
         }
     }
     // The single resolved ring per subject (else this subject is a leak once it carries data).
     let mut subject_ring: BTreeMap<String, String> = BTreeMap::new();
     for (subject, rings) in &tags {
         if rings.len() == 1 {
-            subject_ring.insert(subject.clone(), rings.iter().next().expect("len==1").clone());
+            subject_ring.insert(
+                subject.clone(),
+                rings.iter().next().expect("len==1").clone(),
+            );
         }
     }
 
@@ -462,10 +467,7 @@ pub fn consume_project(
             if let RdfTerm::Iri(object) = &quad.object
                 && let Some(excluded_ring) = excluded_iri.get(object)
             {
-                let admitted_ring = subject_ring
-                    .get(admitted)
-                    .cloned()
-                    .unwrap_or_default();
+                let admitted_ring = subject_ring.get(admitted).cloned().unwrap_or_default();
                 return Err(GmnConsumeError::ReferenceLeak {
                     admitted: admitted.clone(),
                     admitted_ring,
@@ -520,8 +522,7 @@ pub fn consume_project(
     // The quads each admitted claim contributes (its own quads + the admissible blank structure
     // it introduces). A blank node is attributed to the FIRST admitted claim (canonical order)
     // that references it, so each admissible blank rides exactly one emitted claim.
-    let claim_quads =
-        assemble_claim_quads(&claims, &admitted_claim_keys, &admitted_blank);
+    let claim_quads = assemble_claim_quads(&claims, &admitted_claim_keys, &admitted_blank);
 
     // Greedy prefix fit: include whole claims in canonical order while the running GMN-1 token
     // estimate stays within budget (always at least one), disclosing any elided remainder.
@@ -753,11 +754,21 @@ mod tests {
     #[test]
     fn within_closure_matches_the_authored_lattice() {
         let l = lattice();
-        assert!(l.contains(CORE) && l.contains(TRUSTED) && l.contains(RESTRICTED) && l.contains(NATO));
+        assert!(
+            l.contains(CORE) && l.contains(TRUSTED) && l.contains(RESTRICTED) && l.contains(NATO)
+        );
         // Level axis: core flows outward to every ring; restricted flows nowhere but itself.
         assert_eq!(l.within(CORE, TRUSTED), Some(true), "core within trusted");
-        assert_eq!(l.within(CORE, RESTRICTED), Some(true), "core within restricted");
-        assert_eq!(l.within(TRUSTED, CORE), Some(false), "trusted not within core");
+        assert_eq!(
+            l.within(CORE, RESTRICTED),
+            Some(true),
+            "core within restricted"
+        );
+        assert_eq!(
+            l.within(TRUSTED, CORE),
+            Some(false),
+            "trusted not within core"
+        );
         assert_eq!(
             l.within(RESTRICTED, TRUSTED),
             Some(false),
@@ -795,7 +806,10 @@ mod tests {
 
         // Target = trusted: admits core + trusted + nato, excludes restricted (level axis).
         let p = consume_project(&model, &l, TRUSTED, None, &d).expect("trusted projection");
-        assert!(p.text.contains("ringDemoCoreDatum"), "core admitted into trusted");
+        assert!(
+            p.text.contains("ringDemoCoreDatum"),
+            "core admitted into trusted"
+        );
         assert!(
             p.text.contains("ringDemoTrustedDatum"),
             "trusted admitted into trusted"
@@ -827,7 +841,10 @@ mod tests {
             "even core EXCLUDED from nato target — lacks the NATO compartments"
         );
         assert!(!p.text.contains("ringDemoRestrictedDatum"));
-        assert_eq!(p.admitted_claims, 1, "only nato content is admissible into nato");
+        assert_eq!(
+            p.admitted_claims, 1,
+            "only nato content is admissible into nato"
+        );
         assert_eq!(p.excluded_claims, 3);
 
         // Target = core: the strictest bar — only core content (empty compartments, top level).
@@ -855,7 +872,10 @@ mod tests {
         let full = consume_project(&model, &l, TRUSTED, None, &d).expect("full trusted projection");
         assert_eq!(full.elided_claims, 0);
         assert!(full.disclosure.is_none(), "no elision ⇒ no disclosure");
-        assert!(full.tokens > 1, "the full projection has a measurable token size");
+        assert!(
+            full.tokens > 1,
+            "the full projection has a measurable token size"
+        );
 
         // A budget that fits fewer than all admitted claims forces elision.
         let tight = full.tokens - 1;
@@ -864,7 +884,10 @@ mod tests {
             p.emitted_claims < p.admitted_claims,
             "a tight budget elides at least one admitted claim"
         );
-        assert!(p.emitted_claims >= 1, "always emits at least one claim (a hard cap)");
+        assert!(
+            p.emitted_claims >= 1,
+            "always emits at least one claim (a hard cap)"
+        );
         assert_eq!(p.elided_claims, p.admitted_claims - p.emitted_claims);
         let disclosure = p.disclosure.expect("elision must be disclosed");
         assert!(
@@ -910,7 +933,10 @@ mod tests {
         let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parses");
         let model = Gmn0Model::from_dataset(&ds);
         let err = consume_project(&model, &l, TRUSTED, None, &d).expect_err("must leak");
-        assert!(matches!(err, GmnConsumeError::ReferenceLeak { .. }), "{err}");
+        assert!(
+            matches!(err, GmnConsumeError::ReferenceLeak { .. }),
+            "{err}"
+        );
         assert_eq!(err.failure_class(), CLASS_RING_LEAK);
     }
 
@@ -923,7 +949,10 @@ mod tests {
         let model = demonstrator();
         let err = consume_project(&model, &l, "https://example.org/notARing", None, &d)
             .expect_err("unknown target");
-        assert!(matches!(err, GmnConsumeError::UnknownTargetRing { .. }), "{err}");
+        assert!(
+            matches!(err, GmnConsumeError::UnknownTargetRing { .. }),
+            "{err}"
+        );
         assert_eq!(err.failure_class(), CLASS_RING_LATTICE_MALFORMED);
     }
 }

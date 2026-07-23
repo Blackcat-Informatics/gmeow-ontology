@@ -153,7 +153,10 @@ fn count_glyph_chars(text: &str, glyphs: &[&str]) -> u64 {
     let mut covered = 0u64;
     let mut rest = text;
     while !rest.is_empty() {
-        if let Some(glyph) = glyphs.iter().find(|g| !g.is_empty() && rest.starts_with(**g)) {
+        if let Some(glyph) = glyphs
+            .iter()
+            .find(|g| !g.is_empty() && rest.starts_with(**g))
+        {
             covered += glyph.chars().count() as u64;
             rest = &rest[glyph.len()..];
         } else {
@@ -190,7 +193,10 @@ fn serialize_sizes(model: &Gmn0Model) -> Option<(u64, u64, u64)> {
 /// its bytes/glyph/compression aggregates — those are the artifacts GMN actually ships, so
 /// the compression claim is scoped honestly to them.
 #[must_use]
-pub fn compute_token_metrics(sources: &[crate::registry::NamedSource], dict: &GmnDictionary) -> TokenMetrics {
+pub fn compute_token_metrics(
+    sources: &[crate::registry::NamedSource],
+    dict: &GmnDictionary,
+) -> TokenMetrics {
     let glyphs = dict.glyph_registry().glyph_tokens();
 
     let mut total_sources = 0u64;
@@ -280,4 +286,3 @@ pub fn compute_token_metrics(sources: &[crate::registry::NamedSource], dict: &Gm
         measured_sources: roundtrip_sources,
     }
 }
-

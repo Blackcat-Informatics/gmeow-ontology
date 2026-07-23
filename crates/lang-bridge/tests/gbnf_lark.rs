@@ -272,7 +272,9 @@ fn gbnf_left_recursion_is_soundunder_not_fabricated() {
     for formalism in [Formalism::Gbnf, Formalism::Lark] {
         let blockers = match render_or_block(&diff_grammar, formalism) {
             Err(b) => b,
-            Ok(text) => panic!("{formalism:?} must emit NO artifact for a difference-bearing grammar:\n{text}"),
+            Ok(text) => panic!(
+                "{formalism:?} must emit NO artifact for a difference-bearing grammar:\n{text}"
+            ),
         };
         assert!(
             blockers.iter().any(|b| b.contains("set-difference")),

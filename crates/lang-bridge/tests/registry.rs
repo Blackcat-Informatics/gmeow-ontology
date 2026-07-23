@@ -210,16 +210,26 @@ fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragme
             ..Default::default()
         };
         let emissions = target(surface).emit(&input).expect("emit");
-        assert_eq!(emissions.len(), 1, "{surface}: one gmn glyph-grammar emission");
+        assert_eq!(
+            emissions.len(),
+            1,
+            "{surface}: one gmn glyph-grammar emission"
+        );
         let e = &emissions[0];
         // Representable ⇒ exact correspondence, measured round-trip, structural-inverse leg pair.
         assert!(
             is_exact_correspondence(&e.correspondence),
             "{surface}: a representable glyph grammar carries an exact correspondence"
         );
-        assert!(e.round_trip_holds, "{surface}: the re-parse must be isomorphic");
+        assert!(
+            e.round_trip_holds,
+            "{surface}: the re-parse must be isomorphic"
+        );
         let (get, put) = e.leg_pair.as_ref().expect("leg pair");
-        assert!(exact_round_trip_holds(get, put), "{surface}: put ∘ get = id");
+        assert!(
+            exact_round_trip_holds(get, put),
+            "{surface}: put ∘ get = id"
+        );
         // The artifact is keyed UNDER the version subtree (gmn1/v<major>/<surface>/gmn.<surface>),
         // never the flat surface path the EBNF/ABNF targets use.
         let artifact = e.artifacts.first().expect("one artifact");
@@ -236,7 +246,10 @@ fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragme
             "{surface}: the glyph production is present:\n{text}"
         );
         for glyph in ["+", "π", "¬"] {
-            assert!(text.contains(glyph), "{surface}: missing {glyph:?} in:\n{text}");
+            assert!(
+                text.contains(glyph),
+                "{surface}: missing {glyph:?} in:\n{text}"
+            );
         }
         // Re-parses to the SAME canonical tree as the EBNF source (identity is the tree).
         let formalism = if surface == "gbnf" {
@@ -245,7 +258,9 @@ fn gbnf_and_lark_emit_versioned_exact_glyph_grammar_for_the_representable_fragme
             Formalism::Lark
         };
         let reparsed = parse_grammar(&artifact.bytes, formalism).expect("re-parse");
-        let source = EbnfBridge.to_grammar(GMN_REPRESENTABLE_EBNF.as_bytes()).unwrap();
+        let source = EbnfBridge
+            .to_grammar(GMN_REPRESENTABLE_EBNF.as_bytes())
+            .unwrap();
         assert_eq!(reparsed.canonicalize().rules, source.canonicalize().rules);
     }
 }
@@ -269,7 +284,10 @@ fn gbnf_and_lark_emit_versioned_exact_artifact_for_the_hex_bearing_real_gmn_shap
             "{surface}: the hex-bearing gmn grammar is representable and exact"
         );
         assert_eq!(e.lossy_kind, PreservationKind::Exact);
-        assert!(e.round_trip_holds, "{surface}: the re-parse must be isomorphic");
+        assert!(
+            e.round_trip_holds,
+            "{surface}: the re-parse must be isomorphic"
+        );
         let artifact = e.artifacts.first().expect("one artifact");
         assert_eq!(
             artifact.path_suffix,
@@ -278,7 +296,11 @@ fn gbnf_and_lark_emit_versioned_exact_artifact_for_the_hex_bearing_real_gmn_shap
         );
         // The hex escapes are present in BOTH directions (rendered, and re-parseable to `Hex`).
         let text = std::str::from_utf8(&artifact.bytes).unwrap();
-        let cr_escape = if surface == "gbnf" { "[\\x0D]" } else { "/\\x0D/" };
+        let cr_escape = if surface == "gbnf" {
+            "[\\x0D]"
+        } else {
+            "/\\x0D/"
+        };
         assert!(
             text.contains(cr_escape),
             "{surface}: the `#xD` terminal renders as {cr_escape}:\n{text}"
@@ -311,7 +333,10 @@ fn gbnf_and_lark_are_honest_soundunder_for_a_difference_bearing_gmn_grammar() {
         };
         let e = &target(surface).emit(&input).expect("emit")[0];
         // NOT exact — the set-difference operator has no round-trip-faithful GBNF/Lark node.
-        assert!(!is_exact_correspondence(&e.correspondence), "{surface}: lossy");
+        assert!(
+            !is_exact_correspondence(&e.correspondence),
+            "{surface}: lossy"
+        );
         assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
         // No fabricated artifact — a partial rendering that cannot round-trip is never emitted.
         assert!(

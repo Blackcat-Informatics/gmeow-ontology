@@ -226,7 +226,10 @@ pub fn build_verbalization_pairs(
         let gmn_surface = arrange(&form.fixity, &form.gmn_glyph, form.arity)?;
         let collided = base_counts.get(base.as_str()).copied().unwrap_or(0) > 1;
         let nl = if collided {
-            format!("{base}{TAG_OPEN}{}{TAG_CLOSE}", compact_curie(&form.term_iri))
+            format!(
+                "{base}{TAG_OPEN}{}{TAG_CLOSE}",
+                compact_curie(&form.term_iri)
+            )
         } else {
             base.clone()
         };
@@ -294,9 +297,8 @@ pub fn parse_nl(nl: &str) -> Option<ParsedNl> {
         _ => (nl, None),
     };
     let tokens: Vec<&str> = core.split(' ').collect();
-    let is_ph = |t: &str| {
-        t.len() > 3 && t.starts_with("arg") && t[3..].bytes().all(|b| b.is_ascii_digit())
-    };
+    let is_ph =
+        |t: &str| t.len() > 3 && t.starts_with("arg") && t[3..].bytes().all(|b| b.is_ascii_digit());
 
     // Bracketing: "<label…> [ arg1 , … , argN ]".
     if let Some(open) = tokens.iter().position(|t| *t == "[") {
@@ -471,7 +473,10 @@ mod tests {
         let pairs = build_verbalization_pairs(&forms).expect("pairs build");
         // Both NL strings are distinct (disambiguated) — injectivity held.
         assert_ne!(pairs[0].nl, pairs[1].nl);
-        assert!(pairs.iter().all(|p| p.nl.contains("⟪")), "both carry a CURIE tag");
+        assert!(
+            pairs.iter().all(|p| p.nl.contains("⟪")),
+            "both carry a CURIE tag"
+        );
         // And each still round-trips to its OWN form through the inverse + index.
         assert!(round_trip_holds(&pairs), "disambiguated pairs round-trip");
         let index = forward_index(&pairs);

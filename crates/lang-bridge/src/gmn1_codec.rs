@@ -3558,10 +3558,7 @@ pub fn resolve_effective(model: &Gmn0Model) -> Result<Gmn0Model, Gmn1RepairError
     // 5. Emit the effective store in the SAME content-sorted, de-duplicated normal form
     //    `Gmn0Model::from_dataset` produces — the repair records are gone, the surviving
     //    base records carry their restated fields.
-    let mut quads: Vec<RdfQuad> = base
-        .into_values()
-        .flat_map(|record| record.quads)
-        .collect();
+    let mut quads: Vec<RdfQuad> = base.into_values().flat_map(|record| record.quads).collect();
     quads.sort_by_key(quad_sort_key);
     quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
     Ok(Gmn0Model { quads })
@@ -4637,7 +4634,8 @@ ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gm
                     }
                 }
                 PRED_GMN_CODEPOINTS => {
-                    if let (RdfTerm::Iri(g), RdfTerm::Literal(lit)) = (&quad.subject, &quad.object) {
+                    if let (RdfTerm::Iri(g), RdfTerm::Literal(lit)) = (&quad.subject, &quad.object)
+                    {
                         grapheme_codepoints.insert(g.clone(), lit.lexical_form.clone());
                     }
                 }
@@ -4736,10 +4734,9 @@ ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gm
 
         // fieldA is RESTATED; fieldB (an unpatched field of the same record) survives.
         assert!(
-            effective
-                .quads
-                .iter()
-                .any(|q| q.subject == r1 && q.predicate.ends_with("fieldA") && q.object == lit("newA")),
+            effective.quads.iter().any(|q| q.subject == r1
+                && q.predicate.ends_with("fieldA")
+                && q.object == lit("newA")),
             "effective r1.fieldA must be the restated value"
         );
         assert!(
@@ -4747,10 +4744,9 @@ ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gm
             "the pre-patch fieldA value must be gone from the effective store"
         );
         assert!(
-            effective
-                .quads
-                .iter()
-                .any(|q| q.subject == r1 && q.predicate.ends_with("fieldB") && q.object == lit("keepB")),
+            effective.quads.iter().any(|q| q.subject == r1
+                && q.predicate.ends_with("fieldB")
+                && q.object == lit("keepB")),
             "an unpatched field of r1 must survive"
         );
         // The reified patch record is meta — consumed, not present as base data.
@@ -4857,7 +4853,10 @@ ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gm
                     target: format!("{EX}does-not-exist"),
                 }
             );
-            assert_eq!(error.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+            assert_eq!(
+                error.failure_class(),
+                Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR
+            );
         }
     }
 
