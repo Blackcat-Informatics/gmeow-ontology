@@ -471,28 +471,16 @@ fn extract_annotation_axioms(
             // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
             continue;
         };
-        match lang.as_deref() {
-            Some(X_GMEOW_ENGLISH_TAG) => {}
-            Some(other) => {
-                // Fail closed: a carrier-discipline violation is a hard error, never a
-                // silent retag. (R2/AC2)
-                diagnostics.push(Diagnostic::error(
-                    "NON_CARRIER_ANNOTATION_LANG",
-                    format!(
-                        "annotation literal on <{}> {} carries language tag @{other}, not the \
-                         internal @{X_GMEOW_ENGLISH_TAG} carrier tag; annotations must use the \
-                         carrier tag",
-                        subject_str(&quad.subject),
-                        p_str,
-                    ),
-                    Some(subject_str(&quad.subject)),
-                ));
-                continue;
-            }
-            // Untagged / typed literal: not a carrier annotation (internal display
-            // annotations are always carrier-tagged). Left to any other reader (e.g.
-            // rdfs:comment caveats); not lifted as a display annotation.
-            None => continue,
+        // Only the internal carrier surface is lifted. Any other language tag (an `@en`
+        // example/demonstration label, a foreign literal) or an untagged/typed literal is
+        // NOT part of GMEOW's carrier SKOS/RDFS surface, so it is skipped — never lifted and
+        // never treated as a hard error here. The authoritative fail-closed carrier-discipline
+        // guard is the structural lint (validate-gts), which is scoped to the shipped
+        // core-term graphs and flags a genuine core violation (R2/AC2); the compile-logic
+        // corpus also carries example/test subjects the lint deliberately does not police, so
+        // rejecting their @en annotations here would be stricter than the guard itself.
+        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+            continue;
         }
         match LogicAxiom::new(
             subject_str(&quad.subject),

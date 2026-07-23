@@ -450,15 +450,6 @@ fn warn(code: &str, message: String, subject: Option<String>) -> Diagnostic {
     }
 }
 
-fn err(code: &str, message: String, subject: Option<String>) -> Diagnostic {
-    Diagnostic {
-        severity: Severity::Error,
-        code: code.to_owned(),
-        message,
-        subject,
-    }
-}
-
 /// Lift the RDFS/SKOS annotation surface into first-class [`NodeKind::Annotation`] axioms —
 /// the owl/rdfs-authored TWIN of `frontend::extract_annotation_axioms`. Both sites lift the
 /// SAME `ANNOTATION_LIFT_PREDS` the SAME way (carrier tag fail-closed, load-bearing bit) so an
@@ -487,21 +478,11 @@ fn extract_annotation_axioms(
         let Node::Lit { lexical, lang, .. } = &quad.object else {
             continue;
         };
-        match lang.as_deref() {
-            Some(X_GMEOW_ENGLISH_TAG) => {}
-            Some(other) => {
-                diagnostics.push(err(
-                    "NON_CARRIER_ANNOTATION_LANG",
-                    format!(
-                        "annotation literal on <{}> {p_str} carries language tag @{other}, not \
-                         the internal @{X_GMEOW_ENGLISH_TAG} carrier tag",
-                        subject_str(&quad.subject),
-                    ),
-                    Some(subject_str(&quad.subject)),
-                ));
-                continue;
-            }
-            None => continue,
+        // Only the internal carrier surface is lifted (see the frontend twin); any other
+        // tag or an untagged literal is external/example data, skipped — the structural lint
+        // is the authoritative carrier-discipline guard, not this lift.
+        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+            continue;
         }
         match LogicAxiom::new(
             subject_str(&quad.subject),

@@ -110,9 +110,12 @@ fn annotation_lift_ignores_foreign_subject_labels() {
 }
 
 #[test]
-fn annotation_lift_fails_closed_on_non_carrier_tag() {
-    // A non-carrier language tag is a discipline violation: a blocking diagnostic is emitted
-    // and NO annotation axiom is produced (never a silent retag). (R2/AC2)
+fn annotation_lift_skips_non_carrier_tagged_annotations() {
+    // Only the internal @x-gmeow-english carrier surface is lifted. A non-carrier tag (an @en
+    // example/demonstration label — the compile-logic corpus carries example/test subjects too)
+    // is NOT the carrier surface: skipped, never lifted and never a hard error here. The
+    // authoritative fail-closed carrier-discipline guard is the structural lint (validate-gts),
+    // scoped to the shipped core-term graphs. (R2/AC2)
     let (prog, diags) = parse_logic_str(
         &format!("{PREFIXES}\ngm:Bad rdfs:label \"Widget\"@en ."),
         None,
@@ -125,10 +128,10 @@ fn annotation_lift_fails_closed_on_non_carrier_tag() {
         "a non-carrier-tagged annotation must NOT be lifted"
     );
     assert!(
-        diags
+        !diags
             .iter()
-            .any(|d| d.code == "NON_CARRIER_ANNOTATION_LANG" && d.severity == Severity::Error),
-        "a blocking NON_CARRIER_ANNOTATION_LANG diagnostic is emitted"
+            .any(|d| d.code == "NON_CARRIER_ANNOTATION_LANG"),
+        "a non-carrier tag is skipped, not a hard lift error (the lint is the guard)"
     );
 }
 
