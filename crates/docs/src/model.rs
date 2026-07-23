@@ -48,7 +48,6 @@ const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 // ── GMEOW-vocabulary predicates / classes used by the linkage / concern surfaces ─
 
 const GMEOW_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
-const GMEOW_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
 const GMEOW_DOCUMENTATION_CONCERN: &str =
     "https://blackcatinformatics.ca/gmeow/DocumentationConcern";
 
@@ -57,11 +56,6 @@ const GMEOW_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GMEOW_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
 const GMEOW_SET_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/setComment";
 
-const GMEOW_ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
-const GMEOW_ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
-const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
-const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
-const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 
 // ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
 const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
@@ -3043,43 +3037,24 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
         });
     }
 
+    // Native alignment cells (the legacy `gmeow:TermEquivalence` + `alignSubject/Predicate/
+    // Object` cell form was deleted): read through the canonical `equivalence_cells` reader,
+    // which resolves the reified `S P O {| … |}` statements + their reifier annotations.
     let mut links = Vec::new();
-    for iri in subjects_of_type(store, GMEOW_TERM_EQUIVALENCE) {
-        let Some(subject) = named_objects(store, &iri, GMEOW_ALIGN_SUBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(predicate) = named_objects(store, &iri, GMEOW_ALIGN_PREDICATE)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(object) = named_objects(store, &iri, GMEOW_ALIGN_OBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        // The justification is usually a NamedNode (semapv:…); accept literal too.
-        let justification = named_objects(store, &iri, GMEOW_JUSTIFICATION)
-            .into_iter()
-            .next()
-            .map(|j| to_curie(&j))
-            .or_else(|| first_literal(store, &iri, GMEOW_JUSTIFICATION));
-        let confidence =
-            first_literal(store, &iri, GMEOW_CONFIDENCE).and_then(|v| v.trim().parse::<f64>().ok());
+    for cell in gmeow_logic_compile::projections::sssom::equivalence_cells(
+        &gmeow_logic_compile::ingest::DslView::new(store.dataset()),
+    )
+    .unwrap_or_default()
+    {
         links.push(DocLinkage {
-            mapping_set: first_literal(store, &iri, GMEOW_SSSOM_FILE),
-            subject_curie: to_curie(&subject),
-            subject,
-            predicate: to_curie(&predicate),
-            object,
-            justification,
-            confidence,
+            mapping_set: Some(cell.sssom_file.clone()),
+            subject_curie: to_curie(&cell.subject),
+            predicate: to_curie(&cell.predicate),
+            object: cell.obj.clone(),
+            justification: cell.justification.as_deref().map(to_curie),
+            confidence: cell.confidence,
             owner_slice: owner_slice.to_string(),
+            subject: cell.subject,
         });
     }
     (sets, links)
