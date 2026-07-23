@@ -161,3 +161,10 @@ harness = false
 [[bench]]
 name = "engines_iai"
 harness = false
+
+# Advisory-only wall-clock baseline for the verified PURREMB retrieval scan. The on-gate
+# correctness gates live in tests/purremb_perf.rs (counting-allocator memory-shape proofs);
+# this Criterion harness is never part of `make check`.
+[[bench]]
+name = "purremb_retrieval"
+harness = false

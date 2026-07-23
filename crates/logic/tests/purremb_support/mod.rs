@@ -9,6 +9,10 @@
 //! bytes. After the builder emits the bytes, the fixture opens a throwaway
 //! verified view to read the artifact's *actual* identities and digests, so a
 //! test can perturb a true [`ProfileSurfaceDigests`] to drive a mismatch class.
+//!
+//! This module is `#[path]`-included into more than one integration-test binary,
+//! and each binary exercises a different subset of the fixtures, so each include
+//! site carries its own `#[allow(dead_code)]` for the helpers it does not use.
 
 use gmeow_logic::purremb_relation::{ProfileSurfaceDigests, PurrembSelection, RetrievalPolicy};
 use purrdf::{
@@ -439,6 +443,66 @@ pub fn iri_corpus_f64(tag: &str, metric: DistanceMetric, rows: &[(&str, &[f64])]
         source_bytes,
         dataset_target,
         dtype: VectorDtype::F64,
+        metric,
+        dimensionality: DimensionalityPolicy::fixed(dimension, PrefixPostprocessing::None)
+            .expect("fixed dimensionality"),
+        matrix_targets,
+        aux_targets: Vec::new(),
+        relations: Vec::new(),
+        token_spans: Vec::new(),
+    })
+}
+
+/// The deterministic local name of row `index` in a [`iri_corpus_f32_large`] corpus.
+#[must_use]
+pub fn large_corpus_local(index: usize) -> String {
+    format!("row{index:06}")
+}
+
+/// A large, deterministic fixed-dimension `f32` corpus of `RdfTerm(Iri)` targets for the
+/// performance & cost lane.
+///
+/// Builds `count` rows of width `dimension`; row `i`'s local name is
+/// [`large_corpus_local`] and its stored vector is a fixed function of `(i, component)`,
+/// so the artifact is byte-reproducible across runs. The authoritative stored matrix is
+/// `count * dimension * 4` bytes — far larger than the `O(k + dimension)` working set one
+/// bounded retrieval scan is permitted to touch, which is exactly what the cost lane
+/// measures against.
+#[must_use]
+pub fn iri_corpus_f32_large(
+    tag: &str,
+    metric: DistanceMetric,
+    count: usize,
+    dimension: u32,
+) -> Fixture {
+    let matrix_targets = (0..count)
+        .map(|index| {
+            let (target, iri) = iri_target(&large_corpus_local(index));
+            let vector = (0..dimension)
+                .map(|component| {
+                    // A fixed integer mix folded into [0, 1): distinct across rows and
+                    // components, never zero-magnitude, no wall-clock or RNG input.
+                    let mixed = (index as u64)
+                        .wrapping_mul(2_654_435_761)
+                        .wrapping_add(u64::from(component).wrapping_mul(40_503))
+                        .wrapping_add(1);
+                    ((mixed % 1009) as f64 + 1.0) / 1010.0
+                })
+                .collect();
+            MatrixTargetSpec {
+                target,
+                iri: Some(iri),
+                vector,
+            }
+        })
+        .collect();
+    let (source, source_bytes, dataset_target) = empty_source();
+    build(BuildSpec {
+        tag: tag.to_owned(),
+        source,
+        source_bytes,
+        dataset_target,
+        dtype: VectorDtype::F32,
         metric,
         dimensionality: DimensionalityPolicy::fixed(dimension, PrefixPostprocessing::None)
             .expect("fixed dimensionality"),

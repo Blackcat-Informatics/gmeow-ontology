@@ -10,6 +10,10 @@
 //! answer rows, the annotation dimension carried in lineage, the operational receipt, or
 //! the distinct typed failure surfaced at the dispatch boundary.
 
+#[allow(
+    dead_code,
+    reason = "the shared PURREMB fixture support module also exposes builders used only by other test binaries"
+)]
 #[path = "purremb_support/mod.rs"]
 mod support;
 
