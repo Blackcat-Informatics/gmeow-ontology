@@ -9047,6 +9047,13 @@ mod tests {
                 .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
             "no permission-leg prose may leak into how_to_use: {entity}"
         );
+        // G4: the tripped node is visible on the MCP surface, not just the RDF claim wing —
+        // `subject` resolves to the focus IRI the finding's location carries.
+        assert_eq!(
+            entity["subject"].as_str(),
+            Some("https://ex.test/x"),
+            "advise must surface the tripped node as `subject`, not null: {entity}"
+        );
     }
 
     /// AC2: a claim that trips NO advice returns an empty recommendation list, still

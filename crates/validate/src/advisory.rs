@@ -478,10 +478,13 @@ fn term_source_prose(ontology: &purrdf::RdfDataset, term: &str, prop: &str) -> O
 /// both the pipeline (result-based) and CLI (finding-based) splits construct through.
 ///
 /// The focus node (the individual whose data matched the anti-pattern guard) is the
-/// advised subject (`gmeow:observedFeature`); `message` is the advice (the constraint's
-/// formalized-term `gmeow:avoidWhen` prose); the code `advice.<shape-local>.<focus-digest>`
-/// is injective per match and identifies the governing constraint (its provenance is the
-/// shape's `logic:formalizes`, carried as a `formalizes:<term>` tag).
+/// advised subject (`gmeow:observedFeature`) AND the finding's [`Location::logical`] —
+/// both independently carry the focus IRI, so every diagnostic surface (CLI text, SARIF
+/// logical location, JSON, MCP `advise`) resolves the tripped node, not just the RDF claim
+/// wing; `message` is the advice (the constraint's formalized-term `gmeow:avoidWhen`
+/// prose); the code `advice.<shape-local>.<focus-digest>` is injective per match and
+/// identifies the governing constraint (its provenance is the shape's `logic:formalizes`,
+/// carried as a `formalizes:<term>` tag).
 ///
 /// The whole prose surface of the formalized term is made machine-active here (D3): the
 /// term's `gmeow:howToUse` becomes a corrective `suggestion` and its `gmeow:useWhen` becomes
@@ -503,7 +506,12 @@ fn build_advisory(
         .with_tag("advisory-harvested")
         .with_help_uri(help_uri);
     if let Some(focus) = focus_iri {
-        advisory = advisory.with_subject_iri(focus.to_owned());
+        advisory = advisory
+            .with_subject_iri(focus.to_owned())
+            .with_location(Location {
+                logical: Some(focus.to_owned()),
+                ..Default::default()
+            });
     }
     if let Some(term) = shape_iri.and_then(|s| shape_formalizes(shapes, s)) {
         advisory = advisory.with_tag(format!("formalizes:{term}"));
@@ -1086,6 +1094,18 @@ mod tests {
             advisory.help_uri
         );
         assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
+        // The focus node is ALSO location-bearing (not just the RDF subject_iri wing), so
+        // the projected Diag carries a `logical` location every surface (CLI/SARIF/JSON/MCP)
+        // resolves the tripped node from — the G4 fix.
+        assert_eq!(
+            advisory
+                .locations
+                .iter()
+                .find_map(|l| l.logical.as_deref()),
+            Some("https://data/thing"),
+            "advisory must attach a Location whose logical is the focus node: {:?}",
+            advisory.locations
+        );
         assert_eq!(
             advisory.message,
             "prefer a more specific sortal than bare gmeow:Entity"
