@@ -57,15 +57,16 @@ All term-level Wikidata mappings are authored in `mapping-dsl/equivalences/*.ttl
 
 ### Required fields
 
-Every `gmeow:TermEquivalence` targeting Wikidata MUST carry:
+Every native alignment cell targeting Wikidata is a reified RDF-1.2 match statement
+`<gmeow-term> <predicate> <wd:…> {| … |}` and MUST carry:
 
-- `gmeow:alignSubject` — the GMEOW term being aligned
-- `gmeow:alignObject` — a `wd:Q…` or `wdt:P…` IRI (or `p:/ps:` in projection DSL)
-- `gmeow:alignPredicate` — one of the SKOS mapping predicates or `owl:equivalentProperty`/`owl:equivalentClass`
+- the statement subject — the GMEOW term being aligned
+- the statement object — a `wd:Q…` or `wdt:P…` IRI (or `p:/ps:` in projection DSL)
+- the statement predicate — one of the SKOS mapping predicates or `owl:equivalentProperty`/`owl:equivalentClass`
+- `gmeow:sssomFile` on the reifier — the discriminator that marks it an alignment cell
 - `gmeow:confidence` — a float in [0, 1]
 - `gmeow:justification` — typically `semapv:ManualMappingCuration`
 - `gmeow:objectLabel` — the English label of the Wikidata item/property at the time of curation
-- `gmeow:sssomFile` — the target SSSOM file name
 
 ### Recommended fields
 
