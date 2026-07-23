@@ -720,8 +720,30 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow
     Ok(())
 }
 
+/// Recursively collect every `*.md` Markdown source under `dir` into `out` — the
+/// cache-key mirror of the docs model's recursive `text/markdown` document
+/// discovery (fail-fast on a `read_dir` entry error; a missing directory yields
+/// nothing).
+fn walk_markdown(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow_errors::Diag> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            walk_markdown(&path, out)?;
+        } else if path.extension().is_some_and(|x| x == "md") {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
 /// Every raw source file `gmeow_docs::DocsModel::discover` reads: slice modules,
-/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`,
+/// every recursively-discovered per-slice Markdown source (the `docs.md` guide AND
+/// every nested `design/*.md` / other `*.md` — the same `text/markdown` set the
+/// model projects as first-class `DocMarkdownDocument`s), the vendored documentation
+/// site assets (`crates/docs/assets/**`), slice `examples/*.ttl`, `docs/four-boxes.md`,
 /// per-slice `i18n/<lang>.po` gettext translation catalogs, per-slice
 /// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
 /// competency-question overlays, per-slice `tests/conformance-fixtures/*.ttl` /
@@ -745,10 +767,15 @@ pub(crate) fn docs_source_files(
     for module in crate::stages::source_load::module_files(root)? {
         let dir = module.parent().unwrap_or(root);
         files.push(module.clone());
-        let docs = dir.join("docs.md");
-        if docs.is_file() {
-            files.push(docs);
-        }
+        // Every recursively-discovered Markdown source under the slice directory —
+        // the SAME set `gmeow_docs::DocsModel::discover` selects as first-class
+        // `DocMarkdownDocument`s (the top-level `docs.md` guide AND every nested
+        // `design/*.md` / other `*.md`). Declaring only the top-level `docs.md`
+        // silently dropped design-doc edits from the docs cache key, so a rendered
+        // page could go stale against its authored source. Over-inclusion of an
+        // incidental `.md` is cache-safe (a redundant key input); UNDER-inclusion is
+        // the soundness bug this closes.
+        walk_markdown(dir, &mut files)?;
         let shapes = dir.join("shapes.ttl");
         if shapes.is_file() {
             files.push(shapes);
@@ -824,6 +851,17 @@ pub(crate) fn docs_source_files(
     // …) — many `gmeow:cqQueryFile` values resolve here rather than into a slice's
     // own directory (both forms are repo-root-relative; see the doc comment above).
     walk_files(&root.join("queries"), &mut files)?;
+    // The vendored documentation site assets (`crates/docs/assets/**` — the CSS/JS
+    // theme, the offline SPARQL playground's `include_bytes!`'d purrdf wasm engine,
+    // and every other vendored wasm surface + its `DIGESTS.blake3` pin). The
+    // `SnapshotStage` embeds the rendered site, which carries these bytes verbatim,
+    // so refreshing a vendored asset (via its `maint-refresh-*-asset` target) MUST
+    // invalidate the docs render cache — otherwise the cache would serve HTML that
+    // references a freshly-swapped engine it was not rendered against. `.rs` source
+    // (the only thing `GMEOW_BUILD_FINGERPRINT` folds) does not change on an
+    // asset-only refresh, so the asset bytes are declared here as first-class cache
+    // inputs. New vendored surfaces land under this tree and fold in automatically.
+    walk_files(&root.join("crates").join("docs").join("assets"), &mut files)?;
     files.sort();
     files.dedup();
     Ok(files)
@@ -1014,6 +1052,32 @@ mod tests {
         assert!(
             has_grammar,
             "docs_source_files must include the lang slice's grammars/*.ebnf files"
+        );
+        // A recursively-discovered per-slice `design/*.md` — the #1628 soundness
+        // fix: editing a design doc must bust the docs cache, exactly as editing the
+        // top-level `docs.md` does. Before this, only the top-level `docs.md` was
+        // declared, so a `design/*.md` edit silently missed the key.
+        let has_design_md = files.iter().any(|p| {
+            p.extension().and_then(|s| s.to_str()) == Some("md")
+                && p.parent()
+                    .and_then(|parent| parent.file_name())
+                    .and_then(|n| n.to_str())
+                    == Some("design")
+        });
+        assert!(
+            has_design_md,
+            "docs_source_files must include recursively-discovered per-slice design/*.md sources"
+        );
+        // The vendored documentation site assets (`crates/docs/assets/**`) — the
+        // `SnapshotStage` embeds them into the rendered site, so a
+        // `maint-refresh-*-asset` swap must bust the docs cache (it does not change
+        // any `.rs`, the only thing `GMEOW_BUILD_FINGERPRINT` folds).
+        let has_vendored_asset = files
+            .iter()
+            .any(|p| p.ends_with("crates/docs/assets/purrdf/gmeow_rdf_wasm_bg.wasm"));
+        assert!(
+            has_vendored_asset,
+            "docs_source_files must include the vendored crates/docs/assets/** site assets"
         );
     }
 
