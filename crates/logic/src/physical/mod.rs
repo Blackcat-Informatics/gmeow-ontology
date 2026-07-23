@@ -166,7 +166,7 @@ pub(crate) use plan::{
 #[allow(unused_imports)]
 pub(crate) use chase::{
     ExistentialRule, WitnessPolicy, chase_materialize, chase_world, route_chase,
-    route_chase_with_registry,
+    route_chase_with_registry, route_chase_with_registry_backstopped,
 };
 // The termination certificate is surfaced PUBLICLY (re-exported through the public
 // `materialize` module below) so callers can read the chase's weak-acyclicity certificate

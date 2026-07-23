@@ -1788,6 +1788,45 @@ suggestions/guidance.
   afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
   a logic-slice / rubric-governance task independent of #1374.
 
+## 2026-07-21 — issue #1413 (native OWL 2 DL/Full fragment decision)
+
+- The native DL-consistency reasoner now enforces hard existential-chase
+  materialization backstops (a per-obligation witness ceiling of 512, a
+  500,000-fact chase bound, and a 20,000-step backstop). A case whose
+  existential / number-cardinality materialization would exceed a bound is folded
+  into an honest `reason.dl-gap.chase-materialization-bound` incomplete gap (a
+  WITHHOLD) instead of being materialized. This is a weaker-proxy mechanism than a
+  complete cardinality decision procedure: large-cardinality cases (e.g. the W3C
+  suite's `webont-i5-1-010` at owl:cardinality 127 and
+  `webont-description-logic-905/906/907` up to 60000 — none among this issue's seven
+  decided families) now WITHHOLD rather than DECIDE. It is sound — a withhold is
+  never a wrong answer, so `corpus_only` stays 0 — and the bounds sit >2500× above
+  the measured materialization footprint of every decided case (~8 chase steps /
+  ~105 facts), so no in-scope decided case regresses. The prior behavior on these
+  cases was an unbounded ~50GB heap allocation (a `>=n` cardinality lowered to n
+  witnesses plus n*(n-1)/2 pairwise owl:differentFrom atoms; at n=60000 that is
+  ~1.8 billion atoms), so the change trades an out-of-memory abort for an honest
+  withhold. FORWARD PATH: a non-materializing / symbolic cardinality decision
+  procedure that reasons over `>=n` and pairwise-distinctness constraints
+  structurally (without generating n witnesses and n^2 differentFrom atoms), so the
+  large-cardinality cases decide rather than withhold.
+
+- The native RDF/XML ingestion path cannot grade 5 W3C `w3c-owl2-full` cases whose
+  premises embed a `<!DOCTYPE ... <!ENTITY ...>>` DTD or an `rdf:datatype` node
+  element (`consistent-but-all-unsat`, `webont-miscellaneous-001/002`,
+  `webont-oneof-004`, `fs2rdf-literals-ar`): the hardened `purrdf` parser refuses
+  DTDs (XXE mitigation) and rejects datatype-with-node-children. The external
+  soundness grader now correctly treats these as pure SKIPs (a malformed/unparsable
+  source is a corpus defect, not a reasoner capability gap) rather than spurious
+  reasoner DlGaps, so `make maint-external-corpora` grades the remainder with
+  corpus_only=0 and exits clean. This is a pre-existing ingestion limitation (the
+  parser and grader ingestion path are byte-identical to origin/main and unrelated
+  to this issue's seven-family reasoner work); the 5 cases are simply not graded.
+  FORWARD PATH: route DTD-bearing premises through the existing `expand_xml_entities`
+  helper (or a safe entity-expansion pass) before parsing, and support
+  `rdf:datatype` node elements, so the 5 cases ingest and can be graded rather than
+  skipped.
+
 ## 2026-07-21 — #1410 / A-Box annotation contract → drive validate-gts to zero, stage-2 gap remediation (branch paudley/1410-abox-annotation-contract)
 
 - SCOPED-OUT (external FAIR metadata carries the private-use carrier tag, not public BCP-47):

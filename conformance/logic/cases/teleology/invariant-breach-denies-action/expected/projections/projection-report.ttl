@@ -5,8 +5,6 @@
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/cgif> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/clif> .
@@ -20,29 +18,45 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shacl-core> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shex> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/xcl> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12" .
-<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2004/02/skos/core#definition> "Projection to canonical-rdf12: preservation ExactPreservation, complexity N/A (identity serialization)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (identity serialization)" .
+<https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
 <https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/2000/01/rdf-schema#label> "cgif" .
-<https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/2000/01/rdf-schema#label> "cgif"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/2004/02/skos/core#definition> "Projection to cgif: preservation ExactPreservation, complexity full first-order (semi-decidable)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .
+<https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
 <https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/2000/01/rdf-schema#label> "clif" .
-<https://blackcatinformatics.ca/logic/target/clif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/2000/01/rdf-schema#label> "clif"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/2004/02/skos/core#definition> "Projection to clif: preservation ExactPreservation, complexity full first-order (semi-decidable)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/clif> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/clif> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .
+<https://blackcatinformatics.ca/logic/target/clif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
 <https://blackcatinformatics.ca/logic/target/datalog> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/datalog> <http://www.w3.org/2000/01/rdf-schema#label> "datalog" .
-<https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-<https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/logic/complexityClass> "terminating/PTIME-data" .
+<https://blackcatinformatics.ca/logic/target/datalog> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/datalog> <http://www.w3.org/2000/01/rdf-schema#label> "datalog"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/datalog> <http://www.w3.org/2004/02/skos/core#definition> "Projection to datalog: preservation SoundUnderApproximation, complexity terminating/PTIME-data."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/gmeow/lossyDrop> "OWL class expressions not representable as Datalog atoms are dropped" .
 <https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal/world context flattened to predicate reification" .
 <https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/gmeow/lossyDrop> "no existential rule heads (skolemisation not emitted)" .
+<https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/logic/complexityClass> "terminating/PTIME-data" .
+<https://blackcatinformatics.ca/logic/target/datalog> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/logic/target/gufo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/gufo> <http://www.w3.org/2000/01/rdf-schema#label> "gufo" .
-<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
-<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/gufo> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/gufo> <http://www.w3.org/2000/01/rdf-schema#label> "gufo"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/gufo> <http://www.w3.org/2004/02/skos/core#definition> "Projection to gufo: preservation ValidationOnly, complexity PTIME."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rdf:type logic:GoalExpression on <https://example.org/teleology/invariant-breach-denies-action/GoalExpression> has no gUFO equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "logic: world-modal/contextual structure has no gUFO equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)" .
@@ -55,67 +69,92 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection" .
-<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rdf:type logic:GoalExpression on <https://example.org/teleology/invariant-breach-denies-action/GoalExpression> has no gUFO equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
 <https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2000/01/rdf-schema#label> "n3" .
-<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> .
-<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/complexityClass> "semi-decidable" .
+<https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2000/01/rdf-schema#label> "n3"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2004/02/skos/core#definition> "Projection to n3: preservation CompleteOverApproximation, complexity semi-decidable."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "N3 builtins used for arithmetic/string predicates where available" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal context encoded as quoted graph arguments (may overgenerate)" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent" .
+<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/complexityClass> "semi-decidable" .
+<https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2000/01/rdf-schema#label> "owl-dl" .
-<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/complexityClass> "decidable/N2EXPTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2000/01/rdf-schema#label> "owl-dl"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2004/02/skos/core#definition> "Projection to owl-dl: preservation SoundUnderApproximation, complexity decidable/N2EXPTIME."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "contextual scope (standpoint, time, confidence) is dropped" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal/world context is erased" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "probabilistic profile not representable in OWL DL" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/complexityClass> "decidable/N2EXPTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/2000/01/rdf-schema#label> "owl-el" .
-<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/2000/01/rdf-schema#label> "owl-el"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/2004/02/skos/core#definition> "Projection to owl-el: preservation SoundUnderApproximation, complexity PTIME."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "contextual scope (standpoint, time, confidence) is dropped" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal/world context is erased" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "rules beyond EL expressivity are dropped" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/procedural-constraint> <http://www.w3.org/2000/01/rdf-schema#label> "procedural-constraint" .
-<https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
-<https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world SPARQL constraint (SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <http://www.w3.org/2000/01/rdf-schema#label> "procedural-constraint"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <http://www.w3.org/2004/02/skos/core#definition> "Projection to procedural-constraint: preservation ValidationOnly, complexity closed-world SPARQL constraint (SHACL Core)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a hand-authored CLOSED-WORLD lint whose finding is SUPERSEDED by RDFS/OWL entailment is not projected as a logic:Constraint: e.g. gmeow:CoreObservationMethodShape flags a gmeow:TemporalMeasurement carrying only gmeow:measurementMethod for a missing gmeow:observationMethod, but gmeow:measurementMethod rdfs:subPropertyOf gmeow:observationMethod entails the method, so the canonical logic: reasoning layer proves the datum well-formed — a faithful closed-world projection cannot reproduce that finding without contradicting the entailment (it would over-claim), so the finding is a reasoning artifact carried in the canonical logic: layer and its hand-authored shape is retained as a closed-world lint (dating1 residue)" .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a sh:SPARQLConstraint has no ShEx form at all (logic:unsupported); every projected constraint is disclosed as a ShEx drop, carried in the canonical logic: layer" .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a sh:SPARQLConstraint surface validates but does not entail (ValidationOnly)" .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM threshold) integrity conditions exceed that fragment; there is no formula-level aggregate term, so an aggregate comparison cannot be expressed as a genuine GROUP BY sub-SELECT and is carried-and-flagged, not projected" .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the projectable fragment is a range-restricted, ∀-guarded integrity condition (guard(this) → φ(this)) whose per-focus condition φ is a Horn / NNF tree of binary atoms, existentials, disjunctions and (path-)universals: it lowers to a SELECT $this WHERE { guard ∧ ¬φ } via BGP + FILTER NOT EXISTS + UNION" .
 <https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the surface is emit-only: there is no parse-back from a sh:SPARQLConstraint into a logic:Constraint (the logic: canon is the authoring ground, Principle 4)" .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world SPARQL constraint (SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/procedural-constraint> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-af" .
-<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/complexityClass> "terminating/PTIME-data" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-af"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2004/02/skos/core#definition> "Projection to shacl-af: preservation SoundUnderApproximation, complexity terminating/PTIME-data."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://example.org/teleology/invariant-breach-denies-action/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, asserted relations, domain/range, modal or scoped axioms, literal-valued assertions) is not a derivation rule, has no SHACL-AF form, and is carried in the canonical RDF-1.2 layer (recorded as a drop)" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)" .
-<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://example.org/teleology/invariant-breach-denies-action/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/complexityClass> "terminating/PTIME-data" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-core" .
-<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
-<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-core"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/2004/02/skos/core#definition> "Projection to shacl-core: preservation ValidationOnly, complexity closed-world shape validation (SHACL Core)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a shape surface validates but does not entail (ValidationOnly)" .
 <https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
 <https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/2000/01/rdf-schema#label> "shex" .
-<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
-<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" .
-<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a shape surface validates but does not entail (ValidationOnly)" .
+<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/2000/01/rdf-schema#label> "shex"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/2004/02/skos/core#definition> "Projection to shex: preservation ValidationOnly, complexity closed-world shape validation (ShEx, strictly narrower than SHACL Core)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a shape surface validates but does not entail (ValidationOnly)" .
 <https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
 <https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2000/01/rdf-schema#label> "xcl" .
-<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2000/01/rdf-schema#label> "xcl"@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2004/02/skos/core#definition> "Projection to xcl: preservation ExactPreservation, complexity full first-order (semi-decidable)."@x-gmeow-english .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .

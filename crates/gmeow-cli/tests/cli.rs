@@ -1326,3 +1326,211 @@ fn logic_backward_program_free_cell_hard_fails() {
         .stderr(predicate::str::contains("zero logic:ReasoningProgram"));
     std::fs::remove_dir_all(&dir).ok();
 }
+
+// ── logic fragments (Task 8: the shipped decidability-surface query) ─────────
+
+/// The committed `logic` grounding slice `module.ttl`, which ships the
+/// `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
+/// decidability manifest (the projection of the kernel registry proven by
+/// `crates/logic`'s `module_ttl_projects_the_kernel_registry`). The default embedded
+/// bundle is materialized by `make sync` and may not carry the manifest yet in this
+/// worktree, so the verb is driven against this authored Turtle graph source — the
+/// least-effort correct route that carries the real manifest.
+fn logic_module_fixture() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding/logic/module.ttl")
+}
+
+/// `gmeow logic fragments --bundle <logic module.ttl>` reads the shipped
+/// decidability surface by graph queries and lists (1) every decided construct
+/// family with its `logic:RefutationPattern` and completeness bound and (2) their
+/// dual, the retained `logic:expressivenessBoundary` records with their technical
+/// reasons. The assertions pin representative real manifest content (falsifiable, not
+/// tautological): the eight decided families under their patterns and the three
+/// retained boundaries with their reasons.
+#[test]
+fn logic_fragments_lists_decided_families_and_retained_boundaries() {
+    gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            // The two section headers with their exact counts (8 decided, 3 retained).
+            predicate::str::contains("decided-fragments 8")
+                .and(predicate::str::contains("retained-boundaries 3"))
+                // Decided families keyed to their patterns.
+                .and(predicate::str::contains("fragment complement-refutation"))
+                .and(predicate::str::contains("pattern complement-clash"))
+                .and(predicate::str::contains(
+                    "fragment number-cardinality-counting",
+                ))
+                .and(predicate::str::contains("pattern counting-pigeonhole"))
+                .and(predicate::str::contains("fragment datatype-value-space"))
+                .and(predicate::str::contains("pattern value-space-cardinality"))
+                .and(predicate::str::contains(
+                    "fragment inverse-functional-identity-collapse",
+                ))
+                .and(predicate::str::contains(
+                    "pattern arithmetic-equality-collapse",
+                ))
+                .and(predicate::str::contains("fragment malformed-rdf-list"))
+                .and(predicate::str::contains("pattern malformed-metamodel"))
+                // A representative completeness bound (real manifest text).
+                .and(predicate::str::contains(
+                    "math-grounded finite-cardinality table",
+                ))
+                // The three retained boundaries with their technical reasons.
+                .and(predicate::str::contains("boundary xsd-pattern-facet"))
+                .and(predicate::str::contains(
+                    "XML Schema regular-expression dialect",
+                ))
+                .and(predicate::str::contains(
+                    "boundary non-binary-property-chain",
+                ))
+                .and(predicate::str::contains(
+                    "boundary entangled-existential-cardinality",
+                ))
+                .and(predicate::str::contains(
+                    "couples witness generation with counting",
+                )),
+        );
+}
+
+/// `--format json` emits the same surface as a deterministic JSON document: the
+/// decided families and retained boundaries as arrays of id/pattern/bound and
+/// id/reason objects. Pins representative real content.
+#[test]
+fn logic_fragments_json_carries_the_manifest() {
+    gmeow()
+        .args(["logic", "fragments", "--format", "json"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("\"decided_fragments\"")
+                .and(predicate::str::contains("\"retained_boundaries\""))
+                .and(predicate::str::contains(
+                    "\"id\": \"complement-refutation\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"pattern\": \"complement-clash\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"xsd-pattern-facet\"")),
+        );
+}
+
+/// The output is DETERMINISTIC: two runs over the same graph source produce
+/// byte-identical stdout (the surface is sorted by id).
+#[test]
+fn logic_fragments_output_is_deterministic() {
+    let first = gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let second = gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(logic_module_fixture())
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    assert_eq!(
+        first, second,
+        "logic fragments output must be byte-identical across runs"
+    );
+}
+
+/// A graph source carrying NO decidability manifest is an honest HARD FAIL (never a
+/// silent empty success) — the no-optionality / no-fake-consumer guarantee.
+#[test]
+fn logic_fragments_empty_source_hard_fails() {
+    let dir = scratch("logic-fragments-empty");
+    let bare = dir.join("bare.ttl");
+    std::fs::write(&bare, "@prefix ex: <http://ex/> .\nex:a ex:knows ex:b .\n")
+        .expect("write manifest-free graph source");
+
+    gmeow()
+        .args(["logic", "fragments"])
+        .arg("--bundle")
+        .arg(&bare)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("no logic:DecidedFragment"));
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+/// `gmeow logic fragments --format json` with NO `--bundle` — the DEFAULT
+/// production path every real consumer of the shipped `gmeow` binary takes,
+/// exercising the embedded `BUNDLE_GTS` (`crates/gmeow-cli/src/lib.rs`'s
+/// `include_bytes!(env!("GMEOW_BUNDLE_PATH"))`) rather than the `--bundle
+/// <logic module.ttl>` override the other `logic_fragments_*` tests above use to
+/// reach the manifest independent of `make sync`.
+///
+/// The other tests in this block prove the manifest is correctly SHAPED once a
+/// graph source carries it (driven against the authored `module.ttl` source); this
+/// test is the one that proves the manifest actually SHIPS in the artifact real
+/// users run against. It pins the same real, falsifiable content as
+/// `logic_fragments_json_carries_the_manifest`: all eight
+/// `logic:DecidedFragment` ids and all three retained-boundary ids (with their
+/// technical reasons), read back from `BUNDLE_GTS`.
+///
+/// A stale embedded bundle predating the manifest's addition to `module.ttl`
+/// hits the verb's "empty-surface" hard fail (`gmeow-cli.logic-fragments.empty-surface`
+/// in `commands.rs`) instead of emitting this content, so this test is red exactly
+/// when the embedded bundle has not yet been regenerated by `make sync` — that
+/// staleness is the dark-feature gap this test exists to catch, not a flaw in the
+/// test itself.
+#[test]
+fn logic_fragments_default_embedded_bundle_ships_the_manifest() {
+    gmeow()
+        .args(["logic", "fragments", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("\"decided_fragments\"")
+                .and(predicate::str::contains("\"retained_boundaries\""))
+                // All eight certified-complete decided-fragment families.
+                .and(predicate::str::contains(
+                    "\"id\": \"complement-refutation\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"number-cardinality-counting\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"union-disjoint-case-split\"",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"nominal-enumeration-counting\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"datatype-value-space\""))
+                .and(predicate::str::contains(
+                    "\"id\": \"inverse-functional-identity-collapse\"",
+                ))
+                .and(predicate::str::contains("\"id\": \"malformed-rdf-list\""))
+                .and(predicate::str::contains("\"id\": \"has-self-membership\""))
+                // All three retained-boundary reason records.
+                .and(predicate::str::contains("\"id\": \"xsd-pattern-facet\""))
+                .and(predicate::str::contains(
+                    "XML Schema regular-expression dialect",
+                ))
+                .and(predicate::str::contains(
+                    "\"id\": \"non-binary-property-chain\"",
+                ))
+                .and(predicate::str::contains("n-ary role composition"))
+                .and(predicate::str::contains(
+                    "\"id\": \"entangled-existential-cardinality\"",
+                ))
+                .and(predicate::str::contains(
+                    "couples witness generation with counting",
+                )),
+        );
+}

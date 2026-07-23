@@ -681,6 +681,7 @@ mod tests {
                 unsupported: vec![],
             },
             gaps: vec![],
+            boundary_findings: vec![],
         };
         ReasoningResult::from_dl_verdict(inferred, &verdict, prov())
     }
@@ -774,6 +775,7 @@ mod tests {
             // gaps are reconstructed from coverage.unsupported by the builder, so
             // the input gaps here are immaterial to the ledger output.
             gaps: vec![],
+            boundary_findings: vec![],
         };
         let result = ReasoningResult::from_dl_verdict(
             vec![axiom(
