@@ -187,11 +187,6 @@ pub enum Commands {
         trusted_key: Option<PathBuf>,
         #[arg(long = "deep")]
         deep: bool,
-        /// Off-gate: measure the whole-bundle SHACL census and (re)write the committed
-        /// baseline at this path (bench/validate-census.json). The `make
-        /// maint-validate-census` refresh lane; never on-gate.
-        #[arg(long = "emit-census")]
-        emit_census: Option<PathBuf>,
     },
     /// Write first-class diagnostics artifacts for the whole dev gate.
     Feedback {
@@ -804,22 +799,15 @@ pub fn run() -> i32 {
             require_signed,
             trusted_key,
             deep,
-            emit_census,
-        } => {
-            if let Some(path) = emit_census {
-                dev_validate::emit_census(&path)
-            } else {
-                dev_validate::validate(
-                    timings,
-                    timings_json.as_deref(),
-                    gts.as_deref(),
-                    trust_policy.as_deref(),
-                    require_signed,
-                    trusted_key.as_deref(),
-                    deep,
-                )
-            }
-        }
+        } => dev_validate::validate(
+            timings,
+            timings_json.as_deref(),
+            gts.as_deref(),
+            trust_policy.as_deref(),
+            require_signed,
+            trusted_key.as_deref(),
+            deep,
+        ),
         Commands::Feedback {
             diagnostics_console,
             diagnostics_artifacts,

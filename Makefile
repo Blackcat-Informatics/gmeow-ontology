@@ -81,7 +81,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-validate-census maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-chasebench-corpus
 
@@ -641,23 +641,6 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	    exit 1; \
 	  fi; \
 	  echo "wrote bench/cost-baseline.json ($$(wc -c < bench/cost-baseline.json) bytes; deterministic part byte-identical + alloc totals within band on the self-check) — regenerate + commit generated/bench/cost-ledger.md"
-
-maint-validate-census: ## (maintainer) Refresh bench/validate-census.json from a fresh whole-bundle SHACL run (offline; the drift-gated validate-census source).
-	@# The SINGLE producer of the committed whole-bundle SHACL validation census baseline:
-	@# `gmeow-dev validate --emit-census` measures the census (conformance verdict, enforced
-	@# shape/constraint counts, finding count, distinct finding-bearing focus-node count, and
-	@# the stable blake3 finding-graph digest) over the composed authored dataset under the
-	@# canonical merged shape union — the same union `make validate` enforces. Mirrors
-	@# `maint-bench-cost-baseline`: a deliberate, hand-committed refresh — never auto-drift.
-	@# Every folded field is a deterministic integer count, boolean verdict, or stable digest;
-	@# the raw parallel-SHACL wall-time is PR/issue evidence and is NEVER folded. The command
-	@# prints the exact gmeow:shaclValidationCensus Turtle block to paste into
-	@# slices/core/pipeline/module.ttl in lock-step (the pipeline drift gate proves the
-	@# ontology individual and the JSON baseline never diverge). `generated/bench/validate-census.md`
-	@# is the drift-gated projection (the `stage-export-cost-ledger` leaf), regenerated via
-	@# `make sync` and committed alongside.
-	$(GMEOW_DEV) validate --emit-census bench/validate-census.json
-	@echo "wrote bench/validate-census.json — paste the printed gmeow:shaclValidationCensus block into slices/core/pipeline/module.ttl, then run 'make sync' to regenerate generated/bench/validate-census.md"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to

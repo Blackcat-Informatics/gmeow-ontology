@@ -27,7 +27,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -45,17 +45,6 @@ pub const COST_BASELINE_PATH: &str = "bench/cost-baseline.json";
 pub const COST_LEDGER_PATH: &str = "generated/bench/cost-ledger.md";
 /// Committed, drift-gated soak-window record (the longitudinal gap-zero claim).
 pub const SOAK_RECORD_PATH: &str = "generated/bench/soak.md";
-
-/// Committed deterministic whole-bundle SHACL validation census baseline (the single
-/// source of truth for the census projection). Produced by `gmeow-dev validate
-/// --emit-census`, refreshed via `make maint-validate-census`.
-pub const VALIDATE_CENSUS_BASELINE_PATH: &str = "bench/validate-census.json";
-/// Committed, drift-gated whole-bundle SHACL validation census artifact.
-pub const VALIDATE_CENSUS_PATH: &str = "generated/bench/validate-census.md";
-/// The 64-hex zero digest a SEEDED census carries (a placeholder that can never be
-/// mistaken for a measured finding-graph fingerprint).
-pub const CENSUS_ZERO_DIGEST: &str =
-    "0000000000000000000000000000000000000000000000000000000000000000";
 
 /// The soak window the committed record documents and the on-gate `make bench-soak`
 /// lane enforces (`gmeow-bench-engines --soak N`). A single-run tally is not soak
@@ -1172,312 +1161,9 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
     Ok(out)
 }
 
-// ── Committed whole-bundle SHACL validation census (drift-gated export leaf) ─────
-
-/// The committed deterministic whole-bundle SHACL validation census
-/// (`bench/validate-census.json`). Every field is a deterministic integer count,
-/// boolean verdict, or a stable finding-graph digest — NO wall-clock, NO thread
-/// count, NO peak-RSS (the raw parallel-SHACL wall-time drop is PR/issue evidence,
-/// never folded). The census is a property of the FINISHED bundle, so — exactly like
-/// the cost baseline — it is measured OFF-GATE (`make maint-validate-census`,
-/// `gmeow-dev validate --emit-census`) and committed; strict `sync` reproduces the
-/// projection byte-for-byte from this committed baseline without validating anything.
-///
-/// `supports_parallel_focus_eval` is a STATIC engine-capability constant (the SHACL
-/// engine evaluates focus nodes in parallel), NOT a runtime thread-dependent measure —
-/// so it is deterministic and foldable.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub struct ValidateCensus {
-    /// `true` while the record is an honest zero PLACEHOLDER awaiting the off-gate
-    /// refresh; `false` once `gmeow-dev validate --emit-census` has measured it. A
-    /// seed is constrained to the pure zero placeholder so it can NEVER masquerade as
-    /// measured data (see [`ValidateCensus::validate`]).
-    pub seeded: bool,
-    /// The STATIC engine-capability fact that the SHACL engine evaluates focus nodes in
-    /// parallel (a constant, not a runtime thread-count measure).
-    pub supports_parallel_focus_eval: bool,
-    /// The whole-bundle SHACL conformance verdict (`sh:conforms`).
-    pub conforms: bool,
-    /// The number of shapes in the enforced shape union (node shapes ∪ nested property
-    /// shapes).
-    pub shape_count: u64,
-    /// The number of constraints across every shape in the enforced shape union.
-    pub constraint_count: u64,
-    /// The number of DISTINCT finding-bearing focus nodes (focus nodes that produced at
-    /// least one validation result). Zero on a conforming bundle.
-    pub focus_node_count: u64,
-    /// The number of validation results (findings). Zero on a conforming bundle.
-    pub finding_count: u64,
-    /// The stable blake3 fingerprint of the sorted finding set (`CENSUS_ZERO_DIGEST`
-    /// when seeded / conforming with no findings).
-    pub report_blake3: String,
-}
-
-impl ValidateCensus {
-    /// Reject a malformed or internally-inconsistent census (mirrors
-    /// [`RuleParallelCost::validate`]): no-optionality forbids rendering a census that
-    /// silently misrepresents the bundle.
-    pub fn validate(&self) -> Result<(), gmeow_errors::Diag> {
-        let err =
-            |message: String| Err(gmeow_errors::Diag::of_kind(crate::error::Parse { message }));
-        // The digest is exactly 64 lowercase-hex characters (blake3, stable form).
-        let digest_ok = self.report_blake3.len() == 64
-            && self
-                .report_blake3
-                .bytes()
-                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b));
-        if !digest_ok {
-            return err(format!(
-                "validate-census report_blake3 must be 64 lowercase-hex chars, got {:?}",
-                self.report_blake3
-            ));
-        }
-        // SHACL conformance ⟺ no findings ⟺ no finding-bearing focus nodes.
-        if self.conforms && (self.finding_count != 0 || self.focus_node_count != 0) {
-            return err(
-                "validate-census claims conforms=true but carries findings/focus nodes".to_owned(),
-            );
-        }
-        if !self.conforms && self.finding_count == 0 {
-            return err(
-                "validate-census claims conforms=false but carries zero findings".to_owned(),
-            );
-        }
-        if self.focus_node_count > self.finding_count {
-            return err(format!(
-                "validate-census focus_node_count {} exceeds finding_count {} (a focus node can \
-                 only be finding-bearing via a finding)",
-                self.focus_node_count, self.finding_count
-            ));
-        }
-        if self.seeded {
-            // A SEED is the pure zero placeholder: it can never pose as measured data.
-            let is_zero_placeholder = self.conforms
-                && self.supports_parallel_focus_eval
-                && self.shape_count == 0
-                && self.constraint_count == 0
-                && self.focus_node_count == 0
-                && self.finding_count == 0
-                && self.report_blake3 == CENSUS_ZERO_DIGEST;
-            if !is_zero_placeholder {
-                return err(
-                    "a SEEDED validate-census must be the zero placeholder (conforms=true, \
-                     supports_parallel_focus_eval=true, all counts 0, report_blake3 all-zero) — \
-                     refresh it via `make maint-validate-census` to record measured values"
-                        .to_owned(),
-                );
-            }
-        } else {
-            // A MEASURED census is over the real bundle, which always has shapes and
-            // constraints — refuse a "measured" census that is vacuously empty.
-            if self.shape_count == 0 || self.constraint_count == 0 {
-                return err(
-                    "a measured (seeded=false) validate-census must carry shape_count>0 and \
-                     constraint_count>0 — an empty shape union is not a whole-bundle census"
-                        .to_owned(),
-                );
-            }
-        }
-        Ok(())
-    }
-}
-
-/// Read + parse + validate the committed census baseline. Hard-fails if
-/// `bench/validate-census.json` is missing, malformed, or internally inconsistent
-/// (no degraded fallback — mirrors [`render_cost_ledger`]).
-fn load_validate_census(root: &Path) -> Result<ValidateCensus, gmeow_errors::Diag> {
-    let bytes = std::fs::read(root.join(VALIDATE_CENSUS_BASELINE_PATH))?;
-    let census: ValidateCensus = serde_json::from_slice(&bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("validate-census baseline parse: {e}"),
-        })
-    })?;
-    census.validate()?;
-    Ok(census)
-}
-
-/// Render the deterministic whole-bundle SHACL validation census from the committed
-/// baseline. PURELY deterministic — integer counts, boolean verdicts, and a stable
-/// digest string, no `f64`→string formatting — so it survives the strict-sync byte gate
-/// without ever validating anything. Hard-fails if the baseline is missing / malformed /
-/// inconsistent (no degraded fallback).
-pub(crate) fn render_validate_census(
-    root: &Path,
-) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let census = load_validate_census(root)?;
-
-    let provenance = if census.seeded {
-        "> SEEDED placeholder — the whole-bundle SHACL census has NOT yet been measured. \
-Every count is zero and the digest is the zero placeholder until `make maint-validate-census` \
-records the real values off-gate. This banner is the honest provenance marker (no fabricated counts)."
-            .to_string()
-    } else {
-        "> MEASURED — the counts below are a deterministic projection of the committed census \
-baseline, measured off-gate over the whole bundle."
-            .to_string()
-    };
-
-    let lines: Vec<String> = vec![
-        "<!-- GENERATED by `gmeow-dev sync --mode update --outputs generated` (validate-census) — DO NOT EDIT. -->".to_string(),
-        String::new(),
-        "# gmeow whole-bundle SHACL validation census".to_string(),
-        String::new(),
-        "The dogfooded `gmeow:BenchmarkObservation` record of the whole-bundle SHACL".to_string(),
-        "validation: a deterministic projection of the committed census baseline".to_string(),
-        "(`bench/validate-census.json`), refreshed via `make maint-validate-census`. Every".to_string(),
-        "value is an integer count, a boolean verdict, or a stable finding-graph digest —".to_string(),
-        "NO wall-clock, NO thread count, NO peak-RSS. The raw parallel-SHACL wall-time drop".to_string(),
-        "is PR/issue evidence, NEVER folded (determinism is non-negotiable); strict `sync`".to_string(),
-        "reproduces this record byte-for-byte from the committed baseline without validating".to_string(),
-        "anything.".to_string(),
-        String::new(),
-        provenance,
-        String::new(),
-        format!(
-            "The SHACL engine statically supports parallel focus-node evaluation: {}.",
-            census.supports_parallel_focus_eval
-        ),
-        String::new(),
-        "| metric | value |".to_string(),
-        "|---|---|".to_string(),
-        format!("| conforms | {} |", census.conforms),
-        format!("| shapes | {} |", census.shape_count),
-        format!("| constraints | {} |", census.constraint_count),
-        format!("| findings | {} |", census.finding_count),
-        format!("| finding-bearing focus nodes | {} |", census.focus_node_count),
-        format!("| supports parallel focus eval | {} |", census.supports_parallel_focus_eval),
-        format!("| finding-graph blake3 | `{}` |", census.report_blake3),
-    ];
-    let md = lines.join("\n") + "\n";
-
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    out.insert(VALIDATE_CENSUS_PATH.to_string(), md.into_bytes());
-    Ok(out)
-}
-
-/// Render the canonical `gmeow:shaclValidationCensus` individual as the exact Turtle
-/// block committed in `slices/core/pipeline/module.ttl`. The off-gate refresh lane emits
-/// this block for the maintainer to commit alongside the JSON baseline; the drift gate
-/// ([`census_individual_block_is_committed_in_module_ttl`]) proves the committed
-/// ontology individual never diverges from the committed baseline (the ontology fact and
-/// the machine record are one).
-#[must_use]
-pub fn render_census_individual_ttl(census: &ValidateCensus) -> String {
-    format!(
-        "gmeow:shaclValidationCensus\n\
-         \x20   a gmeow:BenchmarkObservation ;\n\
-         \x20   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;\n\
-         \x20   rdfs:label \"SHACL validation census\"@x-gmeow-english ;\n\
-         \x20   skos:definition \"The dogfooded whole-bundle SHACL validation census: the conformance verdict, enforced shape/constraint counts, finding count, finding-bearing focus-node count, and stable finding-graph digest of the finished bundle. A deterministic, foldable observation measured off-gate (make maint-validate-census) and committed; the raw parallel-SHACL wall-time is PR/issue evidence, never folded. Kept byte-consistent with bench/validate-census.json by the pipeline drift gate.\"@x-gmeow-english ;\n\
-         \x20   gmeow:observationSeeded {seeded} ;\n\
-         \x20   gmeow:observedConforms {conforms} ;\n\
-         \x20   gmeow:supportsParallelFocusEval {parallel} ;\n\
-         \x20   gmeow:shapeCount \"{shapes}\"^^xsd:nonNegativeInteger ;\n\
-         \x20   gmeow:constraintCount \"{constraints}\"^^xsd:nonNegativeInteger ;\n\
-         \x20   gmeow:findingCount \"{findings}\"^^xsd:nonNegativeInteger ;\n\
-         \x20   gmeow:focusNodeCount \"{focus}\"^^xsd:nonNegativeInteger ;\n\
-         \x20   gmeow:reportDigest \"{digest}\" ;\n\
-         \x20   gmeow:graphBoxRole gmeow:boxABox .\n",
-        seeded = census.seeded,
-        conforms = census.conforms,
-        parallel = census.supports_parallel_focus_eval,
-        shapes = census.shape_count,
-        constraints = census.constraint_count,
-        findings = census.finding_count,
-        focus = census.focus_node_count,
-        digest = census.report_blake3,
-    )
-}
-
-/// Measure a `ValidateCensus` from a raw whole-bundle SHACL report and the enforced shape
-/// union. Used by the OFF-GATE refresh lane (`gmeow-dev validate --emit-census`); lives
-/// here so the blake3 digest and the counting rules have a single definition shared with
-/// the render/validate gate. Deterministic: the digest is blake3 over the SORTED finding
-/// tuples, the counts are pure structural folds, and `supports_parallel_focus_eval` is a
-/// STATIC engine-capability constant. `seeded` is always `false` — a measured census is
-/// never a seed.
-#[must_use]
-pub fn measure_validate_census(
-    report: &purrdf::shapes::report::ValidationReport,
-    shapes: &purrdf::shapes::shapes::Shapes,
-) -> ValidateCensus {
-    // Enforced-shape-union structural counts (node shapes ∪ nested property shapes).
-    let mut shape_count: u64 = 0;
-    let mut constraint_count: u64 = 0;
-    for shape in &shapes.node_shapes {
-        shape_count += 1;
-        constraint_count += shape.constraints.len() as u64;
-        for property in &shape.property_shapes {
-            count_property_shape(property, &mut shape_count, &mut constraint_count);
-        }
-    }
-
-    // Distinct finding-bearing focus nodes + a stable finding-graph digest (blake3 over the
-    // SORTED finding tuples — a pure function of the finding set, so byte-reproducible).
-    let mut focus_nodes: BTreeSet<String> = BTreeSet::new();
-    let mut finding_lines: Vec<String> = Vec::with_capacity(report.results.len());
-    for result in &report.results {
-        focus_nodes.insert(result.focus_value());
-        finding_lines.push(format!(
-            "{}\x1f{}\x1f{}\x1f{}\x1f{}\x1f{:?}",
-            result.focus_value(),
-            result.source_shape,
-            result.source_constraint_component.as_str(),
-            result
-                .result_path
-                .as_ref()
-                .map(ToString::to_string)
-                .unwrap_or_default(),
-            result
-                .value
-                .as_ref()
-                .map(ToString::to_string)
-                .unwrap_or_default(),
-            result.severity,
-        ));
-    }
-    finding_lines.sort();
-    let report_blake3 = if report.results.is_empty() {
-        CENSUS_ZERO_DIGEST.to_owned()
-    } else {
-        let mut hasher = blake3::Hasher::new();
-        for line in &finding_lines {
-            hasher.update(line.as_bytes());
-            hasher.update(b"\n");
-        }
-        hasher.finalize().to_hex().to_string()
-    };
-
-    ValidateCensus {
-        seeded: false,
-        supports_parallel_focus_eval: true,
-        conforms: report.conforms,
-        shape_count,
-        constraint_count,
-        focus_node_count: focus_nodes.len() as u64,
-        finding_count: report.results.len() as u64,
-        report_blake3,
-    }
-}
-
-/// Recursively fold one property shape (and its nested property shapes) into the running
-/// shape / constraint counts.
-fn count_property_shape(
-    property: &purrdf::shapes::shapes::PropertyShape,
-    shape_count: &mut u64,
-    constraint_count: &mut u64,
-) {
-    *shape_count += 1;
-    *constraint_count += property.constraints.len() as u64;
-    for nested in &property.property_shapes {
-        count_property_shape(nested, shape_count, constraint_count);
-    }
-}
-
 /// The `stage-export-cost-ledger` export-leaf: the committed deterministic cost ledger
-/// AND its longitudinal soak-window record AND the whole-bundle SHACL validation census
-/// (all pure projections of committed baselines, so the single leaf renders all three —
-/// the "one leaf renders many" trick that needs no new consume-edge).
+/// AND its longitudinal soak-window record (both pure projections of the same committed
+/// cost baseline, so the single leaf renders both).
 pub struct CostLedgerStage;
 
 impl Stage for CostLedgerStage {
@@ -1489,27 +1175,19 @@ impl Stage for CostLedgerStage {
     }
     fn impl_version(&self) -> &str {
         // v6: surface exact four-worker structural evidence in the cost ledger.
-        // v7: also render the whole-bundle SHACL validation census from its committed
-        // baseline (the one leaf renders cost-ledger + soak + validate-census).
-        "cost-ledger.v7"
+        "cost-ledger.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
-        // The committed cost/agreement baseline AND the committed validation-census
-        // baseline are the inputs; a refresh of either busts the cache. No benchmark and
-        // no validation are run here — purely deterministic projections.
-        Ok(vec![
-            root.join(COST_BASELINE_PATH),
-            root.join(VALIDATE_CENSUS_BASELINE_PATH),
-        ])
+        // The committed cost/agreement baseline is the only input; a baseline refresh
+        // busts the cache. No benchmark is run here — purely deterministic.
+        Ok(vec![root.join(COST_BASELINE_PATH)])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        // The cost ledger, the soak record, and the whole-bundle SHACL validation census
-        // are projections of committed baselines; render all three in the one leaf so
-        // neither the soak record nor the census needs a new stage (and thus no new
-        // consume-edge across carrier.rs / run.rs / module.ttl).
+        // Both the cost ledger and the soak record are projections of the same committed
+        // baseline; render both in the one leaf so the soak record needs no new stage
+        // (and thus no new consume-edge across carrier.rs / run.rs / module.ttl).
         let mut artifacts = render_cost_ledger(input.root)?;
         artifacts.extend(render_soak(input.root)?);
-        artifacts.extend(render_validate_census(input.root)?);
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
@@ -1648,140 +1326,6 @@ mod tests {
         let a = render_soak(&root).expect("render soak record (1)");
         let b = render_soak(&root).expect("render soak record (2)");
         assert_eq!(a, b, "the soak record must be byte-reproducible");
-    }
-
-    /// The seeded zero-placeholder census (matches the committed `bench/validate-census.json`).
-    fn seed_census() -> ValidateCensus {
-        ValidateCensus {
-            seeded: true,
-            supports_parallel_focus_eval: true,
-            conforms: true,
-            shape_count: 0,
-            constraint_count: 0,
-            focus_node_count: 0,
-            finding_count: 0,
-            report_blake3: CENSUS_ZERO_DIGEST.to_owned(),
-        }
-    }
-
-    /// Write `census` to `bench/validate-census.json` under a fresh temp root.
-    fn write_census(root: &Path, census: &ValidateCensus) {
-        fs::create_dir_all(root.join("bench")).expect("bench dir");
-        fs::write(
-            root.join(VALIDATE_CENSUS_BASELINE_PATH),
-            serde_json::to_vec_pretty(census).unwrap(),
-        )
-        .expect("write census baseline");
-    }
-
-    #[test]
-    fn validate_census_render_is_deterministic() {
-        // Reads only the committed bench/validate-census.json (not generated/), so this
-        // runs without a materialized bundle. Emit twice → byte-identical.
-        let root = repo_root();
-        let a = render_validate_census(&root).expect("render validate-census (1)");
-        let b = render_validate_census(&root).expect("render validate-census (2)");
-        assert_eq!(a, b, "the validation census must be byte-reproducible");
-    }
-
-    #[test]
-    fn validate_census_hard_fails_on_absent_baseline() {
-        let tmp = tempdir().expect("temp root");
-        render_validate_census(tmp.path())
-            .expect_err("an absent census baseline must hard-fail (no degraded fallback)");
-    }
-
-    #[test]
-    fn validate_census_hard_fails_on_malformed_baseline() {
-        let tmp = tempdir().expect("temp root");
-        fs::create_dir_all(tmp.path().join("bench")).expect("bench dir");
-        fs::write(
-            tmp.path().join(VALIDATE_CENSUS_BASELINE_PATH),
-            b"{ not valid json ]",
-        )
-        .expect("write malformed baseline");
-        render_validate_census(tmp.path()).expect_err("a malformed census baseline must hard-fail");
-    }
-
-    #[test]
-    fn validate_census_rejects_inconsistent_conformance() {
-        // conforms=true with a non-zero finding count is internally inconsistent.
-        let tmp = tempdir().expect("temp root");
-        let mut census = seed_census();
-        census.seeded = false;
-        census.shape_count = 10;
-        census.constraint_count = 20;
-        census.conforms = true;
-        census.finding_count = 3;
-        write_census(tmp.path(), &census);
-        let err = render_validate_census(tmp.path())
-            .expect_err("conforms=true with findings must be rejected");
-        assert!(err.message().contains("conforms=true but carries findings"));
-    }
-
-    #[test]
-    fn validate_census_rejects_seeded_non_placeholder() {
-        // A seed that carries measured-looking counts is a lie — rejected.
-        let tmp = tempdir().expect("temp root");
-        let mut census = seed_census();
-        census.shape_count = 42;
-        write_census(tmp.path(), &census);
-        let err = render_validate_census(tmp.path())
-            .expect_err("a seeded census with non-zero counts must be rejected");
-        assert!(
-            err.message()
-                .contains("SEEDED validate-census must be the zero placeholder")
-        );
-    }
-
-    #[test]
-    fn validate_census_rejects_measured_empty_shape_union() {
-        // A "measured" census over an empty shape union is not a whole-bundle census.
-        let tmp = tempdir().expect("temp root");
-        let mut census = seed_census();
-        census.seeded = false;
-        write_census(tmp.path(), &census);
-        let err = render_validate_census(tmp.path())
-            .expect_err("a measured census with zero shapes must be rejected");
-        assert!(err.message().contains("shape_count>0"));
-    }
-
-    #[test]
-    fn census_individual_block_is_committed_in_module_ttl() {
-        // The DRIFT GATE binding the two committed homes: the ontology individual
-        // gmeow:shaclValidationCensus in the pipeline slice module.ttl must be EXACTLY the
-        // Turtle projection of the committed bench/validate-census.json baseline, so the
-        // queryable ontology fact can never silently diverge from the machine record.
-        let root = repo_root();
-        let census = load_validate_census(&root).expect("load committed census baseline");
-        let block = render_census_individual_ttl(&census);
-        let module = std::fs::read_to_string(root.join("slices/core/pipeline/module.ttl"))
-            .expect("read pipeline module.ttl");
-        assert!(
-            module.contains(&block),
-            "the committed gmeow:shaclValidationCensus individual drifted from \
-             bench/validate-census.json; expected module.ttl to contain:\n{block}"
-        );
-    }
-
-    #[test]
-    fn validate_census_is_byte_identical_to_committed() {
-        // The committed generated/bench/validate-census.md must be reproduced
-        // byte-for-byte from the committed bench/validate-census.json (the drift gate).
-        // Mirrors the sibling *_is_byte_identical_to_committed tests exactly: a post-sync
-        // gate that requires the materialized generated/ tree (git-ignored local product).
-        let root = repo_root();
-        let arts = render_validate_census(&root).expect("render validate-census");
-        let built = arts.get(VALIDATE_CENSUS_PATH).expect("census produced");
-        let committed = std::fs::read(root.join(VALIDATE_CENSUS_PATH))
-            .expect("committed generated/bench/validate-census.md exists");
-        assert_eq!(
-            built,
-            &committed,
-            "generated/bench/validate-census.md drifted from committed (len built {} vs committed {})",
-            built.len(),
-            committed.len()
-        );
     }
 
     /// Write a minimal criterion `new/estimates.json` for `<group>/<bench>`.
