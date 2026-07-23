@@ -99,6 +99,21 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
+# Real-slice batch reasoning parity is a heavy whole-repository proof (purrdf
+# 0.8.x parallel SHACL): it runs ~90-120s and starves past the 60s default under
+# gate parallelism. Give it the same 300s backstop the sibling bundle-building
+# proofs use — it passes on content, it is only slow.
+[[profile.default.overrides]]
+filter = 'package(gmeow-slice-quality) & test(reasoner::tests::curated_real_slices_batch_matches_scratch)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# Whole-bundle SSSOM lowering parity assembles the merged DSL and lowers every
+# SSSOM set against the committed corpus — a ~85-120s bundle-assembly proof that
+# likewise starves past the 60s default. Same 300s backstop.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(sssom_correspondence_parity) & test(sssom_lowering_matches_committed_corpus)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
