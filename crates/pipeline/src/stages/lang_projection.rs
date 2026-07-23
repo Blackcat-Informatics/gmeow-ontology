@@ -52,7 +52,7 @@ use gmeow_lang_bridge::registry::{
 };
 use gmeow_lang_bridge::{
     CurrentCodebook, GmnDictionary, exact_round_trip_holds, is_exact_correspondence,
-    ntriples_sorted, resolve_current_codebook,
+    ntriples_sorted, resolve_current_codebook, resolve_dialect_acceptance,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -341,6 +341,7 @@ fn collect_input(
     let mut varieties: Vec<NamedSource> = Vec::new();
     let mut gmn_dictionary: Option<GmnDictionary> = None;
     let mut gmn_codebook: Option<CurrentCodebook> = None;
+    let mut gmn_dialect_major: Option<String> = None;
     if let Some(catalog) = catalog {
         for record in catalog.records() {
             for artifact in &record.artifacts {
@@ -400,6 +401,29 @@ fn collect_input(
                                     error.0
                                 ))
                             })?);
+                        // The dialect major that keys every emitted GMN artifact path is
+                        // RESOLVED FROM THE GRAPH (the gmeow:gmnDialectVersions lineage's
+                        // roleLatest member) — read from the SAME dataset as the codebook, so
+                        // the projection subtree and the codec's header pin one lineage. The
+                        // shipped lang module always carries the lineage; its absence is a hard
+                        // fail (no-optionality), never a constant default.
+                        gmn_dialect_major = Some(
+                            resolve_dialect_acceptance(&dataset)
+                                .map_err(|error| {
+                                    stage_err(format!(
+                                        "resolve grounding/lang GMN dialect version lineage: {}",
+                                        error.0
+                                    ))
+                                })?
+                                .ok_or_else(|| {
+                                    stage_err(
+                                        "grounding/lang module carries no gmeow:gmnDialectVersions \
+                                         lineage; the version-keyed GMN projection cannot default"
+                                            .to_owned(),
+                                    )
+                                })?
+                                .latest_major_key(),
+                        );
                     }
                 }
             }
@@ -439,6 +463,7 @@ fn collect_input(
         gmn_dictionary,
         gmn_codebook,
         gmn_grammar_source,
+        gmn_dialect_major,
     })
 }
 
@@ -608,10 +633,17 @@ mod tests {
             "generated grammar does not carry the graph-derived closed production:\n{grammar}"
         );
 
+        // The GMN artifacts are keyed under the graph-resolved dialect major (gmn1/v<major>/…).
+        let major = input
+            .gmn_dialect_major
+            .as_deref()
+            .expect("grounding/lang supplies the graph-resolved GMN dialect major");
+        let surface_path =
+            format!("generated/projections/lang/gmn1/v{major}/gmn-grounding-glyphs.gmn");
         let surface = corpus
             .artifacts
             .iter()
-            .find(|(path, _)| path == "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn")
+            .find(|(path, _)| *path == surface_path)
             .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
             .expect("the grounding-glyph projection witness exists");
         for glyph in ["+", "π", "¬", "*"] {

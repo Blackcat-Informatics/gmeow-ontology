@@ -1278,12 +1278,13 @@ fn reconcile_gmn1_digest_gates(
 
     let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
     if !pack_report.is_clean() {
-        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
-        drifted.push(focus.to_string());
+        // The finding focus is the version-keyed pack path the check resolved (gmn1/v<major>/…).
+        let focus = pack_report.pack_rel.clone();
+        drifted.push(focus.clone());
         attach_pipeline_finding(
             ledger,
             CODE_GMN1_PACK_ROOT_MISMATCH,
-            focus,
+            &focus,
             format!(
                 "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
                 pack_report.declared_root, pack_report.recomputed_root

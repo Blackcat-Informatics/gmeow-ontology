@@ -91,6 +91,12 @@ pub struct LangProjectionInput {
     /// whose `gmn` entry the projection stage replaces with the graph-rendered production, so
     /// the pack pins the authored template rather than a derivative. `None` ⇒ no pack.
     pub gmn_grammar_source: Option<Vec<u8>>,
+    /// The graph-resolved latest GMN dialect major (e.g. `"1"`), read from the version
+    /// lineage (`gmeow:gmnDialectVersions` `gmeow:roleLatest` → `owl:versionInfo`) — NEVER a
+    /// Rust constant. Every emitted GMN artifact path is keyed `gmn1/v<major>/…` under it, so
+    /// a lineage major bump regenerates the whole versioned subtree atomically. `None` ⇒ no
+    /// GMN emission (mirrors [`gmn_dictionary`](Self::gmn_dictionary)).
+    pub gmn_dialect_major: Option<String>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -416,7 +422,18 @@ impl LangProjectionTarget for Gmn1Target {
                     construct: "current GMN codebook dictionary is absent; version-pinned resolution cannot default"
                         .to_owned(),
                 })?;
-            emissions.extend(self.per_source_emissions(input, dict));
+            // The graph-resolved dialect major keys every emitted artifact path. It is a
+            // mandatory codec capability like the dictionary — a source-driven emission with
+            // no resolved major hard-fails rather than defaulting to a constant.
+            let major = input
+                .gmn_dialect_major
+                .as_deref()
+                .ok_or_else(|| IngestDiagnostic {
+                    failure_class: LangFailure::SilentIngestDrop,
+                    construct: "resolved GMN dialect major is absent; version-keyed artifact paths cannot default"
+                        .to_owned(),
+                })?;
+            emissions.extend(self.per_source_emissions(input, dict, major));
         }
         // The bundle-level self-certifying conformance pack: the decoder identity an
         // independent implementation pins against, appended ONCE after the per-source loop
@@ -424,12 +441,13 @@ impl LangProjectionTarget for Gmn1Target {
         // touched). Emitted iff the carrier supplied the codebook resolution AND the authored
         // grammar — the projection stage sets all three pack inputs together with the
         // dictionary, so in the real pipeline the pack is always present.
-        if let (Some(dict), Some(codebook), Some(grammar)) = (
+        if let (Some(dict), Some(codebook), Some(grammar), Some(major)) = (
             input.gmn_dictionary.as_ref(),
             input.gmn_codebook.as_ref(),
             input.gmn_grammar_source.as_ref(),
+            input.gmn_dialect_major.as_deref(),
         ) {
-            emissions.push(gmn1_conformance_pack_emission(dict, codebook, grammar));
+            emissions.push(gmn1_conformance_pack_emission(dict, codebook, grammar, major));
         }
         Ok(emissions)
     }
@@ -443,6 +461,7 @@ impl Gmn1Target {
         &self,
         input: &LangProjectionInput,
         dict: &GmnDictionary,
+        major: &str,
     ) -> Vec<LangEmission> {
         let mut emissions = Vec::new();
         for source in &input.lang_models {
@@ -482,7 +501,7 @@ impl Gmn1Target {
             emissions.push(LangEmission {
                 artifacts: if exact {
                     vec![EmittedArtifact {
-                        path_suffix: format!("gmn1/{}.gmn", source.name),
+                        path_suffix: format!("gmn1/v{major}/{}.gmn", source.name),
                         bytes: artifact_text.into_bytes(),
                         is_rdf: false,
                     }]
@@ -529,7 +548,7 @@ const GMN_PACK_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnPackCurrent"
 const GMN1_PACK_GET_LEG: &str = "https://blackcatinformatics.ca/lang/gmn1PackProjectStep";
 
 /// The bundle-level self-certifying conformance-pack emission: ONE RDF artifact
-/// (`gmn1/conformance-pack.ttl`, `is_rdf: true`) carrying the DERIVED codebook Merkle digest
+/// (`gmn1/v<major>/conformance-pack.ttl`, `is_rdf: true`) carrying the DERIVED codebook Merkle digest
 /// on `gmnCodebookCurrent`, the pack individual typed `gmeow:GmnConformancePack` with its
 /// `gmeow:gmnPackRoot` Merkle root, and the pack's `gmeow:references` to the codebook, the
 /// dictionary bijection, and the grammar. The same triples ride into the reasoned
@@ -542,6 +561,7 @@ fn gmn1_conformance_pack_emission(
     dict: &GmnDictionary,
     codebook: &CurrentCodebook,
     grammar_bytes: &[u8],
+    major: &str,
 ) -> LangEmission {
     let digest = codebook_digest(codebook, dict);
     let root = pack_root(&digest, dict, grammar_bytes);
@@ -551,7 +571,7 @@ fn gmn1_conformance_pack_emission(
     let mut loss = LossLedger::new();
     LangEmission {
         artifacts: vec![EmittedArtifact {
-            path_suffix: "gmn1/conformance-pack.ttl".to_owned(),
+            path_suffix: format!("gmn1/v{major}/conformance-pack.ttl"),
             bytes: nt.clone(),
             is_rdf: true,
         }],
@@ -871,6 +891,78 @@ mod pack_tests {
         std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
     }
 
+    /// Every emitted GMN artifact (per-source `.gmn` AND the bundle conformance pack) is keyed
+    /// under `gmn1/v<major>/…`, where `<major>` is RESOLVED FROM THE GRAPH (the dialect
+    /// lineage's roleLatest member `owl:versionInfo`), never a hardcoded literal.
+    #[test]
+    fn artifacts_are_keyed_by_resolved_dialect_version() {
+        let module = lang_slice_file("module.ttl");
+        let grammar = lang_slice_file("grammars/gmn.ebnf");
+        // A real lang example that round-trips exactly, so a per-source artifact is emitted.
+        let example = lang_slice_file("examples/gmn-grounding-glyphs.ttl");
+        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
+        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
+        let codebook =
+            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
+
+        // The version-key major is READ OFF THE GRAPH, never a literal.
+        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
+            .expect("resolve GMN dialect acceptance")
+            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
+            .latest_major_key();
+
+        let build = |keyed_major: &str| {
+            let input = LangProjectionInput {
+                lang_models: vec![NamedSource {
+                    name: "gmn-grounding-glyphs".to_owned(),
+                    bytes: example.clone(),
+                }],
+                gmn_dictionary: Some(dict.clone()),
+                gmn_codebook: Some(codebook.clone()),
+                gmn_grammar_source: Some(grammar.clone()),
+                gmn_dialect_major: Some(keyed_major.to_owned()),
+                ..Default::default()
+            };
+            Gmn1Target
+                .emit(&input)
+                .expect("gmn1 emit")
+                .iter()
+                .flat_map(|e| e.artifacts.iter().map(|a| a.path_suffix.clone()))
+                .collect::<Vec<_>>()
+        };
+
+        // Under the graph-resolved major, EVERY emitted artifact is keyed gmn1/v<major>/…,
+        // and both the per-source .gmn and the conformance pack are present.
+        let paths = build(&major);
+        let prefix = format!("gmn1/v{major}/");
+        assert!(!paths.is_empty(), "at least the conformance pack is emitted");
+        for path in &paths {
+            assert!(
+                path.starts_with(&prefix),
+                "artifact {path:?} must be keyed under the resolved-version subtree {prefix:?}"
+            );
+        }
+        assert!(
+            paths.iter().any(|p| p.ends_with("/conformance-pack.ttl")),
+            "the bundle conformance pack is emitted under the versioned subtree: {paths:?}"
+        );
+        assert!(
+            paths.iter().any(|p| p.ends_with("gmn-grounding-glyphs.gmn")),
+            "the per-source GMN artifact is emitted under the versioned subtree: {paths:?}"
+        );
+
+        // Falsifiability: the key comes from the THREADED (graph-resolved) major, not a
+        // hardcoded string. Re-key under a synthetic major and every path moves — a literal
+        // in the emitter would leave them under v1 and fail here.
+        assert_ne!(major, "7", "the resolved major differs from the synthetic bump");
+        for path in build("7") {
+            assert!(
+                path.starts_with("gmn1/v7/"),
+                "re-keyed artifact {path:?} must follow the threaded major into gmn1/v7/"
+            );
+        }
+    }
+
     /// Drive the pack emission from the REAL carrier lang codebook/dictionary/grammar (no
     /// per-source models), and assert the artifact is produced, is valid Turtle, carries the
     /// pack class + a blake3-tagged root + the codebook digest on `gmnCodebookCurrent`, is
@@ -885,10 +977,17 @@ mod pack_tests {
         let codebook =
             crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
 
+        // The version-key major is RESOLVED FROM THE GRAPH (the same lineage the codec reads),
+        // never a literal — so a change to the lineage's roleLatest membership flows through.
+        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
+            .expect("resolve GMN dialect acceptance")
+            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
+            .latest_major_key();
         let input = LangProjectionInput {
             gmn_dictionary: Some(dict.clone()),
             gmn_codebook: Some(codebook.clone()),
             gmn_grammar_source: Some(grammar.clone()),
+            gmn_dialect_major: Some(major.clone()),
             ..Default::default()
         };
 
@@ -898,11 +997,12 @@ mod pack_tests {
             .iter()
             .find(|e| e.source_iri == GMN_PACK_IRI)
             .expect("bundle-level conformance-pack emission present");
+        let versioned_pack_path = format!("gmn1/v{major}/conformance-pack.ttl");
         let artifact = pack
             .artifacts
             .iter()
-            .find(|a| a.path_suffix == "gmn1/conformance-pack.ttl")
-            .expect("pack artifact keyed at gmn1/conformance-pack.ttl");
+            .find(|a| a.path_suffix == versioned_pack_path)
+            .unwrap_or_else(|| panic!("pack artifact keyed at {versioned_pack_path}"));
         assert!(artifact.is_rdf, "the pack artifact is an RDF serialization");
 
         // The pack correspondence derives Exact (the driver's Invariant 1 acceptance path).

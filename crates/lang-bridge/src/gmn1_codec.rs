@@ -153,6 +153,19 @@ const DIALECT_VERSION: &str = "1";
 const DICTIONARY_VERSION: &str = "3";
 const GLYPH_VERSION: &str = "2";
 
+// ── The GMN dialect version lineage (graph-resolved acceptance) ──────────────────────
+// The `gmeow:gmnDialectVersions` gmeow:VersionSet and its gmeow:VersionMembership relators:
+// the latest major is read off the `gmeow:roleLatest` member's `owl:versionInfo`, and the
+// acceptance window off the set's `gmeow:gmnAcceptWindow`. Version identity comes from the
+// GRAPH — these IRIs are the query keys, never a source of the version value itself.
+const GMN_DIALECT_VERSIONS_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnDialectVersions";
+const PRED_VERSION_SET: &str = "https://blackcatinformatics.ca/gmeow/versionSet";
+const PRED_VERSION_MEMBER: &str = "https://blackcatinformatics.ca/gmeow/versionMember";
+const PRED_VERSION_ROLE: &str = "https://blackcatinformatics.ca/gmeow/versionRole";
+const ROLE_LATEST_IRI: &str = "https://blackcatinformatics.ca/gmeow/roleLatest";
+const PRED_OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+const PRED_GMN_ACCEPT_WINDOW: &str = "https://blackcatinformatics.ca/gmeow/gmnAcceptWindow";
+
 // ── GMN-0: the canonical quad-set normal form ───────────────────────────────────────
 
 /// GMN-0: the RDFC-1.0 canonically blank-node-labeled, content-sorted quad set this
@@ -1105,6 +1118,176 @@ pub fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, Glyp
     })
 }
 
+/// The graph-resolved GMN dialect acceptance policy: the latest major and the accept
+/// window, both READ FROM THE GRAPH (`gmeow:gmnDialectVersions`) — never a Rust constant.
+/// The latest major is the `owl:versionInfo` of the lineage's `gmeow:roleLatest` member; the
+/// window is the set's `gmeow:gmnAcceptWindow`. A reader accepts the latest major plus the
+/// `accept_window` majors immediately behind it (each of which enters only through a judged
+/// migration crossing), and never a future major beyond the latest.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DialectAcceptance {
+    latest_major: u32,
+    accept_window: u32,
+}
+
+impl DialectAcceptance {
+    /// The lineage's latest major (the `gmeow:roleLatest` member's `owl:versionInfo`).
+    #[must_use]
+    pub fn latest_major(&self) -> u32 {
+        self.latest_major
+    }
+
+    /// The lineage acceptance window (`gmeow:gmnAcceptWindow` on the version set).
+    #[must_use]
+    pub fn accept_window(&self) -> u32 {
+        self.accept_window
+    }
+
+    /// The latest major rendered as the version-key string (`"1"`): the coordinate the
+    /// artifact path `gmn1/v<major>/…` and the `@gmn{v: …}` header pin.
+    #[must_use]
+    pub fn latest_major_key(&self) -> String {
+        self.latest_major.to_string()
+    }
+
+    /// Whether `major` is inside the accept window: the latest major, or one of the
+    /// `accept_window` majors behind it — never a future major beyond the latest.
+    #[must_use]
+    pub fn accepts(&self, major: u32) -> bool {
+        major <= self.latest_major && self.latest_major - major <= self.accept_window
+    }
+
+    /// The codec's own default acceptance for a fixture-scale dataset that carries NO
+    /// `gmeow:gmnDialectVersions` lineage (the shipped carrier always carries it, so this is
+    /// never the resolution the real projection/gate path takes): the codec's pinned major
+    /// with the charter window of 1. A PRESENT lineage always overrides this.
+    fn codec_default() -> Self {
+        Self {
+            latest_major: DIALECT_VERSION
+                .parse()
+                .expect("the codec DIALECT_VERSION constant is a u32 major"),
+            accept_window: 1,
+        }
+    }
+}
+
+/// Resolve the GMN dialect acceptance policy FROM THE GRAPH. Follows the version lineage
+/// `gmeow:gmnDialectVersions`: its `gmeow:roleLatest` `gmeow:VersionMembership` names the
+/// latest `gmeow:versionMember`, whose `owl:versionInfo` is the latest major, and its
+/// `gmeow:gmnAcceptWindow` is the window. Version identity is read off the graph, never a
+/// Rust constant.
+///
+/// Returns `Ok(None)` when the dataset carries no `gmeow:gmnDialectVersions` lineage at all
+/// (a fixture-scale dataset) so a caller can fall back to [`DialectAcceptance::codec_default`];
+/// a PRESENT-but-malformed lineage (no/many latest membership, a member with no/many
+/// `owl:versionInfo`, a non-integer major, no/many `gmeow:gmnAcceptWindow`) is a hard error,
+/// never a silent default.
+///
+/// # Errors
+/// A [`GlyphRegistryError`] when the lineage is present but malformed.
+pub fn resolve_dialect_acceptance(
+    ds: &RdfDataset,
+) -> Result<Option<DialectAcceptance>, GlyphRegistryError> {
+    let mut lineage_present = false;
+    let mut accept_windows = BTreeSet::<String>::new();
+    // membership IRI → its versionSet / versionMember / versionRole
+    let mut mem_set = BTreeMap::<String, String>::new();
+    let mut mem_member = BTreeMap::<String, String>::new();
+    let mut mem_role = BTreeMap::<String, String>::new();
+    let mut version_infos = BTreeMap::<String, BTreeSet<String>>::new();
+
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        if subject == GMN_DIALECT_VERSIONS_IRI {
+            lineage_present = true;
+        }
+        match quad.predicate.as_str() {
+            PRED_GMN_ACCEPT_WINDOW => {
+                if subject == GMN_DIALECT_VERSIONS_IRI
+                    && let RdfTerm::Literal(window) = &quad.object
+                {
+                    accept_windows.insert(window.lexical_form.clone());
+                }
+            }
+            PRED_VERSION_SET => {
+                if let RdfTerm::Iri(set) = &quad.object {
+                    mem_set.insert(subject.clone(), set.clone());
+                }
+            }
+            PRED_VERSION_MEMBER => {
+                if let RdfTerm::Iri(member) = &quad.object {
+                    mem_member.insert(subject.clone(), member.clone());
+                }
+            }
+            PRED_VERSION_ROLE => {
+                if let RdfTerm::Iri(role) = &quad.object {
+                    mem_role.insert(subject.clone(), role.clone());
+                }
+            }
+            PRED_OWL_VERSION_INFO => {
+                if let RdfTerm::Literal(info) = &quad.object {
+                    version_infos
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(info.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    if !lineage_present {
+        return Ok(None);
+    }
+
+    // The `gmeow:roleLatest` membership(s) OF THIS lineage.
+    let latest_members = mem_set
+        .iter()
+        .filter(|(membership, set)| {
+            set.as_str() == GMN_DIALECT_VERSIONS_IRI
+                && mem_role.get(*membership).map(String::as_str) == Some(ROLE_LATEST_IRI)
+        })
+        .filter_map(|(membership, _)| mem_member.get(membership).cloned())
+        .collect::<BTreeSet<_>>();
+    if latest_members.len() != 1 {
+        return Err(GlyphRegistryError(format!(
+            "GMN dialect lineage {GMN_DIALECT_VERSIONS_IRI} must have exactly one gmeow:roleLatest \
+             member, found {}",
+            latest_members.len()
+        )));
+    }
+    let latest_member = latest_members
+        .into_iter()
+        .next()
+        .expect("the exactly-one latest-member set is non-empty");
+    let latest_major_lex = exactly_one_literal(
+        version_infos.get(&latest_member),
+        &format!("latest GMN dialect version {latest_member} owl:versionInfo"),
+    )?;
+    let latest_major = latest_major_lex.parse::<u32>().map_err(|_| {
+        GlyphRegistryError(format!(
+            "latest GMN dialect version {latest_member} owl:versionInfo {latest_major_lex:?} is \
+             not an integer major"
+        ))
+    })?;
+    let window_lex = exactly_one_literal(
+        Some(&accept_windows),
+        &format!("GMN dialect lineage {GMN_DIALECT_VERSIONS_IRI} gmeow:gmnAcceptWindow"),
+    )?;
+    let accept_window = window_lex.parse::<u32>().map_err(|_| {
+        GlyphRegistryError(format!(
+            "GMN dialect lineage gmeow:gmnAcceptWindow {window_lex:?} is not an integer"
+        ))
+    })?;
+
+    Ok(Some(DialectAcceptance {
+        latest_major,
+        accept_window,
+    }))
+}
+
 fn exactly_one_typed_reference(
     references: &BTreeSet<String>,
     types: &BTreeMap<String, BTreeSet<String>>,
@@ -1287,6 +1470,10 @@ pub struct GmnDictionary {
     term_to_alias: BTreeMap<String, String>,
     alias_to_term: BTreeMap<String, String>,
     glyphs: GmnGlyphRegistry,
+    /// The graph-resolved dialect acceptance policy (latest major + accept window), loaded
+    /// from the SAME carrier dataset as the alias/glyph tables so the header's schema-major
+    /// gate reads the lineage the shipped ontology pins, never the codec's own constant.
+    acceptance: DialectAcceptance,
 }
 
 /// An explicit empty dictionary at the codec's current coordinates. This exists for
@@ -1299,6 +1486,7 @@ impl Default for GmnDictionary {
             term_to_alias: BTreeMap::new(),
             alias_to_term: BTreeMap::new(),
             glyphs: GmnGlyphRegistry::default(),
+            acceptance: DialectAcceptance::codec_default(),
         }
     }
 }
@@ -1401,12 +1589,35 @@ impl GmnDictionary {
             }
         }
 
+        // The dialect acceptance policy comes from the SAME carrier dataset. The shipped
+        // lang module always carries the `gmeow:gmnDialectVersions` lineage; a fixture-scale
+        // dataset that omits it falls back to the codec default (a PRESENT lineage always wins).
+        let acceptance = resolve_dialect_acceptance(ds)
+            .map_err(|error| DictionaryError(error.0))?
+            .unwrap_or_else(DialectAcceptance::codec_default);
+
         Ok(Self {
             version: codebook.dictionary_version,
             term_to_alias,
             alias_to_term,
             glyphs,
+            acceptance,
         })
+    }
+
+    /// The graph-resolved dialect acceptance policy carried by this dictionary — the
+    /// header's schema-major gate and the writer's `@gmn{v: …}` coordinate both read it.
+    #[must_use]
+    pub fn acceptance(&self) -> DialectAcceptance {
+        self.acceptance
+    }
+
+    /// The current schema major as the version-key string (`"1"`) — the coordinate the
+    /// writer pins in `@gmn{v: …}` and the projection keys artifact paths under. Sourced
+    /// from the graph-resolved [`Self::acceptance`], never the codec's own constant.
+    #[must_use]
+    pub fn schema_major(&self) -> String {
+        self.acceptance.latest_major_key()
     }
 
     fn alias_for(&self, iri: &str) -> Option<&str> {
@@ -3444,7 +3655,8 @@ pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Documen
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        "@gmn{{v: {}, aliases: {}, glyphs: {}}}",
+        dict.schema_major(),
         dict.aliases_id(),
         dict.glyphs.version()
     )];
@@ -3473,7 +3685,8 @@ pub fn gmn1_write_tabular(
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        "@gmn{{v: {}, aliases: {}, glyphs: {}}}",
+        dict.schema_major(),
         dict.aliases_id(),
         dict.glyphs.version()
     )];
@@ -3678,7 +3891,7 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
         .ok_or_else(|| Gmn1Error::UndeclaredDialectVersion {
             detail: format!("GMN-1 text must open with an @gmn{{...}} header, got: {line}"),
         })?;
-    let mut version_ok = false;
+    let mut schema_major: Option<String> = None;
     let mut aliases_ok = false;
     let mut glyphs_ok = false;
     for pair in body.split(',') {
@@ -3689,7 +3902,7 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
             })?;
         let (k, v) = (k.trim(), v.trim());
         match k {
-            "v" => version_ok = v == DIALECT_VERSION,
+            "v" => schema_major = Some(v.to_owned()),
             "aliases" => aliases_ok = v == dict.aliases_id(),
             "glyphs" => glyphs_ok = v == dict.glyphs.version(),
             other => {
@@ -3699,10 +3912,39 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
             }
         }
     }
-    if !version_ok || !aliases_ok || !glyphs_ok {
+
+    // The schema major must be pinned AND inside the GRAPH-RESOLVED accept window. A header
+    // declaring a major outside the window — a future major beyond the latest, or a prior
+    // further back than the lineage's gmeow:gmnAcceptWindow admits — is REFUSED here (never
+    // silently tolerated): the reader does not decode a version the lineage does not accept.
+    // The window comes from gmeow:gmnDialectVersions, never the codec's own constant.
+    let acceptance = dict.acceptance();
+    let Some(major_lex) = schema_major else {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!("@gmn header does not pin a schema version: {line}"),
+        });
+    };
+    let Ok(major) = major_lex.parse::<u32>() else {
         return Err(Gmn1Error::UndeclaredDialectVersion {
             detail: format!(
-                "@gmn header does not pin the expected schema/dictionary/glyph-table version: {line}"
+                "@gmn header schema version {major_lex:?} is not an integer major: {line}"
+            ),
+        });
+    };
+    if !acceptance.accepts(major) {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!(
+                "@gmn header schema major {major} is outside the GMN dialect accept window \
+                 (latest {}, window {}): {line}",
+                acceptance.latest_major(),
+                acceptance.accept_window()
+            ),
+        });
+    }
+    if !aliases_ok || !glyphs_ok {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!(
+                "@gmn header does not pin the expected dictionary/glyph-table version: {line}"
             ),
         });
     }
@@ -4067,6 +4309,78 @@ mod tests {
 
     fn real_dict() -> GmnDictionary {
         GmnDictionary::from_dataset(&lang_module_dataset()).expect("dictionary loads")
+    }
+
+    /// A synthetic GMN dialect lineage with a given latest major + accept window, used to
+    /// prove the acceptance policy is READ OFF THE GRAPH (roleLatest → owl:versionInfo, the
+    /// set's gmnAcceptWindow) rather than from any Rust constant.
+    fn synthetic_lineage_dataset(latest: u32, window: u32) -> Arc<RdfDataset> {
+        let ttl = format!(
+            r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+gmeow:gmnDialectVersions a gmeow:VersionSet ; gmeow:gmnAcceptWindow {window} .
+gmeow:vLatest a gmeow:InformationObject ; owl:versionInfo "{latest}" .
+gmeow:mLatest a gmeow:VersionMembership ;
+    gmeow:versionMember gmeow:vLatest ;
+    gmeow:versionSet gmeow:gmnDialectVersions ;
+    gmeow:versionRole gmeow:roleLatest .
+"#
+        );
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("synthetic lineage parses")
+    }
+
+    /// The GMN dialect acceptance policy is resolved FROM THE GRAPH, and a header declaring a
+    /// schema major outside the resolved accept window is hard-rejected with the named
+    /// `lang:GmnUndeclaredDialectVersion` class, while the in-window current major is accepted.
+    #[test]
+    fn out_of_window_envelope_header_is_rejected() {
+        let dict = real_dict();
+        let acceptance = dict.acceptance();
+        // The dict's acceptance is exactly what the resolver reads off the lineage graph.
+        let resolved = resolve_dialect_acceptance(&lang_module_dataset())
+            .expect("resolve dialect acceptance")
+            .expect("lang module carries the gmeow:gmnDialectVersions lineage");
+        assert_eq!(
+            acceptance, resolved,
+            "the dictionary carries the graph-resolved dialect acceptance"
+        );
+        let latest = acceptance.latest_major();
+
+        // In-window: the latest major, pinned against the current alias/glyph tables.
+        let in_window = format!(
+            "@gmn{{v: {latest}, aliases: {}, glyphs: {}}}",
+            dict.aliases_id(),
+            dict.glyphs.version()
+        );
+        assert!(
+            parse_header(&in_window, &dict).is_ok(),
+            "the in-window current major must be accepted"
+        );
+
+        // Out-of-window: a future major beyond latest + window is REJECTED (hard fail),
+        // classified as lang:GmnUndeclaredDialectVersion (the reader's version-refusal class).
+        let future = latest + acceptance.accept_window() + 1;
+        let out_of_window = format!(
+            "@gmn{{v: {future}, aliases: {}, glyphs: {}}}",
+            dict.aliases_id(),
+            dict.glyphs.version()
+        );
+        let err = parse_header(&out_of_window, &dict)
+            .expect_err("an out-of-accept-window schema major must be rejected");
+        assert_eq!(
+            err.failure_class(),
+            Gmn1Error::CLASS_UNDECLARED_DIALECT_VERSION,
+            "out-of-window rejection classifies as lang:GmnUndeclaredDialectVersion"
+        );
+
+        // Falsifiability of graph-resolution: a synthetic lineage (latest 5, window 2) accepts
+        // 3..=5 and rejects 2 and 6 — the acceptance follows the GRAPH, not a constant.
+        let synth = resolve_dialect_acceptance(&synthetic_lineage_dataset(5, 2))
+            .expect("resolve synthetic acceptance")
+            .expect("synthetic lineage present");
+        assert_eq!((synth.latest_major(), synth.accept_window()), (5, 2));
+        assert!(synth.accepts(5) && synth.accepts(4) && synth.accepts(3));
+        assert!(!synth.accepts(6) && !synth.accepts(2));
     }
 
     fn glyph_registry_fixture(rows: &str, version: &str) -> Arc<RdfDataset> {
