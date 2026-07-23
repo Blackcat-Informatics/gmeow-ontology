@@ -1845,3 +1845,18 @@ suggestions/guidance.
   tag) for the externally-published VOID/DCAT metadata surface — these are external commitment-
   shifted views like the RO-Crate/FnO lowerings, which the lint now explicitly exempts precisely
   because they carry public tags for external consumers.
+
+## 2026-07-22 — issue #1413 (validate-gts gate skipped, human-signed-off)
+
+- The `validate-gts` gate (SHACL-over-bundle validation, promoted into `make check`
+  by #1410) runs >60 minutes on the merged bundle without completing and was SKIPPED
+  under explicit human direction so the 1413 feature could land. Its logic is
+  origin/main's code, unchanged by this branch; the 1413 content is validated-clean by
+  the sync pipeline's fast SHACL stage (no findings), so the runtime is inherent to the
+  #1410 gate over the merged bundle, not to 1413 correctness. Every OTHER make check
+  stage passed on the merge result (rust-gate 6858/6858 with 0 failures; sync SHACL
+  clean; reason-verify; validate; slice-quality-gate; crate-check; coherence-gate-teeth;
+  compliance-report). FORWARD PATH: profile and bound the `gmeow-dev validate --gts`
+  SHACL / reasoned-closure cost so the gate completes within gate time (a shape's
+  super-linear evaluation, or the reasoned-closure size, is the likely culprit); until
+  then `validate-gts` cannot be relied on as an on-gate check in `make check`.
