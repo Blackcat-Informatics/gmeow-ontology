@@ -134,8 +134,10 @@ The public `gmeow mcp` server reads only the bundled `gmeow.gts` snapshot:
 | `recall(query?, min_confidence?, limit?, include_suppressed?)` | Recall memory claims |
 | `revise_belief(claim_id, reason?, superseded_by?, dry_run?)` | Suppress a stale claim without deletion (the `store_claim` compensation; `dry_run` for a non-committing sandbox run) |
 
-Resources: `gmeow://ontology/llms.txt`, `gmeow://ontology/llms-full.txt`, and
-`gmeow://ontology/okf-index`.
+Resources: `gmeow://ontology/llms.txt`, `gmeow://ontology/llms-full.txt`,
+`gmeow://ontology/okf-index`, and `gmeow://ontology/gmn1-primer` (the ~500-token
+graph-derived GMN-1 teachability primer, served off the bundle alone — the same
+bytes folded into the `llms.txt` / `llms-full.txt` surfaces).
 
 ## Developer MCP
 
