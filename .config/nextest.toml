@@ -143,13 +143,15 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/mcp::tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
 threads-required = "num-cpus"
 
-# The docs-distribution manifest, scoreboard-aggregation, slice-brief graph,
-# translation-rollup, and the claim-view / shape-grounding-ledger / bcp47 mapping
-# checks each materialize or verify the WHOLE gmeow.gts bundle (the same order of
-# magnitude as the mappings byte-parity lanes above) — purrdf 0.8.x's parallel
-# SHACL made that assembly heavier still. They belong in the extended runaway
-# backstop rather than the 60s default that only fits focused unit tests; otherwise
-# many bundle-builders running in parallel starve each other past the 120s edge.
+# The docs-distribution, scoreboards, slice-brief, translation-rollup, and mappings
+# module tests each materialize or verify the WHOLE gmeow.gts bundle (the same order
+# of magnitude as the mappings byte-parity lanes above) — purrdf 0.8.x's parallel
+# SHACL made that assembly heavier still. As a class they belong in the extended
+# runaway backstop rather than the 60s-x2 default that only fits focused unit tests;
+# otherwise many bundle-builders running in parallel starve each other past the 120s
+# edge under host contention (0 assertion failures — they pass at ~100-118s each). A
+# fast test in one of these modules simply never approaches the backstop; the 600s
+# ceiling still bounds a genuine runaway.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units/) | test(/stages::mappings::tests::bcp47_projection_queries_join_through_variety/) | test(/stages::mappings::tests::claim_view_emits_byte_identically_with_committed/) | test(/stages::mappings::tests::shape_grounding_ledger_covers_every_formalizes_record/) )'
+filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::/) | test(/stages::mappings::tests::/) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
