@@ -1295,96 +1295,107 @@ pub struct PurrembHybridQuery<'a> {
     pub max_rows: u64,
 }
 
+/// Mint a typed PURREMB-selection diagnostic (the sole first-party error substrate; a
+/// bare `String` error is banned by the Diag-substrate invariant).
+fn purremb_selection_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::PurrembSelectionInvalid {
+        detail: detail.into(),
+    })
+}
+
 /// Decode exactly 32 hex bytes into a raw identity array, failing closed on a
 /// wrong length or a non-hex character (a bad identity is a hard fail, never a
 /// silent reinterpretation).
-fn parse_identity_hex(label: &str, hex: &str) -> Result<[u8; 32], String> {
+fn parse_identity_hex(label: &str, hex: &str) -> gmeow_errors::Result<[u8; 32]> {
     let hex = hex.trim();
     if hex.len() != 64 {
-        return Err(format!(
+        return Err(purremb_selection_err(format!(
             "{label} identity must be 64 hex characters (32 bytes), got {}",
             hex.len()
-        ));
+        )));
     }
     let mut out = [0u8; 32];
     for (index, byte) in out.iter_mut().enumerate() {
         let start = index * 2;
         let pair = hex
             .get(start..start + 2)
-            .ok_or_else(|| format!("{label} identity is truncated"))?;
-        *byte = u8::from_str_radix(pair, 16)
-            .map_err(|_| format!("{label} identity has a non-hex character"))?;
+            .ok_or_else(|| purremb_selection_err(format!("{label} identity is truncated")))?;
+        *byte = u8::from_str_radix(pair, 16).map_err(|_| {
+            purremb_selection_err(format!("{label} identity has a non-hex character"))
+        })?;
     }
     Ok(out)
 }
 
 /// Parse the declared distance metric, rejecting anything the retrieval scan has
 /// no canonical scoring rule for.
-fn parse_metric(value: &str) -> Result<DistanceMetric, String> {
+fn parse_metric(value: &str) -> gmeow_errors::Result<DistanceMetric> {
     match value {
         "cosine" => Ok(DistanceMetric::Cosine),
         "negative-dot" => Ok(DistanceMetric::NegativeDot),
         "squared-euclidean" => Ok(DistanceMetric::SquaredEuclidean),
-        other => Err(format!(
+        other => Err(purremb_selection_err(format!(
             "unknown metric '{other}' (expected cosine, negative-dot, or squared-euclidean)"
-        )),
+        ))),
     }
 }
 
 /// Parse the declared stored scalar type.
-fn parse_dtype(value: &str) -> Result<VectorDtype, String> {
+fn parse_dtype(value: &str) -> gmeow_errors::Result<VectorDtype> {
     match value {
         "f32" => Ok(VectorDtype::F32),
         "f64" => Ok(VectorDtype::F64),
-        other => Err(format!("unknown dtype '{other}' (expected f32 or f64)")),
+        other => Err(purremb_selection_err(format!(
+            "unknown dtype '{other}' (expected f32 or f64)"
+        ))),
     }
 }
 
 /// Parse the effective-space prefix postprocessing policy.
-fn parse_postprocessing(value: &str) -> Result<PrefixPostprocessing, String> {
+fn parse_postprocessing(value: &str) -> gmeow_errors::Result<PrefixPostprocessing> {
     match value {
         "none" => Ok(PrefixPostprocessing::None),
         "deterministic-l2" => Ok(PrefixPostprocessing::DeterministicL2),
-        other => Err(format!(
+        other => Err(purremb_selection_err(format!(
             "unknown postprocessing '{other}' (expected none or deterministic-l2)"
-        )),
+        ))),
     }
 }
 
 /// Parse the selected retrieval branch.
-fn parse_retrieval_policy(value: &str) -> Result<RetrievalPolicy, String> {
+fn parse_retrieval_policy(value: &str) -> gmeow_errors::Result<RetrievalPolicy> {
     match value {
         "exact-full-space" => Ok(RetrievalPolicy::ExactFullSpace),
         "matryoshka-prefix-then-rerank" => Ok(RetrievalPolicy::MatryoshkaPrefixThenRerank),
-        other => Err(format!(
+        other => Err(purremb_selection_err(format!(
             "unknown retrieval policy '{other}' (expected exact-full-space or \
              matryoshka-prefix-then-rerank)"
-        )),
+        ))),
     }
 }
 
 /// Parse the source-verification mode.
-fn parse_source_mode(value: &str) -> Result<SourceVerificationMode, String> {
+fn parse_source_mode(value: &str) -> gmeow_errors::Result<SourceVerificationMode> {
     match value {
         "exact" => Ok(SourceVerificationMode::Exact),
         "certified" => Ok(SourceVerificationMode::Certified),
-        other => Err(format!(
+        other => Err(purremb_selection_err(format!(
             "unknown source-verification mode '{other}' (expected exact or certified)"
-        )),
+        ))),
     }
 }
 
 /// Resolve the `--term-kind` selector to the corpus's RDF 1.2 column kind, applied to
 /// both the query and candidate columns. A `triple-term` corpus is queried with a
 /// `<<( s p o )>>` goal term; `literal` selects any-datatype literal targets.
-fn parse_term_kind(value: &str) -> Result<ColumnKind, String> {
+fn parse_term_kind(value: &str) -> gmeow_errors::Result<ColumnKind> {
     match value {
         "iri" => Ok(ColumnKind::Iri),
         "triple-term" => Ok(ColumnKind::TripleTerm),
         "literal" => Ok(ColumnKind::Literal { datatype: None }),
-        other => Err(format!(
+        other => Err(purremb_selection_err(format!(
             "unknown term kind '{other}' (expected iri, triple-term, or literal)"
-        )),
+        ))),
     }
 }
 
@@ -1400,7 +1411,7 @@ fn purremb_hex32(bytes: &[u8; 32]) -> String {
 
 /// Build the fully validated [`PurrembSelection`] from the declared hex/enum
 /// inputs, failing closed on any malformed identity or unknown code.
-fn purremb_selection(args: &PurrembHybridQuery<'_>) -> Result<PurrembSelection, String> {
+fn purremb_selection(args: &PurrembHybridQuery<'_>) -> gmeow_errors::Result<PurrembSelection> {
     let target_set = TargetSetId::from_raw(parse_identity_hex("target-set", args.target_set)?);
     let family = FamilyId::from_raw(parse_identity_hex("family", args.family)?);
     let vector_space =
