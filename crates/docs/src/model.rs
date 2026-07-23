@@ -3039,11 +3039,13 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
     // Native alignment cells (the legacy `gmeow:TermEquivalence` + `alignSubject/Predicate/
     // Object` cell form was deleted): read through the canonical `equivalence_cells` reader,
     // which resolves the reified `S P O {| … |}` statements + their reifier annotations.
+    // Fail closed: a malformed alignment cell is a hard error. Swallowing the reader error
+    // here would silently drop *every* mapping linkage from the docs output for this slice.
     let mut links = Vec::new();
     for cell in gmeow_logic_compile::projections::sssom::equivalence_cells(
         &gmeow_logic_compile::ingest::DslView::new(store.dataset()),
     )
-    .unwrap_or_default()
+    .expect("alignment cell extraction must not fail while building docs mapping linkages")
     {
         links.push(DocLinkage {
             mapping_set: Some(cell.sssom_file.clone()),
