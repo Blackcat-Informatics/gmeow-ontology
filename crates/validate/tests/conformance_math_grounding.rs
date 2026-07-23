@@ -111,7 +111,9 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
         expected.difference(&actual).collect::<Vec<_>>()
     );
 
-    for c in native_cells(&repo_root().join("slices/core/observations/mappings/equivalences.ttl")) {
+    for c in native_alignment_cells_from_file(
+        &repo_root().join("slices/core/observations/mappings/equivalences.ttl"),
+    ) {
         assert!(
             c.subject != format!("{MATH}Quantity") && c.subject != format!("{MATH}quantityValue"),
             "observation catalog re-authors math-owned source {} in a native alignment cell",
@@ -120,24 +122,11 @@ fn quantity_bridges_are_complete_math_owned_and_absent_from_observations() {
     }
 }
 
-/// Every native alignment cell in `path`, via the canonical reader over a reifier-preserving
-/// parse (GraphStore flattens, dropping the reifier side tables the reader needs).
-fn native_cells(
-    path: &std::path::Path,
-) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
-    let ttl = std::fs::read_to_string(path).expect("read mapping catalog");
-    let ds =
-        purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("catalog must parse");
-    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
-        .expect("native cells must read")
-}
-
 /// Native grounding alignment cells (those carrying the `logic:GroundingCorrespondence` envelope).
 fn native_grounding_cells(
     path: &std::path::Path,
 ) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
-    native_cells(path)
+    native_alignment_cells_from_file(path)
         .into_iter()
         .filter(|c| c.grounding)
         .collect()

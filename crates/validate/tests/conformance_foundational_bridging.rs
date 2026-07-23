@@ -110,12 +110,7 @@ fn records() -> Vec<BridgeRecord> {
 /// Re-parse the file WITHOUT flattening (GraphStore flattens, which drops the reifier side
 /// tables) and read through the canonical `equivalence_cells` reader.
 fn native_bridge_records(path: &std::path::Path) -> Vec<BridgeRecord> {
-    let ttl = std::fs::read_to_string(path).expect("read grounding bridge catalog");
-    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .expect("grounding-bridges.ttl must parse");
-    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
-    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
-        .expect("native alignment cells must read")
+    native_alignment_cells_from_file(path)
         .into_iter()
         .filter(|c| c.grounding)
         .map(|c| BridgeRecord {

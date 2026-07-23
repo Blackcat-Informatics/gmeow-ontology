@@ -35,11 +35,8 @@ use purrdf::{
 
 // ── Grounding-correspondence vocabulary ──────────────────────────────────────
 
-pub const TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
 pub const GROUNDING_CORRESPONDENCE: &str =
     "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
-pub const ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
-pub const ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
 pub const CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 pub const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 pub const MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/logic/morphismClass";
@@ -53,6 +50,21 @@ pub fn exactly_one(values: BTreeSet<String>, cell: &str, field: &str) -> String 
         "{cell} must carry exactly one {field}, found {values:?}"
     );
     values.into_iter().next().unwrap()
+}
+
+/// Read every native alignment cell from `path` through the canonical `equivalence_cells`
+/// reader over a reifier-preserving parse. `GraphStore` flattening drops the RDF-1.2 reifier
+/// side tables the reader needs, so we parse WITHOUT flattening here. Shared by the grounding
+/// conformance suites so they read the SAME cells the correspondence derivation does.
+pub fn native_alignment_cells_from_file(
+    path: &Path,
+) -> Vec<gmeow_logic_compile::projections::sssom::EquivalenceCell> {
+    let ttl = std::fs::read_to_string(path).expect("read native alignment catalog");
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .expect("native alignment catalog must parse");
+    let view = gmeow_logic_compile::ingest::DslView::new(ds.as_ref());
+    gmeow_logic_compile::projections::sssom::equivalence_cells(&view)
+        .expect("native alignment cells must read")
 }
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
