@@ -99,6 +99,7 @@ gmeow:DocumentedDocument
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "The documentation-projection record for one canonical slice-Markdown source (the slice's docs.md, or any recursively-discovered text/markdown file such as a design/*.md). It gmeow:documents the owning slice IRI and carries the source's gmeow:docSourcePath, gmeow:docTitle, gmeow:docRawDigest, and the gmeow:docUrl of the page the single source-to-page authority resolved it to. Distinct from the slice itself and from the gmeow:DocumentedSlice manifest record: this record stands for one rendered prose document, minted per discovered Markdown source by the docs projection."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture a gmeow:DocumentedDocument ; gmeow:documents ex:sliceZoo ; gmeow:docSourcePath \"design/ARCHITECTURE.md\" ; gmeow:docTitle \"Architecture\" ; gmeow:docUrl \"slices/zoo/documents/design/architecture/\" ."@x-gmeow-english ;
+    skos:scopeNote "Scoped to canonical slice Markdown sources under a slice directory (docs.md and design/*.md). It does NOT stand for a term's per-term documentation page (that is gmeow:DocumentedTerm), nor for a repo-level document outside any slice, nor for a rendered non-Markdown artifact."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it in place of the gmeow:DocumentedSlice record (that stands for the slice's manifest page, not a prose document), and avoid hand-authoring it: it is a regenerated projection of the slice's Markdown sources."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let the docs projection mint one per discovered slice Markdown source; follow gmeow:documents to the owning slice and gmeow:docUrl to the resolved rendered page."@x-gmeow-english ;
@@ -1168,6 +1169,7 @@ gmeow:docSourcePath
     rdfs:range xsd:string ;
     skos:definition "The normalized logical source path of a gmeow:DocumentedDocument, relative within its owning slice (forward-slash separators, no leading './' or '/', e.g. \"design/ARCHITECTURE.md\"). The stable sort key and provenance handle back to the authored Markdown source the rendered page projects."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture gmeow:docSourcePath \"design/ARCHITECTURE.md\" ."@x-gmeow-english ;
+    skos:scopeNote "Always slice-relative and normalized (forward slashes, no leading './' or '/', no '..'); it is a logical source path into the slice, never an absolute filesystem path nor a rendered site URL (that is gmeow:docUrl)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid carrying an absolute or slice-external path here — the value is always slice-relative and normalized; a non-UTF-8 or colliding source hard-fails at discovery rather than emitting a malformed path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Let the docs projection carry each document's normalized slice-relative source path; follow it back to the authored Markdown, and use it as the deterministic ordering key over a slice's documents."@x-gmeow-english ;
@@ -1183,6 +1185,7 @@ gmeow:docTitle
     rdfs:range xsd:string ;
     skos:definition "The title of a gmeow:DocumentedDocument — the first ATX H1 of the Markdown source when present, else a humanized fallback from the filename stem (\"design/ARCHITECTURE.md\" → \"Architecture\"). The label shown for the document in its owning slice's child-document index and in the search corpus."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture gmeow:docTitle \"Architecture\" ."@x-gmeow-english ;
+    skos:scopeNote "The document's own display title (its first H1 or a humanized filename), NOT the owning slice's title and NOT the record's structural rdfs:label (which is the generated documentation-entry annotation)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid emitting it empty — a source with no H1 falls back to the humanized filename, never a vacuous title."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Let the docs projection carry each document's H1-or-humanized title; render it as the child-document link text and index it in the docs search corpus."@x-gmeow-english ;
@@ -1198,6 +1201,7 @@ gmeow:docRawDigest
     rdfs:range xsd:string ;
     skos:definition "The content-address digest of a gmeow:DocumentedDocument's raw source bytes — the same raw digest the slice artifact record carries. The provenance handle proving which exact source bytes a rendered page projects, and the change-detection key that invalidates the docs render cache when a source edits."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture gmeow:docRawDigest \"9f2b…\" ."@x-gmeow-english ;
+    skos:scopeNote "The RAW byte digest of the source, NOT a semantic or canonicalized digest: it changes on any source edit including whitespace, which is exactly what the render-cache-invalidation contract requires."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting a semantic or canonicalized digest here — this is the RAW byte digest, so it changes on any source edit including whitespace, which is exactly what the cache-invalidation contract requires."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Let the docs projection carry each document's raw source digest; use it to prove source provenance and to key the render cache."@x-gmeow-english ;

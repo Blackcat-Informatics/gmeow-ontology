@@ -321,7 +321,18 @@ impl SourceToPageMap {
 }
 
 /// The source path that maps to the slice page rather than a child page.
-const SLICE_PAGE_SOURCE: &str = "docs.md";
+pub(crate) const SLICE_PAGE_SOURCE: &str = "docs.md";
+
+/// The generated page path (trailing slash) for a document given its slice slug
+/// and normalized source path — the ONE scheme both the map and the renderers
+/// derive from. The top-level `docs.md` maps to its slice page `slices/{slug}/`;
+/// every other markdown maps to `slices/{slug}/documents/{stem}/`. Public so the
+/// static-site renderer's [`crate::render::Page::SliceDocument`] arm computes a
+/// child page's path through this single authority rather than re-deriving the
+/// scheme.
+pub fn page_for(slice_slug: &str, source_path: &str) -> String {
+    page_path(slice_slug, source_path)
+}
 
 /// The generated page path for a document. The top-level `docs.md` is the slice
 /// page; every other markdown gets `slices/{slice-slug}/documents/{stem}/`.
@@ -405,11 +416,12 @@ fn heading_slug(text: &str) -> String {
                 out.push(lc);
             }
             prev_dash = false;
-        } else if ch == ' ' || ch == '-' || ch == '\t' || ch == '_' {
-            if !prev_dash && !out.is_empty() {
-                out.push('-');
-                prev_dash = true;
-            }
+        } else if (ch == ' ' || ch == '-' || ch == '\t' || ch == '_')
+            && !prev_dash
+            && !out.is_empty()
+        {
+            out.push('-');
+            prev_dash = true;
         }
         // All other punctuation is dropped (GitHub convention).
     }
@@ -496,7 +508,7 @@ fn heading_anchors(source: &str) -> Vec<HeadingAnchor> {
 
 /// The fence marker (` ``` ` or `~~~`) a line opens/closes with, when it is a code
 /// fence (three or more of one marker char).
-fn fence_open(trimmed: &str) -> Option<&'static str> {
+pub(crate) fn fence_open(trimmed: &str) -> Option<&'static str> {
     if trimmed.starts_with("```") {
         Some("```")
     } else if trimmed.starts_with("~~~") {

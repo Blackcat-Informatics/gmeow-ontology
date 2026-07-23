@@ -219,7 +219,7 @@ thon, co/cos, hu/hum, ki/kin, zhe/zher, generic one) — declensions **verified 
 values that carry no forms by design: `pronounAny`, `pronounAsk`, and the explicit
 **`pronounNameOnly`** ("use my name (no pronouns)") nounself stance. The anchors are not a
 fence: mint a fresh `PronounSet` filling the five forms for anything unseeded. The full
-inventory and sourcing live in [`identity-mapping.md`](./identity-mapping.md#pronoun-set-inventory-the-address-axis).
+inventory and sourcing live in [`identity-mapping.md`](../../../docs/identity-mapping.md#pronoun-set-inventory-the-address-axis).
 
 **Linkage & projection.** `gmeow:PronounSet` / `gmeow:hasPronounSet` `closeMatch` Wikidata's
 *personal pronoun set* `wd:Q65067284` / *personal pronoun* `wdt:P6553` (verified live; Wikidata's

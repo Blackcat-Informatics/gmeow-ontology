@@ -31,6 +31,7 @@ use crate::exec::ExecutableDocsData;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::source_map::{LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open};
 use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
@@ -112,6 +113,18 @@ pub enum Page {
     SliceIndex,
     /// A single slice page (`slices/<slug>/index`).
     Slice(String),
+    /// A slice child-document page (`slices/<slug>/documents/<stem>/index`) — one
+    /// non-slice-page `text/markdown` source (a `design/*.md`, or any markdown
+    /// other than the top-level `docs.md`) rendered as its own page. `slice` is
+    /// the owning slice IRI and `path` is the document's normalized slice-relative
+    /// source path (e.g. `design/ARCHITECTURE.md`); the page path is minted through
+    /// the single [`crate::source_map::page_for`] authority.
+    SliceDocument {
+        /// The owning slice IRI.
+        slice: String,
+        /// The document's normalized slice-relative source path.
+        path: String,
+    },
     /// The linkages (term equivalences) index (`linkages/index`).
     LinkageIndex,
     /// The worked-examples index (`examples/index`).
@@ -203,6 +216,14 @@ impl Page {
             Page::Term(slug) => format!("terms/{slug}"),
             Page::SliceIndex => "slices".to_string(),
             Page::Slice(slug) => format!("slices/{slug}"),
+            Page::SliceDocument { slice, path } => {
+                // The child page path is minted by the single `source_map` authority
+                // (`slices/{slug}/documents/{stem}/`); `dir()` is that path without its
+                // trailing slash, so the site's `join(dir, "index.{md,html}")` matches
+                // the `Page::Slice` convention.
+                let page = crate::source_map::page_for(&slice_slug_of_iri(slice), path);
+                page.strip_suffix('/').unwrap_or(&page).to_string()
+            }
             Page::LinkageIndex => "linkages".to_string(),
             Page::ExampleIndex => "examples".to_string(),
             Page::FixtureIndex => "fixtures".to_string(),
@@ -262,6 +283,13 @@ impl Page {
                 .find(|s| slice_slug(s) == *slug)
                 .map(slice_display)
                 .unwrap_or_else(|| slug.clone()),
+            Page::SliceDocument { slice, path } => model
+                .slices
+                .iter()
+                .find(|s| &s.iri == slice)
+                .and_then(|s| s.documents.iter().find(|d| &d.source_path == path))
+                .map(|d| d.title.clone())
+                .unwrap_or_else(|| path.clone()),
             Page::LinkageIndex => "Linkages".to_string(),
             Page::ExampleIndex => "Examples".to_string(),
             Page::FixtureIndex => "Conformance fixtures".to_string(),
@@ -659,6 +687,19 @@ fn pages(model: &DocsModel) -> Vec<Page> {
     }
     for slice in &model.slices {
         pages.push(Page::Slice(slice_slug(slice)));
+        // Each of the slice's NON-slice-page markdown sources gets its own child
+        // page, right after the slice page. `slice.documents` is path-sorted, so
+        // the child pages are emitted in logical-path order (matching
+        // `SourceToPageMap::slice_children`). The top-level `docs.md` IS the slice
+        // page (grafted into it), so it is not a child.
+        for doc in &slice.documents {
+            if doc.source_path != SLICE_PAGE_SOURCE {
+                pages.push(Page::SliceDocument {
+                    slice: slice.iri.clone(),
+                    path: doc.source_path.clone(),
+                });
+            }
+        }
     }
     for concern in &model.concerns {
         pages.push(Page::Concern(concern_slug(concern)));
@@ -716,6 +757,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default()),
         Page::SliceIndex => md_slice_index(model),
         Page::Slice(slug) => md_slice(model, slug),
+        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path),
         Page::LinkageIndex => md_linkage_index(model),
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
@@ -3652,6 +3694,59 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     }
     blank(&mut out);
 
+    // The single link-rewrite authority, rebuilt from the model (a pure function of
+    // its already-validated document set — the same total build `rdf.rs` performs).
+    // Drives the grafted `docs.md` prose, the child-document index, and every
+    // internal link those surfaces rewrite.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+
+    // Graft the slice's top-level `docs.md` narrative directly onto the slice page,
+    // between the manifest metadata and the generated artifact/term/linkage sections.
+    // Every heading is demoted one level (H1→H2 … H5→H6) so the generated slice H1
+    // stays the unique page H1, and every internal link is rewritten through the
+    // page map. The thesis / realized-state FACTS are still read separately from
+    // `docs.md` (see `DocSlice::from_record`); this additionally RENDERS its prose.
+    if let Some(docs_md) = slice
+        .documents
+        .iter()
+        .find(|d| d.source_path == SLICE_PAGE_SOURCE)
+    {
+        let grafted = rewrite_doc_body(
+            &docs_md.source_text,
+            &page_map,
+            &slice.iri,
+            SLICE_PAGE_SOURCE,
+            &from,
+            HeadingDemotion::GraftOne,
+            true,
+        );
+        out.push_str(&grafted);
+        blank(&mut out);
+    }
+
+    // The slice's child documents (every non-`docs.md` markdown), by title, sorted
+    // by logical path, each linking to its own generated page and retaining its
+    // source path + raw digest as visible provenance.
+    let children = page_map.slice_children(&slice.iri);
+    if !children.is_empty() {
+        heading(&mut out, 2, "Documents");
+        for entry in &children {
+            let target_dir = entry.page.strip_suffix('/').unwrap_or(&entry.page);
+            let href = rel(&from, target_dir);
+            push_line(
+                &mut out,
+                &format!(
+                    "- [{}]({href}index.md) — `{}` (`{}`)",
+                    md_escape(&entry.title),
+                    code_escape(&entry.source_path),
+                    code_escape(&short_digest(&entry.raw_digest)),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
+
     // Artifact inventory grouped by role (by reference: path + media type + digest).
     if !slice.artifacts.is_empty() {
         heading(&mut out, 2, model.ui("body_artifacts"));
@@ -3762,6 +3857,419 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     }
 
     out
+}
+
+/// Render a slice child document (`Page::SliceDocument`) as its own page: the
+/// document's `source_text` Markdown IS the page body — its authored H1 stays the
+/// page H1 (NO heading demotion) — with every internal markdown→markdown link and
+/// fragment rewritten through the single [`SourceToPageMap`] authority. A dangling
+/// WITHIN-slice link hard-fails (never renders silently); off-corpus references
+/// (another slice, a repo `docs/` file, a non-markdown asset) are absolutized to
+/// the published site. List provenance (source path + digest) lives on the SLICE
+/// page's document index, not on the child body itself.
+fn md_slice_document(model: &DocsModel, slice_iri: &str, path: &str) -> String {
+    let page_dir = Page::SliceDocument {
+        slice: slice_iri.to_string(),
+        path: path.to_string(),
+    }
+    .dir();
+    let doc = model
+        .slices
+        .iter()
+        .find(|s| s.iri == slice_iri)
+        .and_then(|s| s.documents.iter().find(|d| d.source_path == path));
+    let Some(doc) = doc else {
+        let mut out = String::new();
+        heading(&mut out, 1, path);
+        line(&mut out, model.ui("body_slice_not_found"));
+        return out;
+    };
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    rewrite_doc_body(
+        &doc.source_text,
+        &page_map,
+        slice_iri,
+        path,
+        &page_dir,
+        HeadingDemotion::Keep,
+        true,
+    )
+}
+
+// ── First-class Markdown document rewrite (graft + child page + llms corpus) ──
+
+/// Re-emit an authored slice Markdown document (`docs.md` or a child `*.md`) with
+/// every internal link resolved through the single [`SourceToPageMap`] authority
+/// and, when `demote` is set, every ATX heading demoted one level.
+///
+/// The body is processed line by line so every Markdown construct is preserved
+/// verbatim except the two deliberate rewrites. Fenced code blocks (```` ``` ````
+/// / `~~~`) and inline code spans are passed through untouched, so a `#` or a
+/// `](…)` inside a code sample is never mistaken for a heading or a link.
+///
+/// * `from_slice` / `from_path` locate the document in source space (the resolver
+///   joins relative links against `from_path`).
+/// * `page_dir` is the site directory of the page the body is rendered ONTO (the
+///   slice page for a graft, the child page for a child render, `""` for the
+///   root-level llms corpus) — relative hrefs are computed from it.
+/// * `demote` selects the heading transform (see [`HeadingDemotion`]).
+/// * `inject_anchors` — when set, emit an explicit `<a id="{slug}"></a>` before
+///   each heading using the map's page-scoped, text-derived slugs (matched in
+///   source order). pulldown-cmark emits no heading `id`, so these anchors are what
+///   the rewritten `#slug` / `…index.md#slug` cross-links resolve to on the HTML
+///   page. Off for the plain-text `llms-full` corpus (no HTML anchors there).
+fn rewrite_doc_body(
+    source: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+    demote: HeadingDemotion,
+    inject_anchors: bool,
+) -> String {
+    // The page-scoped heading anchors, in source order, for the id injection. Empty
+    // when not injecting or when the document has no known page.
+    let anchors: &[crate::source_map::HeadingAnchor] = if inject_anchors {
+        map.page_of(from_slice, from_path)
+            .map(|page| map.heading_anchors(page))
+            .unwrap_or(&[])
+    } else {
+        &[]
+    };
+    let mut anchor_idx = 0usize;
+
+    let mut out = String::with_capacity(source.len() + 64);
+    let mut in_fence = false;
+    let mut fence_marker = "";
+    for line in source.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        // Toggle fenced-code state; fenced lines pass through verbatim.
+        if let Some(marker) = fence_open(trimmed) {
+            if in_fence {
+                if trimmed.starts_with(fence_marker) {
+                    in_fence = false;
+                    fence_marker = "";
+                }
+            } else {
+                in_fence = true;
+                fence_marker = marker;
+            }
+            out.push_str(line);
+            continue;
+        }
+        if in_fence {
+            // Fenced code is emitted verbatim and its links are NOT rewritten (a
+            // `](x.md)` in a code sample is not a document link). The one exception
+            // is the `CorpusFloor` flatten, which additionally demotes any leading
+            // `#`-run so an inlined Turtle/shell comment (`# note`) never surfaces
+            // as a spurious H1/section in the flat `llms-full` corpus — harmless,
+            // since `#`-to-end-of-line comment syntaxes stay comments at any depth.
+            if demote == HeadingDemotion::CorpusFloor {
+                out.push_str(&demote_heading_line(line, demote, from_slice, from_path));
+            } else {
+                out.push_str(line);
+            }
+            continue;
+        }
+        // Before an ATX heading (in source order), emit its explicit HTML anchor so
+        // the resolved `#slug` cross-links have a matching `id` on the page.
+        if inject_anchors && atx_level(line).is_some() {
+            if let Some(anchor) = anchors.get(anchor_idx) {
+                out.push_str(&format!("<a id=\"{}\"></a>\n\n", anchor.slug));
+            }
+            anchor_idx += 1;
+        }
+        // Heading demotion is applied to the raw line before link rewriting; the
+        // added `#`s never affect link scanning.
+        let demoted = demote_heading_line(line, demote, from_slice, from_path);
+        rewrite_doc_line(&demoted, map, from_slice, from_path, page_dir, &mut out);
+    }
+    out
+}
+
+/// The heading transform [`rewrite_doc_body`] applies to a re-emitted document.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HeadingDemotion {
+    /// Keep every heading level (a child page: its authored H1 is the page H1).
+    Keep,
+    /// Demote one level (H1→H2 … H5→H6) so a grafted `docs.md` sits under the
+    /// generated slice H1. A source H6 is the H6-overflow guard: H6→H7 is illegal,
+    /// so it is a hard failure naming the document.
+    GraftOne,
+    /// Floor headings two levels down, clamped at H6, so the inlined `llms-full`
+    /// document corpus sits below both the single `# ` document H1 and the
+    /// `## Documents` section header (every heading becomes H3+, never a bare `## `
+    /// that the flat llmstxt structure would read as a new section). Clamps rather
+    /// than overflowing — the corpus is a lossy flattened surface, not the graft.
+    CorpusFloor,
+}
+
+/// Apply the [`HeadingDemotion`] transform to one line, preserving leading
+/// whitespace and the trailing newline. Non-heading lines are returned unchanged.
+fn demote_heading_line(
+    line: &str,
+    demote: HeadingDemotion,
+    from_slice: &str,
+    from_path: &str,
+) -> String {
+    if demote == HeadingDemotion::Keep {
+        return line.to_string();
+    }
+    let indent_len = line.len() - line.trim_start().len();
+    let (indent, rest) = line.split_at(indent_len);
+    let hashes = rest.chars().take_while(|&c| c == '#').count();
+    if hashes == 0 || hashes > 6 {
+        return line.to_string();
+    }
+    let after = &rest[hashes..];
+    // A heading needs whitespace (or end of line) after the hash run; otherwise
+    // it is not an ATX heading (e.g. `#hashtag`) and must not be demoted.
+    if !after.is_empty() && !after.starts_with([' ', '\t', '\n']) {
+        return line.to_string();
+    }
+    let extra = match demote {
+        HeadingDemotion::Keep => unreachable!("handled above"),
+        HeadingDemotion::GraftOne => {
+            if hashes == 6 {
+                panic!(
+                    "markdown source `{from_path}` in slice {from_slice} carries a level-6 heading \
+                     that cannot be demoted (H6→H7 is illegal): {:?}",
+                    line.trim_end()
+                );
+            }
+            1
+        }
+        // Floor at H6: every heading lands at level+2 but never past 6.
+        HeadingDemotion::CorpusFloor => (6 - hashes).min(2),
+    };
+    let prefix = "#".repeat(hashes + extra);
+    format!("{indent}{prefix}{after}")
+}
+
+/// Rewrite the link targets on a single (non-fenced) source line, appending the
+/// result to `out`. Scans for inline-link / image destinations `](target)`,
+/// skipping inline code spans so a `](…)` inside backticks is left verbatim.
+fn rewrite_doc_line(
+    line: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+    out: &mut String,
+) {
+    let bytes = line.as_bytes();
+    let mut i = 0usize;
+    let mut span_start = 0usize;
+    while i < bytes.len() {
+        // Skip an inline code span: a backtick run of length N is closed by the
+        // next run of exactly N backticks (CommonMark). Everything between is
+        // literal and never rewritten.
+        if bytes[i] == b'`' {
+            let run = bytes[i..].iter().take_while(|&&b| b == b'`').count();
+            let close_from = i + run;
+            if let Some(rel_close) = find_backtick_run(&bytes[close_from..], run) {
+                i = close_from + rel_close + run;
+                continue;
+            }
+            // No closing run on this line: the rest is not a code span, keep scanning.
+            i += run;
+            continue;
+        }
+        // An inline link/image destination opens at `](`.
+        if bytes[i] == b']' && i + 1 < bytes.len() && bytes[i + 1] == b'(' {
+            let open = i + 2;
+            // Destinations in authored slice markdown never contain a raw `)`.
+            if let Some(rel_close) = line[open..].find(')') {
+                let close = open + rel_close;
+                out.push_str(&line[span_start..open]);
+                out.push_str(&rewrite_doc_target(
+                    &line[open..close],
+                    map,
+                    from_slice,
+                    from_path,
+                    page_dir,
+                ));
+                span_start = close;
+                i = close;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    out.push_str(&line[span_start..]);
+}
+
+/// The ATX heading level (1–6) of a non-fenced line, or `None` when it is not an
+/// ATX heading. Mirrors the `source_map` heading detector so this walk's heading
+/// order aligns with the map's page-scoped anchor order.
+fn atx_level(line: &str) -> Option<u8> {
+    let rest = line.trim_start();
+    let hashes = rest.chars().take_while(|&c| c == '#').count();
+    if hashes == 0 || hashes > 6 {
+        return None;
+    }
+    let after = &rest[hashes..];
+    if after.is_empty() || after.starts_with([' ', '\t', '\n']) {
+        Some(hashes as u8)
+    } else {
+        None
+    }
+}
+
+/// The fence marker (` ``` ` or `~~~`) a trimmed line opens/closes a fenced code
+/// block with (three or more of one marker char), else `None`.
+/// Find the byte offset of the next run of EXACTLY `run` backticks in `bytes`,
+/// else `None`. Used to skip inline code spans in [`rewrite_doc_line`].
+fn find_backtick_run(bytes: &[u8], run: usize) -> Option<usize> {
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'`' {
+            let here = bytes[i..].iter().take_while(|&&b| b == b'`').count();
+            if here == run {
+                return Some(i);
+            }
+            i += here;
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+/// Rewrite a single authored link/image destination (the text between `](` and
+/// `)`), routing every internal reference through the single [`SourceToPageMap`]
+/// authority.
+///
+/// * Absolute / scheme-qualified / `mailto:` / site-absolute targets are external
+///   and pass through verbatim.
+/// * A pure `#fragment` addresses a heading in THIS document; a missing anchor is
+///   a hard failure (a broken same-document link must not render silently).
+/// * A relative `*.md` reference that stays WITHIN the slice is resolved to its
+///   generated page (relative href, with any `#anchor`); a dangling within-slice
+///   reference is a hard failure the slice's markdown must fix.
+/// * A reference that escapes the slice root (another slice, a repo `docs/` file)
+///   or targets a non-markdown asset is off-corpus and is absolutized to the
+///   published site, so the rendered page never dangles.
+fn rewrite_doc_target(
+    target: &str,
+    map: &SourceToPageMap,
+    from_slice: &str,
+    from_path: &str,
+    page_dir: &str,
+) -> String {
+    if target.is_empty() {
+        return target.to_string();
+    }
+    // The path portion (before any `#fragment`) classifies the target; the resolver
+    // re-splits and validates the fragment itself.
+    let path_part = target.split_once('#').map_or(target, |(p, _)| p);
+
+    // A pure fragment: a heading in this same document.
+    if path_part.is_empty() {
+        return match map.resolve_link(from_slice, from_path, target) {
+            LinkResolution::Resolved(loc) => match loc.anchor {
+                Some(anchor) => format!("#{anchor}"),
+                // A bare `#` with no anchor — leave as authored.
+                None => target.to_string(),
+            },
+            LinkResolution::Dangling { .. } => panic!(
+                "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
+                 anchor link `{target}` (no such heading)"
+            ),
+        };
+    }
+
+    // Absolute / scheme-qualified / site-absolute / protocol-relative: external.
+    if is_offsite_target(path_part) {
+        return target.to_string();
+    }
+
+    // Only relative markdown→markdown references are rewritten through the map; any
+    // other relative reference (a `.ttl`, an image, a directory) is off-corpus.
+    if !path_part.ends_with(".md") {
+        return absolutize_offsite(target);
+    }
+
+    // A relative `.md` reference that escapes the slice root cannot name a document
+    // in THIS slice's corpus (the resolver is slice-scoped) — externalize it.
+    if escapes_slice_root(from_path, path_part) {
+        return absolutize_offsite(target);
+    }
+
+    match map.resolve_link(from_slice, from_path, target) {
+        LinkResolution::Resolved(loc) => {
+            let target_dir = loc.page.strip_suffix('/').unwrap_or(&loc.page);
+            let href = rel(page_dir, target_dir);
+            match loc.anchor {
+                Some(anchor) => format!("{href}index.md#{anchor}"),
+                None => format!("{href}index.md"),
+            }
+        }
+        LinkResolution::Dangling { .. } => panic!(
+            "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
+             link `{target}` — fix the link in the slice's markdown (it names no document in the \
+             slice)"
+        ),
+    }
+}
+
+/// True when a link target is not a relative source-document reference: it carries
+/// an explicit URI scheme (`http:`, `mailto:`, …), is protocol-relative (`//…`),
+/// or is site-absolute (`/…`).
+fn is_offsite_target(path: &str) -> bool {
+    if path.starts_with('/') {
+        return true;
+    }
+    match (path.find(':'), path.find('/')) {
+        (Some(colon), Some(slash)) => colon < slash,
+        (Some(_), None) => true,
+        _ => false,
+    }
+}
+
+/// Whether a relative link `..`-climbs above the slice root when joined against the
+/// linking document's directory — i.e. it targets something OUTSIDE this slice's
+/// document corpus (another slice, a repo-level doc). Mirrors the resolver's own
+/// join, but reports the escape the resolver silently clamps, so the caller can
+/// externalize rather than hard-fail on an off-corpus reference.
+fn escapes_slice_root(from_path: &str, link_path: &str) -> bool {
+    let mut depth = match from_path.rsplit_once('/') {
+        Some((dir, _)) => dir.split('/').filter(|s| !s.is_empty()).count(),
+        None => 0,
+    };
+    for seg in link_path.split('/') {
+        match seg {
+            "" | "." => {}
+            ".." => {
+                if depth == 0 {
+                    return true;
+                }
+                depth -= 1;
+            }
+            _ => depth += 1,
+        }
+    }
+    false
+}
+
+/// Absolutize an off-corpus relative reference to the published documentation site,
+/// so a rendered page never carries a dangling relative link into a document this
+/// render does not emit. Leading `./` / `../` segments are dropped and the
+/// remainder is appended to [`crate::mdbook::PUBLISHED_SITE_BASE`] — the SAME
+/// published-site base the mdbook renderer externalizes dropped surfaces to.
+fn absolutize_offsite(target: &str) -> String {
+    let mut rest = target;
+    loop {
+        if let Some(r) = rest.strip_prefix("../") {
+            rest = r;
+        } else if let Some(r) = rest.strip_prefix("./") {
+            rest = r;
+        } else {
+            break;
+        }
+    }
+    format!("{}{rest}", crate::mdbook::PUBLISHED_SITE_BASE)
 }
 
 // ── Linkage / example / concern / external / integrity pages ──────────────────
@@ -5516,7 +6024,11 @@ fn markdown_to_html(markdown: &str) -> String {
 /// `href="…"` attribute; external links are absolute `http(s)://` URLs that
 /// never contain `index.md`, so this targeted swap touches only internal links.
 fn rewrite_internal_links(html: &str) -> String {
+    // `index.md"` closes a fragment-less internal link; `index.md#` precedes a
+    // heading fragment (the grafted `docs.md` / child-document cross-links carry
+    // `…index.md#anchor`). Both forms map to the `.html` page.
     html.replace("index.md\"", "index.html\"")
+        .replace("index.md#", "index.html#")
 }
 
 /// A nav menu entry (label + resolved href), used as a pre-sorted minijinja
@@ -6392,6 +6904,31 @@ pub fn search_index_json(model: &DocsModel) -> String {
             missing_coverage: Vec::new(),
         });
     }
+    // One record per slice CHILD document (every non-`docs.md` markdown), indexed by
+    // its title (label) and its full prose (definition), so search matches document
+    // bodies. The top-level `docs.md` prose is grafted onto — and searched as — its
+    // slice page, so it is not a separate record. `slice_children` is path-sorted.
+    let doc_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    for slice in &model.slices {
+        for entry in doc_map.slice_children(&slice.iri) {
+            let full_prose = slice
+                .documents
+                .iter()
+                .find(|d| d.source_path == entry.source_path)
+                .map(|d| d.source_text.clone());
+            records.push(SearchRecord {
+                kind: "document",
+                id: entry.source_path.clone(),
+                label: entry.title.clone(),
+                definition: full_prose,
+                url: format!("{}index.html", entry.page),
+                advice: Vec::new(),
+                alignments: Vec::new(),
+                missing_coverage: Vec::new(),
+            });
+        }
+    }
 
     records.sort_by(|a, b| {
         a.url
@@ -6529,6 +7066,33 @@ pub fn llms_txt(model: &DocsModel) -> String {
         sections.push(LlmsSection {
             heading: "Slices".to_string(),
             bullets: slice_bullets,
+        });
+    }
+
+    // ── Documents: every slice CHILD document page (non-`docs.md` markdown),
+    // grouped by slice via the single page-map authority; the top-level `docs.md`
+    // is grafted onto its slice page and covered by the Slices section above. ──
+    let doc_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let mut document_bullets: Vec<LlmsBullet> = Vec::new();
+    for slice in &model.slices {
+        for entry in doc_map.slice_children(&slice.iri) {
+            document_bullets.push(LlmsBullet {
+                text: entry.title.clone(),
+                url: Some(format!("{}index.html", entry.page)),
+                signature: String::new(),
+                note: llms::cap_note(&format!(
+                    "{} — `{}`",
+                    slice_display(slice),
+                    entry.source_path
+                )),
+            });
+        }
+    }
+    if !document_bullets.is_empty() {
+        sections.push(LlmsSection {
+            heading: "Documents".to_string(),
+            bullets: document_bullets,
         });
     }
 
@@ -6700,6 +7264,37 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
             out.push_str(&format!("- {}{tier}\n", slice_display(slice)));
         }
         out.push('\n');
+    }
+
+    // ── Documents: the COMPLETE first-class Markdown corpus inlined in full —
+    // every slice document (the top-level `docs.md` AND every child `*.md`), full
+    // prose, with intra-corpus links resolved through the SAME `SourceToPageMap`
+    // authority (this self-contained corpus is a T3 link domain rooted at the site
+    // root). `model.slices` is IRI-sorted and each `documents` is path-sorted. ──
+    let has_documents = model.slices.iter().any(|s| !s.documents.is_empty());
+    if has_documents {
+        let doc_map = SourceToPageMap::build(model)
+            .expect("SourceToPageMap: model documents were already validated at discovery");
+        out.push_str("## Documents\n\n");
+        for slice in &model.slices {
+            for doc in &slice.documents {
+                out.push_str(&format!("### {} — {}\n\n", slice_display(slice), doc.title));
+                let body = rewrite_doc_body(
+                    &doc.source_text,
+                    &doc_map,
+                    &slice.iri,
+                    &doc.source_path,
+                    "",
+                    HeadingDemotion::CorpusFloor,
+                    false,
+                );
+                out.push_str(&body);
+                if !body.ends_with('\n') {
+                    out.push('\n');
+                }
+                out.push('\n');
+            }
+        }
     }
 
     // ── Reference: the standing index pages an agent should know exist, plus the
