@@ -1493,6 +1493,19 @@ fn dispatch_hybrid_query(
                     );
                 }
             }
+            // The effective (leading-prefix) dimension is a mandatory selection input; its
+            // clap default of 0 is not a valid scored space. Reject it here with a clear
+            // usage error rather than letting it fail deep inside `PurrembBinding::open`.
+            if inputs.effective_dimension == 0 {
+                return commands::fail_code(
+                    reporter,
+                    HYBRID_QUERY_MODE_DIAG,
+                    "PURREMB mode requires --effective-dimension (a non-zero effective \
+                     vector-space dimension)"
+                        .to_owned(),
+                    2,
+                );
+            }
             commands::hybrid_query_purremb(
                 reporter,
                 &commands::PurrembHybridQuery {

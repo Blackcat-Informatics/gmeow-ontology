@@ -569,3 +569,41 @@ fn purremb_hybrid_query_wrong_matrix_identity_fails_with_no_answers() {
         .failure()
         .stdout(predicate::str::contains("answer ").not());
 }
+
+/// Omitting `--effective-dimension` (clap default 0) is a mis-specified selection: the
+/// binary exits NON-ZERO with a clear usage error naming the flag, never a cryptic
+/// failure deep inside artifact verification and never a silently empty result.
+#[test]
+fn purremb_hybrid_query_missing_effective_dimension_is_a_clear_usage_error() {
+    let fixture = build_fixture();
+    let ids = &fixture.identities;
+    let (_tmp, purremb, source, program, facts) = staged(&fixture);
+
+    gmeow()
+        .arg("hybrid-query")
+        .arg("--facts")
+        .arg(&facts)
+        .arg("--program")
+        .arg(&program)
+        .arg("--purremb")
+        .arg(&purremb)
+        .arg("--source")
+        .arg(&source)
+        .args(["--relation", RELATION])
+        .args(["--target-set", &ids.target_set])
+        .args(["--family", &ids.family])
+        .args(["--vector-space", &ids.vector_space])
+        .args(["--matrix", &ids.matrix])
+        .args(["--metric", "cosine"])
+        // --effective-dimension deliberately omitted (clap default 0).
+        .args(["--dtype", "f32"])
+        .args(["--postprocessing", "none"])
+        .args(["--retrieval-policy", "exact-full-space"])
+        .args(["--source-mode", "certified"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "PURREMB mode requires --effective-dimension",
+        ))
+        .stdout(predicate::str::contains("answer ").not());
+}
