@@ -340,6 +340,20 @@ fn is_constraint_sugar_class(local: &str) -> bool {
     )
 }
 
+/// The reserved `logic:` predicate-local names that carry a `logic:AbductiveSchema`'s repair
+/// mechanism — the discipline back-link, the repair-strategy selector, and the completeness
+/// formula root. Like the constraint annotations, these are consumed by the abductive advice
+/// producer (which queries the reasoned RDF dataset directly) and must NOT leak into
+/// `prog.axioms`; in particular `completenessFormula` reaches a `logic:Formula` root that is
+/// excluded from the top-level formula set in [`extract_formulas`], so authoring a completeness
+/// condition never changes what the reasoner entails about the live model.
+fn is_abductive_schema_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "repairsDiscipline" | "repairStrategy" | "completenessFormula"
+    )
+}
+
 /// The reserved `logic:` predicate-local names that carry a `logic:ReasoningProgram`'s
 /// clause set, goal, verdict probes, evaluation-strategy selector, and per-variable
 /// order-sort declarations. Like the formula-structural predicates, these are consumed by
@@ -528,6 +542,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // Reasoning-program structural triples are consumed by extract_reasoning_programs;
         // they are never domain facts.
         if is_reasoning_program_structural_predicate(p_local) {
+            continue;
+        }
+        // Abductive-schema structural triples are consumed by the abductive advice producer;
+        // they are never domain facts (and completenessFormula's root is excluded from the
+        // top-level formula set in extract_formulas).
+        if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -3246,6 +3266,18 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             }
         }
     }
+    // A formula reached as a `logic:AbductiveSchema`'s `logic:completenessFormula` is the
+    // discipline-satisfied condition the abductive producer instantiates at a gap subject —
+    // NOT a free-standing top-level assertion. Excluding every completeness root here is what
+    // keeps authoring a completeness condition from asserting it as an always-true axiom (which
+    // would both corrupt the reasoned core and auto-assert the very structure the advice only
+    // RECOMMENDS adding).
+    let completeness_pred = nn(&logic_iri("completenessFormula"));
+    for schema in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("AbductiveSchema"))) {
+        for obj in objects(store, &schema, &completeness_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -3341,6 +3373,18 @@ fn one_child_subject(
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
+}
+
+/// Reconstruct the [`Formula`] rooted at the `logic:Formula` node named `root_iri` from `store`.
+///
+/// The public entry for consumers that hold a formula-root IRI resolved from the reasoned RDF
+/// dataset and need its first-order [`Formula`] IR without compiling the whole document — notably
+/// the abductive advice producer, which reads a `logic:AbductiveSchema`'s
+/// `logic:completenessFormula` root. That root is deliberately kept out of the top-level formula
+/// set (see [`extract_formulas`]), so it is unreachable through `parse_logic_*`; this reconstructs
+/// exactly the one subtree, applying the same strict well-formedness checks as every other formula.
+pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::Result<Formula> {
+    parse_formula(store, &Subject::Iri(root_iri.to_owned()))
 }
 
 fn parse_formula_inner(
