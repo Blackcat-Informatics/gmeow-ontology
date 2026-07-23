@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The consume-path security-ring filter demonstrator (requirement #9).
+#
+# A ring-tagged dataset the shipped `gmeow gmn project --ring <ring>` subcommand
+# (and the gmeow_lang_bridge::gmn_consume::consume_project library function it
+# calls) runs the verbatim consume order over:
+#   canonicalize -> SECURITY-RING FILTER -> GMN-1 -> token-budget fit.
+#
+# Each CONTENT SUBJECT carries exactly one gmeow:gmnContentRing tag — the
+# claim-scoped classification predicate (distinct from gmeow:gmnSecurityRing,
+# which classifies the ENVELOPE crossing, never an inner claim). Both range over
+# the same gmeow:GmnSecurityRing lattice: the envelope's ring is the admission
+# TARGET, a content subject's ring is what is being admitted. The ring
+# INDIVIDUALS and their (level, compartment) lattice
+# coordinates are NOT authored here — they are resolved checkout-free from the
+# shipped gmeow.gts bundle (or slices/grounding/lang/module.ttl), so this scene
+# carries only the classified payload, never a second copy of the lattice.
+#
+# The four content claims sit at four DIFFERENT rings so the filter's admit/
+# exclude decision is exercised on real authored data across BOTH lattice axes:
+#
+#   * gmeow:gmnRingCore       (level core,     no compartment) — flows everywhere
+#   * gmeow:gmnRingTrusted    (level trusted,  no compartment) — flows to trusted/restricted
+#   * gmeow:gmnRingRestricted (level restricted,no compartment) — flows only to restricted
+#   * gmeow:gmnRingNato       (level trusted,  {NATO, partner}) — the compartment case
+#
+# Under the DERIVED gmeow:gmnRingWithin product-order (level dominance AND
+# compartment ⊇), for example:
+#   * target gmeow:gmnRingTrusted admits core + trusted + nato content, excludes
+#     restricted content (its level dominates nothing above restricted);
+#   * target gmeow:gmnRingNato admits ONLY nato-compartmented content — plain
+#     same-level gmeow:gmnRingTrusted content, and even higher-level
+#     gmeow:gmnRingCore content, are EXCLUDED because their compartment sets do
+#     not contain {NATO, partner}: the compartment axis creating an exclusion two
+#     same-level rings would not.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+# --- Core-ring content: the innermost ring, flows outward to every ring -------- #
+gmeow:ringDemoCore
+    gmeow:gmnContentRing gmeow:gmnRingCore ;
+    gmeow:ringDemoField gmeow:ringDemoCoreDatum .
+
+# --- Trusted-ring content: flows to the trusted and restricted rings ----------- #
+gmeow:ringDemoTrusted
+    gmeow:gmnContentRing gmeow:gmnRingTrusted ;
+    gmeow:ringDemoField gmeow:ringDemoTrustedDatum .
+
+# --- Restricted-ring content: the outermost ring, stays put -------------------- #
+gmeow:ringDemoRestricted
+    gmeow:gmnContentRing gmeow:gmnRingRestricted ;
+    gmeow:ringDemoField gmeow:ringDemoRestrictedDatum .
+
+# --- NATO-compartment content: same level as trusted, different lattice point -- #
+gmeow:ringDemoNato
+    gmeow:gmnContentRing gmeow:gmnRingNato ;
+    gmeow:ringDemoField gmeow:ringDemoNatoDatum .

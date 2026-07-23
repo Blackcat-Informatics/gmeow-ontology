@@ -30,9 +30,10 @@ use std::sync::Arc;
 
 use gmeow_cli_core::Reporter;
 use gmeow_lang_bridge::{
-    CurrentCodebook, Gmn0Model, Gmn1Document, GmnDictionary, codebook_digest, content_digest,
-    gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf, idempotence_check,
-    pack_root_from_grammar_leaf, per_claim_round_trip_check, resolve_current_codebook,
+    CurrentCodebook, Gmn0Model, Gmn1Document, GmnDictionary, RingLattice, codebook_digest,
+    consume_project, content_digest, gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf,
+    idempotence_check, pack_root_from_grammar_leaf, per_claim_round_trip_check,
+    resolve_current_codebook,
 };
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -305,6 +306,103 @@ pub fn decode(
                 ),
             }
         }
+    }
+}
+
+// ── gmn project ──────────────────────────────────────────────────────────────────
+
+/// The `gmeow:` namespace base — a bare `--ring` token is resolved under it.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// Resolve a `--ring` argument to a full ring IRI: a `http(s)://…` value is used verbatim,
+/// otherwise the token is treated as a `gmeow:` local name (e.g. `gmnRingCore`).
+fn resolve_ring_arg(ring: &str) -> String {
+    if ring.starts_with("http://") || ring.starts_with("https://") {
+        ring.to_owned()
+    } else {
+        format!("{GMEOW_NS}{ring}")
+    }
+}
+
+/// `gmeow gmn project --ring <ring> [--budget N] <input.ttl>` — the consume-path
+/// security-ring filter on the shipped surface: canonicalize → SECURITY-RING FILTER → GMN-1 →
+/// token-budget fit. The ring-tagged input dataset (each content subject carrying a
+/// `gmeow:gmnSecurityRing`) is filtered to exactly the content ADMISSIBLE into `<ring>` under
+/// the DERIVED `gmeow:gmnRingWithin` product-order (computed checkout-free from the bundle's
+/// authored ring coordinates), projected to GMN-1 on stdout, and fitted to `--budget` tokens
+/// with the elided remainder DISCLOSED on stderr — never a silent truncation.
+///
+/// HARD-FAILS (non-zero) on a leakage violation (`lang:GmnRingLeak`): unclassified content, an
+/// admitted claim referencing out-of-ring content, or entangled shared structure — the
+/// serializer refuses to emit a projection that would leak the boundary. An unresolvable target
+/// ring hard-fails `lang:GmnRingLatticeMalformed`.
+pub fn project(
+    reporter: &dyn Reporter,
+    input: &Path,
+    ring: &str,
+    budget: Option<u64>,
+    lang_module: Option<&Path>,
+) -> i32 {
+    let (_codebook, dict) = match load_codebook_and_dict(reporter, lang_module) {
+        Ok(pair) => pair,
+        Err(code) => return code,
+    };
+    // The ring lattice coordinates are resolved from the SAME source as the codebook/dictionary:
+    // the embedded bundle by default, or the `--lang-module` override.
+    let lattice_ds = match lang_module {
+        Some(path) => match file_dataset(reporter, path) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+        None => match bundle_dataset(reporter) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+    };
+    let lattice = RingLattice::from_dataset(&lattice_ds);
+    let target = resolve_ring_arg(ring);
+    if !lattice.contains(&target) {
+        return fail(
+            reporter,
+            "gmeow-cli.gmn.project.unknown-ring",
+            format!(
+                "target ring <{target}> is not a resolvable gmeow:GmnSecurityRing in the lattice \
+                 (the shipped rings are gmeow:gmnRingCore / gmnRingTrusted / gmnRingRestricted / \
+                 gmnRingNato); pass a full IRI or a gmeow: local name via --ring"
+            ),
+        );
+    }
+
+    let model = match model_from_ttl(reporter, input) {
+        Ok(m) => m,
+        Err(code) => return code,
+    };
+
+    match consume_project(&model, &lattice, &target, budget, &dict) {
+        Ok(projection) => {
+            // stdout carries ONLY the ring-filtered, budget-fit GMN-1 payload (pipeable to
+            // `gmn decode`); the admission summary and any elision disclosure go to stderr.
+            print!("{}", projection.text);
+            eprintln!(
+                "gmn project: target <{}> admitted {}/{} claims, excluded {}, emitted {} \
+                 ({} tokens)",
+                projection.target,
+                projection.admitted_claims,
+                projection.input_claims,
+                projection.excluded_claims,
+                projection.emitted_claims,
+                projection.tokens,
+            );
+            if let Some(disclosure) = &projection.disclosure {
+                eprintln!("gmn project: {disclosure}");
+            }
+            0
+        }
+        Err(e) => fail(
+            reporter,
+            "gmeow-cli.gmn.project.leak",
+            format!("cannot project {} into ring <{target}>: {e}", input.display()),
+        ),
     }
 }
 

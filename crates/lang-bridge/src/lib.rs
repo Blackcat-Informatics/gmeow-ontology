@@ -32,6 +32,7 @@ pub mod error;
 pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
+pub mod gmn_consume;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
 pub mod gmn_verbalize;
@@ -58,6 +59,10 @@ pub use conllu::{
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use engine::{
     EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
+};
+pub use gmn_consume::{
+    CLASS_RING_LATTICE_MALFORMED, CLASS_RING_LEAK, ConsumeProjection, GmnConsumeError, RingLattice,
+    consume_project,
 };
 pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
 pub use gmn_migrate::{

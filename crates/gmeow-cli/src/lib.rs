@@ -515,6 +515,28 @@ pub enum GmnCommands {
         #[arg(long = "format", short = 'f', value_enum, default_value_t = DecodeFormat::Nquads)]
         format: DecodeFormat,
     },
+    /// The consume-path security-ring filter: canonicalize → SECURITY-RING FILTER →
+    /// GMN-1 → token-budget fit. Filters a ring-tagged Turtle input to exactly the
+    /// content admissible into `--ring` under the derived `gmeow:gmnRingWithin`
+    /// product-order, projects it to GMN-1 on stdout, and fits it to `--budget`
+    /// tokens with the elided remainder disclosed. Hard-fails (`lang:GmnRingLeak`)
+    /// on any leakage violation.
+    Project {
+        /// The ring-tagged RDF (Turtle) input to filter and project.
+        input: PathBuf,
+        /// The TARGET security ring: a full IRI or a `gmeow:` local name
+        /// (`gmnRingCore` / `gmnRingTrusted` / `gmnRingRestricted` / `gmnRingNato`).
+        #[arg(long = "ring")]
+        ring: String,
+        /// An optional token budget: admitted claims beyond it are elided (whole-claim,
+        /// disclosed on stderr), never silently truncated.
+        #[arg(long = "budget")]
+        budget: Option<u64>,
+        /// Override the embedded bundle's codebook/dictionary AND ring-lattice coordinates with a
+        /// lang `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+    },
     /// The conformance driver: over a frozen vector corpus, prove every positive
     /// vector is byte-frozen + round-trips, every codec-tier negative raises its
     /// recorded class, and the recomputed codebook digest + pack root match the bundle's
@@ -1264,6 +1286,12 @@ pub fn run() -> i32 {
                 lang_module,
                 format,
             } => gmn::decode(reporter, &input, lang_module.as_deref(), format),
+            GmnCommands::Project {
+                input,
+                ring,
+                budget,
+                lang_module,
+            } => gmn::project(reporter, &input, &ring, budget, lang_module.as_deref()),
             GmnCommands::Verify {
                 vectors,
                 lang_module,
