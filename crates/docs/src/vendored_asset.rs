@@ -1,0 +1,305 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Shared vendored-wasm-asset harness.
+//!
+//! The docs site ships one or more **prebuilt** wasm engines (the offline SPARQL
+//! playground runtime, purrdf; the repo-free Tier-1 validator, gmeow-validate-wasm)
+//! as pinned `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
+//! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
+//! vendored blob to stay in step with its source crate. Each such asset therefore
+//! shares one ritual:
+//!
+//! 1. a set of vendored files (the wasm module, its wasm-bindgen JS glue, and the
+//!    `.d.ts` type surface), each carrying a `.license` REUSE sidecar;
+//! 2. a `DIGESTS.blake3` content-digest manifest pinning their exact bytes;
+//! 3. emission of the runtime files into the rendered [`Site`] under
+//!    `assets/<name>/` when the playground/interactive assets are present;
+//! 4. an anti-rot test that proves the vendored `.wasm` is a real module, the JS
+//!    glue still exposes the expected export surface, and the pinned digests match.
+//!
+//! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
+//! constant ([`PURRDF_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
+//! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
+//! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
+//! one definition per asset — the emission descriptor and the anti-rot verifier read
+//! from the same source of truth.
+//!
+//! [`Site`]: crate::render::Site
+
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+
+/// The digest-manifest filename pinning the vendored bytes, in every asset dir.
+pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
+
+/// One expected export-surface probe: `needle` must appear verbatim in the vendored
+/// `file`. Its absence means the vendored bindings predate (or drifted from) the API
+/// the site depends on — a stale re-vendor.
+#[derive(Debug, Clone, Copy)]
+pub struct ExportCheck {
+    /// The vendored filename to search (JS glue or `.d.ts`).
+    pub file: &'static str,
+    /// The substring that must be present.
+    pub needle: &'static str,
+    /// Guidance appended to the failure message.
+    pub hint: &'static str,
+}
+
+/// A pinned, vendored wasm engine bundle emitted into the docs site.
+///
+/// One constant per asset captures the whole ritual: the subdir, the runtime files
+/// emitted into the site (with their `include_bytes!` bytes), the full set of
+/// vendored files the digest manifest pins, the wasm module to structurally probe,
+/// and the JS-export surface the site depends on. Both the renderer
+/// ([`emit_into`](Self::emit_into)) and the anti-rot test
+/// ([`verify`](Self::verify)) read from this single source of truth.
+#[derive(Debug, Clone, Copy)]
+pub struct VendoredWasmAsset {
+    /// The asset subdir under `crates/docs/assets/` and the site emission prefix
+    /// (`assets/<name>/`).
+    pub name: &'static str,
+    /// The runtime files emitted verbatim into the [`Site`](crate::render::Site):
+    /// `(filename, bytes)`. The bytes are `include_bytes!` literals (the wasm module
+    /// and its JS glue); the `.d.ts` type surface is vendored but not emitted.
+    pub emitted_files: &'static [(&'static str, &'static [u8])],
+    /// Every vendored filename the `DIGESTS.blake3` manifest pins — exactly the set
+    /// the refresh maint target copies out of the built wasm package.
+    pub vendored_files: &'static [&'static str],
+    /// The vendored wasm module filename (the `\0asm`-magic + size structural probe).
+    pub wasm_file: &'static str,
+    /// A plausible-size floor for the wasm module; guards an empty/stub blob.
+    pub min_wasm_len: usize,
+    /// The export-surface probes proving the JS glue still exposes the API the site
+    /// depends on.
+    pub export_checks: &'static [ExportCheck],
+    /// The `make` target that rebuilds + re-vendors this asset (referenced in
+    /// failure messages).
+    pub refresh_target: &'static str,
+    /// The environment variable whose presence makes [`verify`](Self::verify) rewrite
+    /// (bless) the digest manifest instead of comparing — set by the refresh target.
+    pub bless_env: &'static str,
+    /// A per-asset witness-attestation path, attached by a later task. Absent for now;
+    /// present here so the descriptor need not be reshaped when that lane lands.
+    pub witness_attestation: Option<&'static str>,
+}
+
+impl VendoredWasmAsset {
+    /// The site-relative path a vendored `filename` is emitted to.
+    #[must_use]
+    pub fn site_path(&self, filename: &str) -> String {
+        format!("assets/{}/{filename}", self.name)
+    }
+
+    /// Emit this asset's runtime files into `files` under `assets/<name>/`.
+    ///
+    /// The renderer calls this, gated the same way the rest of the interactive
+    /// playground assets are, so the emission logic lives once here.
+    pub fn emit_into(&self, files: &mut BTreeMap<String, Vec<u8>>) {
+        for (filename, bytes) in self.emitted_files {
+            files.insert(self.site_path(filename), bytes.to_vec());
+        }
+    }
+
+    /// The on-disk directory holding the vendored files
+    /// (`crates/docs/assets/<name>/`), resolved from the crate manifest dir.
+    #[must_use]
+    pub fn asset_dir(&self) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("assets")
+            .join(self.name)
+    }
+
+    /// The `DIGESTS.blake3` content for the current on-disk vendored bytes: one
+    /// `<blake3-hex>  <filename>` line per vendored file, sorted by filename,
+    /// LF-terminated.
+    ///
+    /// Ordered by filename (not by the formatted line) so a change to one file's hash
+    /// never reshuffles the other rows — the manifest diff stays minimal.
+    ///
+    /// # Panics
+    ///
+    /// Panics if a vendored file cannot be read.
+    #[must_use]
+    pub fn current_manifest(&self) -> String {
+        let mut names: Vec<&str> = self.vendored_files.to_vec();
+        names.sort_unstable();
+        let dir = self.asset_dir();
+        let lines: Vec<String> = names
+            .into_iter()
+            .map(|name| {
+                let bytes = std::fs::read(dir.join(name))
+                    .unwrap_or_else(|e| panic!("vendored {name} must exist: {e}"));
+                format!("{}  {name}", blake3::hash(&bytes).to_hex())
+            })
+            .collect();
+        let mut out = lines.join("\n");
+        out.push('\n');
+        out
+    }
+
+    /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
+    /// (WebAssembly magic + plausible size), the JS glue still exposes every declared
+    /// export, and the pinned `DIGESTS.blake3` describes the exact on-disk bytes.
+    ///
+    /// When the asset's [`bless_env`](Self::bless_env) is set, the manifest is
+    /// rewritten from the current bytes instead of compared — the path the refresh
+    /// maint target drives, so the pinned digests always describe the bytes that
+    /// target produced (no external `b3sum` needed).
+    ///
+    /// # Panics
+    ///
+    /// Panics (fails the test) on any drift: a corrupt/undersized wasm module, a
+    /// missing export surface, or a digest mismatch.
+    pub fn verify(&self) {
+        let dir = self.asset_dir();
+
+        // Structural: real WebAssembly module, not a stub/placeholder.
+        let wasm = std::fs::read(dir.join(self.wasm_file)).unwrap_or_else(|e| {
+            panic!(
+                "vendored {} must exist (run make {}): {e}",
+                self.wasm_file, self.refresh_target
+            )
+        });
+        assert!(
+            wasm.len() >= 4 && &wasm[..4] == b"\0asm",
+            "vendored {} does not start with the WebAssembly magic — corrupt or truncated",
+            self.wasm_file
+        );
+        assert!(
+            wasm.len() > self.min_wasm_len,
+            "vendored {} is implausibly small ({} bytes) — a broken build was vendored",
+            self.wasm_file,
+            wasm.len()
+        );
+
+        // Export surface: the bindings still carry the API the site depends on.
+        for check in self.export_checks {
+            let text = std::fs::read_to_string(dir.join(check.file))
+                .unwrap_or_else(|e| panic!("vendored {} must exist: {e}", check.file));
+            assert!(
+                text.contains(check.needle),
+                "vendored {} lacks `{}` — {} (re-run make {})",
+                check.file,
+                check.needle,
+                check.hint,
+                self.refresh_target
+            );
+        }
+
+        // Digest: pin the exact bytes. The structural checks alone pass a
+        // stale-but-still-functional engine; this gate does not.
+        let manifest_path = dir.join(DIGEST_MANIFEST);
+        let current = self.current_manifest();
+        if std::env::var_os(self.bless_env).is_some() {
+            std::fs::write(&manifest_path, &current)
+                .unwrap_or_else(|e| panic!("write {DIGEST_MANIFEST} for {}: {e}", self.name));
+            return;
+        }
+        let committed = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
+            panic!(
+                "missing {DIGEST_MANIFEST} (run make {}): {e}",
+                self.refresh_target
+            )
+        });
+        assert_eq!(
+            committed, current,
+            "vendored {} bytes drifted from {DIGEST_MANIFEST}: a vendored file changed \
+             without re-running `make {}`. The structural checks pass a \
+             stale-but-still-functional engine; this digest gate does not.",
+            self.name, self.refresh_target
+        );
+    }
+}
+
+/// The vendored purrdf wasm engine — the offline docs SPARQL playground runtime.
+///
+/// Emitted under `assets/purrdf/`; refreshed by `make maint-refresh-purrdf-asset`.
+/// Behaviour (does a query actually evaluate?) is covered by the purrdf Node lane;
+/// this descriptor drives the structural + digest anti-rot gate
+/// (`crates/docs/tests/purrdf_asset.rs`).
+pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "purrdf",
+    emitted_files: &[
+        (
+            "gmeow_rdf_wasm.js",
+            include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
+        ),
+        (
+            "gmeow_rdf_wasm_bg.wasm",
+            include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "gmeow_rdf_wasm.d.ts",
+        "gmeow_rdf_wasm.js",
+        "gmeow_rdf_wasm_bg.wasm",
+        "gmeow_rdf_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "gmeow_rdf_wasm_bg.wasm",
+    min_wasm_len: 100_000,
+    export_checks: &[
+        ExportCheck {
+            file: "gmeow_rdf_wasm.js",
+            needle: "query(sparql, base)",
+            hint: "vendored bindings lack the Dataset.query method",
+        },
+        ExportCheck {
+            file: "gmeow_rdf_wasm.js",
+            needle: "dataset_query",
+            hint: "vendored bindings lack the dataset_query wasm import",
+        },
+        ExportCheck {
+            file: "gmeow_rdf_wasm.d.ts",
+            needle: "query(sparql: string, base?: string | null): string",
+            hint: "vendored .d.ts lacks the query type signature",
+        },
+    ],
+    refresh_target: "maint-refresh-purrdf-asset",
+    bless_env: "GMEOW_PURRDF_BLESS",
+    witness_attestation: None,
+};
+
+/// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator
+/// (SHACL + OntoUML disciplines over a `gmeow.gts` bundle) compiled to wasm32.
+///
+/// Emitted under `assets/validate/`; refreshed by `make maint-refresh-validate-asset`.
+/// Behaviour (does a validation actually run?) is covered by the validate-wasm Node
+/// lane; this descriptor drives the structural + digest anti-rot gate
+/// (`crates/docs/tests/validate_asset.rs`).
+pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "validate",
+    emitted_files: &[
+        (
+            "gmeow_validate_wasm.js",
+            include_bytes!("../assets/validate/gmeow_validate_wasm.js"),
+        ),
+        (
+            "gmeow_validate_wasm_bg.wasm",
+            include_bytes!("../assets/validate/gmeow_validate_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "gmeow_validate_wasm.d.ts",
+        "gmeow_validate_wasm.js",
+        "gmeow_validate_wasm_bg.wasm",
+        "gmeow_validate_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "gmeow_validate_wasm_bg.wasm",
+    min_wasm_len: 100_000,
+    export_checks: &[
+        ExportCheck {
+            file: "gmeow_validate_wasm.js",
+            needle: "export function validate(data, format, gts, namespace, origin)",
+            hint: "vendored bindings lack the validate export",
+        },
+        ExportCheck {
+            file: "gmeow_validate_wasm.d.ts",
+            needle: "export function validate(data: string, format: string, gts: Uint8Array, namespace: string, origin: string): string",
+            hint: "vendored .d.ts lacks the validate type signature",
+        },
+    ],
+    refresh_target: "maint-refresh-validate-asset",
+    bless_env: "GMEOW_VALIDATE_BLESS",
+    witness_attestation: None,
+};

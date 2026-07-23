@@ -37,6 +37,7 @@ pub mod render;
 pub mod source_map;
 mod store;
 pub mod svg;
+pub mod vendored_asset;
 
 pub use describe::{
     DescribeGraph, DescribeStatus, Resolution, build_card, describe, describe_dataset, resolve_term,

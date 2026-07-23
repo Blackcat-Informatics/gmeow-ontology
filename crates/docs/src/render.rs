@@ -76,18 +76,13 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
-/// The vendored purrdf wasm engine (the offline SPARQL runtime), emitted under
-/// `assets/purrdf/` when the playground is present. Pinned build inputs — see
-/// `crates/docs/assets/purrdf/PROVENANCE.md`.
-const PURRDF_ASSETS: &[(&str, &[u8])] = &[
-    (
-        "gmeow_rdf_wasm.js",
-        include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
-    ),
-    (
-        "gmeow_rdf_wasm_bg.wasm",
-        include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
-    ),
+/// The vendored wasm engines emitted under `assets/<name>/` when the playground is
+/// present: the offline SPARQL runtime (purrdf) and the repo-free Tier-1 validator
+/// (gmeow-validate-wasm). Pinned build inputs — one descriptor per asset lives in
+/// [`crate::vendored_asset`]; see each `PROVENANCE.md`.
+const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
+    &crate::vendored_asset::PURRDF_ASSET,
+    &crate::vendored_asset::VALIDATE_ASSET,
 ];
 
 // ── Pages ──────────────────────────────────────────────────────────────────
@@ -481,8 +476,8 @@ pub fn render_site_lang_exec_with_diagrams(
             exec.playground_trig.clone(),
         );
         files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
-        for (name, bytes) in PURRDF_ASSETS {
-            files.insert(format!("assets/purrdf/{name}"), bytes.to_vec());
+        for asset in VENDORED_WASM_ASSETS {
+            asset.emit_into(&mut files);
         }
         let page = Page::SparqlPlayground;
         files.insert(
@@ -8146,6 +8141,12 @@ mod tests {
             site.files
                 .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
             "the vendored wasm engine is emitted so the playground loads offline"
+        );
+        assert!(
+            site.files
+                .contains_key("assets/validate/gmeow_validate_wasm_bg.wasm"),
+            "the vendored validator wasm engine is emitted alongside purrdf so the site \
+             validates authored RDF client-side"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(
