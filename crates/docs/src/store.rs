@@ -316,6 +316,24 @@ impl Store {
         self.literals(subject_iri, pred)
     }
 
+    /// All literal values of `<subject> <pred> ?o` across *any* graph, sorted +
+    /// deduped (deterministic). Named-graph twin of [`Store::literals`] — the
+    /// advice-catalog reader uses it to collect the multi-valued advice prose
+    /// carried in the catalog fanout named graph.
+    pub(crate) fn literals_any(&self, subject_iri: &str, pred: &str) -> Vec<String> {
+        let mut out: Vec<String> = self
+            .objects_any(subject_iri, pred)
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
     /// All named-node object IRIs of `<subject> <pred> ?o`, in dataset order
     /// (un-sorted, matching the old `named_objects`).
     pub(crate) fn named_objects(&self, subject_iri: &str, pred: &str) -> Vec<String> {
