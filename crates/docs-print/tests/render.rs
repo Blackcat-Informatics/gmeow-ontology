@@ -487,6 +487,134 @@ fn intra_corpus_links_lower_to_internal_references() {
     assert!(pdf.starts_with(b"%PDF"));
 }
 
+/// The synthetic "rich slice" for the PDF gate: a `docs.md` guide (H1, H2, a
+/// blockquote, a GFM table, a fenced code block, and a cross-document link INTO the
+/// design child WITH an anchor) plus a `design/ARCHITECTURE.md` child (H1
+/// "Architecture", an "## Overview" H2, a table, fenced code, and a back-link). This
+/// is the SAME slice shape the `gmeow-docs` `synthetic_slice` suite renders to the
+/// site / mdbook; here it drives the print projection.
+fn synthetic_rich_documents() -> Vec<DocMarkdownDocument> {
+    let guide = "\
+# Synthetic Guide
+
+The synthetic guide thesis sentence introduces the rich slice for readers.
+
+## Usage
+
+See [see arch](design/ARCHITECTURE.md#overview) for the architecture overview.
+
+> Guidance lives in this blockquote so the projection must preserve it.
+
+| Field | Value |
+| --- | --- |
+| Owner | synth team |
+| Status | built |
+
+```rust
+fn synth_guide_snippet() -> u32 { 7 }
+```
+";
+    let design = "\
+# Architecture
+
+Prose about the synthetic architecture and its motivating constraints.
+
+## Overview
+
+Return to [the guide](../docs.md) for the surrounding context.
+
+| Component | Role |
+| --- | --- |
+| core | anchors the whole model |
+
+```turtle
+ex:a a gmeow:Foo .
+```
+";
+    vec![
+        demo_doc("docs.md", "Synthetic Guide", guide),
+        demo_doc("design/ARCHITECTURE.md", "Architecture", design),
+    ]
+}
+
+/// A model over the synthetic rich slice (guide + `design/ARCHITECTURE.md` child)
+/// plus one term, so the slice chapter carries both inlined documents and term
+/// material.
+fn synthetic_rich_model() -> DocsModel {
+    let slice = DocSlice {
+        documents: synthetic_rich_documents(),
+        ..demo_slice()
+    };
+    let cls = term(
+        "https://blackcatinformatics.ca/gmeow/SynthWidget",
+        "gmeow:SynthWidget",
+        "Synth Widget",
+        "A synthetic class carried by the rich slice.",
+        DocTermCategory::Class,
+    );
+    DocsModel {
+        title: "GMEOW Synthetic Rich Documentation".to_string(),
+        version: "synth-1".to_string(),
+        slices: vec![slice],
+        terms: vec![cls],
+        ..Default::default()
+    }
+}
+
+/// Task 5 / item 7: the print projection over the synthetic rich slice yields a PDF
+/// whose extractable TEXT LAYER carries the guide + design-doc prose, headings,
+/// table cells, and code — not merely the Typst source. Greps [`pdf_text_layer`]
+/// (the SAME frame tree `compile_pdf` serializes), so a rendering regression that
+/// dropped any block reds here.
+#[test]
+fn pdf_text_layer_carries_synthetic_rich_slice_documents() {
+    let model = synthetic_rich_model();
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+
+    // Ordering: both documents inline BEFORE the slice's generated term material.
+    let slice_at = typ.find("= Slice:").expect("slice chapter present");
+    let guide_at = typ[slice_at..]
+        .find("synthetic guide thesis sentence")
+        .expect("guide prose present");
+    let design_at = typ[slice_at..]
+        .find("motivating constraints")
+        .expect("design prose present");
+    let term_at = typ[slice_at..]
+        .find("gmeow:SynthWidget")
+        .expect("term material present");
+    assert!(
+        guide_at < design_at && design_at < term_at,
+        "documents must render guide → design → term material (guide {guide_at}, design \
+         {design_at}, term {term_at})"
+    );
+
+    // The gate: guide + design prose, headings, table cells, and code must all
+    // survive into the compiled PDF's extractable text layer.
+    let text = pdf_text_layer(&typ, &fixture_bib()).expect("pdf text layer extraction must work");
+    for needle in [
+        // Guide: headings, prose, table cells, code.
+        "Synthetic Guide",
+        "Usage",
+        "synthetic guide thesis sentence",
+        "Owner",
+        "synth team",
+        "synth_guide_snippet",
+        // Design child: headings, prose, table cells, code.
+        "Architecture",
+        "Overview",
+        "motivating constraints",
+        "core",
+        "anchors the whole model",
+        "ex:a a gmeow:Foo",
+    ] {
+        assert!(
+            text.contains(needle),
+            "PDF text layer missing {needle:?}; the synthetic rich-slice document content did \
+             not survive compilation:\n{text}"
+        );
+    }
+}
+
 #[test]
 fn embedded_font_digest_is_pinned() {
     // The exact BLAKE3 over the sorted embedded typst-assets font bytes. Bless

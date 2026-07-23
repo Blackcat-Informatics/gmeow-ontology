@@ -4685,6 +4685,127 @@ ex:elProjectionReport a gmeow:InformationObject ;
         }
     }
 
+    /// A bare in-memory `text/markdown` [`ArtifactRecord`] carrying `body`. Selected
+    /// by media type (like a real `design/*.md`), so [`DocMarkdownDocument::collect`]
+    /// treats it as a first-class document.
+    fn markdown_artifact(logical_path: &str, body: &str) -> ArtifactRecord {
+        ArtifactRecord {
+            role: ArtifactRole::Other(logical_path.to_string()),
+            logical_path: logical_path.to_string(),
+            media_type: "text/markdown".to_string(),
+            raw_digest: format!("digest-{logical_path}"),
+            semantic_digest: None,
+            content: body.as_bytes().to_vec(),
+        }
+    }
+
+    /// A hand-built [`SliceRecord`] carrying only a set of artifacts — the minimum
+    /// [`DocMarkdownDocument::collect`] reads (it consults `record.artifacts` only).
+    /// The manifest graph is an empty frozen dataset; the manifest view is filler.
+    fn record_with_artifacts(slice_iri: &str, artifacts: Vec<ArtifactRecord>) -> SliceRecord {
+        SliceRecord {
+            manifest: ManifestView {
+                slice_iri: slice_iri.to_string(),
+                label: None,
+                title: None,
+                creators: Vec::new(),
+                identifier: None,
+                tier: None,
+                consumers: Vec::new(),
+                profiles: Vec::new(),
+                depends_on: Vec::new(),
+            },
+            manifest_graph: purrdf::RdfDatasetBuilder::new()
+                .freeze()
+                .expect("empty dataset freezes"),
+            artifacts,
+            slice_dir: std::path::PathBuf::from("/nonexistent/synthetic-slice"),
+        }
+    }
+
+    /// Item 1 (model ordering): `collect` selects every `text/markdown` artifact,
+    /// decodes it strictly, sorts by normalized logical path, and derives each
+    /// title from its first ATX H1 — regardless of artifact input order or role.
+    #[test]
+    fn collect_orders_documents_and_derives_titles() {
+        // Deliberately out of sorted order on input; `design/*.md` carries the open
+        // `ArtifactRole::Other` role, exercising media-type (not role) selection.
+        let record = record_with_artifacts(
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            vec![
+                markdown_artifact("docs.md", "# Zoo Guide\n\nProse.\n"),
+                markdown_artifact("design/ARCHITECTURE.md", "# Architecture\n\n## Overview\n"),
+                // A non-markdown artifact is ignored.
+                example_artifact("examples/x.ttl", "ex:a a ex:B ."),
+            ],
+        );
+        let docs = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect("collect succeeds");
+        assert_eq!(docs.len(), 2, "only the two markdown sources");
+        assert_eq!(docs[0].source_path, "design/ARCHITECTURE.md");
+        assert_eq!(docs[0].title, "Architecture");
+        assert_eq!(docs[1].source_path, "docs.md");
+        assert_eq!(docs[1].title, "Zoo Guide");
+        assert_eq!(docs[0].raw_digest, "digest-design/ARCHITECTURE.md");
+    }
+
+    /// Item 10a (hard-fail): an invalid-UTF-8 markdown artifact makes `collect`
+    /// return `Err(MarkdownUtf8)` naming the offending source path — no lossy
+    /// fallback.
+    #[test]
+    fn collect_hard_fails_on_invalid_utf8_naming_path() {
+        let mut bad = markdown_artifact("design/BAD.md", "");
+        bad.content = b"# X\n\xff\xfe\n".to_vec();
+        let record =
+            record_with_artifacts("https://blackcatinformatics.ca/gmeow/slices/zoo", vec![bad]);
+        let err = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect_err("invalid UTF-8 must hard-fail");
+        match &err {
+            DocsError::MarkdownUtf8 { source_path, .. } => {
+                assert_eq!(source_path, "design/BAD.md");
+            }
+            other => panic!("expected MarkdownUtf8, got {other:?}"),
+        }
+        assert!(err.to_string().contains("design/BAD.md"));
+    }
+
+    /// Item 10b (hard-fail): two markdown artifacts whose logical paths NORMALIZE to
+    /// the same logical path (`./design/A.md` vs `design/A.md`) make `collect` return
+    /// `Err(MarkdownPathCollision)` naming the colliding path — one source can never
+    /// silently shadow the other.
+    #[test]
+    fn collect_hard_fails_on_normalized_path_collision() {
+        let record = record_with_artifacts(
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            vec![
+                markdown_artifact("design/A.md", "# First\n"),
+                // Distinct input path, identical after `./`-stripping normalization.
+                markdown_artifact("./design/A.md", "# Second\n"),
+            ],
+        );
+        let err = DocMarkdownDocument::collect(
+            &record,
+            "https://blackcatinformatics.ca/gmeow/slices/zoo",
+            "zoo",
+        )
+        .expect_err("normalized-path collision must hard-fail");
+        match &err {
+            DocsError::MarkdownPathCollision { source_path, .. } => {
+                assert_eq!(source_path, "design/A.md");
+            }
+            other => panic!("expected MarkdownPathCollision, got {other:?}"),
+        }
+        assert!(err.to_string().contains("design/A.md"));
+    }
+
     /// [`extract_worked_instances`] is generic: it finds every subject carrying
     /// `math:hasDimension` — not just the individuals in the real
     /// `measure-and-dimension.ttl` — resolves a `math:DerivedDimension`'s ℚ⁷
