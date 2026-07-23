@@ -44,9 +44,9 @@ use std::path::{Path, PathBuf};
 
 use gmeow_lang_bridge::registry::NamedSource;
 use gmeow_lang_bridge::{
-    ConstructCoverageTally, CurrentCodebook, Gmn0Model, Gmn1ConstructCategory, Gmn1Error,
-    GmnDictionary, codebook_digest, gmn0_canonically_equal, gmn1_read, gmn1_write, pack_root,
-    per_claim_round_trip_check, resolve_current_codebook, round_trip_check,
+    ConstructCoverageTally, CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1ConstructCategory,
+    Gmn1Error, GmnDictionary, codebook_digest, gmn0_canonically_equal, gmn1_read, gmn1_write,
+    pack_root, per_claim_round_trip_check, resolve_current_codebook, round_trip_check,
 };
 use purrdf::slice::SliceCatalog;
 use purrdf::{RdfDataset, RdfTerm, parse_dataset};
@@ -613,7 +613,8 @@ pub fn check_gmn1_codebook_digest_on_gate(
 /// shipped pack whose declared `gmeow:gmnPackRoot` byte-equals the recomputation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gmn1PackRootReport {
-    /// The independently recomputed pack Merkle root (`pack_root(codebook_digest, dict, grammar)`).
+    /// The independently recomputed pack Merkle root (`pack_root` over the codebook digest, the
+    /// authored grammar, the sigil table, and the four materialized ecosystem-view leaves).
     pub recomputed_root: String,
     /// Whether a shipped `generated/projections/lang/gmn1/v<major>/conformance-pack.ttl` was present.
     pub pack_present: bool,
@@ -635,7 +636,9 @@ impl Gmn1PackRootReport {
 }
 
 /// The native pack-root check: recompute the conformance pack's `gmeow:gmnPackRoot` Merkle root
-/// (the codebook digest, the authored grammar bytes, and the sigil table) and, if the shipped
+/// (the codebook digest, the authored grammar bytes, the sigil table, and the four ecosystem-view
+/// leaves — gbnf / lark / token-metrics / verbalizations — read back from the materialized fanout)
+/// and, if the shipped
 /// `generated/projections/lang/gmn1/conformance-pack.ttl` exists, assert its declared root equals
 /// the recomputation. When the pack is absent (a source checkout with no generated fanout yet)
 /// the check is a NO-OP that the post-pipeline fanout activates — it never fakes a pass.
@@ -646,12 +649,32 @@ pub fn check_gmn1_pack_root(root: &Path) -> Result<Gmn1PackRootReport, gmeow_err
     let grammar_path = root.join(GMN_GRAMMAR_REL);
     let grammar_bytes = std::fs::read(&grammar_path)
         .map_err(|e| stage_err(&format!("read GMN grammar {}: {e}", grammar_path.display())))?;
-    let recomputed_root = pack_root(&digest, &dict, &grammar_bytes);
+    // GENERATED-READ-OK: recompute the four ecosystem-view Merkle leaves from the MATERIALIZED
+    // fanout (the SAME bytes the projection emitted), keyed under the graph-resolved dialect major.
+    // An absent view file folds as the stable empty leaf — so deleting a once-present view flips the
+    // leaf and reds the pack (tamper-evidence), never a silent pass. The read is a verification
+    // oracle; its result never folds into gmeow.gts.
+    let major = dict.schema_major();
+    let read_view = |rel: String| -> Result<Vec<u8>, gmeow_errors::Diag> {
+        let path = root.join(&rel);
+        if path.is_file() {
+            std::fs::read(&path).map_err(|e| stage_err(&format!("read {}: {e}", path.display())))
+        } else {
+            Ok(Vec::new())
+        }
+    };
+    let ecosystem = EcosystemLeaves::from_view_bytes(
+        &read_view(format!("generated/projections/lang/gmn1/v{major}/gbnf/gmn.gbnf"))?,
+        &read_view(format!("generated/projections/lang/gmn1/v{major}/lark/gmn.lark"))?,
+        &read_view(format!("generated/projections/lang/gmn1/v{major}/token-metrics.ttl"))?,
+        &read_view(format!("generated/projections/lang/gmn1/v{major}/verbalizations.ttl"))?,
+    );
+    let recomputed_root = pack_root(&digest, &dict, &grammar_bytes, &ecosystem);
 
     // GENERATED-READ-OK: verification oracle — recompute the pack root and compare it to the
     // committed pack's declared gmeow:gmnPackRoot; the comparison result never folds into gmeow.gts.
     // The pack path is keyed under the graph-resolved dialect major (dict.schema_major()).
-    let pack_rel = conformance_pack_rel(&dict.schema_major());
+    let pack_rel = conformance_pack_rel(&major);
     let pack_path = root.join(&pack_rel);
     if !pack_path.is_file() {
         return Ok(Gmn1PackRootReport {

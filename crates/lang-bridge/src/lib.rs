@@ -88,7 +88,8 @@ pub use gmn1_codec::{
     resolve_effective, round_trip_check,
 };
 pub use gmn1_digest::{
-    codebook_digest, content_digest, grammar_leaf, pack_root, pack_root_from_grammar_leaf,
+    EcosystemLeaves, codebook_digest, content_digest, grammar_leaf, pack_root,
+    pack_root_from_grammar_leaf, view_leaf,
 };
 pub use gmn1_witness::{
     StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,

@@ -35,7 +35,7 @@ use crate::gmn_migrate::tag_schema_version;
 use crate::gmn1_codec::{
     CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
-use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
+use crate::gmn1_digest::{EcosystemLeaves, codebook_digest, grammar_leaf, pack_root};
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, gbnf_blocking_constructs, grammar_correspondence,
     grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
@@ -557,6 +557,37 @@ fn gmn_glyph_grammar_emissions(
     }
 }
 
+/// The EMITTED artifact bytes of a GMN ecosystem grammar view (gbnf/lark), recomputed from the
+/// SAME [`gmn_glyph_grammar_emissions`] path the [`GbnfTarget`]/[`LarkTarget`] emit — so the
+/// conformance pack folds a leaf over byte-identical content. Empty when no artifact is emitted
+/// (no `gmn` grammar in the model, or a blocking-construct grammar): a stable empty leaf, never a
+/// fabricated surface. Deterministic — a pure function of `input`.
+fn grammar_view_bytes(
+    input: &LangProjectionInput,
+    formalism: Formalism,
+    target: &str,
+    ext: &str,
+    blocking_constructs: impl Fn(&Grammar) -> Vec<String>,
+) -> Result<Vec<u8>, IngestDiagnostic> {
+    let emissions =
+        gmn_glyph_grammar_emissions(input, formalism, target, ext, blocking_constructs)?;
+    Ok(emissions
+        .into_iter()
+        .flat_map(|e| e.artifacts.into_iter())
+        .map(|a| a.bytes)
+        .next()
+        .unwrap_or_default())
+}
+
+/// The first emitted artifact's bytes of an OPTIONAL bundle-level emission (token-metrics /
+/// verbalizer), or empty when the emission is absent — the content the pack folds a leaf over.
+fn emission_artifact_bytes(emission: Option<&LangEmission>) -> Vec<u8> {
+    emission
+        .and_then(|e| e.artifacts.first())
+        .map(|a| a.bytes.clone())
+        .unwrap_or_default()
+}
+
 // ── GMN-1 ────────────────────────────────────────────────────────────────────────
 
 /// The GMN-1 model-notation projection target: registers [`crate::gmn1_codec`] on the
@@ -616,46 +647,66 @@ impl LangProjectionTarget for Gmn1Target {
                 })?;
             emissions.extend(self.per_source_emissions(input, dict, major));
         }
+        // The two fallible bundle-level ecosystem products (token-metrics + verbalizer) are
+        // computed BEFORE the pack so the pack folds a content-addressed leaf over each one's
+        // EMITTED bytes (the whole-ecosystem pack root, Task 15). Both are Options: a missing
+        // corpus / operator inventory yields None (no vacuous product), which folds as an empty
+        // leaf. The token-metric gate is the flagship compression claim's teeth — a corpus where
+        // GMN's byte-fallback worst case does NOT beat Turtle's best case HARD-FAILS. A
+        // non-injective / non-round-tripping verbalization likewise HARD-FAILS.
+        let token_metrics_emission = if let (Some(dict), Some(major)) = (
+            input.gmn_dictionary.as_ref(),
+            input.gmn_dialect_major.as_deref(),
+        ) {
+            gmn1_token_metrics_emission(&input.lang_models, dict, major)?
+        } else {
+            None
+        };
+        let verbalizer_emission = if let (Some(dict), Some(major)) = (
+            input.gmn_dictionary.as_ref(),
+            input.gmn_dialect_major.as_deref(),
+        ) {
+            gmn1_verbalizer_emission(&input.gmn_operator_forms, dict, major)?
+        } else {
+            None
+        };
+
         // The bundle-level self-certifying conformance pack: the decoder identity an
         // independent implementation pins against, appended ONCE after the per-source loop
         // (so no new registered target is added and the registry-completeness gate is not
         // touched). Emitted iff the carrier supplied the codebook resolution AND the authored
-        // grammar — the projection stage sets all three pack inputs together with the
-        // dictionary, so in the real pipeline the pack is always present.
+        // grammar — the projection stage sets all pack inputs together with the dictionary, so
+        // in the real pipeline the pack is always present. Its Merkle root now folds a
+        // content-addressed leaf over EVERY ecosystem surface (the GBNF + Lark grammar
+        // artifacts, the token-metrics measurement, and the verbalizations) beside the existing
+        // codebook / grammar / sigil leaves, so the pack certifies the whole ecosystem from the
+        // bundle alone and any perturbed surface changes the root (Task 15).
         if let (Some(dict), Some(codebook), Some(grammar), Some(major)) = (
             input.gmn_dictionary.as_ref(),
             input.gmn_codebook.as_ref(),
             input.gmn_grammar_source.as_ref(),
             input.gmn_dialect_major.as_deref(),
         ) {
+            let gbnf_bytes =
+                grammar_view_bytes(input, Formalism::Gbnf, "gbnf", "gbnf", gbnf_blocking_constructs)?;
+            let lark_bytes =
+                grammar_view_bytes(input, Formalism::Lark, "lark", "lark", lark_blocking_constructs)?;
+            let ecosystem = EcosystemLeaves::from_view_bytes(
+                &gbnf_bytes,
+                &lark_bytes,
+                &emission_artifact_bytes(token_metrics_emission.as_ref()),
+                &emission_artifact_bytes(verbalizer_emission.as_ref()),
+            );
             emissions.push(gmn1_conformance_pack_emission(
-                dict, codebook, grammar, major,
+                dict, codebook, grammar, major, &ecosystem,
             ));
         }
-        // The bundle-level token-metric measurement product: the DERIVED 7-vector over the
-        // grounding corpus, gated by the SOUND compression bound. Needs the dictionary (to
-        // encode) + the version major (to key the path) + a non-empty corpus. Fallible: a
-        // corpus where GMN's byte-fallback worst case does NOT beat Turtle's best case is a
-        // HARD FAIL — the flagship compression claim can never ship false (Step 2's teeth).
-        if let (Some(dict), Some(major)) = (
-            input.gmn_dictionary.as_ref(),
-            input.gmn_dialect_major.as_deref(),
-        ) && let Some(emission) = gmn1_token_metrics_emission(&input.lang_models, dict, major)?
-        {
+        // The two ecosystem products ride into the bundle AFTER the pack (same emission order as
+        // before), now that the pack has folded their bytes.
+        if let Some(emission) = token_metrics_emission {
             emissions.push(emission);
         }
-        // The bundle-level GMN⇄controlled-NL verbalizer product: a deterministic set of
-        // bidirectional training pairs (the GMN operator surface ⇄ its controlled-NL string),
-        // one per resolved operator form. Needs the dictionary (for the version stamp), the
-        // version major (to key the path), and a non-empty resolved operator inventory.
-        // Fallible: a non-injective or non-round-tripping verbalization is a HARD FAIL — a
-        // bidirectional training corpus that is not a bijection must never ship.
-        if let (Some(dict), Some(major)) = (
-            input.gmn_dictionary.as_ref(),
-            input.gmn_dialect_major.as_deref(),
-        ) && let Some(emission) =
-            gmn1_verbalizer_emission(&input.gmn_operator_forms, dict, major)?
-        {
+        if let Some(emission) = verbalizer_emission {
             emissions.push(emission);
         }
         Ok(emissions)
@@ -771,11 +822,12 @@ fn gmn1_conformance_pack_emission(
     codebook: &CurrentCodebook,
     grammar_bytes: &[u8],
     major: &str,
+    ecosystem: &EcosystemLeaves,
 ) -> LangEmission {
     let digest = codebook_digest(codebook, dict);
-    let root = pack_root(&digest, dict, grammar_bytes);
+    let root = pack_root(&digest, dict, grammar_bytes, ecosystem);
     let grammar_digest = grammar_leaf(grammar_bytes);
-    let nt = ntriples_sorted(pack_triples(&digest, &root, &grammar_digest));
+    let nt = ntriples_sorted(pack_triples(&digest, &root, &grammar_digest, ecosystem));
 
     let mut loss = LossLedger::new();
     LangEmission {
@@ -807,11 +859,18 @@ fn gmn1_conformance_pack_emission(
 }
 
 /// The conformance-pack N-Triples: the codebook self-digest on `gmnCodebookCurrent`, the grammar
-/// Merkle leaf on `gmnGrammar`, the typed pack individual, its Merkle root, and its three part
-/// references. All digest literals are lowercase-hex (grammar leaf) or algorithm-tagged
-/// (`blake3:<hex>`) ASCII and need no escaping. The grammar leaf enters the bundle so the shipped
-/// `gmeow gmn verify` recomputes `gmnPackRoot` from the bundle alone, with no source checkout.
-fn pack_triples(codebook_digest: &str, pack_root: &str, grammar_digest: &str) -> Vec<String> {
+/// Merkle leaf on `gmnGrammar`, the FOUR ecosystem-view Merkle leaves (gbnf / lark / token-metrics /
+/// verbalizations, each on its own subject), the typed pack individual, its Merkle root, and its
+/// seven part references. All digest literals are lowercase-hex (the view leaves) or algorithm-tagged
+/// (`blake3:<hex>`) ASCII and need no escaping. Every leaf enters the bundle so the shipped
+/// `gmeow gmn verify` recomputes `gmnPackRoot` from the bundle alone, with no source checkout —
+/// certifying the WHOLE GMN ecosystem, tamper-evident (Task 15).
+fn pack_triples(
+    codebook_digest: &str,
+    pack_root: &str,
+    grammar_digest: &str,
+    ecosystem: &EcosystemLeaves,
+) -> Vec<String> {
     let g = |local: &str| format!("{GMEOW_NS}{local}");
     let triple = |s: &str, p: &str, o: &str| format!("<{s}> <{p}> <{o}> .");
     let lit = |s: &str, p: &str, l: &str| format!("<{s}> <{p}> \"{l}\" .");
@@ -824,11 +883,30 @@ fn pack_triples(codebook_digest: &str, pack_root: &str, grammar_digest: &str) ->
         ),
         // The DERIVED grammar Merkle leaf (pack-root part 2) enters the bundle here.
         lit(&g("gmnGrammar"), &g("gmnGrammarDigest"), grammar_digest),
+        // The DERIVED ecosystem-view Merkle leaves (pack-root parts 4–7) enter the bundle here,
+        // each on the subject that names its surface, so `gmeow gmn verify` reads each pinned leaf
+        // by `<subject> <predicate>` (never a predicate-only scan that other envelopes could shadow).
+        lit(&g("gmnGbnf"), &g("gmnGbnfDigest"), &ecosystem.gbnf),
+        lit(&g("gmnLark"), &g("gmnLarkDigest"), &ecosystem.lark),
+        lit(
+            &g("gmnTokenMetricsCurrent"),
+            &g("gmnTokenMetricsDigest"),
+            &ecosystem.token_metrics,
+        ),
+        lit(
+            &g("gmnVerbalizationsCurrent"),
+            &g("gmnVerbalizationsDigest"),
+            &ecosystem.verbalizations,
+        ),
         triple(GMN_PACK_IRI, RDF_TYPE, &g("GmnConformancePack")),
         lit(GMN_PACK_IRI, &g("gmnPackRoot"), pack_root),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnCodebookCurrent")),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnDictV3")),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnGrammar")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnGbnf")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnLark")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnTokenMetricsCurrent")),
+        triple(GMN_PACK_IRI, &g("references"), &g("gmnVerbalizationsCurrent")),
     ]
 }
 
@@ -2040,6 +2118,31 @@ mod pack_tests {
             ),
             "pack artifact carries the codebook digest on gmnCodebookCurrent:\n{ttl}"
         );
+        // Every ecosystem-view Merkle leaf is pinned into the bundle on its own subject, so
+        // `gmeow gmn verify` recomputes the whole-ecosystem pack root from the bundle alone.
+        for (subject, predicate) in [
+            ("gmnGbnf", "gmnGbnfDigest"),
+            ("gmnLark", "gmnLarkDigest"),
+            ("gmnTokenMetricsCurrent", "gmnTokenMetricsDigest"),
+            ("gmnVerbalizationsCurrent", "gmnVerbalizationsDigest"),
+        ] {
+            assert!(
+                ttl.contains(&format!(
+                    "<https://blackcatinformatics.ca/gmeow/{subject}> \
+                     <https://blackcatinformatics.ca/gmeow/{predicate}> \""
+                )),
+                "pack artifact pins the {predicate} ecosystem-view Merkle leaf:\n{ttl}"
+            );
+            assert!(
+                ttl.contains(&format!(
+                    "<https://blackcatinformatics.ca/gmeow/gmnPackCurrent> \
+                     <https://blackcatinformatics.ca/gmeow/references> \
+                     <https://blackcatinformatics.ca/gmeow/{subject}> ."
+                )),
+                "pack references its {subject} ecosystem view:\n{ttl}"
+            );
+        }
+
         // The same triples ride into the reasoned corpus graph via source_rdf.
         assert_eq!(
             pack.source_rdf, artifact.bytes,
@@ -2057,9 +2160,12 @@ mod pack_tests {
             "the conformance pack is byte-deterministic"
         );
 
-        // Independent recomputation of the Merkle construction matches the emitted root.
+        // Independent recomputation of the Merkle construction matches the emitted root. This
+        // input carries no `gmn` grammar / corpus / operator inventory, so every ecosystem view
+        // is absent and folds as the stable empty leaf — the SAME leaves the emission computed.
         let expected_digest = codebook_digest(&codebook, &dict);
-        let expected_root = pack_root(&expected_digest, &dict, &grammar);
+        let expected_ecosystem = EcosystemLeaves::from_view_bytes(&[], &[], &[], &[]);
+        let expected_root = pack_root(&expected_digest, &dict, &grammar, &expected_ecosystem);
         let expected_root_triple = format!(
             "<{GMN_PACK_IRI}> <https://blackcatinformatics.ca/gmeow/gmnPackRoot> \
              \"{expected_root}\" ."

@@ -30,10 +30,10 @@ use std::sync::Arc;
 
 use gmeow_cli_core::Reporter;
 use gmeow_lang_bridge::{
-    CurrentCodebook, Gmn0Model, Gmn1Document, GmnDictionary, RingLattice, codebook_digest,
-    consume_project, content_digest, gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf,
-    idempotence_check, pack_root_from_grammar_leaf, per_claim_round_trip_check,
-    resolve_current_codebook,
+    CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, RingLattice,
+    codebook_digest, consume_project, content_digest, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, grammar_leaf, idempotence_check, pack_root_from_grammar_leaf,
+    per_claim_round_trip_check, resolve_current_codebook,
 };
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -53,6 +53,17 @@ const GMN_CODEBOOK_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnCodeb
 const GMN_GRAMMAR: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammar";
 const GMN_GRAMMAR_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammarDigest";
 const ENFORCES_FAILURE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+// The four ecosystem-view Merkle-leaf `<subject, predicate>` pairs the pack pins into the bundle,
+// so `gmn verify` recomputes the whole-ecosystem pack root from the bundle alone (Task 15).
+const GMN_GBNF: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnf";
+const GMN_GBNF_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnfDigest";
+const GMN_LARK: &str = "https://blackcatinformatics.ca/gmeow/gmnLark";
+const GMN_LARK_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnLarkDigest";
+const GMN_TOKEN_METRICS: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsCurrent";
+const GMN_TOKEN_METRICS_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsDigest";
+const GMN_VERBALIZATIONS: &str = "https://blackcatinformatics.ca/gmeow/gmnVerbalizationsCurrent";
+const GMN_VERBALIZATIONS_DIGEST: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnVerbalizationsDigest";
 
 /// The `gmn digest` output serialization.
 #[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
@@ -413,9 +424,10 @@ pub fn project(
 /// reproduces the frozen `.gmn` byte-for-byte and that the reconstructed document reads back
 /// canonically equal AND passes the per-claim inversion + idempotence witnesses; for every
 /// CODEC-tier negative, that the recorded `lang:` failure class is raised; and that the recomputed
-/// codebook digest + `pack_root` (from the embedded bundle's codebook, dictionary, and grammar
-/// leaf) equal what the corpus manifest and the shipped bundle declare. Any failure prints a
-/// diagnostic and EXITS NON-ZERO.
+/// codebook digest + whole-ecosystem `pack_root` (from the embedded bundle's codebook, dictionary,
+/// grammar leaf, AND the four pinned ecosystem-view leaves — gbnf / lark / token-metrics /
+/// verbalizations) equal what the corpus manifest and the shipped bundle declare — so a perturbation
+/// of ANY ecosystem surface reds verify. Any failure prints a diagnostic and EXITS NON-ZERO.
 ///
 /// The codebook / dictionary / grammar leaf / pack root come from the EMBEDDED bundle (checkout-free),
 /// overridable by `--lang-module` / `--grammar` / `--pack`. The corpus is a test artifact (never in
@@ -621,7 +633,43 @@ pub fn verify(
         )),
         Err(code) => return code,
     }
-    let recomputed_root = pack_root_from_grammar_leaf(&recomputed_digest, &dict, &grammar_leaf_hex);
+    // The four ecosystem-view Merkle leaves come from the bundle's pinned digests (gbnf / lark /
+    // token-metrics / verbalizations), exactly as the grammar leaf does — so the recomputed pack
+    // root certifies the WHOLE GMN ecosystem from the bundle alone. A missing pinned leaf is a
+    // CONFORMANCE failure (accumulated, non-zero exit — never a silent pass), and a perturbed leaf
+    // makes the recomputed root disagree with the pinned root, reding verify (Task 15).
+    let ecosystem = EcosystemLeaves {
+        gbnf: match bundle_view_leaf(reporter, &bundle, GMN_GBNF, GMN_GBNF_DIGEST, &mut failures) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        lark: match bundle_view_leaf(reporter, &bundle, GMN_LARK, GMN_LARK_DIGEST, &mut failures) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        token_metrics: match bundle_view_leaf(
+            reporter,
+            &bundle,
+            GMN_TOKEN_METRICS,
+            GMN_TOKEN_METRICS_DIGEST,
+            &mut failures,
+        ) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        verbalizations: match bundle_view_leaf(
+            reporter,
+            &bundle,
+            GMN_VERBALIZATIONS,
+            GMN_VERBALIZATIONS_DIGEST,
+            &mut failures,
+        ) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+    };
+    let recomputed_root =
+        pack_root_from_grammar_leaf(&recomputed_digest, &dict, &grammar_leaf_hex, &ecosystem);
     let declared_root = match pack {
         Some(path) => pinned_literal(reporter, path, GMN_PACK_ROOT),
         None => pinned_literal_of(reporter, &bundle, GMN_PACK_CURRENT, GMN_PACK_ROOT).map(Some),
@@ -856,16 +904,17 @@ fn pinned_literal(
     Ok(found.into_iter().next())
 }
 
-/// The single literal value declared on `<subject> <predicate>` in a dataset — the checkout-free
-/// bundle read. Filters by BOTH subject and predicate (a digest predicate like
+/// The single literal value declared on `<subject> <predicate>` in a dataset, if present — the
+/// checkout-free bundle read. Filters by BOTH subject and predicate (a digest predicate like
 /// `gmeow:gmnCodebookDigest` also appears on example envelopes, so a predicate-only scan would be
-/// ambiguous). HARD-FAILS when the count is not exactly one.
-fn pinned_literal_of(
+/// ambiguous). `Ok(None)` when the pair is absent; HARD-FAILS (exit 1) only when AMBIGUOUS (more
+/// than one distinct literal).
+fn pinned_literal_of_opt(
     reporter: &dyn Reporter,
     ds: &RdfDataset,
     subject: &str,
     predicate: &str,
-) -> Result<String, i32> {
+) -> Result<Option<String>, i32> {
     let mut found: Vec<String> = ds
         .owned_quads()
         .filter(|q| q.predicate == predicate)
@@ -878,7 +927,8 @@ fn pinned_literal_of(
     found.sort();
     found.dedup();
     match found.len() {
-        1 => Ok(found.into_iter().next().expect("len==1")),
+        0 => Ok(None),
+        1 => Ok(Some(found.into_iter().next().expect("len==1"))),
         n => Err(fail(
             reporter,
             "gmeow-cli.gmn.verify.pinned",
@@ -886,5 +936,49 @@ fn pinned_literal_of(
                 "bundle declares {n} distinct <{subject}> <{predicate}> literals; exactly one is required"
             ),
         )),
+    }
+}
+
+/// The single literal value declared on `<subject> <predicate>` — [`pinned_literal_of_opt`] with
+/// an ABSENT pair promoted to a HARD fail (the codebook / grammar leaf are mandatory bundle pins).
+fn pinned_literal_of(
+    reporter: &dyn Reporter,
+    ds: &RdfDataset,
+    subject: &str,
+    predicate: &str,
+) -> Result<String, i32> {
+    match pinned_literal_of_opt(reporter, ds, subject, predicate)? {
+        Some(value) => Ok(value),
+        None => Err(fail(
+            reporter,
+            "gmeow-cli.gmn.verify.pinned",
+            format!(
+                "bundle declares 0 distinct <{subject}> <{predicate}> literals; exactly one is required"
+            ),
+        )),
+    }
+}
+
+/// Read ONE pinned ecosystem-view Merkle leaf (`<subject> <predicate>`) off the bundle for the
+/// whole-ecosystem pack-root recomputation. A MISSING declaration is a conformance failure —
+/// accumulated into `failures` (non-zero exit at the end, never a silent pass) — and returns an
+/// empty leaf so the recomputed root still forms and DISAGREES with the pinned root, reding verify.
+/// An AMBIGUOUS declaration hard-fails (exit 1). This mirrors the grammar-leaf bundle read.
+fn bundle_view_leaf(
+    reporter: &dyn Reporter,
+    ds: &RdfDataset,
+    subject: &str,
+    predicate: &str,
+    failures: &mut Vec<String>,
+) -> Result<String, i32> {
+    match pinned_literal_of_opt(reporter, ds, subject, predicate)? {
+        Some(leaf) => Ok(leaf),
+        None => {
+            failures.push(format!(
+                "bundle declares no <{subject}> <{predicate}> ecosystem-view Merkle leaf; the pack \
+                 root cannot certify that surface from the bundle alone"
+            ));
+            Ok(String::new())
+        }
     }
 }
