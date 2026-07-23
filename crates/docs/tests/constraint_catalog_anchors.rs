@@ -183,9 +183,7 @@ fn advice_section_on_the_real_page_is_non_vacuous() {
         "the real page is missing gmeow:Entity's verbatim adviceAvoidWhen prose:\n{html}"
     );
     assert!(
-        html.contains(
-            "Use as the universal occurrent whenever something HAPPENS"
-        ),
+        html.contains("Use as the universal occurrent whenever something HAPPENS"),
         "the real page is missing gmeow:Event's verbatim adviceUseWhen prose:\n{html}"
     );
     assert!(

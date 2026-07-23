@@ -9061,7 +9061,7 @@ mod tests {
                 .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
             "no permission-leg prose may leak into how_to_use: {entity}"
         );
-        // G4: the tripped node is visible on the MCP surface, not just the RDF claim wing —
+        // The tripped node is visible on the MCP surface, not just the RDF claim wing —
         // `subject` resolves to the focus IRI the finding's location carries.
         assert_eq!(
             entity["subject"].as_str(),
@@ -12064,7 +12064,7 @@ mod tests {
     /// DELIBERATELY not an `owl:AllDisjointClasses` set, so the ONE bad-example
     /// verify query that could independently catch a disjoint-axis violation
     /// (`class-in-two-disjoint-axes.rq`, which matches only `owl:AllDisjointClasses`
-    /// membership) does NOT fire: `report.ok()` is true. Before the G4 fix,
+    /// membership) does NOT fire: `report.ok()` is true. Earlier,
     /// `coherent` was read straight from `report.ok()`, so this exact fixture would
     /// render the self-contradictory `coherent:true` alongside
     /// `class_local_name:"Refused"`. The fix routes `coherent` through the SAME

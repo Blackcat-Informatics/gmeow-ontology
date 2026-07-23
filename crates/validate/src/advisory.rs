@@ -1096,12 +1096,9 @@ mod tests {
         assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
         // The focus node is ALSO location-bearing (not just the RDF subject_iri wing), so
         // the projected Diag carries a `logical` location every surface (CLI/SARIF/JSON/MCP)
-        // resolves the tripped node from — the G4 fix.
+        // resolves the tripped node from.
         assert_eq!(
-            advisory
-                .locations
-                .iter()
-                .find_map(|l| l.logical.as_deref()),
+            advisory.locations.iter().find_map(|l| l.logical.as_deref()),
             Some("https://data/thing"),
             "advisory must attach a Location whose logical is the focus node: {:?}",
             advisory.locations
