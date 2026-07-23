@@ -401,13 +401,15 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				exit 1; \
 			fi; \
 		done; \
-		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm build for wasm32 =="; \
+		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree =="; \
+		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree (incl. the GMN-1 codec path) =="; \
 		: "rayon is intentionally NOT forbidden — it cross-compiles to wasm32 and degrades to sequential when threads are unavailable (wasm-safe data-parallelism, not a reasoner/native-only crate); purrdf's RDF/SHACL core uses it and the wasm build links cleanly"; \
+		: "gmeow-logic is the native DL reasoning runtime — it must NEVER reach the GMN-1 (or Tier-1) wasm validator; tiktoken-rs is the native-only glyph-cost BPE vocabulary that gmn_validate does not use. Both are forbidden here so a future leak into the GMN path (e.g. an un-gated gmn_symbology import) hard-fails."; \
 		for vpkg in gmeow-validate gmeow-validate-wasm; do \
-			for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring; do \
+			for forbidden in gmeow-logic oxigraph oxrocksdb tokio pyo3 ureq duckdb ring tiktoken-rs; do \
 				if $(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 					echo "FAIL: $$vpkg leaked $$forbidden into its wasm dependency tree:"; \
 					$(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \

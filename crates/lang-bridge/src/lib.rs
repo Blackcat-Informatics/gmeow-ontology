@@ -36,6 +36,11 @@ pub mod gmn_consume;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
 pub mod gmn_verbalize;
+// The glyph-cost analytics module depends on `tiktoken-rs` (a ~1.7 MB embedded BPE
+// vocabulary), which is excluded from the wasm32 target — it feeds cost analytics, never
+// the wasm-clean GMN-1 validator path (`gmn1_read`). Gated in lockstep with its sole
+// dependency so the wasm build links without the vocabulary.
+#[cfg(not(target_arch = "wasm32"))]
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -69,6 +74,7 @@ pub use gmn_migrate::{
     GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,
     OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
 };
+#[cfg(not(target_arch = "wasm32"))]
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn_verbalize::{
     GmnOperatorForm, VerbalizeError, VerbalizedPair, build_verbalization_pairs, parse_nl,

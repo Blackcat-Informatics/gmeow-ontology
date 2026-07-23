@@ -25,7 +25,30 @@ path = "src/lib.rs"
 # native reasoner, rayon, ureq, and gmeow-slice (all `cfg(not(wasm32))`), so it
 # cross-compiles to wasm32; this crate calls only `data_validate::validate_json`.
 gmeow-validate = { path = "../validate" }
+# The GMN-1 codec + graph-derived dictionary/glyph registry + the typed
+# `lang:LangConformanceFailure` classifier (`Gmn1Error::failure_class`). The
+# `gmn_validate` entrypoint reads a GMN-1 document via `gmn1_read` against the EMBEDDED
+# codebook. This path is reasoner-free (`cargo tree` proves no gmeow-logic/oxigraph/…),
+# and the crate's tiktoken-rs glyph-cost analytics are `cfg(not(wasm32))`-gated off, so
+# only the codec + dictionary + purrdf RDF core (rayon allowed) reach the wasm image.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The ONE canonical RDF parser: the embedded codebook `module.ttl` is parsed via
+# `purrdf::parse_dataset` (Turtle) to build the `GmnDictionary` — never a second parser.
+purrdf.workspace = true
+# Content-addresses the embedded codebook carrier: `gmn_codebook_digest()` folds the
+# frozen `module.ttl` bytes to the SAME blake3 digest the codec's codebook-digest layer
+# and the CLI report over, so a JS caller can pin the exact codebook it validated against.
+blake3 = "1"
+# The `gmn_validate` verdict is marshalled as a canonical JSON object
+# (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
+# the Tier-1 `validate` Report crosses on. wasm-pure.
+serde_json = "1"
 # EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
 # library version byte-for-byte or it refuses to run. `make wasm-pkg` and the CI Node
 # lane install the matching `wasm-bindgen-cli` version.
 wasm-bindgen = "=0.2.125"
+
+[dev-dependencies]
+# Host-target unit tests parse the `gmn_validate` JSON verdict back to assert the exact
+# `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection).
+serde_json = "1"

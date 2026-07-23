@@ -1794,7 +1794,11 @@ dependencies = [
 name = "gmeow-validate-wasm"
 version = "0.2.0"
 dependencies = [
+ "blake3",
+ "gmeow-lang-bridge",
  "gmeow-validate",
+ "purrdf",
+ "serde_json",
  "wasm-bindgen",
 ]
 
