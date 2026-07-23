@@ -20,7 +20,7 @@
 
 # Music notation projection layer and maximal alignment.
 # Compiled by `gmeow-dev sync --mode update --outputs generated` (mappings) to:
-#   - mappings/gmeow-music.sssom.tsv (TermEquivalence rows)
+#   - mappings/gmeow-music.sssom.tsv (alignment cells)
 #   - projections/functions.fno.ttl (ProjectionFunction declarations)
 #   - projections/music-*.edoal.ttl (ProjectionMapping cells)
 #   - queries/projections/music-*.rq (executable CONSTRUCT)

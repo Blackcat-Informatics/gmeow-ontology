@@ -1056,7 +1056,7 @@ gmeow:celestialObjectTypePlanet skos:closeMatch <http://www.ivoa.net/rdf/uat#pla
 # SWEET and SLSO: no stable published RDF IRIs found at the time of authoring.
 # Alignments are documented as comment-only placeholders following the
 # sensory-environment.ttl precedent for sources without resolvable term IRIs.
-# If SWEET or SLSO publish stable IRIs in future, add TermEquivalence rows here.
+# If SWEET or SLSO publish stable IRIs in future, add alignment cells here.
 
 # Mathematical / n-D reference frames (mathematical-frame design)
 gmeow:frameRealmMathematical skos:closeMatch wd:Q395 {|
@@ -1833,7 +1833,7 @@ gmeow:Place skos:exactMatch wd:Q2221906 {|
 # Colourspace alignment refusal (Principle 5) — this slice owns the colourspace
 # reference-frame realm (gmeow:frameRealmColourspace) and its seed frames.
 #
-# No gmeow:TermEquivalence is declared for the colourspace realm: no mature,
+# No alignment cell is declared for the colourspace realm: no mature,
 # widely-adopted RDF/OWL colourspace ontology exists to align to. ICC profiles
 # are binary file formats; the CSS Color Module is a rendering spec; ONVIF
 # provides only XML namespace strings. GMEOW mints its own ReferenceFrame

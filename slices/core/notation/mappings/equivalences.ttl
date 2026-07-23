@@ -88,7 +88,7 @@ gmeow:symbolicKindCryptographic skos:closeMatch wd:Q8789 {|
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #
 # imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
 # (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
-# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
-# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# assert_gates in the logic-compile stage. The prose-rung alignment cell graft   #
+# rows are removed: the rung is a gate-enforced correspondence law, not a        #
 # comment (Principle 17 — SSSOM is its lossy projection).                        #
 # --------------------------------------------------------------------------- #

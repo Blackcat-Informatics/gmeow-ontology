@@ -19,7 +19,7 @@
 # alignments are BY REFERENCE (Principle 5); GMEOW
 # never imports an external axiom. Executable one-to-one projection bindings now
 # emit their own SSSOM rows through gmeow:emitSssom; the remaining
-# TermEquivalence rows are non-executable linkage records or deliberately weaker
+# alignment cells are non-executable linkage records or deliberately weaker
 # by-reference relationships outside those projection cells.
 # See the rights slice documentation.
 

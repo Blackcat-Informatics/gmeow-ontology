@@ -12,7 +12,7 @@
 # Compiled to mappings/gmeow-sensory-environment.sssom.tsv by `gmeow compile-mappings`.
 #
 # SOSA/SSN (W3C/OGC) provides the strongest structural match and is aligned via
-# TermEquivalence / SSSOM rows below.
+# alignment cells / SSSOM rows below.
 #
 # SWEET (NASA ESIP), ISO 12913 (soundscape), CIE (colourspaces), OpenAQ
 # (air-quality measurements), and ASHRAE Standard 55 (thermal comfort) do not
@@ -60,10 +60,10 @@
 #                gmeow:referenceFrameAffectiveCircumplex directly models the
 #                Russell 1980 valence×arousal 2D space.
 #                https://psycnet.apa.org/record/1980-26599-001
-#   MFOEM      — Emotion Ontology (OBO Foundry). Aligned via TermEquivalence
-#                below; term IDs are stable OBO PURLs.
-#   MF         — Mental Functioning Ontology (OBO Foundry). Aligned via
-#                TermEquivalence below; term IDs are stable OBO PURLs.
+#   MFOEM      — Emotion Ontology (OBO Foundry). Aligned via an alignment
+#                cell below; term IDs are stable OBO PURLs.
+#   MF         — Mental Functioning Ontology (OBO Foundry). Aligned via an
+#                alignment cell below; term IDs are stable OBO PURLs.
 
 gmeow:mapsetSensoryEnvironment a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;

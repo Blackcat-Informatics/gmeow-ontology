@@ -25,7 +25,7 @@ gmeow:mapsetImagination a gmeow:MappingSet ;
           attributes the SOURCE of a memory or thought — perceived vs imagined vs told — is the direct
           basis of the gmeow:ContentOrigin value vocabulary (gmeow:originPerceived / originRemembered /
           originImagined / …). It is published as psychology literature, not as an OWL-resolvable
-          ontology, so no TermEquivalence row can be written; the conceptual debt is recorded here.
+          ontology, so no alignment cell can be written; the conceptual debt is recorded here.
         * Mimesis as make-believe (Kendall Walton): the philosophy-of-fiction account of imagining
           as a prop-governed game of make-believe underpins gmeow:imagines and the fiction =
           licensed-imagining bridge to gmeow:veridicalityLicensedFalsehood (deception slice). No stable

@@ -20,8 +20,8 @@ gmeow:languageCode skos:relatedMatch wd:P424 {|
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #
 # imports/supersession-correspondences.ttl as logic:Correspondence nodes       #
 # (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through        #
-# assert_gates in the logic-compile stage. The old prose-rung gmeow:            #
-# TermEquivalence rows are removed: the rung is no longer a comment, it is a    #
-# gate-enforced correspondence law (Principle 17 — SSSOM is its lossy           #
-# projection, not a competing authored form).                                   #
+# assert_gates in the logic-compile stage. The old prose-rung alignment cell    #
+# rows are removed: the rung is no longer a comment, it is a gate-enforced      #
+# correspondence law (Principle 17 — SSSOM is its lossy projection, not a       #
+# competing authored form).                                                     #
 # --------------------------------------------------------------------------- #

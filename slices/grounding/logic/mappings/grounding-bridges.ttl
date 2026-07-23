@@ -15,9 +15,9 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
-# Co-foundational bridge catalogs. Each cell is BOTH the ergonomic mapping frontend
-# (`gmeow:TermEquivalence`) and an explicit grounding commitment
-# (`logic:GroundingCorrespondence`). The compiler materializes a content-addressed
+# Co-foundational bridge catalogs. Each cell is a native RDF-1.2 alignment cell that
+# is an explicit grounding commitment (`logic:GroundingCorrespondence`). The compiler
+# materializes a content-addressed
 # logic:Correspondence with source/target endpoints in the shipped
 # graph/correspondence-laws carrier; the SSSOM files below are generated views.
 # External targets never become canonical grounding sources. BFO/OBO/SUMO TBoxes
