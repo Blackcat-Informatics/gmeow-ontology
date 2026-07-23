@@ -538,7 +538,7 @@ gmeow:ObservationalActivity skos:relatedMatch iptc:NewsMessage {|
 gmeow:StandpointClaim skos:relatedMatch oa:Annotation {|
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
+    gmeow:confidence 0.55 ;
     gmeow:comment "Open Annotation Annotation is the closest W3C construct for a standpoint-indexed claim with body (the claim) and target (the observed feature). The projection layer provides the directional mapping to oa:hasBody / oa:hasTarget."
 |} .
 

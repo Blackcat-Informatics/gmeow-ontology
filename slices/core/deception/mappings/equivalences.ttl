@@ -24,7 +24,7 @@ gmeow:mapsetDeception a gmeow:MappingSet ;
         CRMinf: I6_Belief_Value aligns to gmeow:StandpointModality (including the bullshit modality); I1_Argumentation is referenced for the solver-layer argument-acceptability function.
         PROV-O: deception events are prov:Activity; standpoint claims are prov:Entity.
         Wikidata: wd:Q170028 (deception) aligns to gmeow:eventTypeDeception.
-        AIF (Argument Interchange Format) is referenced in the solver layer (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF lacks a stable, resolvable RDF namespace suitable for SSSOM rows.""" .
+        AIF (Argument Interchange Format) is referenced in the solver layer (fnArgumentAcceptability) but not aligned via an alignment cell because AIF lacks a stable, resolvable RDF namespace suitable for SSSOM rows.""" .
 
 # schema.org — ClaimReview as attestation act (lossy projection).
 schema:ClaimReview skos:relatedMatch gmeow:Attestation {|
@@ -45,7 +45,7 @@ schema:Rating skos:closeMatch gmeow:VerificationResult {|
 gmeow:Event skos:relatedMatch prov:Activity {|
     gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ;
+    gmeow:confidence 0.5 ;
     gmeow:comment "a deception event is a provenance activity; the specific deception semantics are GMEOW-specific and not entailed by PROV-O"
 |} .
 
@@ -92,13 +92,13 @@ gmeow:eventTypeLie skos:closeMatch wd:Q4925193 {|
 
 # eventTypePaltering: no direct Wikidata item found (searched 2026-06-09).
 # The concept was introduced in Rogers et al., JPSP 112(3), 2017, but no
-# Wikidata entity currently represents it. No TermEquivalence row is asserted
+# Wikidata entity currently represents it. No alignment cell is asserted
 # until a suitable item is identified.
 
 # eventTypeOmission: no direct Wikidata item found (searched 2026-06-09).
 # It is a form of deception by suppressing truth rather than asserting falsehood.
 # Conceptually skos:broader wd:Q4925193 (lie) but the relationship is weak;
-# no TermEquivalence row is asserted until a suitable item is identified.
+# no alignment cell is asserted until a suitable item is identified.
 
 gmeow:eventTypeDistortion skos:closeMatch wd:Q12776523 {|
     gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
@@ -207,5 +207,5 @@ gmeow:eventTypeDisinformation skos:relatedMatch wd:Q28549308 {|
 |} .
 
 # AIF (Argument Interchange Format) is referenced in the solver layer
-# (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF
+# (fnArgumentAcceptability) but not aligned via an alignment cell because AIF
 # lacks a stable, resolvable RDF namespace suitable for SSSOM rows.

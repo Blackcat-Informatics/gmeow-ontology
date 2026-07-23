@@ -178,24 +178,6 @@ gmeow:Repository skos:closeMatch swh:Origin {|
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:SoftwareProject skos:closeMatch doap:Project {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7
-|} .
-
-schema:SoftwareSourceCode skos:closeMatch gmeow:SoftwareProduct {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8
-|} .
-
-schema:SoftwareApplication skos:closeMatch gmeow:SoftwareProduct {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7
-|} .
-
 doap:GitRepository rdfs:subClassOf gmeow:Repository {|
     gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
