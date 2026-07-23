@@ -124,6 +124,14 @@ pub fn render_skos_surface_from_axioms(
     for (subject, axioms) in &by_subject {
         let subject_term = RdfTerm::iri((*subject).to_owned());
         for axiom in axioms {
+            // The six `ANNOTATION_LIFT_PREDS` are all literal-range predicates, so every
+            // `NodeKind::Annotation` axiom must carry a literal object. Assert it rather than
+            // silently rendering a future non-literal annotation as a language-tagged literal.
+            debug_assert!(
+                axiom.obj_is_literal,
+                "NodeKind::Annotation axiom on {subject} ({}) must be literal-valued",
+                axiom.predicate
+            );
             builder.push_owned_quad(&RdfQuad::new(
                 subject_term.clone(),
                 axiom.predicate.clone(),
