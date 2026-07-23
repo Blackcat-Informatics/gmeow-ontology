@@ -34,6 +34,7 @@ pub mod gmn1_digest;
 pub mod gmn1_witness;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
+pub mod gmn_verbalize;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -64,6 +65,10 @@ pub use gmn_migrate::{
     OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
 };
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
+pub use gmn_verbalize::{
+    GmnOperatorForm, VerbalizeError, VerbalizedPair, build_verbalization_pairs, parse_nl,
+    resolve_operator_forms, round_trip_holds as verbalizer_round_trip_holds,
+};
 pub use gmn1_codec::{
     ConstructCoverageTally, CoverageReport, CurrentCodebook, DialectAcceptance, Gmn0Model,
     Gmn1ConstructCategory, Gmn1Document, Gmn1Error, Gmn1RepairError, GmnDictionary,

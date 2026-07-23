@@ -100,6 +100,13 @@ pub struct LangProjectionInput {
     /// a lineage major bump regenerates the whole versioned subtree atomically. `None` ⇒ no
     /// GMN emission (mirrors [`gmn_dictionary`](Self::gmn_dictionary)).
     pub gmn_dialect_major: Option<String>,
+    /// The resolved verbalizable GMN operator forms — each executable operator glyph joined
+    /// to its `(fixity, arity)` signature and its denotation target's `rdfs:label` (the
+    /// controlled-NL nucleus). Resolved by the pipeline (`collect_input`) from the carrier
+    /// glyph registry plus the cross-slice label index, so the bundle-level verbalizer
+    /// emission consumes a graph-resolved inventory rather than re-deriving it. Empty ⇒ no
+    /// verbalizer emission (mirrors an empty corpus for the pack/metrics products).
+    pub gmn_operator_forms: Vec<crate::gmn_verbalize::GmnOperatorForm>,
 }
 
 /// One generated external artifact an emission produces, keyed by the path suffix under
@@ -635,6 +642,20 @@ impl LangProjectionTarget for Gmn1Target {
         {
             emissions.push(emission);
         }
+        // The bundle-level GMN⇄controlled-NL verbalizer product: a deterministic set of
+        // bidirectional training pairs (the GMN operator surface ⇄ its controlled-NL string),
+        // one per resolved operator form. Needs the dictionary (for the version stamp), the
+        // version major (to key the path), and a non-empty resolved operator inventory.
+        // Fallible: a non-injective or non-round-tripping verbalization is a HARD FAIL — a
+        // bidirectional training corpus that is not a bijection must never ship.
+        if let (Some(dict), Some(major)) = (
+            input.gmn_dictionary.as_ref(),
+            input.gmn_dialect_major.as_deref(),
+        ) && let Some(emission) =
+            gmn1_verbalizer_emission(&input.gmn_operator_forms, dict, major)?
+        {
+            emissions.push(emission);
+        }
         Ok(emissions)
     }
 }
@@ -1075,6 +1096,274 @@ fn gmn1_metrics_leg_pair() -> (LegPath, LegPath) {
     (get, put)
 }
 
+// ── GMN-1 verbalizer (bundle-level GMN⇄controlled-NL training pairs) ─────────────────
+
+use crate::gmn_verbalize::{VerbalizedPair, build_verbalization_pairs, round_trip_holds};
+
+const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+/// The verbalizer product subject: the current shipped GMN-1 verbalization corpus, mirroring
+/// how `gmnCodebookCurrent` / `gmnPackCurrent` name the current codebook / pack.
+const GMN_VERBALIZER_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnVerbalizationsCurrent";
+/// The verbalizer projection get-leg step (distinct from the codec, pack, and metrics legs).
+const GMN1_VERBALIZER_GET_LEG: &str =
+    "https://blackcatinformatics.ca/lang/gmn1VerbalizeProjectStep";
+
+/// The bundle-level GMN⇄controlled-NL verbalizer emission: ONE RDF artifact
+/// (`gmn1/v<major>/verbalizations.ttl`, `is_rdf: true`) carrying every resolved operator
+/// form's bidirectional training pair as a `lang:TranslationUnit` — the GMN operator surface
+/// (`lang:translationSource`) crossing to its controlled-NL string (`lang:translationTarget`)
+/// through a single `lang:translationCorrespondence` whose carried `logic:Correspondence`
+/// records the MEASURED preservation. A neutral `gmeow:InformationObject` corpus subject
+/// `gmeow:references` the units and carries the `tag_schema_version` provenance stamp. The
+/// same triples ride into the reasoned `graph/lang-projection-corpus` via `source_rdf`, so a
+/// consumer resolves the pairs by query, not only by reading the file.
+///
+/// Fallible and gated: `None` when no operator forms are resolved (nothing to verbalize — no
+/// vacuous product); a HARD FAIL when the verbalization is not injective (two distinct forms
+/// share a controlled-NL string that could not be disambiguated). Preservation is EXACT only
+/// when the NL→GMN inverse template recovers the SAME form for every pair — MEASURED by
+/// [`round_trip_holds`], never declared; a corpus that does not round-trip carries the honest
+/// lossy correspondence instead of a fabricated `logic:ExactPreservation`.
+fn gmn1_verbalizer_emission(
+    forms: &[crate::gmn_verbalize::GmnOperatorForm],
+    dict: &GmnDictionary,
+    major: &str,
+) -> Result<Option<LangEmission>, IngestDiagnostic> {
+    if forms.is_empty() {
+        return Ok(None);
+    }
+    let pairs = build_verbalization_pairs(forms).map_err(|e| IngestDiagnostic {
+        failure_class: LangFailure::SilentIngestDrop,
+        construct: format!(
+            "GMN⇄NL verbalization is not a sound bidirectional map over the operator inventory: \
+             {e}; a training corpus that is not injective must never ship"
+        ),
+    })?;
+    // MEASURE the bidirectional round-trip — the sole license for the EXACT preservation the
+    // per-unit correspondences below claim. A false measurement downgrades every unit to the
+    // honest lossy rung rather than shipping a false isomorphism.
+    let exact = round_trip_holds(&pairs);
+
+    let nt = ntriples_sorted(verbalization_triples(&pairs, dict, exact));
+    let mut loss = LossLedger::new();
+    let preservation = if exact {
+        PreservationKind::Exact
+    } else {
+        PreservationKind::SoundUnder
+    };
+    Ok(Some(LangEmission {
+        artifacts: vec![EmittedArtifact {
+            path_suffix: format!("gmn1/v{major}/verbalizations.ttl"),
+            bytes: nt.clone(),
+            is_rdf: true,
+        }],
+        correspondence: gmn1_verbalizer_correspondence(exact),
+        ledger: vec![emit_ledger_row(
+            &mut loss,
+            "gmn1:verbalizations".to_owned(),
+            String::new(),
+            true,
+            preservation,
+            "n/a".to_owned(),
+            Vec::new(),
+            if exact {
+                Vec::new()
+            } else {
+                vec!["NL→GMN inverse does not recover every operator form".to_owned()]
+            },
+        )],
+        loss,
+        leg_pair: exact.then(gmn1_verbalizer_leg_pair),
+        emitted_reading_count: None,
+        source_iri: GMN_VERBALIZER_IRI.to_owned(),
+        unsupported: Vec::new(),
+        round_trip_holds: exact,
+        lossy_kind: PreservationKind::SoundUnder,
+        source_rdf: nt,
+    }))
+}
+
+/// The verbalization N-Triples: for each bidirectional pair, a `lang:TranslationUnit` with
+/// its two `lang:SurfaceForm`s (each carrying the material identity `lang:SurfaceMaterialShape`
+/// requires — script, sign system, Unicode normalization, collation locale, and its surface
+/// text) and its single `lang:translationCorrespondence` → a `logic:Correspondence` recording
+/// the measured preservation. Surface text lives ONLY on the surface forms, never inline on a
+/// crossing subject (so the corpus never trips `lang:SurfaceLeakInContentKey`). The corpus
+/// subject `gmeow:references` its units and carries the version stamp; the whole set is sorted
+/// + deduped by [`ntriples_sorted`], so two runs over the same forms serialize byte-identically.
+fn verbalization_triples(pairs: &[VerbalizedPair], dict: &GmnDictionary, exact: bool) -> Vec<String> {
+    let g = |local: &str| format!("{GMEOW_NS}{local}");
+    let l = |local: &str| format!("{LANG_NS}{local}");
+    let lo = |local: &str| format!("{LOGIC_NS}{local}");
+    let triple = |s: &str, p: &str, o: &str| format!("<{s}> <{p}> <{o}> .");
+    let lit = |s: &str, p: &str, v: &str| format!("<{s}> <{p}> {} .", nt_literal(v));
+    let boolean = |s: &str, p: &str, b: bool| {
+        format!(
+            "<{s}> <{p}> \"{}\"^^<{XSD_BOOLEAN}> .",
+            if b { "true" } else { "false" }
+        )
+    };
+
+    // The English sign system the controlled-NL surfaces are written in — minted and typed
+    // lang:SignSystem in the corpus (mirroring the live translation corpus), since the carrier's
+    // gmeow:gmnEnglish is a lang:LanguageVariety, not a sign system.
+    let english_sign_system = format!("{EXAMPLE_BASE}gmn-verbalization-sign-system/english");
+
+    let mut out = Vec::new();
+    // The corpus subject: a neutral gmeow:InformationObject that gmeow:references its crossing
+    // units and carries the version stamp. It is deliberately NOT a lang:Translation — this is a
+    // faithful producer of the crossings, not a form-view emission that flattens an epistemic
+    // stratum, so its lang:ProjectionEmission never carries (and never needs to disclose) a
+    // flattened Translation.
+    out.push(triple(GMN_VERBALIZER_IRI, RDF_TYPE, &g("InformationObject")));
+    out.push(triple(&english_sign_system, RDF_TYPE, &l("SignSystem")));
+
+    for pair in pairs {
+        // Content-addressed identities for the crossing, its correspondence, and both surfaces.
+        let key = format!("{}\u{1f}{}", pair.form.term_iri, pair.form.fixity);
+        let unit = format!("{EXAMPLE_BASE}gmn-verbalization-unit/{}", digest16("gmn-verb-unit", &key));
+        let corr = format!(
+            "{EXAMPLE_BASE}gmn-verbalization-correspondence/{}",
+            digest16("gmn-verb-corr", &key)
+        );
+        let gmn_surface = format!(
+            "{EXAMPLE_BASE}gmn-verbalization-surface/{}",
+            digest16("gmn-verb-surface-gmn", &format!("{key}\u{1f}{}", pair.gmn_surface))
+        );
+        let nl_surface = format!(
+            "{EXAMPLE_BASE}gmn-verbalization-surface/{}",
+            digest16("gmn-verb-surface-nl", &format!("{key}\u{1f}{}", pair.nl))
+        );
+
+        // The crossing (clean of surface-stratum predicates).
+        out.push(triple(&unit, RDF_TYPE, &l("TranslationUnit")));
+        out.push(triple(&unit, &l("translationSource"), &gmn_surface));
+        out.push(triple(&unit, &l("translationTarget"), &nl_surface));
+        out.push(triple(&unit, &l("translationMethod"), &l("methodMachine")));
+        out.push(triple(&unit, &l("translationCorrespondence"), &corr));
+        out.push(triple(GMN_VERBALIZER_IRI, &g("references"), &unit));
+
+        // The carried logic:Correspondence law-spine. An EXACT crossing is a section/retraction
+        // isomorphism with a retained mnemomorphic witness (the measured inverse); a corpus that
+        // does not round-trip carries the honest validation-only rung with no witness.
+        out.push(triple(&corr, RDF_TYPE, &lo("Correspondence")));
+        if exact {
+            out.push(triple(&corr, &lo("preservationKind"), &lo("ExactPreservation")));
+            out.push(triple(&corr, &lo("correspondenceRelation"), &lo("Subsumes")));
+            out.push(triple(&corr, &lo("morphismClass"), &lo("SectionRetraction")));
+            out.push(triple(&corr, &lo("hasDeterminacy"), &lo("Crisp")));
+            out.push(boolean(&corr, &lo("mnemomorphic"), true));
+        } else {
+            out.push(triple(&corr, &lo("preservationKind"), &lo("ValidationOnly")));
+            out.push(triple(&corr, &lo("correspondenceRelation"), &lo("RelatedMatch")));
+            out.push(triple(&corr, &lo("morphismClass"), &lo("BridgeView")));
+            out.push(triple(&corr, &lo("hasDeterminacy"), &lo("Vague")));
+            out.push(boolean(&corr, &lo("mnemomorphic"), false));
+        }
+
+        // The two surface forms (surface text lives HERE, with full material identity).
+        for (surface, sign_system, script, locale, text) in [
+            (
+                &gmn_surface,
+                g("gmnModelNotation"),
+                g("gmnScript"),
+                "und",
+                &pair.gmn_surface,
+            ),
+            (
+                &nl_surface,
+                english_sign_system.clone(),
+                l("latinScript"),
+                "en",
+                &pair.nl,
+            ),
+        ] {
+            out.push(triple(surface, RDF_TYPE, &l("SurfaceForm")));
+            out.push(triple(surface, RDF_TYPE, &l("UnanalyzedProse")));
+            out.push(triple(surface, &l("inSignSystem"), &sign_system));
+            out.push(triple(surface, &l("inScript"), &script));
+            out.push(lit(surface, &l("unicodeNormalization"), "NFC"));
+            out.push(lit(surface, &l("collationLocale"), locale));
+            out.push(lit(surface, &l("surfaceText"), text));
+        }
+    }
+
+    // The version-provenance stamp, via the shared tag_schema_version quad.
+    out.push(render_schema_version(&tag_schema_version(
+        GMN_VERBALIZER_IRI,
+        dict,
+    )));
+    out
+}
+
+/// The `logic:Correspondence` the verbalizer emission carries: an EXACT
+/// `logic:SectionRetraction`/`logic:ExactPreservation` rung with a discharged `GetPut` when
+/// the measured inverse round-trips (the GMN⇄NL map is a bijection over the operator
+/// inventory), else the honest lossy lens with an unknown `GetPut`.
+fn gmn1_verbalizer_correspondence(exact: bool) -> Correspondence {
+    let iri = format!(
+        "{GMN1_CORR_BASE}{}",
+        digest16("gmn1-corr", "gmn1-verbalizations")
+    );
+    if exact {
+        Correspondence::new(
+            iri,
+            CorrespondenceRelation::Subsumes,
+            MorphismClass::SectionRetraction,
+            MorphismKind::InstitutionMorphism,
+            true,
+            Some(Determinacy::Crisp),
+            Some(GMN1_VERBALIZER_GET_LEG.to_owned()),
+            None,
+            vec![LawClaimIr {
+                law: CorrespondenceLaw::GetPut,
+                verdict: DischargeVerdict::ObligationDischarged,
+                condition: Some(DischargeCondition::DischargeSyntacticReachability),
+            }],
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(PreservationKind::Exact),
+        )
+        .expect("exact gmn1 verbalizer correspondence is well-formed by construction")
+    } else {
+        Correspondence::new(
+            iri,
+            CorrespondenceRelation::RelatedMatch,
+            MorphismClass::LossyLens,
+            MorphismKind::InstitutionMorphism,
+            false,
+            Some(Determinacy::Crisp),
+            Some(GMN1_VERBALIZER_GET_LEG.to_owned()),
+            None,
+            vec![LawClaimIr {
+                law: CorrespondenceLaw::GetPut,
+                verdict: DischargeVerdict::ObligationUnknown,
+                condition: None,
+            }],
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(PreservationKind::SoundUnder),
+        )
+        .expect("sound-under gmn1 verbalizer correspondence is well-formed by construction")
+    }
+}
+
+/// The verbalizer get/put leg pair — declarative projection-step metadata whose put leg is
+/// the structural inverse of the get leg (the round-trip the driver cross-checks).
+fn gmn1_verbalizer_leg_pair() -> (LegPath, LegPath) {
+    let get = LegPath::Step(GMN1_VERBALIZER_GET_LEG.to_owned());
+    let put = get.invert();
+    (get, put)
+}
+
 /// The EXACT `logic:Correspondence` a GMN-1 emission carries when its measured
 /// round-trip holds: `logic:SectionRetraction`/`logic:ExactPreservation`, mnemomorphic —
 /// the SAME rung `gmeow:gmnCorrNormalToGmn` declares in the carrier, discharged here by
@@ -1150,6 +1439,26 @@ const NON_CF_SIDE_CONDITIONS: &[&str] = &[
     "licensing links from the source forms have no grammar-notation target",
     "grammar versioning is not carried into the emitted file",
 ];
+
+/// Escape a string as an N-Triples quoted literal (UTF-8 passes through verbatim). Used by
+/// the verbalizer, whose surface text is arbitrary label/glyph content that may carry a quote
+/// or backslash — unlike the digest/version literals the pack/metrics emitters format raw.
+fn nt_literal(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            _ => out.push(ch),
+        }
+    }
+    out.push('"');
+    out
+}
 
 /// The content-addressed `lang:Grammar` IRI for a canonical grammar serialization.
 fn grammar_iri_for(canonical_text: &str) -> String {
@@ -1693,6 +2002,154 @@ mod pack_tests {
             ttl.contains(&format!("\"{expected_digest}\"")),
             "emitted codebook digest must equal the recomputed codebook_digest\n\
              expected: {expected_digest}\ngot:\n{ttl}"
+        );
+    }
+
+    use crate::gmn_verbalize::{
+        FIXITY_INFIX, FIXITY_POSTFIX, FIXITY_PREFIX, GmnOperatorForm, VerbalizedPair,
+        build_verbalization_pairs, forward_index, invert_nl, round_trip_holds as pairs_round_trip,
+    };
+
+    fn op(term: &str, label: &str, glyph: &str, fixity: &str, arity: u32) -> GmnOperatorForm {
+        GmnOperatorForm {
+            term_iri: term.to_owned(),
+            term_label: label.to_owned(),
+            gmn_glyph: glyph.to_owned(),
+            fixity: fixity.to_owned(),
+            arity,
+        }
+    }
+
+    /// Build the bundle-level verbalizer emission over a set of operator forms, using the real
+    /// carrier dictionary (for the version stamp) and resolved major (for the keyed path).
+    fn verbalizer_emission(forms: Vec<GmnOperatorForm>) -> (LangEmission, String) {
+        let (dict, major) = carrier_dict_and_major();
+        let input = LangProjectionInput {
+            gmn_dictionary: Some(dict),
+            gmn_dialect_major: Some(major),
+            gmn_operator_forms: forms,
+            ..Default::default()
+        };
+        let emissions = Gmn1Target.emit(&input).expect("gmn1 emit");
+        let emission = emissions
+            .into_iter()
+            .find(|e| e.source_iri == GMN_VERBALIZER_IRI)
+            .expect("verbalizer emission present");
+        let major = input.gmn_dialect_major.clone().expect("major");
+        (emission, major)
+    }
+
+    /// The verbalizer emission's bidirectional pairs are injective, deterministic, version-
+    /// tagged, carry `lang:translationCorrespondence`, MEASURE their NL→GMN inverse as exact,
+    /// and are genuinely fixity-driven (perturbing a fixity changes the verbalization).
+    #[test]
+    fn verbalizer_pairs_are_bidirectional_and_injective_and_deterministic() {
+        // One of each fixity plus a HOMOGRAPH: two distinct terms sharing the label "contains".
+        let forms = vec![
+            op("logic:not", "not", "¬", FIXITY_PREFIX, 1),
+            op("logic:subClassOf", "subsumes", "⊑", FIXITY_INFIX, 2),
+            op("math:factorial", "factorial", "!", FIXITY_POSTFIX, 1),
+            op("math:supersetRel", "contains", "⊃", FIXITY_INFIX, 2),
+            op("math:hasElement", "contains", "∋", FIXITY_INFIX, 2),
+        ];
+
+        let (emission, major) = verbalizer_emission(forms.clone());
+
+        // Keyed under the resolved-version subtree, an RDF artifact.
+        let path = format!("gmn1/v{major}/verbalizations.ttl");
+        let artifact = emission
+            .artifacts
+            .iter()
+            .find(|a| a.path_suffix == path)
+            .unwrap_or_else(|| panic!("verbalizations artifact keyed at {path}"));
+        assert!(artifact.is_rdf, "the verbalizations artifact is RDF");
+
+        // MEASURED-exact: the carried correspondence derives Exact and the round-trip holds.
+        assert!(
+            crate::is_exact_correspondence(&emission.correspondence),
+            "the verbalizer carries an exact correspondence"
+        );
+        assert!(
+            emission.round_trip_holds,
+            "the NL→GMN inverse round-trip is measured true"
+        );
+
+        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
+        // Valid Turtle (N-Triples is a Turtle subset), and the triples ride the corpus verbatim.
+        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
+            .expect("the verbalizations artifact is valid Turtle");
+        assert_eq!(
+            emission.source_rdf, artifact.bytes,
+            "the verbalization triples ride the corpus graph verbatim"
+        );
+
+        // It types translation crossings carried by lang:translationCorrespondence.
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/lang/TranslationUnit>"),
+            "verbalizations type lang:TranslationUnit:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/lang/translationCorrespondence>"),
+            "verbalizations carry lang:translationCorrespondence:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/logic/ExactPreservation>"),
+            "an exact verbalization crossing records logic:ExactPreservation:\n{ttl}"
+        );
+        // Version-tagged via tag_schema_version.
+        assert!(
+            ttl.contains(&format!(
+                "<{GMN_VERBALIZER_IRI}> <{}> ",
+                crate::gmn_migrate::PRED_GMN_SCHEMA_VERSION
+            )),
+            "verbalizations carry the gmnSchemaVersion provenance stamp:\n{ttl}"
+        );
+
+        // Byte-deterministic across runs.
+        let (again, _) = verbalizer_emission(forms.clone());
+        assert_eq!(
+            artifact.bytes, again.artifacts[0].bytes,
+            "the verbalizer product is byte-deterministic"
+        );
+
+        // ── Injectivity + bidirectionality over the SAME forms, at the pair level ──
+        let pairs = build_verbalization_pairs(&forms).expect("pairs build");
+        // Every controlled-NL string is distinct (injective).
+        let mut nls: Vec<&str> = pairs.iter().map(|p| p.nl.as_str()).collect();
+        let count = nls.len();
+        nls.sort_unstable();
+        nls.dedup();
+        assert_eq!(nls.len(), count, "controlled-NL strings must be injective");
+        // The homograph "contains" collided → both got disambiguated with a CURIE tag.
+        let contains: Vec<&VerbalizedPair> = pairs
+            .iter()
+            .filter(|p| p.form.term_label == "contains")
+            .collect();
+        assert_eq!(contains.len(), 2);
+        assert!(
+            contains.iter().all(|p| p.nl.contains('⟪')),
+            "a homograph label must be disambiguated by CURIE: {:?}",
+            contains.iter().map(|p| &p.nl).collect::<Vec<_>>()
+        );
+        // The NL→GMN inverse template recovers the SAME operator form for every pair.
+        assert!(pairs_round_trip(&pairs), "every pair round-trips");
+        let index = forward_index(&pairs);
+        for pair in &pairs {
+            assert_eq!(
+                invert_nl(&pair.nl, &index),
+                Some(&pair.form),
+                "inverse of {:?} must recover its own form",
+                pair.nl
+            );
+        }
+
+        // ── Falsifiability: perturbing ONE form's fixity changes the emitted product ──
+        let mut perturbed = forms;
+        perturbed[1].fixity = FIXITY_PREFIX.to_owned(); // subsumes: infix → prefix
+        let (perturbed_emission, _) = verbalizer_emission(perturbed);
+        assert_ne!(
+            artifact.bytes, perturbed_emission.artifacts[0].bytes,
+            "perturbing a form's fixity must change its verbalization"
         );
     }
 }
