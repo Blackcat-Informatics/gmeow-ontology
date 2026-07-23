@@ -83,7 +83,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
-	maint-chasebench-corpus
+	maint-chasebench-corpus maint-gmn-cost-matrix
 
 ##@ Core Workflows
 
@@ -793,6 +793,54 @@ maint-chasebench-corpus: ## (maintainer) Fetch dbunibas/chasebench, check its li
 	  echo "  runnable bench corpus."; \
 	  echo "remediation: obtain an explicitly licensed upstream corpus before adding any runnable conversion."; \
 	  exit 1; \
+	'
+
+# The token-cost-matrix fetch sources. o200k/cl100k are embedded (tiktoken-rs) and Qwen is
+# vendored (Apache-2.0, blake3-pinned in-repo). Llama (Meta Llama 3 Community License) and
+# Gemma (Gemma Terms of Use) are AGPL-INCOMPATIBLE restricted licenses, so — exactly like
+# maint-tptp-corpus / maint-ontouml-corpus — their tokenizer.json assets are FETCHED here at
+# maint-time into the git-ignored .tmp/, blake3-verified against the committed pins, used
+# in-process, and NEVER committed. Defaults point at ungated faithful re-hosts of Meta's /
+# Google's exact tokenizers (identical bytes => identical pin). To fetch from the canonical
+# GATED repos (meta-llama / google) instead, override the URL and export HF_TOKEN (the fetched
+# bytes must still match the pinned blake3, or the lane HARD-FAILS).
+LLAMA_TOKENIZER_URL ?= https://huggingface.co/NousResearch/Meta-Llama-3-8B/resolve/main/tokenizer.json
+GEMMA_TOKENIZER_URL ?= https://huggingface.co/unsloth/gemma-2-2b/resolve/main/tokenizer.json
+
+maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix over the emitted GMN/Turtle/JSON-LD grounding serializations; flags byte-fragmenting glyphs per vocab. OFF-gate (INFORMS; never in `make check`).
+	@# Runs the five mandated tokenizer families (o200k_base + cl100k_base embedded via
+	@# tiktoken-rs; Qwen vendored + blake3-pinned; Llama + Gemma fetched-at-maint-time) over the
+	@# SAME emitted GMN / Turtle / JSON-LD serializations of the grounding corpus the on-gate
+	@# Task-7 byte-fallback estimator gates, and writes generated/bench/gmn-token-cost-matrix.md.
+	@# NOT a `make check` (CHECK_DAG) target: it INFORMS the S2-S4 glyph/tokenizer co-design; the
+	@# on-gate teeth remain `compute_token_metrics`. HARD-FAILS if ANY of the five families cannot
+	@# be fetched/verified (no silent three-family degrade), and re-checks byte-identity across two
+	@# runs like maint-bench-cost-baseline.
+	@#
+	@# Llama/Gemma license note: their licenses are non-free and AGPL-incompatible, so the assets
+	@# are NEVER committed — fetched here, verified, and discarded, mirroring the repo's other
+	@# restricted-license Lane-B corpora. See crates/gmn-cost-matrix/assets/vocab/PROVENANCE.md.
+	bash -euo pipefail -c '\
+	  dir=.tmp/gmn-cost-matrix; mkdir -p "$$dir"; \
+	  if [ -n "$${HF_TOKEN:-}" ]; then AUTH=(-H "Authorization: Bearer $$HF_TOKEN"); else AUTH=(); fi; \
+	  echo "-> fetching Llama tokenizer.json ($(LLAMA_TOKENIZER_URL))"; \
+	  curl -fsSL "$${AUTH[@]}" "$(LLAMA_TOKENIZER_URL)" -o "$$dir/llama.json" || { \
+	    echo "ERROR: Llama tokenizer.json fetch failed. Override LLAMA_TOKENIZER_URL or (for the"; \
+	    echo "  gated meta-llama repo) export HF_TOKEN. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> fetching Gemma tokenizer.json ($(GEMMA_TOKENIZER_URL))"; \
+	  curl -fsSL "$${AUTH[@]}" "$(GEMMA_TOKENIZER_URL)" -o "$$dir/gemma.json" || { \
+	    echo "ERROR: Gemma tokenizer.json fetch failed. Gemma is gated:manual on google/gemma-2-2b —"; \
+	    echo "  accept its license and export HF_TOKEN, or override GEMMA_TOKENIZER_URL to an authorized"; \
+	    echo "  source. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> running the full five-family matrix (blake3-verifies each fetched asset)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json"; \
+	  echo "-> determinism re-check (second run must be byte-identical)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json" --out "$$dir/recheck.md"; \
+	  if ! diff -q generated/bench/gmn-token-cost-matrix.md "$$dir/recheck.md" >/dev/null; then \
+	    echo "ERROR: the token-cost matrix drifted between two runs — non-deterministic render."; exit 1; fi; \
+	  echo "✓ wrote generated/bench/gmn-token-cost-matrix.md (five families, byte-identical across two runs)"; \
 	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
