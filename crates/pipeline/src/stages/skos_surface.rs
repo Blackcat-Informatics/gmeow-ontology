@@ -10,8 +10,10 @@
 //! authored term, and each term is bound into ONE minted `skos:ConceptScheme`
 //! individual. The surface is a pure function of the lifted axiom set (AC1
 //! anti-drift): [`render_skos_surface_from_axioms`] never re-reads the source
-//! triples. Byte-deterministic → compared byte-for-byte to the committed
-//! `generated/skos/gmeow-skos.ttl`.
+//! triples. The materialized `generated/skos/gmeow-skos.ttl` (git-ignored) is
+//! written back through the RDF-fanout writer's own serializer, so the anti-drift
+//! gate compares it to this stage's render SEMANTICALLY (as a set of triples), the
+//! same way the superset/fold gate compares the graph.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -300,7 +302,8 @@ mod tests {
         let fresh_keys = triple_keys(&fresh);
         let committed_keys = triple_keys(&committed);
         assert_eq!(
-            fresh_keys, committed_keys,
+            fresh_keys,
+            committed_keys,
             "gmeow-skos.ttl drifted from the lifted-axiom projection \
              ({} freshly-rendered triples vs {} materialized triples)",
             fresh_keys.len(),
