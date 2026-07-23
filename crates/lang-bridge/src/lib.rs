@@ -32,6 +32,7 @@ pub mod error;
 pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
+pub mod gmn_migrate;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -55,6 +56,10 @@ pub use conllu::{
 pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use engine::{
     EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
+};
+pub use gmn_migrate::{
+    GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,
+    OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
 };
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn1_codec::{

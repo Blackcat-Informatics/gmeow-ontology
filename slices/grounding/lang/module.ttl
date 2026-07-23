@@ -3455,6 +3455,104 @@ gmeow:gmnMigratesTo
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name the destination major of a GMN version-migration crossing."@x-gmeow-english .
 
+gmeow:GmnMigrationRewrite
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Migration Rewrite"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One operator-grain rewrite leg of a GMN version migration: the reified surface delta the migration executor applies when re-emitting a stored GMN document at the target dialect major. It anchors on the version-STABLE GMEOW term the operator denotes (gmeow:gmnRewriteTerm) and carries that operator's source-version glyph and binding strength (gmeow:gmnRewriteFromGlyph, gmeow:gmnRewriteFromPrecedence) alongside its target-version glyph and binding strength (gmeow:gmnRewriteToGlyph, gmeow:gmnRewriteToPrecedence), so a glyph RENAME (the two glyphs differ) and a precedence CHANGE (the two precedences differ) are both expressible in one record. A rewrite is NOT a rival to logic:Correspondence and carries NO preservation judgment of its own: it is structured surface data — exactly as gmeow:GmnDictionaryEntry reifies an alias binding without a judgment — while the crossing's fidelity lives on the owning logic:Correspondence (the one gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo leg aggregates its rewrites through gmeow:gmnMigrationRewrite). An operator whose term is present in the source major but absent in the target major with NO covering rewrite is an unbridged drop (lang:GmnUnbridgedGlyphDrop), a HARD FAIL at migration time, never a silent drop."@x-gmeow-english ;
+    skos:example "ex:renameOplus a gmeow:GmnMigrationRewrite ; gmeow:gmnRewriteTerm math:Addition ; gmeow:gmnRewriteFromGlyph \"+\" ; gmeow:gmnRewriteToGlyph \"⊕\" ; gmeow:gmnRewriteFromPrecedence 50 ; gmeow:gmnRewriteToPrecedence 60 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying a preservation grade on the rewrite — the judgment lives on the owning logic:Correspondence, never shadowed here — and avoid using a rewrite for within-major dictionary or glyph-table drift, which moves on the version literals, not on a migration leg."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Mint one rewrite per operator whose surface changes across the migration; set its gmeow:gmnRewriteTerm to the denoted GMEOW term and its from/to glyph and from/to precedence, and link it from the migration's logic:Correspondence through gmeow:gmnMigrationRewrite."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to reify one operator's cross-version surface delta so the migration executor can re-emit a stored GMN document at the target major and hard-fail on any unbridged drop."@x-gmeow-english .
+
+gmeow:gmnMigrationRewrite
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn migration rewrite"@x-gmeow-english ;
+    rdfs:range gmeow:GmnMigrationRewrite ;
+    skos:definition "Relates a GMN version-migration logic:Correspondence to one of the operator-grain gmeow:GmnMigrationRewrite legs it aggregates. Domain logic:Correspondence, range gmeow:GmnMigrationRewrite. Non-functional: a migration crossing carries zero or more rewrites, one per operator whose surface changes; the crossing's preservation judgment stays on the logic:Correspondence, never on a rewrite."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hanging a rewrite off anything but the migration's own logic:Correspondence, and avoid a rewrite whose gmeow:gmnRewriteTerm names a term the migration does not actually re-surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnMigrationRewrite edge per operator surface delta the migration bridges, from the gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo correspondence to its gmeow:GmnMigrationRewrite."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the operator-grain rewrite legs of a GMN version-migration crossing."@x-gmeow-english .
+
+gmeow:gmnRewriteTerm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite term"@x-gmeow-english ;
+    skos:definition "The version-STABLE GMEOW term (the operator's lang:denotationTarget — a class, property, or individual IRI) one migration rewrite re-surfaces. Functional: exactly one term per rewrite. Domain gmeow:GmnMigrationRewrite, range any GMEOW term (stated in prose, deliberately unconstrained — an operator may denote a logic, math, or core term). The term is the identity anchor the executor matches a source occurrence against, precisely because the term survives the migration even when its glyph or precedence does not."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a glyph string or a version-specific surface token — the anchor is the denoted term, which is stable across the crossing — and avoid leaving it unset, which would leave the rewrite anchored to nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRewriteTerm per rewrite to the GMEOW term the operator denotes; the from/to glyph and precedence then describe how that one term's surface changes."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the version-stable denoted term a migration rewrite re-surfaces."@x-gmeow-english .
+
+gmeow:gmnRewriteFromGlyph
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite from glyph"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid setting it to the target spelling — that is gmeow:gmnRewriteToGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace, which the glyph surface discipline already forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's source-version glyph so the executor can locate its occurrences before rewriting them to gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the source-major glyph a migration rewrite rewrites from."@x-gmeow-english .
+
+gmeow:gmnRewriteToGlyph
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite to glyph"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid setting it to the source spelling — that is gmeow:gmnRewriteFromGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's target-version glyph; the executor substitutes it for gmeow:gmnRewriteFromGlyph when it re-emits the document at the target major."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the target-major glyph a migration rewrite rewrites to."@x-gmeow-english .
+
+gmeow:gmnRewriteFromPrecedence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite from precedence"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The source-major binding strength (gmeow:gmnPrecedence value) of the operator a migration rewrite re-surfaces. Functional (at most one) per rewrite; omitted when the operator's binding strength is unchanged and only its glyph is renamed. Domain gmeow:GmnMigrationRewrite, range xsd:integer. A rewrite is a precedence CHANGE exactly when this is present and differs from gmeow:gmnRewriteToPrecedence; carried alongside the glyph legs so one rewrite record captures the operator's whole cross-version surface delta."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding fixity or record kind into this integer — those are gmeow:gmnFixity and gmeow:GmnSigilRole — and avoid setting it to the target strength, which is gmeow:gmnRewriteToPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's source-version gmeow:gmnPrecedence so the executor records the binding strength the source document parsed under."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the source-major binding strength a migration rewrite rewrites from."@x-gmeow-english .
+
+gmeow:gmnRewriteToPrecedence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite to precedence"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The target-major binding strength (gmeow:gmnPrecedence value) of the operator a migration rewrite re-surfaces — the strength the re-emitted document parses under at the target version. Functional (at most one) per rewrite; omitted when only the glyph is renamed. Domain gmeow:GmnMigrationRewrite, range xsd:integer. A rewrite is a precedence CHANGE exactly when this is present and differs from gmeow:gmnRewriteFromPrecedence."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding fixity or record kind into this integer, and avoid setting it to the source strength, which is gmeow:gmnRewriteFromPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's target-version gmeow:gmnPrecedence; the executor records it as the migrated operator's binding strength."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the target-major binding strength a migration rewrite rewrites to."@x-gmeow-english .
+
 gmeow:gmnAcceptWindow
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -5083,6 +5181,14 @@ lang:GmnNonDecodableGrammar
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Non-Decodable Grammar"@x-gmeow-english ;
     skos:definition "The failure raised when the GMN grammar's declared determinism contract does not hold — a grammar carrying gmeow:gmnDeterminismClass \"LL(1)\" whose rules are not deterministically decidable with one-token lookahead, so a reader cannot know from the next token which production applies and the stream is not prefix-decodable. The determinism class is a declared contract, never taken on faith: its enforcing validator is the GMN parser/writer, whose parse-table construction over the grammar's rules is the machine check the literal must survive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnUnbridgedGlyphDrop
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Unbridged Glyph Drop"@x-gmeow-english ;
+    skos:definition "The failure raised when a GMN version migration would DROP an operator glyph — a term present in the source dialect major but absent from the target major — with NO gmeow:GmnMigrationRewrite on the migration's logic:Correspondence covering it. A migration is a judged crossing like any other, so a dropped operator must be BRIDGED by an authored rewrite (renaming its glyph, or otherwise re-surfacing its version-stable gmeow:gmnRewriteTerm) or the crossing loses information silently. Distinct from lang:GmnUncoveredTerm (a token the current pinned dictionary cannot resolve at all, which a wider alias table could cover) and from lang:GmnVersionOverclaim (an envelope claiming a version its coordinates do not support): an unbridged drop is specifically a cross-major surface deletion the migration executor refuses to apply. Its enforcing validator is the GMN migration executor, which compares the source document's operator terms against the target major's inventory and hard-fails on any dropped term the migration legs do not cover — never a silent drop."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
@@ -10136,6 +10242,7 @@ lang:GmnNonCanonicalOrder a logic:Situation .
 lang:GmnNonDecodableGrammar a logic:Situation .
 lang:GmnRingLatticeMalformed a logic:Situation .
 lang:GmnUnattributedPlane a logic:Situation .
+lang:GmnUnbridgedGlyphDrop a logic:Situation .
 lang:GmnUncostedScriptGlyph a logic:Situation .
 lang:GmnUncoveredTerm a logic:Situation .
 lang:GmnUndeclaredDialectVersion a logic:Situation .
