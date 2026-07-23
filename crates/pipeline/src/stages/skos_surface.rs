@@ -155,9 +155,12 @@ pub fn render_skos_surface_from_axioms(
         .map_err(|e| parse_err(format!("skos-surface: non-UTF8 serialization: {e}")))?;
     // purrdf 0.8.x's parallel de-dup serializer does NOT pin its row order across runs
     // (the order varies with thread scheduling under load). Partition the `@prefix`/
-    // `@base` directives from the triple rows and sort each block bytewise so the
-    // projection is byte-deterministic regardless of thread timing — the guarantee the
-    // `skos_surface_is_byte_identical_to_committed` gate depends on.
+    // `@base` directives from the triple rows and sort each block bytewise so this
+    // stage's direct render is a reproducible, byte-stable artifact regardless of thread
+    // timing. (The materialized `generated/skos/gmeow-skos.ttl` rides the RDF-fanout
+    // writer's own serializer, so the anti-drift gate compares the two SEMANTICALLY —
+    // see `skos_surface_matches_the_materialized_projection` — but a stable direct render
+    // keeps this producer deterministic in its own right.)
     let mut directives: Vec<&str> = Vec::new();
     let mut triples: Vec<&str> = Vec::new();
     for line in raw.lines() {
@@ -256,12 +259,53 @@ mod tests {
     }
 
     #[test]
-    fn skos_surface_is_byte_identical_to_committed() {
+    fn skos_surface_matches_the_materialized_projection() {
+        use std::collections::BTreeSet;
+
+        use purrdf::{DatasetView, GraphMatch};
+
+        // `generated/skos/gmeow-skos.ttl` is a git-ignored, pipeline-materialized product:
+        // this stage builds the named-graph CONTENT via `render_skos_surface`, and the
+        // materializer (the RDF-fanout writer / bundle serializer) writes it back through
+        // purrdf's canonical serializer. purrdf 0.8.x's parallel de-dup serializer does not
+        // pin its concrete Turtle/N-Triples surface (prefixing, grouping, and row order vary
+        // with thread scheduling), so a byte comparison is not the invariant — the invariant
+        // is that the materialized surface carries EXACTLY the triples this stage projects
+        // from the lifted RDFS/SKOS annotation axioms. Assert set-of-triples equality (the
+        // real anti-drift check; the superset/fold gate likewise compares this graph
+        // semantically). The surface has no blank nodes, so a resolved-term string key is a
+        // stable identity.
         let root = repo_root();
         let fresh = render_skos_surface(&root).expect("render");
         let committed = std::fs::read_to_string(root.join(SKOS_SURFACE_PATH))
-            .expect("committed generated/skos/gmeow-skos.ttl");
-        assert_eq!(fresh, committed, "gmeow-skos.ttl drifted from committed");
+            .expect("materialized generated/skos/gmeow-skos.ttl (run `make sync` first)");
+        let triple_keys = |ttl: &str| -> BTreeSet<String> {
+            let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .expect("skos surface parses as valid Turtle");
+            // The resolved-term Debug carries the full identity (IRI string, or literal
+            // lexical + datatype + language tag) and is stable for the IRI/literal-only
+            // surface — no blank-node scopes to differ between the two parses.
+            dataset
+                .quads_for_pattern(None, None, None, GraphMatch::Any)
+                .map(|q| {
+                    format!(
+                        "{:?}\t{:?}\t{:?}",
+                        dataset.resolve(q.s),
+                        dataset.resolve(q.p),
+                        dataset.resolve(q.o)
+                    )
+                })
+                .collect()
+        };
+        let fresh_keys = triple_keys(&fresh);
+        let committed_keys = triple_keys(&committed);
+        assert_eq!(
+            fresh_keys, committed_keys,
+            "gmeow-skos.ttl drifted from the lifted-axiom projection \
+             ({} freshly-rendered triples vs {} materialized triples)",
+            fresh_keys.len(),
+            committed_keys.len()
+        );
     }
 
     /// Shift-left: drive the SAME native structural lint `make validate`/`make check`
