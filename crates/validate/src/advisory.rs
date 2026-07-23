@@ -379,8 +379,6 @@ impl Advisory {
 /// The `logic:formalizes` back-reference every derived constraint shape carries — the
 /// gmeow-domain term the advisory constraint concerns (the advice's provenance).
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
-/// The help page every harvested advisory rule links to.
-const ADVICE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/advice";
 /// The formalized term's positive how-to prose — surfaced on the advisory as a corrective
 /// `suggestion` (D3 acceptance criterion: `gmeow:howToUse` populates `suggestions`).
 const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
@@ -496,9 +494,10 @@ fn build_advisory(
     let shape_local = shape_iri.map_or_else(|| "constraint".to_owned(), code_local);
     let digest = focus_digest(focus_iri.unwrap_or_default());
     let code = format!("{}{}.{}", crate::codes::ADVICE_FAMILY, shape_local, digest);
+    let help_uri = crate::rule_catalog::catalog_anchor_uri(&code);
     let mut advisory = Advisory::note(code, message.to_owned())
         .with_tag("advisory-harvested")
-        .with_help_uri(ADVICE_HELP_URI);
+        .with_help_uri(help_uri);
     if let Some(focus) = focus_iri {
         advisory = advisory.with_subject_iri(focus.to_owned());
     }
@@ -1066,6 +1065,22 @@ mod tests {
         let advisory = &advisories[0];
         assert_eq!(advisory.severity, Severity::Note);
         assert!(advisory.code.starts_with(crate::codes::ADVICE_FAMILY));
+        // The CLI advisory finding's help URI resolves through the SAME single anchor
+        // authority the MCP `advise` tool uses (`catalog_anchor_uri`), landing on the
+        // rendered docs Advice section — never a dead standalone advice URL.
+        assert_eq!(
+            advisory.help_uri.as_deref(),
+            Some(crate::rule_catalog::catalog_anchor_uri(&advisory.code).as_str())
+        );
+        assert!(
+            advisory
+                .help_uri
+                .as_deref()
+                .unwrap()
+                .ends_with("docs/enforced-constraints#advice-"),
+            "advisory help_uri must resolve to the rendered docs Advice-section anchor: {:?}",
+            advisory.help_uri
+        );
         assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
         assert_eq!(
             advisory.message,
