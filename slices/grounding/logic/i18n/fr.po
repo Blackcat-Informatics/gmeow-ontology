@@ -2500,6 +2500,98 @@ msgctxt "https://blackcatinformatics.ca/logic/expressivenessBoundary|http://www.
 msgid "expressiveness boundary"
 msgstr "frontière d'expressivité"
 
+msgctxt "https://blackcatinformatics.ca/logic/RefutationPattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refutation Pattern"
+msgstr "Motif de réfutation"
+
+msgctxt "https://blackcatinformatics.ca/logic/DecidedFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Decided Fragment"
+msgstr "Fragment décidé"
+
+msgctxt "https://blackcatinformatics.ca/logic/decidesUnderPattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decides under pattern"
+msgstr "décide sous le motif"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentCompletenessBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment completeness bound"
+msgstr "borne de complétude du fragment"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentBoundaryReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment boundary reason"
+msgstr "raison de frontière du fragment"
+
+msgctxt "https://blackcatinformatics.ca/logic/counting-pigeonhole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Counting Pigeonhole"
+msgstr "Tiroir de comptage"
+
+msgctxt "https://blackcatinformatics.ca/logic/value-space-cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Value-Space Cardinality"
+msgstr "Cardinalité de l'espace de valeurs"
+
+msgctxt "https://blackcatinformatics.ca/logic/case-split-exhaustion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Case-Split Exhaustion"
+msgstr "Épuisement par disjonction de cas"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-clash|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Clash"
+msgstr "Conflit de complément"
+
+msgctxt "https://blackcatinformatics.ca/logic/arithmetic-equality-collapse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Arithmetic Equality Collapse"
+msgstr "Effondrement arithmétique d'égalité"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-metamodel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Metamodel"
+msgstr "Métamodèle malformé"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-clash|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nominal Clash"
+msgstr "Conflit nominal"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-refutation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Refutation"
+msgstr "Réfutation par complément"
+
+msgctxt "https://blackcatinformatics.ca/logic/number-cardinality-counting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number / Cardinality Counting"
+msgstr "Comptage de nombre / cardinalité"
+
+msgctxt "https://blackcatinformatics.ca/logic/union-disjoint-case-split|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Union / Disjoint Case-Split"
+msgstr "Disjonction de cas union / disjoint"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-enumeration-counting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nominal Enumeration Counting"
+msgstr "Comptage d'énumération nominale"
+
+msgctxt "https://blackcatinformatics.ca/logic/datatype-value-space|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Datatype Value-Space"
+msgstr "Espace de valeurs de type de données"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverse-functional-identity-collapse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inverse-Functional Identity Collapse"
+msgstr "Effondrement d'identité inverse-fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-rdf-list|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed rdf:List"
+msgstr "rdf:List malformée"
+
+msgctxt "https://blackcatinformatics.ca/logic/has-self-membership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasSelf Membership"
+msgstr "Appartenance hasSelf"
+
+msgctxt "https://blackcatinformatics.ca/logic/xsd-pattern-facet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "xsd:pattern Facet Boundary"
+msgstr "Frontière de la facette xsd:pattern"
+
+msgctxt "https://blackcatinformatics.ca/logic/non-binary-property-chain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Non-Binary Property Chain Boundary"
+msgstr "Frontière des chaînes de propriétés non binaires"
+
+msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Entangled Existential + Cardinality Boundary"
+msgstr "Frontière d'existentiel et de cardinalité enchevêtrés"
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "external relation admitted rows"
 msgstr "lignes admises de relation externe"
@@ -7344,6 +7436,98 @@ msgstr "La classe close nommant quel fragment logique habite un énoncé défini
 msgctxt "https://blackcatinformatics.ca/logic/expressivenessBoundary|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a defining law or a loss-ledger boundary record to the logic:ExpressivenessBoundary its statement inhabits."
 msgstr "Met en relation une loi définitoire ou un enregistrement de frontière du registre de pertes avec la logic:ExpressivenessBoundary qu'habite son énoncé."
+
+msgctxt "https://blackcatinformatics.ca/logic/RefutationPattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed class of decision-procedure schemata a certified-complete refutation family closes under. Several decided families may share one pattern (a cardinality count and an owl:hasSelf self-edge are both the counting pigeonhole). Its individuals are the state-of-the-art patterns the native kernel decides; the set is the projection of the Rust RefutationPattern enum."
+msgstr "La classe fermée des schémas de procédure de décision sous lesquels se referme une famille de réfutation certifiée-complète. Plusieurs familles décidées peuvent partager un même motif (un comptage de cardinalité et une auto-arête owl:hasSelf relèvent toutes deux du tiroir de comptage). Ses individus sont les motifs de pointe que décide le noyau natif ; l'ensemble est la projection de l'énumération Rust RefutationPattern."
+
+msgctxt "https://blackcatinformatics.ca/logic/DecidedFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A certified-complete construct family the native refutation kernel decides: it carries the logic:RefutationPattern it closes under (logic:decidesUnderPattern) and a technical completeness bound (logic:fragmentCompletenessBound). One individual per decided family; the set is the projection of the Rust decided_fragments() registry, outside which the kernel honestly withholds."
+msgstr "Une famille de constructions certifiée-complète que décide le noyau de réfutation natif : elle porte le logic:RefutationPattern sous lequel elle se referme (logic:decidesUnderPattern) et une borne de complétude technique (logic:fragmentCompletenessBound). Un individu par famille décidée ; l'ensemble est la projection du registre Rust decided_fragments(), en dehors duquel le noyau s'abstient honnêtement."
+
+msgctxt "https://blackcatinformatics.ca/logic/decidesUnderPattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:DecidedFragment to the logic:RefutationPattern its family closes under."
+msgstr "Met en relation un logic:DecidedFragment avec le logic:RefutationPattern sous lequel se referme sa famille."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentCompletenessBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The technical completeness bound of a logic:DecidedFragment: the precise fragment characterization under which the kernel's decision is complete, free of any process reference."
+msgstr "La borne de complétude technique d'un logic:DecidedFragment : la caractérisation précise du fragment sous laquelle la décision du noyau est complète, libre de toute référence de processus."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentBoundaryReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."
+msgstr "La raison technique pour laquelle un enregistrement d'abstention conservée se situe hors du fragment de réfutation certifié-complet : la construction que le noyau refuse délibérément de décider, et pourquoi, libre de toute référence de processus."
+
+msgctxt "https://blackcatinformatics.ca/logic/counting-pigeonhole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite pigeonhole count of distinct fillers or edges against a numeric bound: the count exceeds (or collapses) the bound, so no model can satisfy it."
+msgstr "Un dénombrement fini de type tiroirs portant sur des remplisseurs ou des arêtes distincts au regard d'une borne numérique : le compte dépasse (ou effondre) la borne, si bien qu'aucun modèle ne peut la satisfaire."
+
+msgctxt "https://blackcatinformatics.ca/logic/value-space-cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite datatype value-space cardinality bounding the distinct-literal count a cardinality restriction can force onto a datatype property."
+msgstr "Une cardinalité finie de l'espace de valeurs d'un type de données, bornant le nombre de littéraux distincts qu'une restriction de cardinalité peut imposer sur une propriété de type de données."
+
+msgctxt "https://blackcatinformatics.ca/logic/case-split-exhaustion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exhaustive, terminating case-split over a bounded disjunction: every branch is refuted, so the disjunction as a whole is refuted."
+msgstr "Une disjonction de cas exhaustive et terminante portant sur une disjonction bornée : chaque branche est réfutée, si bien que la disjonction dans son ensemble est réfutée."
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-clash|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A propositional complement clash: a class expression forced to inhabit both a class and its complement in a definition position, decided without model search."
+msgstr "Un conflit propositionnel de complément : une expression de classe forcée d'habiter à la fois une classe et son complément en position de définition, décidé sans recherche de modèle."
+
+msgctxt "https://blackcatinformatics.ca/logic/arithmetic-equality-collapse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An equality / inequality arithmetic collapse over a finite set of named individuals: an (inverse-)functional identity forced against an asserted distinctness."
+msgstr "Un effondrement arithmétique d'égalité / inégalité sur un ensemble fini d'individus nommés : une identité (inverse-)fonctionnelle forcée à l'encontre d'une distinction affirmée."
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-metamodel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decidable metamodel malformation of the finite triple set, such as a structurally broken RDF list, adjudicated independently of object-level entailment."
+msgstr "Une malformation décidable du métamodèle sur l'ensemble fini de triplets, telle qu'une liste RDF structurellement rompue, adjugée indépendamment de toute conséquence de niveau objet."
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-clash|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite closed-set intersection emptiness over nominal enumerations: an individual forced into two or more disjoint owl:oneOf sets."
+msgstr "Une vacuité d'intersection sur ensembles fermés finis portant sur des énumérations nominales : un individu forcé dans deux ensembles owl:oneOf disjoints ou davantage."
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-refutation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete complement-refutation family: a class constrained by a negated class expression forced unsatisfiable-yet-nonempty, decided under the complement clash pattern."
+msgstr "La famille certifiée-complète de réfutation par complément : une classe contrainte par une expression de classe niée forcée d'être insatisfaisable-et-pourtant-non-vide, décidée sous le motif du conflit de complément."
+
+msgctxt "https://blackcatinformatics.ca/logic/number-cardinality-counting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete number/cardinality-counting family: min/max/exact (qualified) cardinality bounds decided by counting distinct fillers under the identity stance, under the counting pigeonhole pattern."
+msgstr "La famille certifiée-complète de comptage de nombre/cardinalité : des bornes de cardinalité (qualifiée) minimale/maximale/exacte décidées en dénombrant les remplisseurs distincts sous la posture d'identité, sous le motif du tiroir de comptage."
+
+msgctxt "https://blackcatinformatics.ca/logic/union-disjoint-case-split|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete union-plus-disjoint refutation family: a bounded disjunctive membership every branch of which closes, under the case-split exhaustion pattern."
+msgstr "La famille certifiée-complète de réfutation union-plus-disjoint : une appartenance disjonctive bornée dont chaque branche se referme, sous le motif de l'épuisement par disjonction de cas."
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-enumeration-counting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete nominal-enumeration-counting family: a nominal pigeonhole across disjoint owl:oneOf enumerations, under the nominal clash pattern."
+msgstr "La famille certifiée-complète de comptage d'énumération nominale : un tiroir nominal réparti sur des énumérations owl:oneOf disjointes, sous le motif du conflit nominal."
+
+msgctxt "https://blackcatinformatics.ca/logic/datatype-value-space|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete datatype value-space family: a facet-restricted datatype whose finite value space is too small for the distinct values forced onto it, under the value-space cardinality pattern."
+msgstr "La famille certifiée-complète de l'espace de valeurs de type de données : un type de données restreint par facette dont l'espace de valeurs fini est trop petit pour les valeurs distinctes qu'on lui impose, sous le motif de la cardinalité de l'espace de valeurs."
+
+msgctxt "https://blackcatinformatics.ca/logic/inverse-functional-identity-collapse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete inverse-functional / functional identity-collapse family: an (inverse-)functional property collapsing two distinct individuals, under the arithmetic equality collapse pattern."
+msgstr "La famille certifiée-complète d'effondrement d'identité (inverse-)fonctionnelle : une propriété (inverse-)fonctionnelle qui effondre deux individus distincts, sous le motif de l'effondrement arithmétique d'égalité."
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-rdf-list|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete malformed-rdf:List family: an rdf:nil node bearing a list edge, decided under the malformed metamodel pattern."
+msgstr "La famille certifiée-complète de rdf:List malformée : un nœud rdf:nil portant une arête de liste, décidé sous le motif du métamodèle malformé."
+
+msgctxt "https://blackcatinformatics.ca/logic/has-self-membership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete owl:hasSelf membership-refutation family: a self-restriction in a disjointness position clashed by a self-edge, decided under the counting pigeonhole pattern."
+msgstr "La famille certifiée-complète de réfutation d'appartenance owl:hasSelf : une restriction réflexive en position de disjonction mise en conflit par une auto-arête, décidée sous le motif du tiroir de comptage."
+
+msgctxt "https://blackcatinformatics.ca/logic/xsd-pattern-facet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for xsd:pattern facets: a datatype value-space emptiness the kernel does not decide because it needs the XML-Schema regular-expression dialect rather than a host regex engine."
+msgstr "L'enregistrement d'abstention conservée pour les facettes xsd:pattern : une vacuité de l'espace de valeurs d'un type de données que le noyau ne décide pas car elle exige le dialecte d'expressions rationnelles de XML Schema plutôt qu'un moteur d'expressions rationnelles hôte."
+
+msgctxt "https://blackcatinformatics.ca/logic/non-binary-property-chain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for non-binary property chains: an n-ary role composition the kernel does not certify because it does not reduce to the binary composition its deciders handle."
+msgstr "L'enregistrement d'abstention conservée pour les chaînes de propriétés non binaires : une composition de rôles n-aire que le noyau ne certifie pas car elle ne se réduit pas à la composition binaire que traitent ses décideurs."
+
+msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."
+msgstr "L'enregistrement d'abstention conservée pour les configurations pleinement-DL d'existentiel-plus-cardinalité enchevêtrés : la génération de témoins couplée au comptage sur une même propriété, que le noyau ne certifie qu'isolément."
 
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The number of unique, complete, validated provider rows admitted by an invocation or across a query receipt. Failed, incomplete, cancelled, over-budget, and malformed batches admit zero."

@@ -179,12 +179,29 @@ fn collect_var(term: &EvalTerm, vars: &mut BTreeSet<String>) {
 /// [`RelationStore::select`], merging via [`match_atom`] (so a repeated variable must
 /// agree and a constant must equal the fact surface).  Used both for the body frontier
 /// join and for the restricted-chase head-satisfaction probe.
-fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<Solution> {
+/// Evaluate a conjunctive body/head join into its full solution set, bounded by
+/// `max_solutions`.
+///
+/// The join materializes each atom's partial solutions eagerly, so a body over a store
+/// that a value-inventing chase has grown can, in principle, produce a super-polynomial
+/// (Cartesian) intermediate. `max_solutions` caps the working set: once a stage reaches
+/// it, the join STOPS and reports `truncated = true`. A budgeted chase passes its
+/// `StepGovernor::solution_cap` (it can never commit more than that many derivations, so
+/// a larger solution set is unusable anyway), turning a per-round memory blow-up into a
+/// sound `Exhausted` withhold. An UNBUDGETED caller passes `usize::MAX` — no cap, exactly
+/// the pre-bound behavior — so this only ever bounds an explicitly budgeted run.
+fn join_atoms(
+    atoms: &[EvalAtom],
+    rel: &RelationStore,
+    seed: &Solution,
+    max_solutions: usize,
+) -> (Vec<Solution>, bool) {
     let interner = rel.interner();
     let mut solutions = vec![seed.clone()];
+    let mut truncated = false;
     for atom in atoms {
         let mut next: Vec<Solution> = Vec::new();
-        for sol in &solutions {
+        'expand: for sol in &solutions {
             let subj = ground(&atom.subject, sol);
             let obj = ground(&atom.object, sol);
             let Some(bound) = atom_bound(rel, subj.as_deref(), obj.as_deref()) else {
@@ -203,6 +220,12 @@ fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<S
                 if let Some(mut merged) = match_atom(atom, &f, sol) {
                     merged.source_facts.push(f);
                     next.push(merged);
+                    // Bound the working set: a budgeted chase cannot USE more solutions
+                    // than it can commit, so stop rather than materialize a blow-up.
+                    if next.len() >= max_solutions {
+                        truncated = true;
+                        break 'expand;
+                    }
                 }
             }
         }
@@ -211,7 +234,7 @@ fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<S
             break;
         }
     }
-    solutions
+    (solutions, truncated)
 }
 
 /// The selection [`Bound`] for a `(subject, object)` pair of ground surfaces.
@@ -233,17 +256,29 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 /// existential/​distinct inequalities honored?  If so the firing is skipped.  Realized
 /// as a conjunctive query over the head atoms (existentials free), filtered by the
 /// distinct guards; any surviving solution means satisfied.
+/// Whether the head is already satisfied (the restricted-chase blocking condition), and
+/// whether the check EXHAUSTED its working-set cap before deciding.
+///
+/// The blocking join over an existential head is a conjunctive query whose intermediate
+/// is, in the worst case (a high-arity `≥n` head), a `k^n` cross-product. When the cap
+/// truncates it we cannot certify EITHER answer: a truncated `false` might have found a
+/// blocker later (⇒ we would mint a redundant witness and never converge), and a
+/// truncated `true` reached it only on a partial candidate set. So a truncated check is
+/// reported as such and the caller withholds (`Exhausted`) rather than deciding on it.
+/// Unbudgeted callers pass `usize::MAX`; the cap never trips and the answer is exact.
 fn head_satisfied(
     rule: &ExistentialRule,
     sol: &Solution,
     rel: &RelationStore,
-) -> gmeow_errors::Result<bool> {
-    for candidate in join_atoms(&rule.head, rel, sol) {
+    max_solutions: usize,
+) -> gmeow_errors::Result<(bool, bool)> {
+    let (candidates, truncated) = join_atoms(&rule.head, rel, sol, max_solutions);
+    for candidate in candidates {
         if distinct_pairs_satisfied(&rule.distinct, &candidate)? {
-            return Ok(true);
+            return Ok((true, truncated));
         }
     }
-    Ok(false)
+    Ok((false, truncated))
 }
 
 /// Run the restricted chase for one world's EDB under `rules`.
@@ -370,9 +405,19 @@ fn chase_world_into(
         let round_height = MinProofHeightSemiring.derive([prior_round_height])?;
         // Gather this round's new facts with their provenance, keyed for deterministic
         // FactKey-sorted commit (the columnar-store determinism doctrine).
+        // A budgeted run bounds every intermediate to the same ceiling as the whole
+        // derivation (it can never commit more), so a single super-polynomial round
+        // becomes a sound `Exhausted` withhold instead of an OOM. Unbudgeted ⇒ `usize::MAX`.
+        let solution_cap = governor.solution_cap();
         let mut round = Vec::new();
-        for (rule, existentials, frontier_vars) in &prepared {
-            for sol in join_atoms(&rule.body, &store, &empty_solution()) {
+        let mut round_truncated = false;
+        'rules: for (rule, existentials, frontier_vars) in &prepared {
+            let (body_solutions, body_truncated) =
+                join_atoms(&rule.body, &store, &empty_solution(), solution_cap);
+            if body_truncated {
+                round_truncated = true;
+            }
+            for sol in body_solutions {
                 // The rule's `distinct` guards range over the EXISTENTIAL head vars
                 // (the `≥n` distinctness), which are unbound in the body solution.  They
                 // are enforced two ways: `head_satisfied` applies them to store
@@ -380,8 +425,16 @@ fn chase_world_into(
                 // distinct existential ordinals mint distinct witnesses on a firing (so
                 // the invented facts satisfy them by construction).
                 //
-                // Restricted-chase satisfaction: skip if the head already holds.
-                if head_satisfied(rule, &sol, &store)? {
+                // Restricted-chase satisfaction: skip if the head already holds. A
+                // blocking check that exhausted its cap cannot be trusted either way, so
+                // stop and withhold (`Exhausted`) rather than mint on an unknown blocker.
+                let (already_satisfied, block_truncated) =
+                    head_satisfied(rule, &sol, &store, solution_cap)?;
+                if block_truncated {
+                    round_truncated = true;
+                    break 'rules;
+                }
+                if already_satisfied {
                     continue;
                 }
                 // Invent one witness per existential var (distinct ordinals ⇒ distinct
@@ -456,6 +509,13 @@ fn chase_world_into(
                         rule_iri: rule.rule_iri.clone(),
                     });
                 }
+                // Bound the pending set to the commit ceiling: nothing beyond it can be
+                // committed this round, so stop accumulating and let it be an `Exhausted`
+                // withhold rather than grow the round toward OOM.
+                if round.len() >= solution_cap {
+                    round_truncated = true;
+                    break 'rules;
+                }
             }
         }
 
@@ -494,6 +554,13 @@ fn chase_world_into(
             committed.insert(key);
             governor.charge();
             progressed = true;
+        }
+        // A round whose working set was capped is an incomplete layer: the chase cannot
+        // certify a fixpoint, so it withholds as `Exhausted` (incomplete-never-wrong)
+        // rather than looping on a super-polynomial materialization.
+        if round_truncated {
+            status = BudgetStatus::Exhausted;
+            break 'fixpoint;
         }
         if !progressed {
             break; // natural fixpoint — the chase terminated
@@ -1638,6 +1705,33 @@ pub(crate) fn route_chase_with_registry(
     let admission = ChaseAdmission::certify(rules);
     let outcome = if admits_or_budgeted(&admission, max_steps) {
         chase_world_with_registry(world, edb_facts, rules, max_steps, registry)?
+    } else {
+        NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+    };
+    Ok((admission, outcome))
+}
+
+/// The production-DL router that keeps [`route_chase_with_registry`]'s admission
+/// decision but always caps a CERTIFIED program with a hard step **backstop**.
+///
+/// Weak/joint acyclicity certifies *termination*, not *tractable size*: a certified
+/// program can still materialize a super-polynomial (up to double-exponential) model,
+/// and running it unbudgeted exhausts memory rather than deciding. This sibling runs a
+/// certified program under `backstop_steps` so such a case returns
+/// [`BudgetStatus::Exhausted`] (incomplete-never-wrong) instead of OOMing. An
+/// uncertified program still refuses with `Unsupported` exactly as
+/// [`route_chase_with_registry`] does with no budget — the backstop is a memory
+/// ceiling on the terminating path, never a licence to run a non-terminating one.
+pub(crate) fn route_chase_with_registry_backstopped(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    backstop_steps: u64,
+    registry: &mut SkolemRegistry,
+) -> gmeow_errors::Result<(ChaseAdmission, ChaseOutcome)> {
+    let admission = ChaseAdmission::certify(rules);
+    let outcome = if admission.admits_native() {
+        chase_world_with_registry(world, edb_facts, rules, Some(backstop_steps), registry)?
     } else {
         NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
     };

@@ -231,6 +231,34 @@ fn is_gmeow_term(iri: &str, cfg: &LintConfig) -> bool {
     iri.starts_with(&cfg.namespace) || iri == cfg.ontology_iri
 }
 
+/// Whether a named graph is an **external-publication / lowering fanout graph** — a
+/// commitment-shifted external view that DELIBERATELY carries public BCP-47 language
+/// tags for external consumers, so the internal `x-gmeow-` carrier-tag discipline does
+/// not apply to it. Three families qualify:
+///
+/// * the `research-objects` RO-Crate / DCAT export (`graph/fanout/research-objects/…`),
+///   whose serializer retags each authored A-Box `x-gmeow-*` literal to its public
+///   BCP-47 form — a published RO-Crate MUST NOT ship a private-use tag its consumers
+///   cannot read;
+/// * the **FnO** function lowering (`…/*.fno.ttl`) and the **EDOAL** alignment lowering
+///   (`…/*.edoal`) — the "generated lowerings" of Principle 17 (with SSSOM), external
+///   interchange surfaces described in a foreign standard vocabulary for foreign tools.
+///
+/// The exemption is keyed on the **containing named graph**, never the subject: the same
+/// GMEOW term legitimately appears carrier-tagged in its internal slice graph and public-
+/// tagged in its external projection here, and only the projection is exempt — so this
+/// never masks an internal-graph violation. It exempts ONLY the language-tag discipline;
+/// the structural-annotation contract (label / definition / isDefinedBy / graphBoxRole)
+/// still applies, because these graphs ride in the linted bundle.
+fn is_external_publication_graph(graph_iri: &str, cfg: &LintConfig) -> bool {
+    let Some(rest) = graph_iri.strip_prefix(&format!("{}graph/", cfg.namespace)) else {
+        return false;
+    };
+    rest.starts_with("fanout/research-objects/")
+        || rest.ends_with(".fno.ttl")
+        || rest.ends_with(".edoal")
+}
+
 /// Return the primary structural kind of a GMEOW term from its `rdf:type` set
 /// (mirrors `_term_kind`).
 fn term_kind(types: &HashSet<String>) -> &'static str {
@@ -729,6 +757,18 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
         else {
             continue;
         };
+
+        // Exemption: external-publication fanout graphs (RO-Crate / research-object
+        // exports) are commitment-shifted external views that DELIBERATELY carry
+        // public BCP-47 tags for external consumers — the internal `x-gmeow-` carrier
+        // discipline does not police them. Keyed on the containing named graph, so an
+        // internal-graph violation of the same term is still caught.
+        if let Some(g_id) = q.g
+            && let TermRef::Iri(graph_iri) = ds.resolve(g_id)
+            && is_external_publication_graph(graph_iri, cfg)
+        {
+            continue;
+        }
 
         // Check 1: literal on a GMEOW-namespace predicate.
         if predicate_iri.starts_with(&cfg.namespace)
@@ -2663,6 +2703,67 @@ mod tests {
         ));
         let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors().is_empty(), "errors: {:?}", report.errors());
+    }
+
+    #[test]
+    fn lang_tag_exempts_external_publication_fanout_graph_but_not_internal() {
+        use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+
+        // The identical offending triple — a GMEOW-subject rdfs:label carrying a bare
+        // public `@en` tag — in an external-publication RO-Crate fanout graph vs an
+        // internal fanout graph. The RO-Crate export deliberately retags to public
+        // BCP-47 for its consumers, so the external copy is exempt; the internal copy
+        // is not. A single label triple keeps the subject untyped, so only the
+        // lang-tag check is in play (no missing-* structural findings).
+        let label = "http://www.w3.org/2000/01/rdf-schema#label";
+        let subject = format!("{NS}evals/corpus/readme");
+        let en = RdfTerm::literal(RdfLiteral::language_tagged("README.md", "en"));
+        let external_graph =
+            format!("{NS}graph/fanout/research-objects/lillith/ro-crate/corpus.ttl");
+        let internal_graph = format!("{NS}graph/fanout/evals/scores.ttl");
+
+        let build = |graph: &str| -> Arc<RdfDataset> {
+            let mut b = RdfDatasetBuilder::new();
+            b.push_owned_quad(
+                &RdfQuad::new(RdfTerm::iri(subject.clone()), label, en.clone())
+                    .in_graph(RdfTerm::iri(graph.to_owned())),
+            );
+            b.freeze().expect("valid dataset")
+        };
+
+        // External-publication graph: exempt — no lang-tag finding.
+        let external = structural_lint_dataset(&build(&external_graph), &cfg());
+        assert!(
+            !external
+                .errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'")),
+            "external-publication RO-Crate fanout graph must be exempt from the \
+             carrier-tag discipline: {:?}",
+            external.errors()
+        );
+
+        // FnO lowering graph (Principle 17): also exempt.
+        let fno_graph = format!("{NS}graph/fanout/projections/functions.fno.ttl");
+        let fno = structural_lint_dataset(&build(&fno_graph), &cfg());
+        assert!(
+            !fno.errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'")),
+            "FnO lowering graph must be exempt from the carrier-tag discipline: {:?}",
+            fno.errors()
+        );
+
+        // Internal fanout graph: the same triple is still flagged.
+        let internal = structural_lint_dataset(&build(&internal_graph), &cfg());
+        assert!(
+            internal
+                .errors()
+                .iter()
+                .any(|e| e.contains("external language tag 'en'") && e.contains("label")),
+            "an internal graph's bare @en must still be flagged: {:?}",
+            internal.errors()
+        );
     }
 
     #[test]

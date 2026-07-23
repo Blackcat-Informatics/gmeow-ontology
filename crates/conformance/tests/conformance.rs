@@ -53,12 +53,17 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     // Divergence-lane corpus is the named honest-DlGap quarantine — those cases
     // are UNDECIDED by the native path (a gapped verdict the zero-defer
     // consistency runner refuses), so they are pinned exactly by the dedicated
-    // divergence gate (`el_divergence_gate`) instead of this generic harness.
-    // Skip both here; Lane-A and endogenous cases always run.
+    // divergence gate (`el_divergence_gate`) instead of this generic harness. A
+    // Decided-lane corpus is the was-divergent-now-DECIDED set — those cases DO
+    // decide cleanly, but their dedicated gate (`full_decided_gate`) is the single
+    // live-re-run + partition-pin authority, so this generic harness skips them
+    // too (mirroring the Divergence routing).
+    // Skip all three here; Lane-A and endogenous cases always run.
     if matches!(
         gmeow_conformance::vendored::lane_for_case(&case_dir).map_err(|d| d.to_string())?,
         Some(gmeow_conformance::vendored::Lane::B)
             | Some(gmeow_conformance::vendored::Lane::Divergence)
+            | Some(gmeow_conformance::vendored::Lane::Decided)
     ) {
         return Ok(());
     }
