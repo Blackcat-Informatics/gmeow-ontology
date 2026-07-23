@@ -6,7 +6,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **16**.
 
-This site documents **6434** vocabulary terms across **85** slices.
+This site documents **6436** vocabulary terms across **85** slices.
 
 ## I want to…
 
@@ -29,7 +29,7 @@ This site documents **6434** vocabulary terms across **85** slices.
 | --- | --- |
 | [Classes](classes/index.md) | 1802 |
 | [Properties](properties/index.md) | 3060 |
-| [Individuals](individuals/index.md) | 1571 |
+| [Individuals](individuals/index.md) | 1573 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse
