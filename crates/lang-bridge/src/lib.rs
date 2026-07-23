@@ -72,7 +72,7 @@ pub use gmn1_witness::{
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
-    grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
+    expr_precedence, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
     serialize_grammar,
 };
 pub use lower::{

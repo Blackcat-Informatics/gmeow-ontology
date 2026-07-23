@@ -228,6 +228,19 @@ pub fn canonicalize_expr(e: &RuleExpr) -> RuleExpr {
 /// The binding tightness of an expression node, loosest (1) to tightest (5). The serializer
 /// inserts a grouping around a child ONLY when its precedence is below the context's minimum,
 /// so `serialize(parse(text))` reconstructs the same tree.
+///
+/// This is the SINGLE operator-precedence table the codec shares across every grammar
+/// formalism — the `Ebnf` and `Abnf` serializers both drive their grouping decisions through
+/// it, which is precisely what lets the notation's typed views agree on one canonical tree.
+/// [`expr_precedence`] re-exports it so the cross-surface coherence gate can assert the ladder
+/// directly.
+pub fn expr_precedence(e: &RuleExpr) -> u8 {
+    prec(e)
+}
+
+/// The binding tightness of an expression node, loosest (1) to tightest (5). The serializer
+/// inserts a grouping around a child ONLY when its precedence is below the context's minimum,
+/// so `serialize(parse(text))` reconstructs the same tree.
 fn prec(e: &RuleExpr) -> u8 {
     match e {
         RuleExpr::Alt(_) => 1,
