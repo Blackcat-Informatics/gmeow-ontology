@@ -41,7 +41,7 @@
 //! return value in this module can catch; only the caller's exclusive ownership of the
 //! mapping can prevent it.
 
-use std::collections::{BTreeSet, BinaryHeap};
+use std::collections::{BTreeMap, BTreeSet, BinaryHeap};
 use std::fmt;
 
 use gmeow_logic_compile::result_shape::ColumnKind;
@@ -1643,6 +1643,12 @@ pub struct PurrembRetrievalProvider<'a, E> {
     mapper: PurrembTargetMapper,
     annotate: Box<dyn Fn(RetrievalScore) -> E + Send + Sync>,
     profile: Option<ProfileSurfaceDigests>,
+    /// A query-scoped `reconstructed TermValue → row` index over the immutable binding,
+    /// built once on first use so a bound query resolves in `O(log N)` instead of
+    /// re-reconstructing every corpus row on each `call()` (an `O(calls · N)` cost under
+    /// recursion). Rows that are not losslessly reconstructable are absent, preserving the
+    /// same rejection as a linear scan.
+    query_index: std::sync::OnceLock<BTreeMap<TermValue, usize>>,
 }
 
 impl<'a, E> PurrembRetrievalProvider<'a, E> {
@@ -1716,6 +1722,7 @@ impl<'a, E> PurrembRetrievalProvider<'a, E> {
             mapper: PurrembTargetMapper,
             annotate,
             profile,
+            query_index: std::sync::OnceLock::new(),
         })
     }
 
@@ -1784,21 +1791,27 @@ impl<'a, E> PurrembRetrievalProvider<'a, E> {
         target_set: &TargetSetView<'_>,
         query_term: &TermValue,
     ) -> Result<usize, RelationProviderError> {
-        let row_count = target_set.row_count();
-        for row in 0..row_count {
-            match reconstruct_target(
-                &self.binding.view,
-                target_set.target(row).expect("row is in range"),
-                0,
-            ) {
-                Ok(term) if &term == query_term => return Ok(row),
-                // A row that is not losslessly reconstructable cannot be the query; skip.
-                Ok(_) | Err(_) => {}
+        // The target set is fixed for this binding/selection, so the reconstruction index
+        // is built once and reused across every call (including recursive re-entry). A row
+        // that is not losslessly reconstructable is absent from the index, exactly as the
+        // former linear scan skipped it; a first-writer wins on a lossy collision, matching
+        // the scan's first-match semantics.
+        let index = self.query_index.get_or_init(|| {
+            let mut map = BTreeMap::new();
+            for row in 0..target_set.row_count() {
+                if let Ok(term) = reconstruct_target(
+                    &self.binding.view,
+                    target_set.target(row).expect("row is in range"),
+                    0,
+                ) {
+                    map.entry(term).or_insert(row);
+                }
             }
-        }
-        Err(rejected(
-            "the bound query term names no in-corpus target in the selected target set",
-        ))
+            map
+        });
+        index.get(query_term).copied().ok_or_else(|| {
+            rejected("the bound query term names no in-corpus target in the selected target set")
+        })
     }
 }
 
