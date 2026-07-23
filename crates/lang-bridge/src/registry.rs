@@ -34,6 +34,8 @@ use crate::gmn1_codec::{
     CurrentCodebook, Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
 use crate::gmn1_digest::{codebook_digest, grammar_leaf, pack_root};
+use crate::gmn_metrics::{TokenMetrics, compute_token_metrics};
+use crate::gmn_migrate::tag_schema_version;
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, gbnf_blocking_constructs, grammar_correspondence,
     grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
@@ -621,6 +623,18 @@ impl LangProjectionTarget for Gmn1Target {
         ) {
             emissions.push(gmn1_conformance_pack_emission(dict, codebook, grammar, major));
         }
+        // The bundle-level token-metric measurement product: the DERIVED 7-vector over the
+        // grounding corpus, gated by the SOUND compression bound. Needs the dictionary (to
+        // encode) + the version major (to key the path) + a non-empty corpus. Fallible: a
+        // corpus where GMN's byte-fallback worst case does NOT beat Turtle's best case is a
+        // HARD FAIL — the flagship compression claim can never ship false (Step 2's teeth).
+        if let (Some(dict), Some(major)) = (
+            input.gmn_dictionary.as_ref(),
+            input.gmn_dialect_major.as_deref(),
+        ) && let Some(emission) = gmn1_token_metrics_emission(&input.lang_models, dict, major)?
+        {
+            emissions.push(emission);
+        }
         Ok(emissions)
     }
 }
@@ -832,6 +846,231 @@ fn gmn1_pack_correspondence() -> Correspondence {
 /// the structural inverse of the get leg (the round-trip the driver cross-checks).
 fn gmn1_pack_leg_pair() -> (LegPath, LegPath) {
     let get = LegPath::Step(GMN1_PACK_GET_LEG.to_owned());
+    let put = get.invert();
+    (get, put)
+}
+
+// ── GMN-1 token metrics (bundle-level math-grounded measurement) ────────────────────
+
+/// The `math:` grounding vocabulary the measurement product reuses (never a competing
+/// grounding — the metric magnitudes are dimensionless `math:Quantity` individuals, exactly
+/// like the DECLARED rate `gmeow:gmnRateTokensPerStatement` they measure against).
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+/// The measurement subject: the current shipped GMN-1 token-metric vector, mirroring how
+/// `gmnCodebookCurrent` / `gmnPackCurrent` name the current codebook / pack.
+const GMN_METRICS_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsCurrent";
+/// The token-metrics projection get-leg step (distinct from the codec and pack legs).
+const GMN1_METRICS_GET_LEG: &str =
+    "https://blackcatinformatics.ca/lang/gmn1MetricsProjectStep";
+
+/// The bundle-level token-metric measurement emission: ONE RDF artifact
+/// (`gmn1/v<major>/token-metrics.ttl`, `is_rdf: true`) carrying the DERIVED 7-metric vector
+/// over the grounding corpus as a `gmeow:Measurement` observation whose results are
+/// dimensionless `math:Quantity` magnitudes — the MEASURED realization of the code the
+/// codebook's `gmeow:gmnDeclaredRate` frames as its expectation. The same triples ride into
+/// the reasoned `graph/lang-projection-corpus` via `source_rdf`, so a consumer resolves the
+/// metrics by query, not only by reading the file. Carries an EXACT `logic:Correspondence`
+/// (the metrics recompute deterministically from the corpus + codebook) with a measured-true
+/// round-trip.
+///
+/// Fallible and gated: `None` when the corpus has no round-tripping source (nothing to
+/// measure — no vacuous product), and a HARD FAIL when the SOUND compression gate does not
+/// hold (`gmn_worst_case_tokens` not `< turtle_best_case_tokens`). The gate is the flagship
+/// claim's teeth: a corpus where GMN's byte-fallback worst case fails to beat Turtle's best
+/// case reds the projection rather than shipping a false "GMN < Turtle" claim.
+fn gmn1_token_metrics_emission(
+    sources: &[NamedSource],
+    dict: &GmnDictionary,
+    major: &str,
+) -> Result<Option<LangEmission>, IngestDiagnostic> {
+    let metrics = compute_token_metrics(sources, dict);
+    if metrics.measured_sources == 0 {
+        // No source round-trips ⇒ no GMN artifact ships ⇒ no corpus to measure. Emit nothing
+        // rather than a vacuous all-zero product (mirrors the pack's no-input branch).
+        return Ok(None);
+    }
+    if !metrics.compression_gate_holds() {
+        return Err(IngestDiagnostic {
+            failure_class: LangFailure::SilentIngestDrop,
+            construct: format!(
+                "GMN compression gate FAILED over the grounding corpus: the sound byte-fallback \
+                 worst case gmn_worst_case_tokens={} (= ceil(ascii={}/4) + nonascii={}) is not \
+                 strictly less than turtle_best_case_tokens={}; the flagship 'GMN costs fewer \
+                 tokens than Turtle' claim must not ship false — scope the claim or revisit the \
+                 encoding, never weaken the gate",
+                metrics.gmn_worst_case_tokens,
+                metrics.gmn_ascii_bytes,
+                metrics.gmn_nonascii_bytes,
+                metrics.turtle_best_case_tokens,
+            ),
+        });
+    }
+    let nt = ntriples_sorted(token_metrics_triples(&metrics, dict));
+    let mut loss = LossLedger::new();
+    Ok(Some(LangEmission {
+        artifacts: vec![EmittedArtifact {
+            path_suffix: format!("gmn1/v{major}/token-metrics.ttl"),
+            bytes: nt.clone(),
+            is_rdf: true,
+        }],
+        correspondence: gmn1_metrics_correspondence(),
+        ledger: vec![emit_ledger_row(
+            &mut loss,
+            "gmn1:token-metrics".to_owned(),
+            String::new(),
+            true,
+            PreservationKind::Exact,
+            "n/a".to_owned(),
+            Vec::new(),
+            Vec::new(),
+        )],
+        loss,
+        leg_pair: Some(gmn1_metrics_leg_pair()),
+        emitted_reading_count: None,
+        source_iri: GMN_METRICS_IRI.to_owned(),
+        unsupported: Vec::new(),
+        round_trip_holds: true,
+        lossy_kind: PreservationKind::Exact,
+        source_rdf: nt,
+    }))
+}
+
+/// The token-metrics N-Triples: the `gmeow:Measurement` observation subject bound to the
+/// GMN codebook (`gmeow:vantage`, the coding-theoretic frame the realized rate is measured
+/// from) and the GMN-1 notation (`gmeow:observedFeature`, the surface whose encoding is
+/// measured), each metric a dimensionless `math:Quantity` result reached through
+/// `gmeow:observationResult`, plus the `tag_schema_version` provenance stamp. Every value is
+/// a datatyped literal; the whole set is sorted + deduped by [`ntriples_sorted`], so two
+/// runs over the same corpus + codebook serialize byte-identically.
+fn token_metrics_triples(metrics: &TokenMetrics, dict: &GmnDictionary) -> Vec<String> {
+    let g = |local: &str| format!("{GMEOW_NS}{local}");
+    let m = |local: &str| format!("{MATH_NS}{local}");
+    let triple = |s: &str, p: &str, o: &str| format!("<{s}> <{p}> <{o}> .");
+    let typed = |s: &str, p: &str, lex: &str, dt: &str| format!("<{s}> <{p}> \"{lex}\"^^<{dt}> .");
+    let label = |s: &str, l: &str| format!("<{s}> <{RDFS_LABEL}> \"{l}\" .");
+
+    // The seven-metric vector plus the compression-gate witnesses, each an integer count or a
+    // `[0,1]` ratio. The `is_int` flag picks integer vs fixed-6-place decimal formatting so the
+    // literal is byte-stable (never a locale- or precision-varying float rendering).
+    let vector: &[(&str, f64, bool)] = &[
+        ("bytes_on_disk", metrics.bytes_on_disk as f64, true),
+        ("tokens_in_context", metrics.tokens_in_context as f64, true),
+        ("ast_validity_rate", metrics.ast_validity_rate, false),
+        ("roundtrip_loss", metrics.roundtrip_loss, false),
+        ("compression_ratio", metrics.compression_ratio, false),
+        ("glyph_density", metrics.glyph_density, false),
+        ("dictionary_hit_rate", metrics.dictionary_hit_rate, false),
+        // Compression-gate witnesses (shipped beside the vector as auditable data).
+        (
+            "gmn_worst_case_tokens",
+            metrics.gmn_worst_case_tokens as f64,
+            true,
+        ),
+        ("gmn_realistic_tokens", metrics.gmn_realistic_tokens as f64, true),
+        (
+            "turtle_best_case_tokens",
+            metrics.turtle_best_case_tokens as f64,
+            true,
+        ),
+        ("gmn_ascii_bytes", metrics.gmn_ascii_bytes as f64, true),
+        ("gmn_nonascii_bytes", metrics.gmn_nonascii_bytes as f64, true),
+        ("turtle_bytes_on_disk", metrics.turtle_bytes_on_disk as f64, true),
+        ("jsonld_bytes_on_disk", metrics.jsonld_bytes_on_disk as f64, true),
+    ];
+
+    let mut out = Vec::new();
+    // The observation subject: a gmeow:Measurement bound to its vantage + observed feature.
+    out.push(triple(GMN_METRICS_IRI, RDF_TYPE, &g("Measurement")));
+    out.push(triple(
+        GMN_METRICS_IRI,
+        &g("vantage"),
+        &g("gmnCodebookCurrent"),
+    ));
+    out.push(triple(
+        GMN_METRICS_IRI,
+        &g("observedFeature"),
+        &g("gmnModelNotation"),
+    ));
+    for (name, value, is_int) in vector {
+        let metric_iri = format!("{GMN_METRICS_IRI}/{name}");
+        let lex = if *is_int {
+            format!("{}", value.round() as u64)
+        } else {
+            format!("{value:.6}")
+        };
+        out.push(triple(GMN_METRICS_IRI, &g("observationResult"), &metric_iri));
+        out.push(triple(&metric_iri, RDF_TYPE, &m("Quantity")));
+        out.push(triple(&metric_iri, &m("hasDimension"), &m("dimensionless")));
+        out.push(typed(&metric_iri, &m("quantityValue"), &lex, XSD_DECIMAL));
+        out.push(label(&metric_iri, name));
+    }
+    // The version-provenance stamp, via the shared tag_schema_version quad (rendered here so
+    // the metrics product carries the SAME `gmeow:gmnSchemaVersion` stamp every GMN record does).
+    out.push(render_schema_version(&tag_schema_version(GMN_METRICS_IRI, dict)));
+    out
+}
+
+/// Render the single [`tag_schema_version`] quad as an N-Triples line. The quad is always an
+/// IRI subject, the `gmeow:gmnSchemaVersion` predicate, and an `xsd:string`-typed literal
+/// value (the graph-resolved schema major), so the rendering is total by construction.
+fn render_schema_version(quad: &purrdf::RdfQuad) -> String {
+    let subject = match &quad.subject {
+        purrdf::RdfTerm::Iri(iri) => iri.as_str(),
+        other => unreachable!("tag_schema_version always stamps an IRI subject, got {other:?}"),
+    };
+    let (lexical, datatype) = match &quad.object {
+        purrdf::RdfTerm::Literal(lit) => (
+            lit.lexical_form.as_str(),
+            lit.datatype.as_deref().unwrap_or(XSD_STRING),
+        ),
+        other => unreachable!("tag_schema_version always stamps a literal object, got {other:?}"),
+    };
+    format!(
+        "<{subject}> <{}> \"{lexical}\"^^<{datatype}> .",
+        quad.predicate
+    )
+}
+
+/// The EXACT `logic:Correspondence` the token-metrics emission carries: the measured 7-vector
+/// is a faithful, deterministically-recomputable projection of the corpus + codebook, so the
+/// rung is `logic:SectionRetraction`/`logic:ExactPreservation` with a discharged `GetPut`,
+/// named on its own `gmn1-token-metrics` source key and metrics projection leg.
+fn gmn1_metrics_correspondence() -> Correspondence {
+    let iri = format!(
+        "{GMN1_CORR_BASE}{}",
+        digest16("gmn1-corr", "gmn1-token-metrics")
+    );
+    Correspondence::new(
+        iri,
+        CorrespondenceRelation::Subsumes,
+        MorphismClass::SectionRetraction,
+        MorphismKind::InstitutionMorphism,
+        true,
+        Some(Determinacy::Crisp),
+        Some(GMN1_METRICS_GET_LEG.to_owned()),
+        None,
+        vec![LawClaimIr {
+            law: CorrespondenceLaw::GetPut,
+            verdict: DischargeVerdict::ObligationDischarged,
+            condition: Some(DischargeCondition::DischargeSyntacticReachability),
+        }],
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(PreservationKind::Exact),
+    )
+    .expect("exact gmn1 token-metrics correspondence is well-formed by construction")
+}
+
+/// The token-metrics get/put leg pair — declarative projection-step metadata whose put leg is
+/// the structural inverse of the get leg (the round-trip the driver cross-checks).
+fn gmn1_metrics_leg_pair() -> (LegPath, LegPath) {
+    let get = LegPath::Step(GMN1_METRICS_GET_LEG.to_owned());
     let put = get.invert();
     (get, put)
 }
@@ -1061,6 +1300,220 @@ mod pack_tests {
             .join("../../slices/grounding/lang")
             .join(rel);
         std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    /// The grounding-slice token-metric corpus: every `lang:`-bearing `examples/*.ttl` across
+    /// the `lang`/`math`/`logic` grounding slices — the sources the GMN target lowers FROM,
+    /// in deterministic (slice, filename) order. Mirrors the pipeline's `collect_input` scope
+    /// filter (a source references the `lang:` namespace) so the unit-level corpus matches the
+    /// bundle corpus the projection stage feeds.
+    fn grounding_corpus() -> Vec<NamedSource> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/grounding");
+        let mut corpus = Vec::new();
+        for slice in ["lang", "math", "logic"] {
+            let dir = root.join(slice).join("examples");
+            let mut paths: Vec<_> = std::fs::read_dir(&dir)
+                .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
+                .flatten()
+                .map(|entry| entry.path())
+                .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+                .collect();
+            paths.sort();
+            for path in paths {
+                let bytes = std::fs::read(&path)
+                    .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+                if String::from_utf8_lossy(&bytes).contains("blackcatinformatics.ca/lang/") {
+                    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("src");
+                    corpus.push(NamedSource {
+                        name: format!("{slice}-{stem}"),
+                        bytes,
+                    });
+                }
+            }
+        }
+        corpus
+    }
+
+    /// The carrier GMN dictionary + resolved dialect major, both read off the SAME lang module
+    /// dataset (the pipeline's single source of both).
+    fn carrier_dict_and_major() -> (GmnDictionary, String) {
+        let module = lang_slice_file("module.ttl");
+        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
+        let dict = GmnDictionary::from_dataset(&ds).expect("load carrier GMN dictionary");
+        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
+            .expect("resolve GMN dialect acceptance")
+            .expect("lang module carries the gmeow:gmnDialectVersions lineage")
+            .latest_major_key();
+        (dict, major)
+    }
+
+    /// The full projection input over the grounding corpus (dictionary + codebook + grammar +
+    /// resolved major + the corpus), the shape `Gmn1Target::emit` consumes.
+    fn grounding_input() -> LangProjectionInput {
+        let module = lang_slice_file("module.ttl");
+        let grammar = lang_slice_file("grammars/gmn.ebnf");
+        let ds = purrdf::parse_dataset(&module, "text/turtle", None).expect("parse lang module");
+        let dict = GmnDictionary::from_dataset(&ds).expect("dict");
+        let codebook =
+            crate::gmn1_codec::resolve_current_codebook(&ds).expect("resolve current codebook");
+        let major = crate::gmn1_codec::resolve_dialect_acceptance(&ds)
+            .expect("resolve acceptance")
+            .expect("lineage present")
+            .latest_major_key();
+        LangProjectionInput {
+            lang_models: grounding_corpus(),
+            gmn_dictionary: Some(dict),
+            gmn_codebook: Some(codebook),
+            gmn_grammar_source: Some(grammar),
+            gmn_dialect_major: Some(major),
+            ..Default::default()
+        }
+    }
+
+    /// The token-metric measurement product is DETERMINISTIC (two emissions byte-identical),
+    /// keyed under the resolved-version subtree, carries all seven metrics + the version stamp,
+    /// and is valid Turtle whose triples ride the corpus graph verbatim.
+    #[test]
+    fn gmn1_metrics_are_deterministic() {
+        let input = grounding_input();
+        let major = input.gmn_dialect_major.clone().expect("major");
+
+        let find = |emissions: &[LangEmission]| -> LangEmission {
+            emissions
+                .iter()
+                .find(|e| e.source_iri == GMN_METRICS_IRI)
+                .expect("token-metrics emission present")
+                .clone()
+        };
+        let first = find(&Gmn1Target.emit(&input).expect("gmn1 emit"));
+        let second = find(&Gmn1Target.emit(&input).expect("gmn1 emit (second run)"));
+
+        let versioned_path = format!("gmn1/v{major}/token-metrics.ttl");
+        let artifact = first
+            .artifacts
+            .iter()
+            .find(|a| a.path_suffix == versioned_path)
+            .unwrap_or_else(|| panic!("metrics artifact keyed at {versioned_path}"));
+        assert!(artifact.is_rdf, "the metrics artifact is an RDF serialization");
+
+        // Byte-deterministic across runs.
+        assert_eq!(
+            artifact.bytes, second.artifacts[0].bytes,
+            "the token-metrics product is byte-deterministic"
+        );
+        // The triples ride the reasoned corpus graph verbatim.
+        assert_eq!(
+            first.source_rdf, artifact.bytes,
+            "the metrics triples ride the corpus graph verbatim"
+        );
+        // Valid Turtle (N-Triples is a Turtle subset).
+        purrdf::parse_dataset(artifact.bytes.as_slice(), "text/turtle", None)
+            .expect("the metrics artifact is valid Turtle");
+        // Carries an EXACT correspondence with a measured-true round-trip.
+        assert!(
+            crate::is_exact_correspondence(&first.correspondence),
+            "the metrics carry an exact correspondence"
+        );
+        assert!(first.round_trip_holds, "the metrics round-trip is measured true");
+
+        let ttl = String::from_utf8(artifact.bytes.clone()).expect("utf8");
+        // The measurement subject is a gmeow:Measurement bound to codebook + notation.
+        assert!(
+            ttl.contains(&format!(
+                "<{GMN_METRICS_IRI}> <{RDF_TYPE}> \
+                 <https://blackcatinformatics.ca/gmeow/Measurement>"
+            )),
+            "metrics subject typed gmeow:Measurement:\n{ttl}"
+        );
+        // All SEVEN core metrics are present as dimensionless math:Quantity results.
+        for metric in [
+            "bytes_on_disk",
+            "tokens_in_context",
+            "ast_validity_rate",
+            "roundtrip_loss",
+            "compression_ratio",
+            "glyph_density",
+            "dictionary_hit_rate",
+        ] {
+            let metric_iri = format!("{GMN_METRICS_IRI}/{metric}");
+            assert!(
+                ttl.contains(&format!(
+                    "<{metric_iri}> <{RDF_TYPE}> \
+                     <https://blackcatinformatics.ca/math/Quantity>"
+                )),
+                "metric {metric} typed math:Quantity:\n{ttl}"
+            );
+            assert!(
+                ttl.contains(&format!(
+                    "<{metric_iri}> <https://blackcatinformatics.ca/math/quantityValue>"
+                )),
+                "metric {metric} carries a math:quantityValue:\n{ttl}"
+            );
+        }
+        // Version-tagged via tag_schema_version.
+        assert!(
+            ttl.contains(&format!(
+                "<{GMN_METRICS_IRI}> <{}> ",
+                crate::gmn_migrate::PRED_GMN_SCHEMA_VERSION
+            )),
+            "metrics carry the gmnSchemaVersion provenance stamp:\n{ttl}"
+        );
+    }
+
+    /// The SOUND compression gate: GMN's CONSISTENT byte-fallback worst case (ASCII merged 4:1,
+    /// non-ASCII glyph bytes each a fallback token) is strictly cheaper than Turtle's optimistic
+    /// best case over the REAL grounding corpus. Asserts the exact formula so a regression that
+    /// charged ALL bytes (the internally-inconsistent bound) would change `gmn_worst_case_tokens`
+    /// and RED this test.
+    #[test]
+    fn gmn_beats_turtle_under_byte_fallback_worst_case() {
+        let (dict, _major) = carrier_dict_and_major();
+        let metrics = compute_token_metrics(&grounding_corpus(), &dict);
+
+        // The corpus is non-vacuous and every source round-trips (the grounding scope).
+        assert!(
+            metrics.measured_sources > 0,
+            "the grounding corpus has round-tripping sources"
+        );
+
+        // The gate's left side is EXACTLY the non-ASCII-byte-fallback formula — not total bytes.
+        let expected_worst =
+            metrics.gmn_ascii_bytes.div_ceil(4) + metrics.gmn_nonascii_bytes;
+        assert_eq!(
+            metrics.gmn_worst_case_tokens, expected_worst,
+            "gmn_worst_case_tokens must be ceil(ascii/4)+nonascii, not total bytes \
+             (ascii={}, nonascii={}, total_bytes={})",
+            metrics.gmn_ascii_bytes, metrics.gmn_nonascii_bytes, metrics.bytes_on_disk
+        );
+        // Falsifiable teeth: the inconsistent all-bytes bound (bytes_on_disk) must be visibly
+        // LARGER than the sound bound here — so if a regression swapped it in, the gate below
+        // would flip. (On this corpus all-bytes LOSES: bytes_on_disk > turtle_best.)
+        assert!(
+            metrics.bytes_on_disk > metrics.gmn_worst_case_tokens,
+            "the all-bytes bound is strictly more pessimistic than the sound bound"
+        );
+
+        // THE GATE: GMN worst case < Turtle best case, with a real, non-trivial margin.
+        assert!(
+            metrics.compression_gate_holds(),
+            "GMN must beat Turtle under the sound byte-fallback worst case: \
+             gmn_worst={} !< turtle_best={} (ascii={}, nonascii={})",
+            metrics.gmn_worst_case_tokens,
+            metrics.turtle_best_case_tokens,
+            metrics.gmn_ascii_bytes,
+            metrics.gmn_nonascii_bytes
+        );
+        assert!(
+            metrics.gmn_worst_case_tokens < metrics.turtle_best_case_tokens,
+            "explicit gate inequality on the real numbers: {} < {}",
+            metrics.gmn_worst_case_tokens,
+            metrics.turtle_best_case_tokens
+        );
+        // The realistic reading (both at chars/4) wins by an even wider margin, and GMN is
+        // smaller on disk than both Turtle and JSON-LD.
+        assert!(metrics.gmn_realistic_tokens < metrics.turtle_best_case_tokens);
+        assert!(metrics.bytes_on_disk < metrics.turtle_bytes_on_disk);
+        assert!(metrics.bytes_on_disk < metrics.jsonld_bytes_on_disk);
     }
 
     /// Every emitted GMN artifact (per-source `.gmn` AND the bundle conformance pack) is keyed
