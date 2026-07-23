@@ -16702,6 +16702,229 @@ logic:expressivenessBoundary
     skos:definition "Relates a defining law or a loss-ledger boundary record to the logic:ExpressivenessBoundary its statement inhabits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ─────────────────────────────────────────────────────────────────────────────
+# The fragment-certified refutation kernel's decidability surface, shipped as
+# first-class ontology content. The kernel (crates/logic/src/reason/refute.rs) is
+# the SINGLE SOURCE OF TRUTH: its decided_fragments() and retained_boundaries()
+# registry is projected here as logic:DecidedFragment / logic:RefutationPattern
+# individuals and logic:expressivenessBoundary records, and the Rust agreement test
+# module_ttl_projects_the_kernel_registry proves this manifest is EXACTLY that
+# projection (drift either way fails). Each characterization is TECHNICAL — the
+# refutation pattern and the completeness / boundary bound — with no process refs.
+# ─────────────────────────────────────────────────────────────────────────────
+
+logic:RefutationPattern
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refutation Pattern"@x-gmeow-english ;
+    skos:definition "The closed class of decision-procedure schemata a certified-complete refutation family closes under. Several decided families may share one pattern (a cardinality count and an owl:hasSelf self-edge are both the counting pigeonhole). Its individuals are the state-of-the-art patterns the native kernel decides; the set is the projection of the Rust RefutationPattern enum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DecidedFragment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Decided Fragment"@x-gmeow-english ;
+    skos:definition "A certified-complete construct family the native refutation kernel decides: it carries the logic:RefutationPattern it closes under (logic:decidesUnderPattern) and a technical completeness bound (logic:fragmentCompletenessBound). One individual per decided family; the set is the projection of the Rust decided_fragments() registry, outside which the kernel honestly withholds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:decidesUnderPattern
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "decides under pattern"@x-gmeow-english ;
+    rdfs:domain logic:DecidedFragment ;
+    rdfs:range logic:RefutationPattern ;
+    skos:definition "Relates a logic:DecidedFragment to the logic:RefutationPattern its family closes under."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:fragmentCompletenessBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "fragment completeness bound"@x-gmeow-english ;
+    rdfs:domain logic:DecidedFragment ;
+    rdfs:range xsd:string ;
+    skos:definition "The technical completeness bound of a logic:DecidedFragment: the precise fragment characterization under which the kernel's decision is complete, free of any process reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:fragmentBoundaryReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "fragment boundary reason"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── logic:RefutationPattern individuals (the decision-procedure schemata) ─────────
+
+logic:counting-pigeonhole
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Counting Pigeonhole"@x-gmeow-english ;
+    skos:definition "A finite pigeonhole count of distinct fillers or edges against a numeric bound: the count exceeds (or collapses) the bound, so no model can satisfy it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:value-space-cardinality
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Value-Space Cardinality"@x-gmeow-english ;
+    skos:definition "A finite datatype value-space cardinality bounding the distinct-literal count a cardinality restriction can force onto a datatype property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:case-split-exhaustion
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Case-Split Exhaustion"@x-gmeow-english ;
+    skos:definition "An exhaustive, terminating case-split over a bounded disjunction: every branch is refuted, so the disjunction as a whole is refuted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:complement-clash
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Complement Clash"@x-gmeow-english ;
+    skos:definition "A propositional complement clash: a class expression forced to inhabit both a class and its complement in a definition position, decided without model search."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:arithmetic-equality-collapse
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Arithmetic Equality Collapse"@x-gmeow-english ;
+    skos:definition "An equality / inequality arithmetic collapse over a finite set of named individuals: an (inverse-)functional identity forced against an asserted distinctness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:malformed-metamodel
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Malformed Metamodel"@x-gmeow-english ;
+    skos:definition "A decidable metamodel malformation of the finite triple set, such as a structurally broken RDF list, adjudicated independently of object-level entailment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:nominal-clash
+    a owl:NamedIndividual ,
+        logic:RefutationPattern ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Nominal Clash"@x-gmeow-english ;
+    skos:definition "A finite closed-set intersection emptiness over nominal enumerations: an individual forced into two or more disjoint owl:oneOf sets."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── logic:DecidedFragment individuals (one per certified-complete family) ─────────
+
+logic:complement-refutation
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Complement Refutation"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:complement-clash ;
+    logic:fragmentCompletenessBound "A class expression forced into both C and its complement not-C in a class-definition position; complete because complementhood is decided propositionally, every branch that types an individual into not-C closing against a derivable C-membership with no model search." ;
+    skos:definition "The certified-complete complement-refutation family: a class constrained by a negated class expression forced unsatisfiable-yet-nonempty, decided under the complement clash pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:number-cardinality-counting
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Number / Cardinality Counting"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:counting-pigeonhole ;
+    logic:fragmentCompletenessBound "A min, max, or exact (qualified) cardinality bound on a populated class; complete because the distinct fillers under the identity stance are finitely counted and a collapsed bound (min N greater than max M, or N distinct forced fillers exceeding max M) is a pigeonhole violation with no unbounded search." ;
+    skos:definition "The certified-complete number/cardinality-counting family: min/max/exact (qualified) cardinality bounds decided by counting distinct fillers under the identity stance, under the counting pigeonhole pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:union-disjoint-case-split
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Union / Disjoint Case-Split"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:case-split-exhaustion ;
+    logic:fragmentCompletenessBound "A bounded union C subClassOf (D1 or ... or Dn) whose members are pairwise disjoint; complete because the finite disjunction is exhaustively case-split and every branch closes under refutation in a terminating propositional decision." ;
+    skos:definition "The certified-complete union-plus-disjoint refutation family: a bounded disjunctive membership every branch of which closes, under the case-split exhaustion pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:nominal-enumeration-counting
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Nominal Enumeration Counting"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:nominal-clash ;
+    logic:fragmentCompletenessBound "An individual typed into two or more pairwise-disjoint owl:oneOf enumerations; complete because nominal membership is a finite closed-set intersection whose emptiness is decided by counting, with no anonymous-individual generation." ;
+    skos:definition "The certified-complete nominal-enumeration-counting family: a nominal pigeonhole across disjoint owl:oneOf enumerations, under the nominal clash pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:datatype-value-space
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Datatype Value-Space"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:value-space-cardinality ;
+    logic:fragmentCompletenessBound "A facet-restricted datatype whose finite value-space cardinality is provably smaller than the distinct literals a cardinality bound forces onto it; complete because the value-space count is derived from the math-grounded finite-cardinality table, bounding the pigeonhole exactly." ;
+    skos:definition "The certified-complete datatype value-space family: a facet-restricted datatype whose finite value space is too small for the distinct values forced onto it, under the value-space cardinality pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:inverse-functional-identity-collapse
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Inverse-Functional Identity Collapse"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:arithmetic-equality-collapse ;
+    logic:fragmentCompletenessBound "An inverse-functional or functional property forcing two owl:differentFrom (or distinct-nominal) individuals to be identified; complete because the identity collapse is a decidable equality / inequality arithmetic over a finite set of named individuals." ;
+    skos:definition "The certified-complete inverse-functional / functional identity-collapse family: an (inverse-)functional property collapsing two distinct individuals, under the arithmetic equality collapse pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:malformed-rdf-list
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Malformed rdf:List"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:malformed-metamodel ;
+    logic:fragmentCompletenessBound "An rdf:nil node bearing rdf:first or rdf:rest (a structurally broken RDF list); complete because list well-formedness is a decidable metamodel property of the finite triple set, independent of object-level entailment." ;
+    skos:definition "The certified-complete malformed-rdf:List family: an rdf:nil node bearing a list edge, decided under the malformed metamodel pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:has-self-membership
+    a owl:NamedIndividual ,
+        logic:DecidedFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "hasSelf Membership"@x-gmeow-english ;
+    logic:decidesUnderPattern logic:counting-pigeonhole ;
+    logic:fragmentCompletenessBound "An owl:hasSelf (exists p.Self) restriction in a refutation position where a self-edge x p x forces membership disjoint with a held class; complete because self-membership is a single reflexive-edge count with no unbounded quantifier alternation." ;
+    skos:definition "The certified-complete owl:hasSelf membership-refutation family: a self-restriction in a disjointness position clashed by a self-edge, decided under the counting pigeonhole pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Retained-withhold records (constructs the kernel deliberately does NOT decide) ─
+# Reuse logic:expressivenessBoundary: each record inhabits logic:FirstOrder (these
+# constructs are first-order-expressible, but the kernel declines to certify them)
+# and carries a technical logic:fragmentBoundaryReason.
+
+logic:xsd-pattern-facet
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "xsd:pattern Facet Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "An xsd:pattern facet requires the XML Schema regular-expression dialect, with its Unicode block and category escapes and XSD-specific quantifier semantics, which is not the host platform regular-expression language; the value-space emptiness it induces cannot be decided without an XSD regex evaluator, so it lies outside the certified fragment." ;
+    skos:definition "The retained-withhold record for xsd:pattern facets: a datatype value-space emptiness the kernel does not decide because it needs the XML-Schema regular-expression dialect rather than a host regex engine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:non-binary-property-chain
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Non-Binary Property Chain Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "A property chain of length other than two (an n-ary role composition) does not reduce to the binary role composition the counting and identity deciders certify; its closure couples an unbounded number of role edges, so it lies outside the certified fragment." ;
+    skos:definition "The retained-withhold record for non-binary property chains: an n-ary role composition the kernel does not certify because it does not reduce to the binary composition its deciders handle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:entangled-existential-cardinality
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Entangled Existential + Cardinality Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "A configuration entangling an existential owl:someValuesFrom filler with a number or qualified-cardinality bound on the same property couples witness generation with counting; the family sub-deciders certify each in isolation only, so the entangled full-DL case lies outside the certified fragment." ;
+    skos:definition "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 logic:formalizes
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

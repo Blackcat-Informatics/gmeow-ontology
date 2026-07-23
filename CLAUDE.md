@@ -52,7 +52,6 @@ and the no-debug-symbol policy intact.
 * Run format: `make fmt`
 * Run lint: `make lint`
 * Validate Turtle & SHACL: `make validate`
-* Validate bundled GTS snapshot: `make validate-gts`
 * Regenerate generated artifacts: `make sync`
 * Check generated artifacts: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
 * Run native reasoning: `make reason`

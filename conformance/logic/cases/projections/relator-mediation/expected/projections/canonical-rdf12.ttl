@@ -12,5 +12,5 @@
 <https://example.org/relator-mediation/employedBy> <https://blackcatinformatics.ca/logic/range> <https://example.org/relator-mediation/Organization> .
 <https://example.org/relator-mediation/employs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> .
 <https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/domain> <https://example.org/relator-mediation/Employment> .
-<https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/range> <https://example.org/relator-mediation/Person> .
 <https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/inverseOf> <https://example.org/relator-mediation/employedBy> .
+<https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/range> <https://example.org/relator-mediation/Person> .

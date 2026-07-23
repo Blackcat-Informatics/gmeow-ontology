@@ -567,6 +567,31 @@ math:continuum
     rdfs:label "𝔠"@x-gmeow-english ;
     skos:definition "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."@x-gmeow-english .
 
+# --- Finite xsd datatype value spaces (the grounded pigeonhole bounds) --------- #
+#
+# The value space of a finite xsd datatype, given as a math:FiniteSet whose exact
+# size is carried through math:quantityValue and whose finiteness is
+# math:cardinalityFinite, linked to the datatype it grounds through rdfs:seeAlso.
+# This is the SINGLE SOURCE OF TRUTH for the per-datatype value-space cardinality
+# the native datatype value-space refutation subsolver counts distinct required
+# values against (WebOnt I5.8: 257 distinct xsd:byte values cannot inhabit a
+# 256-element space, so the ontology is inconsistent). The reasoner's Rust lookup
+# table (crates/logic/src/reason/refute/datatype.rs :: FINITE_NAMED_CARDINALITY) is
+# a PROVEN projection of these facts — the test
+# crates/logic/tests/datatype_value_space_math_grounding.rs parses this slice and
+# asserts the two agree bidirectionally, so there is exactly one authored source and
+# no independent hand-maintained Rust copy. Only the finite datatypes the reasoner's
+# certified cases actually need are authored here (never an exhaustive catalogue).
+
+math:xsdByteValueSpace
+    a owl:NamedIndividual , math:FiniteSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "xsd:byte value space"@x-gmeow-english ;
+    skos:definition "The value space of the xsd:byte datatype: the 256 integers from −128 to 127 inclusive. A finite math:Set whose exact size (math:quantityValue 256, finiteness math:cardinalityFinite) is the pigeonhole bound the native datatype value-space refutation subsolver counts against — a datatype property required to carry 257 distinct xsd:byte values cannot be satisfied (WebOnt I5.8, inconsistent). Authored here as the single source of truth; the reasoner's Rust lookup is a proven projection of it."@x-gmeow-english ;
+    rdfs:seeAlso xsd:byte ;
+    math:hasCardinality math:cardinalityFinite ;
+    math:quantityValue 256 .
+
 # --- Ordered intervals and endpoint inclusion ------------------------------- #
 
 math:Interval

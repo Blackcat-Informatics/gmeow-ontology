@@ -2504,6 +2504,98 @@ msgctxt "https://blackcatinformatics.ca/logic/expressivenessBoundary|http://www.
 msgid "expressiveness boundary"
 msgstr "表达力边界"
 
+msgctxt "https://blackcatinformatics.ca/logic/RefutationPattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refutation Pattern"
+msgstr "反驳模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/DecidedFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Decided Fragment"
+msgstr "已判定片段"
+
+msgctxt "https://blackcatinformatics.ca/logic/decidesUnderPattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decides under pattern"
+msgstr "在模式下判定"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentCompletenessBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment completeness bound"
+msgstr "片段完备性界"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentBoundaryReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment boundary reason"
+msgstr "片段边界原因"
+
+msgctxt "https://blackcatinformatics.ca/logic/counting-pigeonhole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Counting Pigeonhole"
+msgstr "计数鸽笼"
+
+msgctxt "https://blackcatinformatics.ca/logic/value-space-cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Value-Space Cardinality"
+msgstr "值空间基数"
+
+msgctxt "https://blackcatinformatics.ca/logic/case-split-exhaustion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Case-Split Exhaustion"
+msgstr "案例穷举拆分"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-clash|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Clash"
+msgstr "补类冲突"
+
+msgctxt "https://blackcatinformatics.ca/logic/arithmetic-equality-collapse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Arithmetic Equality Collapse"
+msgstr "算术相等坍缩"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-metamodel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Metamodel"
+msgstr "畸形元模型"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-clash|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nominal Clash"
+msgstr "标称冲突"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-refutation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Refutation"
+msgstr "补类反驳"
+
+msgctxt "https://blackcatinformatics.ca/logic/number-cardinality-counting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number / Cardinality Counting"
+msgstr "数量／基数计数"
+
+msgctxt "https://blackcatinformatics.ca/logic/union-disjoint-case-split|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Union / Disjoint Case-Split"
+msgstr "并集／互斥案例拆分"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-enumeration-counting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nominal Enumeration Counting"
+msgstr "标称枚举计数"
+
+msgctxt "https://blackcatinformatics.ca/logic/datatype-value-space|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Datatype Value-Space"
+msgstr "数据类型值空间"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverse-functional-identity-collapse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inverse-Functional Identity Collapse"
+msgstr "逆函数同一性坍缩"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-rdf-list|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed rdf:List"
+msgstr "畸形 rdf:List"
+
+msgctxt "https://blackcatinformatics.ca/logic/has-self-membership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasSelf Membership"
+msgstr "hasSelf 归属"
+
+msgctxt "https://blackcatinformatics.ca/logic/xsd-pattern-facet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "xsd:pattern Facet Boundary"
+msgstr "xsd:pattern 面边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/non-binary-property-chain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Non-Binary Property Chain Boundary"
+msgstr "非二元属性链边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Entangled Existential + Cardinality Boundary"
+msgstr "存在与基数纠缠边界"
+
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "external relation admitted rows"
 msgstr "外部关系已接纳行数"
@@ -7352,6 +7444,98 @@ msgstr "命名一个定义性陈述栖居于哪个逻辑片段的封闭类——
 msgctxt "https://blackcatinformatics.ca/logic/expressivenessBoundary|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a defining law or a loss-ledger boundary record to the logic:ExpressivenessBoundary its statement inhabits."
 msgstr "将一条定义性律或一条损失账本边界记录关联到其陈述所栖居的 logic:ExpressivenessBoundary。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefutationPattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed class of decision-procedure schemata a certified-complete refutation family closes under. Several decided families may share one pattern (a cardinality count and an owl:hasSelf self-edge are both the counting pigeonhole). Its individuals are the state-of-the-art patterns the native kernel decides; the set is the projection of the Rust RefutationPattern enum."
+msgstr "封闭类，列举一个已认证完备的反驳族据以归属的判定过程模式。多个已判定的族可以共享同一个模式（一次基数计数与一条 owl:hasSelf 自环边都属于计数鸽笼）。其个体是原生内核所判定的各个前沿模式；该集合是 Rust RefutationPattern 枚举的投影。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DecidedFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A certified-complete construct family the native refutation kernel decides: it carries the logic:RefutationPattern it closes under (logic:decidesUnderPattern) and a technical completeness bound (logic:fragmentCompletenessBound). One individual per decided family; the set is the projection of the Rust decided_fragments() registry, outside which the kernel honestly withholds."
+msgstr "原生反驳内核所判定的一个已认证完备的构造族：它携带其据以归属的 logic:RefutationPattern（通过 logic:decidesUnderPattern）以及一个技术性完备性界（logic:fragmentCompletenessBound）。每个已判定的族对应一个个体；该集合是 Rust decided_fragments() 注册表的投影，超出此范围内核则诚实地保留判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/decidesUnderPattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:DecidedFragment to the logic:RefutationPattern its family closes under."
+msgstr "将一个 logic:DecidedFragment 关联到其所属族据以归属的 logic:RefutationPattern。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentCompletenessBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The technical completeness bound of a logic:DecidedFragment: the precise fragment characterization under which the kernel's decision is complete, free of any process reference."
+msgstr "一个 logic:DecidedFragment 的技术性完备性界：内核的判定在其下完备的精确片段刻画，不含任何流程性指称。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentBoundaryReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."
+msgstr "一条保留的弃判记录之所以落在已认证完备的反驳片段之外的技术原因：内核刻意不予判定的构造及其缘由，不含任何流程性指称。"
+
+msgctxt "https://blackcatinformatics.ca/logic/counting-pigeonhole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite pigeonhole count of distinct fillers or edges against a numeric bound: the count exceeds (or collapses) the bound, so no model can satisfy it."
+msgstr "针对一个数值界对不同的填充值或边进行的有限鸽笼计数：该计数超过（或压垮）该界，因而没有任何模型能够满足它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/value-space-cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite datatype value-space cardinality bounding the distinct-literal count a cardinality restriction can force onto a datatype property."
+msgstr "一种数据类型有限值空间的基数，用以限定一个基数限制能够施加于某数据类型属性之上的不同字面量数目。"
+
+msgctxt "https://blackcatinformatics.ca/logic/case-split-exhaustion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exhaustive, terminating case-split over a bounded disjunction: every branch is refuted, so the disjunction as a whole is refuted."
+msgstr "对一个有界析取进行的穷尽且可终止的按案例拆分：每个分支都被反驳，因而该析取整体被反驳。"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-clash|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A propositional complement clash: a class expression forced to inhabit both a class and its complement in a definition position, decided without model search."
+msgstr "一种命题层面的补类冲突：一个类表达式在定义位置上被迫同时归属于某个类及其补类，无需模型搜索即可判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/arithmetic-equality-collapse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An equality / inequality arithmetic collapse over a finite set of named individuals: an (inverse-)functional identity forced against an asserted distinctness."
+msgstr "在一个有限的具名个体集合上发生的相等/不等算术坍缩：一个（逆）函数性同一性被迫与一个已断言的相异性相抵触。"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-metamodel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decidable metamodel malformation of the finite triple set, such as a structurally broken RDF list, adjudicated independently of object-level entailment."
+msgstr "对有限三元组集合的一种可判定的元模型畸形，例如一个结构性损坏的 RDF 列表，其判定独立于对象层面的蕴涵。"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-clash|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite closed-set intersection emptiness over nominal enumerations: an individual forced into two or more disjoint owl:oneOf sets."
+msgstr "在标称枚举上发生的有限闭集交空性：一个个体被迫归入两个或更多互不相交的 owl:oneOf 集合。"
+
+msgctxt "https://blackcatinformatics.ca/logic/complement-refutation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete complement-refutation family: a class constrained by a negated class expression forced unsatisfiable-yet-nonempty, decided under the complement clash pattern."
+msgstr "已认证完备的补类反驳族：一个类受一个被否定的类表达式约束，被迫呈现为不可满足却又非空，在补类冲突模式下判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/number-cardinality-counting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete number/cardinality-counting family: min/max/exact (qualified) cardinality bounds decided by counting distinct fillers under the identity stance, under the counting pigeonhole pattern."
+msgstr "已认证完备的数量／基数计数族：在给定同一性立场下通过对不同填充值计数来判定的最小/最大/精确（限定）基数界，属于计数鸽笼模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/union-disjoint-case-split|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete union-plus-disjoint refutation family: a bounded disjunctive membership every branch of which closes, under the case-split exhaustion pattern."
+msgstr "已认证完备的并集加互斥反驳族：一种有界的析取归属关系，其每个分支都会收敛，属于案例穷举拆分模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/nominal-enumeration-counting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete nominal-enumeration-counting family: a nominal pigeonhole across disjoint owl:oneOf enumerations, under the nominal clash pattern."
+msgstr "已认证完备的标称枚举计数族：跨越互不相交的 owl:oneOf 枚举的一种标称鸽笼，属于标称冲突模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/datatype-value-space|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete datatype value-space family: a facet-restricted datatype whose finite value space is too small for the distinct values forced onto it, under the value-space cardinality pattern."
+msgstr "已认证完备的数据类型值空间族：一种经面限制的数据类型，其有限值空间对于被迫施加于其上的不同值而言过小，属于值空间基数模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/inverse-functional-identity-collapse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete inverse-functional / functional identity-collapse family: an (inverse-)functional property collapsing two distinct individuals, under the arithmetic equality collapse pattern."
+msgstr "已认证完备的（逆）函数同一性坍缩族：一个（逆）函数性属性将两个不同个体坍缩为一，属于算术相等坍缩模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/malformed-rdf-list|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete malformed-rdf:List family: an rdf:nil node bearing a list edge, decided under the malformed metamodel pattern."
+msgstr "已认证完备的畸形 rdf:List 族：一个承载列表边的 rdf:nil 节点，在畸形元模型模式下判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/has-self-membership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The certified-complete owl:hasSelf membership-refutation family: a self-restriction in a disjointness position clashed by a self-edge, decided under the counting pigeonhole pattern."
+msgstr "已认证完备的 owl:hasSelf 归属反驳族：一个处于互斥位置的自反限制被一条自环边冲突，属于计数鸽笼模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/xsd-pattern-facet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for xsd:pattern facets: a datatype value-space emptiness the kernel does not decide because it needs the XML-Schema regular-expression dialect rather than a host regex engine."
+msgstr "针对 xsd:pattern 面的保留弃判记录：一种数据类型值空间空性，内核不予判定，因为它需要 XML Schema 的正则表达式方言，而非宿主正则引擎。"
+
+msgctxt "https://blackcatinformatics.ca/logic/non-binary-property-chain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for non-binary property chains: an n-ary role composition the kernel does not certify because it does not reduce to the binary composition its deciders handle."
+msgstr "针对非二元属性链的保留弃判记录：一种 n 元角色复合，内核不予认证，因为它无法归约为其判定器所处理的二元复合。"
+
+msgctxt "https://blackcatinformatics.ca/logic/entangled-existential-cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for entangled full-DL existential-plus-cardinality configurations: witness generation coupled with counting on one property, which the kernel certifies only in isolation."
+msgstr "针对纠缠的全 DL 存在加基数配置的保留弃判记录：在同一属性上将见证生成与计数相耦合，内核只在两者各自独立时才予以认证。"
 
 msgctxt "https://blackcatinformatics.ca/logic/externalRelationAdmittedRows|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The number of unique, complete, validated provider rows admitted by an invocation or across a query receipt. Failed, incomplete, cancelled, over-budget, and malformed batches admit zero."

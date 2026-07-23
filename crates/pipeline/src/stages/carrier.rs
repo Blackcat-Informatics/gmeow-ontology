@@ -1009,7 +1009,8 @@ fn assemble_carrier(
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
     // materializes gmeow:findingGateVerdict for the shipped findings — an up-set finding
     // (Error / blocking category / Binding) rides the bundle missing its verdict and
-    // gmeow:GateFatalUpsetShape fires under validate-gts. Run the AUTHORED rule (via the
+    // gmeow:GateFatalUpsetShape fires under the authored-source `make validate` /
+    // stage-validate SHACL pass. Run the AUTHORED rule (via the
     // native chase, never the Rust gate() morphism) over the COMPLETE composed bundle —
     // where every finding-bearing graph AND the rule + gmeow:categoryBlocking wiring are
     // assembled — and fold the derived verdicts into graph/diagnostics, so the shipped

@@ -1010,9 +1010,11 @@ mod tests {
         );
     }
 
-    /// Release attestations are not folded into the dev `gmeow.gts` bundle that
-    /// `make validate-gts` checks, so guard the minted attestation graph against
-    /// the SAME structural-lint contract here: every typed attestation subject
+    /// Release attestations are not folded into the dev `gmeow.gts` bundle that the
+    /// authored-source `make validate` / stage-validate SHACL pass (and, for the
+    /// shipped norm-claims subset, the `norm_claims_shacl` test) checks, so guard
+    /// the minted attestation graph against the SAME structural-lint contract here:
+    /// every typed attestation subject
     /// must satisfy the assertional tier (type + label + named-graph provenance +
     /// valid `gmeow:boxABox` role). Without this the release-path annotations
     /// would be correctness no gate validates.

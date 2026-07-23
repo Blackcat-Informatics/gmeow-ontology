@@ -55,6 +55,18 @@ pub enum Lane {
     /// divergence gate pins each case exactly instead. Fast + sub-second like
     /// Lane A (consistency checks), but deliberately divergent by construction.
     Divergence,
+    /// The named "was-divergent, now-DECIDED" corpus: cases the native DL path
+    /// once could not decide (they were vendored into the sibling `-divergence`
+    /// lane as honest `DlGap`s) but that the refutation kernel now DECIDES
+    /// soundly — the native verdict is a clean `consistent`/`inconsistent` that
+    /// AGREES with the W3C published verdict. The committed golden therefore
+    /// records the decided native token (== the W3C published verdict), so the
+    /// `committed == declared` soundness check DOES hold here (unlike
+    /// `Divergence`). A dedicated decided gate (`full_decided_gate`) re-runs each
+    /// case live and pins the decided/withheld partition; the generic per-case
+    /// consistency harness skips this lane so the dedicated gate is the single
+    /// live-re-run authority (mirroring how `Divergence` is owned by its gate).
+    Decided,
 }
 
 impl Lane {
@@ -63,21 +75,25 @@ impl Lane {
             "a" | "A" => Ok(Lane::A),
             "b" | "B" => Ok(Lane::B),
             "divergence" => Ok(Lane::Divergence),
+            "decided" => Ok(Lane::Decided),
             other => Err(Diag::of_kind(CorpusInvalid {
                 detail: format!(
-                    "corpus.json lane must be \"a\", \"b\", or \"divergence\", got {other:?}"
+                    "corpus.json lane must be \"a\", \"b\", \"divergence\", or \"decided\", got \
+                     {other:?}"
                 ),
             })),
         }
     }
 
-    /// The lowercase wire token for this lane (`"a"`, `"b"`, `"divergence"`) — the
-    /// inverse of [`Lane::parse`], for carrying the lane in a projection.
+    /// The lowercase wire token for this lane (`"a"`, `"b"`, `"divergence"`,
+    /// `"decided"`) — the inverse of [`Lane::parse`], for carrying the lane in a
+    /// projection.
     pub fn as_str(&self) -> &'static str {
         match self {
             Lane::A => "a",
             Lane::B => "b",
             Lane::Divergence => "divergence",
+            Lane::Decided => "decided",
         }
     }
 }
@@ -268,6 +284,14 @@ mod tests {
     fn divergence_lane_parses() {
         let m = parse_corpus_meta(&meta_value("W3C", "divergence")).unwrap();
         assert_eq!(m.lane, Lane::Divergence);
+    }
+
+    #[test]
+    fn decided_lane_round_trips() {
+        let m = parse_corpus_meta(&meta_value("W3C", "decided")).unwrap();
+        assert_eq!(m.lane, Lane::Decided);
+        // The wire token is the inverse of `parse`.
+        assert_eq!(m.lane.as_str(), "decided");
     }
 
     #[test]

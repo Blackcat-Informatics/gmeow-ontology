@@ -6,7 +6,7 @@
 //! → stdout, errors/diagnostics → stderr, and a `0`/`1` exit code.
 
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -50,7 +50,7 @@ use gmeow_pipeline::diagnostics_reader::{
     read_findings, read_invented_witnesses, render_shared_dag, verdict,
 };
 
-use crate::{BUNDLE_GTS, NAMESPACE};
+use crate::{BUNDLE_GTS, FragmentsFormat, NAMESPACE};
 
 /// Build an Error-grade CLI diagnostic carrying a per-site stable code — the
 /// pre-carrier graded witness a handled `gmeow` failure lowers to (never a bare
@@ -1298,6 +1298,269 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
         println!("gap-detail {}", gap.detail);
     }
     0
+}
+
+// ── logic fragments (the shipped decidability-surface query) ──────────────────
+
+/// The `logic:` grounding namespace the decidability manifest is authored in.
+const LOGIC_FRAGMENTS_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// `rdf:type` and `rdfs:label` — the two external predicates the manifest query keys on.
+const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_LABEL_IRI: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+/// One decided construct family read off the shipped `logic:DecidedFragment`
+/// manifest: its stable id (the individual's local name), the
+/// `logic:RefutationPattern` local name it closes under, its human label, and its
+/// technical `logic:fragmentCompletenessBound`.
+struct DecidedFragmentRow {
+    id: String,
+    pattern: String,
+    label: String,
+    bound: String,
+}
+
+/// One retained withhold read off the shipped `logic:expressivenessBoundary`
+/// records: its stable id (local name), its human label, and its technical
+/// `logic:fragmentBoundaryReason`.
+struct RetainedBoundaryRow {
+    id: String,
+    label: String,
+    reason: String,
+}
+
+/// The decidability surface extracted from a graph source.
+struct DecidabilitySurface {
+    decided: Vec<DecidedFragmentRow>,
+    boundaries: Vec<RetainedBoundaryRow>,
+}
+
+/// Load the graph source the `logic fragments` verb queries: the embedded
+/// `gmeow.gts` bundle by default, or a `--bundle` override folded as a `.gts`
+/// snapshot / parsed as RDF (chosen by file extension). Both routes yield a frozen
+/// [`purrdf::RdfDataset`], never a degraded empty graph.
+fn fragments_graph_source(
+    reporter: &dyn Reporter,
+    bundle: Option<&Path>,
+) -> Result<Arc<purrdf::RdfDataset>, i32> {
+    match bundle {
+        None => purrdf::gts::flattened_dataset_from_bytes(BUNDLE_GTS).map_err(|e| {
+            fail(
+                reporter,
+                "gmeow-cli.logic-fragments.fold-bundle",
+                format!("cannot fold the embedded gmeow.gts bundle: {e}"),
+            )
+        }),
+        Some(path) => {
+            let is_gts = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("gts"));
+            if is_gts {
+                let bytes = read_bytes(reporter, path)?;
+                purrdf::gts::flattened_dataset_from_bytes(&bytes).map_err(|e| {
+                    fail(
+                        reporter,
+                        "gmeow-cli.logic-fragments.fold-bundle",
+                        format!("cannot fold {}: {e}", path.display()),
+                    )
+                })
+            } else {
+                parse_rdf_file(reporter, path)
+            }
+        }
+    }
+}
+
+/// Extract the decidability surface from `dataset` by graph queries over the shipped
+/// `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`
+/// manifest — the SAME projection the kernel's
+/// `module_ttl_projects_the_kernel_registry` agreement test asserts is exactly the
+/// Rust `decided_fragments()` / `retained_boundaries()` registry. Rows are returned
+/// sorted by id (deterministic).
+fn extract_decidability_surface(dataset: &purrdf::RdfDataset) -> DecidabilitySurface {
+    let decided_class = format!("{LOGIC_FRAGMENTS_NS}DecidedFragment");
+    let decides_under = format!("{LOGIC_FRAGMENTS_NS}decidesUnderPattern");
+    let completeness_bound = format!("{LOGIC_FRAGMENTS_NS}fragmentCompletenessBound");
+    let boundary_reason = format!("{LOGIC_FRAGMENTS_NS}fragmentBoundaryReason");
+
+    let local = |iri: &str| iri.strip_prefix(LOGIC_FRAGMENTS_NS).map(str::to_owned);
+
+    // A decided fragment is a subject typed logic:DecidedFragment carrying a deciding
+    // pattern + completeness bound; a retained boundary is a subject carrying a
+    // logic:fragmentBoundaryReason. Both are keyed by their local name; labels are
+    // collected for every logic: subject and joined in at render time.
+    let mut decided_ids: BTreeSet<String> = BTreeSet::new();
+    let mut pattern_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut bound_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut reason_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut label_of: BTreeMap<String, String> = BTreeMap::new();
+
+    for quad in dataset.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let Some(subj) = local(subject) else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            RDF_TYPE_IRI => {
+                if let RdfTerm::Iri(o) = &quad.object
+                    && *o == decided_class
+                {
+                    decided_ids.insert(subj);
+                }
+            }
+            RDFS_LABEL_IRI => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    label_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == decides_under => {
+                if let RdfTerm::Iri(o) = &quad.object
+                    && let Some(pl) = local(o)
+                {
+                    pattern_of.insert(subj, pl);
+                }
+            }
+            p if p == completeness_bound => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    bound_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == boundary_reason => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    reason_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let decided = decided_ids
+        .into_iter()
+        .map(|id| DecidedFragmentRow {
+            pattern: pattern_of.get(&id).cloned().unwrap_or_default(),
+            label: label_of.get(&id).cloned().unwrap_or_default(),
+            bound: bound_of.get(&id).cloned().unwrap_or_default(),
+            id,
+        })
+        .collect();
+    let boundaries = reason_of
+        .into_iter()
+        .map(|(id, reason)| RetainedBoundaryRow {
+            label: label_of.get(&id).cloned().unwrap_or_default(),
+            id,
+            reason,
+        })
+        .collect();
+    DecidabilitySurface {
+        decided,
+        boundaries,
+    }
+}
+
+/// Render the decidability surface as deterministic, greppable human text.
+fn render_fragments_text(surface: &DecidabilitySurface) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    let _ = writeln!(out, "decided-fragments {}", surface.decided.len());
+    for f in &surface.decided {
+        let _ = writeln!(out, "fragment {}", f.id);
+        let _ = writeln!(out, "  label {}", f.label);
+        let _ = writeln!(out, "  pattern {}", f.pattern);
+        let _ = writeln!(out, "  bound {}", f.bound);
+    }
+    let _ = writeln!(out, "retained-boundaries {}", surface.boundaries.len());
+    for b in &surface.boundaries {
+        let _ = writeln!(out, "boundary {}", b.id);
+        let _ = writeln!(out, "  label {}", b.label);
+        let _ = writeln!(out, "  reason {}", b.reason);
+    }
+    out
+}
+
+/// Render the decidability surface as pretty, deterministic JSON.
+fn render_fragments_json(surface: &DecidabilitySurface) -> Result<String, serde_json::Error> {
+    let decided: Vec<serde_json::Value> = surface
+        .decided
+        .iter()
+        .map(|f| {
+            serde_json::json!({
+                "id": f.id,
+                "label": f.label,
+                "pattern": f.pattern,
+                "bound": f.bound,
+            })
+        })
+        .collect();
+    let boundaries: Vec<serde_json::Value> = surface
+        .boundaries
+        .iter()
+        .map(|b| {
+            serde_json::json!({
+                "id": b.id,
+                "label": b.label,
+                "reason": b.reason,
+            })
+        })
+        .collect();
+    let doc = serde_json::json!({
+        "decided_fragments": decided,
+        "retained_boundaries": boundaries,
+    });
+    serde_json::to_string_pretty(&doc)
+}
+
+/// `gmeow logic fragments` — query the shipped fragment-certified decidability
+/// surface and list (1) the construct families the native refutation kernel
+/// natively DECIDES, each with its `logic:RefutationPattern` and completeness bound,
+/// and (2) their dual, the retained `logic:expressivenessBoundary` records the
+/// kernel deliberately WITHHOLDS, with their technical reasons.
+///
+/// The surface is read by graph queries over a graph source — the embedded
+/// `gmeow.gts` bundle by default, or a `--bundle` override (a `.gts` snapshot, or an
+/// RDF file such as the `logic` slice `module.ttl`, chosen by extension) — dogfooding
+/// the shipped manifest rather than re-authoring a static table. Output is
+/// deterministic (sorted by id). A graph source carrying NO decidability manifest is
+/// a hard fail (never a silent empty success): the manifest is materialized into the
+/// bundle by `make sync`, so an empty read points the user at that.
+pub fn logic_fragments(
+    reporter: &dyn Reporter,
+    bundle: Option<&Path>,
+    format: FragmentsFormat,
+) -> i32 {
+    let dataset = match fragments_graph_source(reporter, bundle) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let surface = extract_decidability_surface(dataset.as_ref());
+    if surface.decided.is_empty() && surface.boundaries.is_empty() {
+        return fail(
+            reporter,
+            "gmeow-cli.logic-fragments.empty-surface",
+            "the graph source carries no logic:DecidedFragment / logic:expressivenessBoundary \
+             decidability manifest; the embedded bundle is materialized by `make sync`, or pass \
+             --bundle pointing at a graph source that ships the manifest (e.g. the logic slice \
+             module.ttl)",
+        );
+    }
+    let rendered = match format {
+        FragmentsFormat::Text => Ok(render_fragments_text(&surface)),
+        FragmentsFormat::Json => render_fragments_json(&surface)
+            .map(|mut s| {
+                s.push('\n');
+                s
+            })
+            .map_err(|e| format!("cannot render decidability surface as JSON: {e}")),
+    };
+    match rendered {
+        Ok(text) => {
+            print!("{text}");
+            0
+        }
+        Err(msg) => fail(reporter, "gmeow-cli.logic-fragments.render", msg),
+    }
 }
 
 // ── logic backward ───────────────────────────────────────────────────────────

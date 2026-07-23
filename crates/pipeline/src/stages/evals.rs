@@ -1177,7 +1177,8 @@ mod tests {
     /// missing/incorrect A-Box annotation on a minted `ev:model-*` /
     /// `ev:assessment-*` individual reds HERE — a fast `cargo nextest -p
     /// gmeow-pipeline` — rather than only surfacing at the next expensive
-    /// `make validate-gts`.
+    /// whole-bundle SHACL validation (`make validate` / the pipeline
+    /// stage-validate).
     #[test]
     fn minted_individuals_satisfy_the_assertional_abox_contract() {
         use gmeow_validate::lint::{LintConfig, structural_lint_dataset};

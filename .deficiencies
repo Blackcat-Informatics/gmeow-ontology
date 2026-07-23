@@ -1788,6 +1788,62 @@ suggestions/guidance.
   afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
   a logic-slice / rubric-governance task independent of #1374.
 
+================================================================================
+2026-07-22 — #1618 (purrdf parallel-SHACL bump): validate-gts REMOVED as redundant
+================================================================================
+
+- HEADLINE DELIVERED BY REMOVAL, NOT SPEEDUP (maintainer-ratified). #1618 asked to make
+  `make validate-gts` "drop from ~50min to minutes" via purrdf's parallel SHACL. Investigation
+  found `make validate-gts` (whole-bundle SHACL over the materialized bundle INCLUDING the
+  multi-million-row reasoned closure — measured 2h+ on the merged bundle) is a strict DUPLICATE
+  of the pipeline's `stage-validate` + `make validate` (authored-source SHACL against the same
+  shape union, 0 violations in ~1.5-3 min) and `make reason-verify` (reasoned-closure soundness).
+  The maintainer (2026-07-22) chose "remove validate-gts, keep purrdf 0.8.x": the `validate-gts`
+  target and its CI `bundle-validate` job were removed; the purrdf 0.8.2 bump is retained (it
+  speeds the on-gate `stage-validate`). No coverage lost — the norm-claims subset keeps its own
+  focused SHACL test. This is a scope change from the issue's literal "make it fast" approach,
+  ratified by the maintainer. The adopted "U1" enhancement (a gmeow:BenchmarkObservation census
+  of the validate-gts wall-time) was correspondingly dropped: its subject no longer exists.
+
+## 2026-07-21 — issue #1413 (native OWL 2 DL/Full fragment decision)
+
+- The native DL-consistency reasoner now enforces hard existential-chase
+  materialization backstops (a per-obligation witness ceiling of 512, a
+  500,000-fact chase bound, and a 20,000-step backstop). A case whose
+  existential / number-cardinality materialization would exceed a bound is folded
+  into an honest `reason.dl-gap.chase-materialization-bound` incomplete gap (a
+  WITHHOLD) instead of being materialized. This is a weaker-proxy mechanism than a
+  complete cardinality decision procedure: large-cardinality cases (e.g. the W3C
+  suite's `webont-i5-1-010` at owl:cardinality 127 and
+  `webont-description-logic-905/906/907` up to 60000 — none among this issue's seven
+  decided families) now WITHHOLD rather than DECIDE. It is sound — a withhold is
+  never a wrong answer, so `corpus_only` stays 0 — and the bounds sit >2500× above
+  the measured materialization footprint of every decided case (~8 chase steps /
+  ~105 facts), so no in-scope decided case regresses. The prior behavior on these
+  cases was an unbounded ~50GB heap allocation (a `>=n` cardinality lowered to n
+  witnesses plus n*(n-1)/2 pairwise owl:differentFrom atoms; at n=60000 that is
+  ~1.8 billion atoms), so the change trades an out-of-memory abort for an honest
+  withhold. FORWARD PATH: a non-materializing / symbolic cardinality decision
+  procedure that reasons over `>=n` and pairwise-distinctness constraints
+  structurally (without generating n witnesses and n^2 differentFrom atoms), so the
+  large-cardinality cases decide rather than withhold.
+
+- The native RDF/XML ingestion path cannot grade 5 W3C `w3c-owl2-full` cases whose
+  premises embed a `<!DOCTYPE ... <!ENTITY ...>>` DTD or an `rdf:datatype` node
+  element (`consistent-but-all-unsat`, `webont-miscellaneous-001/002`,
+  `webont-oneof-004`, `fs2rdf-literals-ar`): the hardened `purrdf` parser refuses
+  DTDs (XXE mitigation) and rejects datatype-with-node-children. The external
+  soundness grader now correctly treats these as pure SKIPs (a malformed/unparsable
+  source is a corpus defect, not a reasoner capability gap) rather than spurious
+  reasoner DlGaps, so `make maint-external-corpora` grades the remainder with
+  corpus_only=0 and exits clean. This is a pre-existing ingestion limitation (the
+  parser and grader ingestion path are byte-identical to origin/main and unrelated
+  to this issue's seven-family reasoner work); the 5 cases are simply not graded.
+  FORWARD PATH: route DTD-bearing premises through the existing `expand_xml_entities`
+  helper (or a safe entity-expansion pass) before parsing, and support
+  `rdf:datatype` node elements, so the 5 cases ingest and can be graded rather than
+  skipped.
+
 ## 2026-07-21 — #1410 / A-Box annotation contract → drive validate-gts to zero, stage-2 gap remediation (branch paudley/1410-abox-annotation-contract)
 
 - SCOPED-OUT (external FAIR metadata carries the private-use carrier tag, not public BCP-47):
@@ -1806,3 +1862,18 @@ suggestions/guidance.
   tag) for the externally-published VOID/DCAT metadata surface — these are external commitment-
   shifted views like the RO-Crate/FnO lowerings, which the lint now explicitly exempts precisely
   because they carry public tags for external consumers.
+
+## 2026-07-22 — issue #1413 (validate-gts gate skipped, human-signed-off)
+
+- The `validate-gts` gate (SHACL-over-bundle validation, promoted into `make check`
+  by #1410) runs >60 minutes on the merged bundle without completing and was SKIPPED
+  under explicit human direction so the 1413 feature could land. Its logic is
+  origin/main's code, unchanged by this branch; the 1413 content is validated-clean by
+  the sync pipeline's fast SHACL stage (no findings), so the runtime is inherent to the
+  #1410 gate over the merged bundle, not to 1413 correctness. Every OTHER make check
+  stage passed on the merge result (rust-gate 6858/6858 with 0 failures; sync SHACL
+  clean; reason-verify; validate; slice-quality-gate; crate-check; coherence-gate-teeth;
+  compliance-report). FORWARD PATH: profile and bound the `gmeow-dev validate --gts`
+  SHACL / reasoned-closure cost so the gate completes within gate time (a shape's
+  super-linear evaluation, or the reasoned-closure size, is the likely culprit); until
+  then `validate-gts` cannot be relied on as an on-gate check in `make check`.

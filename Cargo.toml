@@ -130,7 +130,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.7.0" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.8.2" }
 
 [workspace.package]
 version = "0.2.0"
@@ -298,12 +298,3 @@ lto = false
 # above — `bench` does not inherit `[profile.release]`'s settings (Cargo profile
 # overrides are per-profile), so it needs its own `strip` closing the same gap.
 strip = "symbols"
-
-# TEMPORARY (remove when purrdf ships structured-zstd > 0.0.40 — see purrdf#142):
-# purrdf 0.7.0 hard-pins `structured-zstd = "0.0.40"`, whose huff0 encoder panics
-# ("internal error", huff0_encoder.rs:643) compressing the gmeow.gts bundle. This
-# vendors structured-zstd 0.0.49 (whose huff0 encoder limits code lengths instead of
-# panicking) relabelled 0.0.40 so purrdf's exact pin is satisfied. Drop this patch and
-# the vendor/ tree once purrdf bumps structured-zstd upstream.
-[patch.crates-io]
-structured-zstd = { path = "vendor/structured-zstd-0.0.49" }

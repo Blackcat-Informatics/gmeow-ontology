@@ -72,6 +72,16 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
+/// The `logic fragments` output serialization.
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum FragmentsFormat {
+    /// Deterministic, greppable human-readable text (the default).
+    #[default]
+    Text,
+    /// Pretty JSON of the decided-fragment / retained-boundary surface.
+    Json,
+}
+
 /// The `gmeow` consumer CLI.
 #[derive(Debug, Parser)]
 #[command(name = "gmeow", version, about = "The GMEOW ontology consumer CLI.")]
@@ -680,6 +690,26 @@ pub enum LogicCommands {
         #[command(subcommand)]
         command: LogicSessionCommands,
     },
+    /// Query the shipped fragment-certified decidability surface: list the construct
+    /// families the native refutation kernel natively DECIDES (each with the
+    /// `logic:RefutationPattern` it closes under and its completeness bound), plus
+    /// their dual — the retained `logic:expressivenessBoundary` records the kernel
+    /// deliberately WITHHOLDS, with their technical reasons. Reads the decidability
+    /// manifest (`logic:DecidedFragment` / `logic:RefutationPattern` /
+    /// `logic:expressivenessBoundary`) straight from a graph source via graph queries:
+    /// the embedded `gmeow.gts` bundle by default, or a `--bundle` override (a `.gts`
+    /// snapshot, or an RDF file such as the `logic` slice `module.ttl`, chosen by
+    /// extension). Output is deterministic (sorted by fragment / boundary id).
+    Fragments {
+        /// Query this graph source instead of the embedded bundle: a `.gts` snapshot,
+        /// or an RDF file (`.ttl`/`.nt`/`.nq`/`.rdf`/`.owl`/`.xml`/`.trig`) carrying
+        /// the `logic:DecidedFragment` / `logic:expressivenessBoundary` manifest.
+        #[arg(long = "bundle")]
+        bundle: Option<PathBuf>,
+        /// Output serialization: `text` (default) or `json`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = FragmentsFormat::Text)]
+        format: FragmentsFormat,
+    },
 }
 
 /// The `gmeow logic session` nested subcommands — the production consumer of the
@@ -1183,6 +1213,9 @@ pub fn run() -> i32 {
                     reapply.as_deref(),
                 ),
             },
+            LogicCommands::Fragments { bundle, format } => {
+                commands::logic_fragments(reporter, bundle.as_deref(), format)
+            }
         },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {

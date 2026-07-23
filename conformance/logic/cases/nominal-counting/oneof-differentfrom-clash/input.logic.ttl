@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: nominal-counting/oneof-differentfrom-clash
+# AC (Family 4, native nominal-counting refutation): a pure nominal pigeonhole clash
+# forces two distinct individuals into a ONE-element nominal set — an inconsistency
+# the native forward chase cannot see (it carries no nominal-equality/counting
+# reasoning) but the case-split / counting refutation sub-deciders
+# (crates/logic/src/reason/refute/{casesplit,counting}.rs) decide soundly and
+# completely.
+#
+# The world-scoped EDB (input.nq) types `x` to the singleton enumeration
+# `owl:oneOf (a)` and `y` to the singleton enumeration `owl:oneOf (a)`, so both `x`
+# and `y` are forced equal to the sole nominal `a` (x = a = y). But the EDB also
+# asserts `x owl:differentFrom y`. Two pigeons (`x`, `y`), one hole (`a`): the forced
+# equality contradicts the declared distinctness, so the world is INCONSISTENT. The
+# refutation kernel materializes the nominal clash and the native token is a clean
+# `inconsistent` (empty `gaps`) rather than `incomplete`.
+#
+# No committed W3C OWL 2 Full divergence slug is PURELY nominal (they entangle harder
+# existential/cardinality constructs and stay withheld), so this endogenous fixture
+# is Family 4's decided on-gate production demonstration — the datatest harness runs
+# the real `gmeow_logic::reason::dl_consistency` over input.nq and grades the verdict.
+#
+# verdict_mode=consistency: the OWL EDB is the world-scoped N-Quads in input.nq,
+# decided by the native DL path (gmeow_logic::reason::dl_consistency); this file
+# exists only to satisfy the per-case anatomy and is NOT compiled in consistency mode.
+#
+# Graph-isolation note: this fixture lives in the conformance corpus, OUTSIDE the
+# production owl:imports closure by construction — it can never make the production
+# ontology appear inconsistent.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .

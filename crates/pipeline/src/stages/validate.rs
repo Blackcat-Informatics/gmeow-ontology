@@ -368,8 +368,9 @@ impl Stage for ValidateStage {
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
         // These SHACL findings are the ones that can join the gate-fatal up-set, so their
         // diagnostics graph must carry the DERIVED verdict or gmeow:GateFatalUpsetShape
-        // fires under validate-gts. A source without the authored rule yields None and the
-        // projection stays byte-unchanged (never a faked verdict).
+        // fires under the authored-source `make validate` / stage-validate SHACL pass.
+        // A source without the authored rule yields None and the projection stays
+        // byte-unchanged (never a faked verdict).
         let gate = crate::stages::gate_verdict::GateProgram::from_source(source_graph);
         // Build the reasoner-derived diagnostic meta-fold from the SAME authored source
         // graph (the base-graph carries the gmeow:DiagnosticMetaRule rules + the
