@@ -78,7 +78,8 @@ pub use gmn1_witness::{
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
-    expr_precedence, grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
+    distinguished_rule, expr_precedence, gbnf_blocking_constructs, grammar_correspondence,
+    grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
     serialize_grammar,
 };
 pub use lower::{

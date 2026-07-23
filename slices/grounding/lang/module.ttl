@@ -83,7 +83,7 @@ lang:GrammarFormalism
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Grammar Formalism"@x-gmeow-english ;
-    skos:definition "The formalism a grammar is expressed in. Its instances are the named individuals lang:cfgFormalism, lang:pegFormalism, lang:regularFormalism, lang:abnfFormalism, and lang:ebnfFormalism. A lang:Grammar points at one through lang:grammarFormalism."@x-gmeow-english ;
+    skos:definition "The formalism a grammar is expressed in. Its instances are the named individuals lang:cfgFormalism, lang:pegFormalism, lang:regularFormalism, lang:abnfFormalism, lang:ebnfFormalism, lang:gbnfFormalism, and lang:larkFormalism. A lang:Grammar points at one through lang:grammarFormalism."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:Modality
@@ -189,6 +189,18 @@ lang:ebnfFormalism
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "EBNF"@x-gmeow-english ;
     skos:definition "The ISO/IEC 14977 EBNF grammar-interchange formalism."@x-gmeow-english .
+
+lang:gbnfFormalism
+    a owl:NamedIndividual , lang:GrammarFormalism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GBNF"@x-gmeow-english ;
+    skos:definition "The llama.cpp GBNF constrained-decoding grammar formalism — a pure surface rendering of the shared grammar tree that a local model consumes to constrain generation. It has no set-difference operator and rejects left recursion."@x-gmeow-english .
+
+lang:larkFormalism
+    a owl:NamedIndividual , lang:GrammarFormalism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Lark"@x-gmeow-english ;
+    skos:definition "The Lark (Earley/LALR parser) grammar formalism — a pure surface rendering of the shared grammar tree. Its parser core handles left recursion and it expresses character classes as regex terminals, so its unrepresentable-construct set is narrower than GBNF's."@x-gmeow-english .
 
 # --- Self-hosting grammar individuals --------------------------------------- #
 # The grammars of GMEOW's own serialization sign systems, held as first-class

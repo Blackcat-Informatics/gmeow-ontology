@@ -27,6 +27,8 @@
 //! at the level of the grammar object (and the `lang:grammarFor` link in the ontology), never
 //! by rerouting a parse call site through a second hand-rolled RDF parser.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 use gmeow_lang_form::SurfaceForm;
 use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeCondition,
@@ -69,6 +71,19 @@ pub enum Formalism {
     /// RFC-5234 ABNF (`name = elements`, `/` alternation, prefix `n*m` repetition, `[...]`
     /// optional groups, `(...)` groups, `%xNN` / `%xNN-NN` numeric terminals).
     Abnf,
+    /// llama.cpp GBNF (`name ::= expr`, `|` alternation, juxtaposition, postfix `* + ?`,
+    /// `[a-z]` / `[^…]` character classes, `"lit"` string literals, `(…)` groups, rule refs by
+    /// name). A pure surface rendering of the SAME [`RuleExpr`] tree — the constrained-decode
+    /// grammar shape a local model consumes. GBNF has no `A - B` difference and rejects
+    /// left-recursion, so a grammar carrying either is an honest blocking entry
+    /// ([`gbnf_blocking_constructs`]), never a fabricated best-effort artifact.
+    Gbnf,
+    /// Lark (`rule: expr`, `|` alternation, juxtaposition, postfix `* + ?`, `/[…]/` regex
+    /// character classes, `"lit"` string literals, `(…)` groups, rule refs by name). A pure
+    /// surface rendering of the SAME [`RuleExpr`] tree. Lark's Earley/LALR core handles
+    /// left-recursion and it expresses character classes natively, so its blocking set is
+    /// narrower than GBNF's ([`lark_blocking_constructs`]).
+    Lark,
 }
 
 impl Formalism {
@@ -78,6 +93,8 @@ impl Formalism {
         match self {
             Formalism::Ebnf => "ebnfFormalism",
             Formalism::Abnf => "abnfFormalism",
+            Formalism::Gbnf => "gbnfFormalism",
+            Formalism::Lark => "larkFormalism",
         }
     }
 }
@@ -256,16 +273,25 @@ fn prec(e: &RuleExpr) -> u8 {
     }
 }
 
-/// Quote a terminal's content with a delimiter that does not occur in it. A parsed terminal's
-/// content never contains its own delimiter, so it contains AT MOST one quote kind and a valid
-/// delimiter always exists — the choice is a pure function of the content, keeping the
-/// serialization deterministic and the content the sole identity.
-fn quote_terminal(value: &str) -> String {
-    if !value.contains('\'') {
-        format!("'{value}'")
-    } else {
-        // Content has a `'`, so (never containing its own delimiter) it has no `"`.
-        format!("\"{value}\"")
+/// Quote a terminal's content under `f`. EBNF/ABNF pick a delimiter that does not occur in the
+/// content (a parsed terminal never contains its own delimiter, so a valid delimiter always
+/// exists) — a pure function of the content, keeping identity the content alone. GBNF/Lark
+/// always double-quote and BACKSLASH-ESCAPE `\` and `"`, matching those formalisms' string
+/// literals; [`ExprParser::parse_terminal`] inverts the escape exactly.
+fn quote_terminal(f: Formalism, value: &str) -> String {
+    match f {
+        Formalism::Ebnf | Formalism::Abnf => {
+            if !value.contains('\'') {
+                format!("'{value}'")
+            } else {
+                // Content has a `'`, so (never containing its own delimiter) it has no `"`.
+                format!("\"{value}\"")
+            }
+        }
+        Formalism::Gbnf | Formalism::Lark => {
+            let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
+            format!("\"{escaped}\"")
+        }
     }
 }
 
@@ -278,16 +304,32 @@ fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) 
     }
     match e {
         RuleExpr::Ref(s) => out.push_str(s),
-        RuleExpr::Terminal(v) => out.push_str(&quote_terminal(v)),
-        RuleExpr::CharClass(c) => {
-            out.push('[');
-            out.push_str(c);
-            out.push(']');
-        }
+        RuleExpr::Terminal(v) => out.push_str(&quote_terminal(f, v)),
+        RuleExpr::CharClass(c) => match f {
+            // Lark expresses a character class as a regex terminal `/[…]/`; a bare `[…]` in a
+            // Lark rule is an OPTIONAL group, not a class.
+            Formalism::Lark => {
+                out.push_str("/[");
+                out.push_str(c);
+                out.push_str("]/");
+            }
+            // EBNF / GBNF spell a character class as `[…]` directly (GBNF `[a-z]`, `[^…]`).
+            _ => {
+                out.push('[');
+                out.push_str(c);
+                out.push(']');
+            }
+        },
         RuleExpr::Hex(h) => {
             out.push_str(match f {
                 Formalism::Ebnf => "#x",
                 Formalism::Abnf => "%x",
+                // A bare hex terminal has no round-trip-faithful GBNF/Lark node; it is a
+                // blocking construct and the render gate emits no artifact, so serialization
+                // is never reached here.
+                Formalism::Gbnf | Formalism::Lark => unreachable!(
+                    "Hex is a GBNF/Lark blocking construct; the render gate emits no artifact"
+                ),
             });
             out.push_str(h);
         }
@@ -302,7 +344,7 @@ fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) 
         }
         RuleExpr::Alt(parts) => {
             let sep = match f {
-                Formalism::Ebnf => " | ",
+                Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => " | ",
                 Formalism::Abnf => " / ",
             };
             for (i, p) in parts.iter().enumerate() {
@@ -329,7 +371,8 @@ fn serialize_expr(f: Formalism, e: &RuleExpr, parent_min: u8, out: &mut String) 
         RuleExpr::Star(x) => serialize_simple_repetition(f, "*", "*", x, out),
         RuleExpr::Plus(x) => serialize_simple_repetition(f, "+", "1*", x, out),
         RuleExpr::Opt(x) => match f {
-            Formalism::Ebnf => {
+            // EBNF / GBNF / Lark all postfix `?`.
+            Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => {
                 serialize_expr(f, x, 5, out);
                 out.push('?');
             }
@@ -387,7 +430,8 @@ fn serialize_simple_repetition(
     out: &mut String,
 ) {
     match f {
-        Formalism::Ebnf => {
+        // EBNF / GBNF / Lark postfix the repetition operator (`*` / `+`); ABNF prefixes it.
+        Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => {
             serialize_expr(f, x, 5, out);
             out.push_str(ebnf_op);
         }
@@ -398,24 +442,301 @@ fn serialize_simple_repetition(
     }
 }
 
-/// Serialize a whole grammar to its canonical layout: rules sorted by name, one `name <sep>
-/// body` per line (`::=` for EBNF, `=` for ABNF), each terminated by a newline. A pure
-/// function of the grammar's canonical structure.
+/// Serialize a whole grammar to its canonical layout: one `name <sep> body` per line (`::=`
+/// for EBNF/GBNF, `=` for ABNF, `:` for Lark), each terminated by a newline. EBNF/ABNF sort
+/// every rule by name; GBNF/Lark lead with the [`distinguished_rule`] (the `root` / `start`
+/// entry every consumer resolves from) and sort the rest — an ordering choice only, since
+/// identity is decided over the sorted canonical form. A pure function of the grammar's
+/// canonical structure.
 pub fn serialize_grammar(g: &Grammar) -> String {
-    let mut rules = g.rules.clone();
-    rules.sort_by(|a, b| a.name.cmp(&b.name));
     let sep = match g.formalism {
-        Formalism::Ebnf => " ::= ",
+        Formalism::Ebnf | Formalism::Gbnf => " ::= ",
         Formalism::Abnf => " = ",
+        Formalism::Lark => ": ",
     };
+    let mut ordered: Vec<&GrammarRule> = g.rules.iter().collect();
+    ordered.sort_by(|a, b| a.name.cmp(&b.name));
+    if matches!(g.formalism, Formalism::Gbnf | Formalism::Lark) {
+        // Lead with the distinguished entry rule (GBNF `root` / Lark `start`), then the rest in
+        // name order — a deterministic emission order, not part of structural identity.
+        let entry = distinguished_rule(g);
+        ordered.sort_by(|a, b| {
+            (a.name != entry, &a.name).cmp(&(b.name != entry, &b.name))
+        });
+    }
     let mut out = String::new();
-    for r in &rules {
+    for r in &ordered {
         out.push_str(&r.name);
         out.push_str(sep);
         serialize_expr(g.formalism, &r.body, 0, &mut out);
         out.push('\n');
     }
     out
+}
+
+/// Derive a grammar's distinguished start symbol DETERMINISTICALLY: the rule referenced by no
+/// OTHER rule (a self-reference does not disqualify a rule from being the entry); when several
+/// rules qualify — or when every rule is referenced (a cycle with no clear entry) — the
+/// lexicographically-first name wins. This is the entry a GBNF `root` / Lark `start` names, and
+/// the one helper both formalisms' serializers lead with.
+pub fn distinguished_rule(g: &Grammar) -> String {
+    let mut referenced_by_other: BTreeSet<String> = BTreeSet::new();
+    for r in &g.rules {
+        let mut refs = BTreeSet::new();
+        collect_refs(&r.body, &mut refs);
+        for target in refs {
+            // `r` references `target`; it counts as an "other" reference only when the
+            // referencing rule is a DIFFERENT rule (self-recursion never disqualifies an entry).
+            if target != r.name {
+                referenced_by_other.insert(target);
+            }
+        }
+    }
+    let mut candidates: Vec<&str> = g
+        .rules
+        .iter()
+        .map(|r| r.name.as_str())
+        .filter(|n| !referenced_by_other.contains(*n))
+        .collect();
+    candidates.sort_unstable();
+    if let Some(first) = candidates.first() {
+        return (*first).to_owned();
+    }
+    // Every rule is referenced by another (a cycle): fall back to the lexicographically-first.
+    let mut all: Vec<&str> = g.rules.iter().map(|r| r.name.as_str()).collect();
+    all.sort_unstable();
+    all.first().map(|s| (*s).to_owned()).unwrap_or_default()
+}
+
+/// Collect every rule name referenced (a [`RuleExpr::Ref`]) anywhere in `e`.
+fn collect_refs(e: &RuleExpr, out: &mut BTreeSet<String>) {
+    match e {
+        RuleExpr::Ref(n) => {
+            out.insert(n.clone());
+        }
+        RuleExpr::Terminal(_)
+        | RuleExpr::CharClass(_)
+        | RuleExpr::Hex(_)
+        | RuleExpr::Range(_, _) => {}
+        RuleExpr::Seq(parts) | RuleExpr::Alt(parts) => {
+            for p in parts {
+                collect_refs(p, out);
+            }
+        }
+        RuleExpr::Diff(a, b) => {
+            collect_refs(a, out);
+            collect_refs(b, out);
+        }
+        RuleExpr::Star(x)
+        | RuleExpr::Plus(x)
+        | RuleExpr::Opt(x)
+        | RuleExpr::Group(x)
+        | RuleExpr::Repeat(_, _, x) => collect_refs(x, out),
+    }
+}
+
+// --- Per-formalism blocking constructs -------------------------------------- //
+//
+// A blocking construct is a [`RuleExpr`] node (or whole-grammar shape) the formalism's SURFACE
+// cannot carry as a round-trip-faithful node. When the set is non-empty the honest projection
+// is a `SoundUnder` emission that ENUMERATES the blockers and emits NO artifact — a partial
+// best-effort rendering that would not round-trip is a fabrication, forbidden. This mirrors the
+// registry's `abnf_blocking_constructs` gate for the two formalisms this module adds.
+
+/// Enumerate the constructs a canonical grammar carries that the GBNF surface cannot represent:
+/// the set-difference operator `A - B` (GBNF has no difference), a bare hex / numeric-range
+/// terminal, a bounded repetition (no round-trip-faithful GBNF node), and — crucially —
+/// LEFT-RECURSION, which a constrained-decode expander cannot enter. Empty ⇒ the grammar is
+/// within the GBNF-expressible, round-trip-faithful fragment. GBNF DOES express character
+/// classes (`[a-z]`, `[^…]`), so a [`RuleExpr::CharClass`] is never a blocker.
+pub fn gbnf_blocking_constructs(canon: &Grammar) -> Vec<String> {
+    let mut out = Vec::new();
+    for rule in &canon.rules {
+        collect_surface_blockers("GBNF", &rule.name, &rule.body, &mut out);
+    }
+    for name in left_recursive_rules(canon) {
+        out.push(format!(
+            "rule '{name}': GBNF rejects left recursion (the constrained-decode expander cannot \
+             enter a rule reachable from its own left edge)"
+        ));
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Enumerate the constructs a canonical grammar carries that the Lark surface cannot represent.
+/// Lark's blocking set is NARROWER than GBNF's: its Earley/LALR core handles left-recursion
+/// (never a blocker) and it expresses character classes natively as `/[…]/` regex terminals (a
+/// [`RuleExpr::CharClass`] is never a blocker). What remains is the set-difference operator
+/// `A - B`, a bare hex / numeric-range terminal, and a bounded repetition — none of which have
+/// a round-trip-faithful Lark node in this codec. Empty ⇒ the grammar is Lark-expressible.
+pub fn lark_blocking_constructs(canon: &Grammar) -> Vec<String> {
+    let mut out = Vec::new();
+    for rule in &canon.rules {
+        collect_surface_blockers("Lark", &rule.name, &rule.body, &mut out);
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The node-level blockers shared by the GBNF and Lark surfaces (left-recursion is a
+/// whole-grammar GBNF-only concern handled by the caller). Recurses so a blocker nested deep in
+/// a body is still named. `formalism` labels the message.
+fn collect_surface_blockers(formalism: &str, rule: &str, e: &RuleExpr, out: &mut Vec<String>) {
+    match e {
+        RuleExpr::Diff(a, b) => {
+            out.push(format!(
+                "rule '{rule}': set-difference 'A - B' has no {formalism} operator"
+            ));
+            collect_surface_blockers(formalism, rule, a, out);
+            collect_surface_blockers(formalism, rule, b, out);
+        }
+        RuleExpr::Hex(h) => out.push(format!(
+            "rule '{rule}': bare hex terminal '#x{h}' has no round-trip-faithful {formalism} node \
+             (author it as a character class or literal)"
+        )),
+        RuleExpr::Range(lo, hi) => out.push(format!(
+            "rule '{rule}': numeric range terminal '%x{lo}-{hi}' has no round-trip-faithful \
+             {formalism} node (author it as a character class)"
+        )),
+        RuleExpr::Repeat(min, max, x) => {
+            out.push(format!(
+                "rule '{rule}': bounded repetition '{}*{}' has no round-trip-faithful {formalism} \
+                 node (the min-omitted vs min-zero distinction is not preserved; use *, +, ? or a \
+                 helper rule)",
+                min.map(|m| m.to_string()).unwrap_or_default(),
+                max.map(|m| m.to_string()).unwrap_or_default(),
+            ));
+            collect_surface_blockers(formalism, rule, x, out);
+        }
+        RuleExpr::Ref(_) | RuleExpr::Terminal(_) | RuleExpr::CharClass(_) => {}
+        RuleExpr::Seq(parts) | RuleExpr::Alt(parts) => {
+            for p in parts {
+                collect_surface_blockers(formalism, rule, p, out);
+            }
+        }
+        RuleExpr::Star(x) | RuleExpr::Plus(x) | RuleExpr::Opt(x) | RuleExpr::Group(x) => {
+            collect_surface_blockers(formalism, rule, x, out);
+        }
+    }
+}
+
+/// The names of every left-recursive rule (direct or indirect): a rule reachable from its own
+/// LEFT EDGE. Computed from the nullable-aware direct-left-corner relation's transitive closure,
+/// so a rule whose leftmost element is a nullable prefix followed by a self-reference is caught.
+/// Sound (never under-reports, so GBNF never fabricates a rendering of a grammar it cannot
+/// expand). Sorted, deduped.
+fn left_recursive_rules(g: &Grammar) -> Vec<String> {
+    let nullable = nullable_rule_set(g);
+    let mut direct: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
+    for r in &g.rules {
+        let mut lc = BTreeSet::new();
+        left_corner(&r.body, &nullable, &mut lc);
+        direct.insert(r.name.as_str(), lc);
+    }
+    let mut recursive = Vec::new();
+    for r in &g.rules {
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut stack: Vec<String> = direct
+            .get(r.name.as_str())
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect();
+        let mut is_lr = false;
+        while let Some(n) = stack.pop() {
+            if n == r.name {
+                is_lr = true;
+                break;
+            }
+            if !seen.insert(n.clone()) {
+                continue;
+            }
+            if let Some(next) = direct.get(n.as_str()) {
+                stack.extend(next.iter().cloned());
+            }
+        }
+        if is_lr {
+            recursive.push(r.name.clone());
+        }
+    }
+    recursive.sort();
+    recursive.dedup();
+    recursive
+}
+
+/// The set of rule names that can derive the empty string — a least-fixed-point over the rules
+/// (a rule is nullable once its body is nullable given the rules known nullable so far).
+fn nullable_rule_set(g: &Grammar) -> BTreeSet<String> {
+    let mut nullable: BTreeSet<String> = BTreeSet::new();
+    loop {
+        let mut changed = false;
+        for r in &g.rules {
+            if !nullable.contains(&r.name) && expr_nullable(&r.body, &nullable) {
+                nullable.insert(r.name.clone());
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    nullable
+}
+
+/// Whether `e` can derive the empty string given the rules currently known nullable.
+fn expr_nullable(e: &RuleExpr, nullable: &BTreeSet<String>) -> bool {
+    match e {
+        RuleExpr::Ref(n) => nullable.contains(n),
+        RuleExpr::Terminal(_)
+        | RuleExpr::CharClass(_)
+        | RuleExpr::Hex(_)
+        | RuleExpr::Range(_, _) => false,
+        RuleExpr::Seq(parts) => parts.iter().all(|p| expr_nullable(p, nullable)),
+        RuleExpr::Alt(parts) => parts.iter().any(|p| expr_nullable(p, nullable)),
+        RuleExpr::Star(_) | RuleExpr::Opt(_) => true,
+        RuleExpr::Plus(x) | RuleExpr::Group(x) => expr_nullable(x, nullable),
+        RuleExpr::Repeat(min, _, x) => matches!(min, None | Some(0)) || expr_nullable(x, nullable),
+        // A difference is nullable at most when its minuend is (an over-approximation that keeps
+        // left-recursion detection sound).
+        RuleExpr::Diff(a, _) => expr_nullable(a, nullable),
+    }
+}
+
+/// Collect the DIRECT left corners of `e` — the rule names that can appear at its very left
+/// edge. A `Seq` looks past a nullable prefix element to the next; every other combinator takes
+/// the left corner of its (first) operand.
+fn left_corner(e: &RuleExpr, nullable: &BTreeSet<String>, out: &mut BTreeSet<String>) {
+    match e {
+        RuleExpr::Ref(n) => {
+            out.insert(n.clone());
+        }
+        RuleExpr::Terminal(_)
+        | RuleExpr::CharClass(_)
+        | RuleExpr::Hex(_)
+        | RuleExpr::Range(_, _) => {}
+        RuleExpr::Seq(parts) => {
+            for p in parts {
+                left_corner(p, nullable, out);
+                if !expr_nullable(p, nullable) {
+                    break;
+                }
+            }
+        }
+        RuleExpr::Alt(parts) => {
+            for p in parts {
+                left_corner(p, nullable, out);
+            }
+        }
+        RuleExpr::Star(x)
+        | RuleExpr::Plus(x)
+        | RuleExpr::Opt(x)
+        | RuleExpr::Group(x)
+        | RuleExpr::Repeat(_, _, x) => left_corner(x, nullable, out),
+        RuleExpr::Diff(a, _) => left_corner(a, nullable, out),
+    }
 }
 
 // --- The RDF projection ----------------------------------------------------- //
@@ -597,7 +918,7 @@ impl ExprParser {
 
     fn alt_marker(&self) -> char {
         match self.formalism {
-            Formalism::Ebnf => '|',
+            Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => '|',
             Formalism::Abnf => '/',
         }
     }
@@ -680,7 +1001,10 @@ impl ExprParser {
             return Ok(rep);
         }
         let mut e = self.parse_primary()?;
-        if self.formalism == Formalism::Ebnf {
+        if matches!(
+            self.formalism,
+            Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark
+        ) {
             loop {
                 match self.peek() {
                     Some('*') => {
@@ -764,6 +1088,7 @@ impl ExprParser {
                 Ok(RuleExpr::Opt(Box::new(inner)))
             }
             Some('[') => self.parse_char_class(),
+            Some('/') if self.formalism == Formalism::Lark => self.parse_lark_regex_class(),
             Some('\'') | Some('"') => self.parse_terminal(),
             Some('#') if self.formalism == Formalism::Ebnf => self.parse_ebnf_hex(),
             Some('%') if self.formalism == Formalism::Abnf => self.parse_abnf_numeric(),
@@ -792,19 +1117,73 @@ impl ExprParser {
         Err(unmodeled("unterminated '[' character class".to_owned()))
     }
 
-    /// Read a quoted terminal; the content never contains its own delimiter.
+    /// Read a quoted terminal. EBNF/ABNF content is verbatim (the content never contains its own
+    /// delimiter). GBNF/Lark content is BACKSLASH-ESCAPED — the exact inverse of
+    /// [`quote_terminal`] — so `\\` and `\"` decode to `\` and `"` and any other `\c` decodes to
+    /// the two literal characters, keeping the round-trip of an escaped literal exact.
     fn parse_terminal(&mut self) -> Result<RuleExpr, IngestDiagnostic> {
         let quote = self.bump().expect("caller checked a quote is present");
-        let start = self.pos;
+        let escaped = matches!(self.formalism, Formalism::Gbnf | Formalism::Lark);
+        let mut value = String::new();
         while let Some(c) = self.peek() {
+            if escaped && c == '\\' {
+                self.bump(); // consume the backslash
+                match self.bump() {
+                    Some('\\') => value.push('\\'),
+                    Some('"') => value.push('"'),
+                    // A `\c` the serializer never emits: keep both characters so no information
+                    // is invented and any faithful escape round-trips.
+                    Some(other) => {
+                        value.push('\\');
+                        value.push(other);
+                    }
+                    None => {
+                        return Err(unmodeled(
+                            "trailing backslash in quoted terminal".to_owned(),
+                        ));
+                    }
+                }
+                continue;
+            }
             if c == quote {
-                let value: String = self.chars[start..self.pos].iter().collect();
                 self.bump(); // closing quote
                 return Ok(RuleExpr::Terminal(value));
             }
+            value.push(c);
             self.pos += 1;
         }
         Err(unmodeled(format!("unterminated {quote}-quoted terminal")))
+    }
+
+    /// Read a Lark regex character-class terminal `/[…]/`: the only regex form this codec emits
+    /// (a [`RuleExpr::CharClass`] rendered under Lark). The class body between `[` and `]` is
+    /// retained verbatim, exactly as [`parse_char_class`](Self::parse_char_class) does, so a
+    /// Lark class round-trips to the same node an EBNF/GBNF `[…]` does. A `/…/` that is not a
+    /// bracketed class is not modeled (this codec never emits a general regex).
+    fn parse_lark_regex_class(&mut self) -> Result<RuleExpr, IngestDiagnostic> {
+        self.bump(); // '/'
+        if self.bump() != Some('[') {
+            return Err(unmodeled(
+                "Lark regex terminal is not a bracketed character class '/[…]/'".to_owned(),
+            ));
+        }
+        let start = self.pos;
+        while let Some(c) = self.peek() {
+            if c == ']' {
+                let body: String = self.chars[start..self.pos].iter().collect();
+                self.bump(); // ']'
+                if self.bump() != Some('/') {
+                    return Err(unmodeled(
+                        "Lark regex character class not closed with '/'".to_owned(),
+                    ));
+                }
+                return Ok(RuleExpr::CharClass(body));
+            }
+            self.pos += 1;
+        }
+        Err(unmodeled(
+            "unterminated Lark regex character class".to_owned(),
+        ))
     }
 
     /// Read an EBNF `#xNN` hexadecimal terminal.
@@ -890,20 +1269,22 @@ impl ExprParser {
     }
 }
 
-/// Whether `c` can begin a rule name in `formalism`. EBNF names are alphanumeric plus
+/// Whether `c` can begin a rule name in `formalism`. EBNF/GBNF/Lark names are a letter or
 /// underscore; ABNF names begin with a letter.
 fn is_name_start(c: char, formalism: Formalism) -> bool {
     match formalism {
-        Formalism::Ebnf => c.is_ascii_alphabetic() || c == '_',
+        Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => c.is_ascii_alphabetic() || c == '_',
         Formalism::Abnf => c.is_ascii_alphabetic(),
     }
 }
 
-/// Whether `c` can continue a rule name. EBNF: alphanumeric or underscore. ABNF: alphanumeric
-/// or hyphen (RFC-5234 rulenames).
+/// Whether `c` can continue a rule name. EBNF/Lark: alphanumeric or underscore. GBNF:
+/// alphanumeric, underscore, or hyphen (GBNF rulenames admit `-`). ABNF: alphanumeric or
+/// hyphen (RFC-5234 rulenames).
 fn is_name_continue(c: char, formalism: Formalism) -> bool {
     match formalism {
-        Formalism::Ebnf => c.is_ascii_alphanumeric() || c == '_',
+        Formalism::Ebnf | Formalism::Lark => c.is_ascii_alphanumeric() || c == '_',
+        Formalism::Gbnf => c.is_ascii_alphanumeric() || c == '_' || c == '-',
         Formalism::Abnf => c.is_ascii_alphanumeric() || c == '-',
     }
 }
@@ -965,8 +1346,9 @@ pub fn parse_grammar(bytes: &[u8], formalism: Formalism) -> Result<Grammar, Inge
         ),
     })?;
     let sep = match formalism {
-        Formalism::Ebnf => "::=",
+        Formalism::Ebnf | Formalism::Gbnf => "::=",
         Formalism::Abnf => "=",
+        Formalism::Lark => ":",
     };
     let mut rules = Vec::new();
     for raw in text.split('\n') {
@@ -975,7 +1357,9 @@ pub fn parse_grammar(bytes: &[u8], formalism: Formalism) -> Result<Grammar, Inge
             continue;
         }
         let effective = match formalism {
-            Formalism::Ebnf => line.to_owned(),
+            // GBNF/Lark rule lines carry no inline comment in this codec's own emission (the
+            // serializer never writes one), so the line is the rule verbatim, as for EBNF.
+            Formalism::Ebnf | Formalism::Gbnf | Formalism::Lark => line.to_owned(),
             Formalism::Abnf => strip_abnf_inline_comment(line),
         };
         if effective.trim().is_empty() {
