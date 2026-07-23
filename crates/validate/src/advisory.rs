@@ -388,6 +388,10 @@ const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
 /// The canonical source language every authored guidance literal carries; the public
 /// `@en`/`@zh`/`@fr` projections are never the surfaced text.
 const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
+/// The suggestion-prefix marker that tags the permission-gate (`gmeow:useWhen`) leg of a
+/// harvested advisory, so the MCP `advise` consumer can split it back out from the
+/// corrective `gmeow:howToUse` suggestions. The single source both sides share.
+pub const ADVICE_USE_WHEN_PREFIX: &str = "Use when: ";
 
 /// The IRI string of a SHACL term, or `None` for a blank node / literal.
 fn shacl_iri(term: &ShaclTerm) -> Option<String> {
@@ -510,7 +514,7 @@ fn build_advisory(
             advisory = advisory.with_suggestion(how_to_use);
         }
         if let Some(use_when) = term_source_prose(ontology, &term, GMEOW_USE_WHEN) {
-            advisory = advisory.with_suggestion(format!("Use when: {use_when}"));
+            advisory = advisory.with_suggestion(format!("{ADVICE_USE_WHEN_PREFIX}{use_when}"));
         }
     }
     advisory

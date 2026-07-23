@@ -2808,7 +2808,8 @@ impl McpServer {
         // contrary-to-duty recommendation: the violated prohibition (avoid_when = the
         // finding message), the sub-ideal repair (how_to_use), and the permission gate
         // (use_when). The bridge builds `suggestions` as [howToUse, "Use when: <prose>"],
-        // so the "Use when: " prefix cleanly separates the permission leg.
+        // so the shared `gmeow_validate::advisory::ADVICE_USE_WHEN_PREFIX` marker cleanly
+        // separates the permission leg.
         let recommendations: Vec<Value> = report
             .findings
             .iter()
@@ -2817,7 +2818,8 @@ impl McpServer {
                 let mut use_when: Vec<String> = Vec::new();
                 let mut how_to_use: Vec<String> = Vec::new();
                 for suggestion in &f.suggestions {
-                    match suggestion.strip_prefix("Use when: ") {
+                    match suggestion.strip_prefix(gmeow_validate::advisory::ADVICE_USE_WHEN_PREFIX)
+                    {
                         Some(rest) => use_when.push(rest.to_string()),
                         None => how_to_use.push(suggestion.clone()),
                     }
@@ -9023,10 +9025,27 @@ mod tests {
             .unwrap_or_else(|| {
                 panic!("the Entity advice recommendation must be present: {payload}")
             });
+        let use_when = entity["use_when"].as_array().unwrap();
         assert!(
-            !entity["how_to_use"].as_array().unwrap().is_empty()
-                || !entity["use_when"].as_array().unwrap().is_empty(),
-            "the Entity advice carries how-to-use / use-when guidance: {entity}"
+            !use_when.is_empty(),
+            "the Entity advice carries use-when guidance: {entity}"
+        );
+        assert!(
+            use_when
+                .iter()
+                .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
+            "use_when entries must have the \"Use when: \" marker stripped: {entity}"
+        );
+        let how_to_use = entity["how_to_use"].as_array().unwrap();
+        assert!(
+            !how_to_use.is_empty(),
+            "the Entity advice carries how-to-use guidance: {entity}"
+        );
+        assert!(
+            how_to_use
+                .iter()
+                .all(|v| !v.as_str().unwrap().starts_with("Use when: ")),
+            "no permission-leg prose may leak into how_to_use: {entity}"
         );
     }
 
