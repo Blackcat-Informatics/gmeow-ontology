@@ -396,6 +396,69 @@ fn grounding_term_bridge_requires_explicit_judgments() {
 }
 
 #[test]
+fn divergent_duplicate_alignment_cell_fails_closed() {
+    // Two cells with the same (subject, predicate, object) but divergent provenance mint the
+    // SAME content-addressed correspondence identity. Silently keeping the last one would drop
+    // authored data (MAXIMAL INFORMATION FLOW); the frontend must fail closed instead.
+    let ttl = br#"
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "a.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "b.sssom.tsv" ;
+    gmeow:confidence    0.7 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+"#;
+    let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse divergent fixture");
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a divergent duplicate alignment cell must fail closed");
+    assert!(
+        err.message().contains("divergent duplicate alignment cell"),
+        "{err}"
+    );
+}
+
+#[test]
+fn same_fact_in_two_sssom_sets_collapses_not_conflicts() {
+    // The SAME alignment fact (same subject/predicate/object + confidence/justification) routed
+    // into two thematic SSSOM sets is legitimate multi-membership — the SSSOM projection emits a
+    // row into each file, while the typed correspondence collapses to one node. This must NOT
+    // trip the divergent-duplicate guard (a differing `sssom_file` alone is not a conflict).
+    let ttl = br#"
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "gmeow-foo.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "gmeow-classes.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+"#;
+    let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse multi-set fixture");
+    let empty = parse_nt("");
+    transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect("the same fact in two SSSOM sets must transpile cleanly, not conflict");
+}
+
+#[test]
 fn grounding_term_bridge_cannot_surface_exact_match() {
     use crate::projections::sssom::lower_sssom;
 

@@ -282,6 +282,16 @@ pub fn transpile_correspondences_indexed(
     let mut correspondences: Vec<Correspondence> = Vec::new();
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
     let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
+    // Two authored cells that mint the SAME content-addressed correspondence IRI must agree on
+    // the SEMANTIC identity of the fact: confidence, justification, and endpoints. The IRI
+    // folds in (subject, predicate, object) + morphism metadata, so a cell that additionally
+    // diverges on confidence/justification/endpoints would otherwise be resolved by silent
+    // last-write-wins — a MAXIMAL-INFORMATION-FLOW violation. `sssom_file` is deliberately
+    // EXCLUDED from the signature: the SSSOM projection emits one row per cell keyed by its
+    // file (`build_rows_and_ledger`), so one fact may legitimately belong to several thematic
+    // SSSOM sets; the typed correspondence (which carries no file) collapses those to one node.
+    // Map each minted IRI to (semantic signature, first sssom file) and fail closed on a clash.
+    let mut seen_correspondences: BTreeMap<String, (String, String)> = BTreeMap::new();
 
     // ── Native alignment cells (the SSSOM 1:1 band) ────────────────────────────────
     for cell in equivalence_cells(dsl_view)? {
@@ -380,6 +390,32 @@ pub fn transpile_correspondences_indexed(
             cell.subject, cell.predicate, cell.obj, authored_key
         );
         let iri = correspondence_iri("term-equivalence", &key);
+        // Fail closed on a semantically divergent duplicate; collapse a redundant restatement.
+        let signature = format!(
+            "conf={:?}|just={:?}|src={:?}|tgt={:?}",
+            cell.confidence, cell.justification, cell.source_endpoint, cell.target_endpoint,
+        );
+        match seen_correspondences.get(&iri) {
+            Some((prev_signature, prev_file)) if *prev_signature != signature => {
+                return Err(Diag::of_kind(crate::error::Correspondence {
+                    detail: format!(
+                        "divergent duplicate alignment cell: ({}, {}, {}) is authored more than \
+                         once with conflicting metadata (confidence/justification/endpoints) — \
+                         first in '{}', again in '{}'. Both mint the same content-addressed \
+                         correspondence identity, so one would be silently dropped; reconcile \
+                         them to a single canonical value.",
+                        cell.subject, cell.predicate, cell.obj, prev_file, cell.sssom_file,
+                    ),
+                }));
+            }
+            // A semantically identical restatement (possibly in another SSSOM set) is already
+            // materialized — skip the redundant typed node; the per-cell SSSOM emission keeps
+            // its own file membership.
+            Some(_) => continue,
+            None => {
+                seen_correspondences.insert(iri.clone(), (signature, cell.sssom_file.clone()));
+            }
+        }
         let evidence_strength = evidence_strength_of_justification(cell.justification.as_deref());
         let mut corr = Correspondence::new(
             iri,
