@@ -694,10 +694,6 @@ impl IngestConfig {
             }
         };
 
-        let term_equivalence = g("TermEquivalence");
-        let align_subject = g("alignSubject");
-        let align_predicate = g("alignPredicate");
-        let align_object = g("alignObject");
         let emotion_type = g("EmotionType");
 
         let mut emotion_close_match = BTreeMap::new();
@@ -705,12 +701,11 @@ impl IngestConfig {
         // closeMatch (not broadMatch) AND the target is an EmotionType (not, e.g.,
         // teleology's gmeow:Desire). Scope by set MEMBERSHIP, not by namespace, so
         // sibling sets sharing a registry prefix (SST-2 / CardiffNLP / Ekman-7 all
-        // live under `gmeow-registry/hf/`) never cross-route. The mapping reaches
-        // the loader in one of two shapes: reified gmeow:TermEquivalence cells (the
-        // authored slice source, `mappings/equivalences.ttl`) OR the direct
-        // skos:closeMatch triple the pipeline lowers those cells into in the
-        // compiled bundle. Read BOTH so the producer works identically off the slice
-        // sources and off `gmeow.gts`.
+        // live under `gmeow-registry/hf/`) never cross-route. A native alignment cell
+        // (`<label> skos:closeMatch <emotion> {| gmeow:sssomFile … |}`) ASSERTS its base
+        // `skos:closeMatch` triple, so it is read through the direct-triple path below —
+        // identically off the authored slice sources and off `gmeow.gts` (there is no
+        // longer a separate reified `gmeow:TermEquivalence` cell shape to read).
         let mut record = |subject: &str, object: String| {
             if registered.contains(subject) && has_type(index, &object, &emotion_type) {
                 let word = first_literal(index, &object, RDFS_LABEL)
@@ -718,20 +713,8 @@ impl IngestConfig {
                 emotion_close_match.insert(subject.to_owned(), EmotionMatch { iri: object, word });
             }
         };
-        // Reified form: gmeow:TermEquivalence with alignSubject/Predicate/Object.
-        for cell in subjects(index).filter(|s| has_type(index, s, &term_equivalence)) {
-            let (Some(subject), Some(predicate), Some(object)) = (
-                first_iri(index, cell, &align_subject),
-                first_iri(index, cell, &align_predicate),
-                first_iri(index, cell, &align_object),
-            ) else {
-                continue;
-            };
-            if predicate == SKOS_CLOSE_MATCH {
-                record(&subject, object);
-            }
-        }
-        // Lowered form: a direct `<label> skos:closeMatch <emotion>` triple.
+        // A direct `<label> skos:closeMatch <emotion>` triple — the asserted base of a
+        // native alignment cell (or the same triple as lowered into the compiled bundle).
         for subject in &registered {
             for object in all_iris(index, subject, SKOS_CLOSE_MATCH) {
                 record(subject, object);
@@ -1651,7 +1634,7 @@ mod tests {
         "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow-goemotions:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
-        "gmeow:eq1 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow-goemotions:joy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionJoy .\n",
+        "gmeow-goemotions:joy skos:closeMatch gmeow:emotionJoy {| gmeow:sssomFile \"gmeow-affect.sssom.tsv\" |} .\n",
     );
 
     fn config() -> IngestConfig {
@@ -2066,7 +2049,7 @@ mod tests {
         "gmeow-hf:anger a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
         "gmeow-hf:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
         "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
-        "gmeow:eqJoy a gmeow:TermEquivalence ; gmeow:alignSubject gmeow-hf:joy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionJoy .\n",
+        "gmeow-hf:joy skos:closeMatch gmeow:emotionJoy {| gmeow:sssomFile \"gmeow-affect.sssom.tsv\" |} .\n",
     );
 
     fn argmax_config() -> IngestConfig {
