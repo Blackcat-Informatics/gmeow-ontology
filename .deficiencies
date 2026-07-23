@@ -1787,3 +1787,20 @@ suggestions/guidance.
   logic's fr/cmn translation coverage, or reconcile the aspirational 1.0
   afc-logic-axisTranslationCoverage rubric commitment against the achievable coverage —
   a logic-slice / rubric-governance task independent of #1374.
+
+================================================================================
+2026-07-22 — #1618 (purrdf parallel-SHACL bump): validate-gts REMOVED as redundant
+================================================================================
+
+- HEADLINE DELIVERED BY REMOVAL, NOT SPEEDUP (maintainer-ratified). #1618 asked to make
+  `make validate-gts` "drop from ~50min to minutes" via purrdf's parallel SHACL. Investigation
+  found `make validate-gts` (whole-bundle SHACL over the materialized bundle INCLUDING the
+  multi-million-row reasoned closure — measured 2h+ on the merged bundle) is a strict DUPLICATE
+  of the pipeline's `stage-validate` + `make validate` (authored-source SHACL against the same
+  shape union, 0 violations in ~1.5-3 min) and `make reason-verify` (reasoned-closure soundness).
+  The maintainer (2026-07-22) chose "remove validate-gts, keep purrdf 0.8.x": the `validate-gts`
+  target and its CI `bundle-validate` job were removed; the purrdf 0.8.2 bump is retained (it
+  speeds the on-gate `stage-validate`). No coverage lost — the norm-claims subset keeps its own
+  focused SHACL test. This is a scope change from the issue's literal "make it fast" approach,
+  ratified by the maintainer. The adopted "U1" enhancement (a gmeow:BenchmarkObservation census
+  of the validate-gts wall-time) was correspondingly dropped: its subject no longer exists.
