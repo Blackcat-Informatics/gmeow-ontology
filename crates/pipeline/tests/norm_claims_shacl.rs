@@ -3,14 +3,14 @@
 
 //! Falsifiable SHACL acceptance test over the SHIPPED bundle's `graph/norm-claims`.
 //!
-//! `gmeow-dev validate --gts` (`make validate-gts`) SHACL-validates the SHIPPED bundle
-//! through `ValidationRun::run(gts_bytes: Some(..))` →
+//! `gmeow-dev validate --gts` (the flattened-bundle SHACL path) SHACL-validates the SHIPPED
+//! bundle through `ValidationRun::run(gts_bytes: Some(..))` →
 //! `gmeow_validate::store::dataset_from_gts` → `purrdf::gts::flattened_dataset_from_bytes`,
 //! which re-homes EVERY named graph (including `graph/norm-claims`) onto the default
 //! graph before the merged-SHACL phase runs `store::shacl_validate_dataset` over that
 //! same flattened dataset (`crates/validate/src/validate_all.rs`, phase "merged-shacl").
 //! So any content the shipped bundle's `graph/norm-claims` carries IS already part of the
-//! dataset `make validate-gts` SHACL-checks — not merely present in the bundle but
+//! dataset `gmeow-dev validate --gts` SHACL-checks — not merely present in the bundle but
 //! structurally invisible to the validator.
 //!
 //! Advice fires from a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the shipped
@@ -20,7 +20,8 @@
 //!   1. `graph/norm-claims` carries at least one `gmeow:ComplianceAssessment` embedding an
 //!      `advice.`-family code (the reified advice wing SHIPS).
 //!   2. That re-homed fragment SHACL-conforms against the merged shape union — well-formed as
-//!      shipped, and structurally visible to `make validate-gts`, not just present in the bundle.
+//!      shipped, and structurally visible to the flattened-bundle SHACL path, not just present
+//!      in the bundle.
 //!
 //! The isolated, deterministic proof over a controlled fixture — including the derived SHACL
 //! shape firing on a supplied anti-pattern individual — lives in `advice_wing_fixture.rs`.
@@ -76,8 +77,8 @@ fn graph_triples(g: &Graph) -> Vec<(String, String, String)> {
 
 /// Build a native GTS [`Graph`] carrying ONLY the `graph/norm-claims` quads of the shipped
 /// bundle, re-homed onto the default graph (mirroring exactly what `dataset_from_gts` /
-/// `flattened_dataset_from_bytes` does on the real `make validate-gts` path — see the module
-/// docs above). Returns `None` when the named graph is entirely absent from the bundle (no
+/// `flattened_dataset_from_bytes` does on the real `gmeow-dev validate --gts` path — see the
+/// module docs above). Returns `None` when the named graph is entirely absent from the bundle (no
 /// such graph-name term interned) or carries zero quads — an absent graph and an empty graph
 /// are both honest "no norm-claims content" states, never a panic.
 fn norm_claims_only_graph() -> Option<Graph> {
@@ -127,7 +128,7 @@ fn merged_shapes_ttl(root: &Path) -> String {
 /// The invariant: the shipped `graph/norm-claims` carries at least one advisory-harvested
 /// `gmeow:ComplianceAssessment` (an `advice.`-family code in its subject IRI — the reified advice
 /// wing SHIPS), and the whole re-homed fragment SHACL-conforms against the merged shape union,
-/// exactly as `make validate-gts` re-homes and checks it.
+/// exactly as `gmeow-dev validate --gts` re-homes and checks it.
 #[test]
 fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment() {
     let root = repo_root();
@@ -154,7 +155,7 @@ fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment()
     );
 
     // The re-homed graph/norm-claims fragment must SHACL-conform against the merged shape union,
-    // re-homed exactly as `make validate-gts` re-homes it.
+    // re-homed exactly as `gmeow-dev validate --gts` re-homes it.
     let shapes_ttl = merged_shapes_ttl(&root);
     let shapes =
         purrdf::shapes::engine::parse_shapes(&shapes_ttl).expect("parse the merged shape union");
@@ -170,7 +171,7 @@ fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment()
 }
 
 // WHOLE-BUNDLE (cross-graph-typing) SHACL conformance of the shipped norm-claims subjects is the
-// remit of `make validate-gts` (`gmeow-dev validate --gts` → `ValidationRun::run` over
+// remit of the flattened-bundle SHACL path (`gmeow-dev validate --gts` → `ValidationRun::run` over
 // `flattened_dataset_from_bytes`), NOT of a unit test here. That is a deliberate boundary, not a
 // gap:
 //   * The Observation family imposes value-TYPE shapes on `gmeow:vantage`
@@ -182,7 +183,7 @@ fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment()
 //     THAN USELESS — it makes a node a `sh:class`-checked `Observation` target without its full
 //     superclass chain, so it FALSE-POSITIVES. There is no cheap, correct middle: `validate_dataset`
 //     has no focus-node scoping, so a correct whole-bundle-semantics check IS the whole-bundle
-//     validation, which is exactly what `make validate-gts` already runs.
+//     validation, which is exactly what `gmeow-dev validate --gts` already runs.
 //   * The isolated-fragment test above fully covers the D4 constraints that are actually authored
 //     (`ComplianceAssessment{Vantage,Verdict,AssessedEvent,AssessedNorm}Constraint` — all
 //     `logic:directType`-guarded property-PRESENCE `sh:minCount` shapes over the emitter's

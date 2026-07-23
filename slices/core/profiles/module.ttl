@@ -163,7 +163,7 @@ logic:povuForall a logic:Formula ;
 logic:povuImpl a logic:Formula ; logic:antecedent logic:povuTarget ; logic:consequent logic:povuNot .
 logic:povuTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
-                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . ?this a ?openClass . }" ] .
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?openClass . }" ] .
 logic:povuNot a logic:Formula ; logic:not logic:povuExists .
 logic:povuExists a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "openClass" ] ;

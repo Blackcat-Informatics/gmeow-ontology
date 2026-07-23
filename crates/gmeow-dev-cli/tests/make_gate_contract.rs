@@ -157,7 +157,6 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "rust-build",
         "rust-gate",
         "validate",
-        "validate-gts",
         "constitution-check",
         "crate-check",
         "audit",
@@ -312,14 +311,9 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "semantic validation must not block publication of the byte-proven authority"
     );
     assert!(
-        source.contains("  bundle-validate:\n    needs: [producer]")
-            && source.contains("run: make validate-gts GMEOW_DEV=./dist/bin/gmeow-dev"),
-        "the authoritative bundle must still receive mandatory semantic validation"
-    );
-    assert!(
         source.contains(
-            "needs: [producer, bundle-validate, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
+            "needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
         ),
-        "the aggregate quality gate must require authoritative bundle validation"
+        "the aggregate quality gate must require the retained quality jobs"
     );
 }

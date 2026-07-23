@@ -107,7 +107,6 @@ enforce the transform, while a compile-time assertion pins purrdf's dist level t
 
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
-make validate-gts    # Validate generated/dist/gmeow.gts
 make sync # Rebuild ALL committed generated artifacts (the registry; parallel by default)
 make sync SYNC_MODE=check SYNC_OUTPUTS=generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl)

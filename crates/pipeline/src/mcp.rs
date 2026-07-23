@@ -5437,89 +5437,62 @@ fn sha256_hex(bytes: &[u8]) -> String {
     out
 }
 
-/// One term of the projection's closed N-Triples subset (`<iri>` / `_:b` / `"lex"^^<dt>`).
-enum NtTerm {
-    Iri(String),
-    Blank(String),
-    Lit { lex: String, datatype: String },
-}
-
-/// Take one N-Triples term off the front of `s`, returning `(term, rest)`. Handles the
-/// closed subset [`project_conjecture_verdict`] emits: `<iri>`, `_:id`, and `"lex"^^<dt>`
-/// typed literals (the literal walk is char-based, so it is UTF-8 safe and un-escapes).
-fn take_nt_term(s: &str) -> Option<(NtTerm, &str)> {
-    let s = s.trim_start();
-    if let Some(rest) = s.strip_prefix('<') {
-        let end = rest.find('>')?;
-        return Some((NtTerm::Iri(rest[..end].to_owned()), &rest[end + 1..]));
-    }
-    if let Some(rest) = s.strip_prefix("_:") {
-        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
-        return Some((NtTerm::Blank(rest[..end].to_owned()), &rest[end..]));
-    }
-    if let Some(rest) = s.strip_prefix('"') {
-        let mut lex = String::new();
-        let mut chars = rest.char_indices();
-        while let Some((idx, ch)) = chars.next() {
-            match ch {
-                '\\' => match chars.next() {
-                    Some((_, '\\')) => lex.push('\\'),
-                    Some((_, '"')) => lex.push('"'),
-                    Some((_, 'n')) => lex.push('\n'),
-                    Some((_, 'r')) => lex.push('\r'),
-                    Some((_, 't')) => lex.push('\t'),
-                    Some((_, c)) => lex.push(c),
-                    None => return None,
-                },
-                '"' => {
-                    // Past the closing quote: read the required `^^<dt>` typed-literal suffix.
-                    let after = rest[idx + 1..].strip_prefix("^^")?;
-                    let after = after.strip_prefix('<')?;
-                    let end = after.find('>')?;
-                    let datatype = after[..end].to_owned();
-                    return Some((NtTerm::Lit { lex, datatype }, &after[end + 1..]));
-                }
-                _ => lex.push(ch),
-            }
-        }
-        return None;
-    }
-    None
-}
-
-/// Intern one N-Triples node into the GTS term table (deduplicated by semantic value), a
-/// literal first interning its datatype IRI so the literal term references a live datatype id.
-fn intern_nt_term(
-    node: &NtTerm,
-    terms: &mut Vec<GtsTerm>,
-    seen: &mut HashMap<String, usize>,
-) -> usize {
-    let sig = match node {
-        NtTerm::Iri(iri) => format!("I\u{1}{iri}"),
-        NtTerm::Blank(id) => format!("B\u{1}{id}"),
-        NtTerm::Lit { lex, datatype } => format!("L\u{1}{datatype}\u{1}{lex}"),
-    };
+/// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /
+/// predicate / object paths and by a typed literal's datatype-IRI leg.
+fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String, usize>) -> usize {
+    let sig = format!("I\u{1}{iri}");
     if let Some(&id) = seen.get(&sig) {
         return id;
     }
-    let term = match node {
-        NtTerm::Iri(iri) => gts_iri(iri),
-        NtTerm::Blank(id) => GtsTerm {
-            kind: GtsTermKind::Bnode,
-            value: Some(id.clone()),
-            datatype: None,
-            lang: None,
-            direction: None,
-            reifier: None,
-        },
-        NtTerm::Lit { lex, datatype } => {
-            let dt_id = intern_nt_term(&NtTerm::Iri(datatype.clone()), terms, seen);
-            gts_literal_dt(lex, dt_id)
-        }
-    };
-    let id = push_gts_term(terms, term);
+    let id = push_gts_term(terms, gts_iri(iri));
     seen.insert(sig, id);
     id
+}
+
+/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or typed literal) into the GTS
+/// term table (deduplicated by semantic value); a literal first interns its datatype IRI so
+/// the literal term references a live datatype id — reproducing the exact encounter order the
+/// append-only, content-addressed GTS segment bytes are keyed on. A quoted-triple term is
+/// rejected fail-closed via `reject`: the projection's closed subset never emits one.
+fn intern_nt_term(
+    node: &RdfTerm,
+    terms: &mut Vec<GtsTerm>,
+    seen: &mut HashMap<String, usize>,
+    reject: impl FnOnce() -> gmeow_errors::Diag,
+) -> gmeow_errors::Result<usize> {
+    match node {
+        RdfTerm::Iri(iri) => Ok(intern_nt_iri(iri, terms, seen)),
+        RdfTerm::BlankNode(label) => {
+            let sig = format!("B\u{1}{label}");
+            if let Some(&id) = seen.get(&sig) {
+                return Ok(id);
+            }
+            let term = GtsTerm {
+                kind: GtsTermKind::Bnode,
+                value: Some(label.clone()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            };
+            let id = push_gts_term(terms, term);
+            seen.insert(sig, id);
+            Ok(id)
+        }
+        RdfTerm::Literal(lit) => {
+            // The projection always emits `"lex"^^<dt>`, so purrdf carries an explicit datatype.
+            let datatype = lit.datatype.as_deref().ok_or_else(reject)?;
+            let sig = format!("L\u{1}{datatype}\u{1}{}", lit.lexical_form);
+            if let Some(&id) = seen.get(&sig) {
+                return Ok(id);
+            }
+            let dt_id = intern_nt_iri(datatype, terms, seen);
+            let id = push_gts_term(terms, gts_literal_dt(&lit.lexical_form, dt_id));
+            seen.insert(sig, id);
+            Ok(id)
+        }
+        RdfTerm::Triple(_) => Err(reject()),
+    }
 }
 
 /// Build one N-Triples body (e.g. the `project_conjecture_verdict` verdict, or a candidate
@@ -5541,27 +5514,37 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         if line.is_empty() {
             continue;
         }
-        let line = line.strip_suffix(" .").ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("conjecture projection line {} missing ' .'", lineno + 1),
-            })
-        })?;
         let malformed = |what: &str| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("conjecture projection line {} bad {what}", lineno + 1),
             })
         };
-        let (subject, rest) = take_nt_term(line).ok_or_else(|| malformed("subject"))?;
-        let (predicate, rest) =
-            take_nt_term(rest.trim_start()).ok_or_else(|| malformed("predicate"))?;
-        let (object, _rest) = take_nt_term(rest.trim_start()).ok_or_else(|| malformed("object"))?;
-        // The projection's predicates are always IRIs; reject anything else fail-closed.
-        if !matches!(predicate, NtTerm::Iri(_)) {
-            return Err(malformed("predicate (non-IRI)"));
+        // Delegate N-Triples lexing of THIS single statement to purrdf, one line at a time,
+        // in DOCUMENT order. A whole-body parse cannot be used here: purrdf's dataset freeze
+        // sorts quads by term id, so `owned_quads()` would not preserve document order — and
+        // that order (subject, predicate, [datatype,] object per line) is baked into the
+        // append-only, content-addressed GTS segment bytes. Line-at-a-time parsing recovers
+        // it exactly while still owning zero hand-rolled term lexing.
+        let statement = purrdf::parse_dataset(line.as_bytes(), "application/n-triples", None)
+            .map_err(|_| malformed("triple"))?;
+        let mut quad_iter = statement.owned_quads();
+        let quad = quad_iter.next().ok_or_else(|| malformed("triple"))?;
+        if quad_iter.next().is_some() {
+            return Err(malformed("triple (multiple statements on one line)"));
         }
-        let s = intern_nt_term(&subject, &mut terms, &mut seen);
-        let p = intern_nt_term(&predicate, &mut terms, &mut seen);
-        let o = intern_nt_term(&object, &mut terms, &mut seen);
+        // A subject is an IRI or a blank node; a literal/quoted-triple subject is rejected
+        // fail-closed (purrdf never yields a literal subject in N-Triples, but the guard keeps
+        // the closed subset honest). The predicate is always an IRI in purrdf's `RdfQuad`.
+        let s = match &quad.subject {
+            RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {
+                intern_nt_term(&quad.subject, &mut terms, &mut seen, || {
+                    malformed("subject")
+                })?
+            }
+            RdfTerm::Literal(_) | RdfTerm::Triple(_) => return Err(malformed("subject")),
+        };
+        let p = intern_nt_iri(&quad.predicate, &mut terms, &mut seen);
+        let o = intern_nt_term(&quad.object, &mut terms, &mut seen, || malformed("object"))?;
         quads.push((s, p, o, None));
     }
 
@@ -6223,6 +6206,37 @@ mod tests {
     fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
         let segment = build_nt_segment(nt_body)?;
         with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
+    }
+
+    /// A representative N-Triples body mirroring what `project_conjecture_verdict` /
+    /// `project_candidate_verdict` emit: multiple triples; a repeated subject/predicate IRI
+    /// (exercises term-table dedup); a blank-node subject linked to a blank-node object
+    /// (`_:witness0` → `_:premise0`); typed literals carrying the projection's `\\ \" \n \t`
+    /// escape subset; and both `xsd:string` and `xsd:integer` datatypes. Interning order per
+    /// line is subject, predicate, [datatype,] object — the order the append-only GTS segment
+    /// bytes are keyed on.
+    const BYTE_PARITY_NT_BODY: &str = concat!(
+        "<urn:c:1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.ai/logic#Conjecture> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureFormula> \"line1\\nquote \\\" back \\\\ tab \\t end\"^^<http://www.w3.org/2001/XMLSchema#string> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureStandpoint> <urn:sp:default> .\n",
+        "<urn:c:1> <https://gmeow.ai/logic#conjectureRefutationWitness> _:witness0 .\n",
+        "_:witness0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://gmeow.ai/logic#ContradictionWitness> .\n",
+        "_:witness0 <https://gmeow.ai/logic#derivedFrom> _:premise0 .\n",
+        "_:premise0 <https://gmeow.ai/logic#conjectureFormula> \"0\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+    );
+
+    /// Permanent regression guard for [`build_nt_segment`]'s exact output bytes. The append-only
+    /// conjecture/candidate libraries are content-addressed, so the segment bytes (and thus this
+    /// digest) MUST stay byte-identical across any change to how the body is parsed — this pins
+    /// the delegation of N-Triples parsing to purrdf against the prior hand-rolled lexer.
+    #[test]
+    fn build_nt_segment_bytes_are_stable() {
+        let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
+        assert_eq!(
+            sha256_hex(&bytes),
+            "8be75532bab466852c33fea79c803ba2a847c14c0a063db6435dcb63468e0405",
+            "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
+        );
     }
 
     static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();

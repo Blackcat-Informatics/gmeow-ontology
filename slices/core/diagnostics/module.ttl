@@ -1264,7 +1264,7 @@ logic:gateFatalImpl a logic:Formula ; logic:antecedent logic:gateFatalTarget ; l
 logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
-    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> .
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/gmeow/Finding> .
     ?this <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> .
     ?this <https://blackcatinformatics.ca/gmeow/findingStandpoint> <https://blackcatinformatics.ca/gmeow/standpointBinding> .
     ?this <https://blackcatinformatics.ca/gmeow/findingCategory> ?cat .

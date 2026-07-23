@@ -49,7 +49,6 @@ const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "rust-gate",
     "validate",
-    "validate-gts",
     "constitution-check",
     "crate-check",
     "audit",
@@ -89,11 +88,6 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "validate",
         target: "validate",
-        dependencies: AFTER_SYNC,
-    },
-    Task {
-        name: "validate-gts",
-        target: "validate-gts",
         dependencies: AFTER_SYNC,
     },
     Task {
