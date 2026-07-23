@@ -54,25 +54,20 @@ use std::alloc::{GlobalAlloc, Layout, System};
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicI64, AtomicU64, AtomicUsize, Ordering};
 
-use gmeow_logic::annotation::{
-    AnnotationContract, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
-};
+use gmeow_logic::annotation::{AnnotationContract, AnnotationFactRef, AnnotationRequest};
 use gmeow_logic::dispatch::{RelationAnnotationRequest, dispatch_query_annotated_with_relations};
 use gmeow_logic::external_relation::{
-    ExternalRelationProvider, NeverCancelled, QueryRelationProviders, RelationAnnotationDimension,
-    RelationBatch, RelationCall, RelationCancellation, RelationOrderDirection, RelationOrdering,
-    RelationProviderBudget, RelationProviderDescriptor, RelationProviderError,
-    RelationProviderRegistration,
+    ExternalRelationProvider, NeverCancelled, QueryRelationProviders, RelationBatch, RelationCall,
+    RelationCancellation, RelationProviderBudget, RelationProviderDescriptor,
+    RelationProviderError, RelationProviderRegistration,
 };
 use gmeow_logic::purremb_relation::{
-    PurrembBinding, PurrembRetrievalProvider, RetrievalPolicy, RetrievalScore, SpaceTaggedScore,
-    VectorSpaceScopedAlgebra, purremb_descriptor, purremb_generation_iri,
+    PurrembRetrievalProvider, SpaceTaggedScore, VectorSpaceScopedAlgebra,
 };
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
-use gmeow_logic_compile::result_shape::ColumnKind;
-use purrdf::{DistanceMetric, SourceVerificationMode, TermValue, VectorSpaceId};
+use purrdf::DistanceMetric;
 
 use support::Fixture;
 
@@ -246,60 +241,13 @@ fn snapshot_of(store: &WorldStore) -> WorldFactSnapshot {
     WorldFactSnapshot::from_world(store, WORLD, PROFILE).expect("world snapshot")
 }
 
-/// Fold a computed retrieval score into the space-tagged algebra element.
-fn annotate(score: RetrievalScore) -> SpaceTaggedScore {
-    SpaceTaggedScore::single(
-        score.distance,
-        VectorSpaceId::from_raw(score.vector_space),
-        score.metric_code,
-    )
-}
-
 /// No RDF-asserted fact is scored.
 fn no_fact_score(_: AnnotationFactRef<'_>) -> Option<SpaceTaggedScore> {
     None
 }
 
-fn ascending_order() -> RelationOrdering {
-    RelationOrdering::new(ORDER_CRITERION, RelationOrderDirection::Ascending).expect("ordering")
-}
-
-fn open_binding(fixture: &Fixture) -> PurrembBinding<'_> {
-    PurrembBinding::open(
-        &fixture.artifact_bytes,
-        &fixture.source_bytes,
-        fixture.selection(RetrievalPolicy::ExactFullSpace),
-        SourceVerificationMode::Exact,
-    )
-    .expect("verified PURREMB binding")
-}
-
-fn descriptor_for(relation: &str, artifact_root_hex: &str) -> RelationProviderDescriptor {
-    let generation = purremb_generation_iri(
-        GEN_BASE,
-        artifact_root_hex,
-        RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
-    );
-    let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
-    purremb_descriptor(
-        "https://example.org/provider/purremb",
-        generation,
-        "https://example.org/model/purremb-embedding-v1",
-        relation,
-        vec![ColumnKind::Iri, ColumnKind::Iri],
-        RelationAnnotationDimension::Distance,
-        algebra.identity().to_owned(),
-        ascending_order(),
-    )
-    .expect("valid PURREMB descriptor")
-}
-
 fn provider_for(fixture: &Fixture) -> PurrembRetrievalProvider<'_, SpaceTaggedScore> {
-    let binding = open_binding(fixture);
-    let descriptor = descriptor_for(RELATION, binding.artifact_root_hex());
-    PurrembRetrievalProvider::new(binding, descriptor, Box::new(annotate))
-        .expect("valid provider contract")
+    support::purremb_provider(fixture, RELATION, GEN_BASE, ORDER_CRITERION)
 }
 
 fn providers_for<'a>(
@@ -321,14 +269,14 @@ fn providers_for<'a>(
 /// Build a moded retrieval call: the query slot bound to an in-corpus IRI, candidate slot
 /// unbound, requesting the top `limit` under the ascending distance order.
 fn build_call(query_local: &str, limit: usize) -> RelationCall {
-    RelationCall {
-        request_iri: "https://example.org/request/purremb-perf".to_owned(),
-        query_contract_hash: "purremb-perf-contract".to_owned(),
-        relation_iri: RELATION.to_owned(),
-        bounds: vec![Some(TermValue::iri(ex(query_local))), None],
+    support::purremb_call(
+        RELATION,
+        ORDER_CRITERION,
+        "https://example.org/request/purremb-perf",
+        "purremb-perf-contract",
+        &ex(query_local),
         limit,
-        ordering: ascending_order(),
-    }
+    )
 }
 
 /// Invoke the provider scan directly and require a complete `limit`-row batch.

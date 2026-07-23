@@ -14,14 +14,25 @@
 //! and each binary exercises a different subset of the fixtures, so each include
 //! site carries its own `#[allow(dead_code)]` for the helpers it does not use.
 
-use gmeow_logic::purremb_relation::{ProfileSurfaceDigests, PurrembSelection, RetrievalPolicy};
+use std::collections::BTreeSet;
+
+use gmeow_logic::annotation::TupleAnnotationAlgebra;
+use gmeow_logic::external_relation::{
+    RelationAnnotationDimension, RelationCall, RelationOrderDirection, RelationOrdering,
+};
+use gmeow_logic::purremb_relation::{
+    ProfileSurfaceDigests, PurrembBinding, PurrembRetrievalProvider, PurrembSelection,
+    RetrievalPolicy, RetrievalScore, SpaceTaggedScore, VectorSpaceScopedAlgebra,
+    purremb_descriptor, purremb_generation_iri,
+};
+use gmeow_logic_compile::result_shape::ColumnKind;
 use purrdf::{
     AppliedStage, ArtifactIdentity, ArtifactIdentityKind, CanonicalMetadataInput,
     CertifiedPurrpckSource, ContentDigest, DimensionalityPolicy, DistanceMetric, EffectivePrefix,
     EmbeddingBuilder, EmbeddingFamilyContract, EmbeddingTarget, EmbeddingView, FamilyId, MatrixId,
     MatrixInput, MatrixRow, PrefixPostprocessing, ProjectionId, ProjectionSpec, RdfDatasetBuilder,
-    RdfTermTarget, StageImplementation, TargetSet, TargetSetId, VectorDtype, VectorSpaceId,
-    verify_embedding,
+    RdfTermTarget, SourceVerificationMode, StageImplementation, TargetSet, TargetSetId, TermValue,
+    VectorDtype, VectorSpaceId, verify_embedding,
 };
 
 /// One reconstructable target and its stored vector, in canonical matrix-row order.
@@ -927,4 +938,94 @@ pub fn statement_corpus_f32(
         token_spans: Vec::new(),
     });
     (fixture, statement_terms)
+}
+
+// --------------------------------------------------------------------------- //
+// Shared provider/call wiring: consolidated so the perf test and the advisory
+// bench build a provider and a moded retrieval call from one definition. The
+// relation/generation-base/order-criterion and request identifiers are parameters
+// so each harness keeps its own stable identities.
+// --------------------------------------------------------------------------- //
+
+/// Expand a local name under the shared example namespace.
+#[must_use]
+pub fn ex(local: &str) -> String {
+    format!("https://example.org/{local}")
+}
+
+/// Fold a computed retrieval score into the space-tagged algebra element for its
+/// effective vector space (never epistemic confidence).
+#[must_use]
+pub fn annotate(score: RetrievalScore) -> SpaceTaggedScore {
+    SpaceTaggedScore::single(
+        score.distance,
+        VectorSpaceId::from_raw(score.vector_space),
+        score.metric_code,
+    )
+}
+
+/// The ascending distance ordering pushed on every retrieval call.
+#[must_use]
+pub fn ascending_order(order_criterion: &str) -> RelationOrdering {
+    RelationOrdering::new(order_criterion, RelationOrderDirection::Ascending).expect("ordering")
+}
+
+/// Open a verified full-space/exact binding and wire a `[Iri, Iri]` distance-annotated
+/// PURREMB retrieval provider over it, folding the pinned artifact root and the explicit
+/// selection into the generation IRI.
+#[must_use]
+pub fn purremb_provider<'a>(
+    fixture: &'a Fixture,
+    relation: &str,
+    generation_base: &str,
+    order_criterion: &str,
+) -> PurrembRetrievalProvider<'a, SpaceTaggedScore> {
+    let binding = PurrembBinding::open(
+        &fixture.artifact_bytes,
+        &fixture.source_bytes,
+        fixture.selection(RetrievalPolicy::ExactFullSpace),
+        SourceVerificationMode::Exact,
+    )
+    .expect("verified PURREMB binding");
+    let generation = purremb_generation_iri(
+        generation_base,
+        binding.artifact_root_hex(),
+        RetrievalPolicy::ExactFullSpace,
+        SourceVerificationMode::Exact,
+    );
+    let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
+    let descriptor = purremb_descriptor(
+        "https://example.org/provider/purremb",
+        generation,
+        "https://example.org/model/purremb-embedding-v1",
+        relation,
+        vec![ColumnKind::Iri, ColumnKind::Iri],
+        RelationAnnotationDimension::Distance,
+        algebra.identity().to_owned(),
+        ascending_order(order_criterion),
+    )
+    .expect("valid PURREMB descriptor");
+    PurrembRetrievalProvider::new(binding, descriptor, Box::new(annotate))
+        .expect("valid provider contract")
+}
+
+/// Build a moded retrieval call: the query slot bound to `query_iri`, candidate slot
+/// unbound, requesting the top `limit` under the ascending distance order.
+#[must_use]
+pub fn purremb_call(
+    relation: &str,
+    order_criterion: &str,
+    request_iri: &str,
+    query_contract_hash: &str,
+    query_iri: &str,
+    limit: usize,
+) -> RelationCall {
+    RelationCall {
+        request_iri: request_iri.to_owned(),
+        query_contract_hash: query_contract_hash.to_owned(),
+        relation_iri: relation.to_owned(),
+        bounds: vec![Some(TermValue::iri(query_iri.to_owned())), None],
+        limit,
+        ordering: ascending_order(order_criterion),
+    }
 }

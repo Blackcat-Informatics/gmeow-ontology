@@ -19,21 +19,12 @@
 #[path = "../tests/purremb_support/mod.rs"]
 mod support;
 
-use std::collections::BTreeSet;
 use std::hint::black_box;
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use gmeow_logic::annotation::TupleAnnotationAlgebra;
-use gmeow_logic::external_relation::{
-    ExternalRelationProvider, NeverCancelled, RelationAnnotationDimension, RelationCall,
-    RelationOrderDirection, RelationOrdering,
-};
-use gmeow_logic::purremb_relation::{
-    PurrembBinding, PurrembRetrievalProvider, RetrievalPolicy, RetrievalScore, SpaceTaggedScore,
-    VectorSpaceScopedAlgebra, purremb_descriptor, purremb_generation_iri,
-};
-use gmeow_logic_compile::result_shape::ColumnKind;
-use purrdf::{DistanceMetric, SourceVerificationMode, TermValue, VectorSpaceId};
+use gmeow_logic::external_relation::{ExternalRelationProvider, NeverCancelled, RelationCall};
+use gmeow_logic::purremb_relation::{PurrembRetrievalProvider, SpaceTaggedScore};
+use purrdf::DistanceMetric;
 
 use support::Fixture;
 
@@ -45,58 +36,19 @@ const ORDER_CRITERION: &str = "https://blackcatinformatics.ca/logic/VectorDistan
 
 static NEVER_CANCELLED: NeverCancelled = NeverCancelled;
 
-fn ex(local: &str) -> String {
-    format!("https://example.org/{local}")
-}
-
-fn annotate(score: RetrievalScore) -> SpaceTaggedScore {
-    SpaceTaggedScore::single(
-        score.distance,
-        VectorSpaceId::from_raw(score.vector_space),
-        score.metric_code,
-    )
-}
-
 fn provider_for(fixture: &Fixture) -> PurrembRetrievalProvider<'_, SpaceTaggedScore> {
-    let binding = PurrembBinding::open(
-        &fixture.artifact_bytes,
-        &fixture.source_bytes,
-        fixture.selection(RetrievalPolicy::ExactFullSpace),
-        SourceVerificationMode::Exact,
-    )
-    .expect("verified PURREMB binding");
-    let generation = purremb_generation_iri(
-        GEN_BASE,
-        binding.artifact_root_hex(),
-        RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
-    );
-    let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
-    let descriptor = purremb_descriptor(
-        "https://example.org/provider/purremb",
-        generation,
-        "https://example.org/model/purremb-embedding-v1",
-        RELATION,
-        vec![ColumnKind::Iri, ColumnKind::Iri],
-        RelationAnnotationDimension::Distance,
-        algebra.identity().to_owned(),
-        RelationOrdering::new(ORDER_CRITERION, RelationOrderDirection::Ascending)
-            .expect("ordering"),
-    )
-    .expect("valid PURREMB descriptor");
-    PurrembRetrievalProvider::new(binding, descriptor, Box::new(annotate)).expect("provider")
+    support::purremb_provider(fixture, RELATION, GEN_BASE, ORDER_CRITERION)
 }
 
 fn build_call(query_local: &str, limit: usize) -> RelationCall {
-    RelationCall {
-        request_iri: "https://example.org/request/purremb-bench".to_owned(),
-        query_contract_hash: "purremb-bench-contract".to_owned(),
-        relation_iri: RELATION.to_owned(),
-        bounds: vec![Some(TermValue::iri(ex(query_local))), None],
+    support::purremb_call(
+        RELATION,
+        ORDER_CRITERION,
+        "https://example.org/request/purremb-bench",
+        "purremb-bench-contract",
+        &support::ex(query_local),
         limit,
-        ordering: RelationOrdering::new(ORDER_CRITERION, RelationOrderDirection::Ascending)
-            .expect("ordering"),
-    }
+    )
 }
 
 fn bench_retrieval(criterion: &mut Criterion) {
