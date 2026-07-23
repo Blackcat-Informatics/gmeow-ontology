@@ -16,13 +16,13 @@
 //! is fanned out to the committed `generated/catalog/constraint-catalog.nq`, which
 //! the superset gate reconstructs byte-for-byte from that graph.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::Path;
 
 use gmeow_errors::Severity;
 use gmeow_validate::rule_catalog::{Enforcement, RuleSeed, all_rules, help_uri_for, slugify};
-use purrdf::slice::rdf_query::Dataset;
+use purrdf::slice::rdf_query::{Dataset, Object};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
@@ -51,6 +51,205 @@ const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
 /// `gmeow:requiresFrame` — the frame-relativity declaration the frame-completeness
 /// discipline enforces.
 const GMEOW_REQUIRES_FRAME: &str = "https://blackcatinformatics.ca/gmeow/requiresFrame";
+
+// ── Advice-catalog projection ────────────────────────────────────────────────
+// The realized advice carriers whose verbatim prose the advice section documents.
+/// `logic:Constraint` — the class of the advisory anti-pattern carriers (an
+/// `avoidWhen` prohibition realized at `logic:severity "Info"`).
+const LOGIC_CONSTRAINT: &str = "https://blackcatinformatics.ca/logic/Constraint";
+/// `logic:AdviceGuidance` — the class of the positive `useWhen` guidance carriers.
+const LOGIC_ADVICE_GUIDANCE: &str = "https://blackcatinformatics.ca/logic/AdviceGuidance";
+/// `logic:formalizes` — the carrier → governed-term back-link.
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:message` — the verbatim prose a carrier surfaces (gate-bound to the term's
+/// source annotation by `check_advice_message_prose_binding`).
+const LOGIC_MESSAGE: &str = "https://blackcatinformatics.ca/logic/message";
+/// `logic:severity` — the carrier grade; the advisory tier is exactly `"Info"`.
+const LOGIC_SEVERITY: &str = "https://blackcatinformatics.ca/logic/severity";
+/// `logic:adviceSourceField` — which `logic:ProseField` the carrier's message binds to.
+const LOGIC_ADVICE_SOURCE_FIELD: &str = "https://blackcatinformatics.ca/logic/adviceSourceField";
+/// `logic:ProseFieldAvoidWhen` — the prohibition source field.
+const LOGIC_PROSE_FIELD_AVOID_WHEN: &str =
+    "https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen";
+/// `logic:ProseFieldUseWhen` — the conditional-permission source field.
+const LOGIC_PROSE_FIELD_USE_WHEN: &str = "https://blackcatinformatics.ca/logic/ProseFieldUseWhen";
+/// `gmeow:howToUse` — the term's positive-directive annotation (the sub-ideal repair).
+const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
+/// The advice `logic:severity` wire token selecting the never-gating advisory tier.
+const ADVISORY_SEVERITY_INFO: &str = "Info";
+
+/// Map a `purrdf` slice-query error into a pipeline `Parse` diagnostic (shared by the
+/// advice-projection accessors below).
+fn parse_err(e: impl std::fmt::Display) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Parse {
+        message: e.to_string(),
+    })
+}
+
+/// The local name of an IRI — the segment after the last `/` or `#`. Used to mint a
+/// stable, readable advice-entry subject/slug from a governed term IRI.
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// The verbatim advice prose harvested for one governed term, each field a sorted set
+/// (a term MAY bear several `avoidWhen` constraints; sets keep the projection stable
+/// and non-lossy as the advice-harvest uplift lane harvests more).
+#[derive(Default)]
+struct AdviceProse {
+    /// `gmeow:avoidWhen` prohibition prose (each realized Info `logic:Constraint`).
+    avoid_when: BTreeSet<String>,
+    /// `gmeow:useWhen` conditional-permission prose (each `logic:AdviceGuidance`).
+    use_when: BTreeSet<String>,
+    /// `gmeow:howToUse` positive-directive prose (the term's own annotation).
+    how_to_use: BTreeSet<String>,
+}
+
+/// Collect, per governed term, the verbatim prose of its REALIZED advice carriers —
+/// only terms with a machine-active carrier (an Info `logic:Constraint` and/or a
+/// `logic:AdviceGuidance`) appear, so every entry is reachable from a real `advice.*`
+/// finding code. Deterministic: `BTreeMap`/`BTreeSet` ordering throughout.
+fn collect_advice(dataset: &Dataset) -> Result<BTreeMap<String, AdviceProse>, gmeow_errors::Diag> {
+    let mut advice: BTreeMap<String, AdviceProse> = BTreeMap::new();
+
+    // avoidWhen: an advisory logic:Constraint at logic:severity "Info" whose
+    // logic:adviceSourceField is ProseFieldAvoidWhen; its logic:message is the term's
+    // verbatim gmeow:avoidWhen prose (gate-bound equal).
+    for constraint in dataset
+        .subjects_of_type(LOGIC_CONSTRAINT)
+        .map_err(parse_err)?
+    {
+        if dataset
+            .object_literal(&constraint, LOGIC_SEVERITY)
+            .map_err(parse_err)?
+            .as_deref()
+            != Some(ADVISORY_SEVERITY_INFO)
+        {
+            continue;
+        }
+        if dataset
+            .first_object_iri(&constraint, LOGIC_ADVICE_SOURCE_FIELD)
+            .map_err(parse_err)?
+            .as_deref()
+            != Some(LOGIC_PROSE_FIELD_AVOID_WHEN)
+        {
+            continue;
+        }
+        let Some(term) = dataset
+            .first_object_iri(&constraint, LOGIC_FORMALIZES)
+            .map_err(parse_err)?
+        else {
+            continue;
+        };
+        if let Some(message) = dataset
+            .object_literal(&constraint, LOGIC_MESSAGE)
+            .map_err(parse_err)?
+        {
+            advice.entry(term).or_default().avoid_when.insert(message);
+        }
+    }
+
+    // useWhen: a logic:AdviceGuidance carrier (source field ProseFieldUseWhen); its
+    // logic:message is the term's verbatim gmeow:useWhen prose.
+    for guidance in dataset
+        .subjects_of_type(LOGIC_ADVICE_GUIDANCE)
+        .map_err(parse_err)?
+    {
+        if dataset
+            .first_object_iri(&guidance, LOGIC_ADVICE_SOURCE_FIELD)
+            .map_err(parse_err)?
+            .as_deref()
+            != Some(LOGIC_PROSE_FIELD_USE_WHEN)
+        {
+            continue;
+        }
+        let Some(term) = dataset
+            .first_object_iri(&guidance, LOGIC_FORMALIZES)
+            .map_err(parse_err)?
+        else {
+            continue;
+        };
+        if let Some(message) = dataset
+            .object_literal(&guidance, LOGIC_MESSAGE)
+            .map_err(parse_err)?
+        {
+            advice.entry(term).or_default().use_when.insert(message);
+        }
+    }
+
+    // howToUse: the term's OWN gmeow:howToUse annotation — only for terms that already
+    // have a realized carrier (present in the map). Multi-valued.
+    for (term, prose) in advice.iter_mut() {
+        for object in dataset.objects(term, GMEOW_HOW_TO_USE).map_err(parse_err)? {
+            if let Object::Literal { value, .. } = object {
+                prose.how_to_use.insert(value);
+            }
+        }
+    }
+
+    Ok(advice)
+}
+
+/// Emit the `gmeow:AdviceEntry` subjects into `out` — one per governed term with a
+/// realized advice carrier, each hung beneath the `advice.` family `gmeow:ValidationRule`
+/// via `gmeow:documentedByRule` so the single `#advice-` anchor documents them all.
+fn emit_advice_entries(out: &mut String, dataset: &Dataset) -> Result<(), gmeow_errors::Diag> {
+    let advice = collect_advice(dataset)?;
+    let advice_family_rule = format!("{GMEOW}rule/family/advice");
+    let mut seen_slugs: BTreeSet<String> = BTreeSet::new();
+    for (term, prose) in &advice {
+        let slug = slugify(local_name(term));
+        // Slug-distinctness: two governed terms whose local names collide would mint
+        // the same entry subject — a hard invariant break, never silently merged.
+        assert!(
+            seen_slugs.insert(slug.clone()),
+            "advice-entry slug {slug} (term {term}) collides with another governed term"
+        );
+        let entry_iri = format!("{GMEOW}advice/{slug}");
+        quad_iri(out, &entry_iri, RDF_TYPE, &format!("{GMEOW}AdviceEntry"));
+        quad_iri(out, &entry_iri, RDFS_IS_DEFINED_BY, CATALOG_GRAPH_IRI);
+        quad_iri(
+            out,
+            &entry_iri,
+            &format!("{GMEOW}graphBoxRole"),
+            &format!("{GMEOW}boxABox"),
+        );
+        quad_iri(
+            out,
+            &entry_iri,
+            &format!("{GMEOW}documentedByRule"),
+            &advice_family_rule,
+        );
+        quad_iri(out, &entry_iri, &format!("{LOGIC}formalizes"), term);
+        quad_iri(out, &entry_iri, &format!("{GMEOW}appliesToTerm"), term);
+        // Heading prose from the term itself; honest fallback to the term IRI as label
+        // when the term carries no rdfs:label (never an empty literal).
+        match dataset
+            .object_literal(term, RDFS_LABEL)
+            .map_err(parse_err)?
+        {
+            Some(label) => quad_str(out, &entry_iri, RDFS_LABEL, &label),
+            None => quad_str(out, &entry_iri, RDFS_LABEL, term),
+        }
+        if let Some(def) = dataset
+            .object_literal(term, SKOS_DEFINITION)
+            .map_err(parse_err)?
+        {
+            quad_str(out, &entry_iri, SKOS_DEFINITION, &def);
+        }
+        // The three deontic-modality prose legs, each verbatim and honest-absent.
+        for avoid in &prose.avoid_when {
+            quad_str(out, &entry_iri, &format!("{GMEOW}adviceAvoidWhen"), avoid);
+        }
+        for use_when in &prose.use_when {
+            quad_str(out, &entry_iri, &format!("{GMEOW}adviceUseWhen"), use_when);
+        }
+        for how in &prose.how_to_use {
+            quad_str(out, &entry_iri, &format!("{GMEOW}adviceHowToUse"), how);
+        }
+    }
+    Ok(())
+}
 
 /// Load the root ontology + every slice module into one frozen dataset (NO imports),
 /// the source the term-enrichment resolves against. Mirrors
@@ -301,6 +500,11 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, gmeow_errors::Diag>
         }
     }
 
+    // ── Advice-catalog entries: the recommendation tier, projected from the
+    // realized advice carriers and hung beneath the `advice.` family rule. Emitted
+    // into the same buffer so they ride the same sort/dedup/canonical fold. ────────
+    emit_advice_entries(&mut out, dataset)?;
+
     // Byte-stable regardless of emission order (canonicalization re-sorts anyway,
     // but keeping the intermediate deterministic makes the parse input stable).
     let mut lines: Vec<&str> = out.lines().collect();
@@ -493,6 +697,106 @@ mod tests {
         assert!(
             checked_present > 0,
             "at least one enforced rule must carry a projected remediation"
+        );
+    }
+
+    /// The advice-catalog projection emits one `gmeow:AdviceEntry`
+    /// per governed term with a realized advice carrier (today `gmeow:Entity` and
+    /// `gmeow:Event`), each hung beneath the `advice.` family rule and carrying the
+    /// three deontic-modality prose legs. Falsifiable: if `emit_advice_entries` were
+    /// dropped, or a term lost its realized carrier, this fails.
+    #[test]
+    fn advice_entries_are_projected_for_realized_carriers() {
+        let root = repo_root();
+        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
+        let nq = build_catalog_nquads(&dataset).expect("build catalog n-quads");
+        for term in ["Entity", "Event"] {
+            let entry = format!("{GMEOW}advice/{term}");
+            assert!(
+                nq.contains(&format!("<{entry}> <{RDF_TYPE}> <{GMEOW}AdviceEntry>")),
+                "missing gmeow:AdviceEntry projection for {term}"
+            );
+            assert!(
+                nq.contains(&format!(
+                    "<{entry}> <{GMEOW}documentedByRule> <{GMEOW}rule/family/advice>"
+                )),
+                "AdviceEntry for {term} must hang beneath the advice family rule"
+            );
+            assert!(
+                nq.contains(&format!("<{entry}> <{LOGIC}formalizes> <{GMEOW}{term}>")),
+                "AdviceEntry for {term} must formalize its governed term"
+            );
+            assert!(
+                nq.contains(&format!("<{entry}> <{GMEOW}adviceAvoidWhen>")),
+                "AdviceEntry for {term} must carry its avoidWhen prohibition prose"
+            );
+            assert!(
+                nq.contains(&format!("<{entry}> <{GMEOW}adviceUseWhen>")),
+                "AdviceEntry for {term} must carry its useWhen permission prose"
+            );
+            assert!(
+                nq.contains(&format!("<{entry}> <{GMEOW}adviceHowToUse>")),
+                "AdviceEntry for {term} must carry its howToUse directive prose"
+            );
+        }
+    }
+
+    /// Prose-binding: every projected `gmeow:adviceAvoidWhen` leg is verbatim one of
+    /// the governed term's authored `gmeow:avoidWhen` literals (the advice message is
+    /// gate-bound to that prose by `check_advice_message_prose_binding`). This catches
+    /// a regression in the catalog projection as well as in the gate — one field bound
+    /// in two places must agree.
+    #[test]
+    fn advice_avoid_when_projects_the_terms_avoidwhen_prose_verbatim() {
+        const GMEOW_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
+        let root = repo_root();
+        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
+        let advice = collect_advice(&dataset).expect("collect advice");
+        let entity = format!("{GMEOW}Entity");
+        let prose = advice
+            .get(&entity)
+            .expect("gmeow:Entity has realized advice");
+        let term_avoid: BTreeSet<String> = dataset
+            .objects(&entity, GMEOW_AVOID_WHEN)
+            .expect("term avoidWhen")
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal { value, .. } => Some(value),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            !prose.avoid_when.is_empty(),
+            "gmeow:Entity must project at least one adviceAvoidWhen leg"
+        );
+        for avoid in &prose.avoid_when {
+            assert!(
+                term_avoid.contains(avoid),
+                "projected adviceAvoidWhen for gmeow:Entity is not a verbatim \
+                 gmeow:avoidWhen of the term: {avoid:?}"
+            );
+        }
+    }
+
+    /// The minted advice-entry slugs are distinct across governed terms (two terms
+    /// whose local names collided would mint the same subject). `emit_advice_entries`
+    /// asserts this at build time; this pins it at the collector level too.
+    #[test]
+    fn advice_entry_slugs_are_distinct() {
+        let root = repo_root();
+        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
+        let advice = collect_advice(&dataset).expect("collect advice");
+        let mut slugs = BTreeSet::new();
+        for term in advice.keys() {
+            assert!(
+                slugs.insert(slugify(local_name(term))),
+                "duplicate advice-entry slug for {term}"
+            );
+        }
+        assert!(
+            advice.len() >= 2,
+            "expected at least the Entity + Event realized carriers, got {}",
+            advice.len()
         );
     }
 }

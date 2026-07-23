@@ -149,6 +149,12 @@ const GMEOW_RULE_CATEGORY: &str = "https://blackcatinformatics.ca/gmeow/ruleCate
 const GMEOW_RULE_SEVERITY: &str = "https://blackcatinformatics.ca/gmeow/ruleSeverity";
 const GMEOW_RULE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/ruleHelpUri";
 const GMEOW_APPLIES_TO_TERM: &str = "https://blackcatinformatics.ca/gmeow/appliesToTerm";
+// The advice-catalog projection: the recommendation tier.
+const GMEOW_ADVICE_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/AdviceEntry";
+const GMEOW_ADVICE_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceAvoidWhen";
+const GMEOW_ADVICE_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/adviceUseWhen";
+const GMEOW_ADVICE_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/adviceHowToUse";
+const GMEOW_DOCUMENTED_BY_RULE: &str = "https://blackcatinformatics.ca/gmeow/documentedByRule";
 /// `logic:instantiatesFramework` — the per-term reasoning-discipline selector;
 /// its objects (closed `logic:LogicalFramework` individuals) surface as the
 /// term's frameworks.
@@ -1284,6 +1290,11 @@ pub struct DocsModel {
     /// unit-test model). Drives the "What GMEOW enforces" page, whose per-rule
     /// anchor is the same slug the validator mints for a finding's `helpUri`.
     pub constraint_rules: Vec<ConstraintRule>,
+    /// The advice catalog — every `gmeow:AdviceEntry` individual read from the same
+    /// `constraint-catalog.nq` in `discover()` (sorted by term). The recommendation
+    /// tier peer of `constraint_rules`: drives the distinct "Advice" section of the
+    /// "What GMEOW enforces" page. Empty when no realized advice carrier exists.
+    pub advice_entries: Vec<AdviceEntry>,
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
@@ -1426,6 +1437,34 @@ pub struct ConstraintRule {
     pub applies_to_terms: Vec<String>,
     /// The `logic:` axiom IRI this rule formalizes (`logic:formalizes`), if present.
     pub formalizes: Option<String>,
+}
+
+/// One advice-catalog entry (`gmeow:AdviceEntry`): the standing RECOMMENDATION
+/// harvested for one governed term — the advisory peer of [`ConstraintRule`].
+/// Rendered in the distinct "Advice" section beneath the `advice.` family rule
+/// (`documented_by_rule`), the single `#advice-` anchor every advisory finding code
+/// resolves to. Each prose leg is the term's OWN verbatim prose, projected from the
+/// realized carriers — never a fabricated recommendation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AdviceEntry {
+    /// The governed term IRI (`gmeow:appliesToTerm` / `logic:formalizes`).
+    pub term: String,
+    /// The readable in-page sub-anchor slug `advice-{slugify(local-name(term))}`
+    /// (navigation only; the guaranteed static resolution target is `#advice-`).
+    pub slug: String,
+    /// The term's human label (`rdfs:label`), if present.
+    pub label: Option<String>,
+    /// The term's prose definition (`skos:definition`), if present.
+    pub definition: Option<String>,
+    /// The prohibition prose (`gmeow:adviceAvoidWhen`), sorted; may be empty.
+    pub avoid_when: Vec<String>,
+    /// The conditional-permission prose (`gmeow:adviceUseWhen`), sorted; may be empty.
+    pub use_when: Vec<String>,
+    /// The positive-directive prose (`gmeow:adviceHowToUse`), sorted; may be empty.
+    pub how_to_use: Vec<String>,
+    /// The advice family `gmeow:ValidationRule` IRI this entry hangs beneath
+    /// (`gmeow:documentedByRule`), if present.
+    pub documented_by_rule: Option<String>,
 }
 
 /// One diagnostic (`gmeow_errors::DiagNode`) projected for docs rendering: the
@@ -2035,6 +2074,7 @@ impl DocsModel {
             recipes,
             learning_paths,
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline,
@@ -2137,12 +2177,14 @@ impl DocsModel {
         // bytes (the in-pipeline consumers, which must not read a not-yet-materialized
         // `generated/` file). An unparsable/malformed catalog is a broken invariant
         // either way — hard-fail rather than render an empty-state page.
-        model.constraint_rules = match catalog_source {
+        let parsed_catalog = match catalog_source {
             CatalogSource::Disk => read_constraint_catalog(root)?,
             CatalogSource::Live(bytes) => {
                 parse_constraint_catalog(bytes, "stage-constraint-catalog product")?
             }
         };
+        model.constraint_rules = parsed_catalog.rules;
+        model.advice_entries = parsed_catalog.advice;
         // Resolve each fixture's catalog_slug now that constraint_rules is
         // populated (from_catalog runs before the catalog is read, so every
         // fixture starts with catalog_slug: None).
@@ -2417,12 +2459,20 @@ enum CatalogSource<'a> {
 /// `gmeow:ruleCode` is a broken invariant (a pipeline bug), never an optional
 /// input — the caller must stop and report rather than silently render the
 /// "What GMEOW enforces" page as empty.
-fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError> {
+fn read_constraint_catalog(root: &Path) -> Result<ParsedCatalog, DocsError> {
     let path = root.join("generated/catalog/constraint-catalog.nq");
     let bytes = std::fs::read(&path).map_err(|e| {
         DocsError::ConstraintCatalog(format!("cannot read {}: {e}", path.display()))
     })?;
     parse_constraint_catalog(&bytes, &path.display().to_string())
+}
+
+/// The two tiers a `constraint-catalog.nq` carries: the enforced-check
+/// [`ConstraintRule`] compliance tier and the [`AdviceEntry`] recommendation tier.
+/// Parsed together from one document so the disk and live sources cannot diverge.
+struct ParsedCatalog {
+    rules: Vec<ConstraintRule>,
+    advice: Vec<AdviceEntry>,
 }
 
 /// Parse constraint-catalog N-Quads (`source` names them for diagnostics) into the
@@ -2433,7 +2483,7 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
 /// can never diverge in how a rule is decoded. An unparsable document or a
 /// `gmeow:ValidationRule` subject with no `gmeow:ruleCode` is a broken invariant,
 /// never an optional input.
-fn parse_constraint_catalog(bytes: &[u8], source: &str) -> Result<Vec<ConstraintRule>, DocsError> {
+fn parse_constraint_catalog(bytes: &[u8], source: &str) -> Result<ParsedCatalog, DocsError> {
     let store = Store::parse_nquads(bytes)
         .map_err(|e| DocsError::ConstraintCatalog(format!("cannot parse {source}: {e}")))?;
     let mut rules: Vec<ConstraintRule> = Vec::new();
@@ -2479,7 +2529,48 @@ fn parse_constraint_catalog(bytes: &[u8], source: &str) -> Result<Vec<Constraint
         });
     }
     rules.sort_by(|a, b| a.code.cmp(&b.code));
-    Ok(rules)
+
+    // The advice tier: every gmeow:AdviceEntry, keyed by its governed term. The
+    // recommendation peer of the ValidationRule loop above, parsed from the SAME
+    // document so disk and live sources cannot diverge. A subject with no governed
+    // term is malformed generated data, never a tolerable optional field.
+    let mut advice: Vec<AdviceEntry> = Vec::new();
+    for iri in store.subjects_of_type_any(GMEOW_ADVICE_ENTRY) {
+        let term = store
+            .named_objects_any(&iri, GMEOW_APPLIES_TO_TERM)
+            .into_iter()
+            .min()
+            .or_else(|| {
+                store
+                    .named_objects_any(&iri, LOGIC_FORMALIZES)
+                    .into_iter()
+                    .min()
+            })
+            .ok_or_else(|| {
+                DocsError::ConstraintCatalog(format!(
+                    "gmeow:AdviceEntry {iri} in {source} carries no governed term \
+                     (gmeow:appliesToTerm / logic:formalizes)"
+                ))
+            })?;
+        let local = term.rsplit(['/', '#']).next().unwrap_or(&term);
+        let slug = format!("advice-{}", gmeow_validate::rule_catalog::slugify(local));
+        advice.push(AdviceEntry {
+            term: term.clone(),
+            slug,
+            label: store.first_literal_any(&iri, RDFS_LABEL),
+            definition: store.first_literal_any(&iri, SKOS_DEFINITION),
+            avoid_when: store.literals_any(&iri, GMEOW_ADVICE_AVOID_WHEN),
+            use_when: store.literals_any(&iri, GMEOW_ADVICE_USE_WHEN),
+            how_to_use: store.literals_any(&iri, GMEOW_ADVICE_HOW_TO_USE),
+            documented_by_rule: store
+                .named_objects_any(&iri, GMEOW_DOCUMENTED_BY_RULE)
+                .into_iter()
+                .min(),
+        });
+    }
+    advice.sort_by(|a, b| a.term.cmp(&b.term));
+
+    Ok(ParsedCatalog { rules, advice })
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
