@@ -1152,7 +1152,7 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
         Ok((program, lowering))
     }
 
-    /// The CANONICAL native alignment-cell form (issue #1200 R4/AC3). Each cell is one
+    /// The CANONICAL native alignment-cell form (R4/AC3). Each cell is one
     /// RDF-1.2 asserting-annotation `s skos:*Match o {| … |}`; the reifier's annotation
     /// block carries the SSSOM/correspondence fields. `gmeow:sssomFile` is the REQUIRED
     /// discriminator. The migration tool must emit byte-compatible output of this shape.

@@ -414,7 +414,7 @@ pub fn full_spec() -> PipelineSpec {
         // never a second parse. Source-reading leaf like matrix (consumes nothing).
         ("stage-export-glossary", "glossary"),
         // The generated SKOS concept-scheme surface: a projection of the lifted
-        // NodeKind::Annotation axioms (issue #1200). A source-reading leaf like glossary;
+        // NodeKind::Annotation axioms. A source-reading leaf like glossary;
         // its RDF `.ttl` folds as the RDF-fanout named graph graph/fanout/skos/gmeow-skos.ttl.
         ("stage-export-skos-surface", "skos_surface"),
         ("stage-export-apache", "apache"),

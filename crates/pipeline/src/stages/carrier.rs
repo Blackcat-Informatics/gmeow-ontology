@@ -1164,7 +1164,7 @@ fn rdf_fanout_members(
         }
     }
     // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
-    // lifted NodeKind::Annotation axioms (issue #1200). Read off the stage-export-skos-surface
+    // lifted NodeKind::Annotation axioms. Read off the stage-export-skos-surface
     // product; it is a single RDF `.ttl` member, so it folds as its own
     // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
     for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {

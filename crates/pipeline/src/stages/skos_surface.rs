@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `skos-surface` export leaf (P4): the generated SKOS concept-scheme surface
-//! (issue #1200 AC1/R3).
+//! (AC1/R3).
 //!
 //! A pure projection of the lifted [`NodeKind::Annotation`] axioms: every
 //! GMEOW-authored, carrier-tagged (`@x-gmeow-english`) RDFS/SKOS annotation the

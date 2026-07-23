@@ -102,7 +102,7 @@ pub(crate) mod schema_ident;
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
 // pydantic, and validate).
 pub mod shape_union_fresh;
-// The SKOS concept-scheme export leaf (issue #1200 AC1/R3): a generated projection
+// The SKOS concept-scheme export leaf (AC1/R3): a generated projection
 // of the lifted NodeKind::Annotation axioms (GMEOW-authored RDFS/SKOS annotations).
 pub mod skos_surface;
 // The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo

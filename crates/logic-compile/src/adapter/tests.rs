@@ -38,7 +38,7 @@ fn adapt_empty_graph_raises() {
     assert!(err.0.contains("empty"));
 }
 
-// ── RDFS/SKOS annotation lift (issue #1200 R1/R2) ────────────────────────────
+// ── RDFS/SKOS annotation lift (R1/R2) ────────────────────────────────────────
 
 const ANNOTATED_TERM: &str = r#"
 gm:Widget rdfs:label "Widget"@x-gmeow-english ;
