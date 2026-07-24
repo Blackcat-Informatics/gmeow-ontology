@@ -56,6 +56,7 @@ const FINAL_DEPS: &[&str] = &[
     "coverage",
     "acceptance",
     "reason-verify",
+    "wasm-parity",
     "lint-alignment",
     "i18n-lint",
     "doc-lint",
@@ -123,6 +124,11 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "reason-verify",
         target: "reason-verify",
+        dependencies: AFTER_SYNC,
+    },
+    Task {
+        name: "wasm-parity",
+        target: "wasm-parity",
         dependencies: AFTER_SYNC,
     },
     Task {
