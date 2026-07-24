@@ -68,6 +68,18 @@ pub struct ExecutableDocsData {
     /// Term/slice export both flow through the playground's `DESCRIBE` (client-side,
     /// all RDF formats via purrdf), so this asset is the single export substrate too.
     pub playground_trig: Vec<u8>,
+    /// The **core browser bundle** — the object-level ontology (the bundle's default
+    /// graph) as N-Quads text, sized for the browser (~24 MB vs the full bundle's
+    /// ~948 MB extraction). The bundle-explorer surface parses this client-side (via
+    /// the vendored purrdf RDF engine) to answer `info`/`describe` over the SAME
+    /// authored ontology the pipeline shipped. Empty ⇒ no explorer bundle. Built by
+    /// [`gmeow_validate::store::core_browser_bundle_nquads`].
+    pub core_bundle_nquads: Vec<u8>,
+    /// The full `gmeow.gts` bundle bytes — the browser Tier-1 validate surface reads
+    /// its `shapes-archive` (a small container read; it does NOT extract the whole
+    /// dataset). Empty ⇒ no in-browser validation. Shipped as an EXTERNAL site asset,
+    /// never re-embedded into `gmeow.gts`.
+    pub full_bundle_gts: Vec<u8>,
     /// Per-term reasoner "why" panels (B3): every derivation whose `gmeow:concludes`
     /// or `gmeow:hasPremise` quoted triple mentions the term's IRI (in subject,
     /// predicate, or object position), keyed by the exact term IRI. Parsed by the
@@ -85,6 +97,14 @@ impl ExecutableDocsData {
     #[must_use]
     pub fn has_playground(&self) -> bool {
         !self.playground_trig.is_empty()
+    }
+
+    /// Whether the browser bundle assets (the core N-Quads for the explorer and the
+    /// full `gmeow.gts` for in-browser validation) were supplied — i.e. the
+    /// interactive validate/explore surfaces can be rendered.
+    #[must_use]
+    pub fn has_bundle(&self) -> bool {
+        !self.core_bundle_nquads.is_empty() && !self.full_bundle_gts.is_empty()
     }
 
     /// The inference diff for one example, if any was computed.

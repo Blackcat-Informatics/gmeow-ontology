@@ -68,6 +68,22 @@ const CSS_PATH: &str = "assets/gmeow.css";
 /// is emitted to. Language-neutral: the RDF is language-independent.
 const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 
+/// The site-relative path of the **core browser bundle** — the object-level ontology
+/// as N-Quads text ([`ExecutableDocsData::core_bundle_nquads`]). The bundle explorer
+/// parses it client-side (purrdf `Dataset.parse`) to answer `info`/`describe`.
+const CORE_BUNDLE_NQ_PATH: &str = "assets/gmeow-core.nq";
+
+/// The site-relative path of the FULL `gmeow.gts` bundle
+/// ([`ExecutableDocsData::full_bundle_gts`]) — the in-browser Tier-1 validate surface
+/// reads its `shapes-archive`. An EXTERNAL site asset (never re-embedded in the bundle).
+const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
+
+/// The site-relative path of the browser-bundle integrity manifest: a JSON map from
+/// each bundle asset path to its `blake3:<hex>` content address and byte length, so
+/// the client loader can record/verify which exact bytes it fetched. A deterministic
+/// function of the emitted asset bytes.
+const BUNDLE_MANIFEST_PATH: &str = "assets/bundle-manifest.json";
+
 /// The site-relative path of the docs controller module (SPARQL playground query
 /// execution + result transcoding). A self-contained ES module.
 const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
@@ -488,6 +504,36 @@ pub fn render_site_lang_exec_with_diagrams(
             page.html_path(),
             to_html_lang_exec(model, &page, lang, exec).into_bytes(),
         );
+    }
+
+    // The browser bundle assets: the object-level core N-Quads (the explorer's
+    // client-side query dataset) and the full `gmeow.gts` (the in-browser Tier-1
+    // validate surface's shapes source), plus a content-address integrity manifest.
+    // External site assets, content-addressed, never re-embedded into `gmeow.gts`.
+    if exec.has_bundle() {
+        files.insert(
+            CORE_BUNDLE_NQ_PATH.to_string(),
+            exec.core_bundle_nquads.clone(),
+        );
+        files.insert(FULL_BUNDLE_GTS_PATH.to_string(), exec.full_bundle_gts.clone());
+        let core_digest = blake3::hash(&exec.core_bundle_nquads).to_hex();
+        let full_digest = blake3::hash(&exec.full_bundle_gts).to_hex();
+        // A stable, sorted JSON object (no HashMap iteration) — byte-deterministic.
+        let manifest = format!(
+            concat!(
+                "{{\n",
+                "  \"{core_path}\": {{ \"blake3\": \"blake3:{core_d}\", \"bytes\": {core_n} }},\n",
+                "  \"{full_path}\": {{ \"blake3\": \"blake3:{full_d}\", \"bytes\": {full_n} }}\n",
+                "}}\n"
+            ),
+            core_path = CORE_BUNDLE_NQ_PATH,
+            core_d = core_digest,
+            core_n = exec.core_bundle_nquads.len(),
+            full_path = FULL_BUNDLE_GTS_PATH,
+            full_d = full_digest,
+            full_n = exec.full_bundle_gts.len(),
+        );
+        files.insert(BUNDLE_MANIFEST_PATH.to_string(), manifest.into_bytes());
     }
 
     // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
@@ -8051,6 +8097,62 @@ mod tests {
             live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
             Some(exec.playground_trig.as_slice()),
             "the playground asset must be emitted verbatim when supplied"
+        );
+    }
+
+    #[test]
+    fn bundle_assets_emitted_only_with_bundle_data() {
+        let model = tiny_model();
+
+        // Model-only render ships none of the browser-bundle assets.
+        let base = render_site_lang(&model, "english");
+        for path in [
+            CORE_BUNDLE_NQ_PATH,
+            FULL_BUNDLE_GTS_PATH,
+            BUNDLE_MANIFEST_PATH,
+        ] {
+            assert!(
+                !base.files.contains_key(path),
+                "the model-only render must not emit {path}"
+            );
+        }
+
+        // With both bundle bytes supplied, the core N-Quads + full gts + integrity
+        // manifest are emitted verbatim, with the manifest carrying each asset's
+        // blake3 content address and byte length.
+        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
+        let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            core_bundle_nquads: core.clone(),
+            full_bundle_gts: full.clone(),
+            ..Default::default()
+        };
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert_eq!(
+            live.files.get(CORE_BUNDLE_NQ_PATH).map(Vec::as_slice),
+            Some(core.as_slice()),
+            "the core bundle N-Quads must be emitted verbatim"
+        );
+        assert_eq!(
+            live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
+            Some(full.as_slice()),
+            "the full gts bundle must be emitted verbatim"
+        );
+        let manifest = String::from_utf8(
+            live.files
+                .get(BUNDLE_MANIFEST_PATH)
+                .expect("integrity manifest emitted")
+                .clone(),
+        )
+        .expect("manifest is utf-8");
+        assert!(
+            manifest.contains(&format!("blake3:{}", blake3::hash(&core).to_hex())),
+            "manifest carries the core asset's blake3 content address:\n{manifest}"
+        );
+        assert!(
+            manifest.contains(&format!("\"bytes\": {}", core.len())),
+            "manifest carries the core asset's byte length:\n{manifest}"
         );
     }
 

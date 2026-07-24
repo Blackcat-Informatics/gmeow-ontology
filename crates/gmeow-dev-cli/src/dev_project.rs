@@ -93,8 +93,16 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
         .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
         .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
+    // The browser bundle assets: the object-level core N-Quads (the explorer's
+    // client-side query dataset) and the full bundle bytes (the in-browser Tier-1
+    // validate surface's shapes source). Both ship as external site assets.
+    let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
+        .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
+        .into_bytes();
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
+        core_bundle_nquads,
+        full_bundle_gts: bytes,
         ..Default::default()
     })
 }
