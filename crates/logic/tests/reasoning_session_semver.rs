@@ -105,8 +105,21 @@ use session_common::*;
 /// arm — all folded via `include_str!` into `backward_source_hash()`, so the raw
 /// source-content digest moves. The fixed edge-only input carries no triple term, so the new
 /// arm never fires and no reasoning verdict changes.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate:
+/// `EvalRule` gains `constraint_tag` (`rule_ir.rs`), `QBuiltin` gains `DimEqual`/
+/// `DimProduct` (`query_ir.rs`), `physical/plan.rs`'s `hash_builtin`/`canonical_rule_hash`
+/// gain the new discriminators, `physical/seminaive.rs`'s `apply_builtins` gains the
+/// constraint-tagged violation-emitting Filter inversion, `physical/builtin_eval.rs` gains
+/// the dimension-resolving `CellResolver::dimension` probe, and `relational_core.rs` gains
+/// the `logic:Constraint` → violation-`EvalRule` lowering — all folded via `include_str!`
+/// into BOTH `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`
+/// (`rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/`physical/seminaive.rs`/
+/// `physical/builtin_eval.rs` are members of both source lists), so the raw source-content
+/// digest moves on both axes. The fixed edge-only input authors no `logic:Constraint`, so
+/// no new rule ever fires and no reasoning verdict on this fixed input changes. (Value below
+/// is the post-`cargo fmt` state of the branch.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "6fc6af730340c712f9fa0ff1b4412282aede144fd15a0c75e0e09619b399cc73";
+    "b9503cb4301bf310bf98d8382edfa38e472d85261935705f5f6b3324a5bf30df";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -145,8 +158,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the backward-source digest is one of the seven folded
 /// axes and moves with the changed `query_ir`/`physical` source, while the fixed edge-only
 /// input's reasoning verdict is unchanged.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate (see
+/// the engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/
+/// `physical/seminaive.rs`/`relational_core.rs` engine source, while the fixed edge-only
+/// input (authoring no `logic:Constraint`) has an unchanged reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "9aecc2d1693b573e008afc4b61c0e2ab7c8046403a648b9132d33465bda829d4";
+    "281bfae60deabef30bc020d67b6f3be484b65b8d4262ca13dbb4a308386034f7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

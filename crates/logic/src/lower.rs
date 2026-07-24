@@ -74,6 +74,7 @@ pub(crate) fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<EvalRule> {
         distinct_pairs: rule.distinct_pairs.clone(),
         // This lowering carries no arithmetic builtins.
         builtins: Vec::new(),
+        constraint_tag: None,
     })
 }
 

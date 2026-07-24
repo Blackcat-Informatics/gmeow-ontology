@@ -187,6 +187,23 @@ pub fn verify_with_reasoning_result(
         });
     }
 
+    // The reasoner-derived `math:` dimensional-homogeneity gate: compiles the two
+    // builtin-bound-consequent `logic:Constraint`s authored in `slices/grounding/math/
+    // module.ttl` into VIOLATION-EMITTING forward rules and materializes
+    // `math:DimensionalInhomogeneity` markers from the authored laws over THIS `edb` —
+    // always-on (no flag), so the marker co-fixpoints into the same frozen reasoned
+    // graph the `dimensional-inhomogeneity.rq` verify query (and every obligation
+    // check below) evaluates against. Never a Rust side-channel finding: the marker is
+    // an ordinary `rdf:type` triple the query loop below renders like any other.
+    for (subject, failure_class) in crate::reason::math_gate::dimension_gate_markers(edb)? {
+        store.insert(QuadValues {
+            s: TermValue::iri(subject),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(failure_class),
+            g: None,
+        });
+    }
+
     // Freeze the reasoned graph once; every verify query + the obligation checks
     // evaluate against this shared frozen dataset via the native engine.
     let reasoned = store.freeze().map_err(|e| {
