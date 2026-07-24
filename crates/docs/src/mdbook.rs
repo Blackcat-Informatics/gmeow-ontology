@@ -29,7 +29,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
-    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug, to_markdown_exec,
+    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug, to_markdown_exec_with_map,
 };
 use crate::source_map::SourceToPageMap;
 
@@ -105,7 +105,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
             // chapter's body, and `summary_md` only ever links the winner.
             continue;
         }
-        let body = to_markdown_exec(model, page, exec);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
         let rewritten = rewrite_book_links(&body, &page.dir(), &chapters, &page_map);
         let path = chapter_src_path(&page.dir());
         files.insert(path, rewritten.body.into_bytes());
@@ -170,7 +170,7 @@ fn pack_interactive_book(
         let page = Page::BundleExplorer;
         let dir = page.dir();
         debug_assert_eq!(dir, MDBOOK_EXPLORER_CHAPTER);
-        let body = to_markdown_exec(model, &page, exec);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
         let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
         files.insert(
             chapter_src_path(&dir),
@@ -243,7 +243,7 @@ pub fn book_external_links(model: &DocsModel, exec: &ExecutableDocsData) -> BTre
         .expect("SourceToPageMap: model documents were already validated at discovery");
     let mut all: BTreeSet<String> = BTreeSet::new();
     for page in &pages {
-        let body = to_markdown_exec(model, page, exec);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
         all.extend(rewrite_book_links(&body, &page.dir(), &chapters, &page_map).external);
     }
     all

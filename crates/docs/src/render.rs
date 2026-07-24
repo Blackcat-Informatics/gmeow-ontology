@@ -475,16 +475,23 @@ pub fn render_site_lang_exec_with_diagrams(
         &localized
     };
 
+    // The single link-rewrite authority, built ONCE for this whole site render and threaded
+    // through every page/index renderer below (a pure function of the — possibly localized —
+    // model). Previously each of md_slice / md_slice_document / search_index_json / llms_txt /
+    // llms_full_txt rebuilt it, re-deriving the same document anchors N+M+3 times per render.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     for page in pages(model) {
         files.insert(
             page.md_path(),
-            to_markdown_exec(model, &page, exec).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
         );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
@@ -502,11 +509,11 @@ pub fn render_site_lang_exec_with_diagrams(
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
-            to_markdown_exec(model, &page, exec).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
         );
     }
 
@@ -517,11 +524,11 @@ pub fn render_site_lang_exec_with_diagrams(
         let page = Page::BundleExplorer;
         files.insert(
             page.md_path(),
-            to_markdown_exec(model, &page, exec).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
         );
     }
 
@@ -565,14 +572,14 @@ pub fn render_site_lang_exec_with_diagrams(
     // Static indexes (deterministic, pure functions of the model).
     files.insert(
         "search-index.json".to_string(),
-        search_index_json(model).into_bytes(),
+        search_index_json_with_map(model, &page_map).into_bytes(),
     );
     // Standard llmstxt.org surfaces: a links-only index and a complete
     // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
-    files.insert("llms.txt".to_string(), llms_txt(model).into_bytes());
+    files.insert("llms.txt".to_string(), llms_txt_with_map(model, &page_map).into_bytes());
     files.insert(
         "llms-full.txt".to_string(),
-        llms_full_txt(model).into_bytes(),
+        llms_full_txt_with_map(model, &page_map).into_bytes(),
     );
 
     // Prompt-ready per-term cards: a compact, link-free Markdown card per
@@ -809,6 +816,24 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
 /// an empty `exec` this is byte-identical to the base render (the executable surfaces
 /// simply do not appear), so the model-only goldens are unaffected.
 pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsData) -> String {
+    // The single link-rewrite authority is a pure function of the model; a standalone
+    // page render builds it here. A full site/book render instead builds it ONCE and
+    // calls [`to_markdown_exec_with_map`] per page, so the map is not rebuilt for every
+    // slice/child page (the anchors were otherwise re-derived N+M times per render).
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    to_markdown_exec_with_map(model, page, exec, &page_map)
+}
+
+/// [`to_markdown_exec`] with the shared [`SourceToPageMap`] threaded in, so a full
+/// site/book render builds it once. Byte-identical to `to_markdown_exec` (the map is a
+/// deterministic function of the model).
+pub(crate) fn to_markdown_exec_with_map(
+    model: &DocsModel,
+    page: &Page,
+    exec: &ExecutableDocsData,
+    page_map: &SourceToPageMap,
+) -> String {
     let mut md = match page {
         Page::Term(slug) => {
             let mut md = md_term(model, slug, exec);
@@ -816,13 +841,13 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
             md
         }
         Page::Slice(slug) => {
-            let mut md = md_slice(model, slug);
+            let mut md = md_slice(model, slug, page_map);
             append_slice_executable_sections(&mut md, model, slug, exec);
             md
         }
         Page::SparqlPlayground => md_playground(model, exec),
         Page::BundleExplorer => md_bundle_explorer(model, exec),
-        _ => to_markdown_base(model, page),
+        _ => to_markdown_base(model, page, page_map),
     };
     // The generalized page-level cite-this-surface on every durable NON-term page
     // (the term page carries its own richer content-addressed Citation section).
@@ -837,7 +862,7 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
     md
 }
 
-fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
+fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) -> String {
     match page {
         Page::Landing => md_landing(model),
         Page::GettingStarted => md_getting_started(model),
@@ -847,8 +872,8 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Category(category) => md_category(model, *category),
         Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default()),
         Page::SliceIndex => md_slice_index(model),
-        Page::Slice(slug) => md_slice(model, slug),
-        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path),
+        Page::Slice(slug) => md_slice(model, slug, page_map),
+        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path, page_map),
         Page::LinkageIndex => md_linkage_index(model),
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
@@ -3887,7 +3912,7 @@ fn md_slice_index(model: &DocsModel) -> String {
     out
 }
 
-fn md_slice(model: &DocsModel, slug: &str) -> String {
+fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String {
     let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
@@ -3924,12 +3949,10 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     }
     blank(&mut out);
 
-    // The single link-rewrite authority, rebuilt from the model (a pure function of
-    // its already-validated document set — the same total build `rdf.rs` performs).
-    // Drives the grafted `docs.md` prose, the child-document index, and every
-    // internal link those surfaces rewrite.
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    // `page_map` is the single link-rewrite authority (a pure function of the model's
+    // already-validated document set), built ONCE per render pass and threaded in — it
+    // drives the grafted `docs.md` prose, the child-document index, and every internal
+    // link those surfaces rewrite.
 
     // Graft the slice's top-level `docs.md` narrative directly onto the slice page,
     // between the manifest metadata and the generated artifact/term/linkage sections.
@@ -3944,7 +3967,7 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     {
         let grafted = rewrite_doc_body(
             &docs_md.source_text,
-            &page_map,
+            page_map,
             &slice.iri,
             SLICE_PAGE_SOURCE,
             &from,
@@ -4097,7 +4120,12 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
 /// (another slice, a repo `docs/` file, a non-markdown asset) are absolutized to
 /// the published site. List provenance (source path + digest) lives on the SLICE
 /// page's document index, not on the child body itself.
-fn md_slice_document(model: &DocsModel, slice_iri: &str, path: &str) -> String {
+fn md_slice_document(
+    model: &DocsModel,
+    slice_iri: &str,
+    path: &str,
+    page_map: &SourceToPageMap,
+) -> String {
     let page_dir = Page::SliceDocument {
         slice: slice_iri.to_string(),
         path: path.to_string(),
@@ -4114,11 +4142,9 @@ fn md_slice_document(model: &DocsModel, slice_iri: &str, path: &str) -> String {
         line(&mut out, model.ui("body_slice_not_found"));
         return out;
     };
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
     rewrite_doc_body(
         &doc.source_text,
-        &page_map,
+        page_map,
         slice_iri,
         path,
         &page_dir,
@@ -6135,7 +6161,24 @@ pub fn to_html_lang_exec(
     lang: &str,
     exec: &ExecutableDocsData,
 ) -> String {
-    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec(model, page, exec)));
+    // Standalone render builds the map here; a full site render threads one shared map
+    // through [`to_html_lang_exec_with_map`] (see [`to_markdown_exec`]).
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    to_html_lang_exec_with_map(model, page, lang, exec, &page_map)
+}
+
+/// [`to_html_lang_exec`] with the shared [`SourceToPageMap`] threaded in. Byte-identical
+/// to `to_html_lang_exec` (the map is a deterministic function of the model).
+pub(crate) fn to_html_lang_exec_with_map(
+    model: &DocsModel,
+    page: &Page,
+    lang: &str,
+    exec: &ExecutableDocsData,
+    page_map: &SourceToPageMap,
+) -> String {
+    let body_html =
+        rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(model, page, exec, page_map)));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;
@@ -7103,6 +7146,14 @@ struct SearchRecord {
 /// Build the deterministic `search-index.json`: one record per term, slice,
 /// concern, and mapping set, sorted by URL. A pure function of the model.
 pub fn search_index_json(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    search_index_json_with_map(model, &page_map)
+}
+
+/// [`search_index_json`] with the shared [`SourceToPageMap`] threaded in (built once per
+/// site render). Byte-identical to `search_index_json`.
+pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
     let ctx = crate::coverage::CoverageContext::new(model);
@@ -7162,8 +7213,6 @@ pub fn search_index_json(model: &DocsModel) -> String {
     // its title (label) and its full prose (definition), so search matches document
     // bodies. The top-level `docs.md` prose is grafted onto — and searched as — its
     // slice page, so it is not a separate record. `slice_children` is path-sorted.
-    let doc_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
     for slice in &model.slices {
         for entry in doc_map.slice_children(&slice.iri) {
             let full_prose = slice
@@ -7253,6 +7302,14 @@ fn term_note(term: &DocTerm) -> String {
 /// from `gmeow:docUrl`, so the two never disagree. Notes are capped
 /// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
 pub fn llms_txt(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    llms_txt_with_map(model, &page_map)
+}
+
+/// [`llms_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
+/// render). Byte-identical to `llms_txt`.
+pub(crate) fn llms_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let prose = vec![format!(
         "Vocabulary {}. Namespace: {GMEOW_NS}. The RDF 1.2 grounding slices are canonical; this index links into the published documentation.",
         model.version
@@ -7326,8 +7383,6 @@ pub fn llms_txt(model: &DocsModel) -> String {
     // ── Documents: every slice CHILD document page (non-`docs.md` markdown),
     // grouped by slice via the single page-map authority; the top-level `docs.md`
     // is grafted onto its slice page and covered by the Slices section above. ──
-    let doc_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
     let mut document_bullets: Vec<LlmsBullet> = Vec::new();
     for slice in &model.slices {
         for entry in doc_map.slice_children(&slice.iri) {
@@ -7484,6 +7539,14 @@ fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
 /// truncation), followed by the concern definitions and the slice inventory. This
 /// is the single-file, link-free surface an agent can ingest whole.
 pub fn llms_full_txt(model: &DocsModel) -> String {
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    llms_full_txt_with_map(model, &page_map)
+}
+
+/// [`llms_full_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
+/// render). Byte-identical to `llms_full_txt`.
+pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let prose = vec![format!(
         "Vocabulary {}. Namespace: {GMEOW_NS}. Complete inlined form — every term, its definition, and its usage advice in full.",
         model.version
@@ -7527,15 +7590,13 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
     // root). `model.slices` is IRI-sorted and each `documents` is path-sorted. ──
     let has_documents = model.slices.iter().any(|s| !s.documents.is_empty());
     if has_documents {
-        let doc_map = SourceToPageMap::build(model)
-            .expect("SourceToPageMap: model documents were already validated at discovery");
         out.push_str("## Documents\n\n");
         for slice in &model.slices {
             for doc in &slice.documents {
                 out.push_str(&format!("### {} — {}\n\n", slice_display(slice), doc.title));
                 let body = rewrite_doc_body(
                     &doc.source_text,
-                    &doc_map,
+                    doc_map,
                     &slice.iri,
                     &doc.source_path,
                     "",
