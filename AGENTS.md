@@ -394,11 +394,11 @@ Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generate
 
 The mapping DSL has two main authoring units:
 
-* `gmeow:TermEquivalence` for pure cross-ontology links that compile to SSSOM rows.
+* a native RDF-1.2 alignment cell (a reified `S skos:*Match O {| … |}` statement) for pure cross-ontology links that compile to SSSOM rows.
 * `gmeow:ProjectionMapping` for directional, possibly lossy projections that compile to SPARQL branches and, when applicable, EDOAL/FnO/SSSOM artifacts.
 
 `logic:GroundingCorrespondence` is the explicit grounding marker on either a
-`gmeow:TermEquivalence` frontend cell or a single-binding
+native alignment cell or a single-binding
 `gmeow:ProjectionMapping`. It requires `gmeow:justification`, named
 `logic:sourceEndpoint` and `logic:targetEndpoint` values, and explicit
 `logic:morphismClass`, `logic:morphismKind`, and `logic:preservationKind`

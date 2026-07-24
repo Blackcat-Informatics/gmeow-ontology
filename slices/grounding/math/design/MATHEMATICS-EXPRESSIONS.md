@@ -56,8 +56,8 @@ individuals is needed (e.g. `math:Distribution` is a class; `π` is an individua
 This keeps the TBox small and the ABox expressive, matching the project's frame-relative modeling.
 
 **Alignment is a mapping record, not a bespoke predicate.** External authority links follow the
-established repository pattern: `gmeow:TermEquivalence` reification records in the slice's
-`mappings/equivalences.ttl` (with `gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`,
+established repository pattern: native RDF-1.2 alignment cells — reified `S skos:*Match O {| … |}`
+statements — in the slice's `mappings/equivalences.ttl` (carrying `gmeow:sssomFile`,
 a `semapv:` justification, and a confidence), lowered as a `logic:Correspondence` — the ninth
 `logic:` IR node kind (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). The mathematics slice
 introduces **no** free-standing `authorityLink` predicate; a Wikidata QID for a named concept is a

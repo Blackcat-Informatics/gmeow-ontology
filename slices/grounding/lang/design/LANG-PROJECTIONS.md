@@ -67,7 +67,7 @@ epistemic shape.
 ### WordNet / ILI — the sense-inventory alignment
 
 Not an emission target but an **alignment surface**: `lang:Sense` individuals align to synsets via
-`gmeow:TermEquivalence` records lowered as `logic:Correspondence`, with the interlingual index as
+native alignment cells (reified `skos:*Match` statements) lowered as `logic:Correspondence`, with the interlingual index as
 the cross-language pivot where it helps. **Declared loss.** A synset is coarser than a GMEOW
 sense with its contexts; alignment confidence is recorded per mapping, and synset membership is
 never imported as sense identity.
@@ -147,7 +147,7 @@ row carries the token rate the encoding is contracted to, now alongside a zero s
 ### Wikidata lexemes — the authority surface
 
 Lexemes, senses, and sign systems align to Wikidata L-ids, sense ids, and QIDs as
-`gmeow:TermEquivalence` records — authority links naming alignments, with the GMEOW term
+native alignment cells — authority links naming alignments, with the GMEOW term
 remaining the definition. Live-verification of ids follows the repository's established
 curl-validation discipline for QIDs.
 
