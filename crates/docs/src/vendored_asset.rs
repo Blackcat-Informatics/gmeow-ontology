@@ -368,3 +368,54 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // it to gate the LiveReasoning capability.
     witness_attestation: Some("WITNESS.reason.nq"),
 };
+
+/// The vendored `gmeow-gmn-wasm` engine — the shipped GMN-0↔GMN-1 codec + glyph
+/// symbology compiled to wasm32, run client-side so the docs GMN transcode widget turns
+/// authored RDF into the token-compact GMN-1 surface and back with the SAME codec the
+/// on-gate authority ships. Refreshed by `make maint-refresh-gmn-asset`.
+pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "gmn",
+    emitted_files: &[
+        (
+            "gmeow_gmn_wasm.js",
+            include_bytes!("../assets/gmn/gmeow_gmn_wasm.js"),
+        ),
+        (
+            "gmeow_gmn_wasm_bg.wasm",
+            include_bytes!("../assets/gmn/gmeow_gmn_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "gmeow_gmn_wasm.d.ts",
+        "gmeow_gmn_wasm.js",
+        "gmeow_gmn_wasm_bg.wasm",
+        "gmeow_gmn_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "gmeow_gmn_wasm_bg.wasm",
+    min_wasm_len: 100_000,
+    export_checks: &[
+        ExportCheck {
+            file: "gmeow_gmn_wasm.js",
+            needle: "export function to_gmn1(data, format)",
+            hint: "vendored bindings lack the to_gmn1 export",
+        },
+        ExportCheck {
+            file: "gmeow_gmn_wasm.js",
+            needle: "export function from_gmn1(gmn1_text)",
+            hint: "vendored bindings lack the from_gmn1 export",
+        },
+        ExportCheck {
+            file: "gmeow_gmn_wasm.d.ts",
+            needle: "export function to_gmn1(data: string, format: string): string",
+            hint: "vendored .d.ts lacks the to_gmn1 type signature",
+        },
+    ],
+    refresh_target: "maint-refresh-gmn-asset",
+    bless_env: "GMEOW_GMN_BLESS",
+    // The native↔wasm GMN transcode parity attestation (`WITNESS.gmn1.txt`): the GMN-1
+    // surface the native codec writes and the wasm engine reproduces, and which reads
+    // back to the input's canonical N-Quads byte-for-byte (proven by
+    // `crates/gmn-wasm/tests/witness_gmn.rs` + the Node lane). Task 14 consumes it to
+    // gate the GMN transcode capability.
+    witness_attestation: Some("WITNESS.gmn1.txt"),
+};

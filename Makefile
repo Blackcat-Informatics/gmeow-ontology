@@ -451,7 +451,7 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
 	@# hard dependency: a missing wasm-opt is a build failure, never a note.
 	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
 
@@ -469,7 +469,7 @@ reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + 
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm \
 		--out-dir crates/reason-wasm/js/pkg --target web
 	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
 	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
 
 maint-refresh-reason-asset: reason-wasm-pkg ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest.
@@ -481,13 +481,17 @@ maint-refresh-reason-asset: reason-wasm-pkg ## Re-vendor the gmeow-reason-wasm e
 	GMEOW_REASON_BLESS=1 cargo test -p gmeow-docs --test reason_asset
 	@echo "OK: re-vendored gmeow-reason-wasm into crates/docs/assets/reason/ (DIGESTS.blake3 re-pinned)"
 
+reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
+	cd crates/reason-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
+
 gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown --release
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
 		--out-dir crates/gmn-wasm/js/pkg --target web
 	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
 	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
 
 maint-refresh-gmn-asset: gmn-wasm-pkg ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest.
@@ -498,6 +502,10 @@ maint-refresh-gmn-asset: gmn-wasm-pkg ## Re-vendor the gmeow-gmn-wasm engine int
 	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm.d.ts  crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm.d.ts
 	GMEOW_GMN_BLESS=1 cargo test -p gmeow-docs --test gmn_asset
 	@echo "OK: re-vendored gmeow-gmn-wasm into crates/docs/assets/gmn/ (DIGESTS.blake3 re-pinned)"
+
+gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
+	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
