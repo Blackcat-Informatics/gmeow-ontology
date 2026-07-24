@@ -5,46 +5,55 @@
 //!
 //! A GENERIC producer driven entirely by the authored `logic:AbductiveSchema`
 //! vocabulary (`slices/grounding/logic/module.ttl`). It discovers every schema by
-//! SPARQL, reads each schema's `logic:completenessFormula` structure off the graph,
+//! SPARQL, reads each schema's `logic:completenessFormula` structure off the graph, and
 //! enumerates the minimal candidate additions that would complete an under-specified
-//! subject, and asks the native conjecture engine
-//! ([`gmeow_logic::conjecture::conjecture_test`]) whether a candidate addition makes
-//! the discipline's completeness condition hold in an ISOLATED, consistent scenario
-//! world. Only a `Corroborated` verdict warrants the emitted advisory — an `Open` or
-//! `RefutedInStandpoint` answer is honest absence (no suggestion). A verdict cut short by
-//! BUDGET EXHAUSTION is neither: it is a genuinely inconclusive could-not-decide, distinct
-//! from a decided `Open`, so it never silently vanishes — [`abductive_advisories`] returns
-//! it as its own [`AbductiveOutcome::exhausted`] diagnostic (Part B of G6), never folded
-//! into the same honest absence as a real non-corroboration.
+//! subject. How each candidate is WARRANTED depends on the completeness SHAPE:
+//!   * a CONJUNCTIVE (relatum) completeness — relator-mediation, WEMI-chain,
+//!     reference-frame, and measurement-frame — is warranted BY CONSTRUCTION: one candidate
+//!     per MISSING relatum, filled by a FRESH content-addressed witness that is not in the
+//!     graph. A fresh untyped individual on an absent property can never trigger a
+//!     cardinality or disjointness clash, so the addition is consistent by construction and
+//!     completes that conjunct's per-conjunct completeness. This path makes NO native engine
+//!     call — the old `conjecture_test` there was tautological (always `Corroborated` for a
+//!     fresh witness) and expensive, so it is gone.
+//!   * a DISJUNCTIVE (sortal) completeness is warranted by the native conjecture engine
+//!     ([`gmeow_logic::conjecture::conjecture_test`]) — the ONE path that needs it, because
+//!     ∨-introduction is only non-trivial advice when the subject's own assertions REFUTE at
+//!     least one offered disjunct (a genuine `RefutedInStandpoint`). Only a `Corroborated`
+//!     disjunct in that discriminating case warrants advice; an `Open`/`RefutedInStandpoint`
+//!     answer is honest absence (no suggestion). A verdict cut short by BUDGET EXHAUSTION is
+//!     neither: it is a genuinely inconclusive could-not-decide, distinct from a decided
+//!     `Open`, so it never silently vanishes — [`abductive_advisories`] returns it as its own
+//!     [`AbductiveOutcome::exhausted`] diagnostic (Part B of G6), never folded into the same
+//!     honest absence as a real non-corroboration. The conjunctive path never calls the
+//!     engine, so it can never exhaust — `exhausted` is populated by the sortal path alone.
 //!
 //! There is NO hardcoded discipline list and NO hardcoded predicate string: the guard
 //! type, the required relata predicates, and the candidate sortal types are all read
 //! from the reconstructed completeness formula, so registering a further discipline of
 //! an existing strategy is a data mark in the logic module, never new code here.
 //!
-//! # The completeness warrant is a conjunction of ground-head Horn corroborations
+//! # The conjunctive (relatum) completeness warrant is BY CONSTRUCTION
 //!
-//! The native relational-core lowering makes a **ground-head** Horn implication
-//! `τ(s) → r(s, o)` a genuine discriminator: over the restricted chase the rule adds
-//! `r(s, o)` when it is absent (a NEW triple ⇒ the candidate is not redundant ⇒ `Open`)
-//! and adds nothing when it is already present or already entailed (redundant ⇒
-//! `Supported` ⇒ `Corroborated`), and a clash with the subject's other assertions lands
-//! `RefutedInStandpoint`. (An *existential*-headed implication `∃v. (τ(s) → r(s, v))` is
-//! NOT a discriminator: its Skolem witness is invented outside the counted closure, so it
-//! corroborates unconditionally — hence the completeness is decomposed into ground atoms,
-//! never left existential.)
+//! A relator-mediation completeness (a conjunction of relata) is warranted PER CANDIDATE,
+//! per conjunct, BY CONSTRUCTION: each missing relatum is its own independently-warranted
+//! candidate, filled by a FRESH content-addressed witness `value_i` that is NOT in the
+//! graph. Adding `r_i(s, value_i)` for an absent relation `r_i` and a fresh, untyped `value_i`
+//! is a consistent addition — a fresh untyped object on an absent property can never trigger
+//! a cardinality or disjointness clash — so it completes that conjunct's per-conjunct
+//! completeness WITHOUT any engine check. (The old design ran a ground-head Horn
+//! `τ_guard(s) → r_i(s, value_i)` through `conjecture_test` per candidate, but for a fresh
+//! witness on a missing relatum that test is TAUTOLOGICAL — it always returned `Corroborated`
+//! by construction — and it was expensive: a full reasoning pass over the entire reasoned KB
+//! per candidate. It is gone. The warrant is the by-construction argument itself.)
 //!
-//! So a relator-mediation completeness (a conjunction of relata) is warranted PER
-//! CANDIDATE, per conjunct: each missing relatum is its own independently-warranted
-//! candidate, tested against ITS OWN ground Horn `τ_guard(s) → r_i(s, value_i)` where
-//! `value_i` is the fresh witness for THAT relatum — never against the whole conjunction.
 //! A one-party `gmeow:Commitment` (two of three relata missing) therefore yields ONE
-//! candidate per missing relatum, each warranted independently; the other relata being
-//! still missing no longer blocks either candidate's warrant (per-conjunct completeness:
-//! "adding this relatum is consistent with the guard type", not "all others are already
-//! present"). The full completeness conjunction is still the discipline's authored TARGET
-//! (`logic:relatorMediationCons` names all three relata) — only the per-candidate
-//! WARRANTING is scoped to the one conjunct being added.
+//! candidate per missing relatum, each warranted independently by construction; the other
+//! relata being still missing no longer blocks either candidate's warrant (per-conjunct
+//! completeness: "adding this relatum with a fresh witness is a consistent completion", not
+//! "all others are already present"). The full completeness conjunction is still the
+//! discipline's authored TARGET (`logic:relatorMediationCons` names all three relata) — only
+//! the per-candidate WARRANTING is scoped to the one conjunct being added.
 //!
 //! A sortal specialization (a disjunction) is warranted PER SUBJECT, across every offered
 //! disjunct together, never per candidate in isolation. Each disjunct `τ_Entity(s) → τ_T(s)`
@@ -124,29 +133,34 @@ pub fn abductive_budget() -> Budget {
     }
 }
 
-/// One abductive suggestion: the engine-corroborated warrant [`Diag`] paired with the
-/// dual-projection-ready [`Advisory`]. The two carry the SAME content-addressed digest
-/// in their codes, so a consumer can join the warrant to the advice it warrants.
+/// One abductive suggestion: the warrant [`Diag`] paired with the dual-projection-ready
+/// [`Advisory`]. The two carry the SAME content-addressed digest in their codes, so a
+/// consumer can join the warrant to the advice it warrants. The warrant is either a
+/// by-construction argument (conjunctive/relatum path — a fresh witness for a missing relatum
+/// is a consistent addition) or a native conjecture corroboration (sortal path).
 #[derive(Debug)]
 pub struct AbductiveSuggestion {
-    /// The warrant note summarising the native conjecture corroboration.
+    /// The warrant note: a by-construction relatum argument, or a native conjecture
+    /// corroboration for the sortal path (see [`build_suggestion`]).
     pub warrant: Diag,
     /// The best-practice advisory recommending the concrete addition.
     pub advisory: Advisory,
 }
 
-/// The full output of [`abductive_advisories`]: every engine-corroborated suggestion AND,
-/// when a candidate/subject's warrant test was cut short by budget exhaustion (as opposed
-/// to a genuine `Open`/`RefutedInStandpoint` verdict), an honest "could-not-decide (budget
-/// exhausted)" [`Diag`] — so a subject dropped because its warrant ran out of budget stays
-/// OBSERVABLE in `graph/diagnostics`, never a silent vanish indistinguishable from genuine
-/// non-corroboration. Deterministic: `exhausted` is sorted by its content-addressed code,
-/// exactly like `suggestions` is sorted by `(advisory.code, advisory.subject_iri)`.
+/// The full output of [`abductive_advisories`]: every warranted suggestion AND, when a
+/// SORTAL subject's warrant test was cut short by budget exhaustion (as opposed to a genuine
+/// `Open`/`RefutedInStandpoint` verdict), an honest "could-not-decide (budget exhausted)"
+/// [`Diag`] — so a subject dropped because its warrant ran out of budget stays OBSERVABLE in
+/// `graph/diagnostics`, never a silent vanish indistinguishable from genuine non-corroboration.
+/// Only the sortal path calls the native engine, so only it can exhaust — the conjunctive
+/// (relatum) path warrants by construction and never contributes to `exhausted`. Deterministic:
+/// `exhausted` is sorted by its content-addressed code, exactly like `suggestions` is sorted by
+/// `(advisory.code, advisory.subject_iri)`.
 #[derive(Debug, Default)]
 pub struct AbductiveOutcome {
-    /// Every engine-corroborated candidate addition, byte-sorted (see [`abductive_advisories`]).
+    /// Every warranted candidate addition, byte-sorted (see [`abductive_advisories`]).
     pub suggestions: Vec<AbductiveSuggestion>,
-    /// One diagnostic per candidate/subject whose warrant test exhausted its budget before
+    /// One diagnostic per SORTAL subject whose warrant test exhausted its budget before
     /// reaching a conclusive verdict.
     pub exhausted: Vec<Diag>,
 }
@@ -237,10 +251,12 @@ pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> Abductive
                 exhausted.extend(subject_exhausted);
             }
             STRATEGY_RELATUM | STRATEGY_CHAIN | STRATEGY_FRAME => {
+                // The conjunctive/relatum warrant is BY CONSTRUCTION (a fresh witness for a
+                // missing relatum is a consistent addition), so it makes NO engine call and can
+                // NEVER exhaust — it only ever yields a suggestion or honest absence.
                 for candidate in relatum_candidates(reasoned, &schema) {
-                    match warrant(reasoned, &schema, &candidate, budget) {
+                    match warrant(reasoned, &schema, &candidate) {
                         WarrantOutcome::Corroborated(suggestion) => suggestions.push(*suggestion),
-                        WarrantOutcome::Exhausted(key, diag) => exhausted.push((key, diag)),
                         WarrantOutcome::Other => {}
                     }
                 }
@@ -474,79 +490,59 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
 
 // ── The engine warrant ───────────────────────────────────────────────────────────────
 
-/// The three-way disposition a single candidate's warrant test lands in.
+/// The two-way disposition a single conjunctive/relatum candidate lands in. There is no
+/// `Exhausted` variant: the relatum warrant is BY CONSTRUCTION (no engine call), so it can
+/// never be cut short by a budget — it either warrants a suggestion or is honest absence.
 enum WarrantOutcome {
-    /// The formula was `Corroborated` — the paired warrant + advisory. Boxed: at ~240 bytes
-    /// this variant otherwise dwarfs its siblings (clippy::large_enum_variant).
+    /// The candidate is warranted by construction — the paired warrant + advisory. Boxed: at
+    /// ~240 bytes this variant otherwise dwarfs its unit sibling (clippy::large_enum_variant).
     Corroborated(Box<AbductiveSuggestion>),
-    /// The engine's budget was exhausted before it reached a conclusive verdict — the
-    /// content-addressed sort key (mirrors [`Advisory::code`]) paired with the honest
-    /// "could-not-decide" [`Diag`].
-    Exhausted(String, Diag),
-    /// `Open` / `RefutedInStandpoint` / an engine error — honest absence, no diagnostic.
+    /// A non-conjunctive schema mis-dispatched here, or a property guard whose subject has no
+    /// IRI guard value — honest absence, no suggestion.
     Other,
 }
 
-/// Test `candidate` against ITS OWN per-conjunct ground-head Horn (relator mediation /
-/// WEMI chain / reference frame) in an isolated, content-addressed scenario world, and
-/// build the paired warrant + advisory when the native engine corroborates that single
-/// conjunct. A verdict cut short by budget exhaustion surfaces as
-/// [`WarrantOutcome::Exhausted`] (an honest could-not-decide diagnostic, never a false
-/// advisory); any other non-corroborating verdict (Open / RefutedInStandpoint) or engine
-/// error is [`WarrantOutcome::Other`] — honest absence, no panic.
+/// Warrant `candidate` (relator mediation / WEMI chain / reference frame / measurement frame)
+/// BY CONSTRUCTION and build the paired warrant + advisory. The candidate fills a MISSING
+/// relatum with a FRESH content-addressed witness (`candidate.object`, never in the graph):
+/// adding `predicate(subject, freshWitness)` for an absent `predicate` and a fresh, untyped
+/// object can NEVER trigger a cardinality or disjointness clash, so it is a consistent
+/// addition that completes that conjunct's per-conjunct completeness. This is warranted by the
+/// by-construction argument itself — NO native conjecture-engine call (the old per-candidate
+/// `conjecture_test` there was tautological — always `Corroborated` for a fresh witness — and
+/// expensive; it is gone).
 ///
-/// Per-conjunct completeness: the candidate's own predicate/object IS the ground value for
-/// the relatum being added, so only `τ_guard(subject) → predicate(subject, object)` is
-/// tested — never the whole completeness conjunction. A relatum that is STILL missing on
-/// the subject (a different conjunct than the one this candidate adds) no longer blocks
-/// this candidate's warrant: each missing relatum is its own independently-warranted
-/// candidate (see the module doc "The completeness warrant …" section).
+/// Per-conjunct completeness: each missing relatum is its own independently-warranted
+/// candidate. A relatum that is STILL missing on the subject (a different conjunct than the
+/// one this candidate adds) does not block this candidate's warrant (see the module doc "The
+/// conjunctive (relatum) completeness warrant is BY CONSTRUCTION" section).
 ///
-/// The sortal/disjunctive strategy never reaches this function — it is warranted through
-/// the per-subject gate in [`sortal_suggestions`] instead, so a non-conjunctive schema
-/// (which should never be dispatched here — see `abductive_advisories`) is honest absence.
+/// The sortal/disjunctive strategy never reaches this function — it is warranted through the
+/// per-subject gate in [`sortal_suggestions`] (the ONE user of the native engine), so a
+/// non-conjunctive schema mis-dispatched here is [`WarrantOutcome::Other`] (honest absence). A
+/// property guard whose subject has no IRI guard value is likewise honest absence — the guard
+/// does not actually ground on that subject, so no advice is emitted, no panic.
 fn warrant(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidate: &Candidate,
-    budget: &Budget,
 ) -> WarrantOutcome {
     let ConsShape::Conjunctive(_) = &schema.cons else {
         return WarrantOutcome::Other;
     };
-    // The grounded guard antecedent for this subject. A property guard whose subject has no
-    // IRI guard value cannot warrant (honest absence, no panic) — mirrors the file's other
-    // None-handling.
-    let Some(guard_antecedent) = guard_antecedent(reasoned, &candidate.subject, &schema.guard)
-    else {
+    // The guard must actually ground on this subject (a type guard always does; a property
+    // guard needs an IRI guard value). Absent one, the guard does not admit the subject —
+    // honest absence, no panic. (`relatum_candidates` already scopes to guard subjects, so
+    // this only excludes a property-guard subject whose guard value is a literal/blank.)
+    if guard_antecedent(reasoned, &candidate.subject, &schema.guard).is_none() {
         return WarrantOutcome::Other;
-    };
-    let scenario_world = scenario_world_iri(candidate);
-    let assume = vec![(
-        candidate.subject.clone(),
-        candidate.predicate.clone(),
-        candidate.object.clone(),
-    )];
-
-    let formula = ground_relatum_formula(
-        guard_antecedent,
-        &candidate.subject,
-        &candidate.predicate,
-        &candidate.object,
-    );
-    match engine_verdict(reasoned, &scenario_world, &formula, &assume, budget) {
-        EngineVerdict::Corroborated => WarrantOutcome::Corroborated(Box::new(build_suggestion(
-            reasoned,
-            schema,
-            candidate,
-            &scenario_world,
-        ))),
-        EngineVerdict::Exhausted => {
-            let (key, diag) = exhaustion_diag(schema, candidate, &scenario_world);
-            WarrantOutcome::Exhausted(key, diag)
-        }
-        EngineVerdict::Refuted | EngineVerdict::Other => WarrantOutcome::Other,
     }
+    WarrantOutcome::Corroborated(Box::new(build_suggestion(
+        reasoned,
+        schema,
+        candidate,
+        WarrantProse::ByConstruction,
+    )))
 }
 
 /// Sortal-specialization suggestions, gated PER SUBJECT across every offered disjunct
@@ -664,7 +660,14 @@ fn sortal_suggestions_for_subject(
         .filter(|(_, verdict)| **verdict == EngineVerdict::Corroborated)
         .map(|(candidate, _)| {
             let scenario_world = scenario_world_iri(candidate);
-            build_suggestion(reasoned, schema, candidate, &scenario_world)
+            build_suggestion(
+                reasoned,
+                schema,
+                candidate,
+                WarrantProse::EngineCorroborated {
+                    scenario_world: &scenario_world,
+                },
+            )
         })
         .collect();
     (suggestions, exhausted)
@@ -781,26 +784,6 @@ fn exhaustion_diag(
     (code, diag)
 }
 
-/// The engine-evaluable ground-head Horn `guard_antecedent → relation(subject, value)` —
-/// the restricted chase adds the head only when `relation(subject, value)` is absent, so
-/// a present (or added) relatum is redundant (Supported) and a clash is Refuted. The
-/// `guard_antecedent` is the subject's grounded guard atom (a `rdf:type(subject, class)` for
-/// a type guard, or the subject's own `relation(subject, guardValue)` for a property guard).
-fn ground_relatum_formula(
-    guard_antecedent: Formula,
-    subject: &str,
-    relation: &str,
-    value: &str,
-) -> Formula {
-    Formula::Implies(
-        Box::new(guard_antecedent),
-        Box::new(Formula::Atom {
-            relation: Term::Iri(relation.to_owned()),
-            args: vec![Term::Iri(subject.to_owned()), Term::Iri(value.to_owned())],
-        }),
-    )
-}
-
 /// The Horn per-disjunct completeness formula `guard_antecedent → τ_T(subject)`.
 fn sortal_disjunct_formula(guard_antecedent: Formula, subject: &str, sortal: &str) -> Formula {
     Formula::Implies(
@@ -819,12 +802,27 @@ fn type_atom(subject: &str, class: &str) -> Formula {
 
 // ── Suggestion construction ──────────────────────────────────────────────────────────
 
-/// Build the paired warrant [`Diag`] + [`Advisory`] for a corroborated candidate.
+/// The warrant discipline for a suggestion — selects the HONEST warrant + advisory prose.
+/// The conjunctive/relatum path is warranted BY CONSTRUCTION (a fresh witness for a missing
+/// relatum is a consistent addition — no engine call, so no scenario world to name); the
+/// sortal path is warranted by the native conjecture engine in a specific, content-addressed
+/// scenario world. Wording each path truthfully is why this flag is threaded here.
+enum WarrantProse<'a> {
+    /// A relatum/conjunctive completion — warranted by construction, no engine call.
+    ByConstruction,
+    /// A sortal specialization — the native conjecture engine corroborated the addition in
+    /// the named isolated scenario world.
+    EngineCorroborated { scenario_world: &'a str },
+}
+
+/// Build the paired warrant [`Diag`] + [`Advisory`] for a warranted candidate, wording the
+/// warrant HONESTLY per its `prose` discipline: a by-construction relatum argument makes no
+/// engine claim, while the sortal path narrates its genuine native conjecture corroboration.
 fn build_suggestion(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidate: &Candidate,
-    scenario_world: &str,
+    prose: WarrantProse<'_>,
 ) -> AbductiveSuggestion {
     let discipline = code_local(&schema.term);
     let digest = candidate_digest(candidate);
@@ -841,25 +839,37 @@ fn build_suggestion(
     let subject_q = qname(&candidate.subject);
     let object_q = qname(&candidate.object);
     let predicate_q = qname(&candidate.predicate);
+    let term_q = qname(&schema.term);
 
     // The advisory message is the governed term's OWN live `gmeow:howToUse` prose (source
     // language), read from the reasoned graph — never a paraphrase. Honest fallback prose
-    // when the term authors none.
-    let message = term_how_to_use(reasoned, &schema.term).unwrap_or_else(|| {
-        format!(
-            "Complete the under-specified {} — the native conjecture engine corroborated a \
-             minimal addition that satisfies its declared modeling discipline.",
-            qname(&schema.term)
-        )
+    // when the term authors none, worded per the warrant discipline.
+    let message = term_how_to_use(reasoned, &schema.term).unwrap_or_else(|| match &prose {
+        WarrantProse::ByConstruction => format!(
+            "Complete the under-specified {term_q} — a fresh witness for the missing relatum is \
+             a consistent addition that satisfies its declared modeling discipline by construction."
+        ),
+        WarrantProse::EngineCorroborated { .. } => format!(
+            "Complete the under-specified {term_q} — the native conjecture engine corroborated a \
+             minimal addition that satisfies its declared modeling discipline."
+        ),
     });
 
-    let suggestion = format!(
-        "Add {} to {subject_q} — {}. The native conjecture engine corroborated that this \
-         addition completes {}'s discipline in a consistent scenario world.",
-        candidate.element,
-        candidate_reason(candidate, &predicate_q, &object_q),
-        qname(&schema.term),
-    );
+    let suggestion = match &prose {
+        WarrantProse::ByConstruction => format!(
+            "Add {} to {subject_q} — {}. A fresh witness for this missing relatum is a consistent \
+             addition that completes {term_q}'s discipline by construction (a fresh untyped object \
+             on an absent property can introduce no cardinality or disjointness clash).",
+            candidate.element,
+            candidate_reason(candidate, &predicate_q, &object_q),
+        ),
+        WarrantProse::EngineCorroborated { .. } => format!(
+            "Add {} to {subject_q} — {}. The native conjecture engine corroborated that this \
+             addition completes {term_q}'s discipline in a consistent scenario world.",
+            candidate.element,
+            candidate_reason(candidate, &predicate_q, &object_q),
+        ),
+    };
 
     let advisory = Advisory::note(advice_code, message)
         .with_suggestion(suggestion)
@@ -868,16 +878,22 @@ fn build_suggestion(
         .with_tag(format!("formalizes:{}", schema.term))
         .with_tag(format!("warrant:{conjecture_id}"));
 
-    let warrant = Diag::note(
-        register_code(&warrant_code),
-        format!(
-            "abductive warrant: the native conjecture engine corroborated that adding {predicate_q} \
-             {object_q} to {subject_q} completes the {} completeness formula ({}) in a consistent, \
-             isolated scenario world <{scenario_world}> from standpoint <{BEST_PRACTICE_STANDPOINT_IRI}>.",
-            qname(&schema.term),
-            discipline,
+    let warrant_message = match &prose {
+        WarrantProse::ByConstruction => format!(
+            "abductive warrant (by construction): adding {predicate_q} {object_q} to {subject_q} \
+             completes the {term_q} per-conjunct completeness formula ({discipline}) BY CONSTRUCTION \
+             — {object_q} is a fresh content-addressed witness for a missing relatum, and adding a \
+             fresh untyped object on an absent property can introduce no cardinality or disjointness \
+             clash, so the addition is consistent with no native conjecture-engine call required."
         ),
-    );
+        WarrantProse::EngineCorroborated { scenario_world } => format!(
+            "abductive warrant: the native conjecture engine corroborated that adding {predicate_q} \
+             {object_q} to {subject_q} completes the {term_q} completeness formula ({discipline}) in \
+             a consistent, isolated scenario world <{scenario_world}> from standpoint \
+             <{BEST_PRACTICE_STANDPOINT_IRI}>."
+        ),
+    };
+    let warrant = Diag::note(register_code(&warrant_code), warrant_message);
 
     AbductiveSuggestion { warrant, advisory }
 }

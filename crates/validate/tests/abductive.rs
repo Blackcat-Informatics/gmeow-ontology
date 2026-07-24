@@ -6,9 +6,10 @@
 //! Each fixture merges the canonical logic module (the `logic:AbductiveSchema`
 //! vocabulary + the four completeness formulas) and the kernel module (the sortal
 //! disjointness the sortal warrant relies on) with a tiny fixture A-Box, then drives
-//! [`gmeow_validate::abductive::abductive_advisories`]. The producer reasons each
-//! candidate through the native conjecture engine; only an engine corroboration warrants
-//! a suggestion.
+//! [`gmeow_validate::abductive::abductive_advisories`]. A conjunctive/relatum candidate is
+//! warranted BY CONSTRUCTION (a fresh witness for a missing relatum is a consistent addition,
+//! no engine call); a sortal candidate is warranted through the native conjecture engine, and
+//! only a discriminating engine corroboration warrants sortal advice.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -130,8 +131,15 @@ fn mediation_missing_beneficiary_yields_one_suggestion() {
     // A paired warrant Diag exists and is a Note.
     assert_eq!(sug.warrant.grade().severity, Severity::Note);
     assert!(
-        sug.warrant.message().contains("corroborated"),
-        "warrant narrates the corroboration: {}",
+        sug.warrant.message().contains("by construction"),
+        "the relatum warrant narrates the by-construction argument, not an engine call: {}",
+        sug.warrant.message()
+    );
+    assert!(
+        !sug.warrant
+            .message()
+            .contains("conjecture engine corroborated"),
+        "the relatum warrant makes NO engine-corroboration claim: {}",
         sug.warrant.message()
     );
 }
@@ -153,7 +161,7 @@ fn item_missing_exemplifies_yields_one_suggestion() {
         "suggestion names gmeow:exemplifies + a Manifestation: {:?}",
         mine[0].advisory.suggestions[0]
     );
-    assert!(mine[0].warrant.message().contains("corroborated"));
+    assert!(mine[0].warrant.message().contains("by construction"));
 }
 
 // ── Case 3: reference frame (StrategyFrameDeclaration) ───────────────────────────────
@@ -209,7 +217,7 @@ fn unit_bearing_value_missing_frame_yields_one_reference_frame_suggestion() {
         "carries the logic:referenceFrame provenance tag: {:?}",
         mine[0].advisory.tags
     );
-    assert!(mine[0].warrant.message().contains("corroborated"));
+    assert!(mine[0].warrant.message().contains("by construction"));
 }
 
 #[test]
@@ -410,7 +418,7 @@ fn two_missing_relata_each_yield_their_own_corroborated_suggestion() {
 
     for s in &mine {
         assert_eq!(s.advisory.severity, Severity::Note);
-        assert!(s.warrant.message().contains("corroborated"));
+        assert!(s.warrant.message().contains("by construction"));
     }
     // Codes are injective — the two candidates never collide onto one advisory code.
     assert_ne!(
@@ -641,4 +649,89 @@ fn scale_bare_entities_short_circuit_while_incomplete_subjects_still_advise() {
         "the incomplete unit-bearing value still advises: {unit:?}"
     );
     assert!(unit[0].advisory.suggestions[0].contains("logic:referenceFrame"));
+}
+
+// ── Part 5: relatum-heavy scale proof — the conjunctive warrant does ZERO engine work ──
+
+/// A SYNTHETIC large A-Box of GENUINELY-INCOMPLETE RELATUM subjects — hundreds of one-party
+/// `gmeow:Commitment`s (each missing TWO relata), bare `gmeow:Item`s (each missing
+/// `gmeow:exemplifies`), and unit-bearing values (each missing `logic:referenceFrame`) —
+/// proves the conjunctive/relatum warrant path performs NO native `conjecture_test` work at
+/// all: every one of these candidates is warranted BY CONSTRUCTION (a fresh witness for a
+/// missing relatum is a consistent addition), so the producer emits their advice with zero
+/// reasoning passes. This is the STRUCTURAL/functional regression signal (per the
+/// no-calibration discipline), NOT a brittle wall-clock assert: before the fix EACH of these
+/// ~1500 candidates drove a full `conjecture_test` over the whole reasoned KB (the residual
+/// that kept `stage-validate` at 16+ minutes); now the entire relatum-heavy corpus is
+/// warranted by construction and this runs as an ordinary fast unit test.
+///
+/// Asserts, at scale: EVERY incomplete relatum subject still gets exactly its expected
+/// by-construction advice (the fix drops the tautological engine call, it does NOT silence
+/// real gaps), and EVERY relatum warrant is worded as a by-construction argument — never a
+/// (now-false) engine-corroboration claim.
+#[test]
+fn scale_relatum_heavy_input_is_warranted_entirely_by_construction() {
+    const N: usize = 300;
+    let mut abox = format!("@prefix gmeow: <{GMEOW}> .\n@prefix logic: <{LOGIC}> .\n");
+    for n in 0..N {
+        // One-party Commitment: only committedAgent present ⇒ MISSING beneficiary + goal ⇒
+        // two by-construction candidates each.
+        abox.push_str(&format!(
+            "<urn:c{n}> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:a{n}> .\n"
+        ));
+        // Bare Item ⇒ MISSING gmeow:exemplifies ⇒ one by-construction candidate.
+        abox.push_str(&format!(
+            "<urn:it{n}> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+        // Unit-bearing value ⇒ MISSING logic:referenceFrame ⇒ one by-construction candidate.
+        abox.push_str(&format!(
+            "<urn:u{n}> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+    }
+    let ds = reasoned(&abox);
+    let outcome = abductive_advisories(ds.as_ref(), &budget());
+
+    // The conjunctive path never calls the engine, so it can never exhaust — the relatum-heavy
+    // corpus surfaces ZERO exhaustion diagnostics.
+    assert!(
+        outcome.exhausted.is_empty(),
+        "the by-construction relatum path makes no engine call, so it can never exhaust: {:?}",
+        outcome.exhausted
+    );
+
+    for n in 0..N {
+        let commitment = for_subject(&outcome.suggestions, &format!("urn:c{n}"));
+        assert_eq!(
+            commitment.len(),
+            2,
+            "each one-party Commitment yields exactly two by-construction suggestions: {commitment:?}"
+        );
+        let item = for_subject(&outcome.suggestions, &format!("urn:it{n}"));
+        assert_eq!(
+            item.len(),
+            1,
+            "each bare Item yields one suggestion: {item:?}"
+        );
+        let unit = for_subject(&outcome.suggestions, &format!("urn:u{n}"));
+        assert_eq!(
+            unit.len(),
+            1,
+            "each unit-bearing value yields one suggestion: {unit:?}"
+        );
+        // Every relatum warrant is a by-construction argument — never an engine claim.
+        for s in commitment.iter().chain(item.iter()).chain(unit.iter()) {
+            assert!(
+                s.warrant.message().contains("by construction"),
+                "every relatum warrant narrates the by-construction argument: {}",
+                s.warrant.message()
+            );
+            assert!(
+                !s.warrant
+                    .message()
+                    .contains("conjecture engine corroborated"),
+                "no relatum warrant may claim an engine corroboration: {}",
+                s.warrant.message()
+            );
+        }
+    }
 }
