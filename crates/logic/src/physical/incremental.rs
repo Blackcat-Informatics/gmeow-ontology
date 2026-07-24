@@ -1197,6 +1197,7 @@ mod tests {
             rule_iri: format!("{NS}rule/{name}"),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         }
     }
 
@@ -1740,6 +1741,7 @@ mod tests {
             rule_iri: format!("{NS}rule/bodyless"),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         };
 
         for rules in [

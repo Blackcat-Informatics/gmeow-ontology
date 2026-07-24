@@ -221,6 +221,36 @@ pub enum QBuiltin {
         /// The second `math:` vector IRI operand.
         y: QTerm,
     },
+    /// `dimEqual(d1, d2)` — the `math:dimensionEqualityRel` builtin-bound consequent of
+    /// `math:dimensionalHomogeneityLaw`: exact ℚ⁷ commensurability of the two dimension
+    /// IRI operands (each a `Const` IRI, or a `Var` bound to one). The moded evaluator
+    /// resolves each operand's exact-rational exponent vector on demand via the
+    /// [`crate::physical::CellResolver`]'s dimension probe — never a transport-literal
+    /// parse — so a plain dimension IRI (never asserted as a scalar) is the operand
+    /// shape. A LOWERING-ONLY builtin: never authored on the query surface, emitted
+    /// solely by the `logic:Constraint` → violation-rule lowering
+    /// ([`crate::relational_core::lower_constraint_violation_rules`]).
+    DimEqual {
+        /// The first dimension IRI operand.
+        d1: QTerm,
+        /// The second dimension IRI operand.
+        d2: QTerm,
+    },
+    /// `dimProduct(dF, dM, dR)` — the `math:dimensionProductRel` builtin-bound
+    /// consequent of `math:integralDimensionCompositionLaw`: `dR`'s exact ℚ⁷ exponent
+    /// vector must equal `dF`'s composed (⊕, vector addition) with `dM`'s. Each operand
+    /// is a dimension IRI (a `Const`, or a `Var` bound to one), resolved on demand via
+    /// the [`crate::physical::CellResolver`]'s dimension probe. A LOWERING-ONLY
+    /// builtin, exactly like [`Self::DimEqual`] — never authored, only emitted by the
+    /// constraint lowering.
+    DimProduct {
+        /// The integrand's dimension IRI operand.
+        d_f: QTerm,
+        /// The measure's dimension IRI operand.
+        d_m: QTerm,
+        /// The declared result dimension IRI operand.
+        d_r: QTerm,
+    },
 }
 
 /// Arithmetic operators recognized in `X is Expr` builtins.
