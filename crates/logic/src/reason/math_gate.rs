@@ -179,8 +179,14 @@ fn gate_read_predicates(rules: &[EvalRule]) -> BTreeSet<String> {
     preds
 }
 
-/// Promote the dimension-relevant quads of `edb` (default graph OR any named graph) into
-/// the single canonical [`MATH_GATE_WORLD`], preserving every term (literals included).
+/// Promote the dimension-relevant quads of the reasoned closure — every default-graph or
+/// named-graph quad of `edb` PLUS the DL-`derived` non-EDB edges the reasoner layered onto
+/// the reasoned graph — into the single canonical [`MATH_GATE_WORLD`], preserving every
+/// term (literals included).
+///
+/// Both sources are filtered by the same projection and re-graphed identically, so a
+/// dimension triple is gated whether it was asserted or derived — matching the verify
+/// queries that evaluate the same closure.
 ///
 /// Two reasons the whole quad set is NOT promoted verbatim:
 /// 1. The world-indexed engine only reasons over named-graph worlds, so a caller's plain
@@ -192,29 +198,50 @@ fn gate_read_predicates(rules: &[EvalRule]) -> BTreeSet<String> {
 ///    never match it and its builtins never read it — so dropping it cannot change any
 ///    materialized marker. Over a ~100k-triple whole-bundle `verify()` this is the
 ///    difference between a bounded chase and a pathological one, with identical results.
+///    The `derived` set is small (only the reasoner's non-EDB output), so unioning it in
+///    adds negligibly to the projected chase.
 ///
 /// # Errors
 ///
 /// Returns `Err` if the promoted dataset fails the freeze-time structural contract.
 fn promote_to_single_world(
     edb: &RdfDataset,
+    derived: &[RdfQuad],
     keep_predicates: &BTreeSet<String>,
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    // A dimension triple is kept iff its predicate is one the rules/builtins read, or it
+    // is an `rdf:type` classifying a node as a dimension the ℚ⁷ builtin walks.
+    let keep = |predicate: &str, object: &RdfTerm| -> bool {
+        keep_predicates.contains(predicate)
+            || (predicate == RDF_TYPE
+                && matches!(object, RdfTerm::Iri(o) if DIMENSION_TYPE_OBJECTS.contains(&o.as_str())))
+    };
     let mut builder = RdfDatasetBuilder::new();
     for quad in edb.owned_quads() {
-        let keep = keep_predicates.contains(&quad.predicate)
-            || (quad.predicate == RDF_TYPE
-                && matches!(&quad.object, RdfTerm::Iri(o) if DIMENSION_TYPE_OBJECTS.contains(&o.as_str())));
-        if !keep {
+        if !keep(&quad.predicate, &quad.object) {
             continue;
         }
         let promoted = RdfQuad::new(quad.subject, quad.predicate, quad.object)
             .in_graph(RdfTerm::iri(MATH_GATE_WORLD));
         builder.push_owned_quad(&promoted);
     }
+    // The reasoner's DL-derived (non-EDB) edges — the same edges the verify queries see —
+    // so a derived dimension triple is gated too, not only the asserted ones.
+    for quad in derived {
+        if !keep(&quad.predicate, &quad.object) {
+            continue;
+        }
+        let promoted = RdfQuad::new(
+            quad.subject.clone(),
+            quad.predicate.clone(),
+            quad.object.clone(),
+        )
+        .in_graph(RdfTerm::iri(MATH_GATE_WORLD));
+        builder.push_owned_quad(&promoted);
+    }
     builder.freeze().map_err(|e| {
         math_gate_err(format!(
-            "promote the EDB into the math dimension-gate scratch world: {e}"
+            "promote the reasoned closure into the math dimension-gate scratch world: {e}"
         ))
     })
 }
@@ -231,22 +258,30 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
     }
 }
 
-/// Run the reasoner-derived `math:` dimensional-homogeneity gate over `edb`, returning
-/// every materialized `(subject, failure_class)` marker pair — deduplicated, sorted —
-/// ready to be inserted as `subject rdf:type failure_class` quads.
+/// Run the reasoner-derived `math:` dimensional-homogeneity gate over the reasoned closure
+/// (`edb` UNIONED with the DL-`derived` non-EDB edges the caller layered onto the reasoned
+/// graph), returning every materialized `(subject, failure_class)` marker pair —
+/// deduplicated, sorted — ready to be inserted as `subject rdf:type failure_class` quads.
+///
+/// Taking the derived edges (not just the raw EDB) is what keeps a *derived* dimension
+/// triple — a `math:hasDimension` / `math:homogeneousOperand` / integral part reached by
+/// subproperty or class inference — inside the hard-fail gate's domain, matching the
+/// verify queries that evaluate the same closure. Literal exponent cells are never
+/// DL-derived, so the derived set is all-IRI and loses nothing versus the asserted EDB.
 ///
 /// Returns an empty vector when the embedded module authors no builtin-bound-consequent
 /// constraint (never reached in production — the two `math:` constraints always compile)
-/// and, ordinarily, whenever no violation exists in `edb`.
+/// and, ordinarily, whenever no violation exists in the reasoned closure.
 ///
 /// # Errors
 ///
-/// Returns `Err` if the promoted EDB fails to freeze, if the compiled violation rules are
-/// (unexpectedly) not stratifiable, or if the native forward chase declines the program —
-/// every case a genuine internal-invariant failure, never a silent empty result standing
-/// in for an error.
+/// Returns `Err` if the promoted closure fails to freeze, if the compiled violation rules
+/// are (unexpectedly) not stratifiable, or if the native forward chase declines the
+/// program — every case a genuine internal-invariant failure, never a silent empty result
+/// standing in for an error.
 pub(crate) fn dimension_gate_markers(
     edb: &RdfDataset,
+    derived: &[RdfQuad],
 ) -> gmeow_errors::Result<Vec<(String, String)>> {
     let rules = compiled_rules();
     if rules.is_empty() {
@@ -254,7 +289,7 @@ pub(crate) fn dimension_gate_markers(
     }
 
     let keep_predicates = gate_read_predicates(rules);
-    let promoted = promote_to_single_world(edb, &keep_predicates)?;
+    let promoted = promote_to_single_world(edb, derived, &keep_predicates)?;
     let store = WorldStore::from_dataset(promoted.as_ref())?;
 
     let lookup = compile_cached(MATH_GATE_CONTRACT, rules.to_vec());

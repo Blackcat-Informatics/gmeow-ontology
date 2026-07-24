@@ -20,8 +20,11 @@
 //! The *missing-dimension* case (an undimensioned quantity/operand) is a
 //! cardinality obligation whose home is the `validate()` / derived-SHACL
 //! surface (`math:UndimensionedQuantity`); its acceptance check lives with the
-//! `gmeow-validate` lint pin, not here — `verify()` does not evaluate SHACL
-//! `sh:minCount`. The compile-source check (the emitted rule derives from the
+//! `math` slice's example-conformance counter-examples
+//! (`slices/grounding/math/tests/example-conformance.ttl` cross-referencing
+//! `counter-examples/homogeneous-operand-undimensioned.ttl` and
+//! `counter-examples/dimensional-integral-undimensioned-integrand.ttl`), not
+//! here — `verify()` does not evaluate SHACL `sh:minCount`. The compile-source check (the emitted rule derives from the
 //! authored `logic:Formula` laws) lives with the compile-pipeline test that
 //! owns the `math` program builder. Together those three surfaces cover the
 //! full acceptance contract without any surface being asserted where it cannot
@@ -132,14 +135,15 @@ fn inhomogeneity_finding_names_the_offending_witnesses() {
     let report = run_verify(INTEGRAL_MISMATCH);
     let findings = inhomogeneity_findings(&report);
     assert!(!findings.is_empty(), "expected an inhomogeneity finding");
-    // The detail must name the offending subject and/or its dimensions, matching
-    // the diagnostic specificity of the retired sweep — never a bare, witness-less
-    // marker. `netForce` is the integral whose declared result dimension diverges.
-    let has_witness = findings.iter().any(|f| {
-        f.detail
-            .as_deref()
-            .is_some_and(|d| d.contains("netForce") || d.contains("Dim"))
-    });
+    // The detail must name the offending subject, matching the diagnostic specificity
+    // of the retired sweep — never a bare, witness-less marker. `netForce` is the
+    // integral whose declared result dimension diverges. We assert on the concrete
+    // `netForce` token ONLY: a substring like "Dim" would be tautological, since the
+    // failure-class local name `DimensionalInhomogeneity` itself contains it, so it
+    // would pass whenever any finding exists and prove nothing about message parity.
+    let has_witness = findings
+        .iter()
+        .any(|f| f.detail.as_deref().is_some_and(|d| d.contains("netForce")));
     assert!(
         has_witness,
         "the derived finding must name the offending integral / dimensions; details were: {:?}",
@@ -331,6 +335,55 @@ fn dimension_product_overflow_yields_no_spurious_marker() {
         inhomogeneity_findings(&report)
             .iter()
             .map(|f| f.message.as_str())
+            .collect::<Vec<_>>()
+    );
+}
+
+// ── Regression: the gate reads the REASONED closure, not just the raw asserted EDB —
+//    a dimension-relevant triple reached by inference must still be gated ────────────
+
+/// A differing-dimension expression whose offending dimension's
+/// `a math:DerivedDimension` type is DERIVED (via `rdfs:subClassOf`), never asserted:
+/// `ex:areaDim` is declared `a ex:AreaDimClass` with `ex:AreaDimClass rdfs:subClassOf
+/// math:DerivedDimension`, so only the reasoned closure carries `ex:areaDim a
+/// math:DerivedDimension`. The ℚ⁷ cell-builtin can resolve `ex:areaDim` (L²) — and thus
+/// find it ≠ `math:lengthDimension` (L¹) — ONLY if the gate chases the reasoned graph. A
+/// gate deciding over the raw EDB would fail to classify `ex:areaDim`, silently skip the
+/// rule, and MISS the inhomogeneity: exactly the hard-fail-goes-dark degradation this
+/// guards against.
+const DERIVED_DIMENSION_TYPE_INHOMOGENEOUS: &str = "\
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:AreaDimClass rdfs:subClassOf math:DerivedDimension .
+ex:areaDim a ex:AreaDimClass ;
+    math:baseDimensionExponent ex:lArea2 .
+ex:lArea2 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ; math:exponentDenominator 1 .
+
+ex:mix a math:DimensionalExpression ;
+    math:homogeneousOperand ex:area , ex:len .
+ex:area a math:Quantity ; math:hasDimension ex:areaDim .
+ex:len  a math:Quantity ; math:hasDimension math:lengthDimension .
+";
+
+#[test]
+fn gate_reads_reasoned_closure_not_raw_edb() {
+    // `ex:areaDim`'s `a math:DerivedDimension` type exists ONLY in the reasoned closure
+    // (derived through rdfs:subClassOf). The inhomogeneity (L² vs L¹) is therefore
+    // visible to the gate only if it chases the reasoned graph, not the raw asserted EDB
+    // — proving the gate's input is the same closure the verify queries evaluate.
+    let report = run_verify(DERIVED_DIMENSION_TYPE_INHOMOGENEOUS);
+    assert!(
+        !inhomogeneity_findings(&report).is_empty(),
+        "a differing dimension whose math:DerivedDimension type is DERIVED (not asserted) \
+         must still raise a {INHOMOGENEITY_CODE} — the gate must read the reasoned closure, \
+         not the raw EDB; got: {:?}",
+        report
+            .findings
+            .iter()
+            .map(|f| (f.code.as_str(), f.message.as_str()))
             .collect::<Vec<_>>()
     );
 }
