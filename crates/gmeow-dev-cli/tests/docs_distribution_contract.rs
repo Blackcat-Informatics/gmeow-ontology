@@ -210,6 +210,39 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
     );
 }
 
+#[test]
+fn site_sub_assets_are_priced_but_never_enter_the_eight_slug_bijection() {
+    let bijection: BTreeSet<String> = CANONICAL_SLUGS.iter().map(|s| s.to_string()).collect();
+    let sub_assets: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::declared_site_sub_asset_slugs()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect();
+    // The interactive engines + browser bundle ARE priced as first-class sub-assets…
+    assert!(
+        !sub_assets.is_empty(),
+        "the vendored interactive engines + browser bundle must be priced as site sub-assets"
+    );
+    // …but they are SUB-ASSETS of `site`, never top-level distributions, so the
+    // eight-slug bijection is untouched (a sub-asset leaking into it would be a ninth
+    // distribution, which the bijection test above would also catch).
+    assert!(
+        sub_assets.is_disjoint(&bijection),
+        "AC2/AC6: site sub-assets {sub_assets:?} must be DISJOINT from the eight-slug \
+         distribution bijection {CANONICAL_SLUGS:?} — they are sub-assets, not distributions"
+    );
+    // The release-time digest producer prices exactly the declared set (one authority).
+    let priced: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+            .into_iter()
+            .map(|(slug, _, _)| slug.to_string())
+            .collect();
+    assert_eq!(
+        priced, sub_assets,
+        "the release-time sub-asset pricing set must equal the catalog-declared sub-asset set"
+    );
+}
+
 /// The exact `let destinations = [ ... ];` array-literal slice of `sync_docs`,
 /// isolated from the rest of the file (which legitimately references unrelated
 /// `generated/…` INPUT sources, e.g. the `AXIOMS` array feeding the print render).

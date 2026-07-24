@@ -601,9 +601,12 @@ mod tests {
                 )),
                 "sub-asset {slug:?} missing artifactMediaType"
             );
+            // DIGEST-FREE: no line about this sub-asset mentions a content digest (the
+            // per-release digest rides only in the dist/ instance manifest).
             assert!(
-                !nt.contains(&format!("<{node}> <{}>", iri(GMEOW_NS, "contentDigest"))),
-                "sub-asset {slug:?} must be DIGEST-FREE in the carrier catalog (digests \
+                !nt.lines()
+                    .any(|l| l.starts_with(&format!("<{node}>")) && l.contains("Digest")),
+                "sub-asset {slug:?} must be digest-free in the carrier catalog (digests \
                  live only in the dist/ instance manifest)"
             );
         }
