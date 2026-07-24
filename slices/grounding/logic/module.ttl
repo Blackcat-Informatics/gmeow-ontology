@@ -4912,6 +4912,26 @@ logic:referenceFrameGuard a logic:Formula ; logic:relation <http://www.w3.org/19
 logic:referenceFrameCons a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frameValue" ] .
 
+logic:MeasurementFrameAbductiveSchema
+    a logic:AbductiveSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "measurement-frame abductive schema"@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for a measurement that is expressed in a unit but leaves the reference frame it is read in implicit: a value bearing a logic:unit but no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11 — a value asserted without its frame is ill-formed), so the required reference frame is the candidate addition and the completeness formula holds once the measurement declares a logic:referenceFrame value — 'declare a reference frame F for this unit-bearing value'. The guard is the property-presence of logic:unit (the IRI-valued witness that a framed value exists), not a class type, so a unit-bearing subject of any measurement class is caught."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes logic:referenceFrame ;
+    logic:repairsDiscipline logic:MeasurementFrameMissing ;
+    logic:repairStrategy logic:StrategyFrameDeclaration ;
+    logic:completenessFormula logic:measurementFrameComplete .
+logic:measurementFrameComplete a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:measurementFrameCompleteImpl .
+logic:measurementFrameCompleteImpl a logic:Formula ;
+    logic:antecedent logic:measurementFrameGuard ; logic:consequent logic:measurementFrameCons .
+logic:measurementFrameGuard a logic:Formula ; logic:relation logic:unit ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "unitValue" ] .
+logic:measurementFrameCons a logic:Formula ; logic:relation logic:referenceFrame ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frameValue" ] .
+
 logic:BareEntitySortalAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

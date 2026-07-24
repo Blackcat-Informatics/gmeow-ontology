@@ -149,11 +149,22 @@ struct DiscoveredSchema {
     term: String,
     /// The `logic:repairStrategy` IRI.
     strategy: String,
-    /// The guard class every gap subject must be typed (the completeness guard atom's
-    /// fixed object, e.g. `gmeow:Commitment` / `gmeow:Entity`).
-    guard_type: String,
+    /// The completeness guard: the antecedent atom every gap subject must satisfy.
+    guard: Guard,
     /// The completeness consequent, classified.
     cons: ConsShape,
+}
+
+/// The completeness guard atom `τ_guard(this)` — the antecedent of every schema's
+/// `∀"this". (τ_guard(this) → Cons)`. Read off the graph as data (never a hardcoded
+/// predicate switch), so a further discipline is a mark in the logic module, not new code.
+enum Guard {
+    /// `rdf:type(this, Class)` — the gap subject must be typed `Class` (relator-mediation,
+    /// WEMI-chain, reference-frame, sortal disciplines).
+    Type(String),
+    /// `relation(this, ?guardVar)` (relation ≠ `rdf:type`) — the gap subject must be the
+    /// subject of some `relation` triple (measurement-frame: a value carrying `logic:unit`).
+    Property(String),
 }
 
 /// The consequent shape of a completeness formula.
@@ -273,13 +284,13 @@ fn discover_schemas(reasoned: &RdfDataset) -> Vec<DiscoveredSchema> {
         let Ok(formula) = reconstruct_formula(reasoned, &completeness) else {
             continue;
         };
-        let Some((guard_type, cons)) = deconstruct(&formula) else {
+        let Some((guard, cons)) = deconstruct(&formula) else {
             continue;
         };
         schemas.push(DiscoveredSchema {
             term,
             strategy,
-            guard_type,
+            guard,
             cons,
         });
     }
@@ -288,10 +299,10 @@ fn discover_schemas(reasoned: &RdfDataset) -> Vec<DiscoveredSchema> {
 
 // ── Completeness-formula deconstruction ──────────────────────────────────────────────
 
-/// Read `(guard_type, ConsShape)` off a completeness formula
+/// Read `(Guard, ConsShape)` off a completeness formula
 /// `∀"this". (τ_guard(this) → Cons)`. Returns `None` for any shape that is not the
 /// authored guard→consequent form (honest absence).
-fn deconstruct(formula: &Formula) -> Option<(String, ConsShape)> {
+fn deconstruct(formula: &Formula) -> Option<(Guard, ConsShape)> {
     let body = match formula {
         Formula::Forall { vars, body } if vars.len() == 1 && vars[0] == "this" => body.as_ref(),
         _ => return None,
@@ -299,7 +310,7 @@ fn deconstruct(formula: &Formula) -> Option<(String, ConsShape)> {
     let Formula::Implies(antecedent, consequent) = body else {
         return None;
     };
-    let guard_type = guard_class(antecedent)?;
+    let guard = guard_atom(antecedent)?;
 
     // The consequent is either a disjunction of sortal-type atoms, a conjunction of
     // relatum atoms, or a single relatum atom.
@@ -323,17 +334,26 @@ fn deconstruct(formula: &Formula) -> Option<(String, ConsShape)> {
         atom @ Formula::Atom { .. } => ConsShape::Conjunctive(vec![relatum_atom(atom)?]),
         _ => return None,
     };
-    Some((guard_type, cons))
+    Some((guard, cons))
 }
 
-/// The fixed class of a guard atom `rdf:type(this, Class)`.
-fn guard_class(formula: &Formula) -> Option<String> {
+/// Read a guard atom off the completeness antecedent:
+///   * `rdf:type(this, Class)`  → [`Guard::Type`] (relator/WEMI/frame/sortal, UNCHANGED); or
+///   * `relation(this, ?var)` with `relation ≠ rdf:type` → [`Guard::Property`] (a
+///     property-presence guard, e.g. `logic:unit(this, ?unitValue)` for the measurement-frame
+///     discipline).
+///
+/// Any other shape is honest absence (`None`) — the guard reading is data, never a hardcoded
+/// predicate switch.
+fn guard_atom(formula: &Formula) -> Option<Guard> {
     let (relation, args) = as_binary_atom(formula)?;
-    if relation != RDF_TYPE {
-        return None;
-    }
     match (&args.0, &args.1) {
-        (Term::Var(v), Term::Iri(class)) if v == "this" => Some(class.clone()),
+        (Term::Var(v), Term::Iri(class)) if v == "this" && relation == RDF_TYPE => {
+            Some(Guard::Type(class.clone()))
+        }
+        (Term::Var(v), Term::Var(_)) if v == "this" && relation != RDF_TYPE => {
+            Some(Guard::Property(relation))
+        }
         _ => None,
     }
 }
@@ -382,7 +402,7 @@ fn relatum_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<C
         return Vec::new();
     };
     let mut candidates = Vec::new();
-    for subject in subjects_of_type(reasoned, &schema.guard_type) {
+    for subject in guard_subjects(reasoned, &schema.guard) {
         // The relata missing on this subject (byte-sorted by relation IRI).
         let mut missing: Vec<&String> = relata
             .iter()
@@ -420,7 +440,7 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
         return Vec::new();
     };
     let mut candidates = Vec::new();
-    for subject in subjects_of_type(reasoned, &schema.guard_type) {
+    for subject in guard_subjects(reasoned, &schema.guard) {
         // Bare ⇒ holds none of the offered sortal types.
         let already_specialized = types.iter().any(|t| has_type(reasoned, &subject, t));
         if already_specialized {
@@ -485,6 +505,13 @@ fn warrant(
     let ConsShape::Conjunctive(_) = &schema.cons else {
         return WarrantOutcome::Other;
     };
+    // The grounded guard antecedent for this subject. A property guard whose subject has no
+    // IRI guard value cannot warrant (honest absence, no panic) — mirrors the file's other
+    // None-handling.
+    let Some(guard_antecedent) = guard_antecedent(reasoned, &candidate.subject, &schema.guard)
+    else {
+        return WarrantOutcome::Other;
+    };
     let scenario_world = scenario_world_iri(candidate);
     let assume = vec![(
         candidate.subject.clone(),
@@ -493,8 +520,8 @@ fn warrant(
     )];
 
     let formula = ground_relatum_formula(
+        guard_antecedent,
         &candidate.subject,
-        &schema.guard_type,
         &candidate.predicate,
         &candidate.object,
     );
@@ -569,8 +596,15 @@ fn sortal_suggestions_for_subject(
                 candidate.predicate.clone(),
                 candidate.object.clone(),
             )];
+            // The sortal guard is always a `Guard::Type` (`rdf:type(this, gmeow:Entity)`), so
+            // this always yields the same `type_atom` antecedent as before — the guard reading
+            // is generalized uniformly, the sortal warrant logic itself is unchanged.
+            let Some(guard_atom) = guard_antecedent(reasoned, &candidate.subject, &schema.guard)
+            else {
+                return EngineVerdict::Other;
+            };
             let formula =
-                sortal_disjunct_formula(&candidate.subject, &schema.guard_type, &candidate.object);
+                sortal_disjunct_formula(guard_atom, &candidate.subject, &candidate.object);
             // The disjunctive gate is the ONE strategy that must detect a genuine CLASH
             // between the candidate and the SUBJECT'S OWN other assertions — the
             // conjunctive strategies only ever need syntactic redundancy (decided
@@ -721,12 +755,19 @@ fn exhaustion_diag(
     (code, diag)
 }
 
-/// The engine-evaluable ground-head Horn `τ_guard(subject) → relation(subject, value)` —
+/// The engine-evaluable ground-head Horn `guard_antecedent → relation(subject, value)` —
 /// the restricted chase adds the head only when `relation(subject, value)` is absent, so
-/// a present (or added) relatum is redundant (Supported) and a clash is Refuted.
-fn ground_relatum_formula(subject: &str, guard_type: &str, relation: &str, value: &str) -> Formula {
+/// a present (or added) relatum is redundant (Supported) and a clash is Refuted. The
+/// `guard_antecedent` is the subject's grounded guard atom (a `rdf:type(subject, class)` for
+/// a type guard, or the subject's own `relation(subject, guardValue)` for a property guard).
+fn ground_relatum_formula(
+    guard_antecedent: Formula,
+    subject: &str,
+    relation: &str,
+    value: &str,
+) -> Formula {
     Formula::Implies(
-        Box::new(type_atom(subject, guard_type)),
+        Box::new(guard_antecedent),
         Box::new(Formula::Atom {
             relation: Term::Iri(relation.to_owned()),
             args: vec![Term::Iri(subject.to_owned()), Term::Iri(value.to_owned())],
@@ -734,10 +775,10 @@ fn ground_relatum_formula(subject: &str, guard_type: &str, relation: &str, value
     )
 }
 
-/// The Horn per-disjunct completeness formula `τ_guard(subject) → τ_T(subject)`.
-fn sortal_disjunct_formula(subject: &str, guard_type: &str, sortal: &str) -> Formula {
+/// The Horn per-disjunct completeness formula `guard_antecedent → τ_T(subject)`.
+fn sortal_disjunct_formula(guard_antecedent: Formula, subject: &str, sortal: &str) -> Formula {
     Formula::Implies(
-        Box::new(type_atom(subject, guard_type)),
+        Box::new(guard_antecedent),
         Box::new(type_atom(subject, sortal)),
     )
 }
@@ -854,6 +895,55 @@ fn subjects_of_type(reasoned: &RdfDataset, class: &str) -> Vec<String> {
     subjects.sort();
     subjects.dedup();
     subjects
+}
+
+/// The gap subject set a schema's guard admits: the subjects typed the guard class
+/// ([`Guard::Type`]) or the subjects of some guard-relation triple ([`Guard::Property`]).
+/// Byte-sorted & deduplicated (both underlying readers are).
+fn guard_subjects(reasoned: &RdfDataset, guard: &Guard) -> Vec<String> {
+    match guard {
+        Guard::Type(class) => subjects_of_type(reasoned, class),
+        Guard::Property(relation) => subjects_with_property(reasoned, relation),
+    }
+}
+
+/// The IRI subjects that are the subject of some `relation` triple (asserted or entailed),
+/// byte-sorted & deduplicated. IRI-only: a property guard keys on an IRI-valued witness (e.g.
+/// `logic:unit`), so a literal/blank subject is never a gap subject — mirroring the file's
+/// existing IRI-only reader discipline ([`subjects_of_type`]).
+fn subjects_with_property(reasoned: &RdfDataset, relation: &str) -> Vec<String> {
+    let Some(rel_id) = term_id(reasoned, relation) else {
+        return Vec::new();
+    };
+    let mut subjects: Vec<String> = reasoned
+        .quads_for_pattern(None, Some(rel_id), None, GraphMatch::Any)
+        .filter_map(|q| match reasoned.resolve(q.s) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        })
+        .collect();
+    subjects.sort();
+    subjects.dedup();
+    subjects
+}
+
+/// The grounded guard antecedent atom for `subject` under `guard`:
+///   * [`Guard::Type`]     → `rdf:type(subject, class)` (always `Some`); or
+///   * [`Guard::Property`] → `relation(subject, guardValue)` where `guardValue` is the
+///     subject's byte-first IRI object for the guard relation, so the antecedent is grounded
+///     and non-vacuous. `None` when the subject has no IRI guard value — that candidate
+///     cannot warrant (honest absence), never a vacuous or guessed antecedent.
+fn guard_antecedent(reasoned: &RdfDataset, subject: &str, guard: &Guard) -> Option<Formula> {
+    match guard {
+        Guard::Type(class) => Some(type_atom(subject, class)),
+        Guard::Property(relation) => {
+            let value = first_object(reasoned, subject, relation)?;
+            Some(Formula::Atom {
+                relation: Term::Iri(relation.clone()),
+                args: vec![Term::Iri(subject.to_owned()), Term::Iri(value)],
+            })
+        }
+    }
 }
 
 /// `true` iff `subject predicate _` holds for some object.

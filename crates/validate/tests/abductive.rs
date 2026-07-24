@@ -21,6 +21,7 @@ use gmeow_validate::abductive::{
 use purrdf::{RdfDataset, RdfDatasetBuilder};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -170,6 +171,60 @@ fn expression_missing_frame_yields_one_suggestion() {
         mine[0].advisory.suggestions[0].contains("gmeow:hasReferenceFrame"),
         "suggestion names gmeow:hasReferenceFrame: {:?}",
         mine[0].advisory.suggestions[0]
+    );
+}
+
+// ── Case 3b: measurement frame (StrategyFrameDeclaration, PROPERTY guard) ────────────
+
+#[test]
+fn unit_bearing_value_missing_frame_yields_one_reference_frame_suggestion() {
+    // m1 carries a logic:unit (the IRI-valued witness a framed value exists) but NO
+    // logic:referenceFrame — the logic:MeasurementFrameMissing gap. The measurement-frame
+    // schema's guard is a PROPERTY-presence atom (logic:unit(this, ?u)), not a class type,
+    // so the subject is a gap subject purely by carrying logic:unit. Exactly one "declare a
+    // reference frame" advisory, naming logic:referenceFrame.
+    let ds = reasoned(&format!(
+        "@prefix logic: <{LOGIC}> .\n<urn:m1> logic:unit <urn:degreeCelsius> .\n"
+    ));
+    let all = abductive_advisories(ds.as_ref(), &budget());
+    let mine = for_subject(&all.suggestions, "urn:m1");
+    assert_eq!(
+        mine.len(),
+        1,
+        "exactly one measurement-frame suggestion for a unit-bearing value with no frame: {mine:?}"
+    );
+    assert_eq!(mine[0].advisory.severity, Severity::Note);
+    assert!(
+        mine[0].advisory.suggestions[0].contains("logic:referenceFrame"),
+        "the suggestion must name the missing logic:referenceFrame relatum: {:?}",
+        mine[0].advisory.suggestions[0]
+    );
+    assert!(
+        mine[0]
+            .advisory
+            .tags
+            .iter()
+            .any(|t| *t == format!("formalizes:{LOGIC}referenceFrame")),
+        "carries the logic:referenceFrame provenance tag: {:?}",
+        mine[0].advisory.tags
+    );
+    assert!(mine[0].warrant.message().contains("corroborated"));
+}
+
+#[test]
+fn unit_bearing_value_with_frame_yields_no_measurement_suggestion() {
+    // m2 carries BOTH logic:unit and logic:referenceFrame — already complete, so the
+    // measurement-frame schema emits nothing (honest absence).
+    let ds = reasoned(&format!(
+        "@prefix logic: <{LOGIC}> .\n\
+         <urn:m2> logic:unit <urn:degreeCelsius> ; logic:referenceFrame <urn:celsiusFrame> .\n"
+    ));
+    let all = abductive_advisories(ds.as_ref(), &budget());
+    let mine = for_subject(&all.suggestions, "urn:m2");
+    assert!(
+        mine.is_empty(),
+        "a unit-bearing value that already declares its logic:referenceFrame yields zero \
+         measurement-frame suggestions (honest absence): {mine:?}"
     );
 }
 

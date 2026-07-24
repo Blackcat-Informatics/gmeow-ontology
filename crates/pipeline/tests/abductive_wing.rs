@@ -432,6 +432,56 @@ fn entailed_only_guard_type_surfaces_abductive_advice() {
     );
 }
 
+// ── Case 1b: measurement-frame (PROPERTY guard) on the shipped stage ─────────────────
+
+/// The measurement-frame abductive schema fires through the REAL `ValidateStage`: a
+/// subject carrying `logic:unit` (the IRI-valued witness a framed value exists) but no
+/// `logic:referenceFrame` — the `logic:MeasurementFrameMissing` gap — surfaces exactly one
+/// "declare a reference frame" advisory whose `gmeow:findingSuggestion` names
+/// `logic:referenceFrame`. This proves the PROPERTY-presence guard (not a class type) fires
+/// on the production surface, and a subject already declaring its frame stays silent.
+#[test]
+fn unit_bearing_value_surfaces_measurement_frame_advice_through_the_stage() {
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+    const SUBJ_MEASUREMENT: &str = "urn:m1";
+    const SUBJ_FRAMED: &str = "urn:m2";
+    let abox = format!(
+        "@prefix logic: <{LOGIC}> .\n\
+         <{SUBJ_MEASUREMENT}> logic:unit <urn:degreeCelsius> .\n\
+         <{SUBJ_FRAMED}> logic:unit <urn:degreeCelsius> ; logic:referenceFrame <urn:celsiusFrame> .\n"
+    );
+    let empty_reason =
+        gmeow_pipeline::stages::reason::reason_product(b"").expect("empty stage-reason product");
+    let diagnostics = run_with_reason(&abox, empty_reason);
+
+    // The unit-bearing, frame-less subject gets exactly one frame advisory naming
+    // logic:referenceFrame.
+    let for_m1: Vec<&str> = diagnostics
+        .iter()
+        .filter(|q| q.predicate.as_str() == FINDING_SUGGESTION)
+        .filter_map(|q| as_literal(&q.object))
+        .filter(|text| text.contains(SUBJ_MEASUREMENT) && text.contains("logic:referenceFrame"))
+        .collect();
+    assert!(
+        !for_m1.is_empty(),
+        "a unit-bearing value with no logic:referenceFrame must surface a measurement-frame \
+         advisory naming logic:referenceFrame through the shipped ValidateStage; diagnostics \
+         carried none"
+    );
+
+    // The already-framed subject surfaces no measurement-frame advice (honest absence).
+    let for_m2 = diagnostics
+        .iter()
+        .filter(|q| q.predicate.as_str() == FINDING_SUGGESTION)
+        .filter_map(|q| as_literal(&q.object))
+        .any(|text| text.contains(SUBJ_FRAMED) && text.contains("logic:referenceFrame"));
+    assert!(
+        !for_m2,
+        "a value already declaring its logic:referenceFrame must NOT surface measurement-frame \
+         advice (honest absence)"
+    );
+}
+
 // ── quad helpers ─────────────────────────────────────────────────────────────────────
 
 /// The IRI string of a term, or `None` for a literal / blank node.
