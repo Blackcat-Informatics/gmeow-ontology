@@ -57,6 +57,37 @@
 //! (a core→core grounding-peer crossing is never tier-forbidden — the three
 //! grounding slices are all `tierCore`), folded into the same function only
 //! because both existing `make validate` gate sites already call it.
+//!
+//! # Genuine cross-slice TERM usage only
+//!
+//! `purrdf`'s [`OwnershipReport::edges`] mines EVERY IRI in an artifact (subject,
+//! predicate, object, datatype, graph — RFC §10) that happens to be a
+//! validated-owned vocabulary term of some other slice, so an edge's raw
+//! evidence over-counts two shapes that are not genuine term USAGE at all:
+//!
+//! * **Class 1 — slice-IRI-as-data.** A slice referencing another slice's own
+//!   IRI as DATA (e.g. `slice-quality-rubric`'s ABox quality records naming
+//!   `gmeow:ceilingSlice`/`gmeow:floorSlice <…/slices/norms>` — the assessment
+//!   TARGET, not one of `norms`' vocabulary terms). [`slice_iris`] collects the
+//!   closed set of every catalogued slice's own IRI; a crossing whose
+//!   `referenced_term` IS one of those IRIs is never term usage.
+//! * **Class 2 — grounding-slice meta-formalization.** The grounding slices
+//!   (`logic:`/`math:`, typed `gmeow:GroundingSlice`) FORMALIZE terms across the
+//!   whole ontology (e.g. `logic:characterizes gmeow:assertionFacet` /
+//!   `logic:formalizes gmeow:assertionFacet`) — that is their role, analogous to
+//!   the meta-level `graph/correspondence-laws` graph, never a build dependency.
+//!   [`GroundingReferencePredicates`] re-parses each grounding slice's own
+//!   module/shapes artifact and, for a crossing's referenced term, checks
+//!   whether EVERY triple naming it as an object uses one of the
+//!   [`GROUNDING_META_PREDICATES`] — if the term is ALSO referenced via a
+//!   non-meta predicate (a real object-level use), it is never excluded.
+//!
+//! [`classify`] and [`forbidden_tier_findings`] both apply
+//! [`is_genuine_crossing_term`] to every piece of an edge's evidence; an edge
+//! left with zero genuine crossing terms is suppressed entirely (no
+//! `undeclared-dependency`/`forbidden-dependency`/`peered-unregistered-seam`
+//! finding) — this is a filter on WHICH terms count as a crossing, never a
+//! license to skip an edge that also carries genuine evidence.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -66,7 +97,7 @@ use gmeow_errors::{Diag, Finding, Result, Severity};
 use purrdf::slice::catalog::{SliceCatalog, SliceRecord, SliceTier};
 use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use purrdf::slice::{
-    DependencyEdge, EdgeKind, NamedNode, OwnershipDiagnostic, OwnershipReport,
+    ArtifactRole, DependencyEdge, EdgeKind, NamedNode, OwnershipDiagnostic, OwnershipReport,
     ReconciliationStatus, SliceIri, is_forbidden_edge,
 };
 
@@ -329,6 +360,175 @@ fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
     Ok(out)
 }
 
+/// Every catalogued slice's own IRI (`record.manifest.slice_iri`) — the CLOSED
+/// set [`is_genuine_crossing_term`]'s Class 1 filter tests a crossing's
+/// `referenced_term` against. A term IRI in this set is never a vocabulary term
+/// at all; it is the slice resource itself, cited as DATA (e.g.
+/// `slice-quality-rubric`'s `gmeow:ceilingSlice <…/slices/norms>`).
+fn slice_iris(catalog: &SliceCatalog) -> BTreeSet<SliceIri> {
+    catalog
+        .records()
+        .iter()
+        .map(|record| record.manifest.slice_iri.clone())
+        .collect()
+}
+
+// ── Class 2: grounding law/formalization meta-predicates ─────────────────────
+
+/// The empirically-discovered, textually-confirmed closed set of `logic:`/
+/// `math:` law-authoring / formalization-bridge predicates — asserted FROM a
+/// grounding slice's own `module.ttl`/`shapes.ttl`, never a
+/// `sliceDependsOn`-reconciling object-level use of the named term.
+///
+/// Discovered via
+/// `grep -oE '^\s*(logic|math):[A-Za-z0-9_]+\s+(gmeow|lang|math):'
+/// slices/grounding/{logic,math}/module.ttl | sed -E 's/^\s*//; s/\s+.*$//' |
+/// sort | uniq -c`, then reading every candidate predicate's OWN
+/// `skos:definition` in `slices/grounding/logic/module.ttl` /
+/// `slices/grounding/math/module.ttl`:
+///
+/// * `logic:formalizes` / `math:formalizes` are each self-documented VERBATIM
+///   as "a bridge annotation from a `logic:`/`math:` … term to the `gmeow:`
+///   domain concept it formalizes … an annotation property, never a reasoned
+///   axiom, so it carries no DL or EL profile weight."
+/// * `logic:candidateFormalizes` is the `logic:FormalizationCandidate` harvest
+///   back-link ("present exactly when the source IS a term's annotation
+///   field … Distinct from `logic:formalizes` … Domain
+///   `logic:FormalizationCandidate`") and `logic:proseFieldProperty` names
+///   which annotation field (`skos:definition`/`gmeow:useWhen`/
+///   `gmeow:avoidWhen`) a harvested candidate's prose came from — pure harvest
+///   bookkeeping, never term usage.
+/// * The remaining eighteen are FIELDS of one of six `logic:*Assertion`
+///   "central record" carriers — `PropertyCharacteristicAssertion`,
+///   `RelatumDistinctnessAssertion`, `KeyAssertion`, `ConditionalRangeAssertion`,
+///   `MediatedPropertyRequirementAssertion`, `RoleCompositionExclusionAssertion`
+///   — whose `skos:definition`s each open with the IDENTICAL "A central record
+///   asserting that…" signature and close "The reasoning authority names and
+///   enforces it here; the domain slice keeps the OWL-facing declaration" (or
+///   the `logic:formalizes`-carrying equivalent): the named class/property is
+///   the record's join key for the native coherence gate, never predicated
+///   over as live axiom content.
+///
+/// Deliberately EXCLUDED (real, genuine object-level use, confirmed by reading
+/// the same definitions): `logic:relation`/`logic:termIri`/`logic:argument`
+/// fill a REAL `logic:Formula` AST (e.g. `logic:coverEntitySortals`'s full-FOL
+/// `∀x. Entity(x) → Agent(x) ∨ InformationObject(x) ∨ …` foundational
+/// class-covering, and `logic:deceptionHeldProjectedDivergence`'s
+/// `eventType(e, eventTypeDeception)` axiom — reasoned content, not
+/// documentation); `logic:projectsLadderEdge` / `logic:evidenceProperty` /
+/// `logic:evidenceFor` are genuine derivation-rule content (a
+/// `logic:DimensionThreshold` row LITERALLY emits the named `gmeow:` ladder
+/// property under the coarse-ladder projection rules); and `logic:domain` is a
+/// real DL entailment axiom ("it lowers to `rdfs:domain`"), not an annotation.
+/// `logic:PropertyCharacteristicAssertion`'s `logic:characteristicSort` field
+/// is also never in this set — its object is always a closed `logic:`
+/// characteristic-sort marker, never a cross-slice term.
+const GROUNDING_META_PREDICATES: &[&str] = &[
+    "https://blackcatinformatics.ca/logic/formalizes",
+    "https://blackcatinformatics.ca/logic/candidateFormalizes",
+    "https://blackcatinformatics.ca/logic/proseFieldProperty",
+    "https://blackcatinformatics.ca/logic/characterizes",
+    "https://blackcatinformatics.ca/logic/distinctnessTarget",
+    "https://blackcatinformatics.ca/logic/distinctnessRole",
+    "https://blackcatinformatics.ca/logic/keyClass",
+    "https://blackcatinformatics.ca/logic/keyProperty",
+    "https://blackcatinformatics.ca/logic/conditionalRangeTarget",
+    "https://blackcatinformatics.ca/logic/conditionalRangeSelector",
+    "https://blackcatinformatics.ca/logic/conditionalRangeSelectorValue",
+    "https://blackcatinformatics.ca/logic/conditionalRangeValue",
+    "https://blackcatinformatics.ca/logic/conditionalRangeRequiredType",
+    "https://blackcatinformatics.ca/logic/mediatedRequirementTarget",
+    "https://blackcatinformatics.ca/logic/mediatedRequirementVia",
+    "https://blackcatinformatics.ca/logic/mediatedRequirementProperty",
+    "https://blackcatinformatics.ca/logic/compositionExclusionTarget",
+    "https://blackcatinformatics.ca/logic/compositionExclusionWhole",
+    "https://blackcatinformatics.ca/logic/compositionExclusionPart",
+    "https://blackcatinformatics.ca/logic/compositionExclusionVia",
+    "https://blackcatinformatics.ca/math/formalizes",
+];
+
+/// Per grounding-slice artifact, the set of predicates by which that artifact
+/// references each term IRI as the OBJECT of a triple — built ONCE per
+/// catalog so [`is_genuine_crossing_term`]'s Class 2 check never re-parses an
+/// artifact per crossing.
+struct GroundingReferencePredicates {
+    /// `(grounding slice IRI, artifact logical path)` -> term IRI -> the set of
+    /// predicates that reference it as an object anywhere in that artifact.
+    by_artifact: BTreeMap<(SliceIri, String), BTreeMap<String, BTreeSet<String>>>,
+}
+
+impl GroundingReferencePredicates {
+    /// Index every `Module`/`Shapes` artifact (the two ownership-bearing,
+    /// RDF-parseable roles — RFC §10) of every slice in `grounding`.
+    fn build(catalog: &SliceCatalog, grounding: &BTreeSet<SliceIri>) -> Result<Self> {
+        let mut by_artifact = BTreeMap::new();
+        for record in catalog.records() {
+            if !grounding.contains(&record.manifest.slice_iri) {
+                continue;
+            }
+            for artifact in &record.artifacts {
+                if !matches!(artifact.role, ArtifactRole::Module | ArtifactRole::Shapes) {
+                    continue;
+                }
+                let ds = Dataset::parse_turtle(&artifact.content, &artifact.logical_path)
+                    .map_err(|e| parse_err(Path::new(&artifact.logical_path), &e.to_string()))?;
+                let mut term_predicates: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+                ds.for_each_quad(|_s, p, o, _g| {
+                    if let Object::Named(iri) = o {
+                        term_predicates.entry(iri).or_default().insert(p.to_string());
+                    }
+                });
+                by_artifact.insert(
+                    (record.manifest.slice_iri.clone(), artifact.logical_path.clone()),
+                    term_predicates,
+                );
+            }
+        }
+        Ok(Self { by_artifact })
+    }
+
+    /// Whether `term`, as referenced from `from_slice`'s `logical_path`
+    /// artifact, is EXCLUSIVELY named via a [`GROUNDING_META_PREDICATES`]
+    /// entry — i.e. every triple in that artifact whose object is `term` uses
+    /// a pure law/formalization predicate. `false` (never pure-meta; the
+    /// no-optionality-safe default is GENUINE) when the artifact was not
+    /// indexed (a non-`Module`/`Shapes` role, e.g. a `Query` edge) or `term`
+    /// was never seen as an object at all in that artifact.
+    fn is_pure_meta(&self, from_slice: &str, logical_path: &str, term: &str) -> bool {
+        let Some(term_predicates) = self
+            .by_artifact
+            .get(&(from_slice.to_string(), logical_path.to_string()))
+        else {
+            return false;
+        };
+        match term_predicates.get(term) {
+            Some(preds) if !preds.is_empty() => preds
+                .iter()
+                .all(|p| GROUNDING_META_PREDICATES.contains(&p.as_str())),
+            _ => false,
+        }
+    }
+}
+
+/// Whether `term` (referenced from `from_slice`'s `from_artifact` artifact) is
+/// GENUINE cross-slice term usage — neither Class 1 (the raw IRI of some other
+/// catalogued slice, cited as DATA) nor Class 2 (a PURE grounding
+/// law/formalization back-reference, [`GROUNDING_META_PREDICATES`]). Used to
+/// filter an edge's evidence before it can produce an
+/// undeclared/forbidden/peered-unregistered-seam finding.
+fn is_genuine_crossing_term(
+    from_slice: &SliceIri,
+    from_artifact_logical_path: &str,
+    term: &NamedNode,
+    slice_iris: &BTreeSet<SliceIri>,
+    grounding_refs: &GroundingReferencePredicates,
+) -> bool {
+    if slice_iris.contains(term.as_str()) {
+        return false;
+    }
+    !grounding_refs.is_pure_meta(from_slice, from_artifact_logical_path, term.as_str())
+}
+
 // ── Classification ────────────────────────────────────────────────────────────
 
 /// The peerage-coverage verdict for one undeclared semantic dependency edge.
@@ -404,6 +604,8 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
     let grounding = grounding_slice_iris(catalog)?;
     let peers = peerage_pairs(catalog)?;
     let seams = seam_registry(catalog)?;
+    let all_slice_iris = slice_iris(catalog);
+    let grounding_refs = GroundingReferencePredicates::build(catalog, &grounding)?;
 
     let mut verdicts = Vec::new();
     let mut crossings = Vec::new();
@@ -442,6 +644,32 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
                 })
             })?;
 
+        // A crossing's evidence is filtered to GENUINE cross-slice term usage
+        // before anything else: neither Class 1 (the raw IRI of some other
+        // catalogued slice, cited as data) nor Class 2 (a pure grounding
+        // law/formalization back-reference). An edge left with zero genuine
+        // crossing terms is not a real dependency at all — suppressed
+        // entirely, never even reaching the peerage/seam classification below.
+        let mut genuine_terms: Vec<&NamedNode> = edge
+            .evidence
+            .iter()
+            .filter(|e| {
+                is_genuine_crossing_term(
+                    from_slice,
+                    &e.from_artifact.logical_path,
+                    &e.referenced_term,
+                    &all_slice_iris,
+                    &grounding_refs,
+                )
+            })
+            .map(|e| &e.referenced_term)
+            .collect();
+        genuine_terms.sort();
+        genuine_terms.dedup();
+        if genuine_terms.is_empty() {
+            continue;
+        }
+
         let both_grounding = grounding.contains(from_slice) && grounding.contains(to_slice);
         let mutually_peered = peers.contains(&(from_slice.clone(), to_slice.clone()))
             && peers.contains(&(to_slice.clone(), from_slice.clone()));
@@ -456,13 +684,8 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
                 })
                 .collect();
 
-            let mut terms: Vec<&NamedNode> =
-                edge.evidence.iter().map(|e| &e.referenced_term).collect();
-            terms.sort();
-            terms.dedup();
-
             let mut offending_terms = Vec::new();
-            for term in terms {
+            for term in genuine_terms {
                 let covering_seam = covering_seams
                     .iter()
                     .find(|seam| seam.carrying_term_iris.contains(term.as_str()));
@@ -524,10 +747,45 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
 /// data, using the SAME [`is_forbidden_edge`] tier-priority test the emitter
 /// uses (byte-identical [`tier_priority`] mapping), so the gate and the
 /// shipped data can never classify an edge differently.
-fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> Vec<Finding> {
+///
+/// An edge that DOES carry evidence is also filtered to genuine cross-slice
+/// term usage (the same Class 1 / Class 2 [`is_genuine_crossing_term`] check
+/// [`classify`] applies): an edge whose evidence is 100% slice-IRI-as-data or
+/// pure grounding-meta-formalization crossings is not a real dependency and
+/// contributes no tier-forbidden pair. An edge with NO evidence at all (a
+/// synthetic `ReconciliationStatus::Stale` edge — an authored
+/// `sliceDependsOn` with no semantic backing) is a distinct, orthogonal
+/// concern this function does not touch: there is no term-usage evidence to
+/// classify, so it is judged on tier alone exactly as before.
+fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Vec<Finding>> {
     let tiers = tier_priorities(catalog);
+    let grounding = grounding_slice_iris(catalog)?;
+    let all_slice_iris = slice_iris(catalog);
+    let grounding_refs = GroundingReferencePredicates::build(catalog, &grounding)?;
+
     let mut by_pair: BTreeMap<(SliceIri, SliceIri), BTreeSet<EdgeKind>> = BTreeMap::new();
     for edge in &report.edges {
+        // The tier DAG governs SEMANTIC build dependencies only (the same
+        // `EdgeKind::is_semantic` set that reconciles against `sliceDependsOn`); a
+        // test/example/documentation cross-tier reference is not a build dependency
+        // and never violates Principle 16.
+        if !edge.edge_kind.is_semantic() {
+            continue;
+        }
+        if !edge.evidence.is_empty() {
+            let has_genuine_evidence = edge.evidence.iter().any(|e| {
+                is_genuine_crossing_term(
+                    &edge.from_slice,
+                    &e.from_artifact.logical_path,
+                    &e.referenced_term,
+                    &all_slice_iris,
+                    &grounding_refs,
+                )
+            });
+            if !has_genuine_evidence {
+                continue;
+            }
+        }
         let from_tier = *tiers.get(&edge.from_slice).unwrap_or(&2);
         let to_tier = *tiers.get(&edge.to_slice).unwrap_or(&2);
         if is_forbidden_edge(from_tier, to_tier) {
@@ -556,7 +814,7 @@ fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> 
             Some(from.clone()),
         ));
     }
-    findings
+    Ok(findings)
 }
 
 // ── Finding projection ────────────────────────────────────────────────────────
@@ -585,7 +843,7 @@ pub fn peerage_aware_ownership_findings(
         .filter(|f| f.code != crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY)
         .collect();
 
-    findings.extend(forbidden_tier_findings(report, catalog));
+    findings.extend(forbidden_tier_findings(report, catalog)?);
 
     for verdict in &classification.verdicts {
         match &verdict.coverage {
@@ -660,6 +918,26 @@ mod tests {
              {ttl}"
         );
         std::fs::write(dir.join("manifest.ttl"), prefixed).unwrap();
+    }
+
+    /// Write a slice's `module.ttl` (an ownership-bearing artifact, unlike
+    /// `manifest.ttl`) — needed to exercise [`GroundingReferencePredicates`]
+    /// (Class 2) and the slice-IRI-as-data (Class 1) filter, both of which
+    /// re-parse REAL artifact content off the catalog rather than trusting a
+    /// hand-built [`OwnershipReport`] fixture.
+    fn write_module(root: &Path, group: &str, name: &str, ttl: &str) {
+        let dir = root.join("slices").join(group).join(name);
+        std::fs::create_dir_all(&dir).unwrap();
+        let prefixed = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             {ttl}"
+        );
+        std::fs::write(dir.join("module.ttl"), prefixed).unwrap();
     }
 
     /// A catalog with the three grounding slices, mutually peered, `logic:`
@@ -958,6 +1236,204 @@ mod tests {
                 .contains("https://blackcatinformatics.ca/logic/Foo")
         );
         assert!(test_seam.carrying_terms.contains("logic:Foo"));
+    }
+
+    // ── Class 1 / Class 2 genuine-crossing-term exclusion ────────────────────
+
+    const QUALITY: &str = "https://blackcatinformatics.ca/gmeow/slices/quality";
+    const WIDGETS: &str = "https://blackcatinformatics.ca/gmeow/slices/widgets";
+
+    /// A catalog with `logic:` (a lone, seam-free grounding slice — the
+    /// peerage/seam machinery is irrelevant to these tests) plus two ordinary
+    /// domain slices, `quality` and `widgets`. Dedicated to the Class 1
+    /// (slice-IRI-as-data) / Class 2 (grounding-meta-formalization) exclusion
+    /// tests, which need REAL artifact content parsed off disk (`slice_iris`
+    /// and [`GroundingReferencePredicates`] re-parse the catalog directly) —
+    /// a hand-built [`OwnershipReport`] fixture alone can never exercise them.
+    fn class_filter_catalog(root: &Path) -> SliceCatalog {
+        write_manifest(
+            root,
+            "grounding",
+            "logic",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/logic>
+                a gmeow:Slice, gmeow:GroundingSlice ;
+                rdfs:label "logic" .
+            "#,
+        );
+        write_module(
+            root,
+            "grounding",
+            "logic",
+            r#"logic:widgetFacetCharacteristic
+                a owl:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+                logic:characterizes gmeow:widgetFacet ;
+                logic:formalizes gmeow:widgetFacet .
+
+            logic:widgetOtherTermUsage
+                a logic:Formula ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+                logic:relation gmeow:widgetOtherTerm .
+
+            logic:widgetBothTermUsage
+                a logic:Formula ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+                logic:relation gmeow:widgetBothTerm ;
+                logic:formalizes gmeow:widgetBothTerm .
+            "#,
+        );
+        write_manifest(
+            root,
+            "core",
+            "quality",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/quality>
+                a gmeow:Slice ;
+                rdfs:label "quality" .
+            "#,
+        );
+        write_manifest(
+            root,
+            "core",
+            "widgets",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/widgets>
+                a gmeow:Slice ;
+                rdfs:label "widgets" .
+            "#,
+        );
+        SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    }
+
+    #[test]
+    fn class_1_slice_iri_as_data_crossing_is_suppressed() {
+        // `quality`'s module references `widgets`' own SLICE IRI as DATA (the
+        // real-world `slice-quality-rubric` `gmeow:ceilingSlice
+        // <…/slices/widgets>` shape) — never one of `widgets`' vocabulary
+        // terms, so this must never surface as a dependency at all.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                QUALITY,
+                WIDGETS,
+                EdgeKind::Ontology,
+                &[WIDGETS],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(QUALITY, WIDGETS, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).expect("classify must not hard-fail");
+        assert!(
+            classification.verdicts.is_empty(),
+            "a slice-IRI-as-data crossing has zero genuine terms and must be suppressed \
+             entirely: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a slice-IRI-as-data crossing must never fire a finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn class_2_grounding_meta_formalization_crossing_is_suppressed() {
+        // `logic:`'s module names `gmeow:widgetFacet` ONLY via
+        // `logic:characterizes`/`logic:formalizes` — a pure law/formalization
+        // back-reference (the `logic:assertionFacet` real-world pattern),
+        // never an object-level use of `widgets`' term.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                LOGIC,
+                WIDGETS,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/widgetFacet"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(LOGIC, WIDGETS, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).expect("classify must not hard-fail");
+        assert!(
+            classification.verdicts.is_empty(),
+            "a pure grounding-meta-formalization crossing has zero genuine terms and must be \
+             suppressed entirely: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a pure grounding-meta-formalization crossing must never fire a finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn genuine_term_use_from_a_grounding_slice_still_fires() {
+        // `logic:`'s module names `gmeow:widgetOtherTerm` via `logic:relation`
+        // — a REAL `logic:Formula` predication (e.g.
+        // `logic:coverEntitySortals`'s class-covering pattern), not a
+        // law/formalization back-reference — so this crossing is genuine.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                LOGIC,
+                WIDGETS,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/widgetOtherTerm"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(LOGIC, WIDGETS, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_eq!(classification.verdicts.len(), 1);
+        assert_eq!(classification.verdicts[0].coverage, Coverage::Uncovered);
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
+        assert_eq!(findings[0].severity, Severity::Error);
+    }
+
+    #[test]
+    fn a_term_named_via_both_a_meta_predicate_and_a_real_use_is_never_excluded() {
+        // `logic:`'s module names `gmeow:widgetBothTerm` via BOTH
+        // `logic:formalizes` (meta) AND `logic:relation` (a real `logic:Formula`
+        // predication) — per spec, co-presence of a real use means the term is
+        // NEVER excluded, even though a meta predicate also names it.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                LOGIC,
+                WIDGETS,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/widgetBothTerm"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(LOGIC, WIDGETS, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_eq!(
+            classification.verdicts.len(),
+            1,
+            "a term with a genuine co-use must never be suppressed: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
     }
 
     // ── R5: tier-forbidden edges ──────────────────────────────────────────────
