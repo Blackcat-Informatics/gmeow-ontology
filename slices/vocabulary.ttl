@@ -157,13 +157,6 @@ gmeow:seamOwningDoc a owl:DatatypeProperty ;
     skos:definition "The design document that owns the theory of this seam."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
-gmeow:seamRealizedBy a owl:ObjectProperty ;
-    rdfs:label "seam realized by"@x-gmeow-english ;
-    rdfs:domain gmeow:Seam ;
-    rdfs:range rdfs:Resource ;
-    skos:definition "Where a seam's crossing is a genuine satisfaction-preserving translation, the logic:Correspondence record (in graph/correspondence-laws) that realizes it. Optional: absent on governance-only seams whose crossing is structural reuse rather than a translation with a preservation law. The range stays rdfs:Resource deliberately, to keep this governance vocabulary free of a logic: coupling — the intended target is named in this definition, not forced into the range axiom."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
-
 # --------------------------------------------------------------------------- #
 # Distribution & tooling provision (consumed by the GTS packager and the
 # CLI roll-up — specified in the CLI roll-up and profile doctrine; fields reserved here so the
@@ -304,7 +297,6 @@ gmeow:seamFromSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:seamToSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:seamCarryingTerm gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:seamOwningDoc gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:seamRealizedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:crossingCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:coveredEdgeFrom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:coveredEdgeTo gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

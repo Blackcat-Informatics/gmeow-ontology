@@ -5,6 +5,9 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
+@prefix lang:    <https://blackcatinformatics.ca/lang/> .
+@prefix math:    <https://blackcatinformatics.ca/math/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/logic>
     a gmeow:Slice, gmeow:GroundingSlice ;
@@ -18,3 +21,95 @@
         <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the production reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction, and it anchors the co-foundational grounding kernel (docs/GROUNDING.md) as the semantic target of the `lang:` denotation seam and the `math:` compilation seam."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered .
+
+# --------------------------------------------------------------------------- #
+# The grounding seam registry.
+#
+# `logic:` references neither peer structurally (docs/GROUNDING.md, "The seam
+# registry"): it is the neutral registrar that hosts the closed set of six
+# sanctioned cross-grounding reference channels between `lang:`, `math:`, and
+# `logic:` as canonical gmeow:Seam individuals. This registry is governance
+# data, never object-level reasoned: a Manifest-role reference such as
+# gmeow:seamCarryingTerm or gmeow:seamFromSlice/gmeow:seamToSlice is not a
+# semantic dependency edge, so naming `lang:`/`math:` term IRIs here does not
+# trip the cross-slice grounding gate. Every peered cross-slice reference
+# among the grounding slices must land on one of these six seams rather than
+# riding free on the gmeow:sliceCoFoundationalWith peerage grant.
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/seam/denotation>
+    a gmeow:Seam ;
+    rdfs:label "Denotation seam"@x-gmeow-english ;
+    skos:definition "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind , lang:CompositionRule ;
+    gmeow:seamOwningDoc "LANG-MEANING.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/compilation>
+    a gmeow:Seam ;
+    rdfs:label "Compilation seam"@x-gmeow-english ;
+    skos:definition "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/math> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm math:compilesToLogicTerm , math:compilesToLogicFormula , math:compilesToLogicType ,
+        math:denotationKind , math:memberCondition ;
+    gmeow:seamOwningDoc "MATHEMATICS-EXPRESSIONS.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries>
+    a gmeow:Seam ;
+    rdfs:label "Laws and boundaries seam"@x-gmeow-english ;
+    skos:definition "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/math> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm logic:Formula , logic:expressivenessBoundary ;
+    gmeow:seamOwningDoc "MATHEMATICS-ANALYSIS-AND-GEOMETRY.md" , "MATHEMATICS-MEASURE-AND-DIMENSION.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation>
+    a gmeow:Seam ;
+    rdfs:label "Correspondence and preservation seam"@x-gmeow-english ;
+    skos:definition "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] , [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/math> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+    ] ;
+    gmeow:seamCarryingTerm logic:Correspondence , logic:preservationKind ;
+    gmeow:seamOwningDoc "LANG-TRANSLATION.md" , "LOGIC-CORRESPONDENCE.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/rendering>
+    a gmeow:Seam ;
+    rdfs:label "Rendering seam"@x-gmeow-english ;
+    skos:definition "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/math> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/lang>
+    ] ;
+    gmeow:seamCarryingTerm math:ExpressionRendering , lang:Rendering , lang:renderedContent ,
+        lang:renderingConvention , lang:renderingPreservation ;
+    gmeow:seamOwningDoc "LANG-TRANSLATION.md" , "MATHEMATICS-EXPRESSIONS.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/quantity>
+    a gmeow:Seam ;
+    rdfs:label "Quantity seam"@x-gmeow-english ;
+    skos:definition "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
+    ] ;
+    gmeow:seamCarryingTerm math:Quantity , math:hasDimension , math:quantityValue ;
+    gmeow:seamOwningDoc "MATHEMATICS-MEASURE-AND-DIMENSION.md" , "LANG-GMN.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
