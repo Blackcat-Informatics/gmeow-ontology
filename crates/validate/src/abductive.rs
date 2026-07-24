@@ -68,6 +68,7 @@ use gmeow_logic_compile::frontend::reconstruct_formula;
 use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
 use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use crate::advisory::{Advisory, BEST_PRACTICE_STANDPOINT_IRI};
@@ -75,6 +76,14 @@ use crate::advisory::{Advisory, BEST_PRACTICE_STANDPOINT_IRI};
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
+/// The four-boxes assertional-tier markers. Abductive advice is only for genuine,
+/// under-specified A-Box INDIVIDUALS — a subject carrying `gmeow:graphBoxRole gmeow:boxABox`
+/// (`crates/errors/src/abox.rs::{GRAPH_BOX_ROLE, BOX_ABOX}`) — never a TBox class/property
+/// term nor an entailed phantom the guard closure otherwise sweeps in.
+const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+const GMEOW_BOX_ABOX: &str = "https://blackcatinformatics.ca/gmeow/boxABox";
 /// The canonical source language every authored guidance literal carries; the public
 /// `@en`/`@zh`/`@fr` projections are never the surfaced text (mirrors `advisory.rs`).
 const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
@@ -586,6 +595,23 @@ fn sortal_suggestions_for_subject(
     candidates: &[Candidate],
     budget: &Budget,
 ) -> (Vec<AbductiveSuggestion>, Vec<(String, Diag)>) {
+    // F1 short-circuit: a sortal subject emits advice only when >=1 offered top-sortal lands
+    // `RefutedInStandpoint`; a refutation can only happen when the subject carries a reasoned
+    // rdf:type DISJOINT with an offered sortal. Every offered sortal is a subclass of the
+    // guard class, so the guard class itself, ITS superclasses, and owl:Thing can never be
+    // disjoint with any of them — a subject whose ONLY reasoned types are those cannot refute
+    // ANY disjunct, so by F1's own rule it is SUPPRESSED. Detect that cheaply off the REASONED
+    // type set (domain/range- and subclass-induced types are already materialized there) and
+    // return empty WITHOUT any `rehome_into_world` / `conjecture_test` call — this eliminates
+    // the dominant reasoning cost of the bare-entity fan-out while staying F1-EXACT (bare ⇒
+    // suppressed, identical observable result). A subject carrying an ADDITIONAL,
+    // potentially-disjoint type is NOT short-circuited: it falls through to the real reasoning
+    // gate below so a genuine refutation still emits the corroborated remainder.
+    if let (Some(first), Guard::Type(guard_class)) = (candidates.first(), &schema.guard)
+        && !subject_can_refute_a_sortal(reasoned, &first.subject, guard_class)
+    {
+        return (Vec::new(), Vec::new());
+    }
     let mut exhausted = Vec::new();
     let verdicts: Vec<EngineVerdict> = candidates
         .iter()
@@ -898,13 +924,40 @@ fn subjects_of_type(reasoned: &RdfDataset, class: &str) -> Vec<String> {
 }
 
 /// The gap subject set a schema's guard admits: the subjects typed the guard class
-/// ([`Guard::Type`]) or the subjects of some guard-relation triple ([`Guard::Property`]).
-/// Byte-sorted & deduplicated (both underlying readers are).
+/// ([`Guard::Type`]) or the subjects of some guard-relation triple ([`Guard::Property`]),
+/// RESTRICTED to genuine A-Box individuals (`gmeow:graphBoxRole gmeow:boxABox`). Byte-sorted
+/// & deduplicated (both underlying readers are; `retain` preserves that order).
+///
+/// The restriction is applied in this ONE place so ALL guard paths (sortal, relator, WEMI,
+/// Expression-frame, measurement) are scoped uniformly: abductive advice is only for real,
+/// under-specified A-Box individuals, never a TBox class/property term nor an entailed
+/// phantom the type/property closure otherwise sweeps in. The subject's TYPE/RELATA are
+/// still read off the REASONED graph (entailed-type awareness is preserved, G1) — only the
+/// SUBJECT SET is narrowed to declared A-Box individuals.
 fn guard_subjects(reasoned: &RdfDataset, guard: &Guard) -> Vec<String> {
-    match guard {
+    let mut subjects = match guard {
         Guard::Type(class) => subjects_of_type(reasoned, class),
         Guard::Property(relation) => subjects_with_property(reasoned, relation),
-    }
+    };
+    subjects.retain(|subject| is_abox(reasoned, subject));
+    subjects
+}
+
+/// `true` iff `subject` carries `gmeow:graphBoxRole gmeow:boxABox` on the reasoned graph —
+/// the assertional-tier marker every genuine A-Box individual carries. The abductive guard
+/// enumeration is scoped to these subjects only.
+fn is_abox(reasoned: &RdfDataset, subject: &str) -> bool {
+    let (Some(s), Some(p), Some(o)) = (
+        term_id(reasoned, subject),
+        term_id(reasoned, GMEOW_GRAPH_BOX_ROLE),
+        term_id(reasoned, GMEOW_BOX_ABOX),
+    ) else {
+        return false;
+    };
+    reasoned
+        .quads_for_pattern(Some(s), Some(p), Some(o), GraphMatch::Any)
+        .next()
+        .is_some()
 }
 
 /// The IRI subjects that are the subject of some `relation` triple (asserted or entailed),
@@ -987,6 +1040,69 @@ fn has_type(reasoned: &RdfDataset, subject: &str, class: &str) -> bool {
         .quads_for_pattern(Some(s), Some(p), Some(o), GraphMatch::Any)
         .next()
         .is_some()
+}
+
+/// `true` iff `subject` carries some reasoned rdf:type that could REFUTE an offered top
+/// sortal — i.e. a type that is NOT the guard class, NOT a superclass of the guard class, and
+/// NOT `owl:Thing`. Every offered sortal is a subclass of `guard_class`, so those "benign"
+/// types are all consistent with every sortal (a superclass of the guard can never be
+/// disjoint with a subclass of the guard). A subject with only benign types therefore cannot
+/// land any disjunct `RefutedInStandpoint`, and F1 suppresses it (see
+/// [`sortal_suggestions_for_subject`]'s short-circuit). SOUND, never over-suppressing: a type
+/// disjoint with a sortal can never itself be a superclass of the guard class, so a subject
+/// carrying a genuinely-discriminating type always returns `true` and reaches the reasoning
+/// gate. Reads the REASONED graph, where subclass/domain/range-induced types are materialized.
+fn subject_can_refute_a_sortal(reasoned: &RdfDataset, subject: &str, guard_class: &str) -> bool {
+    let mut benign = superclasses(reasoned, guard_class);
+    benign.insert(guard_class.to_owned());
+    benign.insert(OWL_THING.to_owned());
+    types_of(reasoned, subject)
+        .into_iter()
+        .any(|t| !benign.contains(&t))
+}
+
+/// The reasoned rdf:type IRIs of `subject` (byte-sorted & deduplicated).
+fn types_of(reasoned: &RdfDataset, subject: &str) -> Vec<String> {
+    let (Some(s), Some(p)) = (term_id(reasoned, subject), term_id(reasoned, RDF_TYPE)) else {
+        return Vec::new();
+    };
+    let mut types: Vec<String> = reasoned
+        .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Any)
+        .filter_map(|q| match reasoned.resolve(q.o) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        })
+        .collect();
+    types.sort();
+    types.dedup();
+    types
+}
+
+/// The transitive `rdfs:subClassOf` ancestors of `class` on the reasoned graph (`class`
+/// itself excluded). A cycle-safe BFS — a `subClassOf` cycle (e.g. two equivalent classes)
+/// terminates because a class is pushed only on first insertion into the visited set.
+fn superclasses(reasoned: &RdfDataset, class: &str) -> BTreeSet<String> {
+    let Some(subclass_pred) = term_id(reasoned, RDFS_SUBCLASS_OF) else {
+        return BTreeSet::new();
+    };
+    let mut ancestors: BTreeSet<String> = BTreeSet::new();
+    let mut stack = vec![class.to_owned()];
+    while let Some(current) = stack.pop() {
+        let Some(current_id) = term_id(reasoned, &current) else {
+            continue;
+        };
+        for quad in
+            reasoned.quads_for_pattern(Some(current_id), Some(subclass_pred), None, GraphMatch::Any)
+        {
+            if let TermRef::Iri(iri) = reasoned.resolve(quad.o) {
+                let ancestor = iri.to_owned();
+                if ancestor != class && ancestors.insert(ancestor.clone()) {
+                    stack.push(ancestor);
+                }
+            }
+        }
+    }
+    ancestors
 }
 
 /// The governed term's canonical source-language (`@x-gmeow-english`) `gmeow:howToUse`

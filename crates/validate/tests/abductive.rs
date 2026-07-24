@@ -95,7 +95,7 @@ fn mediation_missing_beneficiary_yields_one_suggestion() {
     // c1 fills committedAgent + intentionGoal, MISSING commitmentBeneficiary.
     let ds = reasoned(&format!(
         "@prefix gmeow: <{GMEOW}> .\n\
-         <urn:c1> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
+         <urn:c1> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
          <urn:agentA> a gmeow:Agent .\n"
     ));
     let outcome = abductive_advisories(ds.as_ref(), &budget());
@@ -141,7 +141,7 @@ fn mediation_missing_beneficiary_yields_one_suggestion() {
 #[test]
 fn item_missing_exemplifies_yields_one_suggestion() {
     let ds = reasoned(&format!(
-        "@prefix gmeow: <{GMEOW}> .\n<urn:i1> a gmeow:Item .\n"
+        "@prefix gmeow: <{GMEOW}> .\n<urn:i1> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let mine_owned = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&mine_owned.suggestions, "urn:i1");
@@ -161,7 +161,7 @@ fn item_missing_exemplifies_yields_one_suggestion() {
 #[test]
 fn expression_missing_frame_yields_one_suggestion() {
     let ds = reasoned(&format!(
-        "@prefix gmeow: <{GMEOW}> .\n<urn:x1> a gmeow:Expression .\n"
+        "@prefix gmeow: <{GMEOW}> .\n<urn:x1> a gmeow:Expression ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:x1");
@@ -184,7 +184,8 @@ fn unit_bearing_value_missing_frame_yields_one_reference_frame_suggestion() {
     // so the subject is a gap subject purely by carrying logic:unit. Exactly one "declare a
     // reference frame" advisory, naming logic:referenceFrame.
     let ds = reasoned(&format!(
-        "@prefix logic: <{LOGIC}> .\n<urn:m1> logic:unit <urn:degreeCelsius> .\n"
+        "@prefix logic: <{LOGIC}> .\n@prefix gmeow: <{GMEOW}> .\n\
+         <urn:m1> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:m1");
@@ -216,8 +217,8 @@ fn unit_bearing_value_with_frame_yields_no_measurement_suggestion() {
     // m2 carries BOTH logic:unit and logic:referenceFrame — already complete, so the
     // measurement-frame schema emits nothing (honest absence).
     let ds = reasoned(&format!(
-        "@prefix logic: <{LOGIC}> .\n\
-         <urn:m2> logic:unit <urn:degreeCelsius> ; logic:referenceFrame <urn:celsiusFrame> .\n"
+        "@prefix logic: <{LOGIC}> .\n@prefix gmeow: <{GMEOW}> .\n\
+         <urn:m2> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox ; logic:referenceFrame <urn:celsiusFrame> .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:m2");
@@ -237,7 +238,7 @@ fn bare_entity_yields_no_suggestion_a_nondiscriminating_menu_is_suppressed() {
     // disjunction does not discriminate at all. Advising a 4-way "specialize to X" menu here
     // would be noise (F1: SUPPRESS non-discriminating sortal advice), so ZERO suggestions.
     let ds = reasoned(&format!(
-        "@prefix gmeow: <{GMEOW}> .\n<urn:e1> a gmeow:Entity .\n"
+        "@prefix gmeow: <{GMEOW}> .\n<urn:e1> a gmeow:Entity ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:e1");
@@ -260,7 +261,7 @@ fn entity_refuting_one_sortal_yields_suggestions_for_the_corroborated_remainder(
         "@prefix gmeow: <{GMEOW}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
-         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:e2");
@@ -312,10 +313,10 @@ fn entity_refuting_one_sortal_yields_suggestions_for_the_corroborated_remainder(
 fn producer_is_deterministic() {
     let abox = format!(
         "@prefix gmeow: <{GMEOW}> .\n\
-         <urn:c1> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
-         <urn:e1> a gmeow:Entity .\n\
-         <urn:x1> a gmeow:Expression .\n\
-         <urn:i1> a gmeow:Item .\n"
+         <urn:c1> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
+         <urn:e1> a gmeow:Entity ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <urn:x1> a gmeow:Expression ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <urn:i1> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox .\n"
     );
     let ds = reasoned(&abox);
     let run = |ds: &RdfDataset| -> Vec<(String, Option<String>, Vec<String>)> {
@@ -347,11 +348,11 @@ fn producer_is_deterministic() {
 fn already_complete_subjects_yield_zero_suggestions() {
     let ds = reasoned(&format!(
         "@prefix gmeow: <{GMEOW}> .\n\
-         <urn:cFull> a gmeow:Commitment ; gmeow:committedAgent <urn:aA> ; \
+         <urn:cFull> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:aA> ; \
              gmeow:commitmentBeneficiary <urn:bB> ; gmeow:intentionGoal <urn:gG> .\n\
-         <urn:eAgent> a gmeow:Entity , gmeow:Agent .\n\
-         <urn:iFull> a gmeow:Item ; gmeow:exemplifies <urn:manif> .\n\
-         <urn:xFull> a gmeow:Expression ; gmeow:hasReferenceFrame <urn:frame> .\n\
+         <urn:eAgent> a gmeow:Entity , gmeow:Agent ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <urn:iFull> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:exemplifies <urn:manif> .\n\
+         <urn:xFull> a gmeow:Expression ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:hasReferenceFrame <urn:frame> .\n\
          <urn:manif> a gmeow:Manifestation .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
@@ -373,7 +374,7 @@ fn two_missing_relata_each_yield_their_own_corroborated_suggestion() {
     // gmeow:committedAgent. This is the discipline's OWN canonical example: an
     // under-mediated relator with only one party present must still produce advice.
     let ds = reasoned(&format!(
-        "@prefix gmeow: <{GMEOW}> .\n<urn:c3> a gmeow:Commitment ; gmeow:committedAgent <urn:aA> .\n"
+        "@prefix gmeow: <{GMEOW}> .\n<urn:c3> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:aA> .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all.suggestions, "urn:c3");
@@ -422,8 +423,8 @@ fn two_missing_relata_each_yield_their_own_corroborated_suggestion() {
 fn producer_does_not_mutate_the_base_graph() {
     let ds = reasoned(&format!(
         "@prefix gmeow: <{GMEOW}> .\n\
-         <urn:c1> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
-         <urn:e1> a gmeow:Entity .\n"
+         <urn:c1> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
+         <urn:e1> a gmeow:Entity ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let before = quad_count(ds.as_ref());
     let outcome = abductive_advisories(ds.as_ref(), &budget());
@@ -478,7 +479,7 @@ fn sortal_candidate_exhausted_by_a_tiny_budget_surfaces_an_exhaustion_diagnostic
         "@prefix gmeow: <{GMEOW}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
-         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let outcome = abductive_advisories(ds.as_ref(), &tiny_budget());
 
@@ -528,7 +529,7 @@ fn exhaustion_diagnostics_are_deterministic() {
         "@prefix gmeow: <{GMEOW}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
-         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> ; gmeow:graphBoxRole gmeow:boxABox .\n"
     ));
     let run = |ds: &RdfDataset| -> Vec<String> {
         abductive_advisories(ds, &tiny_budget())
@@ -544,4 +545,100 @@ fn exhaustion_diagnostics_are_deterministic() {
         !a.is_empty(),
         "a tiny budget must exhaust at least one disjunct in the sortal fixture"
     );
+}
+
+// ── Part 4: synthetic-scale proof — the bare-entity fan-out is gone ───────────────────
+
+/// A SYNTHETIC large A-Box (500 bare `gmeow:Entity` boxABox individuals + a handful of
+/// genuinely-incomplete relator / item / expression / unit-bearing subjects) proves the
+/// abductive producer no longer fans a full per-candidate reasoning pass out over every bare
+/// entity. This is the STRUCTURAL regression signal, not a brittle wall-clock assert (per the
+/// no-calibration discipline): each of the 500 bare entities carries ONLY its guard type, so
+/// the F1 short-circuit ([`sortal_suggestions_for_subject`]) suppresses it WITHOUT any
+/// `rehome_into_world` / `conjecture_test` call — the producer does bounded engine work (one
+/// warrant test per the handful of genuinely-incomplete relatum candidates, never per bare
+/// entity). The proof is that this completes as an ordinary fast unit test AND is correct at
+/// scale: ZERO sortal advice for any bare entity, and the expected advice for every
+/// genuinely-incomplete subject.
+///
+/// Before the fix this same input would drive 500 × 4 = 2000 `conjecture_test` calls, each
+/// re-homing the whole growing KB into a fresh scenario world — the O(individuals²) blow-up
+/// that hung `stage-validate`; the test would then fail to complete promptly.
+#[test]
+fn scale_bare_entities_short_circuit_while_incomplete_subjects_still_advise() {
+    const BARE: usize = 500;
+    let mut abox = format!("@prefix gmeow: <{GMEOW}> .\n@prefix logic: <{LOGIC}> .\n");
+    for n in 0..BARE {
+        // A genuinely bare A-Box entity: only its guard type + the boxABox marker, nothing
+        // that could refute any offered sortal ⇒ F1 short-circuits it (no engine call).
+        abox.push_str(&format!(
+            "<urn:bare{n}> a gmeow:Entity ; gmeow:graphBoxRole gmeow:boxABox .\n"
+        ));
+    }
+    // A handful of genuinely-incomplete subjects across the relatum/chain/frame/measurement
+    // strategies — these DO reach the native engine, but only a bounded handful of them.
+    abox.push_str(
+        "<urn:incCommitment> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; \
+             gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
+         <urn:agentA> a gmeow:Agent .\n\
+         <urn:incItem> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <urn:incExpression> a gmeow:Expression ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <urn:incUnit> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox .\n",
+    );
+    let ds = reasoned(&abox);
+    let outcome = abductive_advisories(ds.as_ref(), &budget());
+
+    // (1) Short-circuit proof: NOT ONE of the 500 bare entities produces any sortal advice.
+    let bare_advice: Vec<&str> = outcome
+        .suggestions
+        .iter()
+        .filter_map(|s| s.advisory.subject_iri.as_deref())
+        .filter(|s| s.starts_with("urn:bare"))
+        .collect();
+    assert!(
+        bare_advice.is_empty(),
+        "every bare boxABox gmeow:Entity must be F1-short-circuited to ZERO sortal advice at \
+         scale (no per-entity reasoning): {bare_advice:?}"
+    );
+    // The bare entities never surface an exhaustion diagnostic either (they never reach the
+    // engine under any budget).
+    assert!(
+        !outcome
+            .exhausted
+            .iter()
+            .any(|d| d.message().contains("urn:bare")),
+        "a short-circuited bare entity must not surface any budget diagnostic: {:?}",
+        outcome.exhausted
+    );
+
+    // (2) Correctness at scale: every genuinely-incomplete subject still gets exactly its
+    // expected advice — the fix scopes and short-circuits, it does not silence real gaps.
+    let commitment = for_subject(&outcome.suggestions, "urn:incCommitment");
+    assert_eq!(
+        commitment.len(),
+        1,
+        "the incomplete Commitment (missing only commitmentBeneficiary) still advises: {commitment:?}"
+    );
+    assert!(
+        commitment[0].advisory.suggestions[0].contains("gmeow:commitmentBeneficiary"),
+        "the Commitment advice names the missing relatum: {:?}",
+        commitment[0].advisory.suggestions[0]
+    );
+    let item = for_subject(&outcome.suggestions, "urn:incItem");
+    assert_eq!(item.len(), 1, "the incomplete Item still advises: {item:?}");
+    assert!(item[0].advisory.suggestions[0].contains("gmeow:exemplifies"));
+    let expression = for_subject(&outcome.suggestions, "urn:incExpression");
+    assert_eq!(
+        expression.len(),
+        1,
+        "the incomplete Expression still advises: {expression:?}"
+    );
+    assert!(expression[0].advisory.suggestions[0].contains("gmeow:hasReferenceFrame"));
+    let unit = for_subject(&outcome.suggestions, "urn:incUnit");
+    assert_eq!(
+        unit.len(),
+        1,
+        "the incomplete unit-bearing value still advises: {unit:?}"
+    );
+    assert!(unit[0].advisory.suggestions[0].contains("logic:referenceFrame"));
 }

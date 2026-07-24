@@ -120,13 +120,13 @@ fn base_nquads() -> Vec<u8> {
     let abox = format!(
         "@prefix gmeow: <{GMEOW}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
-         <{SUBJ_COMMITMENT}> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; \
-             gmeow:intentionGoal <urn:goalG> .\n\
+         <{SUBJ_COMMITMENT}> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; \
+             gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
          <urn:agentA> a gmeow:Agent .\n\
-         <{SUBJ_ITEM}> a gmeow:Item .\n\
-         <{SUBJ_EXPRESSION}> a gmeow:Expression .\n\
+         <{SUBJ_ITEM}> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <{SUBJ_EXPRESSION}> a gmeow:Expression ; gmeow:graphBoxRole gmeow:boxABox .\n\
          <urn:notASocialObject> a owl:Class ; owl:disjointWith gmeow:SocialObject .\n\
-         <{SUBJ_ENTITY}> a gmeow:Entity , <urn:notASocialObject> .\n"
+         <{SUBJ_ENTITY}> a gmeow:Entity , <urn:notASocialObject> ; gmeow:graphBoxRole gmeow:boxABox .\n"
     );
     let abox_ds = purrdf::parse_dataset(abox.as_bytes(), "text/turtle", None).expect("abox parses");
     builder.push_dataset(abox_ds.as_ref());
@@ -385,7 +385,7 @@ fn entailed_only_guard_type_surfaces_abductive_advice() {
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          @prefix ex: <https://example.test/> .\n\
          ex:Widget rdfs:subClassOf gmeow:Item .\n\
-         <{ESUB}> a ex:Widget .\n"
+         <{ESUB}> a ex:Widget ; gmeow:graphBoxRole gmeow:boxABox .\n"
     );
     // The reasoned EDB that derives `<urn:esub> a gmeow:Item` by type propagation.
     let reason_edb = format!(
@@ -446,9 +446,9 @@ fn unit_bearing_value_surfaces_measurement_frame_advice_through_the_stage() {
     const SUBJ_MEASUREMENT: &str = "urn:m1";
     const SUBJ_FRAMED: &str = "urn:m2";
     let abox = format!(
-        "@prefix logic: <{LOGIC}> .\n\
-         <{SUBJ_MEASUREMENT}> logic:unit <urn:degreeCelsius> .\n\
-         <{SUBJ_FRAMED}> logic:unit <urn:degreeCelsius> ; logic:referenceFrame <urn:celsiusFrame> .\n"
+        "@prefix logic: <{LOGIC}> .\n@prefix gmeow: <{GMEOW}> .\n\
+         <{SUBJ_MEASUREMENT}> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox .\n\
+         <{SUBJ_FRAMED}> logic:unit <urn:degreeCelsius> ; gmeow:graphBoxRole gmeow:boxABox ; logic:referenceFrame <urn:celsiusFrame> .\n"
     );
     let empty_reason =
         gmeow_pipeline::stages::reason::reason_product(b"").expect("empty stage-reason product");
@@ -892,7 +892,7 @@ fn one_party_commitment_emits_advice_for_both_missing_relata() {
     const SUBJ_ONE_PARTY: &str = "urn:c-one-party";
     let abox = format!(
         "@prefix gmeow: <{GMEOW}> .\n\
-         <{SUBJ_ONE_PARTY}> a gmeow:Commitment ; gmeow:committedAgent <urn:soloAgent> .\n\
+         <{SUBJ_ONE_PARTY}> a gmeow:Commitment ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:committedAgent <urn:soloAgent> .\n\
          <urn:soloAgent> a gmeow:Agent .\n"
     );
     let empty_reason =
