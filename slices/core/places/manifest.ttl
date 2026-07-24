@@ -24,6 +24,5 @@
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
-        <https://blackcatinformatics.ca/gmeow/slices/names> ,
-        <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Every located fact: contacts, events, the mail corpus, jurisdiction tenures; the GeoSPARQL projection."@x-gmeow-english .

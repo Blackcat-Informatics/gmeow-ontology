@@ -11,10 +11,8 @@
 @prefix crmarc: <http://www.cidoc-crm.org/crmarchaeo/> .
 @prefix om: <http://www.wurvoc.org/vocabularies/om-1.8/> .
 @prefix oboe: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#> .
-@prefix pato: <http://purl.obolibrary.org/obo/PATO_> .
 @prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
-@prefix geo: <http://www.opengis.net/ont/geosparql#> .
 @prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
 @prefix bbc: <http://www.bbc.co.uk/ontologies/news/> .
 @prefix iptc: <http://iptc.org/std/NewsML-G2/> .
@@ -122,13 +120,6 @@ gmeow:RightsStatement skos:closeMatch sosa:Observation {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack."
-|} .
-
-gmeow:KinRelationship skos:closeMatch sosa:Observation {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack."
 |} .
 
 gmeow:facetSubject skos:closeMatch sosa:hasFeatureOfInterest {|
@@ -321,60 +312,14 @@ gmeow:claimModality skos:closeMatch sosa:hasResult {|
 
 # --------------------------------------------------------------------------- #
 # sensory slice — Sensory module alignments (SOSA/SSN, OBOE, PATO, OBI, OM, QB)
+# (the sensory-owned SUBJECT alignments — Sensor/SensorPlatform/
+# ObservableProperty/SensoryQuantity/sensoryProperty/platformLocation — are
+# authored in slices/extensions/sensory/mappings/equivalences.ttl; only the
+# observations-owned generic properties/classes this observation-stack design
+# also touches remain here)
 # --------------------------------------------------------------------------- #
 
-# SOSA/SSN — precise sensor / platform / observable property / result alignments
-
-gmeow:Sensor skos:closeMatch sosa:Sensor {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018)."
-|} .
-
-gmeow:SensorPlatform skos:closeMatch sosa:Platform {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031)."
-|} .
-
-gmeow:ObservableProperty skos:closeMatch sosa:ObservableProperty {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class."
-|} .
-
-gmeow:SensoryQuantity skos:closeMatch sosa:Result {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority."
-|} .
-
-gmeow:sensoryProperty skos:closeMatch sosa:observedProperty {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "The observable property that a sensory observation measures."
-|} .
-
-gmeow:platformLocation skos:closeMatch geo:location {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference."
-|} .
-
 # OBOE — Extensible Observation Ontology
-
-gmeow:ObservableProperty skos:closeMatch oboe:Characteristic {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)."
-|} .
 
 gmeow:observationMethod skos:closeMatch oboe:Protocol {|
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
@@ -390,23 +335,7 @@ gmeow:observedFeature skos:closeMatch oboe:Entity {|
     gmeow:comment "OBOE Entity is broader (any entity); GMEOW observedFeature is the specific entity whose property is being observed."
 |} .
 
-# PATO — Phenotype And Trait Ontology
-
-gmeow:ObservableProperty skos:closeMatch pato:0000001 {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "PATO quality (PATO:0000001) is the broadest quality class; GMEOW ObservableProperty is a value vocabulary of specific observable properties."
-|} .
-
 # OBI — Ontology for Biomedical Investigations
-
-gmeow:Sensor skos:closeMatch obi:0000968 {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OBI device (OBI:0000968) is a material entity that is designed to perform a function. A GMEOW Sensor is an Agent (observer) that may be realised by a device."
-|} .
 
 gmeow:observationMethod skos:closeMatch obi:0000070 {|
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
@@ -499,20 +428,6 @@ gmeow:hasReferenceFrame skos:relatedMatch obscore:coordsys {|
     gmeow:comment "IVOA ObsCore coordsys carries coordinate system metadata for celestial reference frames. Related match because GMEOW hasReferenceFrame is more general (spatial, temporal, and celestial frames)."
 |} .
 
-gmeow:Sensor skos:relatedMatch obscore:facility {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation."
-|} .
-
-gmeow:Sensor skos:relatedMatch obscore:instrument {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument."
-|} .
-
 # Media / Journalism — BBC + IPTC + OA
 gmeow:StandpointClaim skos:relatedMatch bbc:NewsEvent {|
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
@@ -548,13 +463,6 @@ gmeow:SensoryObservation skos:relatedMatch loinc:LabTest {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "LOINC LabTest is the closest LOINC class for a laboratory test observation. Related match because GMEOW SensoryObservation covers any sensory/perceptual observation, not only lab tests."
-|} .
-
-gmeow:ObservableProperty skos:relatedMatch loinc:Component {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)."
 |} .
 
 gmeow:ObservationMethod skos:closeMatch loinc:Method {|

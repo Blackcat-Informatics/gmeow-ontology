@@ -19,6 +19,5 @@
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/organization> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
-        <https://blackcatinformatics.ca/gmeow/slices/languages> ;
+        <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     gmeow:sliceConsumer "Cross-cutting proficiency claims (promoted core, slice-dependency doctrine): skills, credentials, language proficiency."@x-gmeow-english.

@@ -221,6 +221,15 @@ gmeow:versionFingerprint
     gmeow:howToUse "Attach one literal per algorithm/scheme to the versioned gmeow:Entity; record byte-exact identity separately with gmeow:contentDigest where that is the criterion."@x-gmeow-english ;
     gmeow:useWhen "Use to fingerprint a versioned entity where the identity criterion is semantic rather than byte-exact — a SWHID, a normalized-form hash, a canonicalized-serialization digest."@x-gmeow-english .
 
+gmeow:versionLabel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    rdfs:label "version label"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:versionMember
     a owl:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;

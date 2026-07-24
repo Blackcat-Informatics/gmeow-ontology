@@ -452,15 +452,6 @@ gmeow:levelNative
     skos:definition "The native proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:levelScale
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:ProficiencyLevel ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "level scale"@x-gmeow-english ;
-    rdfs:range gmeow:ProficiencyScale ;
-    skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:modalityMachine
     a gmeow:LanguageModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
@@ -989,15 +980,6 @@ gmeow:varietyOf
     rdfs:label "variety of"@x-gmeow-english ;
     rdfs:range gmeow:Language ;
     skos:definition "The parent language, lineage, or macrolanguage that a variety is considered a variety of. NON-FUNCTIONAL: standpoint-dependent — one standpoint may link Scots to English, another may treat it as an independent language (no varietyOf)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:versionLabel
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
-    rdfs:label "version label"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/languages>

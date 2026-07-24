@@ -209,6 +209,15 @@ gmeow:ProficiencyScale
     gmeow:howToUse "Mint each framework as an individual of gmeow:ProficiencyScale in its own domain slice (languages, expertise, cognition) and cite it from a proficiency relator's scale role (gmeow:knowledgeProficiencyScale, gmeow:skillProficiencyScale); record cross-framework correspondence in an alignment ledger, never as an OWL axiom (Principle 12)."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for naming a rating framework that several competency axes share — language (CEFR/ILR/ACTFL), applied skill (Dreyfus/NIH), or knowledge depth (Bloom's/SOLO/native) — referenced from a proficiency relator's scale role without committing any one slice to a canonical framework (Principle 6)."@x-gmeow-english .
 
+gmeow:levelScale
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "level scale"@x-gmeow-english ;
+    rdfs:range gmeow:ProficiencyScale ;
+    skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:ProjectionContext
     a logic:AbstractIndividualType ,
         owl:Class ;
