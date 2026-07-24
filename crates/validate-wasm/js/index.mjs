@@ -13,15 +13,13 @@ import init, {
   version,
 } from "./pkg/gmeow_validate_wasm.js";
 
-let _ready = false;
+// Cache the in-flight instantiation PROMISE, not a post-resolution boolean: two
+// callers that both reach `ready()` before the first `init()` resolves must share
+// one instantiation, not each trigger a full wasm fetch/instantiate. On failure the
+// cache is cleared so a later call can retry.
+let _ready = null;
 
-/**
- * Instantiate the wasm module. Idempotent. In Node the wasm bytes are read from the
- * colocated file; in a browser, pass the bytes/URL (or omit to fetch the colocated
- * `.wasm`). Must be awaited once before `validate` / `version` are used.
- */
-export async function ready(wasmBytesOrUrl) {
-  if (_ready) return;
+async function instantiate(wasmBytesOrUrl) {
   if (wasmBytesOrUrl !== undefined) {
     await init({ module_or_path: wasmBytesOrUrl });
   } else if (typeof process !== "undefined" && process.versions?.node) {
@@ -34,7 +32,22 @@ export async function ready(wasmBytesOrUrl) {
   } else {
     await init();
   }
-  _ready = true;
+}
+
+/**
+ * Instantiate the wasm module. Idempotent and single-flighted: concurrent callers
+ * share one instantiation. In Node the wasm bytes are read from the colocated file;
+ * in a browser, pass the bytes/URL (or omit to fetch the colocated `.wasm`). Must be
+ * awaited once before `validate` / `version` are used.
+ */
+export function ready(wasmBytesOrUrl) {
+  if (_ready === null) {
+    _ready = instantiate(wasmBytesOrUrl).catch((error) => {
+      _ready = null;
+      throw error;
+    });
+  }
+  return _ready;
 }
 
 export { bundle_dataset, validate, version };

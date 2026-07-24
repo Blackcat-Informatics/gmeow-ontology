@@ -7,10 +7,13 @@
 
 import init, { to_gmn1, from_gmn1, version } from "./pkg/gmeow_gmn_wasm.js";
 
-let _ready = false;
+// Cache the in-flight instantiation PROMISE, not a post-resolution boolean: two
+// callers that both reach `ready()` before the first `init()` resolves must share
+// one instantiation, not each trigger a full wasm fetch/instantiate. On failure the
+// cache is cleared so a later call can retry.
+let _ready = null;
 
-export async function ready(wasmBytesOrUrl) {
-  if (_ready) return;
+async function instantiate(wasmBytesOrUrl) {
   if (wasmBytesOrUrl !== undefined) {
     await init({ module_or_path: wasmBytesOrUrl });
   } else if (typeof process !== "undefined" && process.versions?.node) {
@@ -21,7 +24,16 @@ export async function ready(wasmBytesOrUrl) {
   } else {
     await init();
   }
-  _ready = true;
+}
+
+export function ready(wasmBytesOrUrl) {
+  if (_ready === null) {
+    _ready = instantiate(wasmBytesOrUrl).catch((error) => {
+      _ready = null;
+      throw error;
+    });
+  }
+  return _ready;
 }
 
 export { to_gmn1, from_gmn1, version };
