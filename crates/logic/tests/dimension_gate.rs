@@ -80,7 +80,9 @@ fn run_verify(ttl: &str) -> gmeow_errors::model::Report {
     verify(ds.as_ref(), &embedded_verify_queries()).expect("verify() must not error on the fixture")
 }
 
-fn inhomogeneity_findings(report: &gmeow_errors::model::Report) -> Vec<&gmeow_errors::model::Finding> {
+fn inhomogeneity_findings(
+    report: &gmeow_errors::model::Report,
+) -> Vec<&gmeow_errors::model::Finding> {
     report
         .findings
         .iter()
@@ -141,7 +143,10 @@ fn inhomogeneity_finding_names_the_offending_witnesses() {
     assert!(
         has_witness,
         "the derived finding must name the offending integral / dimensions; details were: {:?}",
-        findings.iter().map(|f| f.detail.as_deref()).collect::<Vec<_>>()
+        findings
+            .iter()
+            .map(|f| f.detail.as_deref())
+            .collect::<Vec<_>>()
     );
 }
 
@@ -184,6 +189,148 @@ fn zero_denominator_is_malformed_not_inhomogeneous() {
     assert!(
         malformed,
         "a zero-denominator dimension must still raise a malformed-dimension finding; got: {:?}",
-        report.findings.iter().map(|f| f.code.as_str()).collect::<Vec<_>>()
+        report
+            .findings
+            .iter()
+            .map(|f| f.code.as_str())
+            .collect::<Vec<_>>()
+    );
+}
+
+// ── AC-3: the law is satisfied → no marker (the positive mirror of AC-1/AC-2) ─
+
+/// A homogeneous expression: both operands carry the SAME dimension
+/// (`math:timeDimension`). The reasoner-derived `dimEqual` consequent holds, so
+/// the constraint-tagged violation rule prunes — no marker.
+const HOMOGENEOUS_SAME_DIMENSION: &str = "\
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:ok a math:DimensionalExpression ;
+    math:homogeneousOperand ex:t1 , ex:t2 .
+ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .
+ex:t2 a math:Quantity ; math:hasDimension math:timeDimension .
+";
+
+#[test]
+fn homogeneous_expression_passes_on_verify() {
+    // The law is satisfied (dimEqual(timeDimension, timeDimension) holds) → the
+    // reasoner materializes NO math:DimensionalInhomogeneity marker.
+    let report = run_verify(HOMOGENEOUS_SAME_DIMENSION);
+    assert!(
+        inhomogeneity_findings(&report).is_empty(),
+        "two homogeneous operands sharing one dimension must raise NO {INHOMOGENEITY_CODE}; \
+         got: {:?}",
+        inhomogeneity_findings(&report)
+            .iter()
+            .map(|f| f.message.as_str())
+            .collect::<Vec<_>>()
+    );
+}
+
+/// A correctly-composed integral, modeled on the `ENERGY_INTEGRAL` fixture of
+/// `crates/logic/src/math_dimension/tests.rs`: density (M¹L⁻¹T⁻²) integrated
+/// against volume (L³) composes to energy (M¹L²T⁻²), and the integral declares
+/// exactly that result dimension.
+const INTEGRAL_COMPOSED_CORRECTLY: &str = "\
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:energyDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:mE1 , ex:lE2 , ex:tEm2 .
+ex:mE1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:lE2 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ; math:exponentDenominator 1 .
+ex:tEm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:densityDim a math:DerivedDimension ;
+    math:baseDimensionExponent ex:mD1 , ex:lDm1 , ex:tDm2 .
+ex:mD1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:lDm1 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator -1 ; math:exponentDenominator 1 .
+ex:tDm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:volumeDim a math:DerivedDimension ; math:baseDimensionExponent ex:lV3 .
+ex:lV3 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 3 ; math:exponentDenominator 1 .
+
+ex:density a math:MeasurableFunction ; math:hasDimension ex:densityDim .
+ex:vol a math:Measure ; math:hasDimension ex:volumeDim .
+
+ex:energy a math:Integral ;
+    math:integrand ex:density ;
+    math:withRespectTo ex:vol ;
+    math:hasDimension ex:energyDim .
+";
+
+#[test]
+fn integral_composed_correctly_passes_on_verify() {
+    // dim(result) == dim(integrand) ⊕ dim(measure) → dimProduct holds → the
+    // reasoner materializes NO math:DimensionalInhomogeneity marker.
+    let report = run_verify(INTEGRAL_COMPOSED_CORRECTLY);
+    assert!(
+        inhomogeneity_findings(&report).is_empty(),
+        "a correctly-composed integral must raise NO {INHOMOGENEITY_CODE}; got: {:?}",
+        inhomogeneity_findings(&report)
+            .iter()
+            .map(|f| f.message.as_str())
+            .collect::<Vec<_>>()
+    );
+}
+
+/// An integral whose integrand and measure both carry a dimension with an
+/// astronomically large exact-rational exponent on the SAME base dimension
+/// (`math:timeDimension`, numerator `i128::MAX`) so their ℚ⁷ vector sum
+/// (`dF ⊕ dM`) overflows `i128` inside the `math:dimensionProductRel` builtin.
+const INTEGRAL_EXPONENT_OVERFLOW: &str = "\
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:hugeDim1 a math:DerivedDimension ; math:baseDimensionExponent ex:hugeExp1 .
+ex:hugeExp1 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator 170141183460469231731687303715884105727 ;
+    math:exponentDenominator 1 .
+
+ex:hugeDim2 a math:DerivedDimension ; math:baseDimensionExponent ex:hugeExp2 .
+ex:hugeExp2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator 170141183460469231731687303715884105727 ;
+    math:exponentDenominator 1 .
+
+ex:hugeIntegrand a math:MeasurableFunction ; math:hasDimension ex:hugeDim1 .
+ex:hugeMeasure a math:Measure ; math:hasDimension ex:hugeDim2 .
+
+ex:overflowIntegral a math:Integral ;
+    math:integrand ex:hugeIntegrand ;
+    math:withRespectTo ex:hugeMeasure ;
+    math:hasDimension math:timeDimension .
+";
+
+#[test]
+fn dimension_product_overflow_yields_no_spurious_marker() {
+    // `math:exponentNumerator` on BOTH the integrand and the measure dimensions is
+    // `i128::MAX` on the same base (time); their exact-rational ⊕ composition
+    // overflows `i128` inside the `math:dimensionProductRel` builtin
+    // (`DimVector::add` → `Rational::checked_add`). Per the dimension-gate
+    // contract (`crates/logic/src/physical/builtin_eval.rs`'s `QBuiltin::DimProduct`
+    // arm), an exact-rational overflow composing dF ⊕ dM is undefinedness, so the
+    // builtin declines to `BuiltinOutcome::Unbound` — undefinedness is NOT a
+    // violation for a constraint-tagged rule (it is skipped, never materialized as
+    // a violation), matching the retired Rust sweep's own skip-on-overflow
+    // behavior (`DimVector::add` returning `Err` was a deliberate `continue`, never
+    // a spurious finding). So this must raise ZERO markers, not an error and not a
+    // spurious math:DimensionalInhomogeneity.
+    let report = run_verify(INTEGRAL_EXPONENT_OVERFLOW);
+    assert!(
+        inhomogeneity_findings(&report).is_empty(),
+        "an integral-composition overflow must decline to Unbound, never fabricate a \
+         {INHOMOGENEITY_CODE}; got: {:?}",
+        inhomogeneity_findings(&report)
+            .iter()
+            .map(|f| f.message.as_str())
+            .collect::<Vec<_>>()
     );
 }

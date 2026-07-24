@@ -1498,3 +1498,11 @@ ex:ecParallelTransportNoPath a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:ParallelTransport naming its math:transportConnection rule but omitting its math:transportAlong path (sh:minCount 1, derived from the min-1 math:transportAlong restriction); the math:transportConnection arm stays satisfied by a well-formed math:Connection (naming its math:connectionOn so math:IncompleteConnection stays silent), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteParallelTransport)." .
+
+# === Rule: a homogeneous operand of a dimensional expression itself carries a dimension === #
+
+ex:ecHomogeneousOperandUndimensioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/homogeneous-operand-undimensioned.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's second math:homogeneousOperand is a math:MeasurableFunction (not a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction never reaches it) carrying no math:hasDimension at all — the closed-world math:HomogeneousOperandDimensionedConstraint (∀o,E: homogeneousOperand(E,o) → ∃d. hasDimension(o,d)) then fails for that operand. The first operand is dimensioned so the expression still carries its required two math:homogeneousOperand and the reasoner-derived dimEqual homogeneity law never fires (its antecedent needs both operands' dimensions bound), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UndimensionedQuantity)." .
