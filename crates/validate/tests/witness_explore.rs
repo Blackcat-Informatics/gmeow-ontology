@@ -74,10 +74,11 @@ fn native_core_bundle_describe_matches_the_witness_attestation() {
     let ns = "https://blackcatinformatics.ca/gmeow/";
     let mut subject: Option<String> = None;
     for q in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        if let TermRef::Iri(iri) = dataset.resolve(q.s) {
-            if iri.starts_with(ns) && subject.as_deref().map(|s| iri < s).unwrap_or(true) {
-                subject = Some(iri.to_owned());
-            }
+        if let TermRef::Iri(iri) = dataset.resolve(q.s)
+            && iri.starts_with(ns)
+            && subject.as_deref().map(|s| iri < s).unwrap_or(true)
+        {
+            subject = Some(iri.to_owned());
         }
     }
     let subject = subject.expect("core bundle carries a GMEOW-namespace subject");

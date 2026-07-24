@@ -609,14 +609,12 @@ mod tests {
         let mut derived: BTreeSet<(DocFormat, DocFormat)> = BTreeSet::new();
         for tgt in DocFormat::ALL {
             for key in composition_leg_keys(tgt) {
-                if let Some(leg) = legs().into_iter().find(|l| &l.key == key) {
-                    if let Some(&(_, src_fmt)) =
+                if let Some(leg) = legs().into_iter().find(|l| &l.key == key)
+                    && let Some(&(_, src_fmt)) =
                         surface_to_fmt.iter().find(|(s, _)| *s == leg.source)
-                    {
-                        if leg.target_fmt == Some(tgt) {
-                            derived.insert((src_fmt, tgt));
-                        }
-                    }
+                    && leg.target_fmt == Some(tgt)
+                {
+                    derived.insert((src_fmt, tgt));
                 }
             }
         }
