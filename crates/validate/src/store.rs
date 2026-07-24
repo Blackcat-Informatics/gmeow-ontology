@@ -132,6 +132,72 @@ pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     })
 }
 
+/// Project a full `gmeow.gts` bundle into a **core browser bundle** — graph-preserving
+/// N-Quads text carrying only the object-level ontology (the default graph) plus any
+/// explicitly kept named graphs, with every derived/heavy graph dropped (the
+/// documentation projection, the `graph/fanout/*` flat-file re-embeds, diagnostics,
+/// authoring briefs, the reasoned closure, …).
+///
+/// The FULL bundle extracts to ~948 MB of N-Quads — far too large to load and query
+/// in a browser (it OOMs the wasm engine). This projection keeps the queryable
+/// object-level ontology (~124 k quads → ~24 MB N-Quads, well within a browser's
+/// reach once the web server gzips it) so the in-browser playground/explorer can
+/// parse and SPARQL over the SAME authored ontology the pipeline shipped. It is
+/// shipped as N-Quads TEXT (not a GTS container) so the in-page purrdf RDF engine
+/// parses it directly with no container codec, and it is a pure, deterministic
+/// function of the input bytes (order-preserving filter + deterministic serializer),
+/// so the emitted asset is byte-reproducible.
+///
+/// `keep_named_graphs` is the allow-list of named-graph IRIs to retain ALONGSIDE the
+/// default graph (e.g. grounding graphs); pass an empty slice for object-level only.
+///
+/// # Errors
+///
+/// Returns `Err` if the container cannot be read, the statement layer cannot be
+/// folded, or the filtered dataset cannot be serialized.
+pub fn core_browser_bundle_nquads(
+    full_bytes: &[u8],
+    keep_named_graphs: &[&str],
+) -> gmeow_errors::Result<String> {
+    use std::collections::HashSet;
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let mut graph = purrdf::gts::read_all_segments(full_bytes).map_err(to_diag)?;
+    // Term ids whose value is a kept named-graph IRI. The default graph (`None` slot)
+    // is always retained; every other named graph is dropped.
+    let keep: HashSet<usize> = graph
+        .terms
+        .iter()
+        .enumerate()
+        .filter_map(|(i, t)| match t.value.as_deref() {
+            Some(v) if keep_named_graphs.contains(&v) => Some(i),
+            _ => None,
+        })
+        .collect();
+    let kept = |slot: Option<usize>| slot.is_none_or(|gid| keep.contains(&gid));
+    graph.quads.retain(|q| kept(q.3));
+    graph.reifiers.retain(|r| kept(r.2));
+    graph.annotations.retain(|a| kept(a.3));
+    // Fold the filtered graph into a graph-preserving dataset and serialize to
+    // N-Quads over the full dataset selection (the term table rides in the codec, so
+    // no term-pruning is needed — dropped quads simply do not appear).
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("core browser bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
 /// Read a `gmeow.gts` bundle's bytes into **graph-preserving** N-Quads text — every
 /// base quad keeps its named-graph component (unlike [`dataset_from_gts`], which
 /// folds them into the default graph). This is the browser bundle-read primitive:
@@ -461,6 +527,60 @@ mod tests {
             }
             other => panic!("object must be a literal, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn core_browser_bundle_keeps_default_drops_named_graphs() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // A bundle with one quad in the DEFAULT graph (object-level) and one quad in
+        // a heavy named graph (`graph/documentation`). The core browser projection
+        // must keep the default-graph quad and DROP the named-graph quad.
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://blackcatinformatics.ca/gmeow/Cat",     // 0: default s
+            "http://www.w3.org/2000/01/rdf-schema#label",   // 1: default p
+            "https://blackcatinformatics.ca/gmeow/DocNode", // 2: named s
+            "https://blackcatinformatics.ca/gmeow/docTitle", // 3: named p
+            "https://blackcatinformatics.ca/gmeow/graph/documentation", // 4: named graph
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        for lit in ["Cat", "A documentation node"] {
+            graph.terms.push(Term {
+                kind: TermKind::Literal,
+                value: Some(lit.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        // default-graph quad: Cat rdfs:label "Cat" .
+        graph.quads.push((0, 1, 5, None));
+        // named-graph quad: DocNode docTitle "A documentation node" <graph/documentation>
+        graph.quads.push((2, 3, 6, Some(4)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[])
+            .expect("core browser bundle must serialize");
+        assert!(
+            nq.contains("https://blackcatinformatics.ca/gmeow/Cat"),
+            "core keeps the default-graph object-level quad:\n{nq}"
+        );
+        assert!(
+            !nq.contains("graph/documentation") && !nq.contains("DocNode"),
+            "core drops the heavy named graph and its quads:\n{nq}"
+        );
     }
 
     #[test]
