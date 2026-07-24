@@ -295,7 +295,7 @@ impl Gmn1ConstructCoverageReport {
 /// production `gmn1_read` codec.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gmn1ShippedFailure {
-    /// The committed artifact path (`generated/projections/lang/gmn1/<name>.gmn`).
+    /// The committed artifact path (`generated/projections/lang/gmn1/v<major>/<name>.gmn`).
     pub path: String,
     /// The typed codec failure carrying the canonical `lang:` class
     /// ([`Gmn1Error::failure_class`]).
@@ -311,8 +311,8 @@ impl Gmn1ShippedFailure {
 }
 
 /// [`check_gmn1_shipped_projections`]'s outcome: every shipped GMN-1 projection that failed
-/// to read cleanly. Empty ⇒ every shipped `generated/projections/lang/gmn1/*.gmn` reads back
-/// through the production codec with `failure_class()` clean.
+/// to read cleanly. Empty ⇒ every shipped `generated/projections/lang/gmn1/v<major>/*.gmn` reads
+/// back through the production codec with `failure_class()` clean.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Gmn1ShippedReport {
     /// Every failing shipped artifact, in a stable (sorted-path) order.
@@ -331,7 +331,7 @@ impl Gmn1ShippedReport {
 }
 
 /// PRODUCTION consumer of the codec's canonical classifier over SHIPPED artifacts: read every
-/// committed `generated/projections/lang/gmn1/*.gmn` back through the production
+/// committed `generated/projections/lang/gmn1/v<major>/*.gmn` back through the production
 /// [`gmeow_lang_bridge::gmn1_read`] and assert `failure_class()` is clean.
 ///
 /// The shipped `.gmn` text carries `r_<hash>` by-reference tokens whose reference table is the
@@ -345,9 +345,14 @@ impl Gmn1ShippedReport {
 pub fn check_gmn1_shipped_projections(
     root: &Path,
 ) -> Result<Gmn1ShippedReport, gmeow_errors::Diag> {
+    // The shipped artifacts are keyed under the graph-resolved dialect major
+    // (`gmn1/v<major>/…`), matching the projection stage's own version keying — never a
+    // Rust constant. Resolve it the SAME way the codebook-digest/pack-root checks do.
+    let dictionary = load_lang_dictionary(root)?;
+    let major = dictionary.schema_major();
     let gmn1_dir = root
         .join(crate::stages::lang_projection::LANG_PROJECTION_DIR)
-        .join("gmn1");
+        .join(format!("gmn1/v{major}"));
     if !gmn1_dir.is_dir() {
         // No shipped GMN-1 projections (e.g. a source checkout with no generated tree yet):
         // vacuously clean, nothing to lint.
@@ -380,7 +385,6 @@ pub fn check_gmn1_shipped_projections(
             .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
     let sources: Vec<NamedSource> =
         crate::stages::lang_projection::lang_model_sources(Some(&catalog))?;
-    let dictionary = load_lang_dictionary(root)?;
     let by_name: BTreeMap<&str, &NamedSource> =
         sources.iter().map(|s| (s.name.as_str(), s)).collect();
 
@@ -388,7 +392,7 @@ pub fn check_gmn1_shipped_projections(
     let mut verified = 0usize;
     for (name, bytes) in &shipped {
         let path = format!(
-            "{}/gmn1/{name}.gmn",
+            "{}/gmn1/v{major}/{name}.gmn",
             crate::stages::lang_projection::LANG_PROJECTION_DIR
         );
         let source = by_name.get(name.as_str()).ok_or_else(|| {
@@ -664,10 +668,18 @@ pub fn check_gmn1_pack_root(root: &Path) -> Result<Gmn1PackRootReport, gmeow_err
         }
     };
     let ecosystem = EcosystemLeaves::from_view_bytes(
-        &read_view(format!("generated/projections/lang/gmn1/v{major}/gbnf/gmn.gbnf"))?,
-        &read_view(format!("generated/projections/lang/gmn1/v{major}/lark/gmn.lark"))?,
-        &read_view(format!("generated/projections/lang/gmn1/v{major}/token-metrics.ttl"))?,
-        &read_view(format!("generated/projections/lang/gmn1/v{major}/verbalizations.ttl"))?,
+        &read_view(format!(
+            "generated/projections/lang/gmn1/v{major}/gbnf/gmn.gbnf"
+        ))?,
+        &read_view(format!(
+            "generated/projections/lang/gmn1/v{major}/lark/gmn.lark"
+        ))?,
+        &read_view(format!(
+            "generated/projections/lang/gmn1/v{major}/token-metrics.ttl"
+        ))?,
+        &read_view(format!(
+            "generated/projections/lang/gmn1/v{major}/verbalizations.ttl"
+        ))?,
     );
     let recomputed_root = pack_root(&digest, &dict, &grammar_bytes, &ecosystem);
 
@@ -1009,7 +1021,7 @@ mod tests {
     }
 
     /// The production shipped-projection lint reads every committed
-    /// `generated/projections/lang/gmn1/*.gmn` back through the production codec and asserts
+    /// `generated/projections/lang/gmn1/v<major>/*.gmn` back through the production codec and asserts
     /// `failure_class()` is clean — a genuine production caller of the canonical classifier
     /// over shipped artifacts (not merely a test-only round-trip).
     #[test]

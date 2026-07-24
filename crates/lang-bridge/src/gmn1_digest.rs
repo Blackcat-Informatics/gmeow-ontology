@@ -161,7 +161,12 @@ pub fn pack_root(
     grammar_bytes: &[u8],
     ecosystem: &EcosystemLeaves,
 ) -> String {
-    pack_root_from_grammar_leaf(codebook_digest, dict, &grammar_leaf(grammar_bytes), ecosystem)
+    pack_root_from_grammar_leaf(
+        codebook_digest,
+        dict,
+        &grammar_leaf(grammar_bytes),
+        ecosystem,
+    )
 }
 
 /// The content-addressed Merkle leaf of ONE view artifact: `blake3(view-bytes)` as lowercase hex,

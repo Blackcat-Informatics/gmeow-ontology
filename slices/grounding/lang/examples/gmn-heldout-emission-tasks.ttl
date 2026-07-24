@@ -37,49 +37,49 @@ ex:heldout-claim
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a claim record"@x-gmeow-english ;
     rdfs:comment "Emit the claim that valve B has the open-valve-B state."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__valveB, p: gmeow__hasState, o: gmeow__openValveB}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__valveB, p: gmeow__hasState, o: gmeow__openValveB}"@x-gmeow-english .
 
 ex:heldout-evidence
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: an evidence record"@x-gmeow-english ;
     rdfs:comment "Emit that span X is an evidence span."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@e{s: gmeow__spanX, p: rdf__type, o: gmeow__EvidenceSpan}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@e{s: gmeow__spanX, p: rdf__type, o: gmeow__EvidenceSpan}"@x-gmeow-english .
 
 ex:heldout-standpoint
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a standpoint record"@x-gmeow-english ;
     rdfs:comment "Emit that crew X is a standpoint."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@s{s: gmeow__crewX, p: rdf__type, o: gmeow__Standpoint}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@s{s: gmeow__crewX, p: rdf__type, o: gmeow__Standpoint}"@x-gmeow-english .
 
 ex:heldout-process
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a process record"@x-gmeow-english ;
     rdfs:comment "Emit the process that cycle X cycles door X."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@p{s: gmeow__cycleX, p: gmeow__cycling, o: gmeow__doorX}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@p{s: gmeow__cycleX, p: gmeow__cycling, o: gmeow__doorX}"@x-gmeow-english .
 
 ex:heldout-proof
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a proof record"@x-gmeow-english ;
     rdfs:comment "Emit that pf X is a proof."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@π{s: math__pfX, p: rdf__type, o: math__Proof}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@π{s: math__pfX, p: rdf__type, o: math__Proof}"@x-gmeow-english .
 
 ex:heldout-defeater
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a defeater record"@x-gmeow-english ;
     rdfs:comment "Emit that df X is a defeater."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@d{s: gmeow__dfX, p: rdf__type, o: gmeow__Defeater}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@d{s: gmeow__dfX, p: rdf__type, o: gmeow__Defeater}"@x-gmeow-english .
 
 ex:heldout-modal
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a modal record"@x-gmeow-english ;
     rdfs:comment "Emit that the necessary modal force is a modal force."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@m{s: nec, p: rdf__type, o: gmeow__ModalForce}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@m{s: nec, p: rdf__type, o: gmeow__ModalForce}"@x-gmeow-english .
 
 ex:heldout-lang-ast
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a lang-AST record"@x-gmeow-english ;
     rdfs:comment "Emit the lang-AST fragment that token X precedes token Y."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@λ{s: lang__tokX, p: lang__precedes, o: lang__tokY}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@λ{s: lang__tokX, p: lang__precedes, o: lang__tokY}"@x-gmeow-english .
 
 # ── Operator glyphs (the graph-derived glyph table, in @ℒ / @μ record scope) ─────
 
@@ -87,37 +87,37 @@ ex:heldout-subsumes
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a logic record with the ⊑ operator"@x-gmeow-english ;
     rdfs:comment "Emit the logic record that the cat class is a subclass of the animal class."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__catClass, p: ⊑, o: logic__animalClass}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__catClass, p: ⊑, o: logic__animalClass}"@x-gmeow-english .
 
 ex:heldout-negation
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a logic record with the ¬ operator"@x-gmeow-english ;
     rdfs:comment "Emit the logic record relating the p class and the q class through negation."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__pClass, p: ¬, o: logic__qClass}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__pClass, p: ¬, o: logic__qClass}"@x-gmeow-english .
 
 ex:heldout-multiplication
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a math record with the × operator"@x-gmeow-english ;
     rdfs:comment "Emit the math record relating factor X and product X through multiplication."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__factorX, p: ×, o: math__productX}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__factorX, p: ×, o: math__productX}"@x-gmeow-english .
 
 ex:heldout-addition
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a math record with the + operator"@x-gmeow-english ;
     rdfs:comment "Emit the math record relating addend A and sum A through addition."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__addendA, p: +, o: math__sumA}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__addendA, p: +, o: math__sumA}"@x-gmeow-english .
 
 ex:heldout-morphism
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a math record with the → operator"@x-gmeow-english ;
     rdfs:comment "Emit the math record of a morphism from object A to object B."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__objA, p: →, o: math__objB}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__objA, p: →, o: math__objB}"@x-gmeow-english .
 
 ex:heldout-exponentiation
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a math record with the ^ operator"@x-gmeow-english ;
     rdfs:comment "Emit the math record relating base X and power X through exponentiation."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__baseX, p: ^, o: math__powX}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__baseX, p: ^, o: math__powX}"@x-gmeow-english .
 
 # ── The repair loop (@err / @patch / @retract → GmnErr / GmnPatch / GmnRetract) ──
 
@@ -125,16 +125,16 @@ ex:heldout-err
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: an @err repair record"@x-gmeow-english ;
     rdfs:comment "Reject record h01 with a malformed-number failure by emitting an @err record."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@err{id: h01, class: lang__GmnMalformedNumber}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@err{id: h01, class: lang__GmnMalformedNumber}"@x-gmeow-english .
 
 ex:heldout-patch
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a @patch repair record"@x-gmeow-english ;
     rdfs:comment "Correct record h01 to confidence 0.80 by emitting a @patch record."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@patch{id: h01, q: 0.80}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@patch{id: h01, q: 0.80}"@x-gmeow-english .
 
 ex:heldout-retract
     a ex:GmnHeldoutEmissionTask ;
     rdfs:label "held-out: a @retract repair record"@x-gmeow-english ;
     rdfs:comment "Withdraw record h02 by emitting a @retract record."@x-gmeow-english ;
-    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@retract{id: h02}" .
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@retract{id: h02}"@x-gmeow-english .

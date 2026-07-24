@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The GMN-1 **teachability gate** (issue #1377, EPIC #1371 scenario 7).
+//! The GMN-1 **teachability gate** (the EPIC scenario-7 teachability contract).
 //!
 //! Teachability is defined verbatim as "a fresh model given ONLY the generated ~500-token
 //! primer achieves a GATED AST-validity rate on HELD-OUT emission tasks." A budget-compliance
@@ -158,7 +158,10 @@ fn primer_fits_the_500_token_budget() {
         "the GMN-1 primer costs {tokens} tokens, over the {}-token budget",
         gmeow_docs::llms::GMN1_PRIMER_TOKEN_BUDGET
     );
-    assert!(primer.fits_budget(), "fits_budget must agree with token_count");
+    assert!(
+        primer.fits_budget(),
+        "fits_budget must agree with token_count"
+    );
 }
 
 // ── Leg 1 (graph-derived): the primer is a projection, not hand-authored prose ──────────
@@ -186,10 +189,15 @@ fn gmn1_primer_fits_budget_and_is_graph_derived() {
         "gmeow:gmnSigilClaim",
         "gmeow:gmnSigilLogic",
     ] {
-        assert!(cited.contains(core), "primer must cite {core}; cited: {cited:?}");
+        assert!(
+            cited.contains(core),
+            "primer must cite {core}; cited: {cited:?}"
+        );
     }
     assert!(
-        cited.iter().any(|c| c.starts_with("logic:") || c.starts_with("math:")),
+        cited
+            .iter()
+            .any(|c| c.starts_with("logic:") || c.starts_with("math:")),
         "primer must cite at least one operator target: {cited:?}"
     );
 
@@ -240,7 +248,10 @@ fn primer_covers_every_heldout_construct() {
     let tasks = load_heldout_tasks(&operator_alphabet);
 
     // Sanity: the corpus must genuinely exercise a spread of constructs, or the gate is vacuous.
-    let all_sigils: BTreeSet<_> = tasks.iter().flat_map(|t| t.sigils.iter().cloned()).collect();
+    let all_sigils: BTreeSet<_> = tasks
+        .iter()
+        .flat_map(|t| t.sigils.iter().cloned())
+        .collect();
     let all_ops: BTreeSet<_> = tasks
         .iter()
         .flat_map(|t| t.operator_glyphs.iter().cloned())
@@ -281,9 +292,12 @@ fn primer_covers_every_heldout_construct() {
         for glyph in &task.operator_glyphs {
             // An operator is TAUGHT only when its glyph carries a non-empty fixity AND alias —
             // the exact "glyph + fixity + alias present" completeness contract.
-            let (fixity, alias) = operator_index
-                .get(glyph)
-                .unwrap_or_else(|| panic!("task {:?} uses operator {glyph}, absent from the primer glyph table", task.label));
+            let (fixity, alias) = operator_index.get(glyph).unwrap_or_else(|| {
+                panic!(
+                    "task {:?} uses operator {glyph}, absent from the primer glyph table",
+                    task.label
+                )
+            });
             assert!(
                 !fixity.is_empty() && !alias.is_empty(),
                 "task {:?} uses operator {glyph}, but the primer omits its fixity/alias",

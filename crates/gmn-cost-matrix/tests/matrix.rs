@@ -19,7 +19,7 @@ use gmeow_gmn_cost_matrix::{
 /// For each offline-available vocabulary the matrix is deterministic (two full renders are
 /// byte-identical); every emitted GMN artifact yields a FINITE token count under every family (no
 /// vocabulary miss is silently dropped); and byte-fragmenting glyphs are detected and flagged in
-/// the report. The rendered matrix is written to the canonical `generated/bench/` path.
+/// the report. The rendered matrix is written to the canonical `dist/bench/` path.
 #[test]
 #[ignore = "off-gate token-cost matrix (INFORMS; run explicitly with --ignored / maint lane)"]
 fn token_cost_matrix_is_deterministic_per_vocab() {

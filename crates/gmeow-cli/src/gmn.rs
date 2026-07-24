@@ -412,7 +412,10 @@ pub fn project(
         Err(e) => fail(
             reporter,
             "gmeow-cli.gmn.project.leak",
-            format!("cannot project {} into ring <{target}>: {e}", input.display()),
+            format!(
+                "cannot project {} into ring <{target}>: {e}",
+                input.display()
+            ),
         ),
     }
 }
@@ -637,7 +640,7 @@ pub fn verify(
     // token-metrics / verbalizations), exactly as the grammar leaf does — so the recomputed pack
     // root certifies the WHOLE GMN ecosystem from the bundle alone. A missing pinned leaf is a
     // CONFORMANCE failure (accumulated, non-zero exit — never a silent pass), and a perturbed leaf
-    // makes the recomputed root disagree with the pinned root, reding verify (Task 15).
+    // makes the recomputed root disagree with the pinned root, so verify reds (Task 15).
     let ecosystem = EcosystemLeaves {
         gbnf: match bundle_view_leaf(reporter, &bundle, GMN_GBNF, GMN_GBNF_DIGEST, &mut failures) {
             Ok(leaf) => leaf,
@@ -962,7 +965,7 @@ fn pinned_literal_of(
 /// Read ONE pinned ecosystem-view Merkle leaf (`<subject> <predicate>`) off the bundle for the
 /// whole-ecosystem pack-root recomputation. A MISSING declaration is a conformance failure —
 /// accumulated into `failures` (non-zero exit at the end, never a silent pass) — and returns an
-/// empty leaf so the recomputed root still forms and DISAGREES with the pinned root, reding verify.
+/// empty leaf so the recomputed root still forms and DISAGREES with the pinned root, so verify reds.
 /// An AMBIGUOUS declaration hard-fails (exit 1). This mirrors the grammar-leaf bundle read.
 fn bundle_view_leaf(
     reporter: &dyn Reporter,

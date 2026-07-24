@@ -37,23 +37,24 @@
 #     same-level rings would not.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
 
 # --- Core-ring content: the innermost ring, flows outward to every ring -------- #
-gmeow:ringDemoCore
+ex:ringDemoCore
     gmeow:gmnContentRing gmeow:gmnRingCore ;
-    gmeow:ringDemoField gmeow:ringDemoCoreDatum .
+    ex:ringDemoField ex:ringDemoCoreDatum .
 
 # --- Trusted-ring content: flows to the trusted and restricted rings ----------- #
-gmeow:ringDemoTrusted
+ex:ringDemoTrusted
     gmeow:gmnContentRing gmeow:gmnRingTrusted ;
-    gmeow:ringDemoField gmeow:ringDemoTrustedDatum .
+    ex:ringDemoField ex:ringDemoTrustedDatum .
 
 # --- Restricted-ring content: the outermost ring, stays put -------------------- #
-gmeow:ringDemoRestricted
+ex:ringDemoRestricted
     gmeow:gmnContentRing gmeow:gmnRingRestricted ;
-    gmeow:ringDemoField gmeow:ringDemoRestrictedDatum .
+    ex:ringDemoField ex:ringDemoRestrictedDatum .
 
 # --- NATO-compartment content: same level as trusted, different lattice point -- #
-gmeow:ringDemoNato
+ex:ringDemoNato
     gmeow:gmnContentRing gmeow:gmnRingNato ;
-    gmeow:ringDemoField gmeow:ringDemoNatoDatum .
+    ex:ringDemoField ex:ringDemoNatoDatum .

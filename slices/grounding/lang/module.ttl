@@ -3509,6 +3509,183 @@ gmeow:gmnMigrationRewrite
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name the operator-grain rewrite legs of a GMN version-migration crossing."@x-gmeow-english .
 
+# --- GMN training-corpus vocabulary (requirement #10) -------------------------- #
+# The `gmn-training-corpus` pipeline stage emits, per rejection-sampled candidate,
+# either a proof-carrying gmeow:GmnTrainingExample (a KEPT pair) or a
+# gmeow:GmnRejectedCandidate (a typed, never-silent drop). These are the declared
+# terms that stage writes into the graph.
+
+gmeow:GmnTrainingExample
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Training Example"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One KEPT, proof-carrying training pair emitted by the GMN training-corpus stage: a gmeow:InformationObject that pairs a task (gmeow:gmnTrainingTask), an input surface (gmeow:gmnTrainingInput), and a target GMN-1 surface (gmeow:gmnTrainingTarget) with the five acceptance verdicts (gmeow:gmnVerdictParsed, gmeow:gmnVerdictRoundTrip, gmeow:gmnVerdictTypechecked, gmeow:gmnVerdictProofObligation, gmeow:gmnVerdictRingClean — all true on a kept pair), the discharged Curry–Howard derivation it references through gmeow:gmnTrainingProofDerivation, and the dialect coordinate it was minted under through gmeow:gmnSchemaVersion. A training example is admitted only when every verdict holds and its proof obligation is discharged: it is never a bare surface pair but the certificate that the pair survived verification."@x-gmeow-english ;
+    skos:example "ex:example-0 a gmeow:GmnTrainingExample ; gmeow:gmnTrainingTask \"verbalize\" ; gmeow:gmnTrainingInput \"…\" ; gmeow:gmnTrainingTarget \"@gmn{…}\" ; gmeow:gmnVerdictParsed true ; gmeow:gmnTrainingProofDerivation ex:deriv-0 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a training example for a pair that failed any verdict or whose proof obligation was not discharged — a rejected candidate is a gmeow:GmnRejectedCandidate, never a training example with a false verdict — and avoid a training example that carries no gmeow:gmnTrainingProofDerivation, which would be an uncertified surface pair."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:GmnTrainingExample per kept pair with its task, input, and target literals, all five verdicts set true, exactly one gmeow:gmnSchemaVersion, and a gmeow:gmnTrainingProofDerivation pointing at the discharged derivation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for a verified, proof-carrying GMN training pair the corpus stage admitted."@x-gmeow-english .
+
+gmeow:GmnRejectedCandidate
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Rejected Candidate"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One rejection-sampled candidate the GMN training-corpus stage DROPPED with a typed reason rather than silently discarding: a gmeow:InformationObject carrying the verifier stage it failed at (gmeow:gmnRejectionStage) and the typed lang: failure class it triggered (gmeow:gmnRejectionReason). Recording rejections as first-class individuals keeps the corpus construction auditable — every candidate is either a kept gmeow:GmnTrainingExample or a gmeow:GmnRejectedCandidate with a named cause, and a candidate is never dropped without a reason."@x-gmeow-english ;
+    skos:example "ex:rejected-3 a gmeow:GmnRejectedCandidate ; gmeow:gmnRejectionStage \"typecheck\" ; gmeow:gmnRejectionReason lang:GmnRingLeak ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a rejected candidate that names no gmeow:gmnRejectionReason or gmeow:gmnRejectionStage — an unexplained drop is exactly the silent discard this class exists to forbid — and avoid reusing it for a pair that actually passed verification (that is a gmeow:GmnTrainingExample)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:GmnRejectedCandidate per dropped candidate, setting gmeow:gmnRejectionStage to the verifier stage it failed at and gmeow:gmnRejectionReason to the typed lang: failure class it triggered."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a rejection-sampled candidate the corpus stage dropped, with its typed, auditable cause."@x-gmeow-english .
+
+gmeow:gmnTrainingTask
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training task"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The task label of a gmeow:GmnTrainingExample — the operation the pair demonstrates (e.g. \"verbalize\" or \"encode\"). Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: the task fixes what the input→target mapping is an instance of."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding input or target surface text into the task label — those are gmeow:gmnTrainingInput and gmeow:gmnTrainingTarget — and avoid an empty task, which leaves the pair's operation unnamed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingTask literal per training example naming the operation the input→target pair demonstrates."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to label which task a GMN training pair is an example of."@x-gmeow-english .
+
+gmeow:gmnTrainingInput
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training input"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The input surface of a gmeow:GmnTrainingExample — the source string the target is produced from. Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: paired with gmeow:gmnTrainingTarget, it is the input half of the verified mapping."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid storing the target surface here (that is gmeow:gmnTrainingTarget) and avoid an input that was never actually the source of the paired target — the pair must be the verified mapping the verdicts certified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingInput literal per training example carrying the input surface the target was produced from."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the input half of a verified GMN training pair."@x-gmeow-english .
+
+gmeow:gmnTrainingTarget
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training target"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target surface of a gmeow:GmnTrainingExample — the GMN-1 string the pair maps its input to. Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: it is the target half of the verified mapping, the surface the acceptance verdicts round-tripped and typechecked."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid storing the input surface here (that is gmeow:gmnTrainingInput) and avoid a target that did not survive every acceptance verdict — an unverified target is a gmeow:GmnRejectedCandidate, not a training example."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingTarget literal per training example carrying the GMN-1 target surface the verdicts certified."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the target GMN-1 half of a verified GMN training pair."@x-gmeow-english .
+
+gmeow:gmnRejectionStage
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rejection stage"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The verifier stage a gmeow:GmnRejectedCandidate was dropped at — the pipeline checkpoint (parse, round-trip, typecheck, proof-obligation, or ring-clean) whose gate the candidate failed. Domain gmeow:GmnRejectedCandidate, range a string literal. Exactly one per rejection: it localizes WHERE the candidate failed, so the drop is auditable rather than opaque."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid conflating the stage with the reason — the typed failure class is gmeow:gmnRejectionReason — and avoid a rejection carrying no stage, which hides where verification failed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRejectionStage literal per rejected candidate naming the verifier stage whose gate it failed."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which verifier stage rejected a training candidate."@x-gmeow-english .
+
+gmeow:gmnVerdictParsed
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict parsed"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The parse verdict of a gmeow:GmnTrainingExample — true iff the candidate's GMN surface parsed under the pinned grammar. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a false parse verdict is a gmeow:GmnRejectedCandidate, never a kept example)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a failed verdict belongs to a gmeow:GmnRejectedCandidate — and avoid using it as a proxy for the other four verdicts, which are checked independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictParsed true on a kept training example once its GMN surface has parsed under the pinned grammar."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the parse acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictRoundTrip
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict round-trip"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The round-trip verdict of a gmeow:GmnTrainingExample — true iff decoding then re-encoding the candidate's GMN surface reproduced it losslessly. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a lossy round-trip is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a failed round-trip belongs to a gmeow:GmnRejectedCandidate — and avoid treating it as a proof of typechecking or ring cleanliness, which are separate verdicts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictRoundTrip true on a kept training example once its GMN surface has round-tripped losslessly."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the lossless round-trip acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictTypechecked
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict typechecked"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The typecheck verdict of a gmeow:GmnTrainingExample — true iff the decoded candidate typechecked against the ontology's constraints. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a type error is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a type error belongs to a gmeow:GmnRejectedCandidate — and avoid conflating typechecking with the discharged proof obligation, which is gmeow:gmnVerdictProofObligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictTypechecked true on a kept training example once its decoded content has typechecked."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the typecheck acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictProofObligation
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict proof obligation"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The proof-obligation verdict of a gmeow:GmnTrainingExample — true iff the candidate's Curry–Howard proof obligation was discharged by a checked derivation. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair, and the discharged derivation it certifies is named through gmeow:gmnTrainingProofDerivation."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it true without a corresponding gmeow:gmnTrainingProofDerivation — the verdict without the derivation is an unbacked claim — and avoid asserting it false on a gmeow:GmnTrainingExample."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictProofObligation true on a kept training example whose proof obligation has been discharged, and point gmeow:gmnTrainingProofDerivation at the checked derivation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record that a GMN training pair's proof obligation was discharged."@x-gmeow-english .
+
+gmeow:gmnVerdictRingClean
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict ring-clean"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The ring-clean verdict of a gmeow:GmnTrainingExample — true iff the candidate carries no security-ring leak (no unclassified or out-of-ring content that would trip lang:GmnRingLeak). Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a ring leak is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a ring leak belongs to a gmeow:GmnRejectedCandidate — and avoid using it as a proxy for the other verdicts, which are checked independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictRingClean true on a kept training example once it has been shown to carry no security-ring leak."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the security-ring cleanliness acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnTrainingProofDerivation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training proof derivation"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:GmnTrainingExample to the checked Curry–Howard derivation that discharged its proof obligation. Domain gmeow:GmnTrainingExample, range a derivation individual (stated in prose). Exactly one per kept pair: the derivation is the evidence backing gmeow:gmnVerdictProofObligation, so a training example is never merely asserted verified but carries the derivation that verified it."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at anything but the derivation that actually discharged the pair's proof obligation, and avoid leaving it unset on a kept pair, which would leave gmeow:gmnVerdictProofObligation unbacked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingProofDerivation per kept training example, pointing at the checked derivation that discharged its proof obligation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the discharged proof derivation certifying a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnRejectionReason
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rejection reason"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:GmnRejectedCandidate to the typed lang: failure class it triggered — the named cause of the drop (e.g. lang:GmnRingLeak). Domain gmeow:GmnRejectedCandidate, range a lang: failure class (stated in prose). Exactly one per rejection: the typed reason is what makes the drop auditable rather than a silent discard, the twin of gmeow:gmnRejectionStage's WHERE with the failure class's WHY."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a free-text string (the typed failure class is the anchor, not prose) and avoid a rejection carrying no reason, which is exactly the silent drop this property exists to forbid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRejectionReason per rejected candidate, pointing at the typed lang: failure class it triggered."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the typed failure class that caused a training candidate to be rejected."@x-gmeow-english .
+
 gmeow:gmnRewriteTerm
     a owl:ObjectProperty ;
     rdfs:domain gmeow:GmnMigrationRewrite ;
@@ -4991,33 +5168,57 @@ gmeow:gmnNotationCoherenceLaw
 
 gmeow:gmnNclImplication
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — implication node"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The implication AST node of the GMN cross-surface coherence law (gmeow:gmnNotationCoherenceLaw): if the guard holds (two views are both bound into a coherence correspondence and the first names a signature) then the consequent holds (the second view names the SAME signature). Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:antecedent gmeow:gmnNclGuard ;
     logic:consequent gmeow:gmnNclConsequent .
 
 gmeow:gmnNclGuard
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — guard conjunction"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent conjunction AST node of gmeow:gmnNotationCoherenceLaw: the law fires only when both views v1 and v2 are bound into the coherence correspondence (gmeow:gmnNclBindV1, gmeow:gmnNclBindV2) AND v1 names its signature (gmeow:gmnNclSigV1). Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:and gmeow:gmnNclBindV1 , gmeow:gmnNclBindV2 , gmeow:gmnNclSigV1 .
 
 gmeow:gmnNclBindV1
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v1 binding atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node binding the coherence correspondence (law) to its first view v1 through gmeow:gmnCoheresView, in gmeow:gmnNotationCoherenceLaw's guard. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:relation gmeow:gmnCoheresView ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "law" ] ,
         [ logic:termIndex 1 ; logic:termVariable "v1" ] .
 
 gmeow:gmnNclBindV2
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v2 binding atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node binding the coherence correspondence (law) to its second view v2 through gmeow:gmnCoheresView, in gmeow:gmnNotationCoherenceLaw's guard. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:relation gmeow:gmnCoheresView ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "law" ] ,
         [ logic:termIndex 1 ; logic:termVariable "v2" ] .
 
 gmeow:gmnNclSigV1
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v1 signature atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node stating that the first view v1 names its notation signature through gmeow:gmnViewOf, in gmeow:gmnNotationCoherenceLaw's guard — one half of the shared-apex premise. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:relation gmeow:gmnViewOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v1" ] ,
         [ logic:termIndex 1 ; logic:termVariable "sig" ] .
 
 gmeow:gmnNclConsequent
     a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — shared-apex conclusion"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The consequent atom AST node of gmeow:gmnNotationCoherenceLaw: the second view v2 names the SAME notation signature (through gmeow:gmnViewOf) that v1 does — the naturality square's shared apex that makes two coherence-bound views' surface legs commute. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
     logic:relation gmeow:gmnViewOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v2" ] ,
         [ logic:termIndex 1 ; logic:termVariable "sig" ] .

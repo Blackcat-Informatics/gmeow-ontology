@@ -52,8 +52,7 @@ use gmeow_lang_bridge::registry::{
 };
 use gmeow_lang_bridge::{
     CurrentCodebook, GmnDictionary, exact_round_trip_holds, is_exact_correspondence,
-    ntriples_sorted, resolve_current_codebook, resolve_dialect_acceptance,
-    resolve_operator_forms,
+    ntriples_sorted, resolve_current_codebook, resolve_dialect_acceptance, resolve_operator_forms,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -496,9 +495,7 @@ fn collect_input(
 /// Whether a slice directory lives under the `grounding/` tree (lang/logic/math) — the source
 /// of the GMN denotation targets' `rdfs:label`s the verbalizer renders.
 fn is_grounding_slice(slice_dir: &std::path::Path) -> bool {
-    slice_dir
-        .components()
-        .any(|c| c.as_os_str() == "grounding")
+    slice_dir.components().any(|c| c.as_os_str() == "grounding")
 }
 
 /// Harvest the `rdfs:label` index (`IRI → label`) from the grounding module surfaces. When an
@@ -515,7 +512,9 @@ fn harvest_labels(
         std::collections::BTreeMap::new();
     for module in modules {
         let dataset = purrdf::parse_dataset(module, "text/turtle", None).map_err(|error| {
-            stage_err(format!("parse grounding module for verbalizer labels: {error}"))
+            stage_err(format!(
+                "parse grounding module for verbalizer labels: {error}"
+            ))
         })?;
         for quad in dataset.owned_quads() {
             if quad.predicate != RDFS_LABEL {
@@ -800,8 +799,9 @@ mod tests {
 
         // The distinguished start symbol the constrained-decode consumer resolves — derived from
         // the SAME canonical tree the projection serializes (led-first in the artifact).
-        let source_grammar =
-            gmeow_lang_bridge::EbnfBridge.to_grammar(ebnf.as_bytes()).expect("gmn EBNF re-parses");
+        let source_grammar = gmeow_lang_bridge::EbnfBridge
+            .to_grammar(ebnf.as_bytes())
+            .expect("gmn EBNF re-parses");
         let entry = distinguished_rule(&source_grammar.canonicalize());
 
         for (surface, ext, formalism) in [
@@ -822,7 +822,9 @@ mod tests {
             // It carries the graph-derived glyph production (every glyph present) and NO
             // prefix-fallback leakage.
             assert!(
-                artifact.lines().any(|l| l.trim_start().starts_with("glyphToken")),
+                artifact
+                    .lines()
+                    .any(|l| l.trim_start().starts_with("glyphToken")),
                 "the {surface} artifact must carry the glyphToken production:\n{artifact}"
             );
             for glyph in ["+", "π", "¬", "*"] {

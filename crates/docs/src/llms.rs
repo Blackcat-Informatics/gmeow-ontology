@@ -34,7 +34,7 @@ pub const LLMS_FULL_TOKEN_BUDGET: usize = 200_000;
 
 /// The token budget for the GMN-1 teachability primer (`crate::gmn1_primer`): a fixed
 /// ~500-token cap (no configurable knob — project no-optionality doctrine) sized to the
-/// EPIC #1371 scenario-7 teachability contract ("a fresh model given ONLY the generated
+/// EPIC scenario-7 teachability contract ("a fresh model given ONLY the generated
 /// ~500-token primer"). The primer emits its graph-derived rows (sigil table, operator
 /// glyph table, repair-loop cards) in a deterministic total order until the running
 /// [`estimate_tokens`] would exceed this budget, then DISCLOSES the elided remainder

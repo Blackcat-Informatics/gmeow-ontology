@@ -247,7 +247,9 @@ fn gmn_project_unknown_ring_hard_fails_on_the_cli() {
         ])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("not a resolvable gmeow:GmnSecurityRing"));
+        .stderr(predicate::str::contains(
+            "not a resolvable gmeow:GmnSecurityRing",
+        ));
 }
 
 // ── verify: HARD-FAIL on a corrupted corpus and a tampered pack ──────────────────

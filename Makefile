@@ -193,7 +193,21 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 
 ##@ Generated Artifacts And Outputs
 
-sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+sync: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessary — `make check` already syncs then gates.
+	@# Steering banner on DIRECT invocation only (MAKELEVEL=0). `make check`'s own
+	@# regeneration runs the `check-sync` target via xtask, NOT this `sync` target, so
+	@# this banner never fires inside `make check`; and the sub-make `sync` calls from
+	@# install/build/docs/recursion run at MAKELEVEL>=1, so they stay quiet too.
+	@if [ "$(MAKELEVEL)" = "0" ]; then \
+		printf '\033[1;33m%s\033[0m\n' \
+		  "──────────────────────────────────────────────────────────────────────" \
+		  "NOTE: 'make sync' only REGENERATES generated/ + the bundle — it does NOT" \
+		  "run any gate. You almost never need it directly: 'make check' ALREADY" \
+		  "syncs (CHECK_SYNC_MODE=update) and THEN runs the full gate, so 'make sync'" \
+		  "before 'make check' just regenerates twice. Run 'make sync' alone ONLY for" \
+		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
+		  "──────────────────────────────────────────────────────────────────────" >&2; \
+	fi
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -811,7 +825,7 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 	@# Runs the five mandated tokenizer families (o200k_base + cl100k_base embedded via
 	@# tiktoken-rs; Qwen vendored + blake3-pinned; Llama + Gemma fetched-at-maint-time) over the
 	@# SAME emitted GMN / Turtle / JSON-LD serializations of the grounding corpus the on-gate
-	@# Task-7 byte-fallback estimator gates, and writes generated/bench/gmn-token-cost-matrix.md.
+	@# Task-7 byte-fallback estimator gates, and writes dist/bench/gmn-token-cost-matrix.md.
 	@# NOT a `make check` (CHECK_DAG) target: it INFORMS the S2-S4 glyph/tokenizer co-design; the
 	@# on-gate teeth remain `compute_token_metrics`. HARD-FAILS if ANY of the five families cannot
 	@# be fetched/verified (no silent three-family degrade), and re-checks byte-identity across two
@@ -838,9 +852,9 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json"; \
 	  echo "-> determinism re-check (second run must be byte-identical)"; \
 	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json" --out "$$dir/recheck.md"; \
-	  if ! diff -q generated/bench/gmn-token-cost-matrix.md "$$dir/recheck.md" >/dev/null; then \
+	  if ! diff -q dist/bench/gmn-token-cost-matrix.md "$$dir/recheck.md" >/dev/null; then \
 	    echo "ERROR: the token-cost matrix drifted between two runs — non-deterministic render."; exit 1; fi; \
-	  echo "✓ wrote generated/bench/gmn-token-cost-matrix.md (five families, byte-identical across two runs)"; \
+	  echo "✓ wrote dist/bench/gmn-token-cost-matrix.md (five families, byte-identical across two runs)"; \
 	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)

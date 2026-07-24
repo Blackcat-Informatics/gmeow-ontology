@@ -3784,9 +3784,10 @@ impl McpServer {
             .unwrap_or_else(|| self.startup_requested.clone());
         match base {
             "gmeow://ontology/llms.txt" => Ok(("text/plain", self.view.llms_txt_text(requested))),
-            "gmeow://ontology/llms-full.txt" => {
-                self.view.llms_full_text(requested).map(|t| ("text/plain", t))
-            }
+            "gmeow://ontology/llms-full.txt" => self
+                .view
+                .llms_full_text(requested)
+                .map(|t| ("text/plain", t)),
             "gmeow://ontology/gmn1-primer" => self
                 .view
                 .gmn1_primer()
@@ -12778,7 +12779,10 @@ mod tests {
         // Readable through resources/read, with the primer heading + a repair card + an operator
         // glyph row present (the graph-derived teaching surface).
         let read = consumer.read_resource_result("gmeow://ontology/gmn1-primer");
-        assert!(read.get("isError").is_none(), "primer read must succeed: {read}");
+        assert!(
+            read.get("isError").is_none(),
+            "primer read must succeed: {read}"
+        );
         let text = read["contents"][0]["text"].as_str().expect("primer text");
         assert!(
             text.contains(&format!("## {}", gmn1_primer_heading())),

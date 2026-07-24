@@ -687,10 +687,20 @@ impl LangProjectionTarget for Gmn1Target {
             input.gmn_grammar_source.as_ref(),
             input.gmn_dialect_major.as_deref(),
         ) {
-            let gbnf_bytes =
-                grammar_view_bytes(input, Formalism::Gbnf, "gbnf", "gbnf", gbnf_blocking_constructs)?;
-            let lark_bytes =
-                grammar_view_bytes(input, Formalism::Lark, "lark", "lark", lark_blocking_constructs)?;
+            let gbnf_bytes = grammar_view_bytes(
+                input,
+                Formalism::Gbnf,
+                "gbnf",
+                "gbnf",
+                gbnf_blocking_constructs,
+            )?;
+            let lark_bytes = grammar_view_bytes(
+                input,
+                Formalism::Lark,
+                "lark",
+                "lark",
+                lark_blocking_constructs,
+            )?;
             let ecosystem = EcosystemLeaves::from_view_bytes(
                 &gbnf_bytes,
                 &lark_bytes,
@@ -906,7 +916,11 @@ fn pack_triples(
         triple(GMN_PACK_IRI, &g("references"), &g("gmnGbnf")),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnLark")),
         triple(GMN_PACK_IRI, &g("references"), &g("gmnTokenMetricsCurrent")),
-        triple(GMN_PACK_IRI, &g("references"), &g("gmnVerbalizationsCurrent")),
+        triple(
+            GMN_PACK_IRI,
+            &g("references"),
+            &g("gmnVerbalizationsCurrent"),
+        ),
     ]
 }
 

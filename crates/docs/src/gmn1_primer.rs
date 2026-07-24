@@ -4,7 +4,7 @@
 //! The GMN-1 **teachability primer** — the ~500-token, graph-derived instruction card a
 //! fresh model reads to emit conformant GMN.
 //!
-//! EPIC #1371 scenario 7 defines teachability verbatim: "a fresh model given ONLY the
+//! The EPIC scenario 7 defines teachability verbatim: "a fresh model given ONLY the
 //! generated ~500-token primer achieves a GATED AST-validity rate on HELD-OUT emission
 //! tasks." This module builds that primer as a PROJECTION of the folded ontology graph —
 //! never hand-authored prose. Every content row traces to one of exactly three
@@ -189,9 +189,8 @@ impl Gmn1Primer {
         self.rows
             .iter()
             .filter_map(|r| match &r.source {
-                PrimerRowSource::Operator { glyph, .. } => {
-                    parse_operator_body(&r.body).map(|(fixity, alias)| (glyph.clone(), (fixity, alias)))
-                }
+                PrimerRowSource::Operator { glyph, .. } => parse_operator_body(&r.body)
+                    .map(|(fixity, alias)| (glyph.clone(), (fixity, alias))),
                 _ => None,
             })
             .collect()
@@ -358,8 +357,10 @@ impl<'a> Reader<'a> {
                 // Prefer english; among a tie, prefer the lexically-least form (stable).
                 let take = match &best {
                     None => true,
-                    Some((be, bl)) => (cand.0, std::cmp::Reverse(cand.1.clone()))
-                        > (*be, std::cmp::Reverse(bl.clone())),
+                    Some((be, bl)) => {
+                        (cand.0, std::cmp::Reverse(cand.1.clone()))
+                            > (*be, std::cmp::Reverse(bl.clone()))
+                    }
                 };
                 if take {
                     best = Some(cand);
@@ -380,8 +381,12 @@ impl<'a> Reader<'a> {
             .ds
             .quads_for_pattern(None, Some(p), None, GraphMatch::Default)
         {
-            let (TermRef::Iri(subject), TermRef::Literal { lexical, language, .. }) =
-                (self.ds.resolve(q.s), self.ds.resolve(q.o))
+            let (
+                TermRef::Iri(subject),
+                TermRef::Literal {
+                    lexical, language, ..
+                },
+            ) = (self.ds.resolve(q.s), self.ds.resolve(q.o))
             else {
                 continue;
             };
@@ -389,8 +394,10 @@ impl<'a> Reader<'a> {
             let cand = (is_en, lexical.to_owned());
             let take = match best.get(subject) {
                 None => true,
-                Some((be, bl)) => (cand.0, std::cmp::Reverse(cand.1.clone()))
-                    > (*be, std::cmp::Reverse(bl.clone())),
+                Some((be, bl)) => {
+                    (cand.0, std::cmp::Reverse(cand.1.clone()))
+                        > (*be, std::cmp::Reverse(bl.clone()))
+                }
             };
             if take {
                 best.insert(subject.to_owned(), cand);
@@ -446,8 +453,12 @@ pub fn build_primer(ds: &RdfDataset) -> Result<Gmn1Primer, PrimerError> {
     repair_rows.sort_by(|a, b| a.sort_curie.cmp(&b.sort_curie));
 
     // ── The operator glyph table (group 2) — the carrier glyph registry ──────────────────
-    let dict = GmnDictionary::from_dataset(ds)
-        .map_err(|e| PrimerError(format!("resolve the GMN-1 codebook from the carrier: {}", e.0)))?;
+    let dict = GmnDictionary::from_dataset(ds).map_err(|e| {
+        PrimerError(format!(
+            "resolve the GMN-1 codebook from the carrier: {}",
+            e.0
+        ))
+    })?;
     let labels = reader.labels();
     let forms = resolve_operator_forms(dict.glyph_registry(), &labels)
         .map_err(|e| PrimerError(format!("resolve GMN operator forms: {e}")))?;
@@ -464,7 +475,13 @@ pub fn build_primer(ds: &RdfDataset) -> Result<Gmn1Primer, PrimerError> {
             .into_iter()
             .find(|(_, fb)| !fb.is_empty())
             .map(|(_, fb)| fb.to_string())
-            .unwrap_or_else(|| term_curie.rsplit(':').next().unwrap_or(&term_curie).to_string());
+            .unwrap_or_else(|| {
+                term_curie
+                    .rsplit(':')
+                    .next()
+                    .unwrap_or(&term_curie)
+                    .to_string()
+            });
         operator_rows.push(PrimerRow {
             sort_curie: term_curie.clone(),
             body: operator_body(&form.gmn_glyph, &fixity, &alias, &term_curie),
@@ -487,7 +504,8 @@ pub fn build_primer(ds: &RdfDataset) -> Result<Gmn1Primer, PrimerError> {
         .map(|d| first_sentence(&d))
         .ok_or_else(|| {
             PrimerError(
-                "carrier has no gmeow:gmnModelNotation (GMN-1) definition to lead the primer".into(),
+                "carrier has no gmeow:gmnModelNotation (GMN-1) definition to lead the primer"
+                    .into(),
             )
         })?;
 
@@ -564,6 +582,9 @@ mod tests {
             first_sentence("A GMN @err record: a typed report. And more."),
             "A GMN @err record: a typed report."
         );
-        assert_eq!(first_sentence("No trailing period marker"), "No trailing period marker");
+        assert_eq!(
+            first_sentence("No trailing period marker"),
+            "No trailing period marker"
+        );
     }
 }

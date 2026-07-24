@@ -333,7 +333,7 @@ pub struct ConsumeProjection {
 // ── The deterministic, model-agnostic token estimate ─────────────────────────────────
 
 /// One token per ~4 characters, rounded up — the standard rough byte-pair ratio, identical to
-/// [`crate::gmn_metrics`]' `estimate_tokens` and `gmeow_docs::llms::estimate_tokens` (re-declared
+/// [`crate::gmn_metrics`]' `estimate_tokens` and `gmeow_docs::llms::estimate_tokens` (redeclared
 /// rather than depended on: `gmeow-docs` sits downstream of this crate). Empty in → `0`.
 #[must_use]
 fn estimate_tokens(text: &str) -> u64 {
@@ -909,7 +909,8 @@ mod tests {
         let l = lattice();
         let d = dict();
         let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-                   gmeow:ringDemoOrphan gmeow:ringDemoField gmeow:ringDemoOrphanDatum .\n";
+                   @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/lang/> .\n\
+                   ex:ringDemoOrphan ex:ringDemoField ex:ringDemoOrphanDatum .\n";
         let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parses");
         let model = Gmn0Model::from_dataset(&ds);
         let err = consume_project(&model, &l, TRUSTED, None, &d).expect_err("must leak");
@@ -926,10 +927,11 @@ mod tests {
         let d = dict();
         // Core content (admissible into trusted) points at restricted content (excluded).
         let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-                   gmeow:ringDemoCore gmeow:gmnContentRing gmeow:gmnRingCore ;\n\
-                       gmeow:ringDemoRefers gmeow:ringDemoRestricted .\n\
-                   gmeow:ringDemoRestricted gmeow:gmnContentRing gmeow:gmnRingRestricted ;\n\
-                       gmeow:ringDemoField gmeow:ringDemoRestrictedDatum .\n";
+                   @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/lang/> .\n\
+                   ex:ringDemoCore gmeow:gmnContentRing gmeow:gmnRingCore ;\n\
+                       ex:ringDemoRefers ex:ringDemoRestricted .\n\
+                   ex:ringDemoRestricted gmeow:gmnContentRing gmeow:gmnRingRestricted ;\n\
+                       ex:ringDemoField ex:ringDemoRestrictedDatum .\n";
         let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parses");
         let model = Gmn0Model::from_dataset(&ds);
         let err = consume_project(&model, &l, TRUSTED, None, &d).expect_err("must leak");

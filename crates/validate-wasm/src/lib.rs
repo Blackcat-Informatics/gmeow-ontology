@@ -67,24 +67,25 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// `gmn_codebook_digest_is_pinned` host test recomputes it over the embedded bytes and
 /// hard-fails if the two drift, so this constant can never silently fall out of date.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "8389d759f1f081318ee6b0e1422bc1479b11d52df1539483d45bb2c8e902b850";
+    "80352b2ef1de84283db8b84d4fc9a113f737296ac98ca2add11cdbb67f0f806b";
 
-/// The graph-derived dictionary, built ONCE from the embedded codebook and memoized. The
-/// blake3 hex digest of the embedded carrier is memoized beside it.
-fn embedded_dictionary() -> Result<&'static GmnDictionary, String> {
-    static DICT: OnceLock<Result<GmnDictionary, String>> = OnceLock::new();
+/// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
+///
+/// The embedded codebook ([`GMN_CODEBOOK_TTL`]) is a build-time constant — the real authored
+/// `module.ttl`, its exact bytes pinned by [`GMN_CODEBOOK_DIGEST`] and guarded by the
+/// `gmn_codebook_digest_is_pinned` host test — so a parse/resolve failure here is a
+/// build-integrity invariant violation, never a runtime condition. It therefore hard-fails
+/// (a panic / wasm trap), never silently degrading to a syntax-only check; the return type is
+/// infallible because the embedded carrier is known-good by construction.
+fn embedded_dictionary() -> &'static GmnDictionary {
+    static DICT: OnceLock<GmnDictionary> = OnceLock::new();
     DICT.get_or_init(|| {
         let dataset = purrdf::parse_dataset(GMN_CODEBOOK_TTL, "text/turtle", None)
-            .map_err(|e| format!("embedded GMN codebook module.ttl failed to parse: {e}"))?;
-        GmnDictionary::from_dataset(&dataset).map_err(|e| {
-            format!(
-                "embedded GMN codebook failed to resolve gmeow:gmnDictV3: {}",
-                e.0
-            )
-        })
+            .expect("embedded GMN codebook module.ttl must parse (build-integrity invariant)");
+        GmnDictionary::from_dataset(&dataset).expect(
+            "embedded GMN codebook must resolve gmeow:gmnDictV3 (build-integrity invariant)",
+        )
     })
-    .as_ref()
-    .map_err(Clone::clone)
 }
 
 /// The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
@@ -118,14 +119,16 @@ pub fn gmn_codebook_digest() -> String {
 ///
 /// # Errors
 ///
-/// Throws a JS exception only if the document text is not UTF-8, or if the embedded codebook
-/// itself fails to parse/resolve (a build-integrity failure, never a document defect) — both
-/// hard failures, never a silent degradation to a syntax-only check.
+/// Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
+/// failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
+/// a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+/// — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
+/// degradation to a syntax-only check.
 #[wasm_bindgen]
 pub fn gmn_validate(bytes: &[u8]) -> Result<String, JsError> {
     let text = std::str::from_utf8(bytes)
         .map_err(|e| JsError::new(&format!("GMN-1 document is not valid UTF-8: {e}")))?;
-    let dict = embedded_dictionary().map_err(|e| JsError::new(&e))?;
+    let dict = embedded_dictionary();
     let verdict = match gmn1_read(&Gmn1Document::from_text(text), dict) {
         Ok(_model) => serde_json::json!({ "conformant": true }),
         Err(error) => serde_json::json!({

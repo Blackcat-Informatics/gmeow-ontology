@@ -126,7 +126,7 @@ impl TokenMetrics {
 
 /// The deterministic, model-agnostic token estimate for `text`: one token per ~4 characters,
 /// rounded up (the standard rough byte-pair ratio). Mirrors `gmeow_docs::llms::estimate_tokens`
-/// exactly; re-declared here rather than depended on because `gmeow-docs` sits DOWNSTREAM of
+/// exactly; redeclared here rather than depended on because `gmeow-docs` sits DOWNSTREAM of
 /// `gmeow-lang-bridge` (a dependency would invert the crate DAG). Empty in → `0`.
 #[must_use]
 fn estimate_tokens(text: &str) -> u64 {

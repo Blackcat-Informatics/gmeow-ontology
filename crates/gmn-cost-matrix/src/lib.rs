@@ -586,10 +586,13 @@ pub fn render_matrix(
     Ok(out)
 }
 
-/// The canonical report path under the git-ignored `generated/` tree.
+/// The canonical report path under the git-ignored `dist/` build-output tree. This OFF-GATE
+/// maint report is never produced by the on-gate pipeline, so it must live OUTSIDE the pipeline's
+/// `generated/` tree (which the superset gate scans for runtime `generated/` reads); `dist/` is
+/// git-ignored, off-gate, and not superset-scanned.
 #[must_use]
 pub fn default_report_path(root: &Path) -> PathBuf {
-    root.join("generated/bench/gmn-token-cost-matrix.md")
+    root.join("dist/bench/gmn-token-cost-matrix.md")
 }
 
 /// Write `report` to `path`, creating parent directories.
