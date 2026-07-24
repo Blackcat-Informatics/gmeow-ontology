@@ -7,7 +7,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/math>
-    a gmeow:Slice ;
+    a gmeow:Slice, gmeow:GroundingSlice ;
     rdfs:label "mathematics"@x-gmeow-english ;
     skos:definition "The mathematics slice (core tier): the home of GMEOW Mathematics — the `math:` grounding layer, a peer of `logic:` and `lang:`. It owns local mathematical reference identity (concepts, symbols, notations, theories, contexts, and definitions), typed expression ASTs with strict zero-based contiguous slots, applied-category-theory referents (categories, morphisms, functors, and natural transformations), the sole dimensioned Quantity/value authority, number systems and exactness, arithmetic, sets, relations, functions, probability, and statistics. Expressions lower explicitly into `logic:` and render through `lang:`; external standards and upper ontologies are typed target correspondences, never semantic owners. Typed conformance failures make every well-formedness violation queryable, and preservation vocabulary is reused from the `logic:` loss ledger. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;

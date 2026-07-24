@@ -8,7 +8,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/lang>
-    a gmeow:Slice ;
+    a gmeow:Slice, gmeow:GroundingSlice ;
     rdfs:label "lang"@x-gmeow-english ;
     skos:definition "The lang slice (core tier): the home of GMEOW Language — the `lang:` grounding layer, the third co-foundational grounding layer alongside the `logic:` reasoning layer and the `math:` structural layer (Principle 19). It grounds what language is made of before any meaning is attached: the sign-system reference layer (sign systems, language varieties, scripts, orthographies, and grammars as first-class individuals, distinguished by kind rather than by a subclass ladder) and the typed form AST (surface forms, graphemes and phones, morphemes and morphs, lexemes and word forms, orthographic and syntactic words, composed forms over indexed slots with dependency structure, covert forms, and competing analyses). Its two load-bearing commitments are that a language is an individual and never a tag, and that a string is a surface while the form is a tree — so form identity is independent of encoding, script, casing, and rendering, computed over structural content alone. The graded analysis discipline records whether a surface is raw, segmented, tokenized, morph-analyzed, or parsed rather than forcing a binary; morphology is typed against a feature inventory rather than carried as a string. The typed conformance-failure vocabulary makes every well-formedness violation a queryable object. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;

@@ -99,6 +99,72 @@ gmeow:sliceConsumer a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 # --------------------------------------------------------------------------- #
+# Grounding & seams — the peerage-aware cross-grounding flow policy (Principle
+# 19). gmeow:sliceCoFoundationalWith grants the mutual peerage relationship
+# between grounding slices; a gmeow:Seam is what actually authorizes specific
+# terms to cross a peered pair, so every peered cross-slice reference must
+# land on a registered seam rather than riding free on the peerage grant.
+# --------------------------------------------------------------------------- #
+
+gmeow:GroundingSlice a owl:Class ;
+    rdfs:subClassOf gmeow:Slice ;
+    rdfs:label "grounding slice"@x-gmeow-english ;
+    skos:definition "The marker category for a grounding slice: one of the co-foundational grounding layers (Principle 19). Grounding-ness is orthogonal to tier — every grounding slice is also gmeow:tierCore — so this is a typed marker, not a tier value; it is what the peerage and seam gates read, replacing the directory-path convention (slices/grounding/*) as the machine-checked signal."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:Seam a owl:Class ;
+    rdfs:label "seam"@x-gmeow-english ;
+    skos:definition "A sanctioned cross-grounding reference channel between grounding slices — one edge of the grounding-reference information-flow policy. A seam names one or more directed slice pairs (gmeow:seamDirection) and the exact terms permitted to cross them (gmeow:seamCarryingTerm). Peerage (gmeow:sliceCoFoundationalWith) grants the mutual relationship between grounding slices; a seam authorizes the specific terms that may actually cross it, and every peered cross-slice reference must land on one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:SeamDirection a owl:Class ;
+    rdfs:label "seam direction"@x-gmeow-english ;
+    skos:definition "One directed (from → to) leg of a seam. A seam may carry several directions — for example, a correspondence seam sanctioned to cross in both directions between a peered pair."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamDirection a owl:ObjectProperty ;
+    rdfs:label "seam direction"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range gmeow:SeamDirection ;
+    skos:definition "A directed leg this seam sanctions. Repeatable: a seam may sanction more than one direction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamFromSlice a owl:ObjectProperty ;
+    rdfs:label "seam from slice"@x-gmeow-english ;
+    rdfs:domain gmeow:SeamDirection ;
+    rdfs:range gmeow:GroundingSlice ;
+    skos:definition "The referencing (source) grounding slice of this directed seam leg."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamToSlice a owl:ObjectProperty ;
+    rdfs:label "seam to slice"@x-gmeow-english ;
+    rdfs:domain gmeow:SeamDirection ;
+    rdfs:range gmeow:GroundingSlice ;
+    skos:definition "The referenced (target) grounding slice of this directed seam leg."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamCarryingTerm a owl:ObjectProperty ;
+    rdfs:label "seam carrying term"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "An exact term IRI permitted to cross this seam — a declassification channel. Repeatable. Matching is by exact IRI identity, never by prefix or substring."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamOwningDoc a owl:DatatypeProperty ;
+    rdfs:label "seam owning doc"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range xsd:string ;
+    skos:definition "The design document that owns the theory of this seam."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:seamRealizedBy a owl:ObjectProperty ;
+    rdfs:label "seam realized by"@x-gmeow-english ;
+    rdfs:domain gmeow:Seam ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "Where a seam's crossing is a genuine satisfaction-preserving translation, the logic:Correspondence record (in graph/correspondence-laws) that realizes it. Optional: absent on governance-only seams whose crossing is structural reuse rather than a translation with a preservation law. The range stays rdfs:Resource deliberately, to keep this governance vocabulary free of a logic: coupling — the intended target is named in this definition, not forced into the range axiom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Distribution & tooling provision (consumed by the GTS packager and the
 # CLI roll-up — specified in the CLI roll-up and profile doctrine; fields reserved here so the
 # manifest schema needs no re-architecture when those land)
@@ -156,6 +222,39 @@ gmeow:dependencyEvidence a owl:DatatypeProperty ;
     skos:definition "A human-readable summary of the evidence that produced this computed dependency edge: the referenced terms and the artifact paths that triggered the cross-slice reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
+gmeow:crossingCoverage a owl:Class ;
+    rdfs:label "crossing coverage"@x-gmeow-english ;
+    skos:definition "A computed record that a specific peered cross-slice reference edge was sanctioned by a specific seam and carrying term — the shipped coverage verdict, so the sanctioning judgment ships in gmeow.gts rather than being discarded after the gate. Never authored; always in a computed named graph. Carries coveredEdgeFrom, coveredEdgeTo, coveringSeam, and coveredTerm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredEdgeFrom a owl:ObjectProperty ;
+    rdfs:label "covered edge from"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The referencing slice of the cross-slice reference edge this coverage record verdicts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredEdgeTo a owl:ObjectProperty ;
+    rdfs:label "covered edge to"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The referenced slice of the cross-slice reference edge this coverage record verdicts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveringSeam a owl:ObjectProperty ;
+    rdfs:label "covering seam"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range gmeow:Seam ;
+    skos:definition "The seam that sanctioned this cross-slice reference edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:coveredTerm a owl:ObjectProperty ;
+    rdfs:label "covered term"@x-gmeow-english ;
+    rdfs:domain gmeow:crossingCoverage ;
+    rdfs:range rdfs:Resource ;
+    skos:definition "The exact term IRI whose crossing this coverage record verdicts, matched by exact identity against the covering seam's gmeow:seamCarryingTerm declarations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
 gmeow:computedProfileMembership a owl:DatatypeProperty ;
     rdfs:label "computed profile membership"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
@@ -197,3 +296,17 @@ gmeow:computedProfileMembership gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:box
 gmeow:dependencyEvidence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:dependencyStatus gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:termCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:GroundingSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:Seam gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:SeamDirection gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:seamDirection gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamFromSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamToSlice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamCarryingTerm gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamOwningDoc gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:seamRealizedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:crossingCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:coveredEdgeFrom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveredEdgeTo gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveringSeam gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:coveredTerm gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
