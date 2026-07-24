@@ -1712,6 +1712,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-reason-wasm"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-logic",
+ "purrdf",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-slice-brief"
 version = "0.2.0"
 dependencies = [

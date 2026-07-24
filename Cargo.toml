@@ -122,6 +122,8 @@ members = [
     # wasm32 bindings for the repo-free Tier-1 validator: client-side conformance in
     # editors / browsers / LLM clients, over the wasm-clean gmeow-validate core.
     "crates/validate-wasm",
+    # wasm32 bindings for the native logic reasoner (browser entailment panel).
+    "crates/reason-wasm",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
     # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).
