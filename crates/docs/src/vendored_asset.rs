@@ -323,3 +323,48 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // interactive validate Capability.
     witness_attestation: Some("WITNESS.validate.json"),
 };
+
+/// The vendored gmeow-reason-wasm engine — the native GMEOW structured-DL reasoner
+/// (`gmeow-logic`) compiled to wasm32, run SERIALLY in the browser (byte-identical to
+/// the parallel native chase). Emitted under `assets/reason/`; refreshed by
+/// `make maint-refresh-reason-asset`.
+pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "reason",
+    emitted_files: &[
+        (
+            "gmeow_reason_wasm.js",
+            include_bytes!("../assets/reason/gmeow_reason_wasm.js"),
+        ),
+        (
+            "gmeow_reason_wasm_bg.wasm",
+            include_bytes!("../assets/reason/gmeow_reason_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "gmeow_reason_wasm.d.ts",
+        "gmeow_reason_wasm.js",
+        "gmeow_reason_wasm_bg.wasm",
+        "gmeow_reason_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "gmeow_reason_wasm_bg.wasm",
+    min_wasm_len: 100_000,
+    export_checks: &[
+        ExportCheck {
+            file: "gmeow_reason_wasm.js",
+            needle: "export function reason(data, format)",
+            hint: "vendored bindings lack the reason export",
+        },
+        ExportCheck {
+            file: "gmeow_reason_wasm.d.ts",
+            needle: "export function reason(data: string, format: string): string",
+            hint: "vendored .d.ts lacks the reason type signature",
+        },
+    ],
+    refresh_target: "maint-refresh-reason-asset",
+    bless_env: "GMEOW_REASON_BLESS",
+    // The native↔wasm reasoning parity attestation (`WITNESS.reason.nq`): the reasoned
+    // closure the native chase produces and the wasm engine reproduces (proven by
+    // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). Task 14 consumes
+    // it to gate the LiveReasoning capability.
+    witness_attestation: Some("WITNESS.reason.nq"),
+};

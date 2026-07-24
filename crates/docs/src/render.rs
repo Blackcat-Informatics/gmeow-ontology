@@ -99,6 +99,7 @@ const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
     &crate::vendored_asset::PURRDF_ASSET,
     &crate::vendored_asset::VALIDATE_ASSET,
+    &crate::vendored_asset::REASON_ASSET,
 ];
 
 // ── Pages ──────────────────────────────────────────────────────────────────
