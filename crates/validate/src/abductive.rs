@@ -36,19 +36,29 @@
 //! object for a relatum already present — and requiring every conjunct to corroborate.
 //! A relatum that is still missing has no ground value, so the candidate cannot be
 //! warranted (this is exactly "adding the last relatum corroborates only when the others
-//! are already present"). A sortal specialization (a disjunction) is warranted per
-//! candidate disjunct: `τ_Entity(s) → τ_T(s)` corroborates exactly when adding `T` is
-//! consistent with the subject's other assertions (∨-introduction: one true disjunct
-//! satisfies the completeness disjunction). The base graph is never mutated — the
-//! hypothetical lives only in the borrowed scenario EDB — so nothing is auto-asserted.
+//! are already present").
+//!
+//! A sortal specialization (a disjunction) is warranted PER SUBJECT, across every offered
+//! disjunct together, never per candidate in isolation. Each disjunct `τ_Entity(s) → τ_T(s)`
+//! lands one of `Corroborated` (adding `T` is consistent), `RefutedInStandpoint` (adding `T`
+//! clashes with `s`'s other assertions), or `Open`/`BudgetExhausted` (honest absence). A bare
+//! subject typed nothing but its guard class corroborates EVERY offered sortal — advising a
+//! "specialize to X" menu across all of them is then non-discriminating noise, not advice,
+//! so it is SUPPRESSED entirely (honest absence, not a same-weight N-way menu). Only when the
+//! subject's own assertions REFUTE at least one offered sortal does the completeness
+//! disjunction genuinely constrain the choice; advice is then emitted for the CORROBORATED
+//! remainder (∨-introduction: one true disjunct satisfies the completeness disjunction), the
+//! refuted disjunct(s) excluded. The base graph is never mutated — the hypothetical lives
+//! only in the borrowed scenario EDB — so nothing is auto-asserted.
 
 use gmeow_errors::{Diag, register_code};
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic_compile::frontend::reconstruct_formula;
 use gmeow_logic_compile::ir::{Formula, Term};
-use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
 use sha2::{Digest, Sha256};
+use std::sync::Arc;
 
 use crate::advisory::{Advisory, BEST_PRACTICE_STANDPOINT_IRI};
 
@@ -144,18 +154,22 @@ struct Candidate {
 pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> Vec<AbductiveSuggestion> {
     let mut out = Vec::new();
     for schema in discover_schemas(reasoned) {
-        let candidates = match schema.strategy.as_str() {
-            STRATEGY_SORTAL => sortal_candidates(reasoned, &schema),
+        match schema.strategy.as_str() {
+            // The sortal/disjunctive strategy is gated PER SUBJECT across all its offered
+            // disjuncts together (the non-discriminating-menu suppression), so it builds its
+            // own suggestions rather than going through the generic per-candidate `warrant`.
+            STRATEGY_SORTAL => {
+                out.extend(sortal_suggestions(reasoned, &schema, budget));
+            }
             STRATEGY_RELATUM | STRATEGY_CHAIN | STRATEGY_FRAME => {
-                relatum_candidates(reasoned, &schema)
+                for candidate in relatum_candidates(reasoned, &schema) {
+                    if let Some(suggestion) = warrant(reasoned, &schema, &candidate, budget) {
+                        out.push(suggestion);
+                    }
+                }
             }
             // An unknown strategy is honest absence, never new hidden behaviour.
-            _ => Vec::new(),
-        };
-        for candidate in candidates {
-            if let Some(suggestion) = warrant(reasoned, &schema, &candidate, budget) {
-                out.push(suggestion);
-            }
+            _ => {}
         }
     }
     out.sort_by(|a, b| {
@@ -337,7 +351,9 @@ fn relatum_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<C
 
 /// Sortal-specialization candidates: a gap subject typed the guard class (`gmeow:Entity`)
 /// that holds NONE of the completeness disjunction's sortal types. One candidate per
-/// offered sortal type (byte-sorted).
+/// offered sortal type (byte-sorted). This is the STRUCTURAL enumeration only — whether a
+/// candidate is actually warranted (and whether the subject's candidates are emitted at
+/// all) is the per-subject engine gate in [`sortal_suggestions`].
 fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Candidate> {
     let ConsShape::Disjunctive(types) = &schema.cons else {
         return Vec::new();
@@ -368,16 +384,24 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
 
 // ── The engine warrant ───────────────────────────────────────────────────────────────
 
-/// Test `candidate` against the schema's completeness condition in an isolated,
-/// content-addressed scenario world, and build the paired warrant + advisory when the
-/// native engine corroborates. `None` on any non-corroborating verdict (Open /
+/// Test `candidate` against the schema's CONJUNCTIVE completeness condition (relator
+/// mediation / WEMI chain / reference frame) in an isolated, content-addressed scenario
+/// world, and build the paired warrant + advisory when the native engine corroborates
+/// every declared relatum. `None` on any non-corroborating verdict (Open /
 /// RefutedInStandpoint / BudgetExhausted) or engine error — honest absence, no panic.
+///
+/// The sortal/disjunctive strategy never reaches this function — it is warranted through
+/// the per-subject gate in [`sortal_suggestions`] instead, so a non-conjunctive schema
+/// (which should never be dispatched here — see `abductive_advisories`) is honest absence.
 fn warrant(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidate: &Candidate,
     budget: &Budget,
 ) -> Option<AbductiveSuggestion> {
+    let ConsShape::Conjunctive(relata) = &schema.cons else {
+        return None;
+    };
     let scenario_world = scenario_world_iri(candidate);
     let assume = vec![(
         candidate.subject.clone(),
@@ -385,27 +409,18 @@ fn warrant(
         candidate.object.clone(),
     )];
 
-    let corroborated = match &schema.cons {
-        // Conjunctive completeness: build the ground value of EVERY declared relatum — the
-        // fresh witness for the one being added, the subject's existing object for one
-        // already present — and require every relatum's ground Horn to corroborate. A
-        // still-missing relatum has no ground value, so the candidate cannot warrant.
-        ConsShape::Conjunctive(relata) => relata.iter().all(|(relation, _)| {
-            let Some(value) = ground_value(reasoned, candidate, relation) else {
-                return false;
-            };
-            let formula =
-                ground_relatum_formula(&candidate.subject, &schema.guard_type, relation, &value);
-            corroborates(reasoned, &scenario_world, &formula, &assume, budget)
-        }),
-        // Disjunctive completeness: the Horn implication for the candidate's own disjunct
-        // must corroborate (adding the type is consistent → ∨-introduction).
-        ConsShape::Disjunctive(_) => {
-            let formula =
-                sortal_disjunct_formula(&candidate.subject, &schema.guard_type, &candidate.object);
-            corroborates(reasoned, &scenario_world, &formula, &assume, budget)
-        }
-    };
+    // Build the ground value of EVERY declared relatum — the fresh witness for the one
+    // being added, the subject's existing object for one already present — and require
+    // every relatum's ground Horn to corroborate. A still-missing relatum has no ground
+    // value, so the candidate cannot warrant.
+    let corroborated = relata.iter().all(|(relation, _)| {
+        let Some(value) = ground_value(reasoned, candidate, relation) else {
+            return false;
+        };
+        let formula =
+            ground_relatum_formula(&candidate.subject, &schema.guard_type, relation, &value);
+        corroborates(reasoned, &scenario_world, &formula, &assume, budget)
+    });
     if !corroborated {
         return None;
     }
@@ -418,6 +433,156 @@ fn warrant(
     ))
 }
 
+/// Sortal-specialization suggestions, gated PER SUBJECT across every offered disjunct
+/// together — the non-discriminating-menu suppression. For each subject with candidates
+/// (from [`sortal_candidates`]), every offered sortal is tested through the native engine;
+/// when NONE lands `RefutedInStandpoint` the subject's own assertions do not constrain the
+/// choice at all, so a same-weight N-way "specialize to X" menu would be noise and is
+/// SUPPRESSED entirely (honest absence). When AT LEAST ONE disjunct is refuted, the
+/// completeness disjunction genuinely discriminates: advice is emitted for the
+/// `Corroborated` remainder only (the refuted — and any merely `Open`/exhausted —
+/// disjuncts are excluded).
+fn sortal_suggestions(
+    reasoned: &RdfDataset,
+    schema: &DiscoveredSchema,
+    budget: &Budget,
+) -> Vec<AbductiveSuggestion> {
+    let candidates = sortal_candidates(reasoned, schema);
+    let mut out = Vec::new();
+    let mut start = 0;
+    while start < candidates.len() {
+        let mut end = start + 1;
+        while end < candidates.len() && candidates[end].subject == candidates[start].subject {
+            end += 1;
+        }
+        out.extend(sortal_suggestions_for_subject(
+            reasoned,
+            schema,
+            &candidates[start..end],
+            budget,
+        ));
+        start = end;
+    }
+    out
+}
+
+/// The per-subject sortal gate: test every disjunct in `candidates` (all for the SAME
+/// subject) and emit the `Corroborated` remainder only when at least one disjunct is
+/// `RefutedInStandpoint`; otherwise (nothing refuted — a non-discriminating menu, or every
+/// disjunct merely `Open`/exhausted) return empty, honest absence.
+fn sortal_suggestions_for_subject(
+    reasoned: &RdfDataset,
+    schema: &DiscoveredSchema,
+    candidates: &[Candidate],
+    budget: &Budget,
+) -> Vec<AbductiveSuggestion> {
+    let verdicts: Vec<EngineVerdict> = candidates
+        .iter()
+        .map(|candidate| {
+            let scenario_world = scenario_world_iri(candidate);
+            let assume = vec![(
+                candidate.subject.clone(),
+                candidate.predicate.clone(),
+                candidate.object.clone(),
+            )];
+            let formula =
+                sortal_disjunct_formula(&candidate.subject, &schema.guard_type, &candidate.object);
+            // The disjunctive gate is the ONE strategy that must detect a genuine CLASH
+            // between the candidate and the SUBJECT'S OWN other assertions — the
+            // conjunctive strategies only ever need syntactic redundancy (decided
+            // fact-locally, see `warrant`). The native engine's DL closure is WORLD-SCOPED
+            // (`crates/logic/src/store.rs`: "no cross-world union is performed"), so
+            // `reasoned`'s own facts (the subject's other types, the disjointness axioms)
+            // live in ITS authored world, never the isolated per-candidate `scenario_world`
+            // `conjecture_test` asserts the candidate into — left as-is, a clash could never
+            // be seen. Re-homing the KB into that SAME world lets it actually join the
+            // candidate's consistency check (mirrors `rehome_kb_into_scenario` in
+            // `crates/pipeline/src/mcp.rs`'s `evaluate_conjecture`).
+            let Some(rehomed) = rehome_into_world(reasoned, &scenario_world) else {
+                return EngineVerdict::Other;
+            };
+            engine_verdict(rehomed.as_ref(), &scenario_world, &formula, &assume, budget)
+        })
+        .collect();
+
+    if !verdicts.contains(&EngineVerdict::Refuted) {
+        return Vec::new();
+    }
+
+    candidates
+        .iter()
+        .zip(verdicts.iter())
+        .filter(|(_, verdict)| **verdict == EngineVerdict::Corroborated)
+        .map(|(candidate, _)| {
+            let scenario_world = scenario_world_iri(candidate);
+            build_suggestion(reasoned, schema, candidate, &scenario_world)
+        })
+        .collect()
+}
+
+/// Copy every quad of `reasoned` into the named graph `world`, dropping each quad's
+/// original graph. The native engine's DL closure is world-scoped (per-named-graph, no
+/// cross-world union — `crates/logic/src/store.rs`), so a candidate's `assume_context`/`φ`
+/// (asserted by `conjecture_test` into its own isolated `scenario_world`) can only join the
+/// KB's disjointness axioms and the subject's other assertions for a joint consistency
+/// check when the KB is re-homed into that SAME world first. Mirrors
+/// `rehome_kb_into_scenario` in `crates/pipeline/src/mcp.rs`. `None` only on a freeze
+/// failure — copying already-valid quads should never fail in practice, but a failure is
+/// honest absence (the caller's [`EngineVerdict::Other`]), never a panic.
+fn rehome_into_world(reasoned: &RdfDataset, world: &str) -> Option<Arc<RdfDataset>> {
+    let world_term = RdfTerm::iri(world.to_owned());
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in reasoned.owned_quads() {
+        let rehomed =
+            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world_term.clone());
+        builder.push_owned_quad(&rehomed);
+    }
+    builder.freeze().ok()
+}
+
+/// The three-way projection of a conjecture verdict the sortal gate needs — a bare bool
+/// loses exactly the `RefutedInStandpoint` vs. `Open`/`BudgetExhausted` distinction the
+/// per-subject gate counts refutations over.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EngineVerdict {
+    /// The formula was `Corroborated` — the candidate addition is consistent (and warrants).
+    Corroborated,
+    /// The formula was `RefutedInStandpoint` — the candidate addition clashes with the
+    /// subject's other assertions (a genuine discriminator).
+    Refuted,
+    /// `Open` / `BudgetExhausted` / an engine error — honest absence, neither corroborates
+    /// nor refutes.
+    Other,
+}
+
+/// Run `formula` through the native conjecture engine and project its lifecycle to an
+/// [`EngineVerdict`]. An engine error is [`EngineVerdict::Other`] (honest absence, no panic).
+fn engine_verdict(
+    reasoned: &RdfDataset,
+    scenario_world: &str,
+    formula: &Formula,
+    assume: &[(String, String, String)],
+    budget: &Budget,
+) -> EngineVerdict {
+    match conjecture_test(
+        reasoned,
+        scenario_world,
+        formula,
+        BEST_PRACTICE_STANDPOINT_IRI,
+        assume,
+        budget,
+    ) {
+        Ok(answer) => match answer.lifecycle {
+            ConjectureLifecycleState::Corroborated => EngineVerdict::Corroborated,
+            ConjectureLifecycleState::RefutedInStandpoint => EngineVerdict::Refuted,
+            ConjectureLifecycleState::Open | ConjectureLifecycleState::Withdrawn => {
+                EngineVerdict::Other
+            }
+        },
+        Err(_) => EngineVerdict::Other,
+    }
+}
+
 /// `true` iff the native conjecture engine lands the formula in
 /// [`ConjectureLifecycleState::Corroborated`]. Any other lifecycle or an engine error is
 /// `false` (honest absence).
@@ -428,17 +593,7 @@ fn corroborates(
     assume: &[(String, String, String)],
     budget: &Budget,
 ) -> bool {
-    matches!(
-        conjecture_test(
-            reasoned,
-            scenario_world,
-            formula,
-            BEST_PRACTICE_STANDPOINT_IRI,
-            assume,
-            budget,
-        ),
-        Ok(answer) if answer.lifecycle == ConjectureLifecycleState::Corroborated
-    )
+    engine_verdict(reasoned, scenario_world, formula, assume, budget) == EngineVerdict::Corroborated
 }
 
 /// The ground value of `relation` on the candidate's subject: the fresh witness object

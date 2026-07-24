@@ -159,23 +159,64 @@ fn expression_missing_frame_yields_one_suggestion() {
 // ── Case 4: bare-entity sortal (StrategySortalSpecialization) ────────────────────────
 
 #[test]
-fn bare_entity_yields_a_suggestion_per_consistent_sortal() {
+fn bare_entity_yields_no_suggestion_a_nondiscriminating_menu_is_suppressed() {
+    // A genuinely bare gmeow:Entity — only its guard type, nothing else asserted — has FOUR
+    // consistent top-sortal specializations: nothing refutes any of them, so the completeness
+    // disjunction does not discriminate at all. Advising a 4-way "specialize to X" menu here
+    // would be noise (F1: SUPPRESS non-discriminating sortal advice), so ZERO suggestions.
     let ds = reasoned(&format!(
         "@prefix gmeow: <{GMEOW}> .\n<urn:e1> a gmeow:Entity .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
     let mine = for_subject(&all, "urn:e1");
-    // A bare gmeow:Entity has four consistent top-sortal specializations (each disjoint
-    // pair only bites when two are asserted together), so all four are warranted.
-    assert_eq!(mine.len(), 4, "one suggestion per consistent sortal: {mine:?}");
-    for sortal in ["Agent", "InformationObject", "PhysicalObject", "SocialObject"] {
+    assert!(
+        mine.is_empty(),
+        "a bare entity with nothing refuted yields zero sortal suggestions (honest absence, \
+         not a non-discriminating menu): {mine:?}"
+    );
+}
+
+#[test]
+fn entity_refuting_one_sortal_yields_suggestions_for_the_corroborated_remainder() {
+    // e2 is typed gmeow:Entity plus a fixture-only class disjoint with gmeow:Agent — NOT
+    // itself one of the four top sortals, so e2 is still "bare" w.r.t. the offered
+    // specializations (no already-specialized suppression), but adding gmeow:Agent now
+    // CLASHES with e2's own assertions: the disjunction genuinely discriminates, so advice
+    // is emitted for the corroborated remainder (InformationObject / PhysicalObject /
+    // SocialObject) while gmeow:Agent — the refuted disjunct — is excluded.
+    let ds = reasoned(&format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+    ));
+    let all = abductive_advisories(ds.as_ref(), &budget());
+    let mine = for_subject(&all, "urn:e2");
+
+    assert!(
+        !mine
+            .iter()
+            .any(|s| s.advisory.suggestions[0].contains("gmeow:Agent")),
+        "the refuted sortal gmeow:Agent is NOT among the suggestions: {:?}",
+        mine.iter()
+            .map(|s| &s.advisory.suggestions[0])
+            .collect::<Vec<_>>()
+    );
+    for sortal in ["InformationObject", "PhysicalObject", "SocialObject"] {
         assert!(
             mine.iter()
                 .any(|s| s.advisory.suggestions[0].contains(&format!("gmeow:{sortal}"))),
-            "a suggestion names gmeow:{sortal}: {:?}",
-            mine.iter().map(|s| &s.advisory.suggestions[0]).collect::<Vec<_>>()
+            "the corroborated sortal gmeow:{sortal} IS among the suggestions: {:?}",
+            mine.iter()
+                .map(|s| &s.advisory.suggestions[0])
+                .collect::<Vec<_>>()
         );
     }
+    assert_eq!(
+        mine.len(),
+        3,
+        "exactly the three corroborated disjuncts, the refuted one excluded: {mine:?}"
+    );
     for s in &mine {
         assert_eq!(s.advisory.severity, Severity::Note);
         assert!(

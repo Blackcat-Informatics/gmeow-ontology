@@ -101,7 +101,11 @@ fn repo_root() -> PathBuf {
 ///     MISSING commitmentBeneficiary);
 ///   * `urn:i1` — a bare gmeow:Item (no gmeow:exemplifies);
 ///   * `urn:x1` — a bare gmeow:Expression (no gmeow:hasReferenceFrame);
-///   * `urn:e1` — a bare gmeow:Entity (no top sortal).
+///   * `urn:e1` — a gmeow:Entity that also carries a fixture-only class disjoint with
+///     gmeow:SocialObject (F1: a genuinely BARE entity — nothing refuted — now suppresses
+///     its sortal menu entirely as non-discriminating noise, so this fixture must carry a
+///     REFUTATION to keep exercising the sortal wing's emitting path; the disjointness
+///     lives only in this TEST fixture, never the shipped vocabulary).
 fn base_nquads() -> Vec<u8> {
     let mut builder = RdfDatasetBuilder::new();
     for module in [
@@ -115,12 +119,14 @@ fn base_nquads() -> Vec<u8> {
     }
     let abox = format!(
         "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          <{SUBJ_COMMITMENT}> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; \
              gmeow:intentionGoal <urn:goalG> .\n\
          <urn:agentA> a gmeow:Agent .\n\
          <{SUBJ_ITEM}> a gmeow:Item .\n\
          <{SUBJ_EXPRESSION}> a gmeow:Expression .\n\
-         <{SUBJ_ENTITY}> a gmeow:Entity .\n"
+         <urn:notASocialObject> a owl:Class ; owl:disjointWith gmeow:SocialObject .\n\
+         <{SUBJ_ENTITY}> a gmeow:Entity , <urn:notASocialObject> .\n"
     );
     let abox_ds = purrdf::parse_dataset(abox.as_bytes(), "text/turtle", None).expect("abox parses");
     builder.push_dataset(abox_ds.as_ref());
@@ -594,7 +600,11 @@ fn four_cases_emit_the_note_advisory_and_the_deontic_recommendation() {
         );
     }
 
-    // The bare-Entity discipline specifically emits a suggestion per consistent top sortal.
+    // The Entity discipline: `urn:e1` also carries a fixture-only class disjoint with
+    // gmeow:SocialObject (F1: a genuinely bare entity — nothing refuted — suppresses its
+    // sortal menu entirely, so the fixture is built to REFUTE exactly one offered sortal),
+    // so it emits a specialization suggestion for the three CORROBORATED remainder sortals
+    // and excludes the refuted gmeow:SocialObject.
     let entity_suggestions: Vec<&str> = subjects_by_literal(diagnostics, FINDING_CODE, |code| {
         code.starts_with(&format!("{ADVICE_ABDUCTIVE_PREFIX}Entity."))
             && !code.starts_with(ADVICE_WARRANT_PREFIX)
@@ -610,14 +620,21 @@ fn four_cases_emit_the_note_advisory_and_the_deontic_recommendation() {
         "gmeow:Agent",
         "gmeow:InformationObject",
         "gmeow:PhysicalObject",
-        "gmeow:SocialObject",
     ] {
         assert!(
             entity_suggestions.iter().any(|s| s.contains(sortal)),
-            "the bare gmeow:Entity case must emit a specialization suggestion naming {sortal}: \
-             {entity_suggestions:?}"
+            "the gmeow:Entity case must emit a specialization suggestion naming the \
+             corroborated sortal {sortal}: {entity_suggestions:?}"
         );
     }
+    assert!(
+        !entity_suggestions
+            .iter()
+            .any(|s| s.contains("gmeow:SocialObject")),
+        "the REFUTED sortal gmeow:SocialObject must be excluded from the Entity \
+         specialization suggestions (F1: non-discriminating menu suppression keeps only the \
+         corroborated remainder): {entity_suggestions:?}"
+    );
 }
 
 // ── Case 2: the warrant edge CLOSES (I3 — the ledger-identity check) ──────────────────
