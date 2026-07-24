@@ -901,15 +901,17 @@ fn has_type(reasoned: &RdfDataset, subject: &str, class: &str) -> bool {
 
 /// The governed term's canonical source-language (`@x-gmeow-english`) `gmeow:howToUse`
 /// prose, read from `reasoned`. `None` when the term authors none — an `@en`/`@zh`/`@fr`
-/// projection is never returned (mirrors `advisory::term_source_prose`).
+/// projection is never returned (mirrors `advisory::term_source_prose`). Byte-first keeps
+/// the surfaced message deterministic when a term carries more than one source-language
+/// `howToUse` literal (mirrors [`first_object`]'s collect-sort-take-first pattern).
 fn term_how_to_use(reasoned: &RdfDataset, term: &str) -> Option<String> {
     let (Some(subj), Some(pred)) = (term_id(reasoned, term), term_id(reasoned, GMEOW_HOW_TO_USE))
     else {
         return None;
     };
-    reasoned
+    let mut messages: Vec<String> = reasoned
         .quads_for_pattern(Some(subj), Some(pred), None, GraphMatch::Any)
-        .find_map(|q| match reasoned.resolve(q.o) {
+        .filter_map(|q| match reasoned.resolve(q.o) {
             TermRef::Literal {
                 lexical,
                 language: Some(lang),
@@ -917,6 +919,9 @@ fn term_how_to_use(reasoned: &RdfDataset, term: &str) -> Option<String> {
             } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
             _ => None,
         })
+        .collect();
+    messages.sort();
+    messages.into_iter().next()
 }
 
 /// Resolve an IRI to its interned dataset id.
@@ -998,5 +1003,60 @@ fn qname(iri: &str) -> String {
         "rdf:type".to_owned()
     } else {
         format!("<{iri}>")
+    }
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Parse `ttl` (with the `gmeow:` prefix predeclared) into a frozen [`RdfDataset`] —
+    /// the minimal build helper this file's `term_how_to_use` unit test needs.
+    fn dataset(ttl: &str) -> Arc<RdfDataset> {
+        let parsed =
+            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("ttl parses");
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_dataset(parsed.as_ref());
+        builder.freeze().expect("freeze")
+    }
+
+    /// A term carrying TWO `@x-gmeow-english gmeow:howToUse` literals resolves to the
+    /// byte-first one deterministically — same result regardless of which literal was
+    /// authored first (G7: `term_how_to_use` must not be quad-iteration-order dependent,
+    /// mirroring `first_object`'s collect-sort-take-first pattern).
+    #[test]
+    fn term_how_to_use_picks_the_byte_first_literal_regardless_of_insertion_order() {
+        let term = format!("{GMEOW}TestAbductiveTerm");
+        let ttl_zebra_first = format!(
+            "@prefix gmeow: <{GMEOW}> .\n<{term}> gmeow:howToUse \"Zebra message\"@x-gmeow-english , \"Alpha message\"@x-gmeow-english .\n"
+        );
+        let ttl_alpha_first = format!(
+            "@prefix gmeow: <{GMEOW}> .\n<{term}> gmeow:howToUse \"Alpha message\"@x-gmeow-english , \"Zebra message\"@x-gmeow-english .\n"
+        );
+
+        let from_zebra_first = term_how_to_use(dataset(&ttl_zebra_first).as_ref(), &term);
+        let from_alpha_first = term_how_to_use(dataset(&ttl_alpha_first).as_ref(), &term);
+
+        assert_eq!(
+            from_zebra_first, from_alpha_first,
+            "the surfaced message must not depend on authoring/insertion order"
+        );
+        assert_eq!(
+            from_zebra_first.as_deref(),
+            Some("Alpha message"),
+            "the byte-first literal (\"Alpha message\" < \"Zebra message\") wins"
+        );
+    }
+
+    /// A term with no `@x-gmeow-english gmeow:howToUse` literal at all is honest absence,
+    /// not a panic or a fallback to another language.
+    #[test]
+    fn term_how_to_use_is_none_when_the_term_authors_no_source_language_literal() {
+        let term = format!("{GMEOW}TestAbductiveTermNoProse");
+        let ttl =
+            format!("@prefix gmeow: <{GMEOW}> .\n<{term}> gmeow:howToUse \"English prose\"@en .\n");
+        assert_eq!(term_how_to_use(dataset(&ttl).as_ref(), &term), None);
     }
 }
