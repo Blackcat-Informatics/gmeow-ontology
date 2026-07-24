@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 85,
-  "term_count": 6436,
-  "dependency_edge_count": 1287,
+  "term_count": 6439,
+  "dependency_edge_count": 1347,
   "term_count_by_category": {
-    "Class": 1802,
+    "Class": 1803,
     "Datatype": 1,
-    "Individual": 1573,
-    "Property": 3060
+    "Individual": 1571,
+    "Property": 3064
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -144,8 +144,8 @@ expression: summary
         "role": "Mapping",
         "logical_path": "mappings/equivalences.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "c3322f117e1e5bdd466869db6d190bff1e9567d6cce7b7d67711f917cefd8049",
-        "semantic_digest": "b1266ff6ac4d2e2c1f6ba84085784d6fe3cc3c0d076074bed682b88a58f2c3fc"
+        "raw_digest": "bf3738f943065d5bd7b7f0e655765808ba6640395ad5dbffa75f258bba35f03d",
+        "semantic_digest": "d0026ea697afd30a572cfdd2bd08e909ee6701fc0045398f6e17ba8fac51832a"
       },
       {
         "role": "Module",
@@ -310,7 +310,7 @@ expression: summary
     }
   ],
   "mapping_set_count": 100,
-  "linkage_count": 2125,
+  "linkage_count": 2128,
   "example_count": 189,
   "concern_count": 7,
   "external_term_count": 1803,
@@ -377,7 +377,7 @@ expression: summary
       "gmeow:strandForward"
     ],
     "via_predicate": [
-      "matchObject"
+      "alignObject"
     ]
   },
   "recipe_count": 6,
@@ -428,7 +428,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 144,
+  "shape_count": 145,
   "competency_count": 293,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",

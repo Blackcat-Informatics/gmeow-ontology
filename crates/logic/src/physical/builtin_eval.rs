@@ -376,6 +376,7 @@ fn render_term(term: &QTerm) -> Cow<'static, str> {
         QTerm::Var(v) => Cow::Owned(v.clone()),
         QTerm::Const(c) => Cow::Owned(c.clone()),
         QTerm::Struct(_) => Cow::Borrowed("<struct>"),
+        QTerm::Triple { .. } => Cow::Borrowed("<triple>"),
     }
 }
 
@@ -541,8 +542,8 @@ fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, st
         },
         // A structured (function-symbol) operand is never a number; it is routed to the
         // full-FOL resolver upstream, so on the flat builtin path it is a non-numeric filter
-        // failure, never a gap.
-        QTerm::Struct(_) => Operand::NonNumeric,
+        // failure, never a gap. A quoted-triple operand is likewise never numeric.
+        QTerm::Struct(_) | QTerm::Triple { .. } => Operand::NonNumeric,
     }
 }
 
@@ -1114,7 +1115,7 @@ fn resolve_iri_operand<'a>(
     let surface: Cow<'a, str> = match term {
         QTerm::Const(c) => Cow::Owned(c.clone()),
         QTerm::Var(v) => lookup(v)?,
-        QTerm::Num(_) | QTerm::Struct(_) => return None,
+        QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => return None,
     };
     surface
         .as_ref()
@@ -1178,7 +1179,7 @@ pub(crate) fn eval<'a>(
                     None => BuiltinOutcome::Filter(false),
                 },
                 // A structured target can never equal a computed value: filter false.
-                QTerm::Struct(_) => BuiltinOutcome::Filter(false),
+                QTerm::Struct(_) | QTerm::Triple { .. } => BuiltinOutcome::Filter(false),
             }
         }
         QBuiltin::Compare { lhs, op, rhs } => {
@@ -1232,7 +1233,7 @@ pub(crate) fn eval<'a>(
                     Some(t) => BuiltinOutcome::Filter(numeric_eq(&t, &value)),
                     None => BuiltinOutcome::Filter(false),
                 },
-                QTerm::Struct(_) => BuiltinOutcome::Filter(false),
+                QTerm::Struct(_) | QTerm::Triple { .. } => BuiltinOutcome::Filter(false),
             }
         }
     }

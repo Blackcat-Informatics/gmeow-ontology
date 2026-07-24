@@ -379,8 +379,6 @@ impl Advisory {
 /// The `logic:formalizes` back-reference every derived constraint shape carries — the
 /// gmeow-domain term the advisory constraint concerns (the advice's provenance).
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
-/// The help page every harvested advisory rule links to.
-const ADVICE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/advice";
 /// The formalized term's positive how-to prose — surfaced on the advisory as a corrective
 /// `suggestion` (D3 acceptance criterion: `gmeow:howToUse` populates `suggestions`).
 const GMEOW_HOW_TO_USE: &str = "https://blackcatinformatics.ca/gmeow/howToUse";
@@ -390,6 +388,10 @@ const GMEOW_USE_WHEN: &str = "https://blackcatinformatics.ca/gmeow/useWhen";
 /// The canonical source language every authored guidance literal carries; the public
 /// `@en`/`@zh`/`@fr` projections are never the surfaced text.
 const ADVICE_SOURCE_LANG: &str = "x-gmeow-english";
+/// The suggestion-prefix marker that tags the permission-gate (`gmeow:useWhen`) leg of a
+/// harvested advisory, so the MCP `advise` consumer can split it back out from the
+/// corrective `gmeow:howToUse` suggestions. The single source both sides share.
+pub const ADVICE_USE_WHEN_PREFIX: &str = "Use when: ";
 
 /// The IRI string of a SHACL term, or `None` for a blank node / literal.
 fn shacl_iri(term: &ShaclTerm) -> Option<String> {
@@ -476,10 +478,13 @@ fn term_source_prose(ontology: &purrdf::RdfDataset, term: &str, prop: &str) -> O
 /// both the pipeline (result-based) and CLI (finding-based) splits construct through.
 ///
 /// The focus node (the individual whose data matched the anti-pattern guard) is the
-/// advised subject (`gmeow:observedFeature`); `message` is the advice (the constraint's
-/// formalized-term `gmeow:avoidWhen` prose); the code `advice.<shape-local>.<focus-digest>`
-/// is injective per match and identifies the governing constraint (its provenance is the
-/// shape's `logic:formalizes`, carried as a `formalizes:<term>` tag).
+/// advised subject (`gmeow:observedFeature`) AND the finding's [`Location::logical`] —
+/// both independently carry the focus IRI, so every diagnostic surface (CLI text, SARIF
+/// logical location, JSON, MCP `advise`) resolves the tripped node, not just the RDF claim
+/// wing; `message` is the advice (the constraint's formalized-term `gmeow:avoidWhen`
+/// prose); the code `advice.<shape-local>.<focus-digest>` is injective per match and
+/// identifies the governing constraint (its provenance is the shape's `logic:formalizes`,
+/// carried as a `formalizes:<term>` tag).
 ///
 /// The whole prose surface of the formalized term is made machine-active here (D3): the
 /// term's `gmeow:howToUse` becomes a corrective `suggestion` and its `gmeow:useWhen` becomes
@@ -496,11 +501,17 @@ fn build_advisory(
     let shape_local = shape_iri.map_or_else(|| "constraint".to_owned(), code_local);
     let digest = focus_digest(focus_iri.unwrap_or_default());
     let code = format!("{}{}.{}", crate::codes::ADVICE_FAMILY, shape_local, digest);
+    let help_uri = crate::rule_catalog::catalog_anchor_uri(&code);
     let mut advisory = Advisory::note(code, message.to_owned())
         .with_tag("advisory-harvested")
-        .with_help_uri(ADVICE_HELP_URI);
+        .with_help_uri(help_uri);
     if let Some(focus) = focus_iri {
-        advisory = advisory.with_subject_iri(focus.to_owned());
+        advisory = advisory
+            .with_subject_iri(focus.to_owned())
+            .with_location(Location {
+                logical: Some(focus.to_owned()),
+                ..Default::default()
+            });
     }
     if let Some(term) = shape_iri.and_then(|s| shape_formalizes(shapes, s)) {
         advisory = advisory.with_tag(format!("formalizes:{term}"));
@@ -511,7 +522,7 @@ fn build_advisory(
             advisory = advisory.with_suggestion(how_to_use);
         }
         if let Some(use_when) = term_source_prose(ontology, &term, GMEOW_USE_WHEN) {
-            advisory = advisory.with_suggestion(format!("Use when: {use_when}"));
+            advisory = advisory.with_suggestion(format!("{ADVICE_USE_WHEN_PREFIX}{use_when}"));
         }
     }
     advisory
@@ -1066,7 +1077,32 @@ mod tests {
         let advisory = &advisories[0];
         assert_eq!(advisory.severity, Severity::Note);
         assert!(advisory.code.starts_with(crate::codes::ADVICE_FAMILY));
+        // The CLI advisory finding's help URI resolves through the SAME single anchor
+        // authority the MCP `advise` tool uses (`catalog_anchor_uri`), landing on the
+        // rendered docs Advice section — never a dead standalone advice URL.
+        assert_eq!(
+            advisory.help_uri.as_deref(),
+            Some(crate::rule_catalog::catalog_anchor_uri(&advisory.code).as_str())
+        );
+        assert!(
+            advisory
+                .help_uri
+                .as_deref()
+                .unwrap()
+                .ends_with("docs/enforced-constraints#advice-"),
+            "advisory help_uri must resolve to the rendered docs Advice-section anchor: {:?}",
+            advisory.help_uri
+        );
         assert_eq!(advisory.subject_iri.as_deref(), Some("https://data/thing"));
+        // The focus node is ALSO location-bearing (not just the RDF subject_iri wing), so
+        // the projected Diag carries a `logical` location every surface (CLI/SARIF/JSON/MCP)
+        // resolves the tripped node from.
+        assert_eq!(
+            advisory.locations.iter().find_map(|l| l.logical.as_deref()),
+            Some("https://data/thing"),
+            "advisory must attach a Location whose logical is the focus node: {:?}",
+            advisory.locations
+        );
         assert_eq!(
             advisory.message,
             "prefer a more specific sortal than bare gmeow:Entity"
