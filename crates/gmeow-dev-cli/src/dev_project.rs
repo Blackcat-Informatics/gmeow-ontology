@@ -238,8 +238,14 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     // Price the `site` sub-assets (the vendored interactive engines + the browser
     // bundle) into the release-instance manifest: content-address each from the rendered
     // site tree and hang its digest off the SAME site_sub_asset subject the carrier
-    // catalog prices digest-free. A sub-asset the site did not ship (e.g. a bundle-free
-    // render) is honestly absent, not a zero-digest row.
+    // catalog prices digest-free. This release render is unconditionally interactive —
+    // `exec` (the playground data) is hard-required above, so the vendored engines + the
+    // browser bundle are ALWAYS emitted here. `site_sub_asset_pricing()` DECLARES every
+    // one; no-optionality makes each a mandatory output of this selected profile. A
+    // declared sub-asset that produced zero files is therefore a HARD FAIL (an incomplete
+    // interactive site with a missing release digest), never a silent skip — a silent
+    // skip would make a shipped engine and a dropped engine indistinguishable on the
+    // release path.
     let mut sub_asset_entries = Vec::new();
     for (slug, prefix, media_type) in
         gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
@@ -250,7 +256,12 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
             .map(|(p, b)| (p.clone(), b.clone()))
             .collect();
         if subtree.is_empty() {
-            continue;
+            return Err(fail(format!(
+                "declared site sub-asset {slug:?} produced no files under {prefix:?}: the \
+                 release site render is interactive, so this engine/bundle is a mandatory \
+                 output — its absence is a degraded site with a missing release digest, not \
+                 a silent skip"
+            )));
         }
         let blake3 =
             gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
