@@ -90,16 +90,17 @@ pub(crate) fn is_validated_grounding_correspondence(ds: &RdfDataset, cell_iri: &
         return false;
     }
 
-    let term_frontend = has_type(ds, cell, &g("TermEquivalence"));
-    let projection_frontend = has_type(ds, cell, &g("ProjectionMapping"));
-    if term_frontend == projection_frontend {
+    // Grounding correspondences reach this validator only through the `gmeow:ProjectionMapping`
+    // frontend now; the former hand-authored term-equivalence cell form was deleted and native
+    // skos:*Match alignment cells are validated by `is_native_validated_grounding_term_cell`.
+    if !has_type(ds, cell, &g("ProjectionMapping")) {
         return false;
     }
 
     let Some(_justification) = exactly_one_iri(ds, cell, &g("justification")) else {
         return false;
     };
-    let Some(source) = exactly_one_iri(ds, cell, &format!("{LOGIC}sourceEndpoint")) else {
+    let Some(_source) = exactly_one_iri(ds, cell, &format!("{LOGIC}sourceEndpoint")) else {
         return false;
     };
     let Some(target) = exactly_one_iri(ds, cell, &format!("{LOGIC}targetEndpoint")) else {
@@ -124,25 +125,6 @@ pub(crate) fn is_validated_grounding_correspondence(ds: &RdfDataset, cell_iri: &
     let commitment_shift = morphism_kind == format!("{LOGIC}CommitmentShiftingBridge");
     if bridge != commitment_shift {
         return false;
-    }
-
-    if term_frontend {
-        let Some(aligned_source) = exactly_one_iri(ds, cell, &g("alignSubject")) else {
-            return false;
-        };
-        let Some(predicate) = exactly_one_iri(ds, cell, &g("alignPredicate")) else {
-            return false;
-        };
-        let Some(aligned_target) = exactly_one_iri(ds, cell, &g("alignObject")) else {
-            return false;
-        };
-        if exactly_one_lit(ds, cell, &g("sssomFile")).is_none()
-            || source != aligned_source
-            || target != aligned_target
-        {
-            return false;
-        }
-        return !(bridge && IDENTITY_PREDICATES.contains(&predicate.as_str()));
     }
 
     let bindings = objects(ds, cell, &g("hasBinding"));

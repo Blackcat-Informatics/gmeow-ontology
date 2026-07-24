@@ -377,7 +377,7 @@ expression: summary
       "gmeow:strandForward"
     ],
     "via_predicate": [
-      "alignObject"
+      "matchObject"
     ]
   },
   "recipe_count": 6,

@@ -439,11 +439,12 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
 /// round-trips through the canonical IR and the generated SKOS surface is a projection of
 /// these axioms rather than an authored second source.
 ///
-/// The `@x-gmeow-english` carrier discipline is honored **fail-closed**: an annotation
-/// literal that carries a *different* language tag is a discipline violation and emits a
-/// blocking `NON_CARRIER_ANNOTATION_LANG` diagnostic (never silently normalized). Only
-/// carrier-tagged literals are lifted — mirroring the structural-lint guard, which flags a
-/// wrong tag and passes an untagged literal (internal terms are always carrier-tagged).
+/// The `@x-gmeow-english` carrier discipline is honored: ONLY carrier-tagged literals are
+/// lifted — an annotation literal carrying a *different* language tag (an `@en` example
+/// label, a foreign literal) or an untagged/typed literal is skipped, never silently
+/// retagged. The authoritative fail-closed carrier guard is the structural lint (the
+/// validate `x-gmeow-` language-tag check), scoped to the shipped core-term graphs, which
+/// flags a genuine core violation; internal terms are always carrier-tagged.
 fn extract_annotation_axioms(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,

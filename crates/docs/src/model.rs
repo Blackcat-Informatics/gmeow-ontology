@@ -748,21 +748,21 @@ pub struct DocMappingSet {
     pub equivalence_count: usize,
 }
 
-/// A single term equivalence (`gmeow:TermEquivalence`) — a cross-walk from a
-/// GMEOW term to an external IRI via a SKOS-style alignment predicate.
+/// A single native alignment cell — a cross-walk from a GMEOW term to an external
+/// IRI via a SKOS-style (`skos:*Match`) alignment predicate.
 ///
 /// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocLinkage {
     /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
     pub mapping_set: Option<String>,
-    /// `gmeow:alignSubject` — the GMEOW term IRI.
+    /// The GMEOW term IRI (the match subject).
     pub subject: String,
     /// The subject as a CURIE.
     pub subject_curie: String,
-    /// `gmeow:alignPredicate` — e.g. `skos:closeMatch`.
+    /// The match predicate — e.g. `skos:closeMatch`.
     pub predicate: String,
-    /// `gmeow:alignObject` — the external IRI.
+    /// The match object — the external IRI.
     pub object: String,
     /// `gmeow:justification`.
     pub justification: Option<String>,
@@ -1091,7 +1091,7 @@ pub struct DocExternalTerm {
     pub namespace: String,
     /// GMEOW CURIEs that reference this external IRI (sorted, deduped).
     pub referenced_by: Vec<String>,
-    /// The predicates the reference travels over (`alignObject`, `subClassOf`,
+    /// The predicates the reference travels over (`matchObject`, `subClassOf`,
     /// `domain`, `range`), sorted/deduped.
     pub via_predicate: Vec<String>,
 }
@@ -2496,8 +2496,7 @@ fn read_concept_doi(root: &Path) -> Option<String> {
 /// `<root>/dsl/mappings/mapping-sets.ttl`. Each set aggregates linkage cells
 /// authored across many slices (one set per external vocabulary), so it has no
 /// single owning slice — it is marked with the ontology-root owner. Only the
-/// `gmeow:MappingSet` headers are read; the file carries no
-/// `gmeow:TermEquivalence` cells.
+/// `gmeow:MappingSet` headers are read; the file carries no alignment cells.
 ///
 /// An **absent** file ⇒ `Ok(Vec::new())` (slices carry their own sets). A file
 /// that **exists but is unreadable or unparsable** is a hard failure, never a
@@ -3818,7 +3817,7 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
     };
 
     for link in linkages {
-        record(&link.object, &link.subject_curie, "alignObject");
+        record(&link.object, &link.subject_curie, "matchObject");
     }
     for term in terms {
         for parent in &term.parents {
