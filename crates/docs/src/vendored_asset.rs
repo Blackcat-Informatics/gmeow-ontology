@@ -405,6 +405,11 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             hint: "vendored bindings lack the from_gmn1 export",
         },
         ExportCheck {
+            file: "gmeow_gmn_wasm.js",
+            needle: "export function glyph_legend()",
+            hint: "vendored bindings lack the glyph_legend export the widget's legend needs",
+        },
+        ExportCheck {
             file: "gmeow_gmn_wasm.d.ts",
             needle: "export function to_gmn1(data: string, format: string): string",
             hint: "vendored .d.ts lacks the to_gmn1 type signature",

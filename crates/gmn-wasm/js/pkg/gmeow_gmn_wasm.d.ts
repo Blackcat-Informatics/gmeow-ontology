@@ -12,6 +12,16 @@
 export function from_gmn1(gmn1_text: string): string;
 
 /**
+ * wasm export: the GMN-1 glyph legend as JSON. Thin marshal over
+ * [`glyph_legend_json`].
+ *
+ * # Errors
+ *
+ * Throws if the embedded codebook cannot be read.
+ */
+export function glyph_legend(): string;
+
+/**
  * wasm export: transcode RDF text to the GMN-1 surface. Thin marshal over
  * [`transcode_to_gmn1`].
  *
@@ -31,6 +41,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly from_gmn1: (a: number, b: number, c: number) => void;
+    readonly glyph_legend: (a: number) => void;
     readonly to_gmn1: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly version: (a: number) => void;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;

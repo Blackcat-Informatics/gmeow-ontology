@@ -13,7 +13,10 @@
 //! Thin shim: all codec logic lives in `gmeow-lang-bridge` (native-tested with the
 //! byte-exact round-trip witness); this only marshals across the JS boundary.
 
-use gmeow_lang_bridge::{Gmn0Model, Gmn1Document, GmnDictionary, gmn1_read, gmn1_write};
+use gmeow_lang_bridge::{
+    Gmn0Model, Gmn1Document, GmnDictionary, GmnGlyphRegistry, gmn1_read, gmn1_write,
+    gmn_glyph_token_cost,
+};
 use wasm_bindgen::prelude::*;
 
 /// The GMN codebook — the `lang:` slice's authored glyph/alias/prefix declarations
@@ -59,10 +62,50 @@ pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, String> {
     Ok(model.canonical_nquads())
 }
 
+/// The GMN-1 glyph legend for the codebook, as a deterministic JSON array of
+/// `{ "glyph": <token>, "tokenCost": <n> }` — the two machine primitives the symbology
+/// plane defines (the glyph inventory + each glyph's real LLM-token cost). The widget
+/// renders it as a hover legend beside the live transcode, so a reader can see which
+/// glyphs the codec may emit and what each costs on the token channel.
+///
+/// # Errors
+///
+/// Returns the codec error string if the embedded codebook cannot be read.
+pub fn glyph_legend_json() -> Result<String, String> {
+    let ds = purrdf::parse_dataset(LANG_CODEBOOK.as_bytes(), "text/turtle", None)
+        .map_err(|e| e.to_string())?;
+    let registry = GmnGlyphRegistry::from_dataset(&ds).map_err(|e| format!("{e:?}"))?;
+    // `glyph_tokens()` is already sorted (BTreeMap-backed); JSON-escape defensively.
+    let mut out = String::from("[");
+    for (i, glyph) in registry.glyph_tokens().iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        let escaped = glyph.replace('\\', "\\\\").replace('"', "\\\"");
+        out.push_str(&format!(
+            "{{\"glyph\":\"{escaped}\",\"tokenCost\":{}}}",
+            gmn_glyph_token_cost(glyph)
+        ));
+    }
+    out.push(']');
+    Ok(out)
+}
+
 /// The codec version (the crate's SemVer), exposed to JS as `version()`.
 #[wasm_bindgen]
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+/// wasm export: the GMN-1 glyph legend as JSON. Thin marshal over
+/// [`glyph_legend_json`].
+///
+/// # Errors
+///
+/// Throws if the embedded codebook cannot be read.
+#[wasm_bindgen]
+pub fn glyph_legend() -> Result<String, JsError> {
+    glyph_legend_json().map_err(|e| JsError::new(&e))
 }
 
 /// wasm export: transcode RDF text to the GMN-1 surface. Thin marshal over

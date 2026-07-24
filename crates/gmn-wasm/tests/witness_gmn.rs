@@ -21,7 +21,7 @@
 
 use std::path::PathBuf;
 
-use gmeow_gmn_wasm::{transcode_from_gmn1, transcode_to_gmn1};
+use gmeow_gmn_wasm::{glyph_legend_json, transcode_from_gmn1, transcode_to_gmn1};
 
 /// A self-contained GMN-0 EDB in Turtle: three GMEOW-namespace claims (two IRI
 /// objects, one plain-string value). Every term resolves through the codebook's
@@ -88,5 +88,24 @@ fn native_gmn1_transcode_matches_the_witness_attestation_and_round_trips() {
     assert_eq!(
         gmn1, committed,
         "native GMN-1 transcode drifted from the committed witness attestation — re-bless"
+    );
+}
+
+#[test]
+fn glyph_legend_is_deterministic_and_carries_real_token_costs() {
+    let legend = glyph_legend_json().expect("glyph legend");
+    assert_eq!(
+        legend,
+        glyph_legend_json().expect("glyph legend"),
+        "the glyph legend is a pure function of the embedded codebook"
+    );
+    // A non-empty JSON array whose entries carry the two symbology primitives.
+    assert!(
+        legend.starts_with('[') && legend.ends_with(']') && legend.len() > 2,
+        "legend must be a non-empty JSON array: {legend}"
+    );
+    assert!(
+        legend.contains("\"glyph\"") && legend.contains("\"tokenCost\""),
+        "legend entries must carry the glyph + its token cost: {legend}"
     );
 }

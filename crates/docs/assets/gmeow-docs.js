@@ -15,6 +15,11 @@
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
 import reasonInit, { reason as wasmReason } from "./reason/gmeow_reason_wasm.js";
+import gmnInit, {
+  to_gmn1 as wasmToGmn1,
+  from_gmn1 as wasmFromGmn1,
+  glyph_legend as wasmGlyphLegend,
+} from "./gmn/gmeow_gmn_wasm.js";
 
 const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
 
@@ -217,6 +222,66 @@ if (reasonForm) {
       resultsEl.append(h, pre);
     } catch (e) {
       resultsEl.textContent = `Reasoning failed: ${e.message ?? e}`;
+    }
+  });
+}
+
+// Transcode authored RDF into the token-compact GMN-1 surface and back
+// (gmeow-gmn-wasm) entirely in-browser. `to_gmn1` then `from_gmn1` is the round-trip
+// the native↔wasm witness pins byte-for-byte; the panel shows both legs plus the
+// codebook's glyph legend (each glyph's real LLM-token cost).
+const gmnForm = document.getElementById("gmeow-gmn-form");
+if (gmnForm) {
+  let _gmnReady = null;
+  const ensureGmn = async () => {
+    if (!_gmnReady) {
+      _gmnReady = gmnInit(new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url));
+    }
+    await _gmnReady;
+  };
+  const inputEl = document.getElementById("gmeow-gmn-input");
+  const legendEl = document.getElementById("gmeow-gmn-legend");
+  const resultsEl = document.getElementById("gmeow-gmn-results");
+  // Render the glyph legend once the engine is up (deterministic, from the codebook).
+  const renderLegend = () => {
+    if (!legendEl || legendEl.childElementCount) return;
+    try {
+      const entries = JSON.parse(wasmGlyphLegend());
+      if (!entries.length) return;
+      const label = document.createElement("span");
+      label.textContent = "Glyphs: ";
+      legendEl.append(label);
+      for (const { glyph, tokenCost } of entries) {
+        const chip = document.createElement("span");
+        chip.className = "gmeow-gmn-glyph";
+        chip.textContent = glyph;
+        chip.title = `${glyph} — ${tokenCost} LLM token${tokenCost === 1 ? "" : "s"}`;
+        legendEl.append(chip);
+      }
+    } catch {
+      /* legend is auxiliary — never block the transcode on it */
+    }
+  };
+  gmnForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Transcoding…";
+    try {
+      await ensureGmn();
+      renderLegend();
+      const gmn1 = wasmToGmn1(inputEl.value, "turtle");
+      const back = wasmFromGmn1(gmn1);
+      resultsEl.replaceChildren();
+      const h1 = document.createElement("p");
+      h1.textContent = "GMN-1 surface:";
+      const pre1 = document.createElement("pre");
+      pre1.textContent = gmn1.trim();
+      const h2 = document.createElement("p");
+      h2.textContent = "Reads back to (canonical N-Quads):";
+      const pre2 = document.createElement("pre");
+      pre2.textContent = back.trim();
+      resultsEl.append(h1, pre1, h2, pre2);
+    } catch (e) {
+      resultsEl.textContent = `Transcode failed: ${e.message ?? e}`;
     }
   });
 }

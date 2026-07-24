@@ -1052,6 +1052,32 @@ ex:felix rdf:type ex:Cat .</textarea>\n\
          <div id=\"gmeow-reason-results\" class=\"gmeow-reason-results\"></div>\n\
          </div>\n",
     );
+    // ── GMN transcode widget (W4c) ──────────────────────────────────────────
+    heading(&mut out, 2, "GMN transcode");
+    line(
+        &mut out,
+        "Transcode authored RDF into the token-compact **GMN-1** surface — and back — \
+         in your browser, using the SAME codec + glyph symbology the on-gate authority \
+         ships. GMN-1 is a source code over the LLM token channel: reference-position \
+         terms resolve through the shipped `lang:` codebook, so a codebook-covered \
+         surface reads back to the identical RDF. The panel shows the round-trip: your \
+         RDF → GMN-1 → the canonical N-Quads it reads back to. Hover a glyph in the \
+         legend to see its real token cost.",
+    );
+    out.push_str(
+        "<div id=\"gmeow-gmn\" class=\"gmeow-gmn\">\n\
+         <form id=\"gmeow-gmn-form\">\n\
+         <label for=\"gmeow-gmn-input\">RDF (Turtle)</label>\n\
+         <textarea id=\"gmeow-gmn-input\" rows=\"6\" spellcheck=\"false\">\
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .\n\
+gmeow:gate1 gmeow:hasState gmeow:doorGate1 .\n\
+gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
+         <button type=\"submit\">Transcode</button>\n\
+         </form>\n\
+         <div id=\"gmeow-gmn-legend\" class=\"gmeow-gmn-legend\"></div>\n\
+         <div id=\"gmeow-gmn-results\" class=\"gmeow-gmn-results\"></div>\n\
+         </div>\n",
+    );
     let _ = model;
     out
 }
