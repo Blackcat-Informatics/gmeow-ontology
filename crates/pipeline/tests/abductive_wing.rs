@@ -827,3 +827,82 @@ fn abductive_additions_never_touch_the_base_abox() {
          auto-asserted (R4): it lives only in the borrowed scenario world"
     );
 }
+
+// ── Case 4: a one-party Commitment (G4 — two missing relata) ──────────────────────────
+
+/// G4's own canonical example, proved through the REAL `ValidateStage`: a
+/// `gmeow:Commitment` with only ONE party present (`gmeow:committedAgent`) — TWO of its
+/// three declared relata (`gmeow:commitmentBeneficiary`, `gmeow:intentionGoal`) missing —
+/// still emits advice through the shipped stage. Per-conjunct completeness (G4) warrants
+/// each missing relatum independently, so this fixture yields TWO Commitment advisory
+/// findings (one per missing relatum), neither of which re-suggests the already-present
+/// `gmeow:committedAgent`.
+#[test]
+fn one_party_commitment_emits_advice_for_both_missing_relata() {
+    const SUBJ_ONE_PARTY: &str = "urn:c-one-party";
+    let abox = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         <{SUBJ_ONE_PARTY}> a gmeow:Commitment ; gmeow:committedAgent <urn:soloAgent> .\n\
+         <urn:soloAgent> a gmeow:Agent .\n"
+    );
+    let empty_reason =
+        gmeow_pipeline::stages::reason::reason_product(b"").expect("empty stage-reason product");
+    let diagnostics = run_with_reason(&abox, empty_reason);
+
+    let want = format!("{ADVICE_ABDUCTIVE_PREFIX}Commitment.");
+    let mine: Vec<(&str, &str)> = subjects_by_literal(&diagnostics, FINDING_CODE, |code| {
+        code.starts_with(&want) && !code.starts_with(ADVICE_WARRANT_PREFIX)
+    })
+    .into_iter()
+    .filter(|(finding_iri, _)| {
+        objects(&diagnostics, finding_iri, FINDING_SUGGESTION)
+            .iter()
+            .any(|o| as_literal(o).is_some_and(|s| s.contains(SUBJ_ONE_PARTY)))
+    })
+    .collect();
+
+    assert_eq!(
+        mine.len(),
+        2,
+        "a one-party Commitment (two missing relata) must emit exactly two advisory \
+         findings through the shipped ValidateStage — one per missing relatum: {mine:?}"
+    );
+
+    let suggestion_text: Vec<&str> = mine
+        .iter()
+        .flat_map(|(finding_iri, _)| {
+            objects(&diagnostics, finding_iri, FINDING_SUGGESTION)
+                .into_iter()
+                .filter_map(as_literal)
+        })
+        .collect();
+    assert!(
+        suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:commitmentBeneficiary")),
+        "one advisory must suggest the missing gmeow:commitmentBeneficiary relatum: {suggestion_text:?}"
+    );
+    assert!(
+        suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:intentionGoal")),
+        "one advisory must suggest the missing gmeow:intentionGoal relatum: {suggestion_text:?}"
+    );
+    assert!(
+        !suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:committedAgent")),
+        "the already-present gmeow:committedAgent relatum must NOT be re-suggested: {suggestion_text:?}"
+    );
+
+    // Distinct advisory codes — the D4 claim emitter never clashes on the same code.
+    let mut codes: Vec<&str> = mine.iter().map(|(_, code)| *code).collect();
+    codes.sort_unstable();
+    let n = codes.len();
+    codes.dedup();
+    assert_eq!(
+        codes.len(),
+        n,
+        "advisory codes are injective per missing relatum"
+    );
+}

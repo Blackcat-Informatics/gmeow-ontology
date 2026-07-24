@@ -4872,7 +4872,7 @@ logic:RelatorMediationAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "relator-mediation abductive schema"@x-gmeow-english ;
-    skos:definition "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment fills some but not all of its declared logic:mediates relata, the missing relatum (gmeow:committedAgent, gmeow:commitmentBeneficiary or gmeow:intentionGoal) is the candidate addition, and the completeness formula holds when all three relata are filled — so adding the last one corroborates only when the others are already present."@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Commitment ;
     logic:repairsDiscipline logic:RelComp ;

@@ -30,13 +30,17 @@
 //! corroborates unconditionally — hence the completeness is decomposed into ground atoms,
 //! never left existential.)
 //!
-//! So a relator-mediation completeness (a conjunction of relata) is warranted by testing,
-//! for EVERY declared relatum, the ground Horn `τ_guard(s) → r_i(s, value_i)` where
-//! `value_i` is the fresh witness for the relatum being ADDED and the subject's existing
-//! object for a relatum already present — and requiring every conjunct to corroborate.
-//! A relatum that is still missing has no ground value, so the candidate cannot be
-//! warranted (this is exactly "adding the last relatum corroborates only when the others
-//! are already present").
+//! So a relator-mediation completeness (a conjunction of relata) is warranted PER
+//! CANDIDATE, per conjunct: each missing relatum is its own independently-warranted
+//! candidate, tested against ITS OWN ground Horn `τ_guard(s) → r_i(s, value_i)` where
+//! `value_i` is the fresh witness for THAT relatum — never against the whole conjunction.
+//! A one-party `gmeow:Commitment` (two of three relata missing) therefore yields ONE
+//! candidate per missing relatum, each warranted independently; the other relata being
+//! still missing no longer blocks either candidate's warrant (per-conjunct completeness:
+//! "adding this relatum is consistent with the guard type", not "all others are already
+//! present"). The full completeness conjunction is still the discipline's authored TARGET
+//! (`logic:relatorMediationCons` names all three relata) — only the per-candidate
+//! WARRANTING is scoped to the one conjunct being added.
 //!
 //! A sortal specialization (a disjunction) is warranted PER SUBJECT, across every offered
 //! disjunct together, never per candidate in isolation. Each disjunct `τ_Entity(s) → τ_T(s)`
@@ -384,11 +388,18 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
 
 // ── The engine warrant ───────────────────────────────────────────────────────────────
 
-/// Test `candidate` against the schema's CONJUNCTIVE completeness condition (relator
-/// mediation / WEMI chain / reference frame) in an isolated, content-addressed scenario
-/// world, and build the paired warrant + advisory when the native engine corroborates
-/// every declared relatum. `None` on any non-corroborating verdict (Open /
-/// RefutedInStandpoint / BudgetExhausted) or engine error — honest absence, no panic.
+/// Test `candidate` against ITS OWN per-conjunct ground-head Horn (relator mediation /
+/// WEMI chain / reference frame) in an isolated, content-addressed scenario world, and
+/// build the paired warrant + advisory when the native engine corroborates that single
+/// conjunct. `None` on any non-corroborating verdict (Open / RefutedInStandpoint /
+/// BudgetExhausted) or engine error — honest absence, no panic.
+///
+/// Per-conjunct completeness: the candidate's own predicate/object IS the ground value for
+/// the relatum being added, so only `τ_guard(subject) → predicate(subject, object)` is
+/// tested — never the whole completeness conjunction. A relatum that is STILL missing on
+/// the subject (a different conjunct than the one this candidate adds) no longer blocks
+/// this candidate's warrant: each missing relatum is its own independently-warranted
+/// candidate (see the module doc "The completeness warrant …" section).
 ///
 /// The sortal/disjunctive strategy never reaches this function — it is warranted through
 /// the per-subject gate in [`sortal_suggestions`] instead, so a non-conjunctive schema
@@ -399,7 +410,7 @@ fn warrant(
     candidate: &Candidate,
     budget: &Budget,
 ) -> Option<AbductiveSuggestion> {
-    let ConsShape::Conjunctive(relata) = &schema.cons else {
+    let ConsShape::Conjunctive(_) = &schema.cons else {
         return None;
     };
     let scenario_world = scenario_world_iri(candidate);
@@ -409,19 +420,13 @@ fn warrant(
         candidate.object.clone(),
     )];
 
-    // Build the ground value of EVERY declared relatum — the fresh witness for the one
-    // being added, the subject's existing object for one already present — and require
-    // every relatum's ground Horn to corroborate. A still-missing relatum has no ground
-    // value, so the candidate cannot warrant.
-    let corroborated = relata.iter().all(|(relation, _)| {
-        let Some(value) = ground_value(reasoned, candidate, relation) else {
-            return false;
-        };
-        let formula =
-            ground_relatum_formula(&candidate.subject, &schema.guard_type, relation, &value);
-        corroborates(reasoned, &scenario_world, &formula, &assume, budget)
-    });
-    if !corroborated {
+    let formula = ground_relatum_formula(
+        &candidate.subject,
+        &schema.guard_type,
+        &candidate.predicate,
+        &candidate.object,
+    );
+    if !corroborates(reasoned, &scenario_world, &formula, &assume, budget) {
         return None;
     }
 
@@ -594,18 +599,6 @@ fn corroborates(
     budget: &Budget,
 ) -> bool {
     engine_verdict(reasoned, scenario_world, formula, assume, budget) == EngineVerdict::Corroborated
-}
-
-/// The ground value of `relation` on the candidate's subject: the fresh witness object
-/// when `relation` is the relatum being ADDED, else the subject's existing (byte-first)
-/// object. `None` when the relatum is neither the addition nor already present — a
-/// still-missing relatum has no ground value, so no warrant is possible.
-fn ground_value(reasoned: &RdfDataset, candidate: &Candidate, relation: &str) -> Option<String> {
-    if relation == candidate.predicate {
-        Some(candidate.object.clone())
-    } else {
-        first_object(reasoned, &candidate.subject, relation)
-    }
 }
 
 /// The engine-evaluable ground-head Horn `τ_guard(subject) → relation(subject, value)` —

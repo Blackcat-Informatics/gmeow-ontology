@@ -42,7 +42,8 @@ fn reasoned(abox_ttl: &str) -> Arc<RdfDataset> {
             purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).expect("module parses");
         builder.push_dataset(dataset.as_ref());
     }
-    let abox = purrdf::parse_dataset(abox_ttl.as_bytes(), "text/turtle", None).expect("abox parses");
+    let abox =
+        purrdf::parse_dataset(abox_ttl.as_bytes(), "text/turtle", None).expect("abox parses");
     builder.push_dataset(abox.as_ref());
     builder.freeze().expect("merge")
 }
@@ -67,7 +68,8 @@ fn for_subject<'a>(
 
 fn quad_count(ds: &RdfDataset) -> usize {
     use purrdf::{DatasetView, GraphMatch};
-    ds.quads_for_pattern(None, None, None, GraphMatch::Any).count()
+    ds.quads_for_pattern(None, None, None, GraphMatch::Any)
+        .count()
 }
 
 // ── Case 1: relator-mediation (StrategyRelatumCompletion) ────────────────────────────
@@ -292,17 +294,56 @@ fn already_complete_subjects_yield_zero_suggestions() {
 }
 
 #[test]
-fn two_missing_relata_do_not_corroborate_and_do_not_panic() {
-    // c3 fills ONLY committedAgent — missing beneficiary AND goal. Adding either alone does
-    // not complete the mediation, so NO candidate corroborates (honest absence, no panic).
+fn two_missing_relata_each_yield_their_own_corroborated_suggestion() {
+    // c3 fills ONLY committedAgent — missing beneficiary AND goal. Per-conjunct
+    // completeness (G4): each missing relatum is its own independently-warranted
+    // candidate, so this yields TWO suggestions — one for gmeow:commitmentBeneficiary
+    // and one for gmeow:intentionGoal — and does NOT re-suggest the already-present
+    // gmeow:committedAgent. This is the discipline's OWN canonical example: an
+    // under-mediated relator with only one party present must still produce advice.
     let ds = reasoned(&format!(
         "@prefix gmeow: <{GMEOW}> .\n<urn:c3> a gmeow:Commitment ; gmeow:committedAgent <urn:aA> .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
+    let mine = for_subject(&all, "urn:c3");
+
+    assert_eq!(
+        mine.len(),
+        2,
+        "a Commitment missing two relata yields exactly one suggestion per missing relatum: {mine:?}"
+    );
+
+    let suggestion_text: Vec<&str> = mine
+        .iter()
+        .map(|s| s.advisory.suggestions[0].as_str())
+        .collect();
     assert!(
-        for_subject(&all, "urn:c3").is_empty(),
-        "a subject missing two relata yields no corroborated candidate: {:?}",
-        for_subject(&all, "urn:c3")
+        suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:commitmentBeneficiary")),
+        "one suggestion must name the missing gmeow:commitmentBeneficiary relatum: {suggestion_text:?}"
+    );
+    assert!(
+        suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:intentionGoal")),
+        "one suggestion must name the missing gmeow:intentionGoal relatum: {suggestion_text:?}"
+    );
+    assert!(
+        !suggestion_text
+            .iter()
+            .any(|s| s.contains("gmeow:committedAgent")),
+        "the already-present gmeow:committedAgent relatum must NOT be re-suggested: {suggestion_text:?}"
+    );
+
+    for s in &mine {
+        assert_eq!(s.advisory.severity, Severity::Note);
+        assert!(s.warrant.message().contains("corroborated"));
+    }
+    // Codes are injective — the two candidates never collide onto one advisory code.
+    assert_ne!(
+        mine[0].advisory.code, mine[1].advisory.code,
+        "the two missing-relatum candidates carry distinct advisory codes"
     );
 }
 
