@@ -1,32 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Abductive advice producer (D5) — the constructive "what to ADD" wing.
+//! Abductive advice producer (D5) — the constructive "what to ADD" wing. ENGINE-FREE.
 //!
 //! A GENERIC producer driven entirely by the authored `logic:AbductiveSchema`
 //! vocabulary (`slices/grounding/logic/module.ttl`). It discovers every schema by
 //! SPARQL, reads each schema's `logic:completenessFormula` structure off the graph, and
 //! enumerates the minimal candidate additions that would complete an under-specified
-//! subject. How each candidate is WARRANTED depends on the completeness SHAPE:
+//! subject. How each candidate is WARRANTED depends on the completeness SHAPE — and NEITHER
+//! path calls a reasoner: the producer is entirely engine-free.
 //!   * a CONJUNCTIVE (relatum) completeness — relator-mediation, WEMI-chain,
 //!     reference-frame, and measurement-frame — is warranted BY CONSTRUCTION: one candidate
 //!     per MISSING relatum, filled by a FRESH content-addressed witness that is not in the
 //!     graph. A fresh untyped individual on an absent property can never trigger a
 //!     cardinality or disjointness clash, so the addition is consistent by construction and
-//!     completes that conjunct's per-conjunct completeness. This path makes NO native engine
-//!     call — the old `conjecture_test` there was tautological (always `Corroborated` for a
-//!     fresh witness) and expensive, so it is gone.
-//!   * a DISJUNCTIVE (sortal) completeness is warranted by the native conjecture engine
-//!     ([`gmeow_logic::conjecture::conjecture_test`]) — the ONE path that needs it, because
-//!     ∨-introduction is only non-trivial advice when the subject's own assertions REFUTE at
-//!     least one offered disjunct (a genuine `RefutedInStandpoint`). Only a `Corroborated`
-//!     disjunct in that discriminating case warrants advice; an `Open`/`RefutedInStandpoint`
-//!     answer is honest absence (no suggestion). A verdict cut short by BUDGET EXHAUSTION is
-//!     neither: it is a genuinely inconclusive could-not-decide, distinct from a decided
-//!     `Open`, so it never silently vanishes — [`abductive_advisories`] returns it as its own
-//!     [`AbductiveOutcome::exhausted`] diagnostic (Part B of G6), never folded into the same
-//!     honest absence as a real non-corroboration. The conjunctive path never calls the
-//!     engine, so it can never exhaust — `exhausted` is populated by the sortal path alone.
+//!     completes that conjunct's per-conjunct completeness.
+//!   * a DISJUNCTIVE (sortal) completeness is warranted by a SOUND CLASS-DISJOINTNESS LOOKUP,
+//!     not a reasoner. The offered disjuncts are the top sortals `T`; adding a single bare
+//!     `rdf:type(s, T)` to an already-reasoned subject `s` is inconsistent IFF `s` already
+//!     holds a type disjoint with `T` — a bare top-sortal type-assertion has no OTHER
+//!     inconsistency source (no cardinality, no property-range clash: the top sortals carry
+//!     only `owl:disjointWith` negative axioms). So refutation is an O(1) set-membership test
+//!     against a per-sortal CLASH SET precomputed once per run, replacing the old
+//!     per-candidate rehome-the-whole-KB-and-reason `conjecture_test`. See
+//!     [`sortal_suggestions`] for the soundness argument and the clash-set construction.
 //!
 //! There is NO hardcoded discipline list and NO hardcoded predicate string: the guard
 //! type, the required relata predicates, and the candidate sortal types are all read
@@ -41,11 +38,7 @@
 //! graph. Adding `r_i(s, value_i)` for an absent relation `r_i` and a fresh, untyped `value_i`
 //! is a consistent addition — a fresh untyped object on an absent property can never trigger
 //! a cardinality or disjointness clash — so it completes that conjunct's per-conjunct
-//! completeness WITHOUT any engine check. (The old design ran a ground-head Horn
-//! `τ_guard(s) → r_i(s, value_i)` through `conjecture_test` per candidate, but for a fresh
-//! witness on a missing relatum that test is TAUTOLOGICAL — it always returned `Corroborated`
-//! by construction — and it was expensive: a full reasoning pass over the entire reasoned KB
-//! per candidate. It is gone. The warrant is the by-construction argument itself.)
+//! completeness WITHOUT any engine check. The warrant is the by-construction argument itself.
 //!
 //! A one-party `gmeow:Commitment` (two of three relata missing) therefore yields ONE
 //! candidate per missing relatum, each warranted independently by construction; the other
@@ -55,38 +48,54 @@
 //! discipline's authored TARGET (`logic:relatorMediationCons` names all three relata) — only
 //! the per-candidate WARRANTING is scoped to the one conjunct being added.
 //!
-//! A sortal specialization (a disjunction) is warranted PER SUBJECT, across every offered
-//! disjunct together, never per candidate in isolation. Each disjunct `τ_Entity(s) → τ_T(s)`
-//! lands one of `Corroborated` (adding `T` is consistent), `RefutedInStandpoint` (adding `T`
-//! clashes with `s`'s other assertions), `Open` (honest absence), or budget-exhausted (its
-//! own could-not-decide diagnostic, see above). A bare
-//! subject typed nothing but its guard class corroborates EVERY offered sortal — advising a
-//! "specialize to X" menu across all of them is then non-discriminating noise, not advice,
-//! so it is SUPPRESSED entirely (honest absence, not a same-weight N-way menu). Only when the
-//! subject's own assertions REFUTE at least one offered sortal does the completeness
-//! disjunction genuinely constrain the choice; advice is then emitted for the CORROBORATED
-//! remainder (∨-introduction: one true disjunct satisfies the completeness disjunction), the
-//! refuted disjunct(s) excluded. The base graph is never mutated — the hypothetical lives
-//! only in the borrowed scenario EDB — so nothing is auto-asserted.
+//! # The disjunctive (sortal) completeness warrant is a SOUND CLASS-DISJOINTNESS LOOKUP
+//!
+//! A sortal specialization (a disjunction of top sortals) is warranted PER SUBJECT, across
+//! every offered disjunct together, never per candidate in isolation. For each offered sortal
+//! `T`, refutation of `rdf:type(s, T)` is decided by a lookup, not a reasoning pass:
+//!   `Refuted(s, T)  ⟺  reasoned_types(s) ∩ clash_set(T) ≠ ∅`
+//! where `reasoned_types(s)` are `s`'s `rdf:type` objects on the REASONED graph (already
+//! carrying materialized superclasses) and `clash_set(T)` is every class disjoint with `T` or
+//! with any reasoned superclass of `T`. This is the SOUND equivalent of the old engine
+//! consistency check for exactly this case: a bare top-sortal type-assertion is inconsistent
+//! only through a class-disjointness clash, and disjointness propagates down subclasses, so
+//! `∃ A ⊇ D, B ⊇ T. A ⊥ B` (the engine's refutation condition for `s:D`) is captured exactly
+//! by intersecting `s`'s upward-closed types with `T`'s upward-anchored clash set. Disjointness
+//! is read in EVERY form that occurs in the reasoned object-level graph — `owl:disjointWith`
+//! (symmetric), `owl:AllDisjointClasses`/`owl:members` (expanded pairwise), and the canonical
+//! `logic:disjointWith` grounding form — so no clash the engine would find is missed.
+//!
+//! A bare subject typed nothing but its guard class refutes NO offered sortal — advising a
+//! "specialize to X" menu across all of them is non-discriminating noise, not advice, so it is
+//! SUPPRESSED entirely (honest absence, not a same-weight N-way menu). Only when the subject's
+//! own assertions REFUTE at least one offered sortal does the completeness disjunction
+//! genuinely constrain the choice; advice is then emitted for the CORROBORATED remainder
+//! (∨-introduction: one true disjunct satisfies the completeness disjunction), the refuted
+//! disjunct(s) excluded. The base graph is never mutated — the lookup only reads it — so
+//! nothing is auto-asserted.
 
 use gmeow_errors::{Diag, register_code};
-use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
-use gmeow_logic::query_ir::Budget;
-use gmeow_logic::result::EvaluationStatus;
 use gmeow_logic_compile::frontend::reconstruct_formula;
 use gmeow_logic_compile::ir::{Formula, Term};
-use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeSet;
-use std::sync::Arc;
+use std::collections::{BTreeMap, BTreeSet};
 
-use crate::advisory::{Advisory, BEST_PRACTICE_STANDPOINT_IRI};
+use crate::advisory::Advisory;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
+/// The three disjointness forms that occur in the reasoned object-level graph. The sortal
+/// clash-set lookup ([`sortal_suggestions`]) reads ALL of them so no refutation the old
+/// native engine would find is missed (soundness against the engine it replaces).
+const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
+const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 /// The four-boxes assertional-tier markers. Abductive advice is only for genuine,
 /// under-specified A-Box INDIVIDUALS — a subject carrying `gmeow:graphBoxRole gmeow:boxABox`
 /// (`crates/errors/src/abox.rs::{GRAPH_BOX_ROLE, BOX_ABOX}`) — never a TBox class/property
@@ -108,61 +117,19 @@ const STRATEGY_FRAME: &str = "https://blackcatinformatics.ca/logic/StrategyFrame
 /// manifestation the candidate addition points at). Deterministic — a blake-free
 /// SHA-256 digest of `subject + '\u{1f}' + predicate`, never a clock/random source.
 const WITNESS_BASE: &str = "https://blackcatinformatics.ca/gmeow/abductive/witness/";
-/// Base IRI for the content-addressed isolated scenario world a candidate is tested in.
-const SCENARIO_WORLD_BASE: &str = "https://blackcatinformatics.ca/gmeow/abductive/scenario/";
-
-/// The abductive engine's step ceiling — ONE named constant shared by both live callers
-/// (the pipeline `stage-validate` and the `gmeow` CLI's `validate_all`), never a
-/// duplicated magic literal. Each `conjecture_test` runs over an ISOLATED, per-candidate
-/// scenario world (`KB ∪ {one guard atom, one candidate relatum/sortal atom}`) — the
-/// SAME kernel+logic KB closure every time, so the marginal chase this ceiling bounds is
-/// tiny relative to the limit: generous headroom for the worst case, never a tuned-to-fit
-/// number.
-pub const ABDUCTIVE_MAX_STEPS: u64 = 5_000_000;
-
-/// The shared abductive-engine [`Budget`] — construct it here so both call sites reference
-/// the SAME named item (see [`ABDUCTIVE_MAX_STEPS`]) rather than duplicating the literal.
-/// `max_answers: None` — the answer-count axis is not the discriminator for a per-candidate
-/// warrant test (a single ground/Horn candidate, never an open-ended answer set); only the
-/// step ceiling bounds the chase.
-#[must_use]
-pub fn abductive_budget() -> Budget {
-    Budget {
-        max_answers: None,
-        max_steps: Some(ABDUCTIVE_MAX_STEPS),
-    }
-}
 
 /// One abductive suggestion: the warrant [`Diag`] paired with the dual-projection-ready
 /// [`Advisory`]. The two carry the SAME content-addressed digest in their codes, so a
 /// consumer can join the warrant to the advice it warrants. The warrant is either a
 /// by-construction argument (conjunctive/relatum path — a fresh witness for a missing relatum
-/// is a consistent addition) or a native conjecture corroboration (sortal path).
+/// is a consistent addition) or a class-disjointness corroboration (sortal path).
 #[derive(Debug)]
 pub struct AbductiveSuggestion {
-    /// The warrant note: a by-construction relatum argument, or a native conjecture
+    /// The warrant note: a by-construction relatum argument, or a class-disjointness
     /// corroboration for the sortal path (see [`build_suggestion`]).
     pub warrant: Diag,
     /// The best-practice advisory recommending the concrete addition.
     pub advisory: Advisory,
-}
-
-/// The full output of [`abductive_advisories`]: every warranted suggestion AND, when a
-/// SORTAL subject's warrant test was cut short by budget exhaustion (as opposed to a genuine
-/// `Open`/`RefutedInStandpoint` verdict), an honest "could-not-decide (budget exhausted)"
-/// [`Diag`] — so a subject dropped because its warrant ran out of budget stays OBSERVABLE in
-/// `graph/diagnostics`, never a silent vanish indistinguishable from genuine non-corroboration.
-/// Only the sortal path calls the native engine, so only it can exhaust — the conjunctive
-/// (relatum) path warrants by construction and never contributes to `exhausted`. Deterministic:
-/// `exhausted` is sorted by its content-addressed code, exactly like `suggestions` is sorted by
-/// `(advisory.code, advisory.subject_iri)`.
-#[derive(Debug, Default)]
-pub struct AbductiveOutcome {
-    /// Every warranted candidate addition, byte-sorted (see [`abductive_advisories`]).
-    pub suggestions: Vec<AbductiveSuggestion>,
-    /// One diagnostic per SORTAL subject whose warrant test exhausted its budget before
-    /// reaching a conclusive verdict.
-    pub exhausted: Vec<Diag>,
 }
 
 /// A discovered `logic:AbductiveSchema` and the completeness structure read off its
@@ -210,7 +177,9 @@ struct Candidate {
     element: String,
 }
 
-/// Produce every engine-warranted abductive advisory over `reasoned`.
+/// Produce every warranted abductive advisory over `reasoned`. ENGINE-FREE: the relatum
+/// path warrants by construction and the sortal path by a class-disjointness lookup, so no
+/// reasoner is invoked at all.
 ///
 /// `reasoned` must be the graph the caller has already threaded with whatever reasoning
 /// its surface can carry — the producer reads types/relata with `GraphMatch::Any`, so a
@@ -229,31 +198,24 @@ struct Candidate {
 /// guards match ZERO subjects, so a closure-only input would find nothing.
 ///
 /// Deterministic: schemas are discovered in byte-sorted order, candidates are enumerated
-/// byte-sorted, all witness/world IRIs are content-addressed, and the returned vector is
-/// finally sorted by `(advisory.code, advisory.subject_iri)`. Same input twice ⇒ identical
-/// output. `reasoned` is only READ; the base graph is never mutated.
+/// byte-sorted, all witness IRIs are content-addressed, and the returned vector is finally
+/// sorted by `(advisory.code, advisory.subject_iri)`. Same input twice ⇒ identical output.
+/// `reasoned` is only READ; the base graph is never mutated.
 #[must_use]
-pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> AbductiveOutcome {
+pub fn abductive_advisories(reasoned: &RdfDataset) -> Vec<AbductiveSuggestion> {
     let mut suggestions = Vec::new();
-    // Keyed by the same content-addressed code the diag itself carries, so the final sort
-    // is deterministic without re-deriving the key from the (registry-order-dependent)
-    // `Diag::code()` handle.
-    let mut exhausted: Vec<(String, Diag)> = Vec::new();
     for schema in discover_schemas(reasoned) {
         match schema.strategy.as_str() {
             // The sortal/disjunctive strategy is gated PER SUBJECT across all its offered
             // disjuncts together (the non-discriminating-menu suppression), so it builds its
             // own suggestions rather than going through the generic per-candidate `warrant`.
             STRATEGY_SORTAL => {
-                let (subject_suggestions, subject_exhausted) =
-                    sortal_suggestions(reasoned, &schema, budget);
-                suggestions.extend(subject_suggestions);
-                exhausted.extend(subject_exhausted);
+                suggestions.extend(sortal_suggestions(reasoned, &schema));
             }
             STRATEGY_RELATUM | STRATEGY_CHAIN | STRATEGY_FRAME => {
                 // The conjunctive/relatum warrant is BY CONSTRUCTION (a fresh witness for a
-                // missing relatum is a consistent addition), so it makes NO engine call and can
-                // NEVER exhaust — it only ever yields a suggestion or honest absence.
+                // missing relatum is a consistent addition), so it yields a suggestion or
+                // honest absence.
                 for candidate in relatum_candidates(reasoned, &schema) {
                     match warrant(reasoned, &schema, &candidate) {
                         WarrantOutcome::Corroborated(suggestion) => suggestions.push(*suggestion),
@@ -271,11 +233,7 @@ pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> Abductive
             .cmp(&b.advisory.code)
             .then_with(|| a.advisory.subject_iri.cmp(&b.advisory.subject_iri))
     });
-    exhausted.sort_by(|a, b| a.0.cmp(&b.0));
-    AbductiveOutcome {
-        suggestions,
-        exhausted: exhausted.into_iter().map(|(_, diag)| diag).collect(),
-    }
+    suggestions
 }
 
 // ── Schema discovery (SPARQL) ────────────────────────────────────────────────────────
@@ -459,7 +417,7 @@ fn relatum_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<C
 /// that holds NONE of the completeness disjunction's sortal types. One candidate per
 /// offered sortal type (byte-sorted). This is the STRUCTURAL enumeration only — whether a
 /// candidate is actually warranted (and whether the subject's candidates are emitted at
-/// all) is the per-subject engine gate in [`sortal_suggestions`].
+/// all) is the per-subject class-disjointness gate in [`sortal_suggestions`].
 fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Candidate> {
     let ConsShape::Disjunctive(types) = &schema.cons else {
         return Vec::new();
@@ -488,11 +446,11 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
     candidates
 }
 
-// ── The engine warrant ───────────────────────────────────────────────────────────────
+// ── The relatum by-construction warrant ──────────────────────────────────────────────
 
-/// The two-way disposition a single conjunctive/relatum candidate lands in. There is no
-/// `Exhausted` variant: the relatum warrant is BY CONSTRUCTION (no engine call), so it can
-/// never be cut short by a budget — it either warrants a suggestion or is honest absence.
+/// The two-way disposition a single conjunctive/relatum candidate lands in. The relatum
+/// warrant is BY CONSTRUCTION (no engine call), so it either warrants a suggestion or is
+/// honest absence.
 enum WarrantOutcome {
     /// The candidate is warranted by construction — the paired warrant + advisory. Boxed: at
     /// ~240 bytes this variant otherwise dwarfs its unit sibling (clippy::large_enum_variant).
@@ -518,8 +476,8 @@ enum WarrantOutcome {
 /// conjunctive (relatum) completeness warrant is BY CONSTRUCTION" section).
 ///
 /// The sortal/disjunctive strategy never reaches this function — it is warranted through the
-/// per-subject gate in [`sortal_suggestions`] (the ONE user of the native engine), so a
-/// non-conjunctive schema mis-dispatched here is [`WarrantOutcome::Other`] (honest absence). A
+/// per-subject class-disjointness gate in [`sortal_suggestions`], so a non-conjunctive schema
+/// mis-dispatched here is [`WarrantOutcome::Other`] (honest absence). A
 /// property guard whose subject has no IRI guard value is likewise honest absence — the guard
 /// does not actually ground on that subject, so no advice is emitted, no panic.
 fn warrant(
@@ -546,250 +504,246 @@ fn warrant(
 }
 
 /// Sortal-specialization suggestions, gated PER SUBJECT across every offered disjunct
-/// together — the non-discriminating-menu suppression. For each subject with candidates
-/// (from [`sortal_candidates`]), every offered sortal is tested through the native engine;
-/// when NONE lands `RefutedInStandpoint` the subject's own assertions do not constrain the
-/// choice at all, so a same-weight N-way "specialize to X" menu would be noise and is
-/// SUPPRESSED entirely (honest absence). When AT LEAST ONE disjunct is refuted, the
-/// completeness disjunction genuinely discriminates: advice is emitted for the
-/// `Corroborated` remainder only (the refuted — and any merely `Open` — disjuncts are
-/// excluded). A disjunct whose own warrant test was budget-exhausted ALWAYS surfaces its
-/// own could-not-decide diagnostic (the second return element), independent of whether the
-/// subject's menu suppression fires — an exhausted candidate must never vanish silently.
+/// together — the non-discriminating-menu suppression — decided by a SOUND CLASS-DISJOINTNESS
+/// LOOKUP, no reasoner. Each offered sortal's CLASH SET (every class whose presence on a
+/// subject refutes adding that sortal) is precomputed ONCE per run (there are only ~4 offered
+/// sortals), so refutation is an O(1) set-membership test per candidate rather than a full
+/// per-candidate KB rehome + conjecture reasoning pass. Byte-sorted candidate order is
+/// preserved, so the output stays deterministic.
 fn sortal_suggestions(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
-    budget: &Budget,
-) -> (Vec<AbductiveSuggestion>, Vec<(String, Diag)>) {
+) -> Vec<AbductiveSuggestion> {
+    let ConsShape::Disjunctive(types) = &schema.cons else {
+        return Vec::new();
+    };
+    // Precompute the clash set of each offered sortal ONCE. `disjointness_index` is built
+    // once and shared across all ~4 offered sortals.
+    let disjointness = disjointness_index(reasoned);
+    let clash_sets: BTreeMap<String, BTreeSet<String>> = types
+        .iter()
+        .map(|sortal| (sortal.clone(), clash_set(reasoned, sortal, &disjointness)))
+        .collect();
+
     let candidates = sortal_candidates(reasoned, schema);
     let mut suggestions = Vec::new();
-    let mut exhausted = Vec::new();
     let mut start = 0;
     while start < candidates.len() {
         let mut end = start + 1;
         while end < candidates.len() && candidates[end].subject == candidates[start].subject {
             end += 1;
         }
-        let (subject_suggestions, subject_exhausted) =
-            sortal_suggestions_for_subject(reasoned, schema, &candidates[start..end], budget);
-        suggestions.extend(subject_suggestions);
-        exhausted.extend(subject_exhausted);
+        suggestions.extend(sortal_suggestions_for_subject(
+            reasoned,
+            schema,
+            &candidates[start..end],
+            &clash_sets,
+        ));
         start = end;
     }
-    (suggestions, exhausted)
+    suggestions
 }
 
-/// The per-subject sortal gate: test every disjunct in `candidates` (all for the SAME
-/// subject) and emit the `Corroborated` remainder only when at least one disjunct is
-/// `RefutedInStandpoint`; otherwise (nothing refuted — a non-discriminating menu, or every
-/// disjunct merely `Open`) return no suggestions, honest absence. Independently, every
-/// disjunct whose OWN test was budget-exhausted contributes its own could-not-decide
-/// diagnostic (the second return element) regardless of the suggestion gate's outcome.
+/// The per-subject sortal gate, by class-disjointness lookup. All of `candidates` are for the
+/// SAME subject `s`. For each offered sortal `T`:
+///   `Refuted(s, T)  ⟺  reasoned_types(s) ∩ clash_set(T) ≠ ∅`
+/// (a bare top-sortal type-assertion is inconsistent ONLY through a class-disjointness clash;
+/// see the module doc and [`clash_set`] for the soundness argument against the old engine).
+/// Emit the `Corroborated` (= not-refuted) remainder ONLY when at least one offered sortal is
+/// refuted — the model then genuinely discriminates; nothing refuted ⇒ a non-discriminating
+/// N-way menu ⇒ SUPPRESSED entirely (honest absence). This is byte-identical to the old
+/// per-subject engine gate's F1 semantics, now O(1) per candidate.
 fn sortal_suggestions_for_subject(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidates: &[Candidate],
-    budget: &Budget,
-) -> (Vec<AbductiveSuggestion>, Vec<(String, Diag)>) {
-    // F1 short-circuit: a sortal subject emits advice only when >=1 offered top-sortal lands
-    // `RefutedInStandpoint`; a refutation can only happen when the subject carries a reasoned
-    // rdf:type DISJOINT with an offered sortal. Every offered sortal is a subclass of the
-    // guard class, so the guard class itself, ITS superclasses, and owl:Thing can never be
-    // disjoint with any of them — a subject whose ONLY reasoned types are those cannot refute
-    // ANY disjunct, so by F1's own rule it is SUPPRESSED. Detect that cheaply off the REASONED
-    // type set (domain/range- and subclass-induced types are already materialized there) and
-    // return empty WITHOUT any `rehome_into_world` / `conjecture_test` call — this eliminates
-    // the dominant reasoning cost of the bare-entity fan-out while staying F1-EXACT (bare ⇒
-    // suppressed, identical observable result). A subject carrying an ADDITIONAL,
-    // potentially-disjoint type is NOT short-circuited: it falls through to the real reasoning
-    // gate below so a genuine refutation still emits the corroborated remainder.
-    if let (Some(first), Guard::Type(guard_class)) = (candidates.first(), &schema.guard)
-        && !subject_can_refute_a_sortal(reasoned, &first.subject, guard_class)
-    {
-        return (Vec::new(), Vec::new());
-    }
-    let mut exhausted = Vec::new();
-    let verdicts: Vec<EngineVerdict> = candidates
-        .iter()
-        .map(|candidate| {
-            let scenario_world = scenario_world_iri(candidate);
-            let assume = vec![(
-                candidate.subject.clone(),
-                candidate.predicate.clone(),
-                candidate.object.clone(),
-            )];
-            // The sortal guard is always a `Guard::Type` (`rdf:type(this, gmeow:Entity)`), so
-            // this always yields the same `type_atom` antecedent as before — the guard reading
-            // is generalized uniformly, the sortal warrant logic itself is unchanged.
-            let Some(guard_atom) = guard_antecedent(reasoned, &candidate.subject, &schema.guard)
-            else {
-                return EngineVerdict::Other;
-            };
-            let formula =
-                sortal_disjunct_formula(guard_atom, &candidate.subject, &candidate.object);
-            // The disjunctive gate is the ONE strategy that must detect a genuine CLASH
-            // between the candidate and the SUBJECT'S OWN other assertions — the
-            // conjunctive strategies only ever need syntactic redundancy (decided
-            // fact-locally, see `warrant`). The native engine's DL closure is WORLD-SCOPED
-            // (`crates/logic/src/store.rs`: "no cross-world union is performed"), so
-            // `reasoned`'s own facts (the subject's other types, the disjointness axioms)
-            // live in ITS authored world, never the isolated per-candidate `scenario_world`
-            // `conjecture_test` asserts the candidate into — left as-is, a clash could never
-            // be seen. Re-homing the KB into that SAME world lets it actually join the
-            // candidate's consistency check (mirrors `rehome_kb_into_scenario` in
-            // `crates/pipeline/src/mcp.rs`'s `evaluate_conjecture`).
-            let Some(rehomed) = rehome_into_world(reasoned, &scenario_world) else {
-                return EngineVerdict::Other;
-            };
-            let verdict =
-                engine_verdict(rehomed.as_ref(), &scenario_world, &formula, &assume, budget);
-            if verdict == EngineVerdict::Exhausted {
-                exhausted.push(exhaustion_diag(schema, candidate, &scenario_world));
-            }
-            verdict
-        })
-        .collect();
+    clash_sets: &BTreeMap<String, BTreeSet<String>>,
+) -> Vec<AbductiveSuggestion> {
+    let Some(first) = candidates.first() else {
+        return Vec::new();
+    };
+    // The subject's reasoned rdf:type objects — already carrying materialized superclasses on
+    // a reasoned graph, so a subclass-induced disjoint type is seen here. All candidates in
+    // the slice share this subject.
+    let subject_types: BTreeSet<String> = types_of(reasoned, &first.subject).into_iter().collect();
 
-    if !verdicts.contains(&EngineVerdict::Refuted) {
-        return (Vec::new(), exhausted);
-    }
-
-    let suggestions = candidates
-        .iter()
-        .zip(verdicts.iter())
-        .filter(|(_, verdict)| **verdict == EngineVerdict::Corroborated)
-        .map(|(candidate, _)| {
-            let scenario_world = scenario_world_iri(candidate);
-            build_suggestion(
-                reasoned,
-                schema,
-                candidate,
-                WarrantProse::EngineCorroborated {
-                    scenario_world: &scenario_world,
-                },
-            )
-        })
-        .collect();
-    (suggestions, exhausted)
-}
-
-/// Copy every quad of `reasoned` into the named graph `world`, dropping each quad's
-/// original graph. The native engine's DL closure is world-scoped (per-named-graph, no
-/// cross-world union — `crates/logic/src/store.rs`), so a candidate's `assume_context`/`φ`
-/// (asserted by `conjecture_test` into its own isolated `scenario_world`) can only join the
-/// KB's disjointness axioms and the subject's other assertions for a joint consistency
-/// check when the KB is re-homed into that SAME world first. Mirrors
-/// `rehome_kb_into_scenario` in `crates/pipeline/src/mcp.rs`. `None` only on a freeze
-/// failure — copying already-valid quads should never fail in practice, but a failure is
-/// honest absence (the caller's [`EngineVerdict::Other`]), never a panic.
-fn rehome_into_world(reasoned: &RdfDataset, world: &str) -> Option<Arc<RdfDataset>> {
-    let world_term = RdfTerm::iri(world.to_owned());
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in reasoned.owned_quads() {
-        let rehomed =
-            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world_term.clone());
-        builder.push_owned_quad(&rehomed);
-    }
-    builder.freeze().ok()
-}
-
-/// The four-way projection of a conjecture verdict the producer needs — a bare bool loses
-/// exactly the `RefutedInStandpoint` vs. `Open` vs. `BudgetExhausted` distinctions the
-/// per-subject sortal gate counts refutations over and the exhaustion path (below) reports.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum EngineVerdict {
-    /// The formula was `Corroborated` — the candidate addition is consistent (and warrants).
-    Corroborated,
-    /// The formula was `RefutedInStandpoint` — the candidate addition clashes with the
-    /// subject's other assertions (a genuine discriminator).
-    Refuted,
-    /// The engine's budget was exhausted before it reached a conclusive verdict — an honest
-    /// could-not-decide, NEVER folded into `Other` (a genuine `Open`/non-corroboration):
-    /// silently conflating the two would drop a completable subject with no trace.
-    Exhausted,
-    /// `Open` (a genuine, budget-unconstrained non-corroboration) / an engine error — honest
-    /// absence, neither corroborates, refutes, nor was cut short by budget.
-    Other,
-}
-
-/// Run `formula` through the native conjecture engine and project its verdict, evaluation
-/// status, and lifecycle to an [`EngineVerdict`]. Budget exhaustion is read off
-/// `answer.verdict.evaluation` (the axis [`gmeow_logic::conjecture::conjecture_test`]
-/// actually carries it on — `lifecycle_of`'s own invariant guarantees an exhausted run is
-/// ALWAYS `Open`, so checking `evaluation` first is what makes exhaustion distinguishable
-/// from a genuine `Open` at all) BEFORE the lifecycle match, so it is never folded into
-/// [`EngineVerdict::Other`]. An engine error is [`EngineVerdict::Other`] (honest absence, no
-/// panic — a hard reasoning failure is not itself an exhaustion).
-fn engine_verdict(
-    reasoned: &RdfDataset,
-    scenario_world: &str,
-    formula: &Formula,
-    assume: &[(String, String, String)],
-    budget: &Budget,
-) -> EngineVerdict {
-    match conjecture_test(
-        reasoned,
-        scenario_world,
-        formula,
-        BEST_PRACTICE_STANDPOINT_IRI,
-        assume,
-        budget,
-    ) {
-        Ok(answer) if answer.verdict.evaluation == EvaluationStatus::BudgetExhausted => {
-            EngineVerdict::Exhausted
+    let mut any_refuted = false;
+    let mut corroborated: Vec<&Candidate> = Vec::new();
+    for candidate in candidates {
+        // Refuted iff the subject already holds a type in the offered sortal's clash set.
+        let refuted = clash_sets
+            .get(&candidate.object)
+            .is_some_and(|clash| subject_types.iter().any(|t| clash.contains(t)));
+        if refuted {
+            any_refuted = true;
+        } else {
+            corroborated.push(candidate);
         }
-        Ok(answer) => match answer.lifecycle {
-            ConjectureLifecycleState::Corroborated => EngineVerdict::Corroborated,
-            ConjectureLifecycleState::RefutedInStandpoint => EngineVerdict::Refuted,
-            ConjectureLifecycleState::Open | ConjectureLifecycleState::Withdrawn => {
-                EngineVerdict::Other
-            }
-        },
-        Err(_) => EngineVerdict::Other,
     }
+    // F1 gate: a discriminating model (≥1 offered sortal ruled out) warrants the corroborated
+    // remainder; a non-discriminating one (nothing ruled out) is suppressed.
+    if !any_refuted {
+        return Vec::new();
+    }
+    corroborated
+        .into_iter()
+        .map(|candidate| {
+            build_suggestion(reasoned, schema, candidate, WarrantProse::ClassDisjointness)
+        })
+        .collect()
 }
 
-/// Build the "could-not-decide (budget exhausted)" diagnostic for a candidate whose warrant
-/// test was cut short by the engine's budget before reaching a conclusive verdict — an
-/// HONEST could-not-decide note (Note severity, mirrors the warrant [`Diag`]'s own grade),
-/// never a false advisory and never a silent drop indistinguishable from a genuine
-/// `Open`/non-corroboration. Returns the content-addressed sort key alongside the diag (see
-/// [`AbductiveOutcome::exhausted`]'s determinism note).
-fn exhaustion_diag(
-    schema: &DiscoveredSchema,
-    candidate: &Candidate,
-    scenario_world: &str,
-) -> (String, Diag) {
-    let discipline = code_local(&schema.term);
-    let digest = candidate_digest(candidate);
-    let code = format!(
-        "{}abductive.exhausted.{discipline}.{digest}",
-        crate::codes::ADVICE_FAMILY
-    );
-    let subject_q = qname(&candidate.subject);
-    let predicate_q = qname(&candidate.predicate);
-    let object_q = qname(&candidate.object);
-    let diag = Diag::note(
-        register_code(&code),
-        format!(
-            "abductive warrant inconclusive: the native conjecture engine's budget was \
-             exhausted before it could decide whether adding {predicate_q} {object_q} to \
-             {subject_q} completes the {} completeness formula ({discipline}) in a consistent, \
-             isolated scenario world <{scenario_world}> from standpoint \
-             <{BEST_PRACTICE_STANDPOINT_IRI}> — this is a could-not-decide (budget exhausted), \
-             NOT a genuine non-corroboration; no advisory is emitted for this candidate.",
-            qname(&schema.term),
-        ),
-    );
-    (code, diag)
+// ── The sortal class-disjointness lookup ─────────────────────────────────────────────
+
+/// The clash set of an offered sortal `T`: every class `c` such that a subject already typed
+/// `c` cannot ALSO be consistently typed `T` — i.e. `c` is disjoint with `T` or with any
+/// reasoned superclass of `T`. Anchored on `{T} ∪ reasoned_superclasses(T)` because
+/// disjointness propagates DOWN subclasses (`A ⊥ B ⇒ every subclass of A ⊥ every subclass of
+/// B`), so a clash with a superclass of `T` is a clash with `T`. Read against the symmetric
+/// `disjointness` index (every disjointness form; see [`disjointness_index`]).
+///
+/// SOUNDNESS vs. the old native engine: the engine refuted `rdf:type(s, T)` against `s:D` iff
+/// `∃ A ⊇ D, B ⊇ T. A ⊥ B`. Intersecting `s`'s upward-closed reasoned types (`{D} ∪ super(D)`,
+/// materialized on the reasoned graph) with this `{T} ∪ super(T)`-anchored clash set decides
+/// exactly that condition — no over- or under-refutation, provided disjointness is read in
+/// every form the engine reads (it is; see [`disjointness_index`]). A bare top-sortal
+/// type-assertion has NO other inconsistency source, so this fully replaces the engine here.
+fn clash_set(
+    reasoned: &RdfDataset,
+    sortal: &str,
+    disjointness: &BTreeMap<String, BTreeSet<String>>,
+) -> BTreeSet<String> {
+    let mut anchors = superclasses(reasoned, sortal);
+    anchors.insert(sortal.to_owned());
+    let mut clash = BTreeSet::new();
+    for anchor in &anchors {
+        if let Some(disjoint_with_anchor) = disjointness.get(anchor) {
+            clash.extend(disjoint_with_anchor.iter().cloned());
+        }
+    }
+    clash
 }
 
-/// The Horn per-disjunct completeness formula `guard_antecedent → τ_T(subject)`.
-fn sortal_disjunct_formula(guard_antecedent: Formula, subject: &str, sortal: &str) -> Formula {
-    Formula::Implies(
-        Box::new(guard_antecedent),
-        Box::new(type_atom(subject, sortal)),
-    )
+/// The SYMMETRIC class-disjointness index of the reasoned graph — `class → { classes disjoint
+/// with it }` — built once and read by every offered sortal's [`clash_set`]. Captures EVERY
+/// disjointness form that occurs in the reasoned object-level graph, so no refutation the old
+/// native engine would find is missed:
+///   * `owl:disjointWith` — the top-sortal form, read in BOTH directions (it is symmetric);
+///   * `logic:disjointWith` — the canonical grounding form (Principle 17), likewise symmetric;
+///   * `owl:AllDisjointClasses` + `owl:members` RDF list — expanded to every distinct pair of
+///     members (pairwise disjointness).
+///
+/// IRI classes only: a disjointness edge onto a literal/blank is never a class-clash source.
+fn disjointness_index(reasoned: &RdfDataset) -> BTreeMap<String, BTreeSet<String>> {
+    let mut index: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    // The two symmetric binary forms.
+    for predicate in [OWL_DISJOINT_WITH.to_owned(), format!("{LOGIC}disjointWith")] {
+        for (a, b) in binary_disjoint_pairs(reasoned, &predicate) {
+            insert_symmetric(&mut index, a, b);
+        }
+    }
+    // owl:AllDisjointClasses membership lists, expanded pairwise.
+    for members in all_disjoint_member_lists(reasoned) {
+        for (i, a) in members.iter().enumerate() {
+            for b in &members[i + 1..] {
+                insert_symmetric(&mut index, a.clone(), b.clone());
+            }
+        }
+    }
+    index
+}
+
+/// Record `a ⊥ b` symmetrically in the disjointness index (`owl:disjointWith` and
+/// `logic:disjointWith` are symmetric; an `owl:AllDisjointClasses` membership makes every
+/// distinct member pair mutually disjoint).
+fn insert_symmetric(index: &mut BTreeMap<String, BTreeSet<String>>, a: String, b: String) {
+    index.entry(a.clone()).or_default().insert(b.clone());
+    index.entry(b).or_default().insert(a);
+}
+
+/// Every `(a, b)` IRI pair asserted `a <predicate> b` on the reasoned graph, for a binary
+/// class-disjointness `predicate` (`owl:disjointWith` / `logic:disjointWith`). Order-as-read;
+/// the caller symmetrizes. IRI-only (a disjointness onto a literal/blank is not a clash).
+fn binary_disjoint_pairs(reasoned: &RdfDataset, predicate: &str) -> Vec<(String, String)> {
+    let Some(pred_id) = term_id(reasoned, predicate) else {
+        return Vec::new();
+    };
+    reasoned
+        .quads_for_pattern(None, Some(pred_id), None, GraphMatch::Any)
+        .filter_map(|q| match (reasoned.resolve(q.s), reasoned.resolve(q.o)) {
+            (TermRef::Iri(a), TermRef::Iri(b)) => Some((a.to_owned(), b.to_owned())),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The `owl:members` IRI list of every `owl:AllDisjointClasses` node in the reasoned graph.
+/// The AllDisjointClasses node is typically a BLANK node, so it is matched by TYPE (not by
+/// IRI); each returned inner Vec is one membership, its elements the class IRIs. The caller
+/// expands each to pairwise disjointness.
+fn all_disjoint_member_lists(reasoned: &RdfDataset) -> Vec<Vec<String>> {
+    let (Some(type_id), Some(add_id), Some(members_id)) = (
+        term_id(reasoned, RDF_TYPE),
+        term_id(reasoned, OWL_ALL_DISJOINT_CLASSES),
+        term_id(reasoned, OWL_MEMBERS),
+    ) else {
+        return Vec::new();
+    };
+    // Collect the AllDisjointClasses node ids first so each list walk opens a fresh,
+    // non-overlapping pattern scan.
+    let nodes: Vec<TermId> = reasoned
+        .quads_for_pattern(None, Some(type_id), Some(add_id), GraphMatch::Any)
+        .map(|q| q.s)
+        .collect();
+    let mut lists = Vec::new();
+    for node in nodes {
+        let heads: Vec<TermId> = reasoned
+            .quads_for_pattern(Some(node), Some(members_id), None, GraphMatch::Any)
+            .map(|q| q.o)
+            .collect();
+        for head in heads {
+            let members = list_iri_members(reasoned, head);
+            if !members.is_empty() {
+                lists.push(members);
+            }
+        }
+    }
+    lists
+}
+
+/// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
+/// order. Cycle-safe (each cell visited once) and tolerant of a malformed list (terminates on
+/// `rdf:nil`, a missing `rdf:rest`, or a non-IRI cell), mirroring the frontend's list reader.
+fn list_iri_members(reasoned: &RdfDataset, head: TermId) -> Vec<String> {
+    let (Some(first_id), Some(rest_id)) =
+        (term_id(reasoned, RDF_FIRST), term_id(reasoned, RDF_REST))
+    else {
+        return Vec::new();
+    };
+    let nil_id = term_id(reasoned, RDF_NIL);
+    let mut out = Vec::new();
+    let mut seen: BTreeSet<TermId> = BTreeSet::new();
+    let mut cursor = head;
+    loop {
+        if Some(cursor) == nil_id || !seen.insert(cursor) {
+            break;
+        }
+        if let Some(q) = reasoned
+            .quads_for_pattern(Some(cursor), Some(first_id), None, GraphMatch::Any)
+            .next()
+            && let TermRef::Iri(iri) = reasoned.resolve(q.o)
+        {
+            out.push(iri.to_owned());
+        }
+        match reasoned
+            .quads_for_pattern(Some(cursor), Some(rest_id), None, GraphMatch::Any)
+            .next()
+        {
+            Some(q) => cursor = q.o,
+            None => break,
+        }
+    }
+    out
 }
 
 /// `rdf:type(subject, class)`.
@@ -804,25 +758,25 @@ fn type_atom(subject: &str, class: &str) -> Formula {
 
 /// The warrant discipline for a suggestion — selects the HONEST warrant + advisory prose.
 /// The conjunctive/relatum path is warranted BY CONSTRUCTION (a fresh witness for a missing
-/// relatum is a consistent addition — no engine call, so no scenario world to name); the
-/// sortal path is warranted by the native conjecture engine in a specific, content-addressed
-/// scenario world. Wording each path truthfully is why this flag is threaded here.
-enum WarrantProse<'a> {
+/// relatum is a consistent addition); the sortal path is warranted by a sound
+/// class-disjointness check (the subject holds no type disjoint with the offered sortal).
+/// NEITHER path calls a reasoner — wording each truthfully is why this flag is threaded here.
+enum WarrantProse {
     /// A relatum/conjunctive completion — warranted by construction, no engine call.
     ByConstruction,
-    /// A sortal specialization — the native conjecture engine corroborated the addition in
-    /// the named isolated scenario world.
-    EngineCorroborated { scenario_world: &'a str },
+    /// A sortal specialization — warranted by a class-disjointness lookup: the subject holds
+    /// no reasoned type disjoint with the offered sortal, so adding it is consistent.
+    ClassDisjointness,
 }
 
 /// Build the paired warrant [`Diag`] + [`Advisory`] for a warranted candidate, wording the
-/// warrant HONESTLY per its `prose` discipline: a by-construction relatum argument makes no
-/// engine claim, while the sortal path narrates its genuine native conjecture corroboration.
+/// warrant HONESTLY per its `prose` discipline: a by-construction relatum argument, or a
+/// class-disjointness argument for the sortal path. Neither claims a reasoner was run.
 fn build_suggestion(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidate: &Candidate,
-    prose: WarrantProse<'_>,
+    prose: WarrantProse,
 ) -> AbductiveSuggestion {
     let discipline = code_local(&schema.term);
     let digest = candidate_digest(candidate);
@@ -834,7 +788,7 @@ fn build_suggestion(
         "{}abductive.warrant.{discipline}.{digest}",
         crate::codes::ADVICE_FAMILY
     );
-    let conjecture_id = format!("{discipline}.{digest}");
+    let warrant_id = format!("{discipline}.{digest}");
 
     let subject_q = qname(&candidate.subject);
     let object_q = qname(&candidate.object);
@@ -849,9 +803,10 @@ fn build_suggestion(
             "Complete the under-specified {term_q} — a fresh witness for the missing relatum is \
              a consistent addition that satisfies its declared modeling discipline by construction."
         ),
-        WarrantProse::EngineCorroborated { .. } => format!(
-            "Complete the under-specified {term_q} — the native conjecture engine corroborated a \
-             minimal addition that satisfies its declared modeling discipline."
+        WarrantProse::ClassDisjointness => format!(
+            "Complete the under-specified {term_q} — specializing to this top sortal is consistent \
+             (the subject holds no type disjoint with it), a minimal addition satisfying its \
+             declared modeling discipline."
         ),
     });
 
@@ -863,9 +818,9 @@ fn build_suggestion(
             candidate.element,
             candidate_reason(candidate, &predicate_q, &object_q),
         ),
-        WarrantProse::EngineCorroborated { .. } => format!(
-            "Add {} to {subject_q} — {}. The native conjecture engine corroborated that this \
-             addition completes {term_q}'s discipline in a consistent scenario world.",
+        WarrantProse::ClassDisjointness => format!(
+            "Add {} to {subject_q} — {}. {subject_q} holds no type disjoint with {object_q}, so this \
+             specialization is consistent (a sound class-disjointness check, not a reasoning pass).",
             candidate.element,
             candidate_reason(candidate, &predicate_q, &object_q),
         ),
@@ -876,7 +831,7 @@ fn build_suggestion(
         .with_subject_iri(candidate.subject.clone())
         .with_tag("abductive")
         .with_tag(format!("formalizes:{}", schema.term))
-        .with_tag(format!("warrant:{conjecture_id}"));
+        .with_tag(format!("warrant:{warrant_id}"));
 
     let warrant_message = match &prose {
         WarrantProse::ByConstruction => format!(
@@ -886,11 +841,13 @@ fn build_suggestion(
              fresh untyped object on an absent property can introduce no cardinality or disjointness \
              clash, so the addition is consistent with no native conjecture-engine call required."
         ),
-        WarrantProse::EngineCorroborated { scenario_world } => format!(
-            "abductive warrant: the native conjecture engine corroborated that adding {predicate_q} \
-             {object_q} to {subject_q} completes the {term_q} completeness formula ({discipline}) in \
-             a consistent, isolated scenario world <{scenario_world}> from standpoint \
-             <{BEST_PRACTICE_STANDPOINT_IRI}>."
+        WarrantProse::ClassDisjointness => format!(
+            "abductive warrant (class disjointness): adding {predicate_q} {object_q} to {subject_q} \
+             completes the {term_q} sortal-specialization completeness formula ({discipline}) — \
+             {subject_q} holds NO reasoned type disjoint with {object_q}, so adding this top sortal \
+             is consistent. This is a sound class-disjointness lookup (a bare top-sortal \
+             type-assertion is inconsistent only if the subject already holds a disjoint type); the \
+             native conjecture engine is not used."
         ),
     };
     let warrant = Diag::note(register_code(&warrant_code), warrant_message);
@@ -1058,25 +1015,6 @@ fn has_type(reasoned: &RdfDataset, subject: &str, class: &str) -> bool {
         .is_some()
 }
 
-/// `true` iff `subject` carries some reasoned rdf:type that could REFUTE an offered top
-/// sortal — i.e. a type that is NOT the guard class, NOT a superclass of the guard class, and
-/// NOT `owl:Thing`. Every offered sortal is a subclass of `guard_class`, so those "benign"
-/// types are all consistent with every sortal (a superclass of the guard can never be
-/// disjoint with a subclass of the guard). A subject with only benign types therefore cannot
-/// land any disjunct `RefutedInStandpoint`, and F1 suppresses it (see
-/// [`sortal_suggestions_for_subject`]'s short-circuit). SOUND, never over-suppressing: a type
-/// disjoint with a sortal can never itself be a superclass of the guard class, so a subject
-/// carrying a genuinely-discriminating type always returns `true` and reaches the reasoning
-/// gate. Reads the REASONED graph, where subclass/domain/range-induced types are materialized.
-fn subject_can_refute_a_sortal(reasoned: &RdfDataset, subject: &str, guard_class: &str) -> bool {
-    let mut benign = superclasses(reasoned, guard_class);
-    benign.insert(guard_class.to_owned());
-    benign.insert(OWL_THING.to_owned());
-    types_of(reasoned, subject)
-        .into_iter()
-        .any(|t| !benign.contains(&t))
-}
-
 /// The reasoned rdf:type IRIs of `subject` (byte-sorted & deduplicated).
 fn types_of(reasoned: &RdfDataset, subject: &str) -> Vec<String> {
     let (Some(s), Some(p)) = (term_id(reasoned, subject), term_id(reasoned, RDF_TYPE)) else {
@@ -1162,14 +1100,6 @@ fn witness_iri(subject: &str, predicate: &str) -> String {
     )
 }
 
-/// A content-addressed isolated scenario-world IRI for a candidate.
-fn scenario_world_iri(candidate: &Candidate) -> String {
-    format!(
-        "{SCENARIO_WORLD_BASE}{}",
-        hex_digest(&candidate_key(candidate), 16)
-    )
-}
-
 /// A stable 12-hex digest of the full candidate (subject · predicate · object) — the
 /// injective code fragment so distinct candidates never collide onto one advisory code.
 fn candidate_digest(candidate: &Candidate) -> String {
@@ -1233,6 +1163,8 @@ fn qname(iri: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use purrdf::RdfDatasetBuilder;
+    use std::sync::Arc;
 
     /// Parse `ttl` (with the `gmeow:` prefix predeclared) into a frozen [`RdfDataset`] —
     /// the minimal build helper this file's `term_how_to_use` unit test needs.

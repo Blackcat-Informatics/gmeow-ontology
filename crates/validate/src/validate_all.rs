@@ -859,12 +859,12 @@ impl ValidationRun {
             report.add_rule(advisory.rule());
         }
         // D5 abductive tier (CLI twin of the pipeline wiring): the constructive "what to ADD"
-        // wing. Each corroborated candidate is a warrant-as-Finding (attached first, its DiagRef
+        // wing. Each warranted candidate is a warrant-as-Finding (attached first, its DiagRef
         // captured) plus an advisory whose diag carries a genuine finding→finding antecedent to
-        // that warrant, so the warrant join resolves non-DARK. The producer runs the native
-        // conjecture engine over an ISOLATED scenario world per candidate; `dataset` is only
-        // READ, never mutated. Both wings ride the same dual-projection loop → the `gmeow` CLI
-        // surfaces D5 with closed warrant edges.
+        // that warrant, so the warrant join resolves non-DARK. The producer is ENGINE-FREE — the
+        // relatum path warrants by construction, the sortal path by a sound class-disjointness
+        // lookup — and `dataset` is only READ, never mutated. Both wings ride the same
+        // dual-projection loop → the `gmeow` CLI surfaces D5 with closed warrant edges.
         //
         // `dataset` IS the reasoned surface the producer's `reasoned` parameter names: when a
         // `gmeow.gts` bundle is validated it is `dataset_from_gts`, which already carries the
@@ -873,9 +873,8 @@ impl ValidationRun {
         // asserted graph only — an HONEST asserted-only surface (no fabricated reasoning), the
         // exact contract the producer doc records. There is no authored-only surface masquerading
         // as reasoned: the pipeline path unions the real closure, this path passes the real bundle.
-        let abductive_outcome =
-            crate::abductive::abductive_advisories(&dataset, &crate::abductive::abductive_budget());
-        for suggestion in abductive_outcome.suggestions {
+        let abductive_suggestions = crate::abductive::abductive_advisories(&dataset);
+        for suggestion in abductive_suggestions {
             let warrant_ref =
                 advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
             let projection = suggestion.advisory.project();
@@ -885,14 +884,6 @@ impl ValidationRun {
             );
             advisory_claims.push(projection.claim);
             report.add_rule(suggestion.advisory.rule());
-        }
-        // A candidate whose warrant test was cut short by budget exhaustion is NEVER a
-        // silent drop (G6 Part B): its could-not-decide diagnostic rides the SAME ledger as
-        // the warrant/advisory Diags, so a dropped-because-exhausted subject stays
-        // observable in graph/diagnostics rather than vanishing indistinguishably from a
-        // genuine `Open`/non-corroboration.
-        for exhausted in abductive_outcome.exhausted {
-            advisory_ledger.attach(exhausted, StageId::new("validate.advisory"));
         }
         // Flat findings after the ledger is fully attached (findings("validate") reads the batch).
         for note in advisory_ledger.findings("validate") {
