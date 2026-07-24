@@ -5621,6 +5621,7 @@ name = "xtask"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-logic-compile",
 ]
 
 [[package]]

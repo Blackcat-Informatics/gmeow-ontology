@@ -22,282 +22,216 @@ gmeow:mapsetGenealogy a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Genealogy alignments — kinship relationships and convenience properties to BIO / GEDCOM X / Wikidata / REL; legacy W3C gedcom predicates for coverage. Life-EVENT alignments (event types, dates, places, participant roles) live in the events mapset (gmeow-events.sssom.tsv), since life events are now the universal events module's concern. Supersedes the unmaintained SWAP gedcom as the canonical model." .
 
-gmeow:eqGenealogy043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gxv:Person ;
+gmeow:Person skos:closeMatch gxv:Person {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoupleRelationship ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:Couple ;
+gmeow:CoupleRelationship skos:closeMatch gx:Couple {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqGenealogy045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ParentChildRelationship ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:ParentChild ;
+gmeow:ParentChildRelationship skos:closeMatch gx:ParentChild {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqGenealogy046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:BiologicalParentChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:BiologicalParent ;
+gmeow:BiologicalParentChild skos:closeMatch gx:BiologicalParent {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AdoptiveParentChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:AdoptiveParent ;
+gmeow:AdoptiveParentChild skos:closeMatch gx:AdoptiveParent {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StepParentChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:StepParent ;
+gmeow:StepParentChild skos:closeMatch gx:StepParent {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:FosterParentChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:FosterParent ;
+gmeow:FosterParentChild skos:closeMatch gx:FosterParent {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PersonName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gxv:Name ;
+gmeow:PersonName skos:closeMatch gxv:Name {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqGenealogy051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gxv:SourceDescription ;
+gmeow:CreativeWork skos:closeMatch gxv:SourceDescription {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI) bearing SourceRole." ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI) bearing SourceRole."
+|} .
 
-gmeow:eqGenealogy052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Selector ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gxv:SourceReference ;
+gmeow:Selector skos:closeMatch gxv:SourceReference {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "The retired gmeow:Citation locator is replaced by gmeow:Selector." ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "The retired gmeow:Citation locator is replaced by gmeow:Selector."
+|} .
 
-gmeow:eqGenealogy053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Place ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:Feature ;
+gmeow:Place skos:closeMatch gn:Feature {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "GeoNames feature" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "GeoNames feature"
+|} .
 
-gmeow:eqGenealogy054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasFather ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bio:father ;
+gmeow:hasFather skos:closeMatch bio:father {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:hasMother skos:closeMatch bio:mother {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:hasChild skos:closeMatch bio:child {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:hasParent skos:closeMatch wdt:P8810 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "parent (gender-neutral)"
+|} .
 
-gmeow:eqGenealogy055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMother ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bio:mother ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
-
-gmeow:eqGenealogy056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bio:child ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
-
-gmeow:eqGenealogy063 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasParent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P8810 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "parent (gender-neutral)" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
-
-gmeow:eqGenealogy064 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasFather ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P22 ;
+gmeow:hasFather skos:closeMatch wdt:P22 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "father" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "father"
+|} .
 
-gmeow:eqGenealogy065 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMother ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P25 ;
+gmeow:hasMother skos:closeMatch wdt:P25 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "mother" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "mother"
+|} .
 
-gmeow:eqGenealogy066 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P40 ;
+gmeow:hasChild skos:closeMatch wdt:P40 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "child" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "child"
+|} .
 
-gmeow:eqGenealogy067 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSpouse ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P26 ;
+gmeow:hasSpouse skos:closeMatch wdt:P26 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "spouse" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "spouse"
+|} .
 
-gmeow:eqGenealogy068 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSibling ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P3373 ;
+gmeow:hasSibling skos:closeMatch wdt:P3373 {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "sibling" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "sibling"
+|} .
 
-gmeow:eqGenealogy071 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasChild ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gedcom:child ;
+gmeow:hasChild skos:closeMatch gedcom:child {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "legacy W3C gedcom" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "legacy W3C gedcom"
+|} .
 
-gmeow:eqGenealogy072 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPartner ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gedcom:husband ;
+gmeow:hasPartner skos:closeMatch gedcom:husband {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "legacy W3C gedcom couple role" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "legacy W3C gedcom couple role"
+|} .
 
-gmeow:eqGenealogy073 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPartner ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gedcom:wife ;
+gmeow:hasPartner skos:closeMatch gedcom:wife {|
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "legacy W3C gedcom couple role" ;
-    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+    gmeow:comment "legacy W3C gedcom couple role"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Family ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject gedcom:Family ;
+gmeow:Family owl:equivalentClass gedcom:Family {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasParent ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:parent ;
+gmeow:hasParent owl:equivalentProperty schema:parent {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasParent ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject rel:childOf ;
+gmeow:hasParent owl:equivalentProperty rel:childOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "childOf points child->parent = hasParent" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "childOf points child->parent = hasParent"
+|} .
 
-gmeow:eqProperties022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasChild ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:children ;
+gmeow:hasChild owl:equivalentProperty schema:children {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasChild ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject rel:parentOf ;
+gmeow:hasChild owl:equivalentProperty rel:parentOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqProperties024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSpouse ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:spouse ;
+gmeow:hasSpouse owl:equivalentProperty schema:spouse {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSpouse ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject rel:spouseOf ;
+gmeow:hasSpouse owl:equivalentProperty rel:spouseOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSibling ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:sibling ;
+gmeow:hasSibling owl:equivalentProperty schema:sibling {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSibling ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject rel:siblingOf ;
+gmeow:hasSibling owl:equivalentProperty rel:siblingOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqWikidata005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Family ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q8436 ;
+gmeow:Family skos:exactMatch wd:Q8436 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "family" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "family"
+|} .

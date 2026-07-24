@@ -8,20 +8,16 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqAg001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ToolCall ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q62270 ;
+gmeow:ToolCall skos:relatedMatch wd:Q62270 {|
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'remote procedure call' — the MECHANISM where GMEOW names the call EVENT; curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-agentic.sssom.tsv" .
+    gmeow:comment "Wikidata 'remote procedure call' — the MECHANISM where GMEOW names the call EVENT; curl-validated 2026-06-12"
+|} .
 
-gmeow:eqAg002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ToolCall ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:Action ;
+gmeow:ToolCall skos:relatedMatch schema:Action {|
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema.org Action: an agent acts via an instrument — ToolCall narrows to software tool invocation with verbatim payloads; schema:instrument is the projection seam for usedTool" ;
-    gmeow:sssomFile "gmeow-agentic.sssom.tsv" .
+    gmeow:comment "schema.org Action: an agent acts via an instrument — ToolCall narrows to software tool invocation with verbatim payloads; schema:instrument is the projection seam for usedTool"
+|} .

@@ -12,119 +12,93 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqAi005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelInvocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mls:Run ;
+gmeow:ModelInvocation skos:closeMatch mls:Run {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "ML-Schema's Run is the executed model task; GMEOW's invocation adds prompt + sampling provenance" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "ML-Schema's Run is the executed model task; GMEOW's invocation adds prompt + sampling provenance"
+|} .
 
-gmeow:eqAi006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ModelCard ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mls:Model ;
+gmeow:ModelCard skos:closeMatch mls:Model {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "mls:Model is the trained artifact itself; the ModelCard is the description OF one — the nearest stable RDF term (Model Cards proper have no RDF namespace; see trailer)" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "mls:Model is the trained artifact itself; the ModelCard is the description OF one — the nearest stable RDF term (Model Cards proper have no RDF namespace; see trailer)"
+|} .
 
-gmeow:eqAi007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Prompt ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:Prompt skos:relatedMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "a prompt is a prov:Entity used by the invocation activity; PROV-O has nothing finer" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "a prompt is a prov:Entity used by the invocation activity; PROV-O has nothing finer"
+|} .
 
-gmeow:eqAi008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Prompt ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q108941486 ;
+gmeow:Prompt skos:relatedMatch wd:Q108941486 {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.55 ;
-    gmeow:comment "Wikidata 'prompt engineering' — the practice around the artifact (no artifact-level QID exists); curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "Wikidata 'prompt engineering' — the practice around the artifact (no artifact-level QID exists); curl-validated 2026-06-12"
+|} .
 
-gmeow:eqAi009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:groundedIn ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject oa:hasTarget ;
+gmeow:groundedIn skos:relatedMatch oa:hasTarget {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "in the Web Annotation projection the claim is the annotation body and the evidence span its target; directions differ, hence relatedMatch" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "in the Web Annotation projection the claim is the annotation body and the evidence span its target; directions differ, hence relatedMatch"
+|} .
 
-gmeow:eqAi010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:spanStart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:start ;
+gmeow:spanStart skos:closeMatch oa:start {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "oa:TextPositionSelector's start — same unicode code-point semantics" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "oa:TextPositionSelector's start — same unicode code-point semantics"
+|} .
 
-gmeow:eqAi011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:spanEnd ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:end ;
+gmeow:spanEnd skos:closeMatch oa:end {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "oa:TextPositionSelector's end — same exclusive-end semantics" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "oa:TextPositionSelector's end — same exclusive-end semantics"
+|} .
 
-gmeow:eqAi012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:polaritySupports ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cito:supports ;
+gmeow:polaritySupports skos:relatedMatch cito:supports {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "CiTO's supports is a work-to-work citation intent; GMEOW's polarity is a span-to-claim stance — same epistemics, different carrier" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "CiTO's supports is a work-to-work citation intent; GMEOW's polarity is a span-to-claim stance — same epistemics, different carrier"
+|} .
 
-gmeow:eqAi013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:polarityRefutes ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject cito:disputes ;
+gmeow:polarityRefutes skos:relatedMatch cito:disputes {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "CiTO's disputes, at the span-to-claim level" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "CiTO's disputes, at the span-to-claim level"
+|} .
 
-gmeow:eqAi014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Contradiction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q363948 ;
+gmeow:Contradiction skos:closeMatch wd:Q363948 {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Wikidata 'logical contradiction' — GMEOW's individual is the SURFACED conflict artifact, attributed and kind-classified; curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "Wikidata 'logical contradiction' — GMEOW's individual is the SURFACED conflict artifact, attributed and kind-classified; curl-validated 2026-06-12"
+|} .
 
-gmeow:eqAi015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Chunk ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject oa:TextPositionSelector ;
+gmeow:Chunk skos:relatedMatch oa:TextPositionSelector {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "a chunk IS located the way a position selector locates (start/end into a source); the selector is the locator, the chunk the located segment — relatedMatch, not equivalence" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "a chunk IS located the way a position selector locates (start/end into a source); the selector is the locator, the chunk the located segment — relatedMatch, not equivalence"
+|} .
 
-gmeow:eqAi016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:groundedIn ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:appearance ;
+gmeow:groundedIn skos:relatedMatch schema:appearance {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the schema-org projection composes claim→span→chunk→source into schema:appearance (the claim appears in that work); the term-level relation is loose, the composed path faithful" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "the schema-org projection composes claim→span→chunk→source into schema:appearance (the claim appears in that work); the term-level relation is loose, the composed path faithful"
+|} .
 
-gmeow:eqAi017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modelVersionTag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:softwareVersion ;
+gmeow:modelVersionTag skos:closeMatch schema:softwareVersion {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the provider's wire-level version tag, on the described agent in the projection" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "the provider's wire-level version tag, on the described agent in the projection"
+|} .

@@ -2,33 +2,29 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Advice Entry
+# Changelog Entry
 
-`gmeow:AdviceEntry` · Class
+`gmeow:ChangelogEntry` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AdviceEntry` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AdviceEntry` |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
 | Category | Class |
-| Slice | [GMEOW Diagnostics Module](../../slices/diagnostics/index.md) |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. Where a ValidationRule is the standing definition of an enforced \(binding\-or\-advisory\-severity\) check, an AdviceEntry is the standing definition of the harvested advice for one governed term: the verbatim gmeow:adviceAvoidWhen \(prohibition\), gmeow:adviceUseWhen \(conditional permission\), and gmeow:adviceHowToUse \(positive directive\) prose that the term's realized advisory carriers formalize, plus gmeow:appliesToTerm / logic:formalizes back to that term and gmeow:documentedByRule to the advice\.\* family rule\. AdviceEntry individuals are the gmeow: RDF projection of the reasoned graph's realized advice carriers — generated, never authored by hand, so the advice catalog stays a projection of the axioms rather than a maintained list; a term with no realized carrier gets no entry\.
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AdviceEntry ;
-    gmeow:adviceAvoidWhen "..." ;  # xsd:string
-    gmeow:adviceHowToUse "..." ;  # xsd:string
-    gmeow:adviceUseWhen "..." ;  # xsd:string
-    gmeow:documentedByRule <...> .  # gmeow:ValidationRule
+<subject> a gmeow:ChangelogEntry .
 ```
 
 ## Example in multiple syntaxes
@@ -36,11 +32,7 @@ A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. 
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AdviceEntry ;
-    gmeow:adviceAvoidWhen "..." ;  # xsd:string
-    gmeow:adviceHowToUse "..." ;  # xsd:string
-    gmeow:adviceUseWhen "..." ;  # xsd:string
-    gmeow:documentedByRule <...> .  # gmeow:ValidationRule
+<subject> a gmeow:ChangelogEntry .
 ```
 
 **JSON\-LD**
@@ -53,43 +45,44 @@ A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. 
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AdviceEntry"
+          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
         }
-      ],
-      "https://blackcatinformatics.ca/gmeow/adviceAvoidWhen": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/adviceHowToUse": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/adviceUseWhen": {
-        "@value": "..."
-      },
-      "https://blackcatinformatics.ca/gmeow/documentedByRule": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      }
+      ]
     }
   ]
 }
 ```
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+
+## Super\-classes
+
+- [`gmeow:InformationObject`](../informationobject/index.md)
+
 ## Usage Advice
 
-- **Scope:** The recommendation sibling of gmeow:ValidationRule: both are catalog entries, but a ValidationRule is an enforced check \(its findings gate or warn\) while an AdviceEntry documents non\-gating advice \(the advice\.\* Note tier that only recommends\)\. Distinct class so the two deontic tiers — compliance and advice — render as distinct catalog sections while sharing the anchor authority\. Its ⊑ gmeow:InformationObject is grounded in logic: \(logic:subClassOf, which the pipeline lowers to rdfs:subClassOf on the OWL/RDFS projection\) rather than hand\-authored — giving parity with gmeow:ValidationRule ⊑ gmeow:InformationObject in the derived graph while adding no hand\-authored rdfs subsumption residue, since the residue counter counts only rdfs:subClassOf asserted in source, never logic:subClassOf\.
-- **Example:** ex:adviceEntity a gmeow:AdviceEntry ; gmeow:appliesToTerm gmeow:Entity ; gmeow:documentedByRule \<https://blackcatinformatics\.ca/gmeow/rule/family/advice\> ; gmeow:adviceAvoidWhen "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies…" \.
-- **Use when:** Use to record the definition of a harvested recommendation as a first\-class, queryable RDF entity — the machine\-readable advice catalog that lets an advisory finding code resolve to the avoid/use/how\-to prose it recommends for a governed term\.
-- **Avoid when:** Avoid authoring AdviceEntry individuals by hand as the source of truth — they are generated from the reasoned graph's realized advice carriers — and avoid using one where a gmeow:ValidationRule \(an enforced check\) is meant; the AdviceEntry is a non\-gating recommendation, not a check that fails the gate\.
-- **How to use:** Read it as the resolution target of the advice\.\* finding family: from a gmeow:Finding whose gmeow:findingCode begins 'advice\.', land on the advice section \(help URI anchor \#advice\-\) and surface the AdviceEntry for the finding's governed term — its gmeow:adviceAvoidWhen / gmeow:adviceUseWhen / gmeow:adviceHowToUse prose as 'what this code recommends'\.
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
 
 ## Profiles
 
-- `claims` · `full`
+- `full` · `music` · `purremb`
 
 ## Formal & academic
 
+## Description\-Logic axioms
+
+```text
+gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+```
+
 ## Logic stereotypes
 
-`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -97,22 +90,22 @@ A single catalog RECOMMENDATION — the advisory peer of gmeow:ValidationRule\. 
 
 ## Documentation coverage
 
-- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** stable
+- **Status:** experimental
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
+- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AdviceEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AdviceEntry@blake3:e22e0d712d893c0ecb411adced45022a7cd9465df9e85319a59208e8487b024d`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

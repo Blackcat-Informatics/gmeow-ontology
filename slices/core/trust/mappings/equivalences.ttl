@@ -18,119 +18,91 @@ gmeow:mapsetTrust a gmeow:MappingSet ;
     gmeow:setComment "Trust + contact-relationship alignments for the contacts revisit. Cryptographic keys / certifications / owner-trust use skos:closeMatch to the WOT schema (the PGP Web-of-Trust RDF vocabulary); the interpersonal-relationship convenience properties align to the REL (Relationship) vocabulary and FOAF. Perspectival owner-trust (TrustAssertion/trustor/trustLevel) and endorses are canonical — no maintained external RDF vocabulary models subjective, perspectival trust. W3C Verifiable Credentials / DID alignment is forward-looking (see commented rows below); the vc/did prefixes are deferred until those rows are added." ;
     gmeow:setTrailer "# Forward-looking (W3C Verifiable Credentials / DID) — uncomment after adding vc/did prefixes to config.py:\n# gmeow:Certification\tskos:relatedMatch\tvc:VerifiableCredential\tsemapv:ManualMappingCuration\t0.5\ta certification is a credential-like signed claim by an issuer about a subject\n# gmeow:certifier\tskos:relatedMatch\tvc:issuer\tsemapv:ManualMappingCuration\t0.5" .
 
-gmeow:eqTrust001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CryptographicKey ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:PubKey ;
+gmeow:CryptographicKey skos:closeMatch wot:PubKey {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTrust002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fingerprint ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:fingerprint ;
+gmeow:fingerprint skos:closeMatch wot:fingerprint {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTrust003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:keyId ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:hex_id ;
+gmeow:keyId skos:closeMatch wot:hex_id {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTrust004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:holdsKey ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:hasKey ;
+gmeow:holdsKey skos:closeMatch wot:hasKey {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTrust005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Certification ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:Endorsement ;
+gmeow:Certification skos:closeMatch wot:Endorsement {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqTrust006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:certifier ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:signer ;
+gmeow:certifier skos:closeMatch wot:signer {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqTrust007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:certificationLevel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wot:assurance ;
+gmeow:certificationLevel skos:closeMatch wot:assurance {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqTrust008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject rel:hasMet ;
+gmeow:hasMet skos:closeMatch rel:hasMet {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTrust009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:knows ;
+gmeow:hasMet skos:closeMatch foaf:knows {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqTrust010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasWorkedWith ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject rel:collaboratesWith ;
+gmeow:hasWorkedWith skos:closeMatch rel:collaboratesWith {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqTrust011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasWorkedWith ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject rel:worksWith ;
+gmeow:hasWorkedWith skos:closeMatch rel:worksWith {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqTrust012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InterpersonalRelationship ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:knows ;
+gmeow:InterpersonalRelationship skos:closeMatch foaf:knows {|
+    gmeow:sssomFile "gmeow-trust.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "the reified tie loosely corresponds to a foaf:knows edge" ;
-    gmeow:sssomFile "gmeow-trust.sssom.tsv" .
+    gmeow:comment "the reified tie loosely corresponds to a foaf:knows edge"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqWikidata047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CryptographicKey ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q826762 ;
+gmeow:CryptographicKey skos:closeMatch wd:Q826762 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "key (cryptography)" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "key (cryptography)"
+|} .
 
-gmeow:eqWikidata048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Certification ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q747527 ;
+gmeow:Certification skos:closeMatch wd:Q747527 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "certification" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "certification"
+|} .

@@ -536,6 +536,7 @@ gmeow:pipeline-build
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-glossary ,
+        gmeow:stage-export-skos-surface ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
@@ -748,6 +749,7 @@ gmeow:stage-snapshot
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
+        gmeow:stage-export-skos-surface ,
         gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
@@ -954,6 +956,17 @@ gmeow:stage-export-glossary
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "glossary" ;
     gmeow:producesFormat "markdown" .
+
+gmeow:stage-export-skos-surface
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: skos surface"@x-gmeow-english ;
+    skos:definition "Emit the generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl): a projection of the lifted logic: NodeKind::Annotation axioms (rdfs:label/comment and skos:definition/prefLabel/altLabel/scopeNote on every GMEOW-authored term), grouped under one skos:ConceptScheme. This is the outbound face of logic: isSupersetOf SKOS/RDFS — the annotation surface is authored once atop RDF 1.2, lifted into the canonical IR, and projected back out here rather than authored as a second source. A source-reading leaf like gmeow:stage-export-glossary: it reads the authored slice modules directly (through the annotation lift), consuming no upstream product. The RDF `.ttl` rides as the canonical fold of the RDF-fanout named graph graph/fanout/skos/gmeow-skos.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "skos_surface" ;
+    gmeow:producesFormat "skos" .
 
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
@@ -1212,6 +1225,7 @@ gmeow:stage-snapshot
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-pipeline.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/scores.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/skos/gmeow-skos.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/activitystreams.edoal> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/bibframe.edoal> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/bibo.edoal> ,
@@ -1286,6 +1300,7 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-projections-glossary-vartrans ,
     gmeow:fanout-projections-list-functions-fno ,
     gmeow:fanout-quality-assessment ,
+    gmeow:fanout-skos-surface ,
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections .
@@ -1408,6 +1423,14 @@ gmeow:fanout-projections-glossary-vartrans a gmeow:FanoutExtraction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/glossary.vartrans.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-skos-surface a gmeow:FanoutExtraction ;
+    rdfs:label "fanout skos surface"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/skos/gmeow-skos.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/skos/gmeow-skos.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;
@@ -1849,6 +1872,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/shapes/result-shapes.ttl",
     "generated/shapes/validation-shapes.shex",
     "generated/shapes/validation-shapes.ttl",
+    "generated/skos/gmeow-skos.ttl",
     "generated/statements/gmeow-statements.owl.ttl",
     "generated/statements/gmeow.rdf12.ttl",
     "generated/transcode-loss-matrix.json",

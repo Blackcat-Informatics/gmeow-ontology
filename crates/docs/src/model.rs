@@ -48,7 +48,6 @@ const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 // ── GMEOW-vocabulary predicates / classes used by the linkage / concern surfaces ─
 
 const GMEOW_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
-const GMEOW_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
 const GMEOW_DOCUMENTATION_CONCERN: &str =
     "https://blackcatinformatics.ca/gmeow/DocumentationConcern";
 
@@ -56,12 +55,6 @@ const GMEOW_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GMEOW_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
 const GMEOW_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
 const GMEOW_SET_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/setComment";
-
-const GMEOW_ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
-const GMEOW_ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
-const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
-const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
-const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 
 // ── Per-term usage-advice predicates (rendered as the "Usage Advice" section) ────
 const SKOS_SCOPE_NOTE: &str = "http://www.w3.org/2004/02/skos/core#scopeNote";
@@ -761,21 +754,21 @@ pub struct DocMappingSet {
     pub equivalence_count: usize,
 }
 
-/// A single term equivalence (`gmeow:TermEquivalence`) — a cross-walk from a
-/// GMEOW term to an external IRI via a SKOS-style alignment predicate.
+/// A single native alignment cell — a cross-walk from a GMEOW term to an external
+/// IRI via a SKOS-style (`skos:*Match`) alignment predicate.
 ///
 /// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocLinkage {
     /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
     pub mapping_set: Option<String>,
-    /// `gmeow:alignSubject` — the GMEOW term IRI.
+    /// The GMEOW term IRI (the match subject).
     pub subject: String,
     /// The subject as a CURIE.
     pub subject_curie: String,
-    /// `gmeow:alignPredicate` — e.g. `skos:closeMatch`.
+    /// The match predicate — e.g. `skos:closeMatch`.
     pub predicate: String,
-    /// `gmeow:alignObject` — the external IRI.
+    /// The match object — the external IRI.
     pub object: String,
     /// `gmeow:justification`.
     pub justification: Option<String>,
@@ -1104,7 +1097,7 @@ pub struct DocExternalTerm {
     pub namespace: String,
     /// GMEOW CURIEs that reference this external IRI (sorted, deduped).
     pub referenced_by: Vec<String>,
-    /// The predicates the reference travels over (`alignObject`, `subClassOf`,
+    /// The predicates the reference travels over (`matchObject`, `subClassOf`,
     /// `domain`, `range`), sorted/deduped.
     pub via_predicate: Vec<String>,
 }
@@ -2594,8 +2587,7 @@ fn read_concept_doi(root: &Path) -> Option<String> {
 /// `<root>/dsl/mappings/mapping-sets.ttl`. Each set aggregates linkage cells
 /// authored across many slices (one set per external vocabulary), so it has no
 /// single owning slice — it is marked with the ontology-root owner. Only the
-/// `gmeow:MappingSet` headers are read; the file carries no
-/// `gmeow:TermEquivalence` cells.
+/// `gmeow:MappingSet` headers are read; the file carries no alignment cells.
 ///
 /// An **absent** file ⇒ `Ok(Vec::new())` (slices carry their own sets). A file
 /// that **exists but is unreadable or unparsable** is a hard failure, never a
@@ -3134,43 +3126,26 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
         });
     }
 
+    // Native alignment cells (the legacy `gmeow:TermEquivalence` + `alignSubject/Predicate/
+    // Object` cell form was deleted): read through the canonical `equivalence_cells` reader,
+    // which resolves the reified `S P O {| … |}` statements + their reifier annotations.
+    // Fail closed: a malformed alignment cell is a hard error. Swallowing the reader error
+    // here would silently drop *every* mapping linkage from the docs output for this slice.
     let mut links = Vec::new();
-    for iri in subjects_of_type(store, GMEOW_TERM_EQUIVALENCE) {
-        let Some(subject) = named_objects(store, &iri, GMEOW_ALIGN_SUBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(predicate) = named_objects(store, &iri, GMEOW_ALIGN_PREDICATE)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        let Some(object) = named_objects(store, &iri, GMEOW_ALIGN_OBJECT)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        // The justification is usually a NamedNode (semapv:…); accept literal too.
-        let justification = named_objects(store, &iri, GMEOW_JUSTIFICATION)
-            .into_iter()
-            .next()
-            .map(|j| to_curie(&j))
-            .or_else(|| first_literal(store, &iri, GMEOW_JUSTIFICATION));
-        let confidence =
-            first_literal(store, &iri, GMEOW_CONFIDENCE).and_then(|v| v.trim().parse::<f64>().ok());
+    for cell in gmeow_logic_compile::projections::sssom::equivalence_cells(
+        &gmeow_logic_compile::ingest::DslView::new(store.dataset()),
+    )
+    .expect("alignment cell extraction must not fail while building docs mapping linkages")
+    {
         links.push(DocLinkage {
-            mapping_set: first_literal(store, &iri, GMEOW_SSSOM_FILE),
-            subject_curie: to_curie(&subject),
-            subject,
-            predicate: to_curie(&predicate),
-            object,
-            justification,
-            confidence,
+            mapping_set: Some(cell.sssom_file.clone()),
+            subject_curie: to_curie(&cell.subject),
+            predicate: to_curie(&cell.predicate),
+            object: cell.obj.clone(),
+            justification: cell.justification.as_deref().map(to_curie),
+            confidence: cell.confidence,
             owner_slice: owner_slice.to_string(),
+            subject: cell.subject,
         });
     }
     (sets, links)
@@ -3933,7 +3908,7 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
     };
 
     for link in linkages {
-        record(&link.object, &link.subject_curie, "alignObject");
+        record(&link.object, &link.subject_curie, "matchObject");
     }
     for term in terms {
         for parent in &term.parents {

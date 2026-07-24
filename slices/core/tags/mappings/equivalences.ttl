@@ -22,189 +22,149 @@ gmeow:mapsetTags a gmeow:MappingSet ;
 
 # --- SKOS ------------------------------------------------------------------ #
 
-gmeow:eqTags001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tag ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject skos:Concept ;
+gmeow:Tag skos:exactMatch skos:Concept {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "A GMEOW Tag IS a skos:Concept — an information-object value identified by its IRI, surfaced by a label. The Tagging RELATOR (provenance/confidence/scope) is the close-but-distinct construct, not the Tag itself; so the Tag class reverses as an asserted fact, not a refutable claim." ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "A GMEOW Tag IS a skos:Concept — an information-object value identified by its IRI, surfaced by a label. The Tagging RELATOR (provenance/confidence/scope) is the close-but-distinct construct, not the Tag itself; so the Tag class reverses as an asserted fact, not a refutable claim."
+|} .
 
-gmeow:eqTags002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TagScheme ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject skos:ConceptScheme ;
+gmeow:TagScheme skos:exactMatch skos:ConceptScheme {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "A GMEOW TagScheme IS a skos:ConceptScheme — the namespace bucket for tags/concepts; class identity, parallels eqTags001." ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "A GMEOW TagScheme IS a skos:ConceptScheme — the namespace bucket for tags/concepts; class identity, parallels eqTags001."
+|} .
 
-gmeow:eqTags003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:broaderTag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject skos:broader ;
+gmeow:broaderTag skos:closeMatch skos:broader {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "GMEOW broaderTag is transitive; skos:broader is the direct link (skos:broaderTransitive is transitive) — closeMatch, not exactMatch" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "GMEOW broaderTag is transitive; skos:broader is the direct link (skos:broaderTransitive is transitive) — closeMatch, not exactMatch"
+|} .
 
-gmeow:eqTags004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:relatedTag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject skos:related ;
+gmeow:relatedTag skos:closeMatch skos:related {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqTags005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:tagInScheme ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject skos:inScheme ;
+gmeow:tagInScheme skos:exactMatch skos:inScheme {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Scheme membership IS skos:inScheme — a tag/concept belongs to a scheme; no transitivity caveat (unlike broaderTag), so this reverses as an asserted fact." ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "Scheme membership IS skos:inScheme — a tag/concept belongs to a scheme; no transitivity caveat (unlike broaderTag), so this reverses as an asserted fact."
+|} .
 
 # Tag synonym (alternate label) → skos:altLabel is a projection-layer construct,
 # not a property equivalence (GMEOW uses rdfs:label for all labels).
 
 # --- schema.org ------------------------------------------------------------ #
 
-gmeow:eqTags006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:DefinedTerm ;
+gmeow:Tag skos:closeMatch schema:DefinedTerm {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTags007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TagScheme ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:DefinedTermSet ;
+gmeow:TagScheme skos:closeMatch schema:DefinedTermSet {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTags008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasTag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:keywords ;
+gmeow:hasTag skos:closeMatch schema:keywords {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "lossy — schema:keywords is a text or URL value; GMEOW hasTag points to a structured Tag individual" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "lossy — schema:keywords is a text or URL value; GMEOW hasTag points to a structured Tag individual"
+|} .
 
-gmeow:eqTags009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAbout ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:about ;
+gmeow:isAbout skos:closeMatch schema:about {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
 # --- Dublin Core / FOAF ---------------------------------------------------- #
 
-gmeow:eqTags010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAbout ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:subject ;
+gmeow:isAbout skos:closeMatch dcterms:subject {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTags011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAbout ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:topic ;
+gmeow:isAbout skos:closeMatch foaf:topic {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
 # --- W3C Web Annotation ---------------------------------------------------- #
 
-gmeow:eqTags012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tagging ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Annotation ;
+gmeow:Tagging skos:closeMatch oa:Annotation {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW Tagging is a relator with provenance/confidence/temporal scope; oa:Annotation is a flatter annotation body — closeMatch, not exactMatch" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "GMEOW Tagging is a relator with provenance/confidence/temporal scope; oa:Annotation is a flatter annotation body — closeMatch, not exactMatch"
+|} .
 
-gmeow:eqTags013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taggingTagged ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:hasTarget ;
+gmeow:taggingTagged skos:closeMatch oa:hasTarget {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqTags014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taggingTag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:hasBody ;
+gmeow:taggingTag skos:closeMatch oa:hasBody {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "The tag is the body of the annotation; lossy — oa:hasBody may also be a textual body, a SpecificResource, etc." ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "The tag is the body of the annotation; lossy — oa:hasBody may also be a textual body, a SpecificResource, etc."
+|} .
 
 # --- MOAT / Tag Ontology --------------------------------------------------- #
 
-gmeow:eqTags015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tagging ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject tags:Tagging ;
+gmeow:Tagging skos:closeMatch tags:Tagging {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Newman's Tag Ontology — GMEOW Tagging carries the same tripartite structure (tagger, resource, tag) with added provenance/confidence/temporal scope" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "Newman's Tag Ontology — GMEOW Tagging carries the same tripartite structure (tagger, resource, tag) with added provenance/confidence/temporal scope"
+|} .
 
-gmeow:eqTags016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject moat:Tag ;
+gmeow:Tag skos:closeMatch moat:Tag {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms"
+|} .
 
 # --- Wikidata (authority links — alignments, never identity) ---------------- #
 
-gmeow:eqTags017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tag ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q658349 ;
+gmeow:Tag skos:closeMatch wd:Q658349 {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'tag' (metadata used for classification) — Wikidata's item leans toward the tag-as-string reading; GMEOW's Tag is an information-object individual whose IRI is the meaning and whose strings are labels, so closeMatch, not exactMatch; curl-validated 2026-07-03" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "Wikidata 'tag' (metadata used for classification) — Wikidata's item leans toward the tag-as-string reading; GMEOW's Tag is an information-object individual whose IRI is the meaning and whose strings are labels, so closeMatch, not exactMatch; curl-validated 2026-07-03"
+|} .
 
-gmeow:eqTags018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Tagging ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q11836775 ;
+gmeow:Tagging skos:closeMatch wd:Q11836775 {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'tagging' (the act of labelling data/content with a short string) — the same act, but GMEOW reifies it as a relator with tagger, scheme, confidence, interval, and suppression; closeMatch on the act, with the relator structure as GMEOW's surplus; curl-validated 2026-07-03" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "Wikidata 'tagging' (the act of labelling data/content with a short string) — the same act, but GMEOW reifies it as a relator with tagger, scheme, confidence, interval, and suppression; closeMatch on the act, with the relator structure as GMEOW's surplus; curl-validated 2026-07-03"
+|} .
 
-gmeow:eqTags019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TagScheme ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q494291 ;
+gmeow:TagScheme skos:relatedMatch wd:Q494291 {|
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'folksonomy' (classification based on users' tags) — a folksonomy is the emergent practice; a TagScheme is the namespace bucket the practice populates. Related, not equivalent: relatedMatch with the vagueness of the relationship stated rather than laundered into a low-confidence closeMatch; curl-validated 2026-07-03" ;
-    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+    gmeow:comment "Wikidata 'folksonomy' (classification based on users' tags) — a folksonomy is the emergent practice; a TagScheme is the namespace bucket the practice populates. Related, not equivalent: relatedMatch with the vagueness of the relationship stated rather than laundered into a low-confidence closeMatch; curl-validated 2026-07-03"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isAbout ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:subject ;
+gmeow:isAbout skos:closeMatch dcterms:subject {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .

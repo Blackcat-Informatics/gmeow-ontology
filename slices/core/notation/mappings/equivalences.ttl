@@ -30,79 +30,65 @@ gmeow:mapsetNotation a gmeow:MappingSet ;
     exists for it.""" .
 
 # SymbolicSystem — broad umbrella
-gmeow:eqNotation001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SymbolicSystem ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:DefinedTermSet ;
+gmeow:SymbolicSystem skos:relatedMatch schema:DefinedTermSet {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "schema.org DefinedTermSet is a set of defined terms — broader and flatter than SymbolicSystem, but the closest surface concept." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "schema.org DefinedTermSet is a set of defined terms — broader and flatter than SymbolicSystem, but the closest surface concept."
+|} .
 
-gmeow:eqNotation002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SymbolicSystem ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q80071 ;
+gmeow:SymbolicSystem skos:relatedMatch wd:Q80071 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'symbol' (Q80071) — the general concept of a symbol, not a specific system; related match only." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Wikidata 'symbol' (Q80071) — the general concept of a symbol, not a specific system; related match only."
+|} .
 
 # NotationSystem — structured symbol system
-gmeow:eqNotation003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NotationSystem ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q2001982 ;
+gmeow:NotationSystem skos:relatedMatch wd:Q2001982 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'notation' (Q2001982) — a system of symbols to represent facts or quantities; a close related match." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Wikidata 'notation' (Q2001982) — a system of symbols to represent facts or quantities; a close related match."
+|} .
 
 # Mathematical notation
-gmeow:eqNotation005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:symbolicKindMathematical ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1140046 ;
+gmeow:symbolicKindMathematical skos:closeMatch wd:Q1140046 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Mathematical notation (Wikidata Q1140046)." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Mathematical notation (Wikidata Q1140046)."
+|} .
 
 # Musical notation
-gmeow:eqNotation006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:symbolicKindMusical ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q233861 ;
+gmeow:symbolicKindMusical skos:closeMatch wd:Q233861 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Musical notation (Wikidata Q233861)." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Musical notation (Wikidata Q233861)."
+|} .
 
 # Stenography / shorthand
-gmeow:eqNotation007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:symbolicKindStenographic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q181066 ;
+gmeow:symbolicKindStenographic skos:closeMatch wd:Q181066 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Shorthand / stenography (Wikidata Q181066)." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Shorthand / stenography (Wikidata Q181066)."
+|} .
 
 # Cryptography
-gmeow:eqNotation008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:symbolicKindCryptographic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q8789 ;
+gmeow:symbolicKindCryptographic skos:closeMatch wd:Q8789 {|
+    gmeow:sssomFile "gmeow-notation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Cryptography (Wikidata Q8789) — broader than notation, but the closest match." ;
-    gmeow:sssomFile "gmeow-notation.sssom.tsv" .
+    gmeow:comment "Cryptography (Wikidata Q8789) — broader than notation, but the closest match."
+|} .
 
 # --------------------------------------------------------------------------- #
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #
 # imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
 # (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
-# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
-# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# assert_gates in the logic-compile stage. The prose-rung alignment cell graft   #
+# rows are removed: the rung is a gate-enforced correspondence law, not a        #
 # comment (Principle 17 — SSSOM is its lossy projection).                        #
 # --------------------------------------------------------------------------- #

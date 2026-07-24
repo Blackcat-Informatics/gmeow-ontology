@@ -102,6 +102,9 @@ pub(crate) mod schema_ident;
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
 // pydantic, and validate).
 pub mod shape_union_fresh;
+// The SKOS concept-scheme export leaf (AC1/R3): a generated projection
+// of the lifted NodeKind::Annotation axioms (GMEOW-authored RDFS/SKOS annotations).
+pub mod skos_surface;
 // The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
 // slice batch and folds the union into the carrier as graph/authoring-briefs.
 pub mod slice_brief;
@@ -152,6 +155,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
+    registry.register("skos_surface", Arc::new(skos_surface::SkosSurfaceStage));
     registry.register(
         "constraint_shapes",
         Arc::new(constraint_shapes::ConstraintShapesStage),

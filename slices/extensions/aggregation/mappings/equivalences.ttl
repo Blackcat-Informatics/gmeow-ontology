@@ -20,29 +20,23 @@ gmeow:mapsetAggregation a gmeow:MappingSet ;
 # RDF Data Cube (QB)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAgg001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SpatialAggregation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qb:Observation ;
+gmeow:SpatialAggregation skos:closeMatch qb:Observation {|
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqAgg002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Dataset ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qb:DataSet ;
+gmeow:Dataset skos:closeMatch qb:DataSet {|
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqAgg003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AggregationFunction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qb:MeasureProperty ;
+gmeow:AggregationFunction skos:closeMatch qb:MeasureProperty {|
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
 # Note: Place is not aligned to qb:DimensionProperty because Place is an object
 # class (spatial features) whereas qb:DimensionProperty is a metaclass (class
@@ -53,18 +47,14 @@ gmeow:eqAgg003 a gmeow:TermEquivalence ;
 # GeoSPARQL — topological relations and centroid
 # --------------------------------------------------------------------------- #
 
-gmeow:eqAgg005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:containsPlace ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:sfContains ;
+gmeow:containsPlace skos:closeMatch geo:sfContains {|
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqAgg006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCentroid ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:hasCentroid ;
+gmeow:hasCentroid skos:closeMatch geo:hasCentroid {|
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .

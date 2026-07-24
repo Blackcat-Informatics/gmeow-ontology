@@ -119,7 +119,7 @@ namespace (`https://blackcatinformatics.ca/lang/`), peer to **`logic:`**
 (`https://blackcatinformatics.ca/logic/`) and **`math:`** (`https://blackcatinformatics.ca/math/`).
 Terms this layer *borrows* from other slices keep their home namespace — the `observations` spine
 (`gmeow:Observation`, `gmeow:vantage`), `provenance`/`events` (`gmeow:Activity`,
-`gmeow:wasGeneratedBy`), and the alignment vocabulary (`gmeow:TermEquivalence`) — and the slice is
+`gmeow:wasGeneratedBy`), and the alignment vocabulary (native `skos:*Match` alignment cells) — and the slice is
 still *declared* with the `gmeow:` slice-manifest vocabulary. A worked example therefore mixes
 namespaces on purpose: a `lang:` form *held via* a `gmeow:Observation` and *denoting into* a
 `logic:` formula is the grounding-layer composition made visible.

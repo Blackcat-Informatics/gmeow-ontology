@@ -124,7 +124,7 @@ gmeow:contextPolicy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "context policy"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:ComparisonContext to the governing policy the comparison is bound by — typed to the core gmeow:SocialObject, because a policy is a social object, NOT the norms-extension gmeow:Norm (which is reused only by-reference as a gmeow:TermEquivalence, never a range axiom — Principle 16). It names the rule-set under which candidates are judged, so a policy change is a context change."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ComparisonContext to the governing policy the comparison is bound by — typed to the core gmeow:SocialObject, because a policy is a social object, NOT the norms-extension gmeow:Norm (which is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the rule-set under which candidates are judged, so a policy change is a context change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:contextGeneration
@@ -258,7 +258,7 @@ gmeow:usesRubric
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "uses rubric"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; norms gmeow:Rubric ⊑ gmeow:Norm ⊑ gmeow:SocialObject is reused only by-reference as a gmeow:TermEquivalence, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; norms gmeow:Rubric ⊑ gmeow:Norm ⊑ gmeow:SocialObject is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:onCriterion

@@ -16,153 +16,119 @@ gmeow:mapsetProvenance a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Provenance + import-provenance alignments. The core PROV-O anchors (Activity, wasDerivedFrom, wasGeneratedBy, wasAttributedTo) and the carrier/ingestion terms align to PROV-O and Dublin Core Terms. recordedNoLaterThan and contentDigest are canonical — no faithful external term models a derived terminus-ante-quem or a content-addressed carrier digest." .
 
-gmeow:eqProvenance001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Activity ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:Activity skos:exactMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch" ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch"
+|} .
 
-gmeow:eqProvenance002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasDerivedFrom ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:wasDerivedFrom skos:exactMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "the same derivation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:comment "the same derivation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range"
+|} .
 
-gmeow:eqProvenance003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasGeneratedBy ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasGeneratedBy ;
+gmeow:wasGeneratedBy skos:exactMatch prov:wasGeneratedBy {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqProvenance004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasAttributedTo ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasAttributedTo ;
+gmeow:wasAttributedTo skos:exactMatch prov:wasAttributedTo {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqProvenance005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasAssociatedWith ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasAssociatedWith ;
+gmeow:wasAssociatedWith skos:closeMatch prov:wasAssociatedWith {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProvenance006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:CreativeWork skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI)." ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI)."
+|} .
 
-gmeow:eqProvenance007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ImportActivity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:ImportActivity skos:closeMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqProvenance008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ingestedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:endedAtTime ;
+gmeow:ingestedAt skos:closeMatch prov:endedAtTime {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqProvenance009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:assertedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generatedAtTime ;
+gmeow:assertedAt skos:closeMatch prov:generatedAtTime {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqProvenance010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sourceModifiedAt ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:modified ;
+gmeow:sourceModifiedAt skos:closeMatch dcterms:modified {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProvenance011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sourceLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:source ;
+gmeow:sourceLocation skos:closeMatch dcterms:source {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
 # --------------------------------------------------------------------------- #
 # observation-linkage design — generatedObservation provenance link.
 # --------------------------------------------------------------------------- #
 
-gmeow:eqProvenance013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:generatedObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generated ;
+gmeow:generatedObservation skos:closeMatch prov:generated {|
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation. The ObservationalActivity→prov:Activity alignment is canonical in mapping-dsl/equivalences/events.ttl (eqEvents132)." ;
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation. The ObservationalActivity→prov:Activity alignment is canonical in mapping-dsl/equivalences/events.ttl (eqEvents132)."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Activity ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:Activity skos:exactMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch"
+|} .
 
-gmeow:eqDcTerms030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:provenance ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:provenance ;
+gmeow:provenance skos:closeMatch dcterms:provenance {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DCTerms provenance — a statement of changes in ownership and custody" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms provenance — a statement of changes in ownership and custody"
+|} .
 
-gmeow:eqProperties034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasAttributedTo ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasAttributedTo ;
+gmeow:wasAttributedTo skos:exactMatch prov:wasAttributedTo {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "the same attribution relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "the same attribution relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range"
+|} .
 
-gmeow:eqProperties035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasGeneratedBy ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject prov:wasGeneratedBy ;
+gmeow:wasGeneratedBy skos:exactMatch prov:wasGeneratedBy {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "the same generation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "the same generation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range"
+|} .
 
-gmeow:eqWikidata055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Activity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1914636 ;
+gmeow:Activity skos:closeMatch wd:Q1914636 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:objectLabel "activity" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "activity"
+|} .

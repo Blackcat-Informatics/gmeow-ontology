@@ -1815,12 +1815,12 @@ gmeow:axisMaximalLinkage
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Linkage"@x-gmeow-english ;
-    skos:definition "The axis for correspondence-calculus adoption: of the identity-strength correspondences a slice authors (the only alignments a lens can carry lawfully — exactMatch / equivalentClass / equivalentProperty), the fraction routed through the correspondence calculus (logic:Correspondence lenses and mnemomorphic gmeow:ProjectionMapping cells) rather than hand-authored (identity-strength gmeow:TermEquivalence rows and dc: alignments the dcterms:→dc: dumb-down should derive). It is NOT projection (that measures output surfaces), and it does NOT check live authority links, SKOS lift, or an executed law discharge — it measures calculus adoption over the identity-strength alignment surface (Principle 17)."@x-gmeow-english ;
+    skos:definition "The axis for correspondence-calculus adoption: of the identity-strength correspondences a slice authors (the only alignments a lens can carry lawfully — exactMatch / equivalentClass / equivalentProperty), the fraction routed through the correspondence calculus (logic:Correspondence lenses and mnemomorphic gmeow:ProjectionMapping cells) rather than hand-authored (identity-strength alignment cells and dc: alignments the dcterms:→dc: dumb-down should derive). It is NOT projection (that measures output surfaces), and it does NOT check live authority links, SKOS lift, or an executed law discharge — it measures calculus adoption over the identity-strength alignment surface (Principle 17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalLinkage gmeow:axisProducer \"linkage_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating a mapping's mere existence with its calculus adoption, and avoid counting a lossy closeMatch-class alignment in the population — only identity-strength correspondences the lens can carry are in scope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor names each hand-authored identity-strength alignment record (a gmeow:TermEquivalence row or a hand-authored dc: alignment) as a migration target — lift it to a mnemomorphic gmeow:ProjectionMapping cell so the section-law discharge proves the rename lawful."@x-gmeow-english ;
+    gmeow:howToUse "The advisor names each hand-authored identity-strength alignment record (an alignment cell or a hand-authored dc: alignment) as a migration target — lift it to a mnemomorphic gmeow:ProjectionMapping cell so the section-law discharge proves the rename lawful."@x-gmeow-english ;
     gmeow:useWhen "Use to measure how far a slice's identity-strength alignment surface has adopted the correspondence calculus."@x-gmeow-english ;
     gmeow:axisProducer "linkage_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionLinkage ;
@@ -1830,7 +1830,7 @@ gmeow:axisMaximalLinkage
         gmeow:thrLinkageLinked ,
         gmeow:thrLinkageExemplified ,
         gmeow:thrLinkageMaximal ;
-    gmeow:axisAdviceTemplate "Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."@x-gmeow-english .
 
 gmeow:axisMaximalProjection
     a gmeow:QualityAxis ;

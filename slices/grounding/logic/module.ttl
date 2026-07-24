@@ -89,6 +89,13 @@ logic:Aggregate
     rdfs:label "Aggregate"@x-gmeow-english ;
     skos:definition "The emergence-verdict value for a part-reducible whole property: under the declared logic:ReductionTheory of an logic:EmergenceAssessment, the whole's property is reconstructible from its proper parts — the theory carries the property in its logic:reductionBasis and a proper part also bears it (logic:bearsProperty) — so the property is a mere aggregate, a sum or closure over parts, not an emergent one. The positive, derivation-grounded verdict, reached by an actual part-reconstruction rather than by negation; contrast logic:Emergent (not part-reducible under the theory) and logic:EmergenceUnknown (the reducibility question cannot be posed) (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
 
+logic:Annotation
+    a owl:NamedIndividual ,
+        logic:NodeKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Annotation"@x-gmeow-english ;
+    skos:definition "The tenth logic:NodeKind: a lifted RDFS/SKOS annotation axiom carried as a first-class IR node. Its subject is the annotated term, its predicate the surface annotation IRI verbatim (rdfs:label, rdfs:comment, skos:definition, skos:prefLabel, skos:altLabel, skos:scopeNote), and its object the literal value on the internal x-gmeow-english carrier tag. Lifting these annotations into the canonical IR — rather than passing them through untouched — is what makes logic: a genuine isSupersetOf SKOS and RDFS: the crisp annotation surface round-trips at logic:ExactPreservation, and the generated SKOS concept-scheme surface is a projection of these axioms rather than an authored second source. Load-bearing prose annotations (skos:definition, rdfs:comment) are marked load-bearing so the put leg preserves them; the display labels are droppable hints (design/LOGIC-META-SEMANTICS.md, the outward-face isSupersetOf row)."@x-gmeow-english .
+
 logic:AntiRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1223,7 +1230,7 @@ logic:NodeKind
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Node Kind"@x-gmeow-english ;
-    skos:definition "The typed-sum tag every node of the canonical logic: IR declares. The IR is a typed sum, not an untyped triple bag: each node names its kind, and the kind governs what may be done with it — keeping a constraint distinct from a derivation rule, a query operator from a program operator, and a meta-level quotation from the object-level assertion it quotes. Its individuals are the object-level formula, the meta-level formula, the constraint, the derivation rule, the query, the transaction program, the action schema, the validation shape, and the law-bearing correspondence."@x-gmeow-english .
+    skos:definition "The typed-sum tag every node of the canonical logic: IR declares. The IR is a typed sum, not an untyped triple bag: each node names its kind, and the kind governs what may be done with it — keeping a constraint distinct from a derivation rule, a query operator from a program operator, and a meta-level quotation from the object-level assertion it quotes. Its individuals are the object-level formula, the meta-level formula, the constraint, the derivation rule, the query, the transaction program, the action schema, the validation shape, the law-bearing correspondence, and the lifted RDFS/SKOS annotation."@x-gmeow-english .
 
 logic:NonRigidType
     a owl:Class ;

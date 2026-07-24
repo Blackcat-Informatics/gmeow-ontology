@@ -82,7 +82,7 @@ a global truth," built over the **same** shared `math:`/`logic:` grounding.
    fail witness `promotion-grants-activation.ttl`.
 10. **Compose, never duplicate.** No term owned by norms, learning, AI, model-serving,
     provenance, evidence, or semantic-topology is redeclared here; each is reused by
-    reference (`gmeow:TermEquivalence`) and at the instance level.
+    reference (a native alignment cell) and at the instance level.
     → `tests/structural.ttl` `mustNot` bans + one `duplicate-<slice>-term.ttl` fail
     witness per named slice.
 

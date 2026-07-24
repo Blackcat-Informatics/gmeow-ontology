@@ -1574,7 +1574,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            392,
+            393,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
