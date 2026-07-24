@@ -257,7 +257,12 @@ pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     ],
     refresh_target: "maint-refresh-purrdf-asset",
     bless_env: "GMEOW_PURRDF_BLESS",
-    witness_attestation: None,
+    // The bundle-explorer describe attestation (`WITNESS.describe.nt`): the native
+    // purrdf describe of a deterministic term over the object-level core bundle the
+    // wasm engine reproduces (proven by `crates/validate/tests/witness_explore.rs`;
+    // the vendored engine IS purrdf's parity-proven wasm build). Task 14 consumes it
+    // to gate the explorer's interactive capability.
+    witness_attestation: Some("WITNESS.describe.nt"),
 };
 
 /// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator

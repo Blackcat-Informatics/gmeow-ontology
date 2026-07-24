@@ -143,6 +143,46 @@ for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
   });
 }
 
+// ── Bundle explorer (W2b) ───────────────────────────────────────────────────
+// Browser `gmeow info`/`describe` over the object-level core bundle: load it via
+// the shared loader, show the `info` summary, and run a client-side `DESCRIBE` for
+// the entered term. The DESCRIBE is the SAME the native `gmeow describe` produces
+// (proven byte-identical by the F2 witness lane).
+const explorerForm = document.getElementById("gmeow-explorer-form");
+if (explorerForm) {
+  const infoEl = document.getElementById("gmeow-explorer-info");
+  const iriEl = document.getElementById("gmeow-explorer-iri");
+  const resultsEl = document.getElementById("gmeow-explorer-results");
+  let explorerDataset = null;
+  loadCoreBundle()
+    .then((ds) => {
+      explorerDataset = ds;
+      infoEl.textContent = `info — ${ds.size} triples in the object-level core bundle.`;
+    })
+    .catch((e) => {
+      infoEl.textContent = `Failed to load the bundle: ${e.message ?? e}`;
+    });
+  explorerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!explorerDataset) return;
+    const term = iriEl.value.trim();
+    if (!term) return;
+    // A CURIE (gmeow:Foo) or a full IRI; the describe query brackets a full IRI.
+    const subject = term.includes("://") ? `<${term}>` : term;
+    resultsEl.replaceChildren();
+    try {
+      const turtle = explorerDataset.query(
+        `PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nDESCRIBE ${subject}`,
+      );
+      const pre = document.createElement("pre");
+      pre.textContent = turtle && turtle.trim() ? turtle : "No triples describe that term.";
+      resultsEl.append(pre);
+    } catch (err) {
+      resultsEl.textContent = `Describe error: ${err.message ?? err}`;
+    }
+  });
+}
+
 const form = document.getElementById("gmeow-sparql");
 const queryEl = document.getElementById("gmeow-sparql-query");
 const statusEl = document.getElementById("gmeow-sparql-status");

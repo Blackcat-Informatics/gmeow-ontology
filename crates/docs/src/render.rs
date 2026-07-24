@@ -213,6 +213,10 @@ pub enum Page {
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
     /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
+    /// The bundle explorer (`explorer/index`) — browser `gmeow info`/`describe` over
+    /// the object-level core bundle. Emitted only when the bundle assets ship
+    /// (`has_bundle()`).
+    BundleExplorer,
 }
 
 impl Page {
@@ -261,6 +265,7 @@ impl Page {
             Page::PipelineDag => "pipeline".to_string(),
             Page::Glossary => "glossary".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
+            Page::BundleExplorer => "explorer".to_string(),
         }
     }
 
@@ -347,6 +352,7 @@ impl Page {
             Page::PipelineDag => "Build pipeline".to_string(),
             Page::Glossary => "Glossary".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
+            Page::BundleExplorer => "Bundle explorer".to_string(),
         }
     }
 }
@@ -534,6 +540,25 @@ pub fn render_site_lang_exec_with_diagrams(
             full_n = exec.full_bundle_gts.len(),
         );
         files.insert(BUNDLE_MANIFEST_PATH.to_string(), manifest.into_bytes());
+
+        // The bundle explorer page (browser gmeow info/describe over the core bundle).
+        let page = Page::BundleExplorer;
+        files.insert(
+            page.md_path(),
+            to_markdown_exec(model, &page, exec).into_bytes(),
+        );
+        files.insert(
+            page.html_path(),
+            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+        );
+        // The explorer needs the shared bundle-loader (gmeow-docs.js); ensure it ships
+        // even when the SPARQL playground is absent.
+        files
+            .entry(DOCS_JS_PATH.to_string())
+            .or_insert_with(|| DOCS_JS.as_bytes().to_vec());
+        for asset in VENDORED_WASM_ASSETS {
+            asset.emit_into(&mut files);
+        }
     }
 
     // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
@@ -774,6 +799,7 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
             md
         }
         Page::SparqlPlayground => md_playground(model, exec),
+        Page::BundleExplorer => md_bundle_explorer(model, exec),
         _ => to_markdown_base(model, page),
     };
     // The generalized page-level cite-this-surface on every durable NON-term page
@@ -826,6 +852,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Glossary => md_glossary(model),
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
+        Page::BundleExplorer => md_bundle_explorer(model, &ExecutableDocsData::default()),
     }
 }
 
@@ -969,6 +996,40 @@ fn append_term_export_section(
 }
 
 /// The offline SPARQL playground page.
+/// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
+/// core bundle. The controller (`gmeow-docs.js`) loads the core N-Quads via the
+/// shared loader, shows the bundle's `info` summary on boot, and runs a client-side
+/// `DESCRIBE` for the entered term IRI — the same describe the native `gmeow describe`
+/// produces, proven byte-identical by the F2 witness lane.
+fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Bundle explorer");
+    line(
+        &mut out,
+        "Explore the shipped ontology **entirely in your browser** — no server, no \
+         network. This loads the object-level core bundle and answers `info` (a summary \
+         of the loaded graph) and `describe <iri>` (every triple mentioning a term) via \
+         the native `purrdf` engine compiled to WebAssembly — the same answers the \
+         `gmeow` CLI gives.",
+    );
+    // Raw HTML passes through the Markdown → HTML step; the controller script is
+    // injected per page by the HTML shell (gated on `has_bundle()`).
+    out.push_str(
+        "<div id=\"gmeow-explorer\" class=\"gmeow-explorer\">\n\
+         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Loading the bundle…</p>\n\
+         <form id=\"gmeow-explorer-form\">\n\
+         <label for=\"gmeow-explorer-iri\">Describe a term (IRI or CURIE)</label>\n\
+         <input id=\"gmeow-explorer-iri\" type=\"text\" spellcheck=\"false\" \
+         placeholder=\"https://blackcatinformatics.ca/gmeow/Cat\">\n\
+         <button type=\"submit\">Describe</button>\n\
+         </form>\n\
+         <div id=\"gmeow-explorer-results\" class=\"gmeow-explorer-results\"></div>\n\
+         </div>\n",
+    );
+    let _ = model;
+    out
+}
+
 fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "SPARQL playground");
@@ -6029,7 +6090,8 @@ pub fn to_html_lang_exec(
     // The playground page loads the controller module (query execution + result
     // transcoding). Empty for every other page and every model-only render, so the
     // shell's `body_scripts` slot is byte-neutral there.
-    let body_scripts = if matches!(page, Page::SparqlPlayground) && exec.has_playground() {
+    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
+        || (matches!(page, Page::BundleExplorer) && exec.has_bundle()) {
         format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
     } else {
         String::new()
