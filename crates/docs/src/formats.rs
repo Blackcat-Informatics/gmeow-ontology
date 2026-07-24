@@ -130,14 +130,18 @@ impl Capability {
 /// the pipeline declares (`canonical → body-set → {site → snippets, mdbook, pdf}`).
 ///
 /// The site is refined into the flat per-term snippets (`site → snippets`), so snippets
-/// must drop a superset of what the site drops. **mdbook and pdf are INDEPENDENT
-/// siblings** projected directly off the shared body-set — comparable to neither the
-/// site nor each other — so there is deliberately NO `site → mdbook` or `mdbook → pdf`
-/// edge. Monotonicity is proved along THESE edges only, never a linear
-/// `site ⊆ mdbook ⊆ pdf ⊆ snippets` chain (that chain would falsely assert mdbook and
-/// the pdf refine the site; once mdbook carries live interactivity the pdf never does,
-/// they are genuinely incomparable). The pipeline cross-checks this edge set against
-/// its composition legs so the two cannot drift.
+/// must drop a superset of what the site drops. mdbook and pdf are **provenance
+/// siblings** — each projected directly off the shared body-set, NEITHER derived from the
+/// other — so this PROVENANCE poset carries no `site → mdbook`, `mdbook → pdf`, or
+/// `site → pdf` edge. That is distinct from the CAPABILITY lattice
+/// ([`format_capabilities`]), where the dropped sets DO form a chain
+/// `dropped(site) ⊆ dropped(mdbook) ⊆ dropped(pdf)`: mdbook is strictly richer than the
+/// pdf (it packs the live engines the pdf cannot), so the two are provenance-incomparable
+/// but capability-comparable — NOT "genuinely incomparable." The deleted linear
+/// `site ⊆ mdbook ⊆ pdf ⊆ snippets` chain conflated the two, reading that capability
+/// nesting as a PROVENANCE refinement it is not. Monotonicity is proved BOTH along these
+/// provenance edges AND along the capability lattice (see the tests). The pipeline
+/// cross-checks this edge set against its composition legs so the two cannot drift.
 pub const PROJECTION_DAG_EDGES: &[(DocFormat, DocFormat)] = &[(DocFormat::Site, DocFormat::Snippets)];
 
 /// One format's capability partition: which capabilities it represents and which
@@ -181,8 +185,11 @@ pub struct FormatCapabilities {
 ///   and no in-browser reasoning.
 ///
 /// Dropped sets are monotone along the projection DAG's covering edges
-/// ([`PROJECTION_DAG_EDGES`]): `dropped(site) ⊆ dropped(snippets)`. mdbook and pdf are
-/// incomparable siblings off the body-set, so no chain relates them.
+/// ([`PROJECTION_DAG_EDGES`]): `dropped(site) ⊆ dropped(snippets)`. Separately — and
+/// gated by its own test — the dropped sets form a capability-refinement chain
+/// `dropped(site) ⊆ dropped(mdbook) ⊆ dropped(pdf) = dropped(snippets)`: mdbook and pdf
+/// are provenance siblings but NOT capability-incomparable (mdbook represents a superset
+/// of the pdf). Both properties are machine-checked below.
 pub fn format_capabilities(fmt: DocFormat) -> FormatCapabilities {
     let dropped: Vec<Capability> = match fmt {
         DocFormat::Site => Vec::new(),
@@ -254,9 +261,9 @@ mod tests {
     /// Dropped-capability sets are monotone along the projection DAG's covering
     /// edges ([`PROJECTION_DAG_EDGES`]) — NOT a linear chain. For each edge
     /// `src → tgt`, `dropped(src) ⊆ dropped(tgt)`: nothing the source format drops
-    /// is regained by the strictly-poorer format it refines into. mdbook and pdf,
-    /// being incomparable siblings off the body-set, are deliberately unconstrained
-    /// by any edge (each only refines the body-set, which drops nothing).
+    /// is regained by the strictly-poorer format it refines into. mdbook and pdf are
+    /// provenance siblings off the body-set, so no provenance EDGE constrains them —
+    /// their capability nesting is checked separately by the capability-lattice test.
     #[test]
     fn dropped_capabilities_are_monotone_along_the_dag_edges() {
         use std::collections::BTreeSet;
@@ -286,13 +293,13 @@ mod tests {
         assert_eq!(dropped(DocFormat::Snippets), dropped(DocFormat::Pdf));
 
         // The STRUCTURAL fact the DAG re-derivation encodes: mdbook and pdf are
-        // sibling projections off the body-set, so the poset carries NO refinement
-        // edge between them (nor `site → mdbook`) — even though their dropped SETS
-        // happen to nest. The deleted linear chain wrongly treated that incidental
-        // nesting as a refinement order; the edge set is the authority instead.
+        // sibling PROVENANCE projections off the body-set, so the provenance poset
+        // carries NO edge between them (nor `site → mdbook`). This is about DERIVATION,
+        // not capability — their capability nesting is a separate, genuine invariant
+        // gated by `dropped_sets_form_the_capability_refinement_chain` below.
         assert!(
             !PROJECTION_DAG_EDGES.contains(&(DocFormat::Mdbook, DocFormat::Pdf)),
-            "mdbook and pdf are siblings — the DAG must NOT relate them by a refinement edge"
+            "mdbook and pdf are provenance siblings — the DAG must NOT relate them by a provenance edge"
         );
         assert!(
             !PROJECTION_DAG_EDGES.contains(&(DocFormat::Site, DocFormat::Mdbook)),
@@ -301,6 +308,49 @@ mod tests {
         assert!(
             PROJECTION_DAG_EDGES.contains(&(DocFormat::Site, DocFormat::Snippets)),
             "snippets is the site's flat refinement — that edge MUST be present"
+        );
+    }
+
+    /// The CAPABILITY-lattice invariant, distinct from the provenance DAG: the dropped
+    /// sets form a refinement chain `dropped(site) ⊆ dropped(mdbook) ⊆ dropped(pdf) =
+    /// dropped(snippets)`. mdbook is strictly richer than the pdf (it packs the live
+    /// engines the pdf cannot), so a regression where the pdf REGAINS a capability mdbook
+    /// drops — or where mdbook silently loses interactivity so it no longer represents a
+    /// superset of the pdf — is caught here. This restores the coverage the deleted linear
+    /// `site ⊆ mdbook ⊆ pdf ⊆ snippets` chain carried, WITHOUT asserting a false provenance
+    /// edge (the two structures are gated independently).
+    #[test]
+    fn dropped_sets_form_the_capability_refinement_chain() {
+        use std::collections::BTreeSet;
+        let dropped = |fmt| -> BTreeSet<Capability> {
+            format_capabilities(fmt).dropped.into_iter().collect()
+        };
+        assert!(
+            dropped(DocFormat::Site).is_subset(&dropped(DocFormat::Mdbook)),
+            "capability lattice: dropped(site) ⊄ dropped(mdbook)"
+        );
+        assert!(
+            dropped(DocFormat::Mdbook).is_subset(&dropped(DocFormat::Pdf)),
+            "capability lattice: mdbook must represent a SUPERSET of the pdf (it packs the \
+             live engines the pdf cannot) — dropped(mdbook) ⊄ dropped(pdf): pdf regains {:?}",
+            dropped(DocFormat::Mdbook)
+                .difference(&dropped(DocFormat::Pdf))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            dropped(DocFormat::Site).is_subset(&dropped(DocFormat::Snippets)),
+            "capability lattice: dropped(site) ⊄ dropped(snippets)"
+        );
+        assert_eq!(
+            dropped(DocFormat::Pdf),
+            dropped(DocFormat::Snippets),
+            "capability lattice: the flat pdf and snippets drop the identical set"
+        );
+        // mdbook is STRICTLY richer than the pdf — the nesting is proper, not equality
+        // (else the "mdbook packs the live engines" claim would be vacuous).
+        assert!(
+            dropped(DocFormat::Mdbook) != dropped(DocFormat::Pdf),
+            "capability lattice: mdbook must be STRICTLY richer than the pdf"
         );
     }
 
