@@ -81,8 +81,14 @@ pub struct VendoredWasmAsset {
     /// The environment variable whose presence makes [`verify`](Self::verify) rewrite
     /// (bless) the digest manifest instead of comparing — set by the refresh target.
     pub bless_env: &'static str,
-    /// A per-asset witness-attestation path, attached by a later task. Absent for now;
-    /// present here so the descriptor need not be reshaped when that lane lands.
+    /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
+    /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
+    /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
+    /// (F4/F5). For the three gmeow-owned engines (validate/reason/gmn) the byte-identity
+    /// is additionally EXECUTED on-gate by their Node parity lanes (`make check` →
+    /// `wasm-parity`); the vendored sibling-repo purrdf engine's witness is its native
+    /// `describe` output, with wasm parity owned upstream in the purrdf repo. `Option`
+    /// so a future non-witnessed asset need not reshape the descriptor.
     pub witness_attestation: Option<&'static str>,
 }
 
@@ -496,12 +502,19 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
     }
 }
 
-/// The F4/F5 attestation gate: NO documentation format may REPRESENT an interactive
-/// capability unless every engine backing that capability carries a present, current
-/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). This
-/// makes the interactive `logic:preservationKind` causally downstream of PROVEN
-/// native≡wasm parity — a realized capability, not self-description — so a missing or
-/// stale attestation is a HARD FAIL that forbids the capability, never a silent drop.
+/// The F4/F5 attestation gate. [`format_capabilities`] declares the per-format capability
+/// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
+/// REPRESENTS an interactive capability whose backing engine lacks a present, current
+/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
+/// with two other on-gate facts — the `wasm-parity` lane, which RUNS the native≡wasm parity
+/// for the gmeow-owned engines (validate/reason/gmn) on every `make check`, and the digest
+/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
+/// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
+/// "the format declares the capability AND its engine's parity is proven-and-current."
+/// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
+/// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
+/// drop. (The vendored sibling-repo purrdf engine's parity is owned upstream; its witness is
+/// the native `describe` output, digest-pinned here.)
 ///
 /// Returns one message per (format, capability, engine) violation; an empty vector is a
 /// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
