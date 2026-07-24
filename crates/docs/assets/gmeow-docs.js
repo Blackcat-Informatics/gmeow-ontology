@@ -56,7 +56,13 @@ export async function loadCoreBundle() {
   const nq = await (await fetch(new URL("./gmeow-core.nq", import.meta.url))).text();
   const expected = manifest["assets/gmeow-core.nq"]?.bytes;
   const actual = new TextEncoder().encode(nq).length;
-  if (expected !== undefined && actual !== expected) {
+  if (expected === undefined) {
+    throw new Error(
+      "core bundle integrity: manifest is missing the assets/gmeow-core.nq entry — " +
+        "cannot verify the bundle byte length (a missing manifest entry is a hard failure, not a bypass)",
+    );
+  }
+  if (actual !== expected) {
     throw new Error(
       `core bundle integrity: expected ${expected} bytes, got ${actual}`,
     );
