@@ -438,7 +438,7 @@ pub struct DocMarkdownDocument {
 /// forward-slash separators, no leading `./`, no leading `/`. The purrdf slice
 /// classifier already yields a relative path with no `..` and no leading `/`, so
 /// this is a light idempotent fold, not a `..`-resolving canonicalizer.
-fn normalize_logical_path(path: &str) -> String {
+pub(crate) fn normalize_logical_path(path: &str) -> String {
     let mut p = path.replace('\\', "/");
     while let Some(stripped) = p.strip_prefix("./") {
         p = stripped.to_string();

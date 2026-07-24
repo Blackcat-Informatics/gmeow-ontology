@@ -28,7 +28,7 @@
 
 use std::collections::{BTreeMap, HashSet};
 
-use crate::model::{DocsError, DocsModel};
+use crate::model::{normalize_logical_path, DocsError, DocsModel};
 
 /// A resolved location within the generated documentation site.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -443,16 +443,6 @@ fn page_path(slice_slug: &str, source_path: &str) -> String {
     }
     let stem = source_path.strip_suffix(".md").unwrap_or(source_path);
     format!("slices/{slice_slug}/documents/{stem}/")
-}
-
-/// Normalize a logical source path: forward slashes, no leading `./`, no leading
-/// `/`. Mirrors `crate::model`'s normalization so the map and the model agree.
-fn normalize_logical_path(path: &str) -> String {
-    let mut p = path.replace('\\', "/");
-    while let Some(stripped) = p.strip_prefix("./") {
-        p = stripped.to_string();
-    }
-    p.trim_start_matches('/').to_string()
 }
 
 /// Split a link into `(path, Some(fragment))` on the first `#`; `(path, None)` when
