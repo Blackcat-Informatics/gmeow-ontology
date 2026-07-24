@@ -28,8 +28,22 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
-use crate::render::{Page, Site, book_pages, slice_slug, term_slug, to_markdown_exec};
+use crate::render::{
+    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug, to_markdown_exec,
+};
 use crate::source_map::SourceToPageMap;
+
+/// The book-root path of the `additional-js` boot shim. mdbook injects `additional-js`
+/// files as plain `<script>` tags (no `type="module"`), so this ONE classic script
+/// dynamically `import()`s the ES-module controller `assets/gmeow-docs.js` (resolved
+/// against the shim's own URL, so it is correct at any chapter depth). It is emitted at
+/// the book root (mdbook copies `additional-js` from there), NOT under `src/`.
+pub const MDBOOK_BOOT_JS_PATH: &str = "mdbook-boot.js";
+
+/// The `src/`-relative chapter path of the packed interactive host page (the bundle
+/// explorer: browser SPARQL/describe + live reasoning + GMN transcode). Emitted into the
+/// book only when the render is bundle-backed.
+const MDBOOK_EXPLORER_CHAPTER: &str = "explorer";
 
 /// The absolute base URL of the published documentation site. The model carries
 /// no canonical site/base URL field, so this single constant defines it. Every
@@ -73,14 +87,16 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // ToC-listed for its one winning page.
     let winners = dir_winners(&pages);
 
+    // The book packs the interactive engines when the render is exec-backed, so once
+    // built it carries the SAME live SPARQL / reasoning / GMN transcode the site does
+    // (its `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities in
+    // `crate::formats` are not a bare claim — the assets are shipped here).
+    let interactive = exec.has_bundle() || exec.has_playground();
+
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    files.insert("book.toml".to_string(), book_toml(model).into_bytes());
-    // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
-    // `src`), so the summary rides inside the source tree, not at the book root.
-    files.insert(
-        "src/SUMMARY.md".to_string(),
-        summary_md(model, &pages, &winners, &page_map).into_bytes(),
-    );
+    files.insert("book.toml".to_string(), book_toml(model, interactive).into_bytes());
+
+    let mut summary = summary_md(model, &pages, &winners, &page_map);
 
     for (i, page) in pages.iter().enumerate() {
         if winners.get(&page.dir()) != Some(&i) {
@@ -95,7 +111,75 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
         files.insert(path, rewritten.body.into_bytes());
     }
 
+    if interactive {
+        pack_interactive_book(&mut files, &mut summary, model, exec, &chapters, &page_map);
+    }
+
+    // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
+    // `src`), so the summary rides inside the source tree, not at the book root.
+    files.insert("src/SUMMARY.md".to_string(), summary.into_bytes());
+
     Site { files }
+}
+
+/// The `additional-js` boot shim: a classic script that dynamically imports the
+/// ES-module docs controller, resolving its URL against the shim's own `src` so it is
+/// correct at any chapter depth. Emitted at [`MDBOOK_BOOT_JS_PATH`].
+const MDBOOK_BOOT_JS: &str = "\
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>\n\
+// SPDX-License-Identifier: AGPL-3.0-only\n\
+\n\
+// mdbook injects additional-js as a plain <script> (no type=\"module\"), so this classic\n\
+// shim dynamic-imports the ES-module docs controller. The URL is resolved against THIS\n\
+// script's own src, so it is correct regardless of the chapter's depth in the book.\n\
+(function () {\n\
+  var self = document.currentScript;\n\
+  var base = (self && self.src) || window.location.href;\n\
+  import(new URL(\"assets/gmeow-docs.js\", base)).catch(function (e) {\n\
+    console.error(\"gmeow docs controller failed to load\", e);\n\
+  });\n\
+})();\n";
+
+/// Pack the interactive engines + the bundle-explorer host chapter into the book.
+///
+/// The shared [`interactive_asset_files`] set (the controller + vendored wasm engines +
+/// bundle/playground data — the byte-identical assets the site's witness lanes prove) is
+/// copied under `src/`, so mdbook copies them to the built book preserving the `assets/`
+/// prefix the controller resolves against. The boot shim rides at the book root (where
+/// mdbook copies `additional-js` from). When the bundle is present the explorer chapter
+/// (browser SPARQL/describe + live reasoning + GMN transcode) is emitted and appended to
+/// the table of contents, giving the book a concrete interactive host page.
+fn pack_interactive_book(
+    files: &mut BTreeMap<String, Vec<u8>>,
+    summary: &mut String,
+    model: &DocsModel,
+    exec: &ExecutableDocsData,
+    chapters: &BTreeSet<String>,
+    page_map: &SourceToPageMap,
+) {
+    for (path, bytes) in interactive_asset_files(exec) {
+        // The controller resolves `assets/…`; mdbook copies `src/assets/…` → `assets/…`.
+        files.insert(format!("src/{path}"), bytes);
+    }
+    files.insert(
+        MDBOOK_BOOT_JS_PATH.to_string(),
+        MDBOOK_BOOT_JS.as_bytes().to_vec(),
+    );
+
+    if exec.has_bundle() {
+        let page = Page::BundleExplorer;
+        let dir = page.dir();
+        debug_assert_eq!(dir, MDBOOK_EXPLORER_CHAPTER);
+        let body = to_markdown_exec(model, &page, exec);
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        files.insert(
+            chapter_src_path(&dir),
+            rewritten.body.into_bytes(),
+        );
+        // A top-level table-of-contents entry so the chapter is reachable (mdbook's
+        // `create-missing = false` accepts it because the chapter file exists).
+        summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
+    }
 }
 
 /// Compute the SINGLE deterministic winner for each colliding chapter
@@ -189,7 +273,18 @@ fn summary_target(dir: &str) -> String {
 /// (from `model.title`). `create-missing = false` makes a dangling chapter link
 /// a hard build failure — which is why [`rewrite_book_links`] externalizes every
 /// link to a page the book does not emit.
-fn book_toml(model: &DocsModel) -> String {
+///
+/// When `interactive`, the book packs the vendored wasm engines + the shared controller
+/// (see [`render_book`]) and wires them through the `additional-js` bootstrap
+/// [`MDBOOK_BOOT_JS_PATH`] — a classic script that dynamically `import()`s the ES-module
+/// controller (mdbook's `additional-js` injects plain `<script>` tags, so the module is
+/// loaded through this one-line boot shim rather than directly).
+fn book_toml(model: &DocsModel, interactive: bool) -> String {
+    let additional_js = if interactive {
+        format!("additional-js = [\"{MDBOOK_BOOT_JS_PATH}\"]\n")
+    } else {
+        String::new()
+    };
     format!(
         "[book]\n\
          title = \"{}\"\n\
@@ -202,8 +297,10 @@ fn book_toml(model: &DocsModel) -> String {
          [output.html]\n\
          default-theme = \"light\"\n\
          preferred-dark-theme = \"navy\"\n\
-         no-section-label = false\n",
-        toml_escape(&model.title)
+         no-section-label = false\n\
+         {}",
+        toml_escape(&model.title),
+        additional_js,
     )
 }
 

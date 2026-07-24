@@ -30,6 +30,76 @@ fn exec_with_playground() -> ExecutableDocsData {
     }
 }
 
+/// An `exec` that supplies a (non-empty) browser bundle, so the render packs the
+/// interactive engines + the bundle-explorer host chapter into the book. The bytes are
+/// opaque to the renderer (it checks non-emptiness via `has_bundle` and content-addresses
+/// them), so fixed sentinels suffice.
+fn exec_with_bundle() -> ExecutableDocsData {
+    ExecutableDocsData {
+        core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n".to_vec(),
+        full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
+        ..Default::default()
+    }
+}
+
+/// W3: a bundle-backed book PACKS the interactive engines, so its
+/// `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities are realized, not merely
+/// asserted. The book must carry the vendored wasm engines + the shared controller under
+/// `src/assets/`, the `additional-js` boot shim at the book root, the explorer host
+/// chapter, and `book.toml` must wire the shim.
+#[test]
+fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
+    let model = common::cached_model();
+    let site = render_book(&model, &exec_with_bundle());
+    let has = |p: &str| site.files.contains_key(p);
+
+    // The shared controller + every vendored engine, under src/ so mdbook copies them.
+    assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
+    for engine in [
+        "src/assets/reason/gmeow_reason_wasm_bg.wasm",
+        "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
+        "src/assets/validate/gmeow_validate_wasm_bg.wasm",
+        "src/assets/purrdf/gmeow_rdf_wasm.js",
+    ] {
+        assert!(has(engine), "vendored engine not packed into the book: {engine}");
+    }
+    // The browser bundle the explorer queries + its integrity manifest.
+    assert!(has("src/assets/gmeow-core.nq"), "core bundle not packed");
+    assert!(has("src/assets/bundle-manifest.json"), "bundle manifest not packed");
+
+    // The additional-js boot shim rides at the book root and dynamic-imports the module.
+    let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
+    let shim = String::from_utf8(shim.clone()).unwrap();
+    assert!(
+        shim.contains("import(new URL(\"assets/gmeow-docs.js\""),
+        "boot shim must dynamic-import the controller: {shim}"
+    );
+
+    // book.toml wires the shim; the explorer host chapter exists and is in the ToC.
+    let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
+    assert!(
+        toml.contains("additional-js = [\"mdbook-boot.js\"]"),
+        "book.toml must wire the boot shim: {toml}"
+    );
+    assert!(has("src/explorer/index.md"), "explorer host chapter missing");
+    let summary = String::from_utf8(site.files.get("src/SUMMARY.md").unwrap().clone()).unwrap();
+    assert!(
+        summary.contains("(explorer/index.md)"),
+        "explorer chapter must be in the table of contents: {summary}"
+    );
+}
+
+/// Without a bundle/playground the book stays static — no engines packed, no shim wired.
+#[test]
+fn non_interactive_book_packs_no_engines() {
+    let model = common::cached_model();
+    let site = render_book(&model, &ExecutableDocsData::default());
+    assert!(!site.files.contains_key("mdbook-boot.js"));
+    assert!(!site.files.keys().any(|k| k.starts_with("src/assets/")));
+    let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
+    assert!(!toml.contains("additional-js"), "static book must not wire additional-js");
+}
+
 /// The `src/`-relative chapter path of a page (mirrors the private helper).
 fn chapter_src_path(dir: &str) -> String {
     if dir.is_empty() {

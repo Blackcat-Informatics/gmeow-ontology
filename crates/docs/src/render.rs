@@ -489,20 +489,16 @@ pub fn render_site_lang_exec_with_diagrams(
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
-    // The offline SPARQL playground: its bundled RDF asset (documentation graph + the
-    // reasoned ontology closure, TriG), the vendored purrdf wasm engine, the controller
-    // module, and the page itself. All language-independent, emitted only in the
-    // English tree (see the gate above). Term/slice export runs through this same
+    // The interactive asset set (the controller module, the vendored wasm engines, and
+    // the SPARQL-playground / browser-bundle data) — the ONE authority both the site
+    // here and the packed mdbook ([`crate::mdbook`]) draw from, so the book ships the
+    // byte-identical engines the site's witness lanes prove. Language-independent,
+    // emitted only in the English tree (see the gate above).
+    files.extend(interactive_asset_files(exec));
+
+    // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
     if exec.has_playground() {
-        files.insert(
-            PLAYGROUND_TRIG_PATH.to_string(),
-            exec.playground_trig.clone(),
-        );
-        files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
-        for asset in VENDORED_WASM_ASSETS {
-            asset.emit_into(&mut files);
-        }
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
@@ -514,36 +510,10 @@ pub fn render_site_lang_exec_with_diagrams(
         );
     }
 
-    // The browser bundle assets: the object-level core N-Quads (the explorer's
-    // client-side query dataset) and the full `gmeow.gts` (the in-browser Tier-1
-    // validate surface's shapes source), plus a content-address integrity manifest.
-    // External site assets, content-addressed, never re-embedded into `gmeow.gts`.
+    // The bundle explorer page (browser gmeow info/describe + live reasoning + GMN
+    // transcode over the core bundle). Its assets are shipped by
+    // `interactive_asset_files` above.
     if exec.has_bundle() {
-        files.insert(
-            CORE_BUNDLE_NQ_PATH.to_string(),
-            exec.core_bundle_nquads.clone(),
-        );
-        files.insert(FULL_BUNDLE_GTS_PATH.to_string(), exec.full_bundle_gts.clone());
-        let core_digest = blake3::hash(&exec.core_bundle_nquads).to_hex();
-        let full_digest = blake3::hash(&exec.full_bundle_gts).to_hex();
-        // A stable, sorted JSON object (no HashMap iteration) — byte-deterministic.
-        let manifest = format!(
-            concat!(
-                "{{\n",
-                "  \"{core_path}\": {{ \"blake3\": \"blake3:{core_d}\", \"bytes\": {core_n} }},\n",
-                "  \"{full_path}\": {{ \"blake3\": \"blake3:{full_d}\", \"bytes\": {full_n} }}\n",
-                "}}\n"
-            ),
-            core_path = CORE_BUNDLE_NQ_PATH,
-            core_d = core_digest,
-            core_n = exec.core_bundle_nquads.len(),
-            full_path = FULL_BUNDLE_GTS_PATH,
-            full_d = full_digest,
-            full_n = exec.full_bundle_gts.len(),
-        );
-        files.insert(BUNDLE_MANIFEST_PATH.to_string(), manifest.into_bytes());
-
-        // The bundle explorer page (browser gmeow info/describe over the core bundle).
         let page = Page::BundleExplorer;
         files.insert(
             page.md_path(),
@@ -553,14 +523,6 @@ pub fn render_site_lang_exec_with_diagrams(
             page.html_path(),
             to_html_lang_exec(model, &page, lang, exec).into_bytes(),
         );
-        // The explorer needs the shared bundle-loader (gmeow-docs.js); ensure it ships
-        // even when the SPARQL playground is absent.
-        files
-            .entry(DOCS_JS_PATH.to_string())
-            .or_insert_with(|| DOCS_JS.as_bytes().to_vec());
-        for asset in VENDORED_WASM_ASSETS {
-            asset.emit_into(&mut files);
-        }
     }
 
     // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
@@ -688,6 +650,64 @@ pub fn write_site(
 /// page it does not emit.
 pub fn book_pages(model: &DocsModel) -> Vec<Page> {
     pages(model)
+}
+
+/// The browser-bundle integrity manifest JSON — a stable, sorted, byte-deterministic
+/// map from each bundle asset path to its `blake3:<hex>` content address and length.
+/// A pure function of the emitted bundle bytes; the client loader records/verifies it.
+fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
+    let core_digest = blake3::hash(&exec.core_bundle_nquads).to_hex();
+    let full_digest = blake3::hash(&exec.full_bundle_gts).to_hex();
+    format!(
+        concat!(
+            "{{\n",
+            "  \"{core_path}\": {{ \"blake3\": \"blake3:{core_d}\", \"bytes\": {core_n} }},\n",
+            "  \"{full_path}\": {{ \"blake3\": \"blake3:{full_d}\", \"bytes\": {full_n} }}\n",
+            "}}\n"
+        ),
+        core_path = CORE_BUNDLE_NQ_PATH,
+        core_d = core_digest,
+        core_n = exec.core_bundle_nquads.len(),
+        full_path = FULL_BUNDLE_GTS_PATH,
+        full_d = full_digest,
+        full_n = exec.full_bundle_gts.len(),
+    )
+}
+
+/// The interactive asset FILES (no pages) an exec-backed render ships, keyed by their
+/// site-relative path (`assets/…`): the shared controller module, the vendored wasm
+/// engines, and — when present — the SPARQL playground data and the browser bundle +
+/// its integrity manifest.
+///
+/// This is the SINGLE authority for "which interactive assets exist": the static site
+/// emits them at the site root and the mdbook packer ([`crate::mdbook`]) copies the
+/// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
+/// the ones the native↔wasm witness lanes prove. Empty when the render is neither
+/// playground- nor bundle-backed.
+pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
+    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    if !exec.has_playground() && !exec.has_bundle() {
+        return files;
+    }
+    files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+    for asset in VENDORED_WASM_ASSETS {
+        asset.emit_into(&mut files);
+    }
+    if exec.has_playground() {
+        files.insert(PLAYGROUND_TRIG_PATH.to_string(), exec.playground_trig.clone());
+    }
+    if exec.has_bundle() {
+        files.insert(
+            CORE_BUNDLE_NQ_PATH.to_string(),
+            exec.core_bundle_nquads.clone(),
+        );
+        files.insert(FULL_BUNDLE_GTS_PATH.to_string(), exec.full_bundle_gts.clone());
+        files.insert(
+            BUNDLE_MANIFEST_PATH.to_string(),
+            bundle_manifest_json(exec).into_bytes(),
+        );
+    }
+    files
 }
 
 /// The full, deterministically ordered page set for the model.

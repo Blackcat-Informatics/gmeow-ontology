@@ -716,6 +716,7 @@ fn capability_label(cap: Capability) -> &'static str {
         Capability::SearchIndex => "Full-text search index",
         Capability::LiveSparql => "Live SPARQL queries",
         Capability::Interactivity => "Interactive surfaces",
+        Capability::LiveReasoning => "In-browser reasoning + GMN transcode",
         Capability::Diagrams => "Rendered diagrams",
         Capability::CrossLinkFidelity => "Cross-link fidelity",
     }

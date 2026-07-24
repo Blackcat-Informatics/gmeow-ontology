@@ -190,6 +190,7 @@ This PDF is a lossy projection. The capabilities it declares lost are read direc
 - #"Full-text search index" (#"search-index")
 - #"Live SPARQL queries" (#"live-sparql")
 - #"Interactive surfaces" (#"interactivity")
+- #"In-browser reasoning + GMN transcode" (#"live-reasoning")
 - #"Rendered diagrams" (#"diagrams")
 - #"Cross-link fidelity" (#"cross-link-fidelity")
 
