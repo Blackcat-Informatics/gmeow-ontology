@@ -904,6 +904,34 @@ mod tests {
     }
 
     #[test]
+    fn build_manifest_projects_site_sub_asset_digests_through_dcat_rq() {
+        use crate::stages::distribution_catalog::site_sub_asset_iri;
+        // Exercise the FULL projection (release_instance_ntriples -> dcat.rq), not just
+        // the pre-projection input the sibling test checks: a dcat.rq regression that
+        // dropped the SiteSubAsset corpus-member branch would publish no sub-asset digest
+        // in the shipped manifest yet leave that pre-projection test green.
+        let gts_bytes = synthetic_gts_with_dcat_query();
+        let sub_assets = vec![DistributionEntry {
+            slug: "reason-wasm".to_string(),
+            rel_path: "dist/gmeow-docs/site/assets/reason/".to_string(),
+            blake3: "blake3:deadbeef".to_string(),
+            media_type: "application/wasm".to_string(),
+        }];
+        let manifest = build_docs_distribution_manifest(&sample_entries(), &sub_assets, &gts_bytes)
+            .expect("manifest with a site sub-asset");
+        let node = site_sub_asset_iri("reason-wasm");
+        assert!(
+            manifest.contains(&format!("<{node}>")),
+            "the projected manifest must carry the site_sub_asset subject {node}:\n{manifest}"
+        );
+        assert!(
+            manifest.contains("\"blake3:deadbeef\""),
+            "the sub-asset digest must survive the dcat.rq projection into the shipped \
+             manifest — a dropped SiteSubAsset row is a missing release digest:\n{manifest}"
+        );
+    }
+
+    #[test]
     fn release_instance_ntriples_is_sorted_and_deduped() {
         let nt = release_instance_ntriples(&sample_entries(), &[]);
         let lines: Vec<&str> = nt.lines().collect();
