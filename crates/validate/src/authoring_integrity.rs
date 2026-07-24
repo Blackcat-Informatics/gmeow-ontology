@@ -1174,95 +1174,13 @@ static SEAM_PAGE_CARRYING_TERM: LazyLock<Regex> = LazyLock::new(|| {
 static SEAM_PAGE_OWNING_DOC: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"`([A-Za-z0-9_-]+\.md)`").expect("valid static regex"));
 
-const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
-const GMEOW_SEAM: &str = "https://blackcatinformatics.ca/gmeow/Seam";
-const GMEOW_SEAM_CARRYING_TERM: &str = "https://blackcatinformatics.ca/gmeow/seamCarryingTerm";
-const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOwningDoc";
-const RDFS_LABEL_TERM: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-
-/// One `gmeow:Seam` individual's canonical data, read directly off a
-/// grounding slice's `manifest.ttl` — no dependency on `gmeow-docs`'s own
-/// `extract_seams` (a second, independent reader of the same data is the
-/// point of a drift gate).
-struct SeamRecord {
-    /// `rdfs:label` (lexically-lowest, deterministic), falling back to the
-    /// seam's CURIE when unlabeled.
-    name: String,
-    /// `gmeow:seamCarryingTerm` objects, reduced to `family:Local` CURIEs.
-    carrying_terms: BTreeSet<String>,
-    /// `gmeow:seamOwningDoc` literal values.
-    owning_docs: BTreeSet<String>,
-}
-
-/// Reduce a term IRI to its `family:Local` CURIE for the four grounding
-/// namespaces — the same family map `gmeow_docs::render::to_curie` uses,
-/// duplicated here (a small, stable literal table) rather than pulling in a
-/// dependency on `gmeow-docs`.
-fn seam_term_curie(iri: &str) -> String {
-    const FAMILIES: &[(&str, &str)] = &[
-        ("https://blackcatinformatics.ca/gmeow/", "gmeow"),
-        ("https://blackcatinformatics.ca/logic/", "logic"),
-        ("https://blackcatinformatics.ca/math/", "math"),
-        ("https://blackcatinformatics.ca/lang/", "lang"),
-    ];
-    for (ns, prefix) in FAMILIES {
-        if let Some(local) = iri.strip_prefix(ns) {
-            return format!("{prefix}:{local}");
-        }
-    }
-    iri.to_string()
-}
-
-/// Every `gmeow:Seam` individual declared in a manifest typed
-/// `gmeow:GroundingSlice` — generic over every grounding slice (mirrors
-/// `gmeow_docs::model::extract_seams`'s discovery gate; today only `logic:`'s
-/// manifest carries the registry, but a future seam authored in `lang:`/`math:`
-/// is picked up without a code change).
-fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecord>> {
-    let mut out = Vec::new();
-    let grounding = ds
-        .subjects_of_type(GMEOW_GROUNDING_SLICE)
-        .map_err(|e| parse_err(path, &e.to_string()))?;
-    if grounding.is_empty() {
-        return Ok(out);
-    }
-    for seam_iri in ds
-        .subjects_of_type(GMEOW_SEAM)
-        .map_err(|e| parse_err(path, &e.to_string()))?
-    {
-        let name = ds
-            .objects(&seam_iri, RDFS_LABEL_TERM)
-            .map_err(|e| parse_err(path, &e.to_string()))?
-            .into_iter()
-            .filter_map(|o| match o {
-                Object::Literal { value, .. } => Some(value),
-                _ => None,
-            })
-            .min()
-            .unwrap_or_else(|| seam_term_curie(&seam_iri));
-        let carrying_terms: BTreeSet<String> = ds
-            .object_iris(&seam_iri, GMEOW_SEAM_CARRYING_TERM)
-            .map_err(|e| parse_err(path, &e.to_string()))?
-            .iter()
-            .map(|iri| seam_term_curie(iri))
-            .collect();
-        let owning_docs: BTreeSet<String> = ds
-            .objects(&seam_iri, GMEOW_SEAM_OWNING_DOC)
-            .map_err(|e| parse_err(path, &e.to_string()))?
-            .into_iter()
-            .filter_map(|o| match o {
-                Object::Literal { value, .. } => Some(value),
-                _ => None,
-            })
-            .collect();
-        out.push(SeamRecord {
-            name,
-            carrying_terms,
-            owning_docs,
-        });
-    }
-    Ok(out)
-}
+// `SeamRecord` + `seam_records_of` — the single reader of the `gmeow:Seam`
+// governance data — live in `crate::slice_peerage` (which the peerage-coverage
+// engine also needs, extended with the directed `(from, to)` legs and raw
+// carrying-term IRIs this text-comparison drift gate never needed). Sharing
+// one reader here keeps this drift gate and the coverage engine from ever
+// reading the same governance data two different ways.
+use crate::slice_peerage::{SeamRecord, seam_records_of};
 
 /// The seam-table region of the rendered page: from the table header through
 /// (but excluding) the `## Definitions` heading, or the whole text when either

@@ -1,0 +1,857 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Peerage-aware projection of an [`OwnershipReport`]'s undeclared-dependency
+//! diagnostics: an undeclared cross-slice edge between two mutually declared
+//! `gmeow:sliceCoFoundationalWith` grounding peers (`lang:`/`math:`/`logic:`) is
+//! not automatically an ownership violation — Principle 19's peerage grant
+//! deliberately lets the three grounding slices reference each other — but that
+//! grant is not a blank cheque either: docs/GROUNDING.md's "seam registry" is the
+//! CLOSED set of six sanctioned cross-grounding reference channels, and every
+//! peered crossing must land on one of them.
+//!
+//! [`classify`] joins each undeclared *semantic* [`OwnershipDiagnostic`] to its
+//! computed [`DependencyEdge`] (evidence + reconciliation) and to the seam
+//! registry + peerage relation read straight off the grounding manifests, and
+//! [`peerage_aware_ownership_findings`] projects the result into the same
+//! `Finding` surface [`crate::slice_ownership::ownership_findings`] uses:
+//!
+//! * **Covered** — both grounding peers, mutually declared, and every
+//!   referenced term on the edge is carried by a seam whose direction matches
+//!   the crossing exactly. Suppressed: no finding (this is the whole point —
+//!   a real `lang:` → `math:Quantity` reference on a registered seam must not
+//!   also HARD-FAIL as an undeclared dependency).
+//! * **PeeredUnregisteredSeam** — both grounding peers, mutually declared, but
+//!   at least one referenced term rides the peerage grant with no seam
+//!   covering it. `Error` (a NEW code: `slice-ownership.peered-unregistered-seam`)
+//!   — the peerage grant is not a general license to reference anything.
+//! * **Uncovered** — not both grounding peers (or not mutually declared): the
+//!   ordinary `slice-ownership.undeclared-dependency` observation applies,
+//!   unchanged, at its current severity.
+//!
+//! The join from a diagnostic to its edge is TOTAL: `OwnershipAnalyzer` only
+//! emits `OwnershipDiagnostic::UndeclaredDependency` for a semantic edge it also
+//! placed in `OwnershipReport::edges` with `ReconciliationStatus::Undeclared`
+//! (RFC §10), so a diagnostic with no matching edge is an internal-invariant
+//! violation of that contract — a HARD FAIL (`Err`), never a silently skipped
+//! diagnostic (no-optionality: a missing join is a defect, not a degraded read).
+//!
+//! # Seam-reader reuse
+//!
+//! [`SeamRecord`] and [`seam_records_of`] are the SAME reader
+//! [`crate::authoring_integrity`]'s R7 seam-registry-drift gate uses (lifted
+//! here so both consumers share one seam reader instead of each parsing
+//! `gmeow:Seam` individuals independently) — extended with the directed
+//! `(from, to)` legs (`gmeow:seamDirection`/`seamFromSlice`/`seamToSlice`) and the
+//! raw carrying-term IRIs the drift gate's CURIE-reduced text comparison never
+//! needed, but this engine's exact-IRI join does.
+
+use std::collections::BTreeSet;
+use std::path::Path;
+use std::sync::Arc;
+
+use gmeow_errors::{Diag, Finding, Result, Severity};
+use purrdf::slice::catalog::{SliceCatalog, SliceRecord};
+use purrdf::slice::rdf_query::{Dataset, Object, Subject};
+use purrdf::slice::{
+    DependencyEdge, EdgeKind, NamedNode, OwnershipDiagnostic, OwnershipReport,
+    ReconciliationStatus, SliceIri,
+};
+
+// ── Namespace constants ──────────────────────────────────────────────────────
+//
+// Grounding-peerage / seam-registry vocabulary is `gmeow:`-fixed governance
+// data (Principle 19), never parameterized by the caller's `SliceVocab` — the
+// same posture `crate::authoring_integrity`'s R7 gate already takes.
+
+/// `gmeow:GroundingSlice` — a slice typed as one of the three co-foundational
+/// grounding layers (`lang:`/`math:`/`logic:`).
+const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
+/// `gmeow:Seam` — a sanctioned cross-grounding reference channel individual.
+const GMEOW_SEAM: &str = "https://blackcatinformatics.ca/gmeow/Seam";
+/// `gmeow:seamDirection` — a seam's directed `(from, to)` leg (a blank node).
+const GMEOW_SEAM_DIRECTION: &str = "https://blackcatinformatics.ca/gmeow/seamDirection";
+/// `gmeow:seamFromSlice` — a seam-direction leg's referencing grounding slice.
+const GMEOW_SEAM_FROM_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamFromSlice";
+/// `gmeow:seamToSlice` — a seam-direction leg's referenced grounding slice.
+const GMEOW_SEAM_TO_SLICE: &str = "https://blackcatinformatics.ca/gmeow/seamToSlice";
+/// `gmeow:seamCarryingTerm` — a term IRI a seam sanctions crossing on.
+const GMEOW_SEAM_CARRYING_TERM: &str = "https://blackcatinformatics.ca/gmeow/seamCarryingTerm";
+/// `gmeow:seamOwningDoc` — the design-doc filename a seam is documented in.
+const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOwningDoc";
+/// `gmeow:sliceCoFoundationalWith` — the symmetric grounding-peerage relation.
+const GMEOW_CO_FOUNDATIONAL_WITH: &str =
+    "https://blackcatinformatics.ca/gmeow/sliceCoFoundationalWith";
+/// `rdfs:label`.
+const RDFS_LABEL_TERM: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+/// Reduce a term IRI to its `family:Local` CURIE for the four grounding
+/// namespaces — the same family map `gmeow_docs::render::to_curie` uses. Used
+/// ONLY for the human-readable [`SeamRecord::carrying_terms`] projection (the
+/// R7 page-drift text comparison); [`classify`]'s exact-IRI join always
+/// compares the raw [`SeamRecord::carrying_term_iris`] instead.
+pub(crate) fn seam_term_curie(iri: &str) -> String {
+    const FAMILIES: &[(&str, &str)] = &[
+        ("https://blackcatinformatics.ca/gmeow/", "gmeow"),
+        ("https://blackcatinformatics.ca/logic/", "logic"),
+        ("https://blackcatinformatics.ca/math/", "math"),
+        ("https://blackcatinformatics.ca/lang/", "lang"),
+    ];
+    for (ns, prefix) in FAMILIES {
+        if let Some(local) = iri.strip_prefix(ns) {
+            return format!("{prefix}:{local}");
+        }
+    }
+    iri.to_string()
+}
+
+/// One `gmeow:Seam` individual's canonical data, read directly off a grounding
+/// slice's `manifest.ttl` — the single reader both the R7 seam-registry drift
+/// gate (`crate::authoring_integrity`) and this peerage-coverage engine share.
+pub(crate) struct SeamRecord {
+    /// The seam's own IRI (`a gmeow:Seam` subject).
+    pub(crate) iri: String,
+    /// `rdfs:label` (lexically-lowest, deterministic), falling back to the
+    /// seam's CURIE when unlabeled.
+    pub(crate) name: String,
+    /// `gmeow:seamCarryingTerm` objects, reduced to `family:Local` CURIEs (for
+    /// the R7 page-drift text comparison ONLY).
+    pub(crate) carrying_terms: BTreeSet<String>,
+    /// `gmeow:seamCarryingTerm` objects, as raw term IRIs — the exact-IRI set
+    /// [`classify`] matches a crossing's referenced term against.
+    pub(crate) carrying_term_iris: BTreeSet<String>,
+    /// `gmeow:seamDirection` legs, each a `(from_slice_iri, to_slice_iri)` pair,
+    /// sorted and deduped.
+    pub(crate) directions: Vec<(String, String)>,
+    /// `gmeow:seamOwningDoc` literal values.
+    pub(crate) owning_docs: BTreeSet<String>,
+}
+
+/// The IRI object of `<subject> <pred> ?o`, where `subject` is a blank node (a
+/// seam-direction leg). A full default-graph quad scan — NOT
+/// `Dataset::objects_of_subject` — because `purrdf_slice::rdf_query`'s
+/// `Subject::Blank` → `term_id_by_value` path always looks the label up under
+/// `BlankScope::DEFAULT` (`TermValue::blank`'s only scope), so it can never
+/// resolve a blank node from a REAL parsed document (Turtle parsing always
+/// assigns a non-default per-document scope): `objects_of_subject` silently
+/// returns `Ok(vec![])` for every real blank-node subject, never an error.
+/// `Subject`'s `PartialEq` compares the already scope-qualified label string
+/// [`object_of`]/[`subject_of`] rendered, so equality-matching a quad's
+/// resolved `Subject` against this direction leg's blank `Subject` is exact
+/// and scope-safe without going through the broken by-value lookup at all.
+///
+/// `None` on no matching IRI object (a malformed direction leg is skipped,
+/// mirroring `gmeow_docs::model::extract_seams`'s `filter_map` posture; a
+/// seam's OTHER, well-formed directions still classify correctly).
+fn first_named_object_of_subject(ds: &Dataset, subject: &Subject, pred: &str) -> Option<String> {
+    let mut found = None;
+    ds.for_each_quad(|s, p, o, _graph| {
+        if found.is_none()
+            && &s == subject
+            && p == pred
+            && let Object::Named(iri) = o
+        {
+            found = Some(iri);
+        }
+    });
+    found
+}
+
+fn parse_err(path: &Path, e: &str) -> Diag {
+    Diag::of_kind(crate::error::Parse {
+        detail: format!("{}: {e}", path.display()),
+    })
+}
+
+/// Every `gmeow:Seam` individual declared in a manifest typed
+/// `gmeow:GroundingSlice` — generic over every grounding slice (mirrors
+/// `gmeow_docs::model::extract_seams`'s discovery gate; today only `logic:`'s
+/// manifest carries the registry, but a future seam authored in `lang:`/`math:`
+/// is picked up without a code change).
+pub(crate) fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecord>> {
+    let mut out = Vec::new();
+    let grounding = ds
+        .subjects_of_type(GMEOW_GROUNDING_SLICE)
+        .map_err(|e| parse_err(path, &e.to_string()))?;
+    if grounding.is_empty() {
+        return Ok(out);
+    }
+    for seam_iri in ds
+        .subjects_of_type(GMEOW_SEAM)
+        .map_err(|e| parse_err(path, &e.to_string()))?
+    {
+        let name = ds
+            .objects(&seam_iri, RDFS_LABEL_TERM)
+            .map_err(|e| parse_err(path, &e.to_string()))?
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal { value, .. } => Some(value),
+                _ => None,
+            })
+            .min()
+            .unwrap_or_else(|| seam_term_curie(&seam_iri));
+        let carrying_term_iris: BTreeSet<String> = ds
+            .object_iris(&seam_iri, GMEOW_SEAM_CARRYING_TERM)
+            .map_err(|e| parse_err(path, &e.to_string()))?
+            .into_iter()
+            .collect();
+        let carrying_terms: BTreeSet<String> = carrying_term_iris
+            .iter()
+            .map(|iri| seam_term_curie(iri))
+            .collect();
+        let owning_docs: BTreeSet<String> = ds
+            .objects(&seam_iri, GMEOW_SEAM_OWNING_DOC)
+            .map_err(|e| parse_err(path, &e.to_string()))?
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal { value, .. } => Some(value),
+                _ => None,
+            })
+            .collect();
+        let mut directions: Vec<(String, String)> = ds
+            .objects(&seam_iri, GMEOW_SEAM_DIRECTION)
+            .map_err(|e| parse_err(path, &e.to_string()))?
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Blank(label) => {
+                    let subject = Subject::Blank(label);
+                    let from = first_named_object_of_subject(ds, &subject, GMEOW_SEAM_FROM_SLICE)?;
+                    let to = first_named_object_of_subject(ds, &subject, GMEOW_SEAM_TO_SLICE)?;
+                    Some((from, to))
+                }
+                _ => None,
+            })
+            .collect();
+        directions.sort();
+        directions.dedup();
+        out.push(SeamRecord {
+            iri: seam_iri,
+            name,
+            carrying_terms,
+            carrying_term_iris,
+            directions,
+            owning_docs,
+        });
+    }
+    Ok(out)
+}
+
+// ── Catalog-scoped readers ────────────────────────────────────────────────────
+
+/// Wrap a [`SliceRecord`]'s lossless manifest IR as a query-able [`Dataset`],
+/// with no re-*parse* of the on-disk `manifest.ttl` (the catalog already
+/// parsed it once from bytes — this engine reads the SAME frozen graph
+/// content, never a second Turtle parse or a second scan of the source tree;
+/// `Dataset::from_frozen` clones the in-memory graph rather than mutating the
+/// catalog's shared `Arc`, a cheap in-memory copy of a small manifest graph).
+fn manifest_dataset(record: &SliceRecord) -> Dataset {
+    Dataset::from_frozen(Arc::clone(&record.manifest_graph))
+}
+
+/// Every slice IRI in `catalog` typed `gmeow:GroundingSlice`.
+fn grounding_slice_iris(catalog: &SliceCatalog) -> Result<BTreeSet<SliceIri>> {
+    let mut out = BTreeSet::new();
+    for record in catalog.records() {
+        let ds = manifest_dataset(record);
+        let is_grounding = ds
+            .has_type(&record.manifest.slice_iri, GMEOW_GROUNDING_SLICE)
+            .map_err(|e| parse_err(&record.manifest_path(), &e.to_string()))?;
+        if is_grounding {
+            out.insert(record.manifest.slice_iri.clone());
+        }
+    }
+    Ok(out)
+}
+
+/// Every directed `gmeow:sliceCoFoundationalWith` pair across `catalog`
+/// (`(declaring_slice, peer_slice)`) — asymmetric AS AUTHORED; [`classify`]
+/// requires BOTH directions present before treating a pair as mutually peered.
+fn peerage_pairs(catalog: &SliceCatalog) -> Result<BTreeSet<(SliceIri, SliceIri)>> {
+    let mut out = BTreeSet::new();
+    for record in catalog.records() {
+        let ds = manifest_dataset(record);
+        let peers = ds
+            .object_iris(&record.manifest.slice_iri, GMEOW_CO_FOUNDATIONAL_WITH)
+            .map_err(|e| parse_err(&record.manifest_path(), &e.to_string()))?;
+        for peer in peers {
+            out.insert((record.manifest.slice_iri.clone(), peer));
+        }
+    }
+    Ok(out)
+}
+
+/// Every `gmeow:Seam` individual across every grounding manifest in `catalog`.
+fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
+    let mut out = Vec::new();
+    for record in catalog.records() {
+        let ds = manifest_dataset(record);
+        out.extend(seam_records_of(&ds, &record.manifest_path())?);
+    }
+    Ok(out)
+}
+
+// ── Classification ────────────────────────────────────────────────────────────
+
+/// The peerage-coverage verdict for one undeclared semantic dependency edge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Coverage {
+    /// Both grounding, mutually peered, and every referenced term on the edge
+    /// is carried by a seam whose direction matches this crossing exactly.
+    Covered,
+    /// Both grounding and mutually peered, but at least one referenced term is
+    /// not carried by any seam covering this crossing direction.
+    PeeredUnregisteredSeam {
+        /// The offending terms, sorted/deduped.
+        offending_terms: Vec<NamedNode>,
+    },
+    /// Not both grounding peers, or not mutually declared: the ordinary
+    /// undeclared-dependency observation applies, unchanged.
+    Uncovered,
+}
+
+/// One classified undeclared semantic dependency edge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UndeclaredEdgeVerdict {
+    /// The depending slice.
+    pub from_slice: SliceIri,
+    /// The depended-upon slice.
+    pub to_slice: SliceIri,
+    /// The artifact-role classification of the undeclared edge.
+    pub edge_kind: EdgeKind,
+    /// The peerage-coverage verdict.
+    pub coverage: Coverage,
+}
+
+/// One `(edge, term)` pair a registered seam covers — exposed for a future
+/// consumer (e.g. a peerage-coverage report) to project; this engine itself
+/// only needs it to suppress the finding.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CrossingCoverage {
+    /// The depending slice.
+    pub from_slice: SliceIri,
+    /// The depended-upon slice.
+    pub to_slice: SliceIri,
+    /// The covering seam's IRI.
+    pub seam_iri: String,
+    /// The covered term.
+    pub term: NamedNode,
+}
+
+/// The complete peerage classification of an [`OwnershipReport`] against a
+/// [`SliceCatalog`]'s grounding-peerage + seam-registry data.
+#[derive(Debug, Clone, Default)]
+pub struct PeerageClassification {
+    /// One verdict per undeclared *semantic* dependency edge.
+    pub verdicts: Vec<UndeclaredEdgeVerdict>,
+    /// Every `(edge, term)` pair a registered seam covers.
+    pub crossings: Vec<CrossingCoverage>,
+}
+
+/// Classify every undeclared *semantic* dependency edge in `report` against
+/// the grounding-peerage relation and seam registry read off `catalog`.
+///
+/// Non-semantic edge kinds (`Test`/`Example`/`Documentation`/`Generated`) never
+/// reconcile against `<vocab>sliceDependsOn` (`EdgeKind::is_semantic`), so
+/// `OwnershipAnalyzer` never emits an `UndeclaredDependency` diagnostic for one
+/// in practice — this still filters them defensively (never trusting an
+/// upstream invariant it does not itself also check).
+///
+/// The join from a diagnostic to its [`DependencyEdge`] is TOTAL: a semantic
+/// `UndeclaredDependency` diagnostic with no matching
+/// `ReconciliationStatus::Undeclared` edge in `report.edges` is an internal
+/// contract violation between the diagnostics and edges the analyzer itself
+/// produced — a HARD FAIL (`Err`), never a silently skipped diagnostic.
+pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<PeerageClassification> {
+    let grounding = grounding_slice_iris(catalog)?;
+    let peers = peerage_pairs(catalog)?;
+    let seams = seam_registry(catalog)?;
+
+    let mut verdicts = Vec::new();
+    let mut crossings = Vec::new();
+
+    for diag in &report.diagnostics {
+        let OwnershipDiagnostic::UndeclaredDependency {
+            from_slice,
+            to_slice,
+            edge_kind,
+        } = diag
+        else {
+            continue;
+        };
+        if !edge_kind.is_semantic() {
+            continue;
+        }
+
+        let edge: &DependencyEdge = report
+            .edges
+            .iter()
+            .find(|e| {
+                &e.from_slice == from_slice
+                    && &e.to_slice == to_slice
+                    && e.edge_kind == *edge_kind
+                    && e.reconciliation == ReconciliationStatus::Undeclared
+            })
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::Catalog {
+                    detail: format!(
+                        "peerage classification: OwnershipDiagnostic::UndeclaredDependency \
+                         {from_slice} -> {to_slice} ({edge_kind:?}) has no matching \
+                         ReconciliationStatus::Undeclared DependencyEdge in \
+                         OwnershipReport::edges — the ownership-analysis diagnostic/edge join \
+                         must be total"
+                    ),
+                })
+            })?;
+
+        let both_grounding = grounding.contains(from_slice) && grounding.contains(to_slice);
+        let mutually_peered = peers.contains(&(from_slice.clone(), to_slice.clone()))
+            && peers.contains(&(to_slice.clone(), from_slice.clone()));
+
+        let coverage = if both_grounding && mutually_peered {
+            let covering_seams: Vec<&SeamRecord> = seams
+                .iter()
+                .filter(|s| {
+                    s.directions
+                        .iter()
+                        .any(|(f, t)| f == from_slice && t == to_slice)
+                })
+                .collect();
+
+            let mut terms: Vec<&NamedNode> =
+                edge.evidence.iter().map(|e| &e.referenced_term).collect();
+            terms.sort();
+            terms.dedup();
+
+            let mut offending_terms = Vec::new();
+            for term in terms {
+                let covering_seam = covering_seams
+                    .iter()
+                    .find(|seam| seam.carrying_term_iris.contains(term.as_str()));
+                match covering_seam {
+                    Some(seam) => crossings.push(CrossingCoverage {
+                        from_slice: from_slice.clone(),
+                        to_slice: to_slice.clone(),
+                        seam_iri: seam.iri.clone(),
+                        term: term.clone(),
+                    }),
+                    None => offending_terms.push(term.clone()),
+                }
+            }
+
+            if offending_terms.is_empty() {
+                Coverage::Covered
+            } else {
+                Coverage::PeeredUnregisteredSeam { offending_terms }
+            }
+        } else {
+            Coverage::Uncovered
+        };
+
+        verdicts.push(UndeclaredEdgeVerdict {
+            from_slice: from_slice.clone(),
+            to_slice: to_slice.clone(),
+            edge_kind: *edge_kind,
+            coverage,
+        });
+    }
+
+    Ok(PeerageClassification {
+        verdicts,
+        crossings,
+    })
+}
+
+// ── Finding projection ────────────────────────────────────────────────────────
+
+/// Project an [`OwnershipReport`] into findings exactly as
+/// [`crate::slice_ownership::ownership_findings`] does, EXCEPT that every
+/// `slice-ownership.undeclared-dependency` observation is re-derived from
+/// [`classify`]: a `Covered` crossing is suppressed entirely, a
+/// `PeeredUnregisteredSeam` crossing becomes a NEW `Error`
+/// (`slice-ownership.peered-unregistered-seam`), and an `Uncovered` crossing
+/// keeps the ordinary finding at its current (`Warning`) severity, byte-for-byte
+/// identical to [`crate::slice_ownership::diagnostic_finding`]'s projection.
+pub fn peerage_aware_ownership_findings(
+    report: &OwnershipReport,
+    catalog: &SliceCatalog,
+) -> Result<Vec<Finding>> {
+    let classification = classify(report, catalog)?;
+
+    let mut findings: Vec<Finding> = crate::slice_ownership::ownership_findings(report)
+        .into_iter()
+        .filter(|f| f.code != crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY)
+        .collect();
+
+    for verdict in &classification.verdicts {
+        match &verdict.coverage {
+            Coverage::Covered => {}
+            Coverage::Uncovered => {
+                let diag = OwnershipDiagnostic::UndeclaredDependency {
+                    from_slice: verdict.from_slice.clone(),
+                    to_slice: verdict.to_slice.clone(),
+                    edge_kind: verdict.edge_kind,
+                };
+                if let Some(f) = crate::slice_ownership::diagnostic_finding(&diag) {
+                    findings.push(f);
+                }
+            }
+            Coverage::PeeredUnregisteredSeam { offending_terms } => {
+                let terms_text = offending_terms
+                    .iter()
+                    .map(NamedNode::as_str)
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                findings.push(crate::slice_ownership::finding(
+                    Severity::Error,
+                    crate::codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+                    format!(
+                        "{from} depends on {to} across a declared gmeow:sliceCoFoundationalWith \
+                         peering, but term(s) {terms_text} are not carried by any gmeow:Seam \
+                         registered for the {from} -> {to} direction — register the crossing on \
+                         a seam or declare an ordinary gmeow:sliceDependsOn edge",
+                        from = verdict.from_slice,
+                        to = verdict.to_slice,
+                    ),
+                    Some(verdict.from_slice.clone()),
+                ));
+            }
+        }
+    }
+
+    findings.sort_by(|a, b| {
+        (a.severity as u8, &a.code, &a.message).cmp(&(b.severity as u8, &b.code, &b.message))
+    });
+    Ok(findings)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use purrdf::slice::{ArtifactEvidence, ArtifactRole, EdgeEvidence};
+
+    const LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+    const LANG: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+    const MATH: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
+    const CORE: &str = "https://blackcatinformatics.ca/gmeow/slices/core";
+    const EXT: &str = "https://blackcatinformatics.ca/gmeow/slices/ext";
+
+    fn nn(iri: &str) -> NamedNode {
+        NamedNode::new(iri).unwrap()
+    }
+
+    fn vocab() -> purrdf::SliceVocab {
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/")
+    }
+
+    fn write_manifest(root: &Path, group: &str, name: &str, ttl: &str) {
+        let dir = root.join("slices").join(group).join(name);
+        std::fs::create_dir_all(&dir).unwrap();
+        let prefixed = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             {ttl}"
+        );
+        std::fs::write(dir.join("manifest.ttl"), prefixed).unwrap();
+    }
+
+    /// A catalog with the three grounding slices, mutually peered, `logic:`
+    /// hosting one seam `lang -> logic` carrying `logic:Foo`, and `math:`
+    /// hosting one seam `lang -> math` carrying `math:Quantity` (the real
+    /// `quantity` seam's direction — `math -> lang` is NOT sanctioned).
+    fn grounding_catalog(root: &Path) -> SliceCatalog {
+        write_manifest(
+            root,
+            "grounding",
+            "logic",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/logic>
+                a gmeow:Slice, gmeow:GroundingSlice ;
+                rdfs:label "logic" ;
+                gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/lang> ,
+                    <https://blackcatinformatics.ca/gmeow/slices/math> .
+
+            <https://blackcatinformatics.ca/gmeow/seam/test-seam>
+                a gmeow:Seam ;
+                rdfs:label "Test seam" ;
+                gmeow:seamDirection [
+                    gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+                    gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>
+                ] ;
+                gmeow:seamCarryingTerm logic:Foo ;
+                gmeow:seamOwningDoc "TEST.md" .
+            "#,
+        );
+        write_manifest(
+            root,
+            "grounding",
+            "lang",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/lang>
+                a gmeow:Slice, gmeow:GroundingSlice ;
+                rdfs:label "lang" ;
+                gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+                    <https://blackcatinformatics.ca/gmeow/slices/math> .
+            "#,
+        );
+        write_manifest(
+            root,
+            "grounding",
+            "math",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/math>
+                a gmeow:Slice, gmeow:GroundingSlice ;
+                rdfs:label "math" ;
+                gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+                    <https://blackcatinformatics.ca/gmeow/slices/lang> .
+
+            <https://blackcatinformatics.ca/gmeow/seam/quantity-seam>
+                a gmeow:Seam ;
+                rdfs:label "Quantity seam" ;
+                gmeow:seamDirection [
+                    gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+                    gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
+                ] ;
+                gmeow:seamCarryingTerm math:Quantity ;
+                gmeow:seamOwningDoc "QUANTITY.md" .
+            "#,
+        );
+        write_manifest(
+            root,
+            "core",
+            "core",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/core>
+                a gmeow:Slice ;
+                rdfs:label "core" .
+            "#,
+        );
+        write_manifest(
+            root,
+            "core",
+            "ext",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/ext>
+                a gmeow:Slice ;
+                rdfs:label "ext" .
+            "#,
+        );
+        SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    }
+
+    fn artifact_evidence(slice: &str) -> ArtifactEvidence {
+        ArtifactEvidence {
+            slice: slice.to_string(),
+            role: ArtifactRole::Module,
+            logical_path: "module.ttl".to_string(),
+            raw_digest: "deadbeef".to_string(),
+        }
+    }
+
+    fn edge(
+        from: &str,
+        to: &str,
+        kind: EdgeKind,
+        terms: &[&str],
+        reconciliation: ReconciliationStatus,
+    ) -> DependencyEdge {
+        DependencyEdge {
+            from_slice: from.to_string(),
+            to_slice: to.to_string(),
+            edge_kind: kind,
+            evidence: terms
+                .iter()
+                .map(|t| EdgeEvidence {
+                    from_artifact: artifact_evidence(from),
+                    referenced_term: nn(t),
+                })
+                .collect(),
+            reconciliation,
+        }
+    }
+
+    fn undeclared_diag(from: &str, to: &str, kind: EdgeKind) -> OwnershipDiagnostic {
+        OwnershipDiagnostic::UndeclaredDependency {
+            from_slice: from.to_string(),
+            to_slice: to.to_string(),
+            edge_kind: kind,
+        }
+    }
+
+    #[test]
+    fn covered_peer_seam_crossing_is_suppressed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                LANG,
+                LOGIC,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/logic/Foo"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).expect("classify must not hard-fail");
+        assert_eq!(classification.verdicts.len(), 1);
+        assert_eq!(classification.verdicts[0].coverage, Coverage::Covered);
+        assert_eq!(classification.crossings.len(), 1);
+        assert_eq!(
+            classification.crossings[0].seam_iri,
+            "https://blackcatinformatics.ca/gmeow/seam/test-seam"
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a covered peer+seam crossing must not fire any finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn peered_crossing_with_an_off_seam_term_fires_error() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                LANG,
+                LOGIC,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/logic/Bar"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        match &classification.verdicts[0].coverage {
+            Coverage::PeeredUnregisteredSeam { offending_terms } => {
+                assert_eq!(
+                    offending_terms,
+                    &vec![nn("https://blackcatinformatics.ca/logic/Bar")]
+                );
+            }
+            other => panic!("expected PeeredUnregisteredSeam, got {other:?}"),
+        }
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, "slice-ownership.peered-unregistered-seam");
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert!(findings[0].message.contains("Bar"));
+        assert!(findings[0].message.contains(LANG));
+        assert!(findings[0].message.contains(LOGIC));
+    }
+
+    #[test]
+    fn reverse_direction_of_a_registered_seam_is_not_covered() {
+        // The quantity seam sanctions lang -> math carrying math:Quantity; the
+        // REVERSE crossing (math -> lang) referencing the same term must not
+        // ride free on it.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                MATH,
+                LANG,
+                EdgeKind::Mapping,
+                &["https://blackcatinformatics.ca/math/Quantity"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(MATH, LANG, EdgeKind::Mapping)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_ne!(classification.verdicts[0].coverage, Coverage::Covered);
+        assert!(matches!(
+            classification.verdicts[0].coverage,
+            Coverage::PeeredUnregisteredSeam { .. }
+        ));
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, "slice-ownership.peered-unregistered-seam");
+    }
+
+    #[test]
+    fn uncovered_non_peer_undeclared_dependency_stays_a_warning() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                CORE,
+                EXT,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/SomeTerm"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(CORE, EXT, EdgeKind::Ontology)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_eq!(classification.verdicts[0].coverage, Coverage::Uncovered);
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
+        assert_eq!(findings[0].severity, Severity::Warning);
+    }
+
+    #[test]
+    fn a_semantic_undeclared_diagnostic_with_no_matching_edge_hard_fails() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: Vec::new(),
+            diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Ontology)],
+        };
+
+        let result = classify(&report, &catalog);
+        assert!(
+            result.is_err(),
+            "a semantic UndeclaredDependency diagnostic with no matching edge must hard-fail"
+        );
+    }
+
+    #[test]
+    fn a_non_semantic_edge_kind_diagnostic_is_ignored_even_with_no_matching_edge() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: Vec::new(),
+            diagnostics: vec![undeclared_diag(LANG, LOGIC, EdgeKind::Test)],
+        };
+
+        let classification =
+            classify(&report, &catalog).expect("non-semantic edge kinds are filtered before the join, never hard-failing on a missing edge");
+        assert!(classification.verdicts.is_empty());
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(findings.is_empty());
+    }
+
+    #[test]
+    fn seam_records_of_reads_directions_and_raw_term_iris() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_catalog(tmp.path());
+        let seams = seam_registry(&catalog).unwrap();
+        let test_seam = seams
+            .iter()
+            .find(|s| s.name == "Test seam")
+            .expect("test-seam present");
+        assert_eq!(
+            test_seam.directions,
+            vec![(LANG.to_string(), LOGIC.to_string())]
+        );
+        assert!(
+            test_seam
+                .carrying_term_iris
+                .contains("https://blackcatinformatics.ca/logic/Foo")
+        );
+        assert!(test_seam.carrying_terms.contains("logic:Foo"));
+    }
+}

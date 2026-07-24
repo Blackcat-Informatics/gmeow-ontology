@@ -69,8 +69,12 @@ pub fn ownership_findings(report: &OwnershipReport) -> Vec<Finding> {
 }
 
 /// Map one [`OwnershipDiagnostic`] to a finding (or `None` for `Unowned`, which
-/// the ownership-table pass above already covers).
-fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
+/// the ownership-table pass above already covers). `pub(crate)` so
+/// [`crate::slice_peerage::peerage_aware_ownership_findings`] can reuse the exact
+/// same projection for the `Uncovered` verdict (an undeclared dependency that is
+/// not a co-foundational peering crossing) — the message/severity must never
+/// drift between the two callers.
+pub(crate) fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
     match diag {
         OwnershipDiagnostic::Conflict { term, claimants } => Some(finding(
             Severity::Error,
@@ -137,8 +141,15 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
 }
 
 /// Build one slice-ownership finding, hanging the offending IRI off a logical
-/// location for SARIF grouping.
-fn finding(severity: Severity, code: &str, message: String, logical: Option<String>) -> Finding {
+/// location for SARIF grouping. `pub(crate)` so [`crate::slice_peerage`] emits
+/// its `slice-ownership.peered-unregistered-seam` finding under the same
+/// `TOOL` namespace rather than forking a second SARIF-rule tool string.
+pub(crate) fn finding(
+    severity: Severity,
+    code: &str,
+    message: String,
+    logical: Option<String>,
+) -> Finding {
     let mut f = Finding::new(severity, code, message).with_tool(TOOL);
     if let Some(iri) = logical {
         f.add_location(Location::new(None, None, None, Some(iri)));

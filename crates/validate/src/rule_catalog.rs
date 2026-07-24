@@ -248,6 +248,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Warning,
         Enforcement::Governance,
     ),
+    (
+        codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
     // ── Ontology-surface authoring gates ──
     (
         codes::AUTHORING_SHAPE_IRI_COLLISION,
@@ -576,6 +581,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
         "Fix the malformed slice query so it parses.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+        "Register the crossing term(s) on a gmeow:Seam covering this direction between the co-foundational peers, or replace the peerage-riding reference with an ordinary declared gmeow:sliceDependsOn edge.",
     ),
     (
         codes::SLICE_OWNERSHIP_FAMILY,

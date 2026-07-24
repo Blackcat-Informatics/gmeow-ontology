@@ -40,7 +40,6 @@ use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
 use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
-use crate::slice_ownership;
 use crate::store;
 
 /// One per-phase timing record.
@@ -563,10 +562,11 @@ impl ValidationRun {
         } else {
             None
         };
-        if let Some((_, ownership)) = &slice_analysis {
-            for finding in slice_ownership::ownership_findings(ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+        if let Some((catalog, ownership)) = &slice_analysis {
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(ownership, catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
@@ -639,13 +639,14 @@ impl ValidationRun {
                 |d| std::path::Path::new(d).to_path_buf(),
             );
             let slices_path_str = slices_path.to_string_lossy().into_owned();
-            let (_, ownership) =
+            let (catalog, ownership) =
                 timed(&mut timings, "slice-ownership-live", options, None, || {
                     slice_catalog_and_ownership(&slices_path_str)
                 })?;
-            for finding in slice_ownership::ownership_findings(&ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(&ownership, &catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
