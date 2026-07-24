@@ -1877,3 +1877,25 @@ suggestions/guidance.
   SHACL / reasoned-closure cost so the gate completes within gate time (a shape's
   super-linear evaluation, or the reasoned-closure size, is the likely culprit); until
   then `validate-gts` cannot be relied on as an on-gate check in `make check`.
+
+## 2026-07-24 — issue #1402 / #1406 (documentation capstone, stage-2 gap remediation, branch paudley/1402-docs-capstone)
+
+- WEAKER-PROXY VERIFICATION, HUMAN-SIGNED-OFF (mdbook interactivity is proven
+  structurally + by engine witness, NOT by a rendered `mdbook build` on-gate):
+  #1406-W3 and #1628-C4 require the packed wasm engines to be live and every
+  intra-corpus link to resolve *in mdbook*. The branch proves this by (a) structural
+  assertions over the EMITTED mdbook source tree — `crates/docs/tests/mdbook_render.rs`
+  asserts the four engine `.wasm` files under `src/assets/`, the `additional-js` boot
+  shim, the interactive host chapter, and the static book's *absence* of all three —
+  and (b) each engine's own native≡wasm witness lane (validate/reason/gmn `*-pkg-test`),
+  now RUN on-gate via the new `wasm-parity` CHECK_DAG task. It does NOT run a rendered
+  `mdbook build` on the gate: repo doctrine (issue #1402 / PIPELINE_SPINE) forbids the
+  mdbook *library/binary* inside the pipeline — "mdbook as an emitted source tree, never
+  the mdbook library." The completion-adversary flagged the built-book path as TEST-ONLY
+  (a fair characterization: the rendered HTML is never exercised on-gate); the human
+  accepted the structural + per-engine-witness proof as sufficient for W3/C4 this
+  session (the PR's own confidence-question #1). FORWARD PATH: an OFF-gate maintainer
+  lane (`maint-mdbook-smoke`) that installs the mdbook binary, runs `mdbook build` over
+  the emitted tree, and asserts the packed engines load + intra-corpus links resolve in
+  the rendered HTML — kept off the core `make check` gate so the pipeline never links or
+  invokes the mdbook library, consistent with the doctrine.
