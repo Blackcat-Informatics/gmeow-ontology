@@ -32,33 +32,27 @@ gmeow:mapsetGts a gmeow:MappingSet ;
 # DCAT — a GTS document is a distribution
 # --------------------------------------------------------------------------- #
 
-gmeow:eqGts001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:GTSDocument ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcat:Distribution ;
+gmeow:GTSDocument skos:closeMatch dcat:Distribution {|
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A GTS document is a concrete, downloadable embodiment of a dataset or work — DCAT's Distribution. Lossy: DCAT carries no segment structure, chain identity, or profile semantics." ;
-    gmeow:sssomFile "gmeow-gts.sssom.tsv" .
+    gmeow:comment "A GTS document is a concrete, downloadable embodiment of a dataset or work — DCAT's Distribution. Lossy: DCAT carries no segment structure, chain identity, or profile semantics."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O — compaction lineage
 # --------------------------------------------------------------------------- #
 
-gmeow:eqGts002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:GTSCompaction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:GTSCompaction skos:closeMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A compaction is a provenance activity: the compacted document prov:wasGeneratedBy it and prov:wasDerivedFrom the source document." ;
-    gmeow:sssomFile "gmeow-gts.sssom.tsv" .
+    gmeow:comment "A compaction is a provenance activity: the compacted document prov:wasGeneratedBy it and prov:wasDerivedFrom the source document."
+|} .
 
-gmeow:eqGts003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:GTSSegment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:GTSSegment skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "A segment is a provenance entity with its own attribution (signers) and derivation history. Lossy: PROV carries no chain or head-identity semantics." ;
-    gmeow:sssomFile "gmeow-gts.sssom.tsv" .
+    gmeow:comment "A segment is a provenance entity with its own attribution (signers) and derivation history. Lossy: PROV carries no chain or head-identity semantics."
+|} .

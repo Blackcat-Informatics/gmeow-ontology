@@ -99,8 +99,14 @@ use session_common::*;
 /// into `native_contract_hash()`, so the raw source-content digest moves; the change only
 /// turns a previously-OOM super-polynomial materialization into a sound INCOMPLETE withhold
 /// and no reasoning verdict on any decided input changes.
+/// Re-blessed once more for the RDF 1.2 quoted-triple goal-argument grammar: `query_ir.rs`
+/// gains a `<<( s p o )>>` term and `QTerm::Triple`, and the flat/generic lowering, plan
+/// hash, reference oracle, probabilistic, and counterfactual surfaces gain the exhaustive
+/// arm — all folded via `include_str!` into `backward_source_hash()`, so the raw
+/// source-content digest moves. The fixed edge-only input carries no triple term, so the new
+/// arm never fires and no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "d27e301f3d3592f3120a6a99474f3e39c38def7a0778c6a2c00cd83f1ee43d76";
+    "6fc6af730340c712f9fa0ff1b4412282aede144fd15a0c75e0e09619b399cc73";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -135,8 +141,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the native contract hash folds the changed
 /// `reason/dl.rs` + `physical/chase.rs` source, so the session identity moves with it, while
 /// the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the RDF 1.2 quoted-triple goal-argument grammar (see the
+/// engine-descriptor golden above): the backward-source digest is one of the seven folded
+/// axes and moves with the changed `query_ir`/`physical` source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "6966da60098bcfb26e5a9cb81f2e215e34a39ed6735b1f770a372c600c46d24b";
+    "9aecc2d1693b573e008afc4b61c0e2ab7c8046403a648b9132d33465bda829d4";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

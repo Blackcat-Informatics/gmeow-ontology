@@ -47,15 +47,20 @@ residue(slice, vocab) = |hand-authored constructs in vocab's namespace(s)|
   to an untyped/non-axiom target, does NOT ground (migration debt cannot be faked with
   a rubber-stamp). (`logic:grounds` was a phantom predicate the ontology never defined;
   it is gone.)
-- **By-reference alignment carve-out (owner-boundary, validated only):** a triple is
-  subtracted as a legitimate bridge ONLY when it is a **validated correspondence cell**
-  — subject typed `gmeow:TermEquivalence` carrying a `gmeow:justification`, predicate
-  `gmeow:alignObject`, object EXTERNAL (non-`gmeow:`) — AND it is measured on the
-  vocabulary's `gmeow:vocabularyOwner` (grounding-slice) surface. A raw
-  `rdfs:subClassOf`/`owl:equivalentClass` to an external object — even in `module.ttl`
-  — is NOT exempt, and a correspondence cell authored in a non-owner slice is NOT
-  exempt: external terms may be authored only at their owner grounding slice's mapping
-  boundary; every other slice references the grounding-vocabulary term instead.
+- **By-reference alignment carve-out:** a triple is subtracted as a legitimate bridge
+  ONLY when it is the asserted base triple `<s> <p> <o>` of a **native alignment cell**
+  — a reified RDF-1.2 match statement carrying the `gmeow:sssomFile` discriminator
+  (predicate ∈ `skos:*Match` / `owl:equivalent*` / `owl:sameAs` / `rdfs:sub*Of`). A
+  cell whose reifier carries a complete grounding envelope (a
+  `logic:GroundingCorrespondence` with `logic:sourceEndpoint`/`targetEndpoint` and its
+  morphism/preservation judgments) is exempt ONLY on the vocabulary's
+  `gmeow:vocabularyOwner` (grounding-slice) surface — off its owner it counts, and the
+  external term may be authored only at that boundary. An ordinary (non-grounding)
+  alignment cell over the structural `rdfs:` taxonomy is a first-class correspondence
+  record and is exempt on any surface, EXCEPT a purely internal `gmeow`-to-`gmeow` cell,
+  which stays in the residue as a genuine second source. A raw
+  `rdfs:subClassOf`/`owl:equivalentClass` with no reifier — even in `module.ttl` — is
+  NOT a correspondence cell and is never exempt.
 
 ### Per count-kind
 

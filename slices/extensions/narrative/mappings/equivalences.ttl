@@ -16,128 +16,100 @@ gmeow:mapsetNarrative a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Narrative reference frame and creative-work alignments to schema.org and Wikidata. OntoMedia/GOLEM/TEI/LTO projections deferred to follow-up issues." .
 
-gmeow:eqNarrative001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Book ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:BookRelease ;
+schema:Book skos:closeMatch gmeow:BookRelease {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition."
+|} .
 
-gmeow:eqNarrative002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Episode ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:SerialInstallment ;
+schema:Episode rdfs:subClassOf gmeow:SerialInstallment {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines)." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines)."
+|} .
 
-gmeow:eqNarrative003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject wd:Q1774138 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:NarrativeReferenceFrame ;
+wd:Q1774138 skos:closeMatch gmeow:NarrativeReferenceFrame {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'fictional universe' is broader than a single canon frame." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Wikidata 'fictional universe' is broader than a single canon frame."
+|} .
 
-gmeow:eqNarrative004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject wd:Q15706943 ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:NarrativeReferenceFrame ;
+wd:Q15706943 skos:closeMatch gmeow:NarrativeReferenceFrame {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'fictional world' — close match to narrative frame." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Wikidata 'fictional world' — close match to narrative frame."
+|} .
 
-gmeow:eqNarrative005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LiteraryWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Book ;
+gmeow:LiteraryWork skos:closeMatch schema:Book {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Lossy: schema.org collapses WEMI; schema:Book may denote abstract work or concrete edition." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Lossy: schema.org collapses WEMI; schema:Book may denote abstract work or concrete edition."
+|} .
 
-gmeow:eqNarrative006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LiteraryWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bibo:Book ;
+gmeow:LiteraryWork skos:closeMatch bibo:Book {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "bibo:Book is scholarly-publication-scoped; gmeow:LiteraryWork is universal." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "bibo:Book is scholarly-publication-scoped; gmeow:LiteraryWork is universal."
+|} .
 
-gmeow:eqNarrative007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SerialWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:CreativeWorkSeries ;
+gmeow:SerialWork skos:closeMatch schema:CreativeWorkSeries {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema:CreativeWorkSeries is broader (includes TV, film, game series)." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "schema:CreativeWorkSeries is broader (includes TV, film, game series)."
+|} .
 
-gmeow:eqNarrative008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SerialInstallment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Chapter ;
+gmeow:SerialInstallment skos:closeMatch schema:Chapter {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped; gmeow:SerialInstallment is broader." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped; gmeow:SerialInstallment is broader."
+|} .
 
-gmeow:eqNarrative009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ContentSegment ;
-    gmeow:alignPredicate skos:narrowMatch ;
-    gmeow:alignObject schema:Chapter ;
+gmeow:ContentSegment skos:narrowMatch schema:Chapter {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped and narrower than gmeow:ContentSegment." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped and narrower than gmeow:ContentSegment."
+|} .
 
-gmeow:eqNarrative010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Contribution ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Role ;
+gmeow:Contribution skos:closeMatch schema:Role {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Lossy: schema:Role is a class, not a relator; GMEOW Contribution is a reified node." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Lossy: schema:Role is a class, not a relator; GMEOW Contribution is a reified node."
+|} .
 
-gmeow:eqNarrative011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Myth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q12827256 ;
+gmeow:Myth skos:closeMatch wd:Q12827256 {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'myth' (type of traditional narrative) — close match to gmeow:Myth." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Wikidata 'myth' (type of traditional narrative) — close match to gmeow:Myth."
+|} .
 
-gmeow:eqNarrative012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Myth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q189349 ;
+gmeow:Myth skos:closeMatch wd:Q189349 {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'urban legend' (form of modern folklore) — close match to gmeow:Myth." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Wikidata 'urban legend' (form of modern folklore) — close match to gmeow:Myth."
+|} .
 
-gmeow:eqNarrative013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Myth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q159535 ;
+gmeow:Myth skos:closeMatch wd:Q159535 {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Wikidata 'conspiracy theory' — close match to gmeow:Myth as a socially-sustained narrative whose currency is independent of truth-value." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Wikidata 'conspiracy theory' — close match to gmeow:Myth as a socially-sustained narrative whose currency is independent of truth-value."
+|} .
 
-gmeow:eqNarrative014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasMythTelling ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:CreativeWork ;
+gmeow:hasMythTelling skos:relatedMatch schema:CreativeWork {|
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Lossy: schema:CreativeWork collapses the WEMI tiers; gmeow:hasMythTelling points to a concrete CreativeWork telling." ;
-    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+    gmeow:comment "Lossy: schema:CreativeWork collapses the WEMI tiers; gmeow:hasMythTelling points to a concrete CreativeWork telling."
+|} .

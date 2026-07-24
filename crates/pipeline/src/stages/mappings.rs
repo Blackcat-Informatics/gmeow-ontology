@@ -39,7 +39,7 @@ use gmeow_logic_compile::projections::report::{ReportHeader, build_projection_re
 use purrdf::RdfSeverity;
 use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use purrdf::slice::{
-    CLAIM_VIEW_FILE, emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
+    CLAIM_VIEW_FILE, emit_claim_view, emit_list_functions, emit_standpoint_sets,
     lint_prefix_consistency,
 };
 
@@ -62,6 +62,110 @@ pub const EDOAL_DIR: &str = "generated/projections";
 pub const QUERIES_DIR: &str = "generated/queries";
 /// Committed logical path of the DSL surface-count summary.
 pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
+
+/// Pipeline-native replacement for `purrdf::slice::emit_dsl_stats`: the external counter keyed
+/// on the DELETED `gmeow:TermEquivalence` subjects (now zero), so the equivalence count + the
+/// per-set breakdown come from the canonical native reader (`equivalence_cells`) over the SAME
+/// merged DSL store (`dsl/mappings/**` + the slice `Mapping` artifacts). Functions, mapping
+/// sets, and projections are still authored `gmeow:` nodes, counted as before. The JSON layout
+/// is byte-identical to the retired emitter (`json.dumps(indent=1, sort_keys=True) + "\n"`).
+fn emit_dsl_stats_native(
+    root: &std::path::Path,
+    catalog: Option<&purrdf::slice::SliceCatalog>,
+    vocab: &purrdf::slice::SliceVocab,
+) -> Result<String, gmeow_errors::Diag> {
+    use gmeow_logic_compile::ingest::DslView;
+    use gmeow_logic_compile::projections::sssom::equivalence_cells;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let stage_err = |m: String| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("dsl-stats emission failed: {m}"),
+        })
+    };
+    let store =
+        correspondence_lower::merge_dsl(root, catalog).map_err(|e| stage_err(e.to_string()))?;
+    let view = DslView::new(store.as_ref());
+
+    // cells_by_set + equivalences: every native alignment cell keyed by its sssomFile.
+    let mut cells_by_set: BTreeMap<String, u64> = BTreeMap::new();
+    let mut equivalences: u64 = 0;
+    for cell in equivalence_cells(&view).map_err(|e| stage_err(e.to_string()))? {
+        equivalences += 1;
+        *cells_by_set.entry(cell.sssom_file).or_insert(0) += 1;
+    }
+
+    let functions = view.subjects_of_type(&vocab.projection_function()).len() as u64;
+    let projections = view.subjects_of_type(&vocab.projection_mapping()).len() as u64;
+
+    // mapping_sets: DISTINCT sssomFile target files (two MappingSet nodes on the same file
+    // collapse to one), matching the retired emitter.
+    let mut mapping_set_files: BTreeSet<String> = BTreeSet::new();
+    for set_iri in view.subjects_of_type(&vocab.mapping_set()) {
+        let file = view
+            .object_literal(&set_iri, &vocab.sssom_file())
+            .ok_or_else(|| stage_err(format!("mapping set {set_iri} missing sssomFile")))?;
+        mapping_set_files.insert(file);
+    }
+    let mapping_sets = mapping_set_files.len() as u64;
+
+    Ok(render_dsl_stats(
+        &cells_by_set,
+        equivalences,
+        functions,
+        mapping_sets,
+        projections,
+    ))
+}
+
+/// Render the DSL stats dict as `json.dumps(stats, indent=1, sort_keys=True) + "\n"` — the exact
+/// byte layout the retired `purrdf::slice::emit_dsl_stats` produced.
+fn render_dsl_stats(
+    cells_by_set: &std::collections::BTreeMap<String, u64>,
+    equivalences: u64,
+    functions: u64,
+    mapping_sets: u64,
+    projections: u64,
+) -> String {
+    use std::fmt::Write as _;
+    fn json_string(s: &str) -> String {
+        let mut out = String::from("\"");
+        for c in s.chars() {
+            match c {
+                '"' => out.push_str("\\\""),
+                '\\' => out.push_str("\\\\"),
+                _ => out.push(c),
+            }
+        }
+        out.push('"');
+        out
+    }
+    let mut out = String::new();
+    out.push_str("{\n");
+    out.push_str(" \"cells_by_set\": {");
+    if cells_by_set.is_empty() {
+        out.push('}');
+    } else {
+        out.push('\n');
+        let mut first = true;
+        for (file, count) in cells_by_set {
+            if !first {
+                out.push_str(",\n");
+            }
+            first = false;
+            let _ = write!(out, "  {}: {count}", json_string(file));
+        }
+        out.push_str("\n }");
+    }
+    out.push_str(",\n");
+    let _ = writeln!(out, " \"equivalences\": {equivalences},");
+    let _ = writeln!(out, " \"functions\": {functions},");
+    let _ = writeln!(out, " \"mapping_sets\": {mapping_sets},");
+    let _ = writeln!(out, " \"projections\": {projections}");
+    out.push_str("}\n");
+    out
+}
 /// Committed logical path of the importable named prefix set (§2).
 pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 /// Committed logical path of the JSON-LD `@context` (§2; replaces the
@@ -199,11 +303,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         }));
     }
 
-    // DSL mapping-purity gate: alignment linkage flows from slices. A
-    // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
-    // restatement in the wrong place — it must live in the slice that defines its
-    // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
-    // makes update / strict sync / `make check` reject a stray cell.
+    // DSL mapping-purity gate: alignment linkage flows from slices. A native
+    // alignment cell authored under `dsl/mappings/` is a linkage restatement in the
+    // wrong place — it must live in the slice that defines its subject term.
+    // Hard-fail before emitting any artifact (no-optionality); this makes update /
+    // strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -384,13 +488,10 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         normalize_mapping_source_banner(emit_claim_view(&vocab)).into_bytes(),
     );
 
-    // DSL surface-count summary — the committed, drift-gated counts JSON.
-    let dsl_stats = emit_dsl_stats(root, &vocab).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-mappings".to_string(),
-            message: format!("dsl-stats emission failed: {e}"),
-        })
-    })?;
+    // DSL surface-count summary — the committed, drift-gated counts JSON. Reimplemented
+    // pipeline-side (the external emit_dsl_stats counted the deleted gmeow:TermEquivalence
+    // subjects): the equivalence count now comes from the canonical native reader.
+    let dsl_stats = emit_dsl_stats_native(root, catalog.as_ref(), &vocab)?;
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
 
     // Prefix-set projections (§2) — both derived from the single
@@ -460,7 +561,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
 /// sorts + dedups them.
 ///
 /// A correspondence whose binding emits NO put fragment (Unsupported — e.g. `mapSiocTopic`),
-/// or a `gmeow:TermEquivalence` cell (no profile), is left untouched: it carries no
+/// or a native alignment cell (no profile), is left untouched: it carries no
 /// discharged section law, which is exactly the intended exclusion (AC3). A non-injective
 /// rung yields no claim (`discharge_laws` returns empty), so it too passes through.
 ///
@@ -478,8 +579,8 @@ fn discharge_correspondence_laws(
 
     let mut rebuilt: Vec<Correspondence> = Vec::new();
     for corr in &aligned.correspondences.correspondences {
-        // Only a per-profile binding correspondence knows its profile (a TermEquivalence cell
-        // is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
+        // Only a per-profile binding correspondence knows its profile (a native alignment
+        // cell is absent from the map); its `get_leg` is the pattern-bearing cell IRI.
         let fragment_pair = match (
             aligned.correspondence_profiles.get(&corr.iri),
             corr.get_leg.as_deref(),

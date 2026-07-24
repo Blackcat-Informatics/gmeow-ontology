@@ -347,6 +347,9 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
+                // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
+                // folded as its own graph/fanout/skos named graph.
+                "stage-export-skos-surface",
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
@@ -413,6 +416,10 @@ pub fn full_spec() -> PipelineSpec {
         // SAME reviewed `.po` entry list (crate::stages::lang_glossary::build_entries),
         // never a second parse. Source-reading leaf like matrix (consumes nothing).
         ("stage-export-glossary", "glossary"),
+        // The generated SKOS concept-scheme surface: a projection of the lifted
+        // NodeKind::Annotation axioms. A source-reading leaf like glossary;
+        // its RDF `.ttl` folds as the RDF-fanout named graph graph/fanout/skos/gmeow-skos.ttl.
+        ("stage-export-skos-surface", "skos_surface"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),

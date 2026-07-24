@@ -14,16 +14,15 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .
 
-ex:bridge a gmeow:TermEquivalence , logic:GroundingCorrespondence ;
-    gmeow:alignSubject logic:Restriction ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject owl:Restriction ;
+logic:Restriction skos:exactMatch owl:Restriction {|
+    a logic:GroundingCorrespondence ;
     gmeow:sssomFile "fixture.sssom.tsv" ;
     logic:sourceEndpoint logic:Restriction ;
     logic:targetEndpoint owl:Restriction ;
     gmeow:justification semapv:ManualMappingCuration ;
     logic:morphismClass logic:WellBehavedLens ;
-    logic:morphismKind logic:InstitutionMorphism .
+    logic:morphismKind logic:InstitutionMorphism
+|} .
 
 ex:finiteStatusGuard logic:termIn ex:status , ex:active , ex:pending .
 ex:codeGuard logic:termRegex ex:code , "^[A-Z]{2}$" .

@@ -88,6 +88,14 @@ impl Store {
         Ok(Self { ds })
     }
 
+    /// The underlying parsed dataset, including its RDF-1.2 reifier/annotation side tables —
+    /// needed by consumers that read native alignment cells through
+    /// [`gmeow_logic_compile::ingest::DslView`] (the flat query helpers cannot see reifier
+    /// annotations).
+    pub(crate) fn dataset(&self) -> &RdfDataset {
+        &self.ds
+    }
+
     /// Parse N-Quads `bytes` into a fresh store via the native codecs. Unlike
     /// [`Store::parse_turtle`], the parsed quads may live in a *named* graph
     /// (the constraint-catalog fanout artifact carries every triple in the

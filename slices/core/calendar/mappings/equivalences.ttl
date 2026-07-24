@@ -27,204 +27,160 @@ gmeow:mapsetCalendar a gmeow:MappingSet ;
 # Core classes
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCalendar001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Calendar ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ical:Vcalendar ;
+gmeow:Calendar skos:relatedMatch ical:Vcalendar {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "iCalendar VCALENDAR is a projection target, not a peer model" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VCALENDAR is a projection target, not a peer model"
+|} .
 
-gmeow:eqCalendar002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EventSchedule ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Schedule ;
+gmeow:EventSchedule skos:closeMatch schema:Schedule {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org Schedule — a repeating schedule with exceptions" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "schema.org Schedule — a repeating schedule with exceptions"
+|} .
 
-gmeow:eqCalendar003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EventSchedule ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject ical:Vevent ;
+gmeow:EventSchedule skos:relatedMatch ical:Vevent {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "iCalendar VEVENT is the projection of a generated occurrence, not the schedule itself" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VEVENT is the projection of a generated occurrence, not the schedule itself"
+|} .
 
-gmeow:eqCalendar004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Task ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:Vtodo ;
+gmeow:Task skos:closeMatch ical:Vtodo {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "iCalendar VTODO — a task is an event subtype with due date and status" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VTODO — a task is an event subtype with due date and status"
+|} .
 
-gmeow:eqCalendar005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Reminder ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:Valarm ;
+gmeow:Reminder skos:closeMatch ical:Valarm {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "iCalendar VALARM — trigger + action" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VALARM — trigger + action"
+|} .
 
-gmeow:eqCalendar006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TimeZone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:Vtimezone ;
+gmeow:TimeZone skos:closeMatch ical:Vtimezone {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "iCalendar VTIMEZONE — IANA tzid" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VTIMEZONE — IANA tzid"
+|} .
 
-gmeow:eqCalendar007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Availability ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:Vfreebusy ;
+gmeow:Availability skos:closeMatch ical:Vfreebusy {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "iCalendar VFREEBUSY — free/busy time slots" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar VFREEBUSY — free/busy time slots"
+|} .
 
-gmeow:eqCalendar008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EventInvitation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:RsvpAction ;
+gmeow:EventInvitation skos:relatedMatch schema:RsvpAction {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.55 ;
-    gmeow:comment "schema.org RsvpAction — the invitation/RSVP social act" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "schema.org RsvpAction — the invitation/RSVP social act"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Structural properties
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCalendar009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scheduleRecurrenceRule ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:repeatFrequency ;
+gmeow:scheduleRecurrenceRule skos:closeMatch schema:repeatFrequency {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "schema.org repeatFrequency — a textual recurrence rule" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "schema.org repeatFrequency — a textual recurrence rule"
+|} .
 
-gmeow:eqCalendar010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scheduleOccurrence ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:subEvent ;
+gmeow:scheduleOccurrence skos:closeMatch schema:subEvent {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "a generated occurrence is a sub-event of the schedule's series" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "a generated occurrence is a sub-event of the schedule's series"
+|} .
 
-gmeow:eqCalendar011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taskDueDate ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:due ;
+gmeow:taskDueDate skos:closeMatch ical:due {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85
+|} .
+
+gmeow:reminderTrigger skos:closeMatch ical:trigger {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85
+|} .
+
+gmeow:timeZoneIanaId skos:closeMatch ical:tzid {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:availabilityStatus skos:closeMatch ical:fbtype {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "iCalendar FBTYPE — FREE, BUSY, BUSY-TENTATIVE, BUSY-UNAVAILABLE"
+|} .
+
+gmeow:invitationStatus skos:closeMatch ical:partstat {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "iCalendar PARTSTAT — NEEDS-ACTION, ACCEPTED, DECLINED, TENTATIVE"
+|} .
+
+gmeow:taskPriority skos:closeMatch ical:priority {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85
+|} .
+
+gmeow:reminderAction skos:closeMatch ical:action {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "iCalendar ACTION — display, email, audio"
+|} .
 
-gmeow:eqCalendar012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:reminderTrigger ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:trigger ;
+gmeow:taskStatus skos:closeMatch ical:status {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:confidence 0.8 ;
+    gmeow:comment "iCalendar STATUS for VTODO — COMPLETED, CANCELLED, etc."
+|} .
 
-gmeow:eqCalendar013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:timeZoneIanaId ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:tzid ;
+gmeow:scheduleRecurrenceRule skos:closeMatch ical:rrule {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:availabilityStatus ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:fbtype ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "iCalendar FBTYPE — FREE, BUSY, BUSY-TENTATIVE, BUSY-UNAVAILABLE" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:invitationStatus ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:partstat ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "iCalendar PARTSTAT — NEEDS-ACTION, ACCEPTED, DECLINED, TENTATIVE" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taskPriority ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:priority ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:reminderAction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:action ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "iCalendar ACTION — display, email, audio" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taskStatus ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:status ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "iCalendar STATUS for VTODO — COMPLETED, CANCELLED, etc." ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
-
-gmeow:eqCalendar019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:scheduleRecurrenceRule ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ical:rrule ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "the recurrence rule text projects directly to RRULE" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "the recurrence rule text projects directly to RRULE"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Value vocabulary individuals
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCalendar020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:invitationStatusAccepted ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2498022 ;
+gmeow:invitationStatusAccepted skos:closeMatch wd:Q2498022 {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'acceptance' (Q2498022)" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "Wikidata 'acceptance' (Q2498022)"
+|} .
 
-gmeow:eqCalendar021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:taskStatusCompleted ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1198487 ;
+gmeow:taskStatusCompleted skos:closeMatch wd:Q1198487 {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'completion' (Q1198487)" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "Wikidata 'completion' (Q1198487)"
+|} .
 
-gmeow:eqCalendar022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:reminderActionDisplay ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q548665 ;
+gmeow:reminderActionDisplay skos:closeMatch wd:Q548665 {|
+    gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'display device' (Q548665) — rough alignment" ;
-    gmeow:sssomFile "gmeow-calendar.sssom.tsv" .
+    gmeow:comment "Wikidata 'display device' (Q548665) — rough alignment"
+|} .

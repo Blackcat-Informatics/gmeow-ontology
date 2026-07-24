@@ -327,6 +327,51 @@ fn reparse_canonical(program: &LogicProgram) -> LogicProgram {
 }
 
 #[test]
+fn annotations_round_trip_through_canonical_rdf12_at_exact_preservation() {
+    // R1/R3/AC1: the lifted RDFS/SKOS annotation surface projects back out through the
+    // canonical RDF-1.2 put leg and re-parses to the IDENTICAL annotation axioms — put ∘ get
+    // = id at ExactPreservation. The carrier tag must survive both legs.
+    let ttl = "@prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n\
+               @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+               @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+               gm:Widget rdfs:label \"Widget\"@x-gmeow-english ;\n\
+                   rdfs:comment \"A widget, canonically.\"@x-gmeow-english ;\n\
+                   skos:definition \"The canonical widget concept.\"@x-gmeow-english ;\n\
+                   skos:prefLabel \"widget\"@x-gmeow-english ;\n\
+                   skos:altLabel \"gadget\"@x-gmeow-english ;\n\
+                   skos:scopeNote \"Use for gizmos.\"@x-gmeow-english .";
+    let (program, _d) = parse_logic_str(ttl, None).expect("parse ok");
+
+    let ann = |p: &LogicProgram| -> Vec<crate::ir::LogicAxiom> {
+        let mut v: Vec<_> = p
+            .axioms
+            .iter()
+            .filter(|a| a.node_kind == crate::ir::NodeKind::Annotation)
+            .cloned()
+            .collect();
+        v.sort_by_key(crate::ir::LogicAxiom::sort_key);
+        v
+    };
+    let before = ann(&program);
+    assert_eq!(before.len(), 6, "get: six annotation axioms lifted");
+
+    // The projected Turtle carries the carrier tag, NOT an untyped literal.
+    let proj = rdf::project_canonical_rdf12(&program).expect("project ok");
+    assert!(
+        proj.content.contains("@x-gmeow-english"),
+        "the carrier language tag must be preserved in the canonical RDF-1.2 projection"
+    );
+
+    // put ∘ get = id: re-parsing the projection yields the identical annotation axioms.
+    let reparsed = reparse_canonical(&program);
+    assert_eq!(
+        ann(&reparsed),
+        before,
+        "annotation axioms must round-trip identically (ExactPreservation)"
+    );
+}
+
+#[test]
 fn contract_round_trip_preset_with_full_facets() {
     let original = loaded_preset_contract();
     let program = LogicProgram::new(vec![], vec![], vec![original.clone()], None);

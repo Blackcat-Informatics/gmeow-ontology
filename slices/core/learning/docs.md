@@ -169,7 +169,7 @@ activity / provenance face.
 xAPI (the Experience API) is the strongest external consumer — learning records keyed by
 `<http://adlnet.gov/expapi/verbs/learned>` — but it is a JSON Statement model with no stable OWL
 class IRIs, so `gmeow:LearningEvent` projects **down** to an xAPI Statement at the projection layer
-and is referenced in prose, not mapped as a `gmeow:TermEquivalence`.
+and is referenced in prose, not mapped as a native alignment cell.
 
 ## Dependencies
 

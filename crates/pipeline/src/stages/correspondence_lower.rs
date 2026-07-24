@@ -68,7 +68,7 @@ pub struct CorrespondenceArtifacts {
     /// FINAL projection report reads every row's residue back from ONE substrate ledger.
     pub loss: LossLedger,
     /// The typed `logic:Correspondence` set materialized from the SAME `dsl/mappings/`
-    /// cells the four dialects lower: one node per `gmeow:TermEquivalence`
+    /// cells the four dialects lower: one node per native alignment
     /// cell and one per `gmeow:ProjectionMapping` per-profile binding. This is the carried
     /// program the mappings stage threads onto the bundle so `LogicProgram.correspondences`
     /// is no longer reconstructed ad hoc downstream. The four dialect
@@ -86,7 +86,7 @@ pub struct CorrespondenceArtifacts {
     /// isolation. Pure strings (no engine ran in logic-compile — F2).
     pub sparql_fragments: BTreeMap<(String, String), (String, Option<String>)>,
     /// Correspondence IRI → profile for every `gmeow:ProjectionMapping` binding
-    /// correspondence (absent for `gmeow:TermEquivalence` cells, which are not
+    /// correspondence (absent for native alignment cells, which are not
     /// profile-scoped). The join key the mappings stage uses to find a correspondence's own
     /// `(cell IRI, profile)` fragment pair in [`sparql_fragments`](Self::sparql_fragments).
     pub correspondence_profiles: BTreeMap<String, String>,
@@ -338,7 +338,10 @@ fn merge_slice_artifacts(
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
+pub(crate) fn merge_dsl(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+) -> Result<Arc<RdfDataset>, SliceError> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;

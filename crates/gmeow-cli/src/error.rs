@@ -64,6 +64,16 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// A `gmeow hybrid-query --purremb` selection input (a hex identity, an enum code,
+    /// or the term kind) was malformed or unknown — a HARD fail (no silent
+    /// reinterpretation). The `detail` carries the specific mismatch.
+    pub struct PurrembSelectionInvalid { detail: String }
+    code = "gmeow-cli.hybrid-query.purremb-selection";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The complete shippable-CLI diagnostic-code catalog, in registration order —
 /// the kinds minted here plus the `explain`-command kinds defined beside their
 /// use site. (Consumed by the collision test; the running CLI reaches its kinds
@@ -76,6 +86,7 @@ pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
     OutputEncodingFailed::CODE,
     DescribeUnresolved::CODE,
     DescribeAmbiguous::CODE,
+    PurrembSelectionInvalid::CODE,
     crate::commands::UnknownExplainTarget::CODE,
     crate::commands::ExplainWalkFailed::CODE,
 ];
@@ -91,6 +102,7 @@ pub fn register_all() -> Vec<Code> {
         OutputEncodingFailed::register(),
         DescribeUnresolved::register(),
         DescribeAmbiguous::register(),
+        PurrembSelectionInvalid::register(),
         crate::commands::UnknownExplainTarget::register(),
         crate::commands::ExplainWalkFailed::register(),
     ]
