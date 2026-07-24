@@ -3743,8 +3743,8 @@ fn evaluate_conjecture(
     // Delegate to the SINGLE conjecture-evaluation authority in gmeow-logic (shared with the
     // browser conjecture playground so both produce byte-identical verdict N-Triples), then
     // adapt its projection to the pipeline's response type at the boundary.
-    let projection =
-        gmeow_logic::conjecture_eval::evaluate_conjecture_eval(&gmeow_logic::conjecture_eval::ConjectureEvalInput {
+    let projection = gmeow_logic::conjecture_eval::evaluate_conjecture_eval(
+        &gmeow_logic::conjecture_eval::ConjectureEvalInput {
             formula_ttl,
             kb_ttl,
             kb_format: "text/turtle",
@@ -3752,12 +3752,13 @@ fn evaluate_conjecture(
             math_conjecture,
             max_steps,
             max_answers,
+        },
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture evaluation failed: {}", e.message()),
         })
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("conjecture evaluation failed: {}", e.message()),
-            })
-        })?;
+    })?;
 
     let witness = projection.witness.map(|w| ConjectureRunWitness {
         individual: w.individual,
@@ -10021,11 +10022,10 @@ mod tests {
         use gmeow_logic_compile::ir::{Formula, Term as IrTerm};
         // `parse_candidate_formula` now lives in the shared gmeow-logic conjecture-eval
         // authority; assert the SHIPPED re-export still lifts a reified ground atom cleanly.
-        let candidate =
-            gmeow_logic::conjecture_eval::parse_candidate_formula(&reified_ground_atom_candidate(
-                "B",
-            ))
-            .expect("reified ground atom must lift to a candidate formula");
+        let candidate = gmeow_logic::conjecture_eval::parse_candidate_formula(
+            &reified_ground_atom_candidate("B"),
+        )
+        .expect("reified ground atom must lift to a candidate formula");
         match candidate {
             Formula::Atom { relation, args } => {
                 assert_eq!(relation, IrTerm::Iri(RDF_TYPE_IRI.to_owned()));

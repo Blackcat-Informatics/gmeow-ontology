@@ -48,9 +48,7 @@ use purrdf::{RdfDataset, RdfTerm};
 use crate::error::DocsDistribution as DocsDistributionError;
 use crate::projections::{TagMap, project_graph};
 use crate::stages::carrier::GRAPH_DISTRIBUTION_CATALOG;
-use crate::stages::distribution_catalog::{
-    dist_iri, iri, site_sub_asset_iri, triple, triple_lit,
-};
+use crate::stages::distribution_catalog::{dist_iri, iri, site_sub_asset_iri, triple, triple_lit};
 
 fn err(message: impl Into<String>) -> Diag {
     Diag::of_kind(DocsDistributionError {
@@ -272,7 +270,8 @@ fn release_instance_ntriples(
     entries: &[DistributionEntry],
     sub_asset_entries: &[DistributionEntry],
 ) -> String {
-    let mut lines: Vec<String> = Vec::with_capacity((entries.len() + sub_asset_entries.len()) * 4 + 1);
+    let mut lines: Vec<String> =
+        Vec::with_capacity((entries.len() + sub_asset_entries.len()) * 4 + 1);
     lines.push(triple(
         RELEASE_CORPUS_IRI,
         RDF_TYPE,
@@ -822,7 +821,8 @@ mod tests {
     fn manifest_carries_a_checksum_and_catalog_link_per_entry() {
         let gts_bytes = synthetic_gts_with_dcat_query();
         let entries = sample_entries();
-        let manifest = build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("manifest");
+        let manifest =
+            build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("manifest");
 
         assert!(
             manifest.contains("http://spdx.org/rdf/terms#checksumValue"),

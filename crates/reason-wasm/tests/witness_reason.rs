@@ -48,7 +48,11 @@ fn reason_nquads(data: &str, format: &str) -> String {
 fn native_reason_closure_matches_the_witness_attestation() {
     let out = reason_nquads(INPUT, "turtle");
     // Deterministic + non-empty: the closure must carry the entailed memberships.
-    assert_eq!(out, reason_nquads(INPUT, "turtle"), "reasoning is deterministic");
+    assert_eq!(
+        out,
+        reason_nquads(INPUT, "turtle"),
+        "reasoning is deterministic"
+    );
     assert!(
         !out.trim().is_empty(),
         "the structured-DL closure of the fixture must be non-empty:\n{out}"

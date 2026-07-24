@@ -61,11 +61,17 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
         "src/assets/validate/gmeow_validate_wasm_bg.wasm",
         "src/assets/purrdf/gmeow_rdf_wasm.js",
     ] {
-        assert!(has(engine), "vendored engine not packed into the book: {engine}");
+        assert!(
+            has(engine),
+            "vendored engine not packed into the book: {engine}"
+        );
     }
     // The browser bundle the explorer queries + its integrity manifest.
     assert!(has("src/assets/gmeow-core.nq"), "core bundle not packed");
-    assert!(has("src/assets/bundle-manifest.json"), "bundle manifest not packed");
+    assert!(
+        has("src/assets/bundle-manifest.json"),
+        "bundle manifest not packed"
+    );
 
     // The additional-js boot shim rides at the book root and dynamic-imports the module.
     let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
@@ -81,7 +87,10 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
         toml.contains("additional-js = [\"mdbook-boot.js\"]"),
         "book.toml must wire the boot shim: {toml}"
     );
-    assert!(has("src/explorer/index.md"), "explorer host chapter missing");
+    assert!(
+        has("src/explorer/index.md"),
+        "explorer host chapter missing"
+    );
     let summary = String::from_utf8(site.files.get("src/SUMMARY.md").unwrap().clone()).unwrap();
     assert!(
         summary.contains("(explorer/index.md)"),
@@ -97,7 +106,10 @@ fn non_interactive_book_packs_no_engines() {
     assert!(!site.files.contains_key("mdbook-boot.js"));
     assert!(!site.files.keys().any(|k| k.starts_with("src/assets/")));
     let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
-    assert!(!toml.contains("additional-js"), "static book must not wire additional-js");
+    assert!(
+        !toml.contains("additional-js"),
+        "static book must not wire additional-js"
+    );
 }
 
 /// The `src/`-relative chapter path of a page (mirrors the private helper).

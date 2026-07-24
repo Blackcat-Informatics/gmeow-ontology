@@ -81,25 +81,48 @@ fn attestation_path() -> PathBuf {
 #[test]
 fn native_conjecture_verdicts_match_the_witness_attestation() {
     // Demo 1: the proof leg fires (corroborated), no counterproof.
-    let proof = evaluate_conjecture_ttl(PROOF_FORMULA, PROOF_KB, STANDPOINT).expect("proof verdict");
-    assert!(proof.has_proof, "demo 1 must corroborate (KB ⊨ φ): {proof:?}");
-    assert!(!proof.has_counterproof, "demo 1 must not be refuted: {proof:?}");
-    assert!(proof.witness.is_none(), "a corroborated verdict carries no witness");
+    let proof =
+        evaluate_conjecture_ttl(PROOF_FORMULA, PROOF_KB, STANDPOINT).expect("proof verdict");
+    assert!(
+        proof.has_proof,
+        "demo 1 must corroborate (KB ⊨ φ): {proof:?}"
+    );
+    assert!(
+        !proof.has_counterproof,
+        "demo 1 must not be refuted: {proof:?}"
+    );
+    assert!(
+        proof.witness.is_none(),
+        "a corroborated verdict carries no witness"
+    );
     assert_eq!(proof.lifecycle, "corroborated");
 
     // Demo 2: the counterproof leg fires (refuted) with a concrete contradiction witness.
     let refute =
         evaluate_conjecture_ttl(REFUTE_FORMULA, REFUTE_KB, STANDPOINT).expect("refute verdict");
-    assert!(refute.has_counterproof, "demo 2 must refute (KB ∪ {{φ}} ⊨ ⊥): {refute:?}");
-    assert!(refute.witness.is_some(), "a refuted verdict must carry a witness");
+    assert!(
+        refute.has_counterproof,
+        "demo 2 must refute (KB ∪ {{φ}} ⊨ ⊥): {refute:?}"
+    );
+    assert!(
+        refute.witness.is_some(),
+        "a refuted verdict must carry a witness"
+    );
     assert_eq!(refute.lifecycle, "refuted-in-standpoint");
 
     // Determinism: both legs are stable across re-runs.
-    let proof2 = evaluate_conjecture_ttl(PROOF_FORMULA, PROOF_KB, STANDPOINT).expect("proof verdict");
+    let proof2 =
+        evaluate_conjecture_ttl(PROOF_FORMULA, PROOF_KB, STANDPOINT).expect("proof verdict");
     let refute2 =
         evaluate_conjecture_ttl(REFUTE_FORMULA, REFUTE_KB, STANDPOINT).expect("refute verdict");
-    assert_eq!(proof.verdict_nt, proof2.verdict_nt, "proof verdict is deterministic");
-    assert_eq!(refute.verdict_nt, refute2.verdict_nt, "refute verdict is deterministic");
+    assert_eq!(
+        proof.verdict_nt, proof2.verdict_nt,
+        "proof verdict is deterministic"
+    );
+    assert_eq!(
+        refute.verdict_nt, refute2.verdict_nt,
+        "refute verdict is deterministic"
+    );
 
     // The attestation bundle: proof body, the delimiter, then the counterproof body — the
     // EXACT byte string the JS lane rebuilds from two `conjecture()` calls.

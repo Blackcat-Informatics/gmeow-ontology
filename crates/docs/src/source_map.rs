@@ -28,7 +28,7 @@
 
 use std::collections::{BTreeMap, HashSet};
 
-use crate::model::{normalize_logical_path, DocsError, DocsModel};
+use crate::model::{DocsError, DocsModel, normalize_logical_path};
 
 /// A resolved location within the generated documentation site.
 #[derive(Debug, Clone, PartialEq, Eq)]

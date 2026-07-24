@@ -152,40 +152,47 @@ impl VendoredWasmAsset {
     /// the witness proved byte-equivalent to native is EXACTLY the engine that ships.
     ///
     /// An asset with no `witness_attestation` (a non-witnessed asset) is vacuously OK.
-    /// Returns a message describing the first failure, so a missing/stale attestation is
-    /// a reportable violation rather than a silent gap.
-    pub fn attestation_status(&self) -> Result<(), String> {
-        let Some(witness) = self.witness_attestation else {
-            return Ok(());
-        };
+    /// Returns `Some(message)` describing the first failure, or `None` when the
+    /// attestation is present and current — a violation is a reportable message, not a
+    /// silent gap. (`Option`, not `Result<_, String>`: `gmeow_errors::Diag` is the sole
+    /// first-party error type, and this "current?" query has no error channel — a stale
+    /// attestation is the answer, not a failure.)
+    pub fn attestation_status(&self) -> Option<String> {
+        let witness = self.witness_attestation?;
         let dir = self.asset_dir();
         match std::fs::read(dir.join(witness)) {
             Ok(bytes) if !bytes.is_empty() => {}
             Ok(_) => {
-                return Err(format!(
+                return Some(format!(
                     "witness attestation '{witness}' for engine '{}' is empty",
                     self.name
                 ));
             }
             Err(e) => {
-                return Err(format!(
+                return Some(format!(
                     "witness attestation '{witness}' for engine '{}' is missing \
                      (run make {}): {e}",
                     self.name, self.refresh_target
                 ));
             }
         }
-        let committed = std::fs::read_to_string(dir.join(DIGEST_MANIFEST)).map_err(|e| {
-            format!("{DIGEST_MANIFEST} for engine '{}' is missing: {e}", self.name)
-        })?;
+        let committed = match std::fs::read_to_string(dir.join(DIGEST_MANIFEST)) {
+            Ok(committed) => committed,
+            Err(e) => {
+                return Some(format!(
+                    "{DIGEST_MANIFEST} for engine '{}' is missing: {e}",
+                    self.name
+                ));
+            }
+        };
         if committed != self.current_manifest() {
-            return Err(format!(
+            return Some(format!(
                 "engine '{}' drifted from {DIGEST_MANIFEST}: the witness attestation \
                  '{witness}' no longer describes the shipped bytes (re-run make {})",
                 self.name, self.refresh_target
             ));
         }
-        Ok(())
+        None
     }
 
     /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
@@ -534,7 +541,7 @@ pub fn check_capability_attestations() -> Vec<String> {
     for fmt in DocFormat::ALL {
         for cap in format_capabilities(fmt).representable {
             for asset in capability_backing_assets(cap) {
-                if let Err(e) = asset.attestation_status() {
+                if let Some(e) = asset.attestation_status() {
                     errors.push(format!(
                         "format '{}' represents interactive capability '{}', but its backing \
                          engine's witness-attestation is not current: {e}",

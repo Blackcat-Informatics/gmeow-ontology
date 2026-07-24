@@ -467,7 +467,11 @@ fn emit_ntriples() -> Vec<u8> {
             sub.label(),
         );
         lines.push(triple(&site_dist, &iri(GMEOW_NS, "hasSubAsset"), &node));
-        lines.push(triple_lit(&node, &iri(GMEOW_NS, "distributionFormat"), slug));
+        lines.push(triple_lit(
+            &node,
+            &iri(GMEOW_NS, "distributionFormat"),
+            slug,
+        ));
         lines.push(triple(
             &node,
             &iri(GMEOW_NS, "distributionFamily"),
@@ -581,7 +585,11 @@ mod tests {
         let nt = ntriples_text();
         let site_dist = dist_iri(DocFormat::Site.slug());
         let bijection = declared_distribution_slugs();
-        assert_eq!(bijection.len(), 8, "the eight-slug bijection must be untouched");
+        assert_eq!(
+            bijection.len(),
+            8,
+            "the eight-slug bijection must be untouched"
+        );
 
         for slug in declared_site_sub_asset_slugs() {
             // NOT a top-level distribution — the bijection is preserved.

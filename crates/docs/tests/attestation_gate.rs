@@ -21,8 +21,8 @@ fn every_interactive_capability_has_a_current_attestation() {
 #[test]
 fn each_witnessed_engine_attestation_is_present_and_current() {
     for asset in [&PURRDF_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET] {
-        asset
-            .attestation_status()
-            .unwrap_or_else(|e| panic!("engine '{}' attestation not current: {e}", asset.name));
+        if let Some(e) = asset.attestation_status() {
+            panic!("engine '{}' attestation not current: {e}", asset.name);
+        }
     }
 }

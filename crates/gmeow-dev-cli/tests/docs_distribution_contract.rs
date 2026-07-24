@@ -612,9 +612,12 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
         media_type: "text/html".to_string(),
     }];
     let gts_bytes = synthetic_gts_with_dcat_query();
-    let manifest =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &[], &gts_bytes)
-            .expect("build the real docs distribution manifest");
+    let manifest = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &[],
+        &gts_bytes,
+    )
+    .expect("build the real docs distribution manifest");
     let manifest_dir = docs_dir.join("manifest");
     std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
     std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");

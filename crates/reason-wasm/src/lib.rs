@@ -44,8 +44,8 @@ pub fn version() -> String {
 pub fn reason(data: &str, format: &str) -> Result<String, JsError> {
     let edb = purrdf::parse_dataset(data.as_bytes(), format, None)
         .map_err(|e| JsError::new(&e.to_string()))?;
-    let closure = gmeow_logic::reason::reason_closure_dataset(&edb)
-        .map_err(|e| JsError::new(e.message()))?;
+    let closure =
+        gmeow_logic::reason::reason_closure_dataset(&edb).map_err(|e| JsError::new(e.message()))?;
     let bytes = purrdf::serialize_dataset(
         &*closure,
         "application/n-quads",

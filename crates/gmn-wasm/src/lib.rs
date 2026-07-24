@@ -14,8 +14,8 @@
 //! byte-exact round-trip witness); this only marshals across the JS boundary.
 
 use gmeow_lang_bridge::{
-    Gmn0Model, Gmn1Document, GmnDictionary, GmnGlyphRegistry, gmn1_read, gmn1_write,
-    gmn_glyph_token_cost,
+    Gmn0Model, Gmn1Document, GmnDictionary, GmnGlyphRegistry, gmn_glyph_token_cost, gmn1_read,
+    gmn1_write,
 };
 use wasm_bindgen::prelude::*;
 
@@ -29,10 +29,10 @@ const LANG_CODEBOOK: &str = include_str!("../../../slices/grounding/lang/module.
 /// Both legs of the transcode consult the SAME dictionary; the browser and the native
 /// witness both mint it from these exact bytes, so their glyph/alias resolution is
 /// identical by construction.
-fn codebook_dict() -> Result<GmnDictionary, String> {
+fn codebook_dict() -> Result<GmnDictionary, JsError> {
     let ds = purrdf::parse_dataset(LANG_CODEBOOK.as_bytes(), "text/turtle", None)
-        .map_err(|e| e.to_string())?;
-    GmnDictionary::from_dataset(&ds).map_err(|e| e.0)
+        .map_err(|e| JsError::new(&e.to_string()))?;
+    GmnDictionary::from_dataset(&ds).map_err(|e| JsError::new(&e.0))
 }
 
 /// Transcode `data` (RDF text in `format`) — its GMN-0 normal form — into the
@@ -41,11 +41,13 @@ fn codebook_dict() -> Result<GmnDictionary, String> {
 ///
 /// # Errors
 ///
-/// Returns the codec error string if the RDF cannot be parsed or the GMN-1 write fails.
-pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, String> {
-    let ds = purrdf::parse_dataset(data.as_bytes(), format, None).map_err(|e| e.to_string())?;
+/// Returns a `JsError` (thrown to JS at the boundary) if the RDF cannot be parsed or the
+/// GMN-1 write fails.
+pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
+    let ds =
+        purrdf::parse_dataset(data.as_bytes(), format, None).map_err(|e| JsError::new(&e.to_string()))?;
     let model = Gmn0Model::from_dataset(&ds);
-    let doc = gmn1_write(&model, &codebook_dict()?).map_err(|e| e.to_string())?;
+    let doc = gmn1_write(&model, &codebook_dict()?).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(doc.text)
 }
 
@@ -55,10 +57,10 @@ pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, String> {
 ///
 /// # Errors
 ///
-/// Returns the codec error string if the GMN-1 text cannot be read back.
-pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, String> {
+/// Returns a `JsError` (thrown to JS at the boundary) if the GMN-1 text cannot be read back.
+pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
     let doc = Gmn1Document::from_text(gmn1_text);
-    let model = gmn1_read(&doc, &codebook_dict()?).map_err(|e| e.to_string())?;
+    let model = gmn1_read(&doc, &codebook_dict()?).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(model.canonical_nquads())
 }
 
@@ -70,11 +72,12 @@ pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, String> {
 ///
 /// # Errors
 ///
-/// Returns the codec error string if the embedded codebook cannot be read.
-pub fn glyph_legend_json() -> Result<String, String> {
+/// Returns a `JsError` (thrown to JS at the boundary) if the embedded codebook cannot be read.
+pub fn glyph_legend_json() -> Result<String, JsError> {
     let ds = purrdf::parse_dataset(LANG_CODEBOOK.as_bytes(), "text/turtle", None)
-        .map_err(|e| e.to_string())?;
-    let registry = GmnGlyphRegistry::from_dataset(&ds).map_err(|e| format!("{e:?}"))?;
+        .map_err(|e| JsError::new(&e.to_string()))?;
+    let registry =
+        GmnGlyphRegistry::from_dataset(&ds).map_err(|e| JsError::new(&format!("{e:?}")))?;
     // `glyph_tokens()` is already sorted (BTreeMap-backed); JSON-escape defensively.
     let mut out = String::from("[");
     for (i, glyph) in registry.glyph_tokens().iter().enumerate() {
@@ -105,7 +108,7 @@ pub fn version() -> String {
 /// Throws if the embedded codebook cannot be read.
 #[wasm_bindgen]
 pub fn glyph_legend() -> Result<String, JsError> {
-    glyph_legend_json().map_err(|e| JsError::new(&e))
+    glyph_legend_json()
 }
 
 /// wasm export: transcode RDF text to the GMN-1 surface. Thin marshal over
@@ -116,7 +119,7 @@ pub fn glyph_legend() -> Result<String, JsError> {
 /// Throws if the RDF cannot be parsed or the GMN-1 write fails.
 #[wasm_bindgen]
 pub fn to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
-    transcode_to_gmn1(data, format).map_err(|e| JsError::new(&e))
+    transcode_to_gmn1(data, format)
 }
 
 /// wasm export: read a GMN-1 surface back to canonical N-Quads. Thin marshal over
@@ -127,5 +130,5 @@ pub fn to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
 /// Throws if the GMN-1 text cannot be read back.
 #[wasm_bindgen]
 pub fn from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
-    transcode_from_gmn1(gmn1_text).map_err(|e| JsError::new(&e))
+    transcode_from_gmn1(gmn1_text)
 }

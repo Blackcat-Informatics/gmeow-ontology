@@ -226,7 +226,9 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
 /// # Errors
 ///
 /// Returns `Err` if reasoning fails or an inferred term cannot be lowered to RDF.
-pub fn reason_closure_dataset(edb: &RdfDataset) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+pub fn reason_closure_dataset(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let inferred = reason_closure_axioms(edb)?;
     let mut builder = RdfDatasetBuilder::new();
     for ax in &inferred {

@@ -42,12 +42,9 @@ fn attestation_path() -> PathBuf {
 /// The canonical N-Quads of `INPUT` — the round-trip target.
 fn input_canonical_nquads() -> String {
     let ds = purrdf::parse_dataset(INPUT.as_bytes(), "turtle", None).expect("parse INPUT");
-    let bytes = purrdf::serialize_dataset(
-        &ds,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .expect("serialize INPUT");
+    let bytes =
+        purrdf::serialize_dataset(&ds, "application/n-quads", purrdf::SerializeGraph::Dataset)
+            .expect("serialize INPUT");
     String::from_utf8(bytes).expect("nquads is utf-8")
 }
 

@@ -29,7 +29,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
-    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug, to_markdown_exec_with_map,
+    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug,
+    to_markdown_exec_with_map,
 };
 use crate::source_map::SourceToPageMap;
 
@@ -99,7 +100,10 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let interactive = exec.has_bundle() || exec.has_playground();
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    files.insert("book.toml".to_string(), book_toml(model, interactive).into_bytes());
+    files.insert(
+        "book.toml".to_string(),
+        book_toml(model, interactive).into_bytes(),
+    );
 
     let mut summary = summary_md(model, &pages, &winners, &page_map);
 
@@ -177,10 +181,7 @@ fn pack_interactive_book(
         debug_assert_eq!(dir, MDBOOK_EXPLORER_CHAPTER);
         let body = to_markdown_exec_with_map(model, &page, exec, page_map);
         let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
-        files.insert(
-            chapter_src_path(&dir),
-            rewritten.body.into_bytes(),
-        );
+        files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
         // A top-level table-of-contents entry so the chapter is reachable (mdbook's
         // `create-missing = false` accepts it because the chapter file exists).
         summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));

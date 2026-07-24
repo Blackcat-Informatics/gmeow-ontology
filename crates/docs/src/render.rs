@@ -605,7 +605,10 @@ pub fn render_site_lang_exec_with_diagrams(
     );
     // Standard llmstxt.org surfaces: a links-only index and a complete
     // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
-    files.insert("llms.txt".to_string(), llms_txt_with_map(model, &page_map).into_bytes());
+    files.insert(
+        "llms.txt".to_string(),
+        llms_txt_with_map(model, &page_map).into_bytes(),
+    );
     files.insert(
         "llms-full.txt".to_string(),
         llms_full_txt_with_map(model, &page_map).into_bytes(),
@@ -733,14 +736,20 @@ pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<Str
         asset.emit_into(&mut files);
     }
     if exec.has_playground() {
-        files.insert(PLAYGROUND_TRIG_PATH.to_string(), exec.playground_trig.clone());
+        files.insert(
+            PLAYGROUND_TRIG_PATH.to_string(),
+            exec.playground_trig.clone(),
+        );
     }
     if exec.has_bundle() {
         files.insert(
             CORE_BUNDLE_NQ_PATH.to_string(),
             exec.core_bundle_nquads.clone(),
         );
-        files.insert(FULL_BUNDLE_GTS_PATH.to_string(), exec.full_bundle_gts.clone());
+        files.insert(
+            FULL_BUNDLE_GTS_PATH.to_string(),
+            exec.full_bundle_gts.clone(),
+        );
         files.insert(
             BUNDLE_MANIFEST_PATH.to_string(),
             bundle_manifest_json(exec).into_bytes(),
@@ -2466,7 +2475,10 @@ fn term_developer_surface(
                          data-turtle=\"{}\" data-origin=\"{}\" data-catalog-href=\"{}index.html\">{}</button>\
                          <div class=\"gmeow-validation-results\"></div></div>",
                         base64_encode(fixture.text.as_bytes()),
-                        fixture.logical_path.replace('&', "&amp;").replace('"', "&quot;"),
+                        fixture
+                            .logical_path
+                            .replace('&', "&amp;")
+                            .replace('"', "&quot;"),
                         rel(&from, &Page::ConstraintCatalog.dir()),
                         model.ui("body_run_validation"),
                     ),
@@ -6279,8 +6291,9 @@ pub(crate) fn to_html_lang_exec_with_map(
     exec: &ExecutableDocsData,
     page_map: &SourceToPageMap,
 ) -> String {
-    let body_html =
-        rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(model, page, exec, page_map)));
+    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(
+        model, page, exec, page_map,
+    )));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;

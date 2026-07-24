@@ -142,7 +142,8 @@ impl Capability {
 /// nesting as a PROVENANCE refinement it is not. Monotonicity is proved BOTH along these
 /// provenance edges AND along the capability lattice (see the tests). The pipeline
 /// cross-checks this edge set against its composition legs so the two cannot drift.
-pub const PROJECTION_DAG_EDGES: &[(DocFormat, DocFormat)] = &[(DocFormat::Site, DocFormat::Snippets)];
+pub const PROJECTION_DAG_EDGES: &[(DocFormat, DocFormat)] =
+    &[(DocFormat::Site, DocFormat::Snippets)];
 
 /// One format's capability partition: which capabilities it represents and which
 /// it declares lost. Both vectors are sorted (by [`Capability`]'s derived order)
@@ -288,7 +289,10 @@ mod tests {
         // fails loudly here. The site is lossless; mdbook drops ONLY the bundled
         // search index (it packs the live engines); pdf and snippets drop everything.
         assert!(dropped(DocFormat::Site).is_empty());
-        assert_eq!(dropped(DocFormat::Mdbook), BTreeSet::from([Capability::SearchIndex]));
+        assert_eq!(
+            dropped(DocFormat::Mdbook),
+            BTreeSet::from([Capability::SearchIndex])
+        );
         assert_eq!(dropped(DocFormat::Pdf).len(), Capability::ALL.len());
         assert_eq!(dropped(DocFormat::Snippets), dropped(DocFormat::Pdf));
 

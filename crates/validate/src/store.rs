@@ -539,8 +539,8 @@ mod tests {
         // must keep the default-graph quad and DROP the named-graph quad.
         let mut graph = purrdf::gts::model::Graph::default();
         for value in [
-            "https://blackcatinformatics.ca/gmeow/Cat",     // 0: default s
-            "http://www.w3.org/2000/01/rdf-schema#label",   // 1: default p
+            "https://blackcatinformatics.ca/gmeow/Cat", // 0: default s
+            "http://www.w3.org/2000/01/rdf-schema#label", // 1: default p
             "https://blackcatinformatics.ca/gmeow/DocNode", // 2: named s
             "https://blackcatinformatics.ca/gmeow/docTitle", // 3: named p
             "https://blackcatinformatics.ca/gmeow/graph/documentation", // 4: named graph
