@@ -18,5 +18,5 @@ and the zstd-dictionary transport are NOT here — that notation is still being 
 
 | File | Role |
 |------|------|
-| `gmeow_gmn_wasm.js` | wasm-bindgen `--target web` ES-module bindings (exposes `to_gmn1`, `from_gmn1`, `version`). |
+| `gmeow_gmn_wasm.js` | wasm-bindgen `--target web` ES-module bindings (exposes `to_gmn1`, `from_gmn1`, `glyph_legend`, `version`). |
 | `gmeow_gmn_wasm_bg.wasm` | The compiled GMN-0↔GMN-1 codec, with the `lang:` glyph/alias codebook embedded. |
