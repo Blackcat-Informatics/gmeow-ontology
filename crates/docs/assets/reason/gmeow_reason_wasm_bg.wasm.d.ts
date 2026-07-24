@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const conjecture: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
 export const reason: (a: number, b: number, c: number, d: number, e: number) => void;
 export const version: (a: number) => void;
 export const __wbindgen_add_to_stack_pointer: (a: number) => number;

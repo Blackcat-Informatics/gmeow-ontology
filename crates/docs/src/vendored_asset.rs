@@ -409,6 +409,16 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             needle: "export function reason(data: string, format: string): string",
             hint: "vendored .d.ts lacks the reason type signature",
         },
+        ExportCheck {
+            file: "gmeow_reason_wasm.js",
+            needle: "export function conjecture(kb, kb_format, formula, standpoint)",
+            hint: "vendored bindings lack the conjecture export (W4 conjecture playground)",
+        },
+        ExportCheck {
+            file: "gmeow_reason_wasm.d.ts",
+            needle: "export function conjecture(kb: string, kb_format: string, formula: string, standpoint: string): string",
+            hint: "vendored .d.ts lacks the conjecture type signature (W4 conjecture playground)",
+        },
     ],
     refresh_target: "maint-refresh-reason-asset",
     bless_env: "GMEOW_REASON_BLESS",

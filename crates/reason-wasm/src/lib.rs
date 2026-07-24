@@ -54,3 +54,36 @@ pub fn reason(data: &str, format: &str) -> Result<String, JsError> {
     .map_err(|e| JsError::new(&e.to_string()))?;
     String::from_utf8(bytes).map_err(|e| JsError::new(&format!("closure N-Quads not UTF-8: {e}")))
 }
+
+/// Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
+/// engine and return the **deterministic verdict** as N-Triples text — the SAME projection
+/// the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
+/// witness). Powers the live documentation conjecture playground (issue #1406 W4).
+///
+/// - `kb` — the knowledge base to test against (RDF text in `kb_format`).
+/// - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,
+///   `n-triples`/`nt`, `n-quads`/`nq`, `trig`, `rdf+xml`, `json-ld`).
+/// - `formula` — the candidate `logic:` document naming exactly one `logic:Formula` / axiom.
+/// - `standpoint` — the reified standpoint IRI the verdict is scoped to (REQUIRED; a
+///   conjecture verdict is always standpoint-scoped, never global — Principle 9).
+///
+/// The symmetric two legs (proof `KB ⊨ φ` and counterproof `KB ∪ {φ} ⊨ ⊥`) and the Belnap
+/// classification are all readable from the returned N-Triples; the JS controller renders
+/// them side-by-side.
+///
+/// # Errors
+///
+/// Throws a JS exception if the candidate does not name exactly one formula, if the KB
+/// cannot be parsed, or if the native conjecture engine fails.
+#[wasm_bindgen]
+pub fn conjecture(
+    kb: &str,
+    kb_format: &str,
+    formula: &str,
+    standpoint: &str,
+) -> Result<String, JsError> {
+    let projection =
+        gmeow_logic::conjecture_eval::evaluate_conjecture_kb(formula, kb, kb_format, standpoint)
+            .map_err(|e| JsError::new(e.message()))?;
+    Ok(projection.verdict_nt)
+}

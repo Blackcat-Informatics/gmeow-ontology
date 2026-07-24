@@ -5,7 +5,7 @@
 // The wasm-bindgen `reason`/`version` are re-exported as-is; this wrapper adds the
 // one-time async wasm instantiation the synchronous boundary cannot express.
 
-import init, { reason, version } from "./pkg/gmeow_reason_wasm.js";
+import init, { conjecture, reason, version } from "./pkg/gmeow_reason_wasm.js";
 
 // Cache the in-flight instantiation PROMISE, not a post-resolution boolean: two
 // callers that both reach `ready()` before the first `init()` resolves must share
@@ -36,4 +36,4 @@ export function ready(wasmBytesOrUrl) {
   return _ready;
 }
 
-export { reason, version };
+export { conjecture, reason, version };

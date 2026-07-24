@@ -45,6 +45,11 @@ pub const MDBOOK_BOOT_JS_PATH: &str = "mdbook-boot.js";
 /// book only when the render is bundle-backed.
 const MDBOOK_EXPLORER_CHAPTER: &str = "explorer";
 
+/// The book chapter dir hosting the conjecture playground (issue #1406 W4: browser
+/// symmetric proof / counterproof over the curated demo library). Emitted into the book
+/// only when the render is conjecture-backed (`has_conjectures()`).
+const MDBOOK_CONJECTURE_CHAPTER: &str = "conjectures";
+
 /// The absolute base URL of the published documentation site. The model carries
 /// no canonical site/base URL field, so this single constant defines it. Every
 /// dropped-surface link (the SPARQL playground, prompt cards, diagram SVGs) is
@@ -178,6 +183,18 @@ fn pack_interactive_book(
         );
         // A top-level table-of-contents entry so the chapter is reachable (mdbook's
         // `create-missing = false` accepts it because the chapter file exists).
+        summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
+    }
+
+    // The conjecture playground host chapter (browser symmetric proof / counterproof over
+    // the curated demo library + the live wasm conjecture engine).
+    if exec.has_conjectures() {
+        let page = Page::ConjecturePlayground;
+        let dir = page.dir();
+        debug_assert_eq!(dir, MDBOOK_CONJECTURE_CHAPTER);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
         summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
     }
 }

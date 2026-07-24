@@ -99,10 +99,22 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
         .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
         .into_bytes();
+    // The W4 conjecture-playground demo library: the committed curated
+    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
+    // a missing example is a HARD FAIL (never a silently empty playground); the release
+    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
+    let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
+    let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed conjecture demo library {}: {e}",
+            conjectures_path.display()
+        ))
+    })?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
         core_bundle_nquads,
         full_bundle_gts: bytes,
+        conjectures_ttl,
         ..Default::default()
     })
 }

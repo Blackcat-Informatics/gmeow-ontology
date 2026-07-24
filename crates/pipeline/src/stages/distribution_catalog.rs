@@ -123,15 +123,17 @@ enum SiteSubAsset {
     ReasonWasm,
     GmnWasm,
     CoreBundle,
+    ConjectureDemo,
 }
 
 impl SiteSubAsset {
-    const ALL: [SiteSubAsset; 5] = [
+    const ALL: [SiteSubAsset; 6] = [
         SiteSubAsset::PurrdfWasm,
         SiteSubAsset::ValidateWasm,
         SiteSubAsset::ReasonWasm,
         SiteSubAsset::GmnWasm,
         SiteSubAsset::CoreBundle,
+        SiteSubAsset::ConjectureDemo,
     ];
 
     fn slug(&self) -> &'static str {
@@ -141,14 +143,16 @@ impl SiteSubAsset {
             SiteSubAsset::ReasonWasm => "reason-wasm",
             SiteSubAsset::GmnWasm => "gmn-wasm",
             SiteSubAsset::CoreBundle => "core-bundle",
+            SiteSubAsset::ConjectureDemo => "conjectures",
         }
     }
 
     /// The wasm engines are `application/wasm`; the browser bundle is object-level
-    /// N-Quads text.
+    /// N-Quads text; the conjecture demo library is Turtle.
     fn media_type(&self) -> &'static str {
         match self {
             SiteSubAsset::CoreBundle => "application/n-quads",
+            SiteSubAsset::ConjectureDemo => "text/turtle",
             _ => "application/wasm",
         }
     }
@@ -162,6 +166,7 @@ impl SiteSubAsset {
             SiteSubAsset::ReasonWasm => "assets/reason/",
             SiteSubAsset::GmnWasm => "assets/gmn/",
             SiteSubAsset::CoreBundle => "assets/gmeow-core.nq",
+            SiteSubAsset::ConjectureDemo => "assets/conjectures.ttl",
         }
     }
 
@@ -173,6 +178,7 @@ impl SiteSubAsset {
             SiteSubAsset::ReasonWasm => "vendored structured-DL reasoner wasm engine",
             SiteSubAsset::GmnWasm => "vendored GMN-0/GMN-1 codec wasm engine",
             SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
+            SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }
     }
 }

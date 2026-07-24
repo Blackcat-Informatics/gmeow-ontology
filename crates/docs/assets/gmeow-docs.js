@@ -14,7 +14,10 @@
 
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
-import reasonInit, { reason as wasmReason } from "./reason/gmeow_reason_wasm.js";
+import reasonInit, {
+  reason as wasmReason,
+  conjecture as wasmConjecture,
+} from "./reason/gmeow_reason_wasm.js";
 import gmnInit, {
   to_gmn1 as wasmToGmn1,
   from_gmn1 as wasmFromGmn1,
@@ -195,19 +198,24 @@ if (explorerForm) {
   });
 }
 
+// ── Shared reasoner single-flight ───────────────────────────────────────────
+// The vendored gmeow-reason-wasm engine backs BOTH the live entailment panel (W4b)
+// and the conjecture playground (W4). Boot it exactly once, sharing one instantiation
+// promise across both surfaces (reuse `_reasonReady`, never a second wasm fetch).
+let _reasonReady = null;
+const ensureReasoner = async () => {
+  if (!_reasonReady) {
+    _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
+  }
+  await _reasonReady;
+};
+
 // ── Live entailment panel (W4b) ─────────────────────────────────────────────
 // Run the native GMEOW structured-DL reasoner (gmeow-reason-wasm) over pasted RDF
 // entirely in-browser and show the inference diff (the entailed triples). The wasm
 // chase is byte-identical to the native one (proven by the F3 witness lane).
 const reasonForm = document.getElementById("gmeow-reason-form");
 if (reasonForm) {
-  let _reasonReady = null;
-  const ensureReasoner = async () => {
-    if (!_reasonReady) {
-      _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
-    }
-    await _reasonReady;
-  };
   const inputEl = document.getElementById("gmeow-reason-input");
   const resultsEl = document.getElementById("gmeow-reason-results");
   reasonForm.addEventListener("submit", async (event) => {
@@ -228,6 +236,208 @@ if (reasonForm) {
       resultsEl.append(h, pre);
     } catch (e) {
       resultsEl.textContent = `Reasoning failed: ${e.message ?? e}`;
+    }
+  });
+}
+
+// ── Conjecture playground (W4) ──────────────────────────────────────────────
+// Run the native GMEOW SYMMETRIC conjecture engine (gmeow-reason-wasm's `conjecture`
+// export) entirely in-browser and render BOTH legs of the test: the proof leg
+// (KB ⊨ φ), the counterproof leg (KB ∪ {φ} ⊨ ⊥) with its contradiction witness, and
+// the Belnap classification. The wasm verdict is byte-identical to the native one
+// (proven by the W4 conjecture witness lane). On boot the controller fetches +
+// byte-verifies the curated demo library against the bundle manifest (a truncated or
+// swapped asset is rejected), then offers a set of runnable demos exercising every
+// Belnap-to-lifecycle branch.
+const conjectureForm = document.getElementById("gmeow-conjecture-form");
+if (conjectureForm) {
+  const LOGIC_PREFIX =
+    "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n" +
+    "@prefix ex:  <http://ex/> .\n" +
+    "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n";
+  const STANDPOINT =
+    "https://blackcatinformatics.ca/gmeow/examples/conjecture/demo-standpoint";
+  // A reified ground-atom candidate `ex:a rdf:type ex:B`.
+  const GROUND_ATOM =
+    LOGIC_PREFIX +
+    "ex:phi a logic:Formula ;\n" +
+    "    logic:relation rdf:type ;\n" +
+    "    logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;\n" +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n";
+  // A universally-quantified Horn candidate `∀x. trigger(x, mark) → rdf:type(x, B)`.
+  const FORALL_HORN =
+    LOGIC_PREFIX +
+    "ex:cand a logic:Formula ;\n" +
+    "    logic:forall ex:body ;\n" +
+    '    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] .\n' +
+    "ex:body a logic:Formula ;\n" +
+    "    logic:antecedent ex:ant ;\n" +
+    "    logic:consequent ex:con .\n" +
+    "ex:ant a logic:Formula ;\n" +
+    "    logic:relation ex:trigger ;\n" +
+    '    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] ;\n' +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:mark ] .\n" +
+    "ex:con a logic:Formula ;\n" +
+    "    logic:relation rdf:type ;\n" +
+    '    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] ;\n' +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n";
+  // Each demo is a self-contained (formula, KB, standpoint) triple that decisively
+  // exercises one Belnap-to-lifecycle branch — so the symmetric legs are observable.
+  const DEMOS = [
+    {
+      id: "corroborated",
+      label: "Corroborated — the proof leg fires (KB ⊨ φ)",
+      formula: GROUND_ATOM,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "ex:a rdf:type ex:B .\n",
+    },
+    {
+      id: "refuted",
+      label: "Refuted-in-standpoint — the counterproof leg fires (KB ∪ {φ} ⊨ ⊥), with witness",
+      formula: FORALL_HORN,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
+        "ex:a ex:trigger ex:mark .\n" +
+        "ex:a rdf:type ex:A .\n" +
+        "ex:A owl:disjointWith ex:B .\n",
+    },
+    {
+      id: "open",
+      label: "Open — neither leg fires (no proof, no counterproof)",
+      formula: FORALL_HORN,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "ex:a ex:trigger ex:mark .\n" +
+        "ex:a rdf:type ex:A .\n",
+    },
+  ];
+
+  const statusEl = document.getElementById("gmeow-conjecture-status");
+  const selectEl = document.getElementById("gmeow-conjecture-select");
+  const resultsEl = document.getElementById("gmeow-conjecture-results");
+  for (const demo of DEMOS) {
+    const opt = document.createElement("option");
+    opt.value = demo.id;
+    opt.textContent = demo.label;
+    selectEl.append(opt);
+  }
+
+  // Verify the shipped curated demo library is byte-intact against the manifest — the
+  // same integrity discipline `loadCoreBundle` applies (a missing manifest entry or a
+  // byte-length mismatch is a HARD FAILURE, never a silent bypass).
+  const verifyLibrary = async () => {
+    const manifest = await (
+      await fetch(new URL("./bundle-manifest.json", import.meta.url))
+    ).json();
+    const ttl = await (
+      await fetch(new URL("./conjectures.ttl", import.meta.url))
+    ).text();
+    const expected = manifest["assets/conjectures.ttl"]?.bytes;
+    const actual = new TextEncoder().encode(ttl).length;
+    if (expected === undefined) {
+      throw new Error(
+        "conjecture library integrity: manifest is missing the assets/conjectures.ttl " +
+          "entry — cannot verify the demo library (a missing manifest entry is a hard failure)",
+      );
+    }
+    if (actual !== expected) {
+      throw new Error(
+        `conjecture library integrity: expected ${expected} bytes, got ${actual}`,
+      );
+    }
+  };
+
+  // Parse the deterministic verdict N-Triples for the facets the panel renders: the
+  // lifecycle, the Belnap information state (which decides the two legs), and the
+  // contradiction-witness premises (present exactly for a refutation).
+  const parseVerdict = (nt) => {
+    const local = (iri) => iri.slice(iri.lastIndexOf("/") + 1);
+    let lifecycle = null;
+    let information = null;
+    const premises = [];
+    for (const line of nt.split("\n")) {
+      const m = line.match(/<([^>]*)>\s+<([^>]*)>\s+(.*)\s\.\s*$/);
+      if (!m) continue;
+      const [, , pred, obj] = m;
+      if (pred.endsWith("/conjectureLifecycleState")) {
+        lifecycle = local(obj.replace(/[<>]/g, ""));
+      } else if (pred.endsWith("/resultInformation")) {
+        information = local(obj.replace(/[<>]/g, ""));
+      } else if (pred.endsWith("/witnessPremise")) {
+        const lit = obj.match(/^"((?:[^"\\]|\\.)*)"/);
+        if (lit) premises.push(lit[1]);
+      }
+    }
+    // The symmetric legs, read off the Belnap information state.
+    const hasProof = information === "InfoSupported" || information === "InfoBoth";
+    const hasCounterproof = information === "InfoOpposed" || information === "InfoBoth";
+    return { lifecycle, information, premises, hasProof, hasCounterproof };
+  };
+
+  const leg = (ok) => (ok ? "✓ holds" : "✗ does not hold");
+
+  verifyLibrary().then(
+    () => {
+      statusEl.textContent =
+        "Ready — pick a curated demo and press Test to run the symmetric engine.";
+    },
+    (e) => {
+      statusEl.textContent = `Conjecture library failed to load: ${e.message ?? e}`;
+    },
+  );
+
+  conjectureForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Testing…";
+    try {
+      await ensureReasoner();
+      const demo = DEMOS.find((d) => d.id === selectEl.value) ?? DEMOS[0];
+      const nt = wasmConjecture(demo.kb, "turtle", demo.formula, STANDPOINT);
+      const v = parseVerdict(nt);
+      resultsEl.replaceChildren();
+
+      const verdict = document.createElement("p");
+      verdict.className = "gmeow-conjecture-verdict";
+      verdict.textContent = `Lifecycle: ${v.lifecycle ?? "unknown"} · Belnap: ${
+        v.information ?? "unknown"
+      }`;
+
+      const legs = document.createElement("ul");
+      const proof = document.createElement("li");
+      proof.textContent = `Proof leg (KB ⊨ φ): ${leg(v.hasProof)}`;
+      const counter = document.createElement("li");
+      counter.textContent = `Counterproof leg (KB ∪ {φ} ⊨ ⊥): ${leg(
+        v.hasCounterproof,
+      )}`;
+      legs.append(proof, counter);
+      resultsEl.append(verdict, legs);
+
+      if (v.premises.length) {
+        const wh = document.createElement("p");
+        wh.textContent = "Contradiction witness — the jointly-inconsistent premises:";
+        const wl = document.createElement("ul");
+        for (const p of v.premises.slice().sort()) {
+          const li = document.createElement("li");
+          const code = document.createElement("code");
+          code.textContent = p;
+          li.append(code);
+          wl.append(li);
+        }
+        resultsEl.append(wh, wl);
+      }
+
+      const h = document.createElement("p");
+      h.textContent = "Verdict (deterministic N-Triples projection):";
+      const pre = document.createElement("pre");
+      pre.textContent = nt.trim();
+      resultsEl.append(h, pre);
+    } catch (e) {
+      resultsEl.textContent = `Conjecture test failed: ${e.message ?? e}`;
     }
   });
 }

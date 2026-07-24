@@ -1,6 +1,66 @@
 /* @ts-self-types="./gmeow_reason_wasm.d.ts" */
 
 /**
+ * Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
+ * engine and return the **deterministic verdict** as N-Triples text — the SAME projection
+ * the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
+ * witness). Powers the live documentation conjecture playground (issue #1406 W4).
+ *
+ * - `kb` — the knowledge base to test against (RDF text in `kb_format`).
+ * - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,
+ *   `n-triples`/`nt`, `n-quads`/`nq`, `trig`, `rdf+xml`, `json-ld`).
+ * - `formula` — the candidate `logic:` document naming exactly one `logic:Formula` / axiom.
+ * - `standpoint` — the reified standpoint IRI the verdict is scoped to (REQUIRED; a
+ *   conjecture verdict is always standpoint-scoped, never global — Principle 9).
+ *
+ * The symmetric two legs (proof `KB ⊨ φ` and counterproof `KB ∪ {φ} ⊨ ⊥`) and the Belnap
+ * classification are all readable from the returned N-Triples; the JS controller renders
+ * them side-by-side.
+ *
+ * # Errors
+ *
+ * Throws a JS exception if the candidate does not name exactly one formula, if the KB
+ * cannot be parsed, or if the native conjecture engine fails.
+ * @param {string} kb
+ * @param {string} kb_format
+ * @param {string} formula
+ * @param {string} standpoint
+ * @returns {string}
+ */
+export function conjecture(kb, kb_format, formula, standpoint) {
+    let deferred6_0;
+    let deferred6_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(kb, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(kb_format, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(formula, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len2 = WASM_VECTOR_LEN;
+        const ptr3 = passStringToWasm0(standpoint, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len3 = WASM_VECTOR_LEN;
+        wasm.conjecture(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        var ptr5 = r0;
+        var len5 = r1;
+        if (r3) {
+            ptr5 = 0; len5 = 0;
+            throw takeObject(r2);
+        }
+        deferred6_0 = ptr5;
+        deferred6_1 = len5;
+        return getStringFromWasm0(ptr5, len5);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export3(deferred6_0, deferred6_1, 1);
+    }
+}
+
+/**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the
  * **reasoned closure** — the inferred triples — as N-Quads text.
  *

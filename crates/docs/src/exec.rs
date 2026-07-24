@@ -89,6 +89,14 @@ pub struct ExecutableDocsData {
     /// "unsatisfiable because" derivation lines render only when this map carries an
     /// entry for the term, never a fabricated "no entailments" claim.
     pub term_entailments: BTreeMap<String, Vec<Entailment>>,
+    /// The **conjecture demo library** — the curated `logic:Conjecture` corpus
+    /// (`slices/grounding/logic/examples/conjectures.ttl`) shipped verbatim as a site
+    /// sub-asset. The W4 conjecture playground fetches + byte-verifies it, presents its
+    /// six curated conjectures (every Belnap-to-lifecycle branch, with witnesses and
+    /// anti-legs), and runs the live wasm symmetric conjecture engine over the built-in
+    /// runnable demos. Empty ⇒ no conjecture playground. Read deterministically from the
+    /// committed slice example by the pipeline (hard-fail if absent).
+    pub conjectures_ttl: Vec<u8>,
 }
 
 impl ExecutableDocsData {
@@ -105,6 +113,15 @@ impl ExecutableDocsData {
     #[must_use]
     pub fn has_bundle(&self) -> bool {
         !self.core_bundle_nquads.is_empty() && !self.full_bundle_gts.is_empty()
+    }
+
+    /// Whether the conjecture demo library was supplied — i.e. the W4 conjecture
+    /// playground surface can be rendered. Requires the core bundle too (the playground
+    /// runs the live wasm engine, so it reuses the vendored reason asset the bundle
+    /// surfaces ship).
+    #[must_use]
+    pub fn has_conjectures(&self) -> bool {
+        !self.conjectures_ttl.is_empty() && self.has_bundle()
     }
 
     /// The inference diff for one example, if any was computed.

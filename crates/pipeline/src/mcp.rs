@@ -25,20 +25,16 @@ use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
 use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
-use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
+use gmeow_logic::conjecture::ConjectureLifecycleState;
 use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
 use gmeow_logic::provenance::{reifier_from_strings, term_display};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic::reason::reason_all_budgeted;
 use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
-use gmeow_logic::result_rdf::{
-    ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
-    project_conjecture_withdrawal, project_reasoning_result,
-};
+use gmeow_logic::result_rdf::{project_conjecture_withdrawal, project_reasoning_result};
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
-use gmeow_logic_compile::frontend::parse_logic_str;
-use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
+use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
@@ -3744,98 +3740,41 @@ fn evaluate_conjecture(
     max_steps: Option<u64>,
     max_answers: Option<usize>,
 ) -> gmeow_errors::Result<ConjectureEvaluation> {
-    // (1) Parse the candidate document and extract exactly one candidate formula.
-    let candidate = parse_candidate_formula(formula_ttl)?;
-
-    // (2) Parse the KB and re-home every triple into the isolated scenario world, so the
-    //     world-scoped DL calculus joins the KB with the asserted / evaluated candidate.
-    let kb = rehome_kb_into_scenario(kb_ttl)?;
-
-    // (3) Run the engine. The KB is borrowed and never mutated (isolation is inherent).
-    let kb_world = format!(
-        "{CONJECTURE_SCENARIO_WORLD}#kb-{}",
-        sha256_hex(kb_ttl.as_bytes())
-    );
-    // The optional post-hoc closure-size ceiling (criterion (2)): a bound the surfaces MAY pass
-    // and the oracle NEVER sees (it is applied above the run). Both `None` ⟹ unbounded.
-    let budget = Budget {
-        max_answers,
-        max_steps,
-    };
-    let answer = conjecture_test(
-        kb.as_ref(),
-        CONJECTURE_SCENARIO_WORLD,
-        &candidate,
-        standpoint,
-        &[],
-        &budget,
-    )
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("conjecture_test failed: {e}"),
+    // Delegate to the SINGLE conjecture-evaluation authority in gmeow-logic (shared with the
+    // browser conjecture playground so both produce byte-identical verdict N-Triples), then
+    // adapt its projection to the pipeline's response type at the boundary.
+    let projection =
+        gmeow_logic::conjecture_eval::evaluate_conjecture_eval(&gmeow_logic::conjecture_eval::ConjectureEvalInput {
+            formula_ttl,
+            kb_ttl,
+            kb_format: "text/turtle",
+            standpoint,
+            math_conjecture,
+            max_steps,
+            max_answers,
         })
-    })?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("conjecture evaluation failed: {}", e.message()),
+            })
+        })?;
 
-    // (4) Project the verdict → deterministic N-Triples, and mint the content-addressed
-    //     (formula × standpoint × KB-world) conjecture node IRI.
-    let content_key = candidate.content_key();
-    // The anti-conjecture leg's forbidden predicate: the refuted formula's PRINCIPAL
-    // predicate (the predicate the closure must never draw). A refuted formula that names no
-    // single predicate (a compound conjunction / disjunction / implication / biconditional)
-    // has no soundly-derivable forbidden predicate — its `logic:NonEntailmentObligation`
-    // forbidden predicate is a reviewer decision — so we HARD-FAIL rather than fabricate one
-    // or emit a shape-invalid obligation node (Constitution: no fabrication, no optionality).
-    let forbidden_predicate = candidate.principal_predicate();
-    if answer.lifecycle == ConjectureLifecycleState::RefutedInStandpoint
-        && forbidden_predicate.is_none()
-    {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
-                "conjecture refuted in standpoint <{standpoint}>, but its candidate formula \
-                 is compound and names no single predicate: the anti-conjecture \
-                 logic:NonEntailmentObligation's forbidden predicate cannot be soundly \
-                 derived and must be a reviewer decision. Refute an atomic or universally \
-                 quantified single-predicate claim, or author the obligation directly."
-            ),
-        }));
-    }
-    let verdict_input = ConjectureVerdictInput {
-        content_key: &content_key,
-        standpoint,
-        kb_world: &kb_world,
-        answer: &answer,
-        math_conjecture,
-        forbidden_predicate: forbidden_predicate.as_deref(),
-    };
-    let verdict_nt = project_conjecture_verdict(&verdict_input);
-    let node_iri = conjecture_node_iri(&verdict_input);
-
-    let verdict = &answer.verdict;
-    let witness = answer.witness.as_ref().map(|w| ConjectureRunWitness {
-        individual: w.individual.clone(),
-        world: w.world.clone(),
-        premises: w
-            .premises
-            .iter()
-            .map(|(s, p, o)| format!("{s} {p} {o}"))
-            .collect(),
+    let witness = projection.witness.map(|w| ConjectureRunWitness {
+        individual: w.individual,
+        world: w.world,
+        premises: w.premises,
     });
-    let lifecycle = answer.lifecycle.wire().to_string();
-    let information = verdict.information.wire().to_string();
-    let evaluation = verdict.evaluation.wire().to_string();
-    let completeness = verdict.completeness.wire().to_string();
-    let discharge = answer.discharge.local_name().to_string();
 
     Ok(ConjectureEvaluation {
-        lifecycle,
-        information,
-        evaluation,
-        completeness,
-        discharge,
+        lifecycle: projection.lifecycle,
+        information: projection.information,
+        evaluation: projection.evaluation,
+        completeness: projection.completeness,
+        discharge: projection.discharge,
         witness,
-        node_iri,
-        verdict_nt,
-        content_key,
+        node_iri: projection.node_iri,
+        verdict_nt: projection.verdict_nt,
+        content_key: projection.content_key,
     })
 }
 
@@ -5275,13 +5214,6 @@ const GMEOW_AUTHORING_CANDIDATE: &str = "https://blackcatinformatics.ca/gmeow/Au
 const GMEOW_CANDIDATE_FOR_SLICE: &str = "https://blackcatinformatics.ca/gmeow/candidateForSlice";
 const GMEOW_CANDIDATE_FOR_PACKET: &str = "https://blackcatinformatics.ca/gmeow/candidateForPacket";
 
-/// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
-/// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
-/// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
-/// [`conjecture_test`] copies the KB into a fresh dataset and never mutates the input.
-const CONJECTURE_SCENARIO_WORLD: &str =
-    "https://blackcatinformatics.ca/gmeow/agentic/conjecture/scenario";
-
 const LOGIC_INSTANTIATES_SCHEMA: &str = "https://blackcatinformatics.ca/logic/instantiatesSchema";
 const LOGIC_TRANSITION_FROM_STATE: &str =
     "https://blackcatinformatics.ca/logic/transitionFromState";
@@ -5887,89 +5819,6 @@ fn read_conjecture_library(
         .into_iter()
         .filter(|(node, _)| is_conjecture.contains(node))
         .collect())
-}
-
-/// Parse the candidate `logic:` document and extract exactly ONE candidate [`Formula`]: the
-/// single top-level `logic:Formula` when present, else the single ground `logic:` axiom
-/// lifted to a binary [`Formula::Atom`]. Any other shape (zero / multiple candidates) is a
-/// hard, fail-closed error — a conjecture test names one formula, never a program.
-fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formula> {
-    let (program, _diags) = parse_logic_str(formula_src, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("candidate logic: document failed to parse: {e}"),
-        })
-    })?;
-    let bad = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
-    // A reified `logic:Formula` is the primary surface: prefer the single top-level formula
-    // even when the frontend leaks the formula's own structural triples as axioms.
-    let formula_count = program.formulas.len();
-    if formula_count == 1 {
-        return Ok(program.formulas.into_iter().next().expect("len == 1"));
-    }
-
-    // No single top-level formula. A REIFIED trivially-Horn `logic:Formula` (a ground binary
-    // atom — e.g. `relation=rdf:type, arg0=ex:a, arg1=ex:B`, the fact `ex:a rdf:type ex:B`) is
-    // routed by the front-end to `LogicProgram.axioms` (its Horn home — `with_formulas`
-    // hard-fails on a trivially-Horn leaf), so `formulas` is EMPTY and the candidate lives in
-    // the axiom set. That set also carries the formula node's own `rdf:type logic:Formula`
-    // self-typing, which leaks as a structural axiom — drop that noise, then a lone remaining
-    // axiom IS the candidate fact, lifted here to a binary `Formula::Atom`. `conjecture_test`'s
-    // `as_ground_fact` then asserts a ground lift as an EDB fact and decides it like any
-    // candidate, so a reified ground-atom conjecture is a first-class, evaluated candidate —
-    // never a panic (the previously dead `(0,1)` lift is now genuinely reachable).
-    let logic_formula_iri = format!("{LOGIC_NAMESPACE}Formula");
-    let mut candidate_axioms: Vec<_> = program
-        .axioms
-        .into_iter()
-        .filter(|ax| !(ax.predicate == RDF_TYPE && ax.obj == logic_formula_iri))
-        .collect();
-    if formula_count == 0 && candidate_axioms.len() == 1 {
-        let ax = candidate_axioms.pop().expect("len == 1");
-        let object = if ax.obj_is_literal {
-            IrTerm::Literal {
-                lexical: ax.obj,
-                datatype: None,
-            }
-        } else {
-            IrTerm::Iri(ax.obj)
-        };
-        return Formula::atom(
-            IrTerm::Iri(ax.predicate),
-            vec![IrTerm::Iri(ax.subject), object],
-        )
-        .map_err(|e| bad(e.message().to_owned()));
-    }
-    Err(bad(format!(
-        "candidate must be exactly one formula/atom, got {formula_count} formula(s) and \
-         {} candidate axiom(s)",
-        candidate_axioms.len()
-    )))
-}
-
-/// Re-home every triple of the caller's KB Turtle into [`CONJECTURE_SCENARIO_WORLD`] as a
-/// fresh, frozen [`purrdf::RdfDataset`]. World-homing is required because the DL consistency
-/// calculus is world-scoped: KB facts must sit in the SAME world the candidate is asserted /
-/// evaluated in for a disjointness clash to fire.
-fn rehome_kb_into_scenario(
-    kb_src: &str,
-) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
-    let parsed = purrdf::parse_dataset(kb_src.as_bytes(), "text/turtle", None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("KB Turtle failed to parse: {e}"),
-        })
-    })?;
-    let world = RdfTerm::iri(CONJECTURE_SCENARIO_WORLD);
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in parsed.owned_quads() {
-        let rehomed =
-            RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
-        builder.push_owned_quad(&rehomed);
-    }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("re-homed KB dataset failed to freeze: {e}"),
-        })
-    })
 }
 
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
@@ -10169,7 +10018,13 @@ mod tests {
         // route it to `LogicProgram.axioms` (not `with_formulas`, which hard-asserts) and
         // `parse_candidate_formula` must reconstruct it — cleanly, never a panic and never a
         // false "0 formula(s) and 0 axiom(s)" rejection.
-        let candidate = parse_candidate_formula(&reified_ground_atom_candidate("B"))
+        use gmeow_logic_compile::ir::{Formula, Term as IrTerm};
+        // `parse_candidate_formula` now lives in the shared gmeow-logic conjecture-eval
+        // authority; assert the SHIPPED re-export still lifts a reified ground atom cleanly.
+        let candidate =
+            gmeow_logic::conjecture_eval::parse_candidate_formula(&reified_ground_atom_candidate(
+                "B",
+            ))
             .expect("reified ground atom must lift to a candidate formula");
         match candidate {
             Formula::Atom { relation, args } => {

@@ -73,6 +73,12 @@ const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 /// parses it client-side (purrdf `Dataset.parse`) to answer `info`/`describe`.
 const CORE_BUNDLE_NQ_PATH: &str = "assets/gmeow-core.nq";
 
+/// The site-relative path of the **conjecture demo library** — the curated
+/// `logic:Conjecture` corpus as Turtle ([`ExecutableDocsData::conjectures_ttl`]). The W4
+/// conjecture playground fetches + byte-verifies it (via [`BUNDLE_MANIFEST_PATH`]) and
+/// presents its curated conjectures alongside the live wasm symmetric engine.
+const CONJECTURES_PATH: &str = "assets/conjectures.ttl";
+
 /// The site-relative path of the FULL `gmeow.gts` bundle
 /// ([`ExecutableDocsData::full_bundle_gts`]) — the in-browser Tier-1 validate surface
 /// reads its `shapes-archive`. An EXTERNAL site asset (never re-embedded in the bundle).
@@ -219,6 +225,12 @@ pub enum Page {
     /// the object-level core bundle. Emitted only when the bundle assets ship
     /// (`has_bundle()`).
     BundleExplorer,
+    /// The conjecture playground (`conjectures/index`, issue #1406 W4) — the browser
+    /// symmetric conjecture / anti-conjecture engine over the curated demo library, run
+    /// client-side by the SAME native `logic:` reasoner via the vendored wasm
+    /// `conjecture` export. Emitted only when the conjecture demo asset + bundle ship
+    /// (`has_conjectures()`).
+    ConjecturePlayground,
 }
 
 impl Page {
@@ -268,6 +280,7 @@ impl Page {
             Page::Glossary => "glossary".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
             Page::BundleExplorer => "explorer".to_string(),
+            Page::ConjecturePlayground => "conjectures".to_string(),
         }
     }
 
@@ -355,6 +368,7 @@ impl Page {
             Page::Glossary => "Glossary".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
             Page::BundleExplorer => "Bundle explorer".to_string(),
+            Page::ConjecturePlayground => "Conjecture playground".to_string(),
         }
     }
 }
@@ -532,6 +546,21 @@ pub fn render_site_lang_exec_with_diagrams(
         );
     }
 
+    // The conjecture playground page (browser symmetric proof / counterproof over the
+    // curated demo library + the live wasm conjecture engine). Its assets (the demo
+    // library + the vendored reason engine) are shipped by `interactive_asset_files`.
+    if exec.has_conjectures() {
+        let page = Page::ConjecturePlayground;
+        files.insert(
+            page.md_path(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+        );
+        files.insert(
+            page.html_path(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+        );
+    }
+
     // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
     // local dependencies, per-term neighbourhoods) are rendered by gmeow's shipped
     // RDF-graph renderer (`purrdf::viz`) and supplied pre-rendered via `diagrams`
@@ -663,22 +692,25 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
 /// map from each bundle asset path to its `blake3:<hex>` content address and length.
 /// A pure function of the emitted bundle bytes; the client loader records/verifies it.
 fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
-    let core_digest = blake3::hash(&exec.core_bundle_nquads).to_hex();
-    let full_digest = blake3::hash(&exec.full_bundle_gts).to_hex();
-    format!(
-        concat!(
-            "{{\n",
-            "  \"{core_path}\": {{ \"blake3\": \"blake3:{core_d}\", \"bytes\": {core_n} }},\n",
-            "  \"{full_path}\": {{ \"blake3\": \"blake3:{full_d}\", \"bytes\": {full_n} }}\n",
-            "}}\n"
-        ),
-        core_path = CORE_BUNDLE_NQ_PATH,
-        core_d = core_digest,
-        core_n = exec.core_bundle_nquads.len(),
-        full_path = FULL_BUNDLE_GTS_PATH,
-        full_d = full_digest,
-        full_n = exec.full_bundle_gts.len(),
-    )
+    // One entry per shipped bundle asset, in a fixed deterministic order (core, full, then
+    // the optional conjecture demo library). Each entry is byte-identical to the others' shape,
+    // so the 2-entry (bundle-only) case is byte-for-byte unchanged from the fixed format.
+    let entry = |path: &str, bytes: &[u8]| {
+        format!(
+            "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
+            d = blake3::hash(bytes).to_hex(),
+            n = bytes.len(),
+        )
+    };
+    let mut entries = vec![
+        entry(CORE_BUNDLE_NQ_PATH, &exec.core_bundle_nquads),
+        entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts),
+    ];
+    // The conjecture demo library ships iff the W4 playground surface is rendered.
+    if exec.has_conjectures() {
+        entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));
+    }
+    format!("{{\n{}\n}}\n", entries.join(",\n"))
 }
 
 /// The interactive asset FILES (no pages) an exec-backed render ships, keyed by their
@@ -693,7 +725,7 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
 /// playground- nor bundle-backed.
 pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    if !exec.has_playground() && !exec.has_bundle() {
+    if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
         return files;
     }
     files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
@@ -713,6 +745,13 @@ pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<Str
             BUNDLE_MANIFEST_PATH.to_string(),
             bundle_manifest_json(exec).into_bytes(),
         );
+    }
+    // The conjecture demo library: an UNCONDITIONAL site sub-asset whenever the W4
+    // playground surface renders (the release path hard-fails on an empty declared
+    // sub-asset, so it must always be present when interactive). Its integrity entry
+    // rides in the bundle manifest emitted just above (`has_conjectures()` ⟹ `has_bundle()`).
+    if exec.has_conjectures() {
+        files.insert(CONJECTURES_PATH.to_string(), exec.conjectures_ttl.clone());
     }
     files
 }
@@ -847,6 +886,7 @@ pub(crate) fn to_markdown_exec_with_map(
         }
         Page::SparqlPlayground => md_playground(model, exec),
         Page::BundleExplorer => md_bundle_explorer(model, exec),
+        Page::ConjecturePlayground => md_conjecture_playground(model, exec),
         _ => to_markdown_base(model, page, page_map),
     };
     // The generalized page-level cite-this-surface on every durable NON-term page
@@ -900,6 +940,9 @@ fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) 
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
         Page::BundleExplorer => md_bundle_explorer(model, &ExecutableDocsData::default()),
+        Page::ConjecturePlayground => {
+            md_conjecture_playground(model, &ExecutableDocsData::default())
+        }
     }
 }
 
@@ -1123,6 +1166,65 @@ gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
          <div id=\"gmeow-gmn-results\" class=\"gmeow-gmn-results\"></div>\n\
          </div>\n",
     );
+    let _ = model;
+    out
+}
+
+/// The conjecture playground page (issue #1406 W4): the browser SYMMETRIC conjecture /
+/// anti-conjecture engine. The controller (`gmeow-docs.js`) fetches + byte-verifies the
+/// curated demo library, loads the core bundle as the KB, and — on submit — runs the
+/// vendored wasm `conjecture` export (the SAME native `logic:` reasoner, proven
+/// byte-identical by the W4 conjecture witness lane), then renders BOTH legs of the test:
+/// the proof leg (`KB ⊨ φ`), the counterproof leg (`KB ∪ {φ} ⊨ ⊥`) with its contradiction
+/// witness, and the Belnap classification.
+fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "Conjecture playground");
+    line(
+        &mut out,
+        "Test a candidate `logic:` formula against a knowledge base with the **native \
+         GMEOW symmetric conjecture engine** — entirely in your browser, no server, no \
+         network. The engine runs TWO independent legs: a **proof** leg (does the KB \
+         *entail* the formula? `KB ⊨ φ`) and a **counterproof** leg (does asserting the \
+         formula make the KB *inconsistent*? `KB ∪ {φ} ⊨ ⊥`, yielding a concrete \
+         contradiction witness). The Belnap classification of the two legs decides the \
+         conjecture's epistemic lifecycle: corroborated, refuted-in-standpoint, or open. \
+         This is the SAME chase the on-gate authority runs (serial on wasm, byte-identical \
+         to native — proven by the conjecture witness lane).",
+    );
+    // The interactive form (raw HTML passes through the Markdown → HTML step). The
+    // controller script is injected per page by the HTML shell (gated on
+    // `has_conjectures()`); it populates the selector from the curated demo library and
+    // renders the symmetric verdict.
+    out.push_str(
+        "<div id=\"gmeow-conjecture\" class=\"gmeow-conjecture\">\n\
+         <p id=\"gmeow-conjecture-status\" class=\"gmeow-conjecture-status\">Loading the \
+         conjecture engine…</p>\n\
+         <form id=\"gmeow-conjecture-form\">\n\
+         <label for=\"gmeow-conjecture-select\">Curated conjecture demo</label>\n\
+         <select id=\"gmeow-conjecture-select\"></select>\n\
+         <button type=\"submit\">Test</button>\n\
+         </form>\n\
+         <div id=\"gmeow-conjecture-results\" class=\"gmeow-conjecture-results\"></div>\n\
+         </div>\n",
+    );
+    // The curated conjecture demo library, shipped verbatim as a site sub-asset and
+    // rendered here for reference: six `logic:Conjecture`s exercising every branch of the
+    // Belnap-to-lifecycle projection (open, corroborated, refuted-in-standpoint with a
+    // contradiction witness + symmetric anti-conjecture leg, a Lakatos refinement
+    // successor, and a phi-entails-psi propagation pair). The controller fetches this exact
+    // asset (`assets/conjectures.ttl`) and byte-verifies it against the bundle manifest.
+    heading(&mut out, 2, "The curated conjecture library");
+    line(
+        &mut out,
+        "The playground ships this curated `logic:Conjecture` corpus as an integrity-pinned \
+         site asset. Each conjecture carries its formula, its reified standpoint, its \
+         engine-produced verdict lifecycle, and — for a refutation — a concrete \
+         `logic:ContradictionWitness` and the symmetric anti-conjecture \
+         `logic:NonEntailmentObligation` it proposes.",
+    );
+    let library = String::from_utf8_lossy(&exec.conjectures_ttl);
+    fenced(&mut out, "turtle", library.trim_end());
     let _ = model;
     out
 }
@@ -6279,7 +6381,9 @@ pub(crate) fn to_html_lang_exec_with_map(
     // transcoding). Empty for every other page and every model-only render, so the
     // shell's `body_scripts` slot is byte-neutral there.
     let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
-        || (matches!(page, Page::BundleExplorer) && exec.has_bundle()) {
+        || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
+        || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
+    {
         format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
     } else {
         String::new()
@@ -8548,6 +8652,86 @@ mod tests {
         assert!(
             manifest.contains(&format!("\"bytes\": {}", core.len())),
             "manifest carries the core asset's byte length:\n{manifest}"
+        );
+    }
+
+    #[test]
+    fn conjecture_playground_ships_page_asset_and_manifest_entry() {
+        let model = tiny_model();
+        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
+        let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
+        let conjectures = b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:demo a logic:Conjecture .\n"
+            .to_vec();
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            core_bundle_nquads: core,
+            full_bundle_gts: full,
+            conjectures_ttl: conjectures.clone(),
+            ..Default::default()
+        };
+        assert!(exec.has_conjectures(), "the exec must be conjecture-backed");
+        let live = render_site_lang_exec(&model, "english", &exec);
+
+        // The demo library asset is emitted verbatim.
+        assert_eq!(
+            live.files.get(CONJECTURES_PATH).map(Vec::as_slice),
+            Some(conjectures.as_slice()),
+            "the conjecture demo library must be emitted verbatim"
+        );
+        // Its integrity entry rides the bundle manifest.
+        let manifest = String::from_utf8(
+            live.files
+                .get(BUNDLE_MANIFEST_PATH)
+                .expect("integrity manifest emitted")
+                .clone(),
+        )
+        .expect("manifest is utf-8");
+        assert!(
+            manifest.contains(CONJECTURES_PATH)
+                && manifest.contains(&format!("blake3:{}", blake3::hash(&conjectures).to_hex())),
+            "manifest carries the conjecture library's content address:\n{manifest}"
+        );
+        // The playground page is emitted with the interactive form + both symmetric legs.
+        let page_md = String::from_utf8(
+            live.files
+                .get(&Page::ConjecturePlayground.md_path())
+                .expect("conjecture playground page emitted")
+                .clone(),
+        )
+        .expect("page is utf-8");
+        assert!(
+            page_md.contains("gmeow-conjecture-form")
+                && page_md.contains("proof")
+                && page_md.contains("counterproof"),
+            "the page presents the interactive form and both symmetric legs:\n{page_md}"
+        );
+    }
+
+    #[test]
+    fn conjecture_assets_absent_without_conjecture_data() {
+        let model = tiny_model();
+        // A bundle-only exec (no conjecture library) must NOT emit the demo asset, the
+        // playground page, or a conjectures entry in the manifest.
+        let exec = ExecutableDocsData {
+            core_bundle_nquads: b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n"
+                .to_vec(),
+            full_bundle_gts: b"\0opaque".to_vec(),
+            ..Default::default()
+        };
+        assert!(!exec.has_conjectures());
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert!(!live.files.contains_key(CONJECTURES_PATH));
+        assert!(
+            !live
+                .files
+                .contains_key(&Page::ConjecturePlayground.md_path())
+        );
+        let manifest =
+            String::from_utf8(live.files.get(BUNDLE_MANIFEST_PATH).unwrap().clone()).unwrap();
+        assert!(
+            !manifest.contains(CONJECTURES_PATH),
+            "a bundle-only manifest must not carry the conjectures entry:\n{manifest}"
         );
     }
 
