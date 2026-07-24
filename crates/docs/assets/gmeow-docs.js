@@ -14,6 +14,7 @@
 
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
 import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
+import reasonInit, { reason as wasmReason } from "./reason/gmeow_reason_wasm.js";
 
 const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
 
@@ -179,6 +180,43 @@ if (explorerForm) {
       resultsEl.append(pre);
     } catch (err) {
       resultsEl.textContent = `Describe error: ${err.message ?? err}`;
+    }
+  });
+}
+
+// ── Live entailment panel (W4b) ─────────────────────────────────────────────
+// Run the native GMEOW structured-DL reasoner (gmeow-reason-wasm) over pasted RDF
+// entirely in-browser and show the inference diff (the entailed triples). The wasm
+// chase is byte-identical to the native one (proven by the F3 witness lane).
+const reasonForm = document.getElementById("gmeow-reason-form");
+if (reasonForm) {
+  let _reasonReady = null;
+  const ensureReasoner = async () => {
+    if (!_reasonReady) {
+      _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
+    }
+    await _reasonReady;
+  };
+  const inputEl = document.getElementById("gmeow-reason-input");
+  const resultsEl = document.getElementById("gmeow-reason-results");
+  reasonForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Reasoning…";
+    try {
+      await ensureReasoner();
+      const closure = wasmReason(inputEl.value, "turtle");
+      const lines = closure.split("\n").filter((l) => l.trim());
+      resultsEl.replaceChildren();
+      const h = document.createElement("p");
+      h.textContent =
+        lines.length === 0
+          ? "No new entailments."
+          : `Entailed ${lines.length} triple${lines.length === 1 ? "" : "s"}:`;
+      const pre = document.createElement("pre");
+      pre.textContent = closure.trim();
+      resultsEl.append(h, pre);
+    } catch (e) {
+      resultsEl.textContent = `Reasoning failed: ${e.message ?? e}`;
     }
   });
 }

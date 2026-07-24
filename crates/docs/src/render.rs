@@ -1027,6 +1027,30 @@ fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
          <div id=\"gmeow-explorer-results\" class=\"gmeow-explorer-results\"></div>\n\
          </div>\n",
     );
+    // ── Live entailment panel (W4b) ─────────────────────────────────────────
+    heading(&mut out, 2, "Live entailment");
+    line(
+        &mut out,
+        "Paste RDF (Turtle) and run the **native GMEOW structured-DL reasoner** over \
+         it in your browser — the SAME chase the on-gate authority runs (serial on \
+         wasm, byte-identical to the parallel native path). The panel shows the \
+         inference diff: the entailed triples the reasoner derived.",
+    );
+    out.push_str(
+        "<div id=\"gmeow-reason\" class=\"gmeow-reason\">\n\
+         <form id=\"gmeow-reason-form\">\n\
+         <label for=\"gmeow-reason-input\">RDF (Turtle)</label>\n\
+         <textarea id=\"gmeow-reason-input\" rows=\"6\" spellcheck=\"false\">\
+@prefix rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .\n\
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .\n\
+@prefix ex: &lt;https://example.org/&gt; .\n\
+ex:Cat rdfs:subClassOf ex:Animal .\n\
+ex:felix rdf:type ex:Cat .</textarea>\n\
+         <button type=\"submit\">Reason</button>\n\
+         </form>\n\
+         <div id=\"gmeow-reason-results\" class=\"gmeow-reason-results\"></div>\n\
+         </div>\n",
+    );
     let _ = model;
     out
 }
