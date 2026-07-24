@@ -76,7 +76,10 @@ fn native_tier1_validation_matches_the_witness_attestation() {
     );
 
     let path = attestation_path();
-    if std::env::var("GMEOW_WITNESS_BLESS").is_ok() {
+    // Require the EXACT documented value: `GMEOW_WITNESS_BLESS=0` or an empty value must
+    // NOT overwrite the committed parity attestation (an accidental export would otherwise
+    // silently replace the witness).
+    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
         std::fs::write(&path, findings.as_bytes()).expect("write witness attestation");
         eprintln!("blessed witness attestation at {}", path.display());
         return;

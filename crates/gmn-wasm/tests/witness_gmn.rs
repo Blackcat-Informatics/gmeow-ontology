@@ -74,7 +74,9 @@ fn native_gmn1_transcode_matches_the_witness_attestation_and_round_trips() {
     );
 
     let path = attestation_path();
-    if std::env::var("GMEOW_WITNESS_BLESS").is_ok() {
+    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
+    // committed witness (an empty or `=0` value must not silently replace it).
+    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
         std::fs::write(&path, &gmn1).expect("write gmn witness");
         eprintln!("blessed gmn witness at {}", path.display());
         return;

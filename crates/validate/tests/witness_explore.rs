@@ -89,7 +89,9 @@ fn native_core_bundle_describe_matches_the_witness_attestation() {
     );
 
     let path = attestation_path();
-    if std::env::var("GMEOW_WITNESS_BLESS").is_ok() {
+    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
+    // committed witness (an empty or `=0` value must not silently replace it).
+    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
         std::fs::write(&path, format!("# describe <{subject}>\n{rendered}\n")).expect("write");
         eprintln!("blessed describe witness at {}", path.display());
         return;
