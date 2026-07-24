@@ -184,6 +184,12 @@ pub enum Page {
     /// / OWL / SHACL vocabulary to the everyday software concepts they correspond
     /// to, a bridge for readers who do not know RDF.
     Glossary,
+    /// The grounding seam registry (`seams/index`) — every sanctioned
+    /// cross-grounding `gmeow:Seam` (direction, carrying terms, owning design
+    /// doc), projected from the canonical data authored in the grounding
+    /// slices' manifests (never a hand-authored table). See
+    /// [`crate::model::DocSeam`].
+    SeamRegistry,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
     /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
@@ -226,6 +232,7 @@ impl Page {
             Page::FourBoxes => "four-boxes".to_string(),
             Page::PipelineDag => "pipeline".to_string(),
             Page::Glossary => "glossary".to_string(),
+            Page::SeamRegistry => "seams".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
         }
     }
@@ -305,6 +312,7 @@ impl Page {
             Page::FourBoxes => "What is this?".to_string(),
             Page::PipelineDag => "Build pipeline".to_string(),
             Page::Glossary => "Glossary".to_string(),
+            Page::SeamRegistry => "Grounding seams".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
         }
     }
@@ -618,6 +626,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::RecipeIndex,
         Page::LearningPathIndex,
         Page::Glossary,
+        Page::SeamRegistry,
     ];
     // The curated "four boxes" doctrine page only when its prose is present.
     if model.four_boxes.is_some() {
@@ -739,6 +748,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::FourBoxes => md_four_boxes(model),
         Page::PipelineDag => md_pipeline_dag(model),
         Page::Glossary => md_glossary(model),
+        Page::SeamRegistry => md_seam_registry(model),
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
     }
@@ -3247,6 +3257,101 @@ fn md_glossary(model: &DocsModel) -> String {
     out
 }
 
+/// A link from a grounding-slice IRI (a `gmeow:seamFromSlice`/`seamToSlice`
+/// object) to its slice page, falling back to the IRI's local name in a code
+/// span when the slice is unresolvable (never happens for a well-formed
+/// registry, but this is a documentation READ, not a re-validation).
+fn seam_slice_link(model: &DocsModel, from: &str, slice_iri: &str) -> String {
+    if let Some(slice) = model.slices.iter().find(|s| s.iri == slice_iri) {
+        let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
+        return format!("[{}]({}index.md)", md_escape(&slice_display(slice)), href);
+    }
+    md_escape(local_name(slice_iri))
+}
+
+/// The grounding seam registry: every sanctioned cross-grounding `gmeow:Seam`
+/// — the closed channel set that authorizes a term reference to cross a
+/// peered grounding-slice pair (Principle 19). Rendered directly from
+/// [`crate::model::DocsModel::seams`] — the canonical governance data authored
+/// in the grounding slices' `manifest.ttl` files — so this page is always a
+/// faithful projection of that data, never a hand-maintained duplicate (see
+/// `gmeow_validate`'s seam-registry drift gate). Deterministic: `model.seams`
+/// is already IRI-sorted, and every per-seam collection is sorted/deduped.
+fn md_seam_registry(model: &DocsModel) -> String {
+    let from = Page::SeamRegistry.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Grounding seams");
+    line(
+        &mut out,
+        &format!(
+            "The closed set of **{}** sanctioned cross-grounding reference channels among the \
+             `logic:`, `lang:`, and `math:` grounding slices (Principle 19). Every peered \
+             cross-slice term reference must land on one of these seams rather than riding free \
+             on the `gmeow:sliceCoFoundationalWith` peerage grant. Each row is a `gmeow:Seam` \
+             individual authored as canonical data in a grounding slice's `manifest.ttl`.",
+            model.seams.len(),
+        ),
+    );
+
+    if model.seams.is_empty() {
+        line(&mut out, "No grounding seams are declared in this model.");
+        return out;
+    }
+
+    push_line(&mut out, "| Seam | Direction | Carrying terms | Owning doc |");
+    push_line(&mut out, "| --- | --- | --- | --- |");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        let directions = seam
+            .directions
+            .iter()
+            .map(|d| {
+                format!(
+                    "{} → {}",
+                    seam_slice_link(model, &from, &d.from),
+                    seam_slice_link(model, &from, &d.to)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("; ");
+        let carrying = seam
+            .carrying_terms
+            .iter()
+            .map(|iri| curie_link(model, &from, &to_curie(iri)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let owning = seam
+            .owning_docs
+            .iter()
+            .map(|d| format!("`{}`", code_escape(d)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        push_line(
+            &mut out,
+            &format!(
+                "| **{}** | {} | {} | {} |",
+                md_escape(&name),
+                directions,
+                carrying,
+                owning,
+            ),
+        );
+    }
+    blank(&mut out);
+
+    // A definitions section: the full prose each seam's `skos:definition`
+    // carries, keyed to the same seam name the table above uses.
+    heading(&mut out, 2, "Definitions");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        heading(&mut out, 3, &name);
+        if let Some(definition) = &seam.definition {
+            line(&mut out, &md_escape(definition));
+        }
+    }
+    out
+}
+
 /// The short four-boxes label for a `gmeow:box*` role CURIE (`gmeow:boxTBox` →
 /// `TBox`); the CURIE unchanged when it does not match the expected shape.
 fn box_role_label(role: &str) -> String {
@@ -3311,6 +3416,19 @@ fn md_logic_index(model: &DocsModel) -> String {
         &format!(
             "- [Compiler diagnostics]({diag_href}index.md) — parse findings plus \
              lossy-drop notes, surfaced as SARIF."
+        ),
+    );
+    blank(&mut out);
+
+    // Cross-link to the grounding seam registry — the closed set of sanctioned
+    // cross-grounding reference channels among `logic:`/`lang:`/`math:`.
+    let seams_href = rel(&from, &Page::SeamRegistry.dir());
+    push_line(
+        &mut out,
+        &format!(
+            "See also the [grounding seam registry]({seams_href}index.md) — the sanctioned \
+             cross-grounding reference channels among the `logic:`/`lang:`/`math:` grounding \
+             slices."
         ),
     );
     blank(&mut out);
@@ -7345,6 +7463,7 @@ mod tests {
             worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            seams: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),

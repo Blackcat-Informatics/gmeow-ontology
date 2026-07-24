@@ -48,8 +48,8 @@ pub use model::{
     ConstraintRule, DiagnosticsDigest, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge,
     DocDiagFinding, DocExample, DocExpectedCell, DocExpectedRow, DocExternalTerm, DocFixture,
     DocFixtureKind, DocFlowEdge, DocLearningPath, DocLinkage, DocLossTarget, DocMappingSet,
-    DocPipeline, DocRecipe, DocShape, DocSlice, DocStage, DocTerm, DocTermCategory, DocsError,
-    DocsModel, TermLossDigest, TermLossRow,
+    DocPipeline, DocRecipe, DocSeam, DocSeamDirection, DocShape, DocSlice, DocStage, DocTerm,
+    DocTermCategory, DocsError, DocsModel, TermLossDigest, TermLossRow,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{

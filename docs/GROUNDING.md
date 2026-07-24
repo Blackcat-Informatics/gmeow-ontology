@@ -97,17 +97,18 @@ The foundation policy and coverage ledger is
 
 ## The seam registry
 
-The closed set of sanctioned seams among the grounding slices. Directions are
-reference directions (who names whose terms).
-
-| Seam | Direction | Carrying terms | Owning design doc |
-|---|---|---|---|
-| **Denotation** | lang → logic | `lang:denotationTarget`, `lang:denotationKind` (targets `logic:Formula`/`logic:Type`/terms), `lang:CompositionRule` lowering into the logic Formula/Term IR | `LANG-MEANING.md` |
-| **Compilation** | math → logic | `math:compilesToLogicFormula`/`Term`/`Type`, `math:denotationKind`, intensional `math:memberCondition` → `logic:` formula | `MATHEMATICS-EXPRESSIONS.md` |
-| **Laws & boundaries** | math → logic | mathematical laws authored as `logic:Formula` (homogeneity, topology, algebra); `logic:expressivenessBoundary` for honest second-order limits | `MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`, `MATHEMATICS-MEASURE-AND-DIMENSION.md` |
-| **Correspondence & preservation** | lang → logic, math → logic | `logic:Correspondence` (translation, GMN crossings, external alignments), `logic:preservationKind` reused verbatim | `LANG-TRANSLATION.md`, `LOGIC-CORRESPONDENCE.md` |
-| **Rendering** | math → lang | `math:ExpressionRendering` ⊑ `lang:Rendering`; `lang:renderedContent`/`renderingConvention`/`renderingPreservation` read directly off the math record | `LANG-TRANSLATION.md` (theory), `MATHEMATICS-EXPRESSIONS.md` (graft) |
-| **Quantity** | lang → math | `math:Quantity` individuals with `math:hasDimension`/`math:quantityValue` carrying lang's declared and measured magnitudes (GMN codebook rates, glyph token costs) | `MATHEMATICS-MEASURE-AND-DIMENSION.md` (theory), `LANG-GMN.md` (consumer) |
+The closed set of sanctioned seams among the grounding slices — directions are
+reference directions (who names whose terms) — is **canonical governance
+data**, not hand-maintained prose. Each seam is a `gmeow:Seam` individual
+(`gmeow:seamDirection`, `gmeow:seamCarryingTerm`, `gmeow:seamOwningDoc`)
+authored in a grounding slice's `manifest.ttl` (today, `logic:`'s registers
+all six, as the neutral registrar); the vocabulary is defined in
+`slices/vocabulary.ttl`. A new seam requires a new `gmeow:Seam` individual
+here before the first referencing triple is authored — never a new row typed
+into this document. The rendered, always-current table (seam, direction,
+carrying terms, owning design doc) is the generated seam-registry page, a
+direct projection of that data that a validator gate keeps from drifting out
+of sync with it.
 
 `logic:` references neither peer structurally. Prose in `logic:` definitions
 does not name `lang:`/`math:` terms; illustrative examples belong in the
