@@ -4306,7 +4306,7 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
         .map(|quad| format!("{} <{}> {} .", quad.subject, quad.predicate, quad.object))
         .collect::<Vec<_>>()
         .join("\n");
-    let graph = emit_analysis_graph(
+    let mut graph = emit_analysis_graph(
         &crate::gmeow_ns::gmeow_slice_vocab(),
         &report.edges,
         &authored_text,
@@ -4317,9 +4317,195 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
     )
     .map_err(|e| stage_err(&format!("slice-analysis emit: {e}")))?;
 
+    // Peerage+seam coverage verdict: `gmeow_validate::slice_peerage::classify` joins
+    // every undeclared semantic dependency edge in `report` to the grounding-peerage
+    // relation + seam registry read off `catalog` and computes, among other things,
+    // exactly which crossings ride a registered seam (`PeerageClassification::crossings`).
+    // That verdict already gates `make validate`; ship it as DATA too (maximal
+    // information flow / dogfooding — see `gmeow:crossingCoverage` in
+    // `slices/vocabulary.ttl`) rather than discarding it once the gate has run. A
+    // classification failure here is the same internal-invariant HARD FAIL
+    // `classify` documents (a diagnostic/edge join that cannot total) — propagate it,
+    // never swallow it.
+    let classification = gmeow_validate::slice_peerage::classify(&report, &catalog)?;
+    graph
+        .turtle_body
+        .push_str(&crossing_coverage_turtle(&classification.crossings));
+
     // The emitter returns a Turtle body; normalize to N-Quads natively so the builder
     // ingests it the same way as every other named-graph source.
     turtle_to_nquads(graph.turtle_body.as_bytes())
+}
+
+/// Deterministic Turtle for the shipped `gmeow:crossingCoverage` verdict: one
+/// record per covered peered crossing (`from`, `to`, covering seam, covered term),
+/// using a stable `_:cov{i}` blank-node label per record — mirroring
+/// `emit_analysis_graph`'s own `_:dep{i}` convention. Records are sorted by
+/// `(from, to, seam, term)` BEFORE index assignment, so the emitted bytes never
+/// depend on `PeerageClassification::crossings`' incoming (HashMap-adjacent
+/// iteration) order. Every triple uses a FULL IRI (never a `@prefix`-relative
+/// CURIE) so the snippet is safe to concatenate onto `AnalysisGraph::turtle_body`
+/// verbatim regardless of that body's own prefix declarations. Returns the empty
+/// string for no covered crossings (no-optionality: absence of data is absence of
+/// output, never an empty placeholder record).
+fn crossing_coverage_turtle(covered: &[gmeow_validate::slice_peerage::CrossingCoverage]) -> String {
+    use std::fmt::Write;
+
+    let mut records: Vec<(&str, &str, &str, &str)> = covered
+        .iter()
+        .map(|c| {
+            (
+                c.from_slice.as_str(),
+                c.to_slice.as_str(),
+                c.seam_iri.as_str(),
+                c.term.as_str(),
+            )
+        })
+        .collect();
+    records.sort_unstable();
+    records.dedup();
+
+    let mut body = String::new();
+    for (i, (from, to, seam, term)) in records.iter().enumerate() {
+        writeln!(body, "_:cov{i}").unwrap();
+        writeln!(body, "    a <{GMEOW_NS}crossingCoverage> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredEdgeFrom> <{from}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredEdgeTo> <{to}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveringSeam> <{seam}> ;").unwrap();
+        writeln!(body, "    <{GMEOW_NS}coveredTerm> <{term}> .").unwrap();
+        writeln!(body).unwrap();
+    }
+    body
+}
+
+#[cfg(test)]
+mod crossing_coverage_turtle_tests {
+    use super::*;
+    use gmeow_validate::slice_peerage::CrossingCoverage;
+    use purrdf::slice::NamedNode;
+
+    fn nn(iri: &str) -> NamedNode {
+        NamedNode::new_unchecked(iri)
+    }
+
+    fn crossing(from: &str, to: &str, seam: &str, term: &str) -> CrossingCoverage {
+        CrossingCoverage {
+            from_slice: from.to_string(),
+            to_slice: to.to_string(),
+            seam_iri: seam.to_string(),
+            term: nn(term),
+        }
+    }
+
+    const LANG: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+    const LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+    const SEAM: &str = "https://blackcatinformatics.ca/gmeow/seam/test-seam";
+    const TERM: &str = "https://blackcatinformatics.ca/logic/Foo";
+
+    /// No covered crossings → no output (no-optionality: absence of data is
+    /// absence of output, never an empty placeholder record).
+    #[test]
+    fn empty_input_yields_empty_turtle() {
+        assert_eq!(crossing_coverage_turtle(&[]), "");
+    }
+
+    /// One covered crossing emits exactly one `gmeow:crossingCoverage` record
+    /// with the right `coveredEdgeFrom`/`coveredEdgeTo`/`coveringSeam`/`coveredTerm`
+    /// full-IRI triples, and the record is a valid Turtle predicate-object list
+    /// (a stable `_:cov0` blank-node subject).
+    #[test]
+    fn one_covered_crossing_emits_the_expected_record() {
+        let body = crossing_coverage_turtle(&[crossing(LANG, LOGIC, SEAM, TERM)]);
+        assert!(body.contains("_:cov0"));
+        assert!(body.contains("a <https://blackcatinformatics.ca/gmeow/crossingCoverage> ;"));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredEdgeFrom> <{LANG}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredEdgeTo> <{LOGIC}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveringSeam> <{SEAM}> ;"
+        )));
+        assert!(body.contains(&format!(
+            "<https://blackcatinformatics.ca/gmeow/coveredTerm> <{TERM}> ."
+        )));
+    }
+
+    /// Records are sorted by `(from, to, seam, term)` BEFORE blank-node index
+    /// assignment, so the emitted bytes are independent of the input `Vec`'s
+    /// order — feeding the two crossings in reverse-sorted order still assigns
+    /// `_:cov0` to the lexically-first record.
+    #[test]
+    fn records_are_sorted_before_index_assignment() {
+        let first = crossing(LANG, LOGIC, SEAM, TERM);
+        let second = crossing(
+            "https://blackcatinformatics.ca/gmeow/slices/math",
+            LOGIC,
+            SEAM,
+            TERM,
+        );
+        let forward = crossing_coverage_turtle(&[first.clone(), second.clone()]);
+        let reversed = crossing_coverage_turtle(&[second, first]);
+        assert_eq!(
+            forward, reversed,
+            "input order must not affect the emitted byte sequence"
+        );
+        let cov0_pos = forward.find("_:cov0").unwrap();
+        let lang_pos = forward.find(LANG).unwrap();
+        assert!(
+            lang_pos > cov0_pos,
+            "the lexically-first from_slice ({LANG}) must sort into _:cov0"
+        );
+    }
+
+    /// An exact duplicate `(from, to, seam, term)` record is deduplicated — the
+    /// classifier can never actually emit one (each `(edge, term)` join is
+    /// unique in `PeerageClassification::crossings`), but the helper does not
+    /// trust that upstream invariant silently.
+    #[test]
+    fn duplicate_records_are_deduplicated() {
+        let body = crossing_coverage_turtle(&[
+            crossing(LANG, LOGIC, SEAM, TERM),
+            crossing(LANG, LOGIC, SEAM, TERM),
+        ]);
+        assert_eq!(body.matches("_:cov").count(), 1, "{body}");
+    }
+
+    /// The emitted snippet, concatenated onto a realistic `graph/slice-analysis`
+    /// Turtle body (with its own `@prefix` block and a `_:dep0` record), still
+    /// parses as ONE valid Turtle document — the full-IRI snippet never depends
+    /// on the preceding body's prefixes, and blank-node labels never collide.
+    #[test]
+    fn concatenated_onto_a_prefixed_body_still_parses() {
+        let existing_body = format!(
+            "@prefix gmeow: <{GMEOW_NS}> .\n\
+             @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\
+             @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             \n\
+             _:dep0\n\
+             \x20   a <{GMEOW_NS}computedSliceDependency> ;\n\
+             \x20   <{GMEOW_NS}dependencyFromSlice> <{LANG}> ;\n\
+             \x20   <{GMEOW_NS}dependencyToSlice> <{LOGIC}> .\n\
+             \n"
+        );
+        let mut combined = existing_body;
+        combined.push_str(&crossing_coverage_turtle(&[crossing(
+            LANG, LOGIC, SEAM, TERM,
+        )]));
+
+        let nq = turtle_to_nquads(combined.as_bytes())
+            .expect("the concatenated body must still parse as valid Turtle");
+        let text = String::from_utf8(nq).expect("utf8");
+        assert!(
+            text.contains("crossingCoverage"),
+            "the coverage record must survive the parse+N-Quads round-trip: {text}"
+        );
+        assert!(
+            text.contains("computedSliceDependency"),
+            "the pre-existing dependency record must also survive: {text}"
+        );
+    }
 }
 
 fn tier_priority(tier: Option<&purrdf::slice::SliceTier>) -> u8 {
