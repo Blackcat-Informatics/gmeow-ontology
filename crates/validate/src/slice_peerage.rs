@@ -45,17 +45,29 @@
 //! `(from, to)` legs (`gmeow:seamDirection`/`seamFromSlice`/`seamToSlice`) and the
 //! raw carrying-term IRIs the drift gate's CURIE-reduced text comparison never
 //! needed, but this engine's exact-IRI join does.
+//!
+//! # R5: tier-forbidden edges
+//!
+//! [`peerage_aware_ownership_findings`] ALSO folds in [`forbidden_tier_findings`]:
+//! every computed dependency edge that violates the tier model (a core slice
+//! depending on an extension, or an extension depending on another extension,
+//! Principle 16 / RFC §10) is surfaced as a `slice-ownership.forbidden-dependency`
+//! `Error`, independent of the peerage/seam classification above and of the
+//! edge's declaration status. This is a distinct concern from grounding peerage
+//! (a core→core grounding-peer crossing is never tier-forbidden — the three
+//! grounding slices are all `tierCore`), folded into the same function only
+//! because both existing `make validate` gate sites already call it.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_errors::{Diag, Finding, Result, Severity};
-use purrdf::slice::catalog::{SliceCatalog, SliceRecord};
+use purrdf::slice::catalog::{SliceCatalog, SliceRecord, SliceTier};
 use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use purrdf::slice::{
     DependencyEdge, EdgeKind, NamedNode, OwnershipDiagnostic, OwnershipReport,
-    ReconciliationStatus, SliceIri,
+    ReconciliationStatus, SliceIri, is_forbidden_edge,
 };
 
 // ── Namespace constants ──────────────────────────────────────────────────────
@@ -280,6 +292,33 @@ fn peerage_pairs(catalog: &SliceCatalog) -> Result<BTreeSet<(SliceIri, SliceIri)
     Ok(out)
 }
 
+/// The tier priority [`purrdf::slice::is_forbidden_edge`] takes: 0 = core,
+/// 1 = extension, 2 = domain/unknown/tierless. Byte-identical to
+/// `crates/pipeline/src/stages/carrier.rs`'s `tier_priority` (the shipped
+/// `graph/slice-analysis` emitter's own mapping) so this gate and the shipped
+/// analysis-graph DATA classify the exact same edges as forbidden.
+fn tier_priority(tier: Option<&SliceTier>) -> u8 {
+    match tier {
+        Some(SliceTier::Core) => 0,
+        Some(SliceTier::Extension) => 1,
+        Some(SliceTier::Domain) | Some(SliceTier::Unknown(_)) | None => 2,
+    }
+}
+
+/// Every slice IRI in `catalog`, mapped to its [`tier_priority`].
+fn tier_priorities(catalog: &SliceCatalog) -> BTreeMap<SliceIri, u8> {
+    catalog
+        .records()
+        .iter()
+        .map(|record| {
+            (
+                record.manifest.slice_iri.clone(),
+                tier_priority(record.manifest.tier.as_ref()),
+            )
+        })
+        .collect()
+}
+
 /// Every `gmeow:Seam` individual across every grounding manifest in `catalog`.
 fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
     let mut out = Vec::new();
@@ -461,16 +500,80 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
     })
 }
 
+// ── R5: tier-forbidden edges ─────────────────────────────────────────────────
+
+/// Every computed dependency edge in `report.edges` that violates the tier
+/// model (Principle 16 / RFC §10): a core slice depending on an extension, or
+/// an extension depending on another extension. Independent of the
+/// peerage/seam machinery above and of the edge's [`ReconciliationStatus`] —
+/// a forbidden tier crossing is architecturally illegal regardless of
+/// grounding peerage or declaration; even a `Matched` (authored
+/// `gmeow:sliceDependsOn`) edge between a forbidden tier pair is still
+/// forbidden. Grouped by `(from_slice, to_slice)` (one finding per crossing
+/// pair, naming every [`EdgeKind`] that crosses it) rather than one per
+/// individual edge, since the violation is a property of the SLICE PAIR, not
+/// of any one artifact reference.
+///
+/// This is the ONLY place a tier-forbidden edge is surfaced as a
+/// validate-gating [`Finding`]: the `gmeow:graph/slice-analysis` named graph
+/// the pipeline ships (`crates/pipeline/src/stages/carrier.rs::build_slice_analysis`,
+/// via `purrdf::slice::emit_analysis_graph`) records the identical verdict as
+/// shipped DATA (`gmeow:dependencyStatus "forbidden"^^xsd:string`), but
+/// nothing read that graph back to gate `make validate` — this function closes
+/// that gap directly off `OwnershipReport::edges` + the catalog's own tier
+/// data, using the SAME [`is_forbidden_edge`] tier-priority test the emitter
+/// uses (byte-identical [`tier_priority`] mapping), so the gate and the
+/// shipped data can never classify an edge differently.
+fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> Vec<Finding> {
+    let tiers = tier_priorities(catalog);
+    let mut by_pair: BTreeMap<(SliceIri, SliceIri), BTreeSet<EdgeKind>> = BTreeMap::new();
+    for edge in &report.edges {
+        let from_tier = *tiers.get(&edge.from_slice).unwrap_or(&2);
+        let to_tier = *tiers.get(&edge.to_slice).unwrap_or(&2);
+        if is_forbidden_edge(from_tier, to_tier) {
+            by_pair
+                .entry((edge.from_slice.clone(), edge.to_slice.clone()))
+                .or_default()
+                .insert(edge.edge_kind);
+        }
+    }
+
+    let mut findings = Vec::with_capacity(by_pair.len());
+    for ((from, to), kinds) in by_pair {
+        let kinds_text = kinds
+            .iter()
+            .map(|k| format!("{k:?}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        findings.push(crate::slice_ownership::finding(
+            Severity::Error,
+            crate::codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+            format!(
+                "{from} depends on {to} ({kinds_text}) — this crossing violates the tier model: \
+                 a core slice must not depend on an extension, and an extension must not depend \
+                 on another extension (Principle 16)",
+            ),
+            Some(from.clone()),
+        ));
+    }
+    findings
+}
+
 // ── Finding projection ────────────────────────────────────────────────────────
 
 /// Project an [`OwnershipReport`] into findings exactly as
-/// [`crate::slice_ownership::ownership_findings`] does, EXCEPT that every
-/// `slice-ownership.undeclared-dependency` observation is re-derived from
-/// [`classify`]: a `Covered` crossing is suppressed entirely, a
-/// `PeeredUnregisteredSeam` crossing becomes a NEW `Error`
-/// (`slice-ownership.peered-unregistered-seam`), and an `Uncovered` crossing
-/// keeps the ordinary finding at its current (`Warning`) severity, byte-for-byte
-/// identical to [`crate::slice_ownership::diagnostic_finding`]'s projection.
+/// [`crate::slice_ownership::ownership_findings`] does, EXCEPT that:
+///
+/// * every `slice-ownership.undeclared-dependency` observation is re-derived
+///   from [`classify`]: a `Covered` crossing is suppressed entirely, a
+///   `PeeredUnregisteredSeam` crossing becomes a NEW `Error`
+///   (`slice-ownership.peered-unregistered-seam`), and an `Uncovered` crossing
+///   keeps the ordinary finding at its current (`Error`) severity,
+///   byte-for-byte identical to [`crate::slice_ownership::diagnostic_finding`]'s
+///   projection;
+/// * every tier-forbidden edge (any reconciliation status) is ADDITIONALLY
+///   surfaced as a `slice-ownership.forbidden-dependency` `Error`
+///   ([`forbidden_tier_findings`], R5).
 pub fn peerage_aware_ownership_findings(
     report: &OwnershipReport,
     catalog: &SliceCatalog,
@@ -481,6 +584,8 @@ pub fn peerage_aware_ownership_findings(
         .into_iter()
         .filter(|f| f.code != crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY)
         .collect();
+
+    findings.extend(forbidden_tier_findings(report, catalog));
 
     for verdict in &classification.verdicts {
         match &verdict.coverage {
@@ -775,7 +880,7 @@ mod tests {
     }
 
     #[test]
-    fn uncovered_non_peer_undeclared_dependency_stays_a_warning() {
+    fn uncovered_non_peer_undeclared_dependency_stays_an_error() {
         let tmp = tempfile::tempdir().unwrap();
         let catalog = grounding_catalog(tmp.path());
         let report = OwnershipReport {
@@ -796,7 +901,7 @@ mod tests {
         let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
-        assert_eq!(findings[0].severity, Severity::Warning);
+        assert_eq!(findings[0].severity, Severity::Error);
     }
 
     #[test]
@@ -853,5 +958,130 @@ mod tests {
                 .contains("https://blackcatinformatics.ca/logic/Foo")
         );
         assert!(test_seam.carrying_terms.contains("logic:Foo"));
+    }
+
+    // ── R5: tier-forbidden edges ──────────────────────────────────────────────
+
+    const TIER_CORE_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/tier-core";
+    const TIER_EXT_A: &str = "https://blackcatinformatics.ca/gmeow/slices/tier-ext-a";
+    const TIER_EXT_B: &str = "https://blackcatinformatics.ca/gmeow/slices/tier-ext-b";
+
+    /// A catalog with one `tierCore` slice and two `tierExtension` slices —
+    /// dedicated to the R5 forbidden-tier gate so it never shares (and can
+    /// never accidentally perturb) `grounding_catalog`'s tierless CORE/EXT
+    /// fixture the peerage-coverage tests above depend on.
+    fn tier_catalog(root: &Path) -> SliceCatalog {
+        write_manifest(
+            root,
+            "core",
+            "tier-core",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/tier-core>
+                a gmeow:Slice ;
+                rdfs:label "tier-core" ;
+                gmeow:sliceTier gmeow:tierCore .
+            "#,
+        );
+        write_manifest(
+            root,
+            "extensions",
+            "tier-ext-a",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/tier-ext-a>
+                a gmeow:Slice ;
+                rdfs:label "tier-ext-a" ;
+                gmeow:sliceTier gmeow:tierExtension .
+            "#,
+        );
+        write_manifest(
+            root,
+            "extensions",
+            "tier-ext-b",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/tier-ext-b>
+                a gmeow:Slice ;
+                rdfs:label "tier-ext-b" ;
+                gmeow:sliceTier gmeow:tierExtension .
+            "#,
+        );
+        SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    }
+
+    #[test]
+    fn core_depending_on_extension_is_forbidden() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = tier_catalog(tmp.path());
+        // A MATCHED (authored) edge — declaring it does not license it.
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                TIER_CORE_SLICE,
+                TIER_EXT_A,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/SomeTerm"],
+                ReconciliationStatus::Matched,
+            )],
+            diagnostics: Vec::new(),
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, crate::codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY);
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert!(findings[0].message.contains(TIER_CORE_SLICE));
+        assert!(findings[0].message.contains(TIER_EXT_A));
+    }
+
+    #[test]
+    fn extension_depending_on_another_extension_is_forbidden() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = tier_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                TIER_EXT_A,
+                TIER_EXT_B,
+                EdgeKind::Mapping,
+                &["https://blackcatinformatics.ca/gmeow/OtherTerm"],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(TIER_EXT_A, TIER_EXT_B, EdgeKind::Mapping)],
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        let forbidden: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == crate::codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY)
+            .collect();
+        assert_eq!(forbidden.len(), 1, "{findings:?}");
+        assert_eq!(forbidden[0].severity, Severity::Error);
+        // The ordinary undeclared-dependency observation ALSO fires — a
+        // forbidden tier crossing is an additional, independent violation, not
+        // a replacement for the undeclared-dependency finding.
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY)
+        );
+    }
+
+    #[test]
+    fn extension_depending_on_core_is_not_forbidden() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = tier_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                TIER_EXT_A,
+                TIER_CORE_SLICE,
+                EdgeKind::Ontology,
+                &["https://blackcatinformatics.ca/gmeow/SomeTerm"],
+                ReconciliationStatus::Matched,
+            )],
+            diagnostics: Vec::new(),
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "extension -> core is the ordinary direction, never forbidden: {findings:?}"
+        );
     }
 }

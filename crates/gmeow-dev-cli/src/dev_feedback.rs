@@ -443,7 +443,12 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
         ("slice-ownership", |root| {
             // The FULL native slice-ownership report: ownership defects (Conflict /
             // Mismatch / Unowned) as errors PLUS the dependency observations the
-            // focused `validate` gate keeps out, folded here as structured warnings.
+            // focused `validate` gate keeps out, folded here as structured findings.
+            // Peerage-aware (`slice_peerage::peerage_aware_ownership_findings`), not
+            // the base `slice_ownership::ownership_findings`, so a legitimately
+            // COVERED co-foundational grounding crossing (peered + on a registered
+            // seam) is suppressed here exactly as it is at the gate sites, rather
+            // than surfacing as a spurious undeclared-dependency Error.
             let slices = root.join("slices");
             let catalog = purrdf::slice::SliceCatalog::discover(
                 &slices,
@@ -454,7 +459,9 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 .analyze()
                 .map_err(error::feedback)?;
             let mut r = Report::new("slice-ownership");
-            for finding in gmeow_validate::slice_ownership::ownership_findings(&analysis) {
+            for finding in
+                gmeow_validate::slice_peerage::peerage_aware_ownership_findings(&analysis, &catalog)?
+            {
                 r.add_finding(finding);
             }
             Ok(r)

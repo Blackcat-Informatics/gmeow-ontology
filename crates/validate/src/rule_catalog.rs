@@ -235,12 +235,12 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
     ),
     (
         codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
-        Severity::Warning,
+        Severity::Error,
         Enforcement::Governance,
     ),
     (
         codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
-        Severity::Warning,
+        Severity::Error,
         Enforcement::Governance,
     ),
     (
@@ -250,6 +250,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
     ),
     (
         codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
         Severity::Error,
         Enforcement::Governance,
     ),
@@ -301,6 +306,21 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
     ),
     (
         codes::SLICE_DISCIPLINE_MISSING_TIER,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
         Severity::Error,
         Enforcement::Governance,
     ),
@@ -587,6 +607,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
         "Register the crossing term(s) on a gmeow:Seam covering this direction between the co-foundational peers, or replace the peerage-riding reference with an ordinary declared gmeow:sliceDependsOn edge.",
     ),
     (
+        codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+        "Remove the tier-forbidden reference: a core slice must not depend on an extension, and an extension must not depend on another extension.",
+    ),
+    (
         codes::SLICE_OWNERSHIP_FAMILY,
         "Fix the slice-ownership table entry the finding names (owner, dependency, or query).",
     ),
@@ -634,6 +658,18 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_DISCIPLINE_MISSING_TIER,
         "Declare exactly one gmeow:sliceTier (tierCore / tierExtension / tierProfile) on the slice manifest.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+        "Remove the gmeow:sliceCoFoundationalWith declaration from the non-grounding slice, or type the slice gmeow:GroundingSlice if it genuinely is one of the three co-foundational grounding layers.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+        "Declare gmeow:sliceCoFoundationalWith back from the peer slice; the relation is symmetric and must be authored on both manifests.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+        "Reconcile the slice's gmeow:GroundingSlice typing with its location: move the slice under slices/grounding/ or drop the typing, whichever matches its real role.",
     ),
     (
         codes::SLICE_DISCIPLINE_FAMILY,

@@ -36,6 +36,17 @@ const TOOL: &str = "authoring-integrity";
 const SH_NODE_SHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 const SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
+/// `gmeow:GroundingSlice` — a slice typed as one of the three co-foundational
+/// grounding layers (`lang:`/`math:`/`logic:`). Duplicated from
+/// [`crate::slice_peerage`]'s private const of the same value (both readers
+/// keep their own copy rather than exposing it, matching this crate's existing
+/// posture of per-module governance-vocabulary constants).
+const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
+/// `gmeow:sliceCoFoundationalWith` — the symmetric grounding-peerage relation.
+const GMEOW_CO_FOUNDATIONAL_WITH: &str =
+    "https://blackcatinformatics.ca/gmeow/sliceCoFoundationalWith";
+/// The `slices/` subdirectory every grounding slice's manifest must live under.
+const GROUNDING_GROUP_PREFIX: &str = "grounding/";
 
 /// The core `rights` module, parsed in isolation for the graft-isolation gate.
 const CORE_RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
@@ -203,6 +214,7 @@ pub fn authoring_integrity_findings(
     let mut findings = shape_iri_collision_findings(project_root)?;
     findings.extend(graft_isolation_findings(project_root)?);
     findings.extend(slice_discipline_findings(slices_dir)?);
+    findings.extend(peerage_discipline_findings(slices_dir)?);
     findings.extend(profile_closure_findings(project_root)?);
     findings.extend(catalog_closure_findings(project_root)?);
     findings.extend(module_iri_findings(project_root)?);
@@ -386,6 +398,117 @@ fn detect_slice_discipline(manifests: &[(PathBuf, Dataset)], root: &Path) -> Res
             ));
         }
     }
+    findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
+    Ok(findings)
+}
+
+// ── R8: grounding-peerage discipline ─────────────────────────────────────────
+
+/// Grounding-peerage discipline: three independent gates over the manifest
+/// corpus, none of which the loader or the R6 slice-discipline gate above
+/// checks:
+///
+/// * **non-grounding peerage** — a manifest declares
+///   `gmeow:sliceCoFoundationalWith` but its own slice node is not typed
+///   `gmeow:GroundingSlice`; the peerage grant (Principle 19) is reserved to
+///   the three co-foundational grounding layers.
+/// * **asymmetric peerage** — `gmeow:sliceCoFoundationalWith` is a symmetric
+///   relation; slice A declaring peerage with B requires B to declare it back.
+/// * **grounding-marker drift** — a slice's `gmeow:GroundingSlice` typing must
+///   agree with its physical location under `slices/grounding/*` in BOTH
+///   directions (typed-but-elsewhere, or under `grounding/`-but-untyped).
+pub fn peerage_discipline_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+    let manifests = all_manifests(slices_dir)?;
+    let mut loaded: Vec<(PathBuf, Dataset)> = Vec::with_capacity(manifests.len());
+    for m in manifests {
+        let ds = parse_ttl(&m)?;
+        loaded.push((m, ds));
+    }
+    detect_peerage_discipline(&loaded, slices_dir)
+}
+
+/// The pure peerage-discipline logic over already-parsed manifests.
+fn detect_peerage_discipline(manifests: &[(PathBuf, Dataset)], root: &Path) -> Result<Vec<Finding>> {
+    use std::collections::BTreeSet;
+
+    let mut findings = Vec::new();
+    // (declaring_iri -> to_iri) pairs, for the symmetry check, plus the
+    // declaring manifest path (for a stable, deterministic message).
+    let mut pairs: BTreeSet<(String, String)> = BTreeSet::new();
+
+    for (path, ds) in manifests {
+        let group = rel(path, root);
+        let under_grounding = group.starts_with(GROUNDING_GROUP_PREFIX);
+        let slices = ds
+            .subjects_of_type(SLICE_CLASS)
+            .map_err(|e| parse_err(path, &e.to_string()))?;
+        for iri in slices {
+            let is_grounding = ds
+                .has_type(&iri, GMEOW_GROUNDING_SLICE)
+                .map_err(|e| parse_err(path, &e.to_string()))?;
+            let peers = ds
+                .object_iris(&iri, GMEOW_CO_FOUNDATIONAL_WITH)
+                .map_err(|e| parse_err(path, &e.to_string()))?;
+
+            if !peers.is_empty() && !is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+                    format!(
+                        "slice {iri} in {file} declares gmeow:sliceCoFoundationalWith but is not \
+                         typed gmeow:GroundingSlice — the peerage grant (Principle 19) is reserved \
+                         to the three co-foundational grounding layers",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            }
+
+            if under_grounding && !is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+                    format!(
+                        "slice {iri} lives under {file}, under slices/grounding/, but is not typed \
+                         gmeow:GroundingSlice",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            } else if !under_grounding && is_grounding {
+                findings.push(finding(
+                    Severity::Error,
+                    codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+                    format!(
+                        "slice {iri} in {file} is typed gmeow:GroundingSlice but does not live \
+                         under slices/grounding/",
+                        file = rel(path, root),
+                    ),
+                    Some(iri.clone()),
+                ));
+            }
+
+            for peer in peers {
+                pairs.insert((iri.clone(), peer));
+            }
+        }
+    }
+
+    for (from, to) in &pairs {
+        if !pairs.contains(&(to.clone(), from.clone())) {
+            findings.push(finding(
+                Severity::Error,
+                codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+                format!(
+                    "slice {from} declares gmeow:sliceCoFoundationalWith {to}, but {to} does not \
+                     declare the relation back — gmeow:sliceCoFoundationalWith is symmetric and \
+                     must be authored on both manifests"
+                ),
+                Some(from.clone()),
+            ));
+        }
+    }
+
     findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
     Ok(findings)
 }
@@ -1421,6 +1544,129 @@ mod tests {
                 &[
                     (PathBuf::from("slices/core/one/manifest.ttl"), a),
                     (PathBuf::from("slices/extensions/two/manifest.ttl"), b),
+                ],
+                Path::new(""),
+            )
+            .unwrap()
+            .is_empty()
+        );
+    }
+
+    // ── R8: grounding-peerage discipline ─────────────────────────────────────
+    //
+    // `detect_peerage_discipline` computes manifest paths relative to
+    // `slices_dir` itself (the live call passes `slices_dir` as `root`), so
+    // these tests pass manifest paths WITHOUT a leading `slices/` (unlike the
+    // R6 tests above, which pass `root = ""` and full `slices/...` paths) —
+    // `grounding/x/manifest.ttl`, matching the real `rel(path, slices_dir)`
+    // shape the grounding-marker-drift check keys on.
+
+    #[test]
+    fn peerage_discipline_flags_non_grounding_slice_declaring_peerage() {
+        let a = ds(
+            "ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:two .",
+        );
+        let b = ds("ex:two a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:one .");
+        let findings = detect_peerage_discipline(
+            &[
+                (PathBuf::from("core/one/manifest.ttl"), a),
+                (PathBuf::from("core/two/manifest.ttl"), b),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        let non_grounding: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE)
+            .collect();
+        // Neither `one` nor `two` is typed gmeow:GroundingSlice, and the
+        // relation IS mutually symmetric — only the non-grounding-peerage gate
+        // fires (twice, once per non-grounding declarer), never the asymmetry
+        // gate.
+        assert_eq!(non_grounding.len(), 2, "both non-grounding peers flagged: {findings:?}");
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.code != codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE),
+            "a mutually-declared pair must not ALSO fire asymmetric-peerage: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn peerage_discipline_flags_asymmetric_peerage() {
+        let a = ds(
+            "ex:one a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:two .",
+        );
+        // `two` never declares the relation back to `one`.
+        let b = ds("ex:two a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore .");
+        let findings = detect_peerage_discipline(
+            &[
+                (PathBuf::from("grounding/one/manifest.ttl"), a),
+                (PathBuf::from("grounding/two/manifest.ttl"), b),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE);
+        assert!(findings[0].message.contains("one"));
+        assert!(findings[0].message.contains("two"));
+    }
+
+    #[test]
+    fn peerage_discipline_flags_grounding_marker_drift_both_directions() {
+        // Under grounding/ but NOT typed gmeow:GroundingSlice.
+        let untyped_under_grounding = ds("ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore .");
+        // Typed gmeow:GroundingSlice but NOT under grounding/.
+        let typed_elsewhere =
+            ds("ex:two a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore .");
+        let findings = detect_peerage_discipline(
+            &[
+                (
+                    PathBuf::from("grounding/one/manifest.ttl"),
+                    untyped_under_grounding,
+                ),
+                (PathBuf::from("core/two/manifest.ttl"), typed_elsewhere),
+            ],
+            Path::new(""),
+        )
+        .unwrap();
+        let drift: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT)
+            .collect();
+        assert_eq!(drift.len(), 2, "{findings:?}");
+        assert!(drift.iter().any(|f| f.message.contains("one")));
+        assert!(drift.iter().any(|f| f.message.contains("two")));
+    }
+
+    #[test]
+    fn peerage_discipline_clean_on_the_real_corpus_shape() {
+        // Mirrors the real grounding trio: three GroundingSlice manifests under
+        // grounding/, mutually peered.
+        let logic = ds(
+            "ex:logic a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:lang, ex:math .",
+        );
+        let lang = ds(
+            "ex:lang a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:logic, ex:math .",
+        );
+        let math = ds(
+            "ex:math a gmeow:Slice, gmeow:GroundingSlice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:logic, ex:lang .",
+        );
+        let core = ds("ex:core a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore .");
+        assert!(
+            detect_peerage_discipline(
+                &[
+                    (PathBuf::from("grounding/logic/manifest.ttl"), logic),
+                    (PathBuf::from("grounding/lang/manifest.ttl"), lang),
+                    (PathBuf::from("grounding/math/manifest.ttl"), math),
+                    (PathBuf::from("core/core/manifest.ttl"), core),
                 ],
                 Path::new(""),
             )

@@ -129,6 +129,13 @@ pub const SLICE_OWNERSHIP_UNPARSEABLE_QUERY: &str = "slice-ownership.unparseable
 /// register its own seam, exactly like an ordinary undeclared dependency).
 pub const SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM: &str =
     "slice-ownership.peered-unregistered-seam";
+/// `crates/validate/src/slice_peerage.rs` — a computed cross-slice dependency
+/// edge violates the tier model (Principle 16 / RFC §10): a core slice
+/// depending on an extension, or an extension depending on another extension.
+/// Forbidden regardless of the edge's reconciliation status (even a MATCHED,
+/// authored `gmeow:sliceDependsOn` declaration between a forbidden tier pair is
+/// still architecturally forbidden — declaring it does not license it).
+pub const SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY: &str = "slice-ownership.forbidden-dependency";
 /// Family base for `slice-ownership.*`.
 pub const SLICE_OWNERSHIP_FAMILY: &str = "slice-ownership.";
 
@@ -170,6 +177,19 @@ pub const SLICE_DISCIPLINE_DUPLICATE_IRI: &str = "slice-discipline.duplicate-iri
 /// A `gmeow:Slice` manifest carries no `gmeow:sliceTier` — tier is mandatory
 /// (the loader would otherwise accept a silent `None`).
 pub const SLICE_DISCIPLINE_MISSING_TIER: &str = "slice-discipline.missing-tier";
+/// A slice manifest declares `gmeow:sliceCoFoundationalWith` (grounding peerage)
+/// but its own slice node is not typed `gmeow:GroundingSlice` — the peerage
+/// grant (Principle 19) is reserved to the three grounding layers
+/// (`lang:`/`math:`/`logic:`); a non-grounding slice must not claim it.
+pub const SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE: &str = "slice-discipline.non-grounding-peerage";
+/// `gmeow:sliceCoFoundationalWith` is a symmetric relation: slice A declares
+/// peerage with B but B's manifest does not declare peerage back with A.
+pub const SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE: &str = "slice-discipline.asymmetric-peerage";
+/// A slice's `gmeow:GroundingSlice` typing disagrees with its location under
+/// `slices/grounding/*`: a slice under that directory not typed
+/// `gmeow:GroundingSlice`, or a slice typed `gmeow:GroundingSlice` outside it.
+pub const SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT: &str =
+    "slice-discipline.grounding-marker-drift";
 /// Family base for `slice-discipline.*`.
 pub const SLICE_DISCIPLINE_FAMILY: &str = "slice-discipline.";
 
@@ -277,6 +297,7 @@ pub const ALL_CODES: &[&str] = &[
     SLICE_OWNERSHIP_STALE_DEPENDENCY,
     SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
     SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+    SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
     CRATE_LAYERING_VIOLATION,
     CRATE_LAYERING_OBSERVATION,
     REPO_STATIC_VIOLATION,
@@ -302,6 +323,9 @@ pub const ALL_CODES: &[&str] = &[
     AUTHORING_SEAM_REGISTRY_DRIFT,
     SLICE_DISCIPLINE_DUPLICATE_IRI,
     SLICE_DISCIPLINE_MISSING_TIER,
+    SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+    SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+    SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
 ];
 
 /// Every dynamic-code family base declared here, paired with the module that

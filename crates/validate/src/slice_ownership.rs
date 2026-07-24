@@ -16,10 +16,15 @@
 //!
 //! Severity preserves the gate exactly: ownership **defects** (a term claimed by
 //! multiple slices, a declared≠physical mismatch, an unowned term) are `Error` —
-//! they keep `make validate` failing as the retired strings did. Dependency
-//! **observations** (undeclared / stale / unparsable-query) are `Warning` — they
-//! were previously DROPPED at the string boundary and are now carried with full
-//! structure (non-gating, per `OwnershipReport::has_ownership_defect`).
+//! they keep `make validate` failing as the retired strings did. Undeclared /
+//! stale dependency **observations** are ALSO `Error` (R4/AC1): an undeclared
+//! cross-slice semantic reference or a stale declaration is a real ownership-
+//! discipline violation, not a soft advisory, and must fail `make validate` too
+//! — the one exception is a covered co-foundational grounding peering crossing
+//! a registered seam, which [`crate::slice_peerage::peerage_aware_ownership_findings`]
+//! suppresses before this severity is ever seen at a gate site. Only
+//! unparsable-query stays `Warning` — a parse failure is a diagnostic-quality
+//! gap in the analyzer's own query reading, not an authored-content defect.
 
 use gmeow_errors::{Finding, Location, Severity};
 use purrdf::slice::{OwnershipDiagnostic, OwnershipReport, OwnershipStatus};
@@ -105,7 +110,7 @@ pub(crate) fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> 
             to_slice,
             edge_kind,
         } => Some(finding(
-            Severity::Warning,
+            Severity::Error,
             crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
             format!(
                 "{from_slice} depends on {to_slice} ({edge_kind:?}) with no \
@@ -117,7 +122,7 @@ pub(crate) fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> 
             from_slice,
             to_slice,
         } => Some(finding(
-            Severity::Warning,
+            Severity::Error,
             crate::codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
             format!(
                 "{from_slice} declares gmeow:sliceDependsOn {to_slice} but no \
@@ -208,7 +213,7 @@ mod tests {
             .iter()
             .find(|f| f.code == "slice-ownership.undeclared-dependency")
             .expect("undeclared-dependency finding");
-        assert_eq!(undeclared.severity, Severity::Warning); // observation → non-gating
+        assert_eq!(undeclared.severity, Severity::Error); // R4/AC1: gates make validate
     }
 
     #[test]
