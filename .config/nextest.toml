@@ -87,9 +87,25 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & test(/dev_logic::compile_tests::mode_(owl_dl|datalog|report)_matches/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The dev-cli real-repository end-to-end contract tests (docs-distribution manifest
+# verify, and the whole-repo slice-quality gate) assemble the full bundle; the
+# advice-catalog content pushed them past the 60s default under gate parallelism
+# (they pass at ~97-115s). Same 300s backstop the sibling bundle-assembly proofs use.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & ( binary(docs_distribution_contract) | test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+# Heavy whole-bundle "discharge/parity by execution" proofs: they assemble the merged
+# bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
+# The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
+# close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
