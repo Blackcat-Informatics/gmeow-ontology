@@ -2563,30 +2563,37 @@ math:homogeneousOperandDimensionedExists a logic:Formula ; logic:relation math:h
 math:IntegrandDimensionedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "Integral integrand carries a dimension"@x-gmeow-english ;
-    skos:definition "The closed-world integrity constraint requiring the math:integrand of any math:Integral to itself carry a math:hasDimension — an integrand is a math:MeasurableFunction, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
+    rdfs:label "Dimensional integral's integrand carries a dimension"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint requiring the math:integrand of a DIMENSIONAL math:Integral — one that declares a result math:hasDimension, and is therefore subject to the dimensional-composition law dim(result) = dim(integrand) ⊕ dim(measure) — to itself carry a math:hasDimension. An integrand is a math:MeasurableFunction, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A purely framed math:Integral that declares no result dimension carries no dimensional obligation, so its integrand need not be dimensioned. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UndimensionedQuantity ;
     logic:severity "Violation" ;
-    logic:message "Every math:integrand of a math:Integral must itself carry a math:hasDimension; an integrand with no dimension raises math:UndimensionedQuantity." ;
+    logic:message "The math:integrand of a math:Integral that declares a result math:hasDimension must itself carry a math:hasDimension; a dimensional integral with an undimensioned integrand raises math:UndimensionedQuantity." ;
     logic:integrity math:integrandDimensionedLaw .
 
 math:integrandDimensionedLaw
     a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "an integral's integrand carries a dimension"@x-gmeow-english ;
-    skos:definition "∀f,I: integrand(I,f) → ∃d. hasDimension(f,d) — every integrand of any integral itself carries at least one dimension."@x-gmeow-english ;
+    rdfs:label "a dimensional integral's integrand carries a dimension"@x-gmeow-english ;
+    skos:definition "∀f,I,dR: integrand(I,f) ∧ hasDimension(I,dR) → ∃d. hasDimension(f,d) — the integrand of any integral that declares a result dimension itself carries at least one dimension. A framed integral with no declared result dimension is unconstrained."@x-gmeow-english ;
     logic:quantifiedVariable
         [ logic:termIndex 0 ; logic:termVariable "f" ] ,
-        [ logic:termIndex 1 ; logic:termVariable "I" ] ;
+        [ logic:termIndex 1 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "dR" ] ;
     logic:forall math:integrandDimensionedImpl .
 
 math:integrandDimensionedImpl a logic:Formula ;
     logic:antecedent math:integrandDimensionedAnte ;
     logic:consequent math:integrandDimensionedCons .
 
-math:integrandDimensionedAnte a logic:Formula ; logic:relation math:integrand ;
+math:integrandDimensionedAnte a logic:Formula ;
+    logic:and math:integrandDimensionedA1 , math:integrandDimensionedA2 .
+
+math:integrandDimensionedA1 a logic:Formula ; logic:relation math:integrand ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+
+math:integrandDimensionedA2 a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
 
 math:integrandDimensionedCons
     a logic:Formula ;
@@ -2599,30 +2606,37 @@ math:integrandDimensionedExists a logic:Formula ; logic:relation math:hasDimensi
 math:WithRespectToDimensionedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "Integral measure carries a dimension"@x-gmeow-english ;
-    skos:definition "The closed-world integrity constraint requiring the math:withRespectTo measure of any math:Integral to itself carry a math:hasDimension — a measure is a math:Measure, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
+    rdfs:label "Dimensional integral's measure carries a dimension"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint requiring the math:withRespectTo measure of a DIMENSIONAL math:Integral — one that declares a result math:hasDimension, and is therefore subject to the dimensional-composition law dim(result) = dim(integrand) ⊕ dim(measure) — to itself carry a math:hasDimension. A measure is a math:Measure, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A purely framed math:Integral that declares no result dimension carries no dimensional obligation, so its measure need not be dimensioned. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UndimensionedQuantity ;
     logic:severity "Violation" ;
-    logic:message "Every math:withRespectTo measure of a math:Integral must itself carry a math:hasDimension; a measure with no dimension raises math:UndimensionedQuantity." ;
+    logic:message "The math:withRespectTo measure of a math:Integral that declares a result math:hasDimension must itself carry a math:hasDimension; a dimensional integral with an undimensioned measure raises math:UndimensionedQuantity." ;
     logic:integrity math:withRespectToDimensionedLaw .
 
 math:withRespectToDimensionedLaw
     a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    rdfs:label "an integral's measure carries a dimension"@x-gmeow-english ;
-    skos:definition "∀mu,I: withRespectTo(I,mu) → ∃d. hasDimension(mu,d) — every measure an integral integrates against itself carries at least one dimension."@x-gmeow-english ;
+    rdfs:label "a dimensional integral's measure carries a dimension"@x-gmeow-english ;
+    skos:definition "∀mu,I,dR: withRespectTo(I,mu) ∧ hasDimension(I,dR) → ∃d. hasDimension(mu,d) — the measure of any integral that declares a result dimension itself carries at least one dimension. A framed integral with no declared result dimension is unconstrained."@x-gmeow-english ;
     logic:quantifiedVariable
         [ logic:termIndex 0 ; logic:termVariable "mu" ] ,
-        [ logic:termIndex 1 ; logic:termVariable "I" ] ;
+        [ logic:termIndex 1 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "dR" ] ;
     logic:forall math:withRespectToDimensionedImpl .
 
 math:withRespectToDimensionedImpl a logic:Formula ;
     logic:antecedent math:withRespectToDimensionedAnte ;
     logic:consequent math:withRespectToDimensionedCons .
 
-math:withRespectToDimensionedAnte a logic:Formula ; logic:relation math:withRespectTo ;
+math:withRespectToDimensionedAnte a logic:Formula ;
+    logic:and math:withRespectToDimensionedA1 , math:withRespectToDimensionedA2 .
+
+math:withRespectToDimensionedA1 a logic:Formula ; logic:relation math:withRespectTo ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "mu" ] .
+
+math:withRespectToDimensionedA2 a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
 
 math:withRespectToDimensionedCons
     a logic:Formula ;

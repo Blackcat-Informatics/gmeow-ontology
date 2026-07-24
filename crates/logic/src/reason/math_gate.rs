@@ -31,7 +31,7 @@
 //! than through the literal-dropping [`crate::reason::build_edb_facts`] typed-fact-set
 //! path.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
@@ -67,6 +67,27 @@ const MATH_GATE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/math-d
 /// collide in the shared process-wide plan cache.
 const MATH_GATE_CONTRACT: &str =
     "https://blackcatinformatics.ca/gmeow/reason/math-dimension-gate/v1";
+
+/// The exact-rational dimension-cell predicates the `=:=` / `⊕` dimension builtins walk
+/// on demand (via [`crate::physical::builtin_eval::load_dimension_cells`]) to project a
+/// dimension IRI's ℚ⁷ exponent vector out of the store. Kept in the EDB projection below
+/// because the compiled rule bodies never name them (a builtin reads them directly), so
+/// deriving the read-set from the rules alone would miss them.
+const DIMENSION_CELL_PREDICATES: [&str; 4] = [
+    "https://blackcatinformatics.ca/math/baseDimensionExponent",
+    "https://blackcatinformatics.ca/math/exponentOfDimension",
+    "https://blackcatinformatics.ca/math/exponentNumerator",
+    "https://blackcatinformatics.ca/math/exponentDenominator",
+];
+
+/// The two dimension classes the ℚ⁷ cell-builtin classifies a dimension node by (a
+/// `math:DerivedDimension` has walkable exponent cells; a `math:Dimensionless` is the ℚ⁷
+/// zero vector) — the ONLY `rdf:type` objects the gate reads. An `rdf:type` triple whose
+/// object is neither is inert to the gate and is dropped by the projection.
+const DIMENSION_TYPE_OBJECTS: [&str; 2] = [
+    "https://blackcatinformatics.ca/math/DerivedDimension",
+    "https://blackcatinformatics.ca/math/Dimensionless",
+];
 
 /// The compiled violation `EvalRule`s, built once per process from the embedded
 /// `math/module.ttl` and cached for every subsequent `verify()` call.
@@ -139,18 +160,54 @@ fn reflection_see_also_map(source: &RdfDataset) -> BTreeMap<String, String> {
     map
 }
 
-/// Promote every quad of `edb` (default graph OR any named graph) into the single
-/// canonical [`MATH_GATE_WORLD`], preserving every term (literals included) — the
-/// world-indexed engine only reasons over named-graph worlds, so a caller's plain
-/// default-graph Turtle (the common case for `verify()`'s own fixtures) must be
-/// re-graphed to participate at all.
+/// The object-level predicates the compiled violation rules' antecedent bodies actually
+/// match, unioned with the [`DIMENSION_CELL_PREDICATES`] the ℚ⁷ builtins read directly.
+///
+/// Deriving the antecedent predicates from the compiled `rules` (not a hardcoded list)
+/// keeps the EDB projection below correct for any future dimension law that predicates
+/// over a new property — the projection then automatically keeps that property's triples.
+fn gate_read_predicates(rules: &[EvalRule]) -> BTreeSet<String> {
+    let mut preds: BTreeSet<String> = DIMENSION_CELL_PREDICATES
+        .iter()
+        .map(|p| (*p).to_owned())
+        .collect();
+    for rule in rules {
+        for atom in &rule.body {
+            preds.insert(atom.predicate.clone());
+        }
+    }
+    preds
+}
+
+/// Promote the dimension-relevant quads of `edb` (default graph OR any named graph) into
+/// the single canonical [`MATH_GATE_WORLD`], preserving every term (literals included).
+///
+/// Two reasons the whole quad set is NOT promoted verbatim:
+/// 1. The world-indexed engine only reasons over named-graph worlds, so a caller's plain
+///    default-graph Turtle (the common case for `verify()`'s own fixtures) must be
+///    re-graphed to participate at all.
+/// 2. **Projection.** The gate's rules and ℚ⁷ cell-builtins read ONLY the predicates in
+///    `keep_predicates` plus the `rdf:type` triples that classify a dimension node
+///    ([`DIMENSION_TYPE_OBJECTS`]); every other triple is inert to the gate — its rules
+///    never match it and its builtins never read it — so dropping it cannot change any
+///    materialized marker. Over a ~100k-triple whole-bundle `verify()` this is the
+///    difference between a bounded chase and a pathological one, with identical results.
 ///
 /// # Errors
 ///
 /// Returns `Err` if the promoted dataset fails the freeze-time structural contract.
-fn promote_to_single_world(edb: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
+fn promote_to_single_world(
+    edb: &RdfDataset,
+    keep_predicates: &BTreeSet<String>,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in edb.owned_quads() {
+        let keep = keep_predicates.contains(&quad.predicate)
+            || (quad.predicate == RDF_TYPE
+                && matches!(&quad.object, RdfTerm::Iri(o) if DIMENSION_TYPE_OBJECTS.contains(&o.as_str())));
+        if !keep {
+            continue;
+        }
         let promoted = RdfQuad::new(quad.subject, quad.predicate, quad.object)
             .in_graph(RdfTerm::iri(MATH_GATE_WORLD));
         builder.push_owned_quad(&promoted);
@@ -196,7 +253,8 @@ pub(crate) fn dimension_gate_markers(
         return Ok(Vec::new());
     }
 
-    let promoted = promote_to_single_world(edb)?;
+    let keep_predicates = gate_read_predicates(rules);
+    let promoted = promote_to_single_world(edb, &keep_predicates)?;
     let store = WorldStore::from_dataset(promoted.as_ref())?;
 
     let lookup = compile_cached(MATH_GATE_CONTRACT, rules.to_vec());
