@@ -19,96 +19,74 @@ gmeow:mapsetLanguages a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Language alignments — schema.org + Wikidata. gmeow:Language is registry-INDEPENDENT (a self-minted IRI); these are see-also links, and coreference of language INSTANCES to Lexvo (http://lexvo.org/id/iso639-3/…), Glottolog and Wikidata items is asserted in data with skos:exactMatch + gmeow:authorityLink, not here. Proficiency scales (CEFR/ILR/ACTFL), version lineage, and origin/modality/status value vocabularies are largely CANONICAL — no maintained external RDF vocabulary covers them faithfully. Scripts and orthographies are grounded in the lang: layer (lang:Script / lang:Orthography), so their alignments live with the grounding vocabulary, not here. The reified gmeow:LanguageProficiency flattens to schema:knowsLanguage / wdt:P1412 only via the EDOAL+FnO projection layer, not by a 1:1 SSSOM claim." .
 
-gmeow:eqLanguages001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Language ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Language ;
+gmeow:Language skos:closeMatch schema:Language {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqLanguages002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Language ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q34770 ;
+gmeow:Language skos:closeMatch wd:Q34770 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqLanguages008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:knowsLanguage ;
+gmeow:knowsLanguage skos:closeMatch schema:knowsLanguage {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqLanguages009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:knowsLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1412 ;
+gmeow:knowsLanguage skos:closeMatch wdt:P1412 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqLanguages010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nativeLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P103 ;
+gmeow:nativeLanguage skos:closeMatch wdt:P103 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqLanguages011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:languageCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:iso6391Code ;
+gmeow:languageCode skos:closeMatch schema:iso6391Code {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqLanguages012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:originNatural ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q33742 ;
+gmeow:originNatural skos:closeMatch wd:Q33742 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqLanguages013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:originConstructedEngineered ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q33215 ;
+gmeow:originConstructedEngineered skos:closeMatch wd:Q33215 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqLanguages014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modalitySigned ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q34228 ;
+gmeow:modalitySigned skos:closeMatch wd:Q34228 {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
 # temporal-frame design — Linguistic reference frames (Lexvo alignment).
 # Contextual: a gmeow:ReferenceFrame whose frameRealm is gmeow:frameRealmLinguistic
 # corresponds to a lvont:Language.
 
-gmeow:eqLanguages015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lvont:Language ;
+gmeow:ReferenceFrame skos:closeMatch lvont:Language {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmLinguistic" ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmLinguistic"
+|} .
 
-gmeow:eqLanguages016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasReferenceFrame ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lvont:language ;
+gmeow:hasReferenceFrame skos:closeMatch lvont:language {|
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "links a named expression or lexical entity to its language frame" ;
-    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+    gmeow:comment "links a named expression or lexical entity to its language frame"
+|} .

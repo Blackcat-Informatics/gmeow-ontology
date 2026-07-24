@@ -40,6 +40,54 @@ pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 /// (`logic:expandsToFacet`).
 pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
 
+/// The internal `@x-gmeow-english` private-use carrier language tag every lifted /
+/// projected annotation literal carries (never bare `en`). Mirrors
+/// `gmeow_errors::abox::X_GMEOW_ENGLISH`; duplicated here so the compile crate's lift /
+/// projection boundary has no dependency edge into the errors crate's A-Box module.
+pub const X_GMEOW_ENGLISH_TAG: &str = "x-gmeow-english";
+
+/// The exact set of surface annotation predicate IRIs lifted into first-class
+/// [`NodeKind::Annotation`] axioms (`isSupersetOf` SKOS/RDFS). The single source of truth
+/// shared by every lift and un-deny site (frontend, adapter, and the pipeline's
+/// compile-logic-input denylist) so they can never drift. Everything else in the `skos:`
+/// namespace — notably the `skos:*Match` alignment surface — is intentionally NOT here: it
+/// is owned by the correspondence derivation, not the annotation lift.
+pub const ANNOTATION_LIFT_PREDS: &[&str] = &[
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2000/01/rdf-schema#comment",
+    "http://www.w3.org/2004/02/skos/core#definition",
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "http://www.w3.org/2004/02/skos/core#altLabel",
+    "http://www.w3.org/2004/02/skos/core#scopeNote",
+];
+
+/// The ownership root for every GMEOW-authored namespace (`gmeow:`, `logic:`, `lang:`,
+/// `math:`, and the graph IRIs all sit under it). Only subjects under this root are lifted as
+/// first-class annotations: an external alignment-target / example subject (schema.org,
+/// Wikidata, gUFO, …) legitimately carries its own `@en` label, which is that vocabulary's
+/// metadata, not GMEOW's annotation surface — and is exactly what the structural-lint carrier
+/// guard scopes out too. Scoping the lift here keeps the generated SKOS surface a projection of
+/// OUR terms and keeps the fail-closed carrier check from firing on foreign labels.
+pub const GMEOW_AUTHORED_BASE: &str = "https://blackcatinformatics.ca/";
+
+/// Whether an annotation subject IRI is a GMEOW-authored term (under [`GMEOW_AUTHORED_BASE`]),
+/// i.e. a term whose annotations are part of GMEOW's own SKOS/RDFS surface.
+pub fn subject_is_gmeow_authored(subject: &str) -> bool {
+    subject.starts_with(GMEOW_AUTHORED_BASE)
+}
+
+/// Whether a lifted annotation predicate carries semantically load-bearing prose the put
+/// leg must preserve (`skos:definition`, `rdfs:comment`) versus a droppable display hint
+/// (`rdfs:label`, `skos:prefLabel`/`altLabel`/`scopeNote`). Drives the `load_bearing` bit on
+/// the lifted [`NodeKind::Annotation`] axiom.
+pub fn annotation_pred_is_load_bearing(predicate: &str) -> bool {
+    matches!(
+        predicate,
+        "http://www.w3.org/2000/01/rdf-schema#comment"
+            | "http://www.w3.org/2004/02/skos/core#definition"
+    )
+}
+
 // --------------------------------------------------------------------------- //
 // Enums — single source of truth, local names taken verbatim from module.ttl
 // --------------------------------------------------------------------------- //
@@ -153,6 +201,12 @@ pub enum NodeKind {
     /// `logic:Correspondence` — the reserved ninth kind (the correspondence calculus
     /// fills its body; see `design/LOGIC-CORRESPONDENCE.md`).
     Correspondence,
+    /// `logic:Annotation` — a lifted RDFS/SKOS annotation axiom (`rdfs:label`,
+    /// `rdfs:comment`, `skos:definition`/`prefLabel`/`altLabel`/`scopeNote`) carried as a
+    /// first-class IR node so the SKOS/RDFS annotation surface round-trips (`logic:` is a
+    /// genuine `isSupersetOf` SKOS). The predicate stays the surface annotation IRI verbatim;
+    /// the object is the literal value; projecting back out re-emits the surface triple.
+    Annotation,
 }
 
 impl NodeKind {
@@ -168,6 +222,7 @@ impl NodeKind {
             Self::ActionSchema => "ActionSchema",
             Self::ValidationShape => "ValidationShape",
             Self::Correspondence => "Correspondence",
+            Self::Annotation => "Annotation",
         }
     }
 
@@ -188,6 +243,7 @@ impl NodeKind {
             "ActionSchema" => Self::ActionSchema,
             "ValidationShape" => Self::ValidationShape,
             "Correspondence" => Self::Correspondence,
+            "Annotation" => Self::Annotation,
             _ => return None,
         })
     }

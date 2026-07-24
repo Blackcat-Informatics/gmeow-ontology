@@ -24,162 +24,130 @@ gmeow:mapsetArchaeologicalEvidence a gmeow:MappingSet ;
 # CIDOC-CRM
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Inscription ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E34_Inscription ;
+gmeow:Inscription skos:closeMatch crm:E34_Inscription {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "CIDOC-CRM E34 is the closest term for a sign-bearing information object. GMEOW Inscription is broader than E34 (covers marks, symbols, and non-linguistic signs) and is explicitly an InformationObject, not a Man-Made Thing." .
+    gmeow:comment "CIDOC-CRM E34 is the closest term for a sign-bearing information object. GMEOW Inscription is broader than E34 (covers marks, symbols, and non-linguistic signs) and is explicitly an InformationObject, not a Man-Made Thing."
+|} .
 
-gmeow:eqArch002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PhysicalObject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E19_Physical_Object ;
+gmeow:PhysicalObject skos:closeMatch crm:E19_Physical_Object {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "GMEOW PhysicalObject is the material carrier; E19 is the closest CRM class. E24 Physical Human-Made Thing is a narrower match when the object is known to be human-made." .
+    gmeow:comment "GMEOW PhysicalObject is the material carrier; E19 is the closest CRM class. E24 Physical Human-Made Thing is a narrower match when the object is known to be human-made."
+|} .
 
-gmeow:eqArch003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:inscriptionCarrier ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P128i_is_carried_by ;
+gmeow:inscriptionCarrier skos:closeMatch crm:P128i_is_carried_by {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "crm:P128i is carried by (information): the inscription is carried by the physical object." .
+    gmeow:comment "crm:P128i is carried by (information): the inscription is carried by the physical object."
+|} .
 
-gmeow:eqArch004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:carrierInscription ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P128_carries ;
+gmeow:carrierInscription skos:closeMatch crm:P128_carries {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "crm:P128 carries (information): the physical object carries the inscription." .
+    gmeow:comment "crm:P128 carries (information): the physical object carries the inscription."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CRMarchaeo
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ArchaeologicalFindContext ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmarc:A2_Stratigraphic_Volume_Unit ;
+gmeow:ArchaeologicalFindContext skos:closeMatch crmarc:A2_Stratigraphic_Volume_Unit {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "CRMarchaeo A2 is the stratigraphic volume unit; GMEOW ArchaeologicalFindContext is an Observation relator that binds carrier, place, stratigraphy, dating, and event. The match is loose because A2 is a spatial-stratigraphic entity, while ArchaeologicalFindContext is a claim/observation about that entity." .
+    gmeow:comment "CRMarchaeo A2 is the stratigraphic volume unit; GMEOW ArchaeologicalFindContext is an Observation relator that binds carrier, place, stratigraphy, dating, and event. The match is loose because A2 is a spatial-stratigraphic entity, while ArchaeologicalFindContext is a claim/observation about that entity."
+|} .
 
-gmeow:eqArch006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:findContextStratigraphy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmarc:A2_Stratigraphic_Volume_Unit ;
+gmeow:findContextStratigraphy skos:closeMatch crmarc:A2_Stratigraphic_Volume_Unit {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "The stratigraphic unit referenced by findContextStratigraphy aligns to CRMarchaeo A2 when the unit is modeled in CRMarchaeo." .
+    gmeow:comment "The stratigraphic unit referenced by findContextStratigraphy aligns to CRMarchaeo A2 when the unit is modeled in CRMarchaeo."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CRMsci
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionReading ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmsci:S4_Observation ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
+gmeow:InscriptionReading skos:closeMatch crmsci:S4_Observation {|
     gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "CRMsci S4 Observation covers scientific observations including archaeological readings. The alignment is at the superclass level: InscriptionReading is a domain-specific Observation." .
-
-gmeow:eqArch008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionTransliteration ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmsci:S4_Observation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" .
+    gmeow:comment "CRMsci S4 Observation covers scientific observations including archaeological readings. The alignment is at the superclass level: InscriptionReading is a domain-specific Observation."
+|} .
 
-gmeow:eqArch009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionTranslation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmsci:S4_Observation ;
+gmeow:InscriptionTransliteration skos:closeMatch crmsci:S4_Observation {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
+
+gmeow:InscriptionTranslation skos:closeMatch crmsci:S4_Observation {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85
+|} .
 
 # --------------------------------------------------------------------------- #
 # CRMinf
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScriptLanguageAttribution ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I1_Argumentation ;
+gmeow:ScriptLanguageAttribution skos:closeMatch crminf:I1_Argumentation {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "CRMinf I1 Argumentation is the closest term for a scholarly claim assigning language/script to an inscription. The ScriptLanguageAttribution also aligns to I5 Inference Making when the classification is inferred from palaeographic evidence." .
+    gmeow:comment "CRMinf I1 Argumentation is the closest term for a scholarly claim assigning language/script to an inscription. The ScriptLanguageAttribution also aligns to I5 Inference Making when the classification is inferred from palaeographic evidence."
+|} .
 
-gmeow:eqArch011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ScriptLanguageAttribution ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I5_Inference_Making ;
+gmeow:ScriptLanguageAttribution skos:closeMatch crminf:I5_Inference_Making {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "When the language/script attribution is inferred from evidence (palaeography, stratigraphy, etc.), it is an instance of I5 Inference Making." .
+    gmeow:comment "When the language/script attribution is inferred from evidence (palaeography, stratigraphy, etc.), it is an instance of I5 Inference Making."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionReading ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:InscriptionReading skos:closeMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "A scholarly reading is an Activity in PROV-O terms: an agent performs it, it has a start/end, and it generates a result (the LexicalForm)." .
+    gmeow:comment "A scholarly reading is an Activity in PROV-O terms: an agent performs it, it has a start/end, and it generates a result (the LexicalForm)."
+|} .
 
-gmeow:eqArch013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:readingResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generated ;
+gmeow:readingResult skos:closeMatch prov:generated {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "The lexical form produced by a reading is generated by the reading activity." .
+    gmeow:comment "The lexical form produced by a reading is generated by the reading activity."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Web Annotation (OA)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqArch014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionReading ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Annotation ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
+gmeow:InscriptionReading skos:closeMatch oa:Annotation {|
     gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
-    gmeow:comment "A scholarly reading can be modeled as a Web Annotation: the inscription is the target, the LexicalForm is the body, and the scholar is the creator. This is a lossy projection (standpoint, confidence, and determinacy are dropped)." .
-
-gmeow:eqArch015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionTransliteration ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Annotation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" .
+    gmeow:comment "A scholarly reading can be modeled as a Web Annotation: the inscription is the target, the LexicalForm is the body, and the scholar is the creator. This is a lossy projection (standpoint, confidence, and determinacy are dropped)."
+|} .
 
-gmeow:eqArch016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InscriptionTranslation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oa:Annotation ;
+gmeow:InscriptionTransliteration skos:closeMatch oa:Annotation {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" .
+    gmeow:confidence 0.75
+|} .
+
+gmeow:InscriptionTranslation skos:closeMatch oa:Annotation {|
+    gmeow:sssomFile "gmeow-archaeological-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75
+|} .

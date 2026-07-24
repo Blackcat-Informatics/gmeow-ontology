@@ -12,411 +12,317 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:CreativeWork ;
+gmeow:CreativeWork skos:exactMatch schema:CreativeWork {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch"
+|} .
 
-gmeow:eqClasses016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Document ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:DigitalDocument ;
+gmeow:Document owl:equivalentClass schema:DigitalDocument {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:Article owl:equivalentClass schema:Article {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+schema:ScholarlyArticle rdfs:subClassOf gmeow:Article {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+bibo:AcademicArticle rdfs:subClassOf gmeow:Article {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+schema:NewsArticle rdfs:subClassOf gmeow:Article {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+schema:BlogPosting rdfs:subClassOf gmeow:Article {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:Patent owl:equivalentClass bibo:Patent {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:Dataset owl:equivalentClass schema:Dataset {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:MediaObject skos:exactMatch schema:MediaObject {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses"
+|} .
 
-gmeow:eqClasses017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Article ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:Article ;
+schema:ImageObject rdfs:subClassOf gmeow:MediaObject {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:ScholarlyArticle ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Article ;
+schema:AudioObject rdfs:subClassOf gmeow:MediaObject {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject bibo:AcademicArticle ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Article ;
+gmeow:WebPage owl:equivalentClass schema:WebPage {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:NewsArticle ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Article ;
+bf:Work skos:closeMatch gmeow:CreativeWork {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqClasses021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:BlogPosting ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Article ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Patent ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject bibo:Patent ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Dataset ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:Dataset ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:MediaObject ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:ImageObject ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:MediaObject ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:AudioObject ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:MediaObject ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WebPage ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:WebPage ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject bf:Work ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:CreativeWork ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DataFeed ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:DataFeed ;
+gmeow:DataFeed skos:closeMatch schema:DataFeed {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a published ordered item stream IS schema:DataFeed" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "a published ordered item stream IS schema:DataFeed"
+|} .
 
-gmeow:eqDcType001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Document ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:Text ;
+gmeow:Document skos:closeMatch dcmitype:Text {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "A GMEOW Document (abstract intellectual work of textual content) is a DCMI Text" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW Document (abstract intellectual work of textual content) is a DCMI Text"
+|} .
 
-gmeow:eqDcType002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Dataset ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:Dataset ;
+gmeow:Dataset skos:closeMatch dcmitype:Dataset {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A GMEOW Dataset is a DCMI Dataset" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW Dataset is a DCMI Dataset"
+|} .
 
-gmeow:eqDcType003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dcmitype:Image ;
+gmeow:MediaObject skos:relatedMatch dcmitype:Image {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Image is one possible specialization" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Image is one possible specialization"
+|} .
 
-gmeow:eqDcType004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dcmitype:Sound ;
+gmeow:MediaObject skos:relatedMatch dcmitype:Sound {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Sound is one possible specialization" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Sound is one possible specialization"
+|} .
 
-gmeow:eqDcType005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dcmitype:MovingImage ;
+gmeow:MediaObject skos:relatedMatch dcmitype:MovingImage {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI MovingImage is one possible specialization" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI MovingImage is one possible specialization"
+|} .
 
-gmeow:eqDcType009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WebPage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:InteractiveResource ;
+gmeow:WebPage skos:closeMatch dcmitype:InteractiveResource {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A GMEOW WebPage is a DCMI InteractiveResource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW WebPage is a DCMI InteractiveResource"
+|} .
 
-gmeow:eqDcTerms001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasTitle ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:title ;
+gmeow:hasTitle skos:closeMatch dcterms:title {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection"
+|} .
 
-gmeow:eqDcTerms008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:dateCreated ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:created ;
+gmeow:dateCreated skos:closeMatch dcterms:created {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms created — the creation date of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms created — the creation date of a creative work"
+|} .
 
-gmeow:eqDcTerms009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:dateModified ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:modified ;
+gmeow:dateModified skos:closeMatch dcterms:modified {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms modified — the last modification date of a creative work (distinct from sourceModifiedAt which is source-specific)" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms modified — the last modification date of a creative work (distinct from sourceModifiedAt which is source-specific)"
+|} .
 
-gmeow:eqDcTerms010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:dateAvailable ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:available ;
+gmeow:dateAvailable skos:closeMatch dcterms:available {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms available — the date a creative work became or will become available" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms available — the date a creative work became or will become available"
+|} .
 
-gmeow:eqDcTerms011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:dateAccepted ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:dateAccepted ;
+gmeow:dateAccepted skos:closeMatch dcterms:dateAccepted {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms dateAccepted — the date a creative work was accepted" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms dateAccepted — the date a creative work was accepted"
+|} .
 
-gmeow:eqDcTerms012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:dateSubmitted ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:dateSubmitted ;
+gmeow:dateSubmitted skos:closeMatch dcterms:dateSubmitted {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms dateSubmitted — the date a creative work was submitted" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms dateSubmitted — the date a creative work was submitted"
+|} .
 
-gmeow:eqDcTerms013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:abstract ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:abstract ;
+gmeow:abstract skos:closeMatch dcterms:abstract {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms abstract — a summary of the content of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms abstract — a summary of the content of a creative work"
+|} .
 
-gmeow:eqDcTerms014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:tableOfContents ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:tableOfContents ;
+gmeow:tableOfContents skos:closeMatch dcterms:tableOfContents {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms tableOfContents — a list of subunits of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms tableOfContents — a list of subunits of a creative work"
+|} .
 
-gmeow:eqDcTerms026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:bibliographicCitation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:bibliographicCitation ;
+gmeow:bibliographicCitation skos:closeMatch dcterms:bibliographicCitation {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms bibliographicCitation — a bibliographic reference for a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms bibliographicCitation — a bibliographic reference for a creative work"
+|} .
 
-gmeow:eqDcTerms027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:extent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:extent ;
+gmeow:extent skos:closeMatch dcterms:extent {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DCTerms extent — the size or duration of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms extent — the size or duration of a creative work"
+|} .
 
-gmeow:eqDcType010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Collection ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:Collection ;
+gmeow:Collection skos:closeMatch dcmitype:Collection {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "A GMEOW Collection is a DCMI Collection" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW Collection is a DCMI Collection"
+|} .
 
-gmeow:eqDcType011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Service ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:Service ;
+gmeow:Service skos:closeMatch dcmitype:Service {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A GMEOW Service is a DCMI Service" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW Service is a DCMI Service"
+|} .
 
-gmeow:eqProperties012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:title ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:title ;
+gmeow:title skos:closeMatch dcterms:title {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:datePublished owl:equivalentProperty schema:datePublished {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:identifier skos:closeMatch bibo:doi {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8
+|} .
+
+gmeow:datePublished skos:closeMatch dcterms:issued {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "DCTerms issued — the publication date is the issue/release date in DCMI Terms"
+|} .
 
-gmeow:eqProperties013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datePublished ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:datePublished ;
+gmeow:identifier skos:closeMatch dcterms:identifier {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms identifier — a formal identifier such as a DOI or patent number"
+|} .
 
-gmeow:eqProperties014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:identifier ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bibo:doi ;
+gmeow:CreativeWorkTitle owl:equivalentClass bf:Title {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "both reify a work's title as a first-class node carrying its text and metadata"
+|} .
+
+gmeow:depictedIn skos:closeMatch schema:image {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image"
+|} .
 
-gmeow:eqProperties059 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datePublished ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:issued ;
+gmeow:pagePrincipalSubject skos:closeMatch schema:mainEntity {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms issued — the publication date is the issue/release date in DCMI Terms" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage"
+|} .
 
-gmeow:eqProperties060 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:identifier ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:identifier ;
+gmeow:Document skos:closeMatch wd:Q49848 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms identifier — a formal identifier such as a DOI or patent number" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "document"
+|} .
 
-gmeow:eqProperties077 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWorkTitle ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject bf:Title ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "both reify a work's title as a first-class node carrying its text and metadata" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties081 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:depictedIn ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:image ;
+gmeow:CreativeWork skos:closeMatch wd:Q17537576 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:objectLabel "creative work"
+|} .
 
-gmeow:eqProperties082 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:pagePrincipalSubject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:mainEntity ;
+gmeow:Article skos:closeMatch wd:Q191067 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:objectLabel "article"
+|} .
 
-gmeow:eqWikidata030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Document ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q49848 ;
+gmeow:WebPage skos:closeMatch wd:Q36774 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "document" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "web page"
+|} .
 
-gmeow:eqWikidata031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q17537576 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:objectLabel "creative work" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
-
-gmeow:eqWikidata032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Article ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q191067 ;
+gmeow:Dataset skos:closeMatch wd:Q1172284 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "article" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "dataset"
+|} .
 
-gmeow:eqWikidata033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WebPage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q36774 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:objectLabel "web page" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
-
-gmeow:eqWikidata034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Dataset ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1172284 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:objectLabel "dataset" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
-
-gmeow:eqWikidata035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q11734477 ;
+gmeow:MediaObject skos:closeMatch wd:Q11734477 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "media file" ;
-    gmeow:comment "Wikidata 'media file' is broader than GMEOW MediaObject (which includes non-file media); directional lossy projection" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:comment "Wikidata 'media file' is broader than GMEOW MediaObject (which includes non-file media); directional lossy projection"
+|} .

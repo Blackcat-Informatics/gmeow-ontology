@@ -138,7 +138,7 @@ that keeps `constraint` distinct from `derivation-rule`.
 
 ### 3.1 The relation lattice (not flat strings)
 
-`gmeow:alignPredicate`/`gmeow:relation` become a typed `logic:CorrespondenceRelation` lattice:
+The `skos:*Match` match predicate / `gmeow:relation` become a typed `logic:CorrespondenceRelation` lattice:
 
 ```text
         equiv
@@ -787,8 +787,9 @@ Docker-free authoritative path.
 
 Per Principle 6 (greenfield, no backwards-compat) tempered by Principle 7 (verified by
 construction): the existing `dsl/mappings/` becomes a **frontend syntax** into
-`logic:Correspondence` first. A one-shot transpiler compiles each `gmeow:TermEquivalence` /
-`gmeow:ProjectionMapping` cell into a correspondence; the new pipeline must regenerate the
+`logic:Correspondence` first. A one-shot transpiler compiles each native alignment cell
+(a reified `skos:*Match` statement) / `gmeow:ProjectionMapping` cell into a correspondence;
+the new pipeline must regenerate the
 committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the existing
 the strict `sync` mappings golden set is the oracle); only then are the old DSL, emitters, and
 `projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`

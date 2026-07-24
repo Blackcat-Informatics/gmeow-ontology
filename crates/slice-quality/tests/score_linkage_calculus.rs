@@ -117,9 +117,8 @@ fn hand_authored_dc_alignment_scores_below_one_and_is_named() {
     // adoption 0.0, and the advisory names the record IRI.
     let mappings = format!(
         "{PREFIXES}\n\
-         gmeow:eqTitleDc a gmeow:TermEquivalence ;\n\
-            gmeow:alignSubject gmeow:title ; gmeow:alignPredicate skos:closeMatch ;\n\
-            gmeow:alignObject dc:title ; gmeow:justification semapv:ManualMappingCuration .\n"
+         gmeow:title skos:closeMatch dc:title {{| gmeow:sssomFile \"fixture.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration |}} .\n"
     );
     let f = Fixture::new("dc", &mappings);
     let r = f.score();
@@ -133,7 +132,7 @@ fn hand_authored_dc_alignment_scores_below_one_and_is_named() {
         "no calculus records, one hand-authored dc: record → 0/1"
     );
     assert!(
-        r.messages.iter().any(|m| m.contains("eqTitleDc")),
+        r.messages.iter().any(|m| m.contains("title")),
         "an advisory names the hand-authored record as a migration target, got {:?}",
         r.messages
     );
@@ -151,9 +150,8 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
     // migration target; a fully-calculus slice must outscore it (adoption is comparative).
     let hand = format!(
         "{PREFIXES}\n\
-         gmeow:eqThing a gmeow:TermEquivalence ;\n\
-            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate owl:equivalentClass ;\n\
-            gmeow:alignObject schema:Thing ; gmeow:justification semapv:ManualMappingCuration .\n"
+         gmeow:Thing owl:equivalentClass schema:Thing {{| gmeow:sssomFile \"fixture.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration |}} .\n"
     );
     let hand_f = Fixture::new("hand", &hand);
     let hand_r = hand_f.score();
@@ -162,7 +160,7 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
         "one hand-authored identity record, no calculus → 0.0"
     );
     assert!(
-        hand_r.messages.iter().any(|m| m.contains("eqThing")),
+        hand_r.messages.iter().any(|m| m.contains("Thing")),
         "the identity-strength hand-authored record is named, got {:?}",
         hand_r.messages
     );
@@ -173,9 +171,8 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
         "{PREFIXES}\n\
          gmeow:mapThing a gmeow:ProjectionMapping ;\n\
             gmeow:hasBinding [ gmeow:toClass schema:Thing ; gmeow:relation \"=\" ; gmeow:mnemomorphic true ] .\n\
-         gmeow:eqName a gmeow:TermEquivalence ;\n\
-            gmeow:alignSubject gmeow:name ; gmeow:alignPredicate skos:exactMatch ;\n\
-            gmeow:alignObject schema:name ; gmeow:justification semapv:ManualMappingCuration .\n"
+         gmeow:name skos:exactMatch schema:name {{| gmeow:sssomFile \"fixture.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration |}} .\n"
     );
     let mixed_f = Fixture::new("mixed", &mixed);
     let mixed_r = mixed_f.score();
@@ -193,15 +190,13 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
 fn validated_grounding_term_equivalence_is_calculus_routed() {
     let mappings = format!(
         "{PREFIXES}\n\
-         gmeow:eqThing a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
-            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate owl:equivalentClass ;\n\
-            gmeow:alignObject schema:Thing ;\n\
+         gmeow:Thing owl:equivalentClass schema:Thing {{| a logic:GroundingCorrespondence ;\n\
             gmeow:sssomFile \"grounding.sssom.tsv\" ;\n\
             gmeow:justification semapv:ManualMappingCuration ;\n\
             logic:sourceEndpoint gmeow:Thing ; logic:targetEndpoint schema:Thing ;\n\
             logic:morphismClass logic:WellBehavedLens ;\n\
             logic:morphismKind logic:InstitutionMorphism ;\n\
-            logic:preservationKind logic:SoundUnderApproximation .\n"
+            logic:preservationKind logic:SoundUnderApproximation |}} .\n"
     );
     let f = Fixture::new("grounding", &mappings);
     let r = f.score();
@@ -220,10 +215,9 @@ fn validated_grounding_term_equivalence_is_calculus_routed() {
 fn malformed_grounding_marker_remains_legacy_debt() {
     let mappings = format!(
         "{PREFIXES}\n\
-         gmeow:eqThing a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
-            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate owl:equivalentClass ;\n\
-            gmeow:alignObject schema:Thing ;\n\
-            gmeow:justification semapv:ManualMappingCuration .\n"
+         gmeow:Thing owl:equivalentClass schema:Thing {{| a logic:GroundingCorrespondence ;\n\
+            gmeow:sssomFile \"fixture.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration |}} .\n"
     );
     let f = Fixture::new("malformed-grounding", &mappings);
     let r = f.score();
@@ -232,7 +226,7 @@ fn malformed_grounding_marker_remains_legacy_debt() {
         "a type marker alone grants no calculus credit"
     );
     assert!(
-        r.messages.iter().any(|message| message.contains("eqThing")),
+        r.messages.iter().any(|message| message.contains("Thing")),
         "the incomplete cell remains named debt: {:?}",
         r.messages
     );
@@ -245,9 +239,8 @@ fn no_calculus_eligible_surface_is_vacuous_but_says_so() {
     // (never a silent "fully linked").
     let mappings = format!(
         "{PREFIXES}\n\
-         gmeow:eqLoose a gmeow:TermEquivalence ;\n\
-            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate skos:closeMatch ;\n\
-            gmeow:alignObject schema:Thing ; gmeow:justification semapv:ManualMappingCuration .\n"
+         gmeow:Thing skos:closeMatch schema:Thing {{| gmeow:sssomFile \"fixture.sssom.tsv\" ;\n\
+            gmeow:justification semapv:ManualMappingCuration |}} .\n"
     );
     let f = Fixture::new("vacuous", &mappings);
     let r = f.score();

@@ -25,20 +25,16 @@ gmeow:mapsetDiagnostics a gmeow:MappingSet ;
 # W3C EARL — Evaluation And Report Language
 # --------------------------------------------------------------------------- #
 
-gmeow:eqDiag001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Finding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject earl:Assertion ;
+gmeow:Finding skos:closeMatch earl:Assertion {|
+    gmeow:sssomFile "gmeow-diagnostics.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "earl:Assertion is a tool's (assertedBy, subject, result) tuple; gmeow:Finding is a reified gmeow:Observation about a statement and one projection of the canonical Rust report. closeMatch, not equivalentClass." ;
-    gmeow:sssomFile "gmeow-diagnostics.sssom.tsv" .
+    gmeow:comment "earl:Assertion is a tool's (assertedBy, subject, result) tuple; gmeow:Finding is a reified gmeow:Observation about a statement and one projection of the canonical Rust report. closeMatch, not equivalentClass."
+|} .
 
-gmeow:eqDiag002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:findingSeverity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject earl:outcome ;
+gmeow:findingSeverity skos:closeMatch earl:outcome {|
+    gmeow:sssomFile "gmeow-diagnostics.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "earl:outcome grades the TEST (passed/failed/cantTell); gmeow:findingSeverity grades the FINDING a test produced (error/warning/note/info). Related but not the same axis, so a loose closeMatch." ;
-    gmeow:sssomFile "gmeow-diagnostics.sssom.tsv" .
+    gmeow:comment "earl:outcome grades the TEST (passed/failed/cantTell); gmeow:findingSeverity grades the FINDING a test produced (error/warning/note/info). Related but not the same axis, so a loose closeMatch."
+|} .

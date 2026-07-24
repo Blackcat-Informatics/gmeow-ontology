@@ -12,8 +12,9 @@ use std::sync::Arc;
 
 use purrdf::ir::InMemoryPageProvider;
 use purrdf::{
-    PageGeneration, PagedDataset, PagedQueryLimits, RdfDataset, RdfDatasetBuilder, RdfQuad,
-    RdfTerm, TermValue,
+    DistanceMetric, FamilyId, MatrixId, PageGeneration, PagedDataset, PagedQueryLimits,
+    PrefixPostprocessing, ProjectionId, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm,
+    SourceVerificationMode, TargetSetId, TermValue, VectorDtype, VectorSpaceId,
 };
 
 use gmeow_cli_core::{Reporter, report_diag};
@@ -24,7 +25,8 @@ use gmeow_errors::{
     Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
 };
 use gmeow_logic::annotation::{
-    AnnotationContract, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
+    AnnotationContract, AnnotationFactRef, AnnotationQueryClass, AnnotationRequest,
+    TupleAnnotationAlgebra,
 };
 use gmeow_logic::dispatch::{
     RelationAnnotationRequest, RelationQueryError, dispatch_query_annotated_with_relations,
@@ -35,6 +37,10 @@ use gmeow_logic::external_relation::{
     RelationProviderRegistration, RelationTuple, TableRelationProvider,
 };
 use gmeow_logic::provenance::ZWeightSemiring;
+use gmeow_logic::purremb_relation::{
+    PurrembBinding, PurrembRetrievalProvider, PurrembSelection, RetrievalPolicy, RetrievalScore,
+    SpaceTaggedScore, VectorSpaceScopedAlgebra, purremb_descriptor, purremb_generation_iri,
+};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::runtime::{
@@ -1196,6 +1202,586 @@ pub fn hybrid_query(
         Err(RelationQueryError::Contract(e)) => fail(
             reporter,
             "gmeow-cli.hybrid-query.contract",
+            format!("provider/algebra contract mismatch: {e}"),
+        ),
+        Err(RelationQueryError::Query {
+            diagnostic,
+            receipt,
+        }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.query-failed",
+                format!(
+                    "query evaluation failed: {diagnostic} (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+        Err(RelationQueryError::Provider { error, receipt }) => {
+            emit_error(
+                reporter,
+                "gmeow-cli.hybrid-query.provider-failed",
+                format!(
+                    "external relation provider did not complete: {error} \
+                     (provider calls {}, admitted rows {})",
+                    receipt.metrics.provider_calls, receipt.metrics.admitted_rows
+                ),
+            );
+            1
+        }
+    }
+}
+
+// ── hybrid-query: verified-PURREMB retrieval mode ─────────────────────────────
+
+/// Stable diagnostic code for a PURREMB binding, selection, or verification
+/// failure surfaced through the CLI.
+const PURREMB_DIAG_CODE: &str = "gmeow-cli.hybrid-query.purremb";
+
+/// Every declared input of the verified-PURREMB retrieval mode, borrowed for one
+/// dispatch. Each field is a mandatory part of the query contract (the mode is
+/// fully specified — no half-specified silent degradation); the binding validates
+/// each against the opened artifact and fails closed on any disagreement.
+pub struct PurrembHybridQuery<'a> {
+    /// RDF facts re-homed into the isolated query world.
+    pub facts: &'a Path,
+    /// Datalog query program referencing the provider relation.
+    pub program: &'a Path,
+    /// The `.purremb` artifact to open and verify.
+    pub purremb: &'a Path,
+    /// The exact source pack the artifact is bound to.
+    pub source: &'a Path,
+    /// Provider relation IRI referenced by the program.
+    pub relation: &'a str,
+    /// Provider identity IRI.
+    pub provider_iri: &'a str,
+    /// Model/algorithm identity IRI.
+    pub model_iri: &'a str,
+    /// Base artifact-generation IRI; the pinned artifact root and the explicit
+    /// selection (policy + source mode) are folded into the full generation IRI.
+    pub generation_base: &'a str,
+    /// Target-set identity (64 hex characters).
+    pub target_set: &'a str,
+    /// Family identity (64 hex characters).
+    pub family: &'a str,
+    /// Effective vector-space identity (64 hex characters).
+    pub vector_space: &'a str,
+    /// Stored-matrix identity (64 hex characters).
+    pub matrix: &'a str,
+    /// Effective-projection identity (64 hex characters); required only for the
+    /// Matryoshka prefix-then-rerank policy.
+    pub projection: Option<&'a str>,
+    /// Declared distance metric.
+    pub metric: &'a str,
+    /// Effective (leading-prefix) dimension.
+    pub effective_dimension: u32,
+    /// Declared stored scalar type.
+    pub dtype: &'a str,
+    /// Prefix postprocessing for the effective space.
+    pub postprocessing: &'a str,
+    /// Selected retrieval branch.
+    pub retrieval_policy: &'a str,
+    /// Source-verification mode.
+    pub source_mode: &'a str,
+    /// RDF 1.2 term kind of the corpus rows (both query and candidate columns):
+    /// `iri`, `triple-term`, or `literal`.
+    pub term_kind: &'a str,
+    /// Ordered-prefix row limit pushed into the provider on each call.
+    pub per_call_limit: usize,
+    /// Deterministic operation-wide provider call budget.
+    pub max_calls: u64,
+    /// Deterministic operation-wide provider row budget.
+    pub max_rows: u64,
+}
+
+/// Mint a typed PURREMB-selection diagnostic (the sole first-party error substrate; a
+/// bare `String` error is banned by the Diag-substrate invariant).
+fn purremb_selection_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::PurrembSelectionInvalid {
+        detail: detail.into(),
+    })
+}
+
+/// Decode exactly 32 hex bytes into a raw identity array, failing closed on a
+/// wrong length or a non-hex character (a bad identity is a hard fail, never a
+/// silent reinterpretation).
+fn parse_identity_hex(label: &str, hex: &str) -> gmeow_errors::Result<[u8; 32]> {
+    let hex = hex.trim();
+    if hex.len() != 64 {
+        return Err(purremb_selection_err(format!(
+            "{label} identity must be 64 hex characters (32 bytes), got {}",
+            hex.len()
+        )));
+    }
+    let mut out = [0u8; 32];
+    for (index, byte) in out.iter_mut().enumerate() {
+        let start = index * 2;
+        let pair = hex
+            .get(start..start + 2)
+            .ok_or_else(|| purremb_selection_err(format!("{label} identity is truncated")))?;
+        *byte = u8::from_str_radix(pair, 16).map_err(|_| {
+            purremb_selection_err(format!("{label} identity has a non-hex character"))
+        })?;
+    }
+    Ok(out)
+}
+
+/// Parse the declared distance metric, rejecting anything the retrieval scan has
+/// no canonical scoring rule for.
+fn parse_metric(value: &str) -> gmeow_errors::Result<DistanceMetric> {
+    match value {
+        "cosine" => Ok(DistanceMetric::Cosine),
+        "negative-dot" => Ok(DistanceMetric::NegativeDot),
+        "squared-euclidean" => Ok(DistanceMetric::SquaredEuclidean),
+        other => Err(purremb_selection_err(format!(
+            "unknown metric '{other}' (expected cosine, negative-dot, or squared-euclidean)"
+        ))),
+    }
+}
+
+/// Parse the declared stored scalar type.
+fn parse_dtype(value: &str) -> gmeow_errors::Result<VectorDtype> {
+    match value {
+        "f32" => Ok(VectorDtype::F32),
+        "f64" => Ok(VectorDtype::F64),
+        other => Err(purremb_selection_err(format!(
+            "unknown dtype '{other}' (expected f32 or f64)"
+        ))),
+    }
+}
+
+/// Parse the effective-space prefix postprocessing policy.
+fn parse_postprocessing(value: &str) -> gmeow_errors::Result<PrefixPostprocessing> {
+    match value {
+        "none" => Ok(PrefixPostprocessing::None),
+        "deterministic-l2" => Ok(PrefixPostprocessing::DeterministicL2),
+        other => Err(purremb_selection_err(format!(
+            "unknown postprocessing '{other}' (expected none or deterministic-l2)"
+        ))),
+    }
+}
+
+/// Parse the selected retrieval branch.
+fn parse_retrieval_policy(value: &str) -> gmeow_errors::Result<RetrievalPolicy> {
+    match value {
+        "exact-full-space" => Ok(RetrievalPolicy::ExactFullSpace),
+        "matryoshka-prefix-then-rerank" => Ok(RetrievalPolicy::MatryoshkaPrefixThenRerank),
+        other => Err(purremb_selection_err(format!(
+            "unknown retrieval policy '{other}' (expected exact-full-space or \
+             matryoshka-prefix-then-rerank)"
+        ))),
+    }
+}
+
+/// Parse the source-verification mode.
+fn parse_source_mode(value: &str) -> gmeow_errors::Result<SourceVerificationMode> {
+    match value {
+        "exact" => Ok(SourceVerificationMode::Exact),
+        "certified" => Ok(SourceVerificationMode::Certified),
+        other => Err(purremb_selection_err(format!(
+            "unknown source-verification mode '{other}' (expected exact or certified)"
+        ))),
+    }
+}
+
+/// Resolve the `--term-kind` selector to the corpus's RDF 1.2 column kind, applied to
+/// both the query and candidate columns. A `triple-term` corpus is queried with a
+/// `<<( s p o )>>` goal term; `literal` selects any-datatype literal targets.
+fn parse_term_kind(value: &str) -> gmeow_errors::Result<ColumnKind> {
+    match value {
+        "iri" => Ok(ColumnKind::Iri),
+        "triple-term" => Ok(ColumnKind::TripleTerm),
+        "literal" => Ok(ColumnKind::Literal { datatype: None }),
+        other => Err(purremb_selection_err(format!(
+            "unknown term kind '{other}' (expected iri, triple-term, or literal)"
+        ))),
+    }
+}
+
+/// Lowercase hex of a 32-byte identity, for annotation/space rendering.
+fn purremb_hex32(bytes: &[u8; 32]) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(64);
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
+}
+
+/// Build the fully validated [`PurrembSelection`] from the declared hex/enum
+/// inputs, failing closed on any malformed identity or unknown code.
+fn purremb_selection(args: &PurrembHybridQuery<'_>) -> gmeow_errors::Result<PurrembSelection> {
+    let target_set = TargetSetId::from_raw(parse_identity_hex("target-set", args.target_set)?);
+    let family = FamilyId::from_raw(parse_identity_hex("family", args.family)?);
+    let vector_space =
+        VectorSpaceId::from_raw(parse_identity_hex("vector-space", args.vector_space)?);
+    let matrix = MatrixId::from_raw(parse_identity_hex("matrix", args.matrix)?);
+    let projection = match args.projection {
+        None => None,
+        Some(hex) => Some(ProjectionId::from_raw(parse_identity_hex(
+            "projection",
+            hex,
+        )?)),
+    };
+    Ok(PurrembSelection {
+        target_set,
+        family,
+        vector_space,
+        matrix,
+        projection,
+        metric: parse_metric(args.metric)?,
+        effective_dimension: args.effective_dimension,
+        postprocessing: parse_postprocessing(args.postprocessing)?,
+        dtype: parse_dtype(args.dtype)?,
+        policy: parse_retrieval_policy(args.retrieval_policy)?,
+    })
+}
+
+/// The asserted-fact annotation source for the space-tagged algebra: an ordinary
+/// asserted RDF fact carries no vector-space score, so it maps to the algebra's
+/// multiplicative identity (`None`) and stays neutral in the fold. Only the
+/// PURREMB provider's retrieved tuples contribute a space-tagged distance.
+fn purremb_unscored(_: AnnotationFactRef<'_>) -> Option<SpaceTaggedScore> {
+    None
+}
+
+/// `gmeow hybrid-query --purremb ... --source ...` — the verified-PURREMB
+/// retrieval mode. Opens and fully verifies a `.purremb` artifact against its
+/// exact source pack (verify-once + source-pack certify), validates the declared
+/// selection, registers a QUERY-SCOPED nearest-neighbour relation provider whose
+/// retrieved rows are RDF 1.2 identities, and drives the same annotated Datalog
+/// dispatch as the table mode — but under the space-tagged retrieval algebra
+/// ([`VectorSpaceScopedAlgebra`], element [`SpaceTaggedScore`]) that carries the
+/// metric distance in its own annotation dimension and refuses a cross-space
+/// conjunction without a licensing correspondence.
+///
+/// Prints every resolved answer binding (with its space-tagged distance), the
+/// standard query receipt (contributing provider identities + per-invocation
+/// evidence), AND the full PURREMB retrieval receipt naming every contributing
+/// PURREMB identity. A verification, selection, profile, or provider failure —
+/// or a declared incompleteness — prints a diagnostic to stderr and returns a
+/// NON-ZERO exit; it never renders as an empty completed answer.
+pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'_>) -> i32 {
+    let selection = match purremb_selection(args) {
+        Ok(selection) => selection,
+        Err(detail) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB selection: {detail}"),
+            );
+        }
+    };
+    let source_verification = match parse_source_mode(args.source_mode) {
+        Ok(mode) => mode,
+        Err(detail) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB selection: {detail}"),
+            );
+        }
+    };
+    let term_kind = match parse_term_kind(args.term_kind) {
+        Ok(kind) => kind,
+        Err(detail) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB selection: {detail}"),
+            );
+        }
+    };
+    let policy = selection.policy;
+
+    // The caller owns these byte buffers for the whole dispatch: the binding
+    // borrows them, and the provider borrows the binding, so both locals must
+    // outlive `providers` and the dispatch call below.
+    let artifact_bytes = match read_bytes(reporter, args.purremb) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let source_bytes = match read_bytes(reporter, args.source) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+
+    let binding = match PurrembBinding::open(
+        &artifact_bytes,
+        &source_bytes,
+        selection,
+        source_verification,
+    ) {
+        Ok(binding) => binding,
+        Err(error) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("PURREMB artifact did not verify: {error}"),
+            );
+        }
+    };
+
+    // The generation IRI folds the pinned artifact root and the explicit
+    // selection so a differing policy/source-mode is never cache-aliased.
+    let generation_iri = purremb_generation_iri(
+        args.generation_base,
+        binding.artifact_root_hex(),
+        policy,
+        source_verification,
+    );
+
+    let algebra = VectorSpaceScopedAlgebra::with_cross_space_refusal(BTreeSet::new());
+    let algebra_iri = TupleAnnotationAlgebra::identity(&algebra).to_owned();
+    let ordering = match RelationOrdering::new(
+        format!("{}/order", args.relation),
+        RelationOrderDirection::Ascending,
+    ) {
+        Ok(ordering) => ordering,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid provider ordering contract: {e}"),
+            );
+        }
+    };
+    let descriptor = match purremb_descriptor(
+        args.provider_iri,
+        generation_iri,
+        args.model_iri,
+        args.relation,
+        // Both slots carry the corpus term kind: `resolve_mode` chooses the candidate
+        // slot per call by bound-ness, so whichever slot is the candidate must gate the
+        // emitted target kind correctly.
+        vec![term_kind.clone(), term_kind],
+        RelationAnnotationDimension::Distance,
+        algebra_iri,
+        ordering,
+    ) {
+        Ok(descriptor) => descriptor,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB provider descriptor: {e}"),
+            );
+        }
+    };
+
+    // Each computed retrieval score becomes a single-space score element in the
+    // query algebra: the metric distance tagged with the effective vector space
+    // it was computed in and the metric it was computed under.
+    let annotate = Box::new(|score: RetrievalScore| {
+        SpaceTaggedScore::single(
+            score.distance,
+            VectorSpaceId::from_raw(score.vector_space),
+            score.metric_code,
+        )
+    });
+    let provider = match PurrembRetrievalProvider::new(binding, descriptor, annotate) {
+        Ok(provider) => provider,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("PURREMB provider contract rejected: {e}"),
+            );
+        }
+    };
+
+    let registration = match RelationProviderRegistration::new(
+        provider.descriptor().clone(),
+        args.per_call_limit,
+        &provider,
+    ) {
+        Ok(registration) => registration,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid PURREMB provider registration: {e}"),
+            );
+        }
+    };
+    let budget = match RelationProviderBudget::new(args.max_calls, args.max_rows) {
+        Ok(budget) => budget,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid provider budget: {e}"),
+            );
+        }
+    };
+    let never_cancelled = NeverCancelled;
+    let providers = match QueryRelationProviders::new(vec![registration], budget, &never_cancelled)
+    {
+        Ok(providers) => providers,
+        Err(e) => {
+            return fail(
+                reporter,
+                PURREMB_DIAG_CODE,
+                format!("invalid provider set: {e}"),
+            );
+        }
+    };
+
+    // The ordinary asserted RDF facts + the query program, exactly as the table
+    // mode loads them.
+    let store = match load_hybrid_query_facts(reporter, args.facts) {
+        Ok(store) => store,
+        Err(code) => return code,
+    };
+    let source =
+        match WorldFactSnapshot::from_world(&store, HYBRID_QUERY_WORLD, HYBRID_QUERY_PROFILE) {
+            Ok(source) => source,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.hybrid-query.snapshot",
+                    format!("cannot snapshot the query world: {e}"),
+                );
+            }
+        };
+    let program_src = match std::fs::read_to_string(args.program) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("cannot read {}: {e}", args.program.display()),
+            );
+        }
+    };
+    let program = match parse_query_program(&program_src) {
+        Ok(program) => program,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.hybrid-query.program",
+                format!("cannot parse query program: {e}"),
+            );
+        }
+    };
+
+    // The space-tagged algebra makes `⊗` partial (cross-space refusal), so its
+    // admission contract discloses that declared deviation, certified across
+    // every structural query class the program could inhabit.
+    let contract = algebra.annotation_contract([
+        AnnotationQueryClass::PositiveAcyclic,
+        AnnotationQueryClass::PositiveRecursive,
+        AnnotationQueryClass::PositiveNaryAcyclic,
+        AnnotationQueryClass::PositiveNaryRecursive,
+        AnnotationQueryClass::StratifiedNaf,
+        AnnotationQueryClass::WellFounded,
+        AnnotationQueryClass::StableModel,
+        AnnotationQueryClass::ExistentialChase,
+    ]);
+    let request = RelationAnnotationRequest::new(
+        AnnotationRequest::new(&algebra, &contract, purremb_unscored),
+        &providers,
+    );
+    let result = dispatch_query_annotated_with_relations(
+        &source,
+        HYBRID_QUERY_WORLD,
+        &program,
+        HYBRID_QUERY_PROFILE,
+        &Budget::default(),
+        request,
+    );
+
+    match result {
+        Ok(result) => {
+            for answer in &result.answer.answers {
+                let rendered: Vec<String> = answer
+                    .binding
+                    .iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect();
+                let annotation = &answer.annotation;
+                let spaces: Vec<String> = annotation.spaces.iter().map(purremb_hex32).collect();
+                println!(
+                    "answer {} annotation-distance={} metric-code={} spaces={}",
+                    if rendered.is_empty() {
+                        "(true)".to_owned()
+                    } else {
+                        rendered.join(", ")
+                    },
+                    annotation.score.distance(),
+                    annotation.metric_code,
+                    if spaces.is_empty() {
+                        "(none)".to_owned()
+                    } else {
+                        spaces.join(",")
+                    },
+                );
+            }
+            println!("status {:?}", result.answer.status);
+            println!(
+                "receipt query-contract {}",
+                result.receipt.query_contract_hash
+            );
+            println!(
+                "receipt provider-manifest {}",
+                result.receipt.provider_manifest_hash
+            );
+            println!("receipt engine {}", result.receipt.engine_descriptor_hash);
+            println!("receipt hash {}", result.receipt.receipt_hash);
+            for (provider_iri, generation) in &result.receipt.contributing_providers {
+                println!("receipt contributing-provider {provider_iri} generation {generation}");
+            }
+            for invocation in &result.receipt.invocations {
+                println!(
+                    "receipt invocation relation={} provider={} model={} generation={} \
+                     status={:?} request={} response-hash={} delivered={} admitted={} \
+                     contributed={}",
+                    invocation.relation_iri,
+                    invocation.provider_iri,
+                    invocation.model_iri,
+                    invocation.artifact_generation,
+                    invocation.status,
+                    invocation.request_iri,
+                    invocation.response_hash.as_deref().unwrap_or("-"),
+                    invocation.delivered_rows,
+                    invocation.admitted_rows,
+                    invocation.contributed,
+                );
+            }
+            // The PURREMB retrieval receipt: every contributing PURREMB identity.
+            let receipt = provider.retrieval_receipt();
+            println!(
+                "purremb-receipt artifact-root={} source-digest={} certified-rdf={} \
+                 source-mode={} target-set={} matrix={} projection={} vector-space={} \
+                 family={} metric={} metric-code={} dimension={} postprocessing={} \
+                 policy={} recall={} loss={} index-guard={}",
+                receipt.artifact_root,
+                receipt.source_exact_digest,
+                receipt.certified_rdf_digest,
+                receipt.source_verification_mode,
+                receipt.target_set,
+                receipt.matrix,
+                receipt.projection.as_deref().unwrap_or("-"),
+                receipt.vector_space,
+                receipt.family,
+                receipt.metric_name,
+                receipt.metric_code,
+                receipt.effective_dimension,
+                receipt.postprocessing,
+                receipt.retrieval_policy,
+                receipt
+                    .recall
+                    .map(|r| r.to_string())
+                    .unwrap_or_else(|| "-".to_owned()),
+                receipt.loss,
+                receipt.index_guard.as_deref().unwrap_or("-"),
+            );
+            0
+        }
+        Err(RelationQueryError::Contract(e)) => fail(
+            reporter,
+            PURREMB_DIAG_CODE,
             format!("provider/algebra contract mismatch: {e}"),
         ),
         Err(RelationQueryError::Query {

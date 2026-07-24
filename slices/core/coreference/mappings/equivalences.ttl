@@ -20,83 +20,67 @@ gmeow:mapsetCoreference a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Universal identity/coreference alignments. GMEOW links entities to authority records by reference (authorityLink + SKOS match strength) and avoids owl:sameAs merge semantics for contested or standpoint-indexed claims." .
 
-gmeow:eqCoreference001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:authorityLink ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:sameAs ;
+gmeow:authorityLink skos:closeMatch schema:sameAs {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema:sameAs is a projection target for exact authority links; GMEOW's canonical data keeps authorityLink plus explicit skos:exactMatch/closeMatch strength." ;
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:comment "schema:sameAs is a projection target for exact authority links; GMEOW's canonical data keeps authorityLink plus explicit skos:exactMatch/closeMatch strength."
+|} .
 
-gmeow:eqCoreference002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:counterpartOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:alternateOf ;
+gmeow:counterpartOf skos:closeMatch prov:alternateOf {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "PROV alternateOf captures alternate entities presenting aspects of the same thing, without owl:sameAs identity collapse." ;
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:comment "PROV alternateOf captures alternate entities presenting aspects of the same thing, without owl:sameAs identity collapse."
+|} .
 
-gmeow:eqCoreference003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:versionOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isVersionOf ;
+gmeow:versionOf skos:closeMatch dcterms:isVersionOf {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqCoreference004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:editionOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isVersionOf ;
+gmeow:editionOf skos:closeMatch dcterms:isVersionOf {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "An edition is a work-version relation for Dublin Core consumers; GMEOW keeps editionOf distinct from generic versionOf." ;
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:comment "An edition is a work-version relation for Dublin Core consumers; GMEOW keeps editionOf distinct from generic versionOf."
+|} .
 
-gmeow:eqCoreference005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:supersedes ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:replaces ;
+gmeow:supersedes skos:closeMatch dcterms:replaces {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqCoreference006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:authorityLink ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject mads:hasCloseExternalAuthority ;
+gmeow:authorityLink skos:exactMatch mads:hasCloseExternalAuthority {|
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "both relate a local description to a close external authority record, by reference (PROV activity alignment phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role.";
-    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+    gmeow:comment "both relate a local description to a close external authority record, by reference (PROV activity alignment phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:supersedes ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:replaces ;
+gmeow:supersedes skos:closeMatch dcterms:replaces {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms replaces — a related resource that is superseded by the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms replaces — a related resource that is superseded by the described resource"
+|} .
 
-gmeow:eqDcTerms022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:versionOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isVersionOf ;
+gmeow:versionOf skos:closeMatch dcterms:isVersionOf {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms isVersionOf — a related resource of which the described resource is a version" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms isVersionOf — a related resource of which the described resource is a version"
+|} .
 
 # --------------------------------------------------------------------------- #
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #
 # imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
 # (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
-# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
-# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# assert_gates in the logic-compile stage. The prose-rung alignment cell graft   #
+# rows are removed: the rung is a gate-enforced correspondence law, not a        #
 # comment (Principle 17 — SSSOM is its lossy projection).                        #
 # --------------------------------------------------------------------------- #

@@ -121,8 +121,9 @@ The authoring source is a GMEOW-grounded Turtle frontend (vocabulary in
 `dsl/mappings/vocabulary.ttl`, all in the `gmeow:` namespace, a spec layer never
 reasoned over):
 
-- `slices/<group>/<name>/mappings/equivalences.ttl` — slice-owned
-  `gmeow:TermEquivalence` cells, one per SSSOM row.
+- `slices/<group>/<name>/mappings/equivalences.ttl` — slice-owned native alignment
+  cells (a reified `skos:*Match`/`owl:equivalent*` statement carrying
+  `gmeow:sssomFile`), one per SSSOM row.
 - `slices/<group>/<name>/mappings/projections-<profile>.ttl` — slice-owned
   `gmeow:ProjectionMapping` cells.
 - `dsl/mappings/projections/*.ttl` — shared or cross-slice projection enrichment.
@@ -191,13 +192,15 @@ reference. There are two cell types.
 slice-local `mappings/equivalences.ttl`:
 
 ```turtle
-ex:eqPersonFoaf a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate owl:equivalentClass ;   # or skos:exactMatch / closeMatch …
-    gmeow:alignObject   foaf:Person ;
+# The native RDF-1.2 form: the match relation is asserted directly on the term, and
+# the SSSOM side-data rides the statement's reifier. The predicate is one of
+# skos:*Match / owl:equivalent* / owl:sameAs / rdfs:sub*Of.
+gmeow:Person owl:equivalentClass foaf:Person {|
     gmeow:confidence    1.0 ;
     gmeow:objectLabel   "person" ;                # optional → object_label column
-    gmeow:sssomFile     "gmeow-classes.sssom.tsv" .
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:sssomFile     "gmeow-classes.sssom.tsv"
+|} .
 ```
 
 **A projection (a lossy downcast)** → an EDOAL cell + FnO function + a SPARQL

@@ -122,7 +122,7 @@ extension are the downstream consumers.
 
 Reality-monitoring source values (Johnson's source-monitoring framework) and the as-if
 attitudes (Walton's *mimesis as make-believe*) are academic frameworks with **no stable,
-resolvable RDF namespace**, so they are named in prose rather than as `TermEquivalence`
+resolvable RDF namespace**, so they are named in prose rather than as native alignment cell
 rows. One genuine loose alignment is recorded: `gmeow:originGenerated` `skos:relatedMatch`
 PROV-O's `prov:Generation` — content whose origin is a generative activity — a deliberately
 low-confidence relatedMatch (PROV models activity-provenance, not a content-origin value).

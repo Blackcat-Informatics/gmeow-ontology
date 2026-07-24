@@ -1382,6 +1382,9 @@ fn lower_term(
                 .unwrap_or(c);
             Ok(dag.intern_leaf(TermValue::iri(iri.to_owned())))
         }
+        // A ground quoted-triple lowers to a single interned leaf carrying the
+        // reconstructed `TermValue::Triple` (it is a value, not a compound function term).
+        QTerm::Triple { .. } => Ok(dag.intern_leaf(super::magic::qterm_to_value(term)?)),
         QTerm::Num(n) => Ok(dag.intern_leaf(TermValue::typed_literal(
             n.to_string(),
             crate::physical::XSD_INTEGER,

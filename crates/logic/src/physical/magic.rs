@@ -157,6 +157,35 @@ pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
         // full-FOL resolver BEFORE this lowering. Should one ever arrive here it is a
         // non-binary shape the flat store cannot represent — a typed gap, never a panic.
         QTerm::Struct(_) => Err(UnsupportedKind::NonBinaryAtom),
+        // A ground RDF 1.2 quoted-triple goal argument lowers to a flat constant literal
+        // carrying the reconstructed `TermValue::Triple`, so it unifies byte-identically
+        // with a provider-returned or fact-carried triple term and reaches a provider as a
+        // bound query term.
+        QTerm::Triple { .. } => Ok(EvalTerm::ConstLit(qterm_to_value(t)?)),
+    }
+}
+
+/// Lower a **ground** `QTerm` to its `purrdf::TermValue` (an IRI, a literal, or a nested
+/// quoted-triple). Used to materialize a `QTerm::Triple` goal argument. A parser-produced
+/// ground triple always lowers cleanly (the parser validates IRI predicate + ground
+/// components); a malformed component (only reachable by constructing a `QTerm` directly,
+/// bypassing the parser) is a non-representable shape, reported as the same typed gap the
+/// `Struct` arm uses rather than a panic.
+pub(crate) fn qterm_to_value(t: &QTerm) -> Result<TermValue, UnsupportedKind> {
+    match t {
+        QTerm::Const(c) => {
+            crate::term_codec::decode_term(c).map_err(|_| UnsupportedKind::NonBinaryAtom)
+        }
+        QTerm::Num(n) => Ok(TermValue::typed_literal(
+            n.to_string(),
+            crate::physical::XSD_INTEGER,
+        )),
+        QTerm::Triple { s, p, o } => Ok(TermValue::Triple {
+            s: Box::new(qterm_to_value(s)?),
+            p: Box::new(qterm_to_value(p)?),
+            o: Box::new(qterm_to_value(o)?),
+        }),
+        QTerm::Var(_) | QTerm::Struct(_) => Err(UnsupportedKind::NonBinaryAtom),
     }
 }
 
@@ -165,9 +194,10 @@ pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
 fn prefix_builtin_term(t: &QTerm) -> QTerm {
     match t {
         QTerm::Var(v) => QTerm::Var(format!("?{v}")),
-        // A structured term never reaches the flat builtin surface (it is routed to the
-        // full-FOL resolver upstream); carry it unchanged for exhaustiveness.
-        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
+        // A structured or quoted-triple term never reaches the flat builtin operand surface
+        // (arithmetic operands are `Var`/`Num`; a triple term is a type error caught by the
+        // builtin evaluator, not here); carry it unchanged for exhaustiveness.
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => t.clone(),
     }
 }
 
@@ -1086,6 +1116,9 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
     // The goal's constant constraints (by position) and variable names (by position).
     let want_const = |t: &QTerm| match t {
         QTerm::Const(c) => Some(c.clone()),
+        // A ground quoted-triple is a flat constant constraint: its canonical
+        // `<<( s p o )>>` surface must equal the matched fact position's surface.
+        QTerm::Triple { .. } => qterm_to_value(t).ok().map(|v| term_display(&v)),
         // A structured argument is not a flat constant constraint (structured goals route to
         // the full-FOL resolver, never here).
         QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,

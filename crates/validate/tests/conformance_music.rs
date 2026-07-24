@@ -26,28 +26,17 @@ fn gm(local: &str) -> String {
 #[test]
 fn afo_timbre_mapping_exists() {
     let g = GraphStore::parse_ttl_file(&repo_root().join(MUSIC_EQ_REL));
-    let eq = gm("eqMu039");
-    assert!(
-        g.has(Some(&eq), Some(RDF_TYPE), Some(&gm("TermEquivalence"))),
-        "gmeow:eqMu039 must be a gmeow:TermEquivalence"
-    );
+    // The alignment is now a native RDF-1.2 cell that ASSERTS its base match triple:
+    //   gmeow:TimbreDescriptor skos:closeMatch afo:AudioFeature {| gmeow:sssomFile … |} .
+    // (the legacy gmeow:eqMu039 gmeow:TermEquivalence cell node with alignSubject/Predicate/
+    // Object was deleted). Assert the asserted base triple directly.
     assert!(
         g.has(
-            Some(&eq),
-            Some(&gm("alignPredicate")),
-            Some(SKOS_CLOSE_MATCH)
+            Some(&gm("TimbreDescriptor")),
+            Some(SKOS_CLOSE_MATCH),
+            Some(AFO_AUDIO_FEATURE)
         ),
-        "gmeow:eqMu039 alignPredicate must be skos:closeMatch"
-    );
-    let objects = g.objects(&eq, &gm("alignObject"));
-    assert!(
-        objects.contains(AFO_AUDIO_FEATURE),
-        "gmeow:eqMu039 alignObject must include the AFO AudioFeature; got {objects:?}"
-    );
-    let subjects = g.objects(&eq, &gm("alignSubject"));
-    assert!(
-        subjects.contains(&gm("TimbreDescriptor")),
-        "gmeow:eqMu039 alignSubject must include gmeow:TimbreDescriptor; got {subjects:?}"
+        "the gmeow:TimbreDescriptor skos:closeMatch AFO AudioFeature alignment must be present"
     );
 }
 
