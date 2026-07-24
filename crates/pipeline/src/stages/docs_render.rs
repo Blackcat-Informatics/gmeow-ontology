@@ -1079,6 +1079,23 @@ mod tests {
             has_vendored_asset,
             "docs_source_files must include the vendored crates/docs/assets/** site assets"
         );
+        // F4/F5: each interactive engine's native↔wasm witness-ATTESTATION is itself a
+        // declared consumed input of this render leaf (it lives under crates/docs/assets/**
+        // and is walked here), so re-blessing an attestation busts the docs cache and the
+        // interactive preservation-kind is causally downstream of the proven parity — not
+        // a decorative gate.
+        for witness in [
+            "crates/docs/assets/purrdf/WITNESS.describe.nt",
+            "crates/docs/assets/validate/WITNESS.validate.json",
+            "crates/docs/assets/reason/WITNESS.reason.nq",
+            "crates/docs/assets/gmn/WITNESS.gmn1.txt",
+        ] {
+            assert!(
+                files.iter().any(|p| p.ends_with(witness)),
+                "docs_source_files must consume the interactive witness-attestation {witness} \
+                 (the F4/F5 attestation→capability dataflow edge)"
+            );
+        }
     }
 
     /// A `stage-validate` + `stage-compile-logic` + `stage-mappings` upstream

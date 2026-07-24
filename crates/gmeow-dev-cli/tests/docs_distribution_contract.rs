@@ -580,7 +580,7 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
     }];
     let gts_bytes = synthetic_gts_with_dcat_query();
     let manifest =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
+        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &[], &gts_bytes)
             .expect("build the real docs distribution manifest");
     let manifest_dir = docs_dir.join("manifest");
     std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");

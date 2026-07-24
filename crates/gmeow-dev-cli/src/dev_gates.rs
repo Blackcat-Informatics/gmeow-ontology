@@ -147,6 +147,21 @@ pub fn crate_check() -> i32 {
             .with_tool("docs-loss-lattice"),
         );
     }
+    // F4/F5 attestation gate: no documentation format may REPRESENT an interactive
+    // capability (LiveSparql / Interactivity / LiveReasoning) unless every vendored
+    // engine backing it carries a present, current native↔wasm witness-attestation — so
+    // the interactive preservation-kind is causally downstream of PROVEN native≡wasm
+    // parity, never a decorative self-claim. A missing/stale attestation HARD-FAILS here.
+    for message in gmeow_docs::vendored_asset::check_capability_attestations() {
+        report.add_finding(
+            Finding::new(
+                Severity::Error,
+                "interactive-capability-attestation-missing",
+                message,
+            )
+            .with_tool("capability-attestation-gate"),
+        );
+    }
     // Vendored-corpus license guard: every `crates/*/tests/vendored/*/corpus.json` descriptor
     // must classify IMPORT_OK under `gmeow_license::policy_for_vendored_corpus`, so an
     // unattributed/unfenced (or otherwise restrictive) vendored corpus hard-fails on-gate

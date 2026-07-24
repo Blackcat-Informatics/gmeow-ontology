@@ -48,7 +48,9 @@ use purrdf::{RdfDataset, RdfTerm};
 use crate::error::DocsDistribution as DocsDistributionError;
 use crate::projections::{TagMap, project_graph};
 use crate::stages::carrier::GRAPH_DISTRIBUTION_CATALOG;
-use crate::stages::distribution_catalog::{dist_iri, iri, triple, triple_lit};
+use crate::stages::distribution_catalog::{
+    dist_iri, iri, site_sub_asset_iri, triple, triple_lit,
+};
 
 fn err(message: impl Into<String>) -> Diag {
     Diag::of_kind(DocsDistributionError {
@@ -266,41 +268,57 @@ pub struct DistributionEntry {
 /// entry, each member node BEING its distribution-catalog subject
 /// ([`dist_iri`]) and carrying `gmeow:sourceLocation`, `gmeow:contentDigest`, and
 /// `gmeow:artifactMediaType`.
-fn release_instance_ntriples(entries: &[DistributionEntry]) -> String {
-    let mut lines: Vec<String> = Vec::with_capacity(entries.len() * 4 + 1);
+fn release_instance_ntriples(
+    entries: &[DistributionEntry],
+    sub_asset_entries: &[DistributionEntry],
+) -> String {
+    let mut lines: Vec<String> = Vec::with_capacity((entries.len() + sub_asset_entries.len()) * 4 + 1);
     lines.push(triple(
         RELEASE_CORPUS_IRI,
         RDF_TYPE,
         &iri(GMEOW_NS, "Corpus"),
     ));
+    // Each top-level distribution member IS its distribution-catalog subject.
     for entry in entries {
-        let member = dist_iri(&entry.slug);
-        lines.push(triple(
-            RELEASE_CORPUS_IRI,
-            &iri(GMEOW_NS, "corpusMember"),
-            &member,
-        ));
-        lines.push(triple_lit(
-            &member,
-            &iri(GMEOW_NS, "sourceLocation"),
-            &entry.rel_path,
-        ));
-        lines.push(triple_lit(
-            &member,
-            &iri(GMEOW_NS, "contentDigest"),
-            &entry.blake3,
-        ));
-        lines.push(triple_lit(
-            &member,
-            &iri(GMEOW_NS, "artifactMediaType"),
-            &entry.media_type,
-        ));
+        emit_member(&mut lines, dist_iri(&entry.slug), entry);
+    }
+    // Each `site` sub-asset (the vendored interactive engines + the browser bundle) is a
+    // corpus member keyed by its site_sub_asset subject, so its per-release content
+    // digest rides HERE — the release-instance manifest — and NOT in the carrier catalog
+    // (which stays digest-free; a render-derived digest there is a non-converging fixpoint).
+    for entry in sub_asset_entries {
+        emit_member(&mut lines, site_sub_asset_iri(&entry.slug), entry);
     }
     lines.sort();
     lines.dedup();
     let mut out = lines.join("\n");
     out.push('\n');
     out
+}
+
+/// Emit one corpus-member's four release-instance triples (membership, source location,
+/// content digest, media type) onto `member`.
+fn emit_member(lines: &mut Vec<String>, member: String, entry: &DistributionEntry) {
+    lines.push(triple(
+        RELEASE_CORPUS_IRI,
+        &iri(GMEOW_NS, "corpusMember"),
+        &member,
+    ));
+    lines.push(triple_lit(
+        &member,
+        &iri(GMEOW_NS, "sourceLocation"),
+        &entry.rel_path,
+    ));
+    lines.push(triple_lit(
+        &member,
+        &iri(GMEOW_NS, "contentDigest"),
+        &entry.blake3,
+    ));
+    lines.push(triple_lit(
+        &member,
+        &iri(GMEOW_NS, "artifactMediaType"),
+        &entry.media_type,
+    ));
 }
 
 /// Build the release-time DCAT distribution manifest: the [`release_instance_ntriples`]
@@ -314,9 +332,10 @@ fn release_instance_ntriples(entries: &[DistributionEntry]) -> String {
 /// manifest.
 pub fn build_docs_distribution_manifest(
     entries: &[DistributionEntry],
+    sub_asset_entries: &[DistributionEntry],
     gts_bytes: &[u8],
 ) -> Result<String, Diag> {
-    let instance_nt = release_instance_ntriples(entries);
+    let instance_nt = release_instance_ntriples(entries, sub_asset_entries);
 
     let queries = crate::bundle_blobs::bundled_queries(gts_bytes)
         .map_err(|e| err(format!("load the bundled projection queries: {e}")))?;
@@ -791,8 +810,8 @@ mod tests {
     fn manifest_is_deterministic() {
         let gts_bytes = synthetic_gts_with_dcat_query();
         let entries = sample_entries();
-        let m1 = build_docs_distribution_manifest(&entries, &gts_bytes).expect("manifest 1");
-        let m2 = build_docs_distribution_manifest(&entries, &gts_bytes).expect("manifest 2");
+        let m1 = build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("manifest 1");
+        let m2 = build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("manifest 2");
         assert_eq!(
             m1, m2,
             "the release distribution manifest must be byte-reproducible"
@@ -803,7 +822,7 @@ mod tests {
     fn manifest_carries_a_checksum_and_catalog_link_per_entry() {
         let gts_bytes = synthetic_gts_with_dcat_query();
         let entries = sample_entries();
-        let manifest = build_docs_distribution_manifest(&entries, &gts_bytes).expect("manifest");
+        let manifest = build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("manifest");
 
         assert!(
             manifest.contains("http://spdx.org/rdf/terms#checksumValue"),
@@ -845,7 +864,7 @@ mod tests {
             None,
         )
         .expect("frame a GTS snapshot with no queries-archive blob");
-        let err = build_docs_distribution_manifest(&sample_entries(), &gts_bytes)
+        let err = build_docs_distribution_manifest(&sample_entries(), &[], &gts_bytes)
             .expect_err("a bundle with no queries-archive blob must hard-fail");
         assert!(
             format!("{err}").contains("dcat.rq"),
@@ -854,8 +873,39 @@ mod tests {
     }
 
     #[test]
+    fn site_sub_asset_digests_ride_the_release_instance_on_the_sub_asset_subject() {
+        use crate::stages::distribution_catalog::site_sub_asset_iri;
+        let sub_assets = vec![DistributionEntry {
+            slug: "reason-wasm".to_string(),
+            rel_path: "dist/gmeow-docs/site/assets/reason/".to_string(),
+            blake3: "blake3:deadbeef".to_string(),
+            media_type: "application/wasm".to_string(),
+        }];
+        let nt = release_instance_ntriples(&sample_entries(), &sub_assets);
+        let node = site_sub_asset_iri("reason-wasm");
+        // The sub-asset digest hangs off its site_sub_asset subject (NOT a dist_iri),
+        // as a corpus member — so dcat.rq projects it exactly like a distribution.
+        assert!(
+            nt.contains(&triple(
+                RELEASE_CORPUS_IRI,
+                &iri(GMEOW_NS, "corpusMember"),
+                &node
+            )),
+            "sub-asset must be a corpus member of the release: {nt}"
+        );
+        assert!(
+            nt.contains(&triple_lit(
+                &node,
+                &iri(GMEOW_NS, "contentDigest"),
+                "blake3:deadbeef"
+            )),
+            "sub-asset content digest must ride on its site_sub_asset subject: {nt}"
+        );
+    }
+
+    #[test]
     fn release_instance_ntriples_is_sorted_and_deduped() {
-        let nt = release_instance_ntriples(&sample_entries());
+        let nt = release_instance_ntriples(&sample_entries(), &[]);
         let lines: Vec<&str> = nt.lines().collect();
         let mut sorted = lines.clone();
         sorted.sort();
@@ -956,7 +1006,7 @@ mod tests {
         }];
         let gts_bytes = synthetic_gts_with_dcat_query();
         let manifest =
-            build_docs_distribution_manifest(&entries, &gts_bytes).expect("build manifest");
+            build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("build manifest");
         let manifest_dir = docs_dir.join("manifest");
         std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
         std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");
@@ -1014,7 +1064,7 @@ mod tests {
         }];
         let gts_bytes = synthetic_gts_with_dcat_query();
         let manifest =
-            build_docs_distribution_manifest(&entries, &gts_bytes).expect("build manifest");
+            build_docs_distribution_manifest(&entries, &[], &gts_bytes).expect("build manifest");
         let manifest_dir = docs_dir.join("manifest");
         std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
         std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");

@@ -30,6 +30,8 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use crate::formats::{Capability, DocFormat, format_capabilities};
+
 /// The digest-manifest filename pinning the vendored bytes, in every asset dir.
 pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
 
@@ -136,6 +138,48 @@ impl VendoredWasmAsset {
         let mut out = lines.join("\n");
         out.push('\n');
         out
+    }
+
+    /// Whether this asset's committed native↔wasm witness-attestation is present AND
+    /// current (F4/F5). Current means: the attestation file exists and is non-empty,
+    /// AND the on-disk vendored bytes match the pinned `DIGESTS.blake3` — so the engine
+    /// the witness proved byte-equivalent to native is EXACTLY the engine that ships.
+    ///
+    /// An asset with no `witness_attestation` (a non-witnessed asset) is vacuously OK.
+    /// Returns a message describing the first failure, so a missing/stale attestation is
+    /// a reportable violation rather than a silent gap.
+    pub fn attestation_status(&self) -> Result<(), String> {
+        let Some(witness) = self.witness_attestation else {
+            return Ok(());
+        };
+        let dir = self.asset_dir();
+        match std::fs::read(dir.join(witness)) {
+            Ok(bytes) if !bytes.is_empty() => {}
+            Ok(_) => {
+                return Err(format!(
+                    "witness attestation '{witness}' for engine '{}' is empty",
+                    self.name
+                ));
+            }
+            Err(e) => {
+                return Err(format!(
+                    "witness attestation '{witness}' for engine '{}' is missing \
+                     (run make {}): {e}",
+                    self.name, self.refresh_target
+                ));
+            }
+        }
+        let committed = std::fs::read_to_string(dir.join(DIGEST_MANIFEST)).map_err(|e| {
+            format!("{DIGEST_MANIFEST} for engine '{}' is missing: {e}", self.name)
+        })?;
+        if committed != self.current_manifest() {
+            return Err(format!(
+                "engine '{}' drifted from {DIGEST_MANIFEST}: the witness attestation \
+                 '{witness}' no longer describes the shipped bytes (re-run make {})",
+                self.name, self.refresh_target
+            ));
+        }
+        Ok(())
     }
 
     /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
@@ -424,3 +468,59 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // gate the GMN transcode capability.
     witness_attestation: Some("WITNESS.gmn1.txt"),
 };
+
+/// The vendored engines whose native↔wasm witness-attestation backs each interactive
+/// capability (F4/F5). An interactive capability may be REPRESENTED by a format only if
+/// every backing engine's attestation is present + current — that is what makes the
+/// capability a realized, proven surface rather than a decorative self-claim:
+///
+/// * `LiveSparql` — the offline SPARQL playground runs on the purrdf engine.
+/// * `Interactivity` — the interactive widgets (playground + the Tier-1 validate
+///   buttons) run on purrdf + the validator.
+/// * `LiveReasoning` — the in-browser structured-DL chase + the GMN transcode run on the
+///   reasoner + the GMN codec.
+///
+/// The non-interactive capabilities (`SearchIndex`, `Diagrams`, `CrossLinkFidelity`) are
+/// not engine-backed, so they require no attestation.
+#[must_use]
+pub fn capability_backing_assets(cap: Capability) -> &'static [&'static VendoredWasmAsset] {
+    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET];
+    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &VALIDATE_ASSET];
+    const LIVE_REASONING: &[&VendoredWasmAsset] = &[&REASON_ASSET, &GMN_ASSET];
+    const NONE: &[&VendoredWasmAsset] = &[];
+    match cap {
+        Capability::LiveSparql => LIVE_SPARQL,
+        Capability::Interactivity => INTERACTIVITY,
+        Capability::LiveReasoning => LIVE_REASONING,
+        Capability::SearchIndex | Capability::Diagrams | Capability::CrossLinkFidelity => NONE,
+    }
+}
+
+/// The F4/F5 attestation gate: NO documentation format may REPRESENT an interactive
+/// capability unless every engine backing that capability carries a present, current
+/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). This
+/// makes the interactive `logic:preservationKind` causally downstream of PROVEN
+/// native≡wasm parity — a realized capability, not self-description — so a missing or
+/// stale attestation is a HARD FAIL that forbids the capability, never a silent drop.
+///
+/// Returns one message per (format, capability, engine) violation; an empty vector is a
+/// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
+#[must_use]
+pub fn check_capability_attestations() -> Vec<String> {
+    let mut errors = Vec::new();
+    for fmt in DocFormat::ALL {
+        for cap in format_capabilities(fmt).representable {
+            for asset in capability_backing_assets(cap) {
+                if let Err(e) = asset.attestation_status() {
+                    errors.push(format!(
+                        "format '{}' represents interactive capability '{}', but its backing \
+                         engine's witness-attestation is not current: {e}",
+                        fmt.slug(),
+                        cap.slug(),
+                    ));
+                }
+            }
+        }
+    }
+    errors
+}

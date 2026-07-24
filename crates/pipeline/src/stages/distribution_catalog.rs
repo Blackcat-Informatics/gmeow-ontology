@@ -109,6 +109,74 @@ impl SerializationDist {
     }
 }
 
+/// A `site` sub-asset: one of the vendored interactive engines or the browser bundle
+/// the site (and the packed mdbook) ships EXTERNALLY, content-addressed. These are
+/// SUB-ASSETS of the `site` distribution — never new top-level distributions — so they
+/// are NOT in [`declared_distribution_slugs`] and the eight-slug bijection is preserved.
+/// Their schema rows (family / consumer / media-type) ride here DIGEST-FREE; the
+/// per-release content digests live only in the `dist/` instance manifest
+/// ([`crate::docs_distribution`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum SiteSubAsset {
+    PurrdfWasm,
+    ValidateWasm,
+    ReasonWasm,
+    GmnWasm,
+    CoreBundle,
+}
+
+impl SiteSubAsset {
+    const ALL: [SiteSubAsset; 5] = [
+        SiteSubAsset::PurrdfWasm,
+        SiteSubAsset::ValidateWasm,
+        SiteSubAsset::ReasonWasm,
+        SiteSubAsset::GmnWasm,
+        SiteSubAsset::CoreBundle,
+    ];
+
+    fn slug(&self) -> &'static str {
+        match self {
+            SiteSubAsset::PurrdfWasm => "purrdf-wasm",
+            SiteSubAsset::ValidateWasm => "validate-wasm",
+            SiteSubAsset::ReasonWasm => "reason-wasm",
+            SiteSubAsset::GmnWasm => "gmn-wasm",
+            SiteSubAsset::CoreBundle => "core-bundle",
+        }
+    }
+
+    /// The wasm engines are `application/wasm`; the browser bundle is object-level
+    /// N-Quads text.
+    fn media_type(&self) -> &'static str {
+        match self {
+            SiteSubAsset::CoreBundle => "application/n-quads",
+            _ => "application/wasm",
+        }
+    }
+
+    /// The site-tree path (or directory prefix) the sub-asset's bytes ship at, so the
+    /// release-time digest producer content-addresses exactly what the catalog prices.
+    fn site_path_prefix(&self) -> &'static str {
+        match self {
+            SiteSubAsset::PurrdfWasm => "assets/purrdf/",
+            SiteSubAsset::ValidateWasm => "assets/validate/",
+            SiteSubAsset::ReasonWasm => "assets/reason/",
+            SiteSubAsset::GmnWasm => "assets/gmn/",
+            SiteSubAsset::CoreBundle => "assets/gmeow-core.nq",
+        }
+    }
+
+    /// A human label for the schema row.
+    fn label(&self) -> &'static str {
+        match self {
+            SiteSubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
+            SiteSubAsset::ValidateWasm => "vendored Tier-1 validator wasm engine",
+            SiteSubAsset::ReasonWasm => "vendored structured-DL reasoner wasm engine",
+            SiteSubAsset::GmnWasm => "vendored GMN-0/GMN-1 codec wasm engine",
+            SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
+        }
+    }
+}
+
 /// The doc-render family's per-format media type.
 fn doc_render_media_type(fmt: DocFormat) -> &'static str {
     match fmt {
@@ -183,6 +251,34 @@ fn family_iri(family: Family) -> String {
 
 fn loss_iri(slug: &str, cap_slug: &str) -> String {
     format!("{DISTRIBUTION_BASE}loss/{slug}/{cap_slug}")
+}
+
+/// The canonical catalog subject for a `site` sub-asset
+/// (`…/distribution/dist/site/sub-asset/<slug>`). `pub(crate)` so the release-time
+/// instance producer ([`crate::docs_distribution`]) hangs each sub-asset's
+/// `gmeow:contentDigest` off the SAME subject, never a re-derived string.
+pub(crate) fn site_sub_asset_iri(slug: &str) -> String {
+    format!("{}/sub-asset/{slug}", dist_iri(DocFormat::Site.slug()))
+}
+
+/// Every `site` sub-asset slug the catalog declares (the vendored interactive engines +
+/// the browser bundle). Exposed so the release-time instance producer prices the SAME
+/// set, and a contract gate can assert these are sub-assets of `site` — NOT members of
+/// the eight-slug distribution bijection.
+pub fn declared_site_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
+    SiteSubAsset::ALL.into_iter().map(|s| s.slug()).collect()
+}
+
+/// The `(slug, site-tree path prefix, media type)` pricing tuple for every `site`
+/// sub-asset, in a fixed order. The release-time digest producer (`gmeow-dev sync`)
+/// iterates this to content-address each sub-asset from the rendered site tree and hang
+/// its `gmeow:contentDigest` off the SAME [`site_sub_asset_iri`] subject the carrier
+/// catalog prices digest-free — the single authority for what a site sub-asset IS.
+pub fn site_sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str)> {
+    SiteSubAsset::ALL
+        .into_iter()
+        .map(|s| (s.slug(), s.site_path_prefix(), s.media_type()))
+        .collect()
 }
 
 fn capability_iri(cap_slug: &str) -> String {
@@ -349,6 +445,40 @@ fn emit_ntriples() -> Vec<u8> {
         ));
     }
 
+    // ── site sub-assets: the vendored interactive engines + the browser bundle ──
+    // First-class schema rows, DIGEST-FREE (the per-release content digests ride only in
+    // the `dist/` instance manifest). Hung off the `site` distribution via
+    // gmeow:hasSubAsset, so they are sub-assets — NOT top-level distributions — and the
+    // eight-slug bijection is untouched.
+    let site_dist = dist_iri(DocFormat::Site.slug());
+    for sub in SiteSubAsset::ALL {
+        let slug = sub.slug();
+        let node = site_sub_asset_iri(slug);
+        skeleton(
+            &mut lines,
+            &node,
+            &iri(GMEOW_NS, "SiteSubAsset"),
+            sub.label(),
+        );
+        lines.push(triple(&site_dist, &iri(GMEOW_NS, "hasSubAsset"), &node));
+        lines.push(triple_lit(&node, &iri(GMEOW_NS, "distributionFormat"), slug));
+        lines.push(triple(
+            &node,
+            &iri(GMEOW_NS, "distributionFamily"),
+            &family_iri(Family::DocRender),
+        ));
+        lines.push(triple_lit(
+            &node,
+            &iri(GMEOW_NS, "artifactMediaType"),
+            sub.media_type(),
+        ));
+        lines.push(triple(
+            &node,
+            &iri(GMEOW_NS, "eligibleForConsumer"),
+            &consumer_iri(doc_render_consumer(DocFormat::Site)),
+        ));
+    }
+
     lines.sort();
     lines.dedup();
     let mut out = lines.join("\n");
@@ -436,6 +566,45 @@ mod tests {
             assert!(
                 nt.contains(&format!("<{subject}> <{RDFS_LABEL}>")),
                 "{subject} missing rdfs:label"
+            );
+        }
+    }
+
+    #[test]
+    fn site_sub_assets_are_priced_digest_free_and_outside_the_bijection() {
+        let nt = ntriples_text();
+        let site_dist = dist_iri(DocFormat::Site.slug());
+        let bijection = declared_distribution_slugs();
+        assert_eq!(bijection.len(), 8, "the eight-slug bijection must be untouched");
+
+        for slug in declared_site_sub_asset_slugs() {
+            // NOT a top-level distribution — the bijection is preserved.
+            assert!(
+                !bijection.contains(slug),
+                "site sub-asset {slug:?} must NOT be a top-level distribution slug"
+            );
+            let node = site_sub_asset_iri(slug);
+            // Typed as a SiteSubAsset and hung off the site distribution.
+            assert!(
+                nt.contains(&triple(&node, RDF_TYPE, &iri(GMEOW_NS, "SiteSubAsset"))),
+                "sub-asset {slug:?} missing rdf:type gmeow:SiteSubAsset"
+            );
+            assert!(
+                nt.contains(&triple(&site_dist, &iri(GMEOW_NS, "hasSubAsset"), &node)),
+                "site distribution must declare gmeow:hasSubAsset {slug:?}"
+            );
+            // Schema row present, DIGEST-FREE (no contentDigest in the carrier catalog).
+            assert!(
+                nt.contains(&format!(
+                    "<{node}> <{}>",
+                    iri(GMEOW_NS, "artifactMediaType")
+                )),
+                "sub-asset {slug:?} missing artifactMediaType"
+            );
+            assert!(
+                !nt.contains(&format!("<{node}> <{}>", iri(GMEOW_NS, "contentDigest"))),
+                "sub-asset {slug:?} must be DIGEST-FREE in the carrier catalog (digests \
+                 live only in the dist/ instance manifest)"
             );
         }
     }

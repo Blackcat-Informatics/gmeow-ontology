@@ -235,9 +235,42 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
             media_type: media_type.to_string(),
         });
     }
-    let manifest_nt =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
-            .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
+    // Price the `site` sub-assets (the vendored interactive engines + the browser
+    // bundle) into the release-instance manifest: content-address each from the rendered
+    // site tree and hang its digest off the SAME site_sub_asset subject the carrier
+    // catalog prices digest-free. A sub-asset the site did not ship (e.g. a bundle-free
+    // render) is honestly absent, not a zero-digest row.
+    let mut sub_asset_entries = Vec::new();
+    for (slug, prefix, media_type) in
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+    {
+        let subtree: BTreeMap<String, Vec<u8>> = site
+            .iter()
+            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
+            .map(|(p, b)| (p.clone(), b.clone()))
+            .collect();
+        if subtree.is_empty() {
+            continue;
+        }
+        let blake3 =
+            gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
+                fail(format!(
+                    "cannot content-address the {slug} site sub-asset: {e}"
+                ))
+            })?;
+        sub_asset_entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: format!("dist/gmeow-docs/site/{prefix}"),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    let manifest_nt = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &sub_asset_entries,
+        &gts_bytes,
+    )
+    .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
     let manifest = BTreeMap::from([("docs-manifest.ttl".to_string(), manifest_nt.into_bytes())]);
 
     let destinations = [
