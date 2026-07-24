@@ -18,8 +18,9 @@
     gmeow:providesSubcommand "affect" ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
+        <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     gmeow:sliceConsumer "The grounded-agent-memory engine (an agent's felt mental life is part of the Principle 14 memory flagship, alongside the kernel gmeow:MentalMoment family), the lbox principia importer (affect/aesthetic annotations), and the narrative arc samples (sampleState draws on EmotionType by soft reference, never dependency). Core and comprehensive: the affect model grows with its consumers, per the fuller design in design/AFFECT-DESIGN.md."@x-gmeow-english.

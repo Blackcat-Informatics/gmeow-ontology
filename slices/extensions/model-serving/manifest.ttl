@@ -20,5 +20,5 @@
         <https://blackcatinformatics.ca/gmeow/slices/ai> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+        <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     gmeow:sliceConsumer "The LLM-ops / AI-agent audience (Principle 15): anyone modelling model serving — the served artifact, its deployment, the runtime execution, and the agent session — who needs to trace an output to the exact artifact·deployment·execution·session·invocation that produced it. The gmeow agent-runtime profile is its first live consumer, composing it with core/inhabitation so an output resolves to the durable subject; the OpenTelemetry-GenAI observability seam is its interchange consumer."@x-gmeow-english .

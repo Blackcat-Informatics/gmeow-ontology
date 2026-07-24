@@ -18,5 +18,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/places> ;
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/employment> ,
+        <https://blackcatinformatics.ca/gmeow/slices/finance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "Employers, publishers, registrars across slices; posts and roles; the W3C-ORG projection."@x-gmeow-english .

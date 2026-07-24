@@ -17,7 +17,6 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/profiles> ,
-        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;

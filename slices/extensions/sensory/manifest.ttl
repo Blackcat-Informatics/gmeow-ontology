@@ -16,7 +16,6 @@
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:sliceConsumer "Sensory perception observations (the unified stance applied to senses)."@x-gmeow-english .

@@ -18,5 +18,7 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
-        <https://blackcatinformatics.ca/gmeow/slices/events> ;
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "Every attributed fact (P9): statement-layer attribution and confidence, import activities and their transaction time, derivation/generation lineage, and GTS chain-of-custody."@x-gmeow-english .

@@ -17,5 +17,6 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     gmeow:sliceConsumer "Version lineage for software, languages, creative works, and the ontology's own releases."@x-gmeow-english .

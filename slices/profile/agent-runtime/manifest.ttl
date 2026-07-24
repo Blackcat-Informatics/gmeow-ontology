@@ -28,6 +28,6 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ,
         <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
-        <https://blackcatinformatics.ca/gmeow/slices/agentic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "The AI-agent / MCP-developer audience (Principle 15): the GTS ai-package and the MCP store / recall / revise memory triad — a durable subject inhabiting a served model, tracing each output to the exact artifact·deployment·execution·session·invocation that produced it, with its tool calls, serving modes, and contestable claims, loaded as one dependency-closed unit."@x-gmeow-english .

@@ -16,5 +16,6 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
-        <https://blackcatinformatics.ca/gmeow/slices/gender> ;
+        <https://blackcatinformatics.ca/gmeow/slices/gender> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     gmeow:sliceConsumer "Identity facets on persons (P16: core by commitment); the 7-axis orthogonality matrix."@x-gmeow-english .

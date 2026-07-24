@@ -16,5 +16,6 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
-        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     gmeow:sliceConsumer "Keys, certifications, and cryptographic signatures used by email wire-auth and attestation."@x-gmeow-english .

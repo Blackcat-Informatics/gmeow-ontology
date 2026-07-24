@@ -21,5 +21,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/events> ;
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     gmeow:sliceConsumer "Narrative frames and myth tellings for the deception slice's worked examples and creative works. The narrative interior (arc samples as Observations over narrative positions, scoped roles, and motifs riding the narration seam) serves the lbox foundation-docs importer (design context: 16,445 arc samples, 779 role links, 16,002 tags / 669 concepts) ahead of the narrative consumer child."@x-gmeow-english.

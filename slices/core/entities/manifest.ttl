@@ -21,5 +21,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
-        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ,
+        <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     gmeow:sliceConsumer "Every slice describing people, organizations, or things; the mail corpus; the identity facets."@x-gmeow-english .

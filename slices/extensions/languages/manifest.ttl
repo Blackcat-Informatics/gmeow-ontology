@@ -16,9 +16,9 @@
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/expertise> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:sliceConsumer "Rich sociolinguistics (proficiency, scripts, varieties, diachrony) extending the core language slim slice."@x-gmeow-english .

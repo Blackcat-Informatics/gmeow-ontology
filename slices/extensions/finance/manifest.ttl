@@ -23,5 +23,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Accounts, transactions, REA double-entry over core MonetaryAmount; FIBO alignment."@x-gmeow-english .

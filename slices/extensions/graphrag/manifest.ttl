@@ -18,6 +18,5 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     gmeow:sliceConsumer "Project Lillith — a GraphRAG deployment whose corpus, embeddings, indexes, retrievals, and derived entity graph must be auditable provenance, not pipeline internals (P15)."@x-gmeow-english .

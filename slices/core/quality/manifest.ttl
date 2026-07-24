@@ -16,6 +16,5 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceConsumer "Data-quality claims (DQV/ISO 19157) over any slice's instance data; the coverage gates."@x-gmeow-english .

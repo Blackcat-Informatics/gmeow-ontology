@@ -18,5 +18,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Licensing and rights of every artifact across the ontology: GMEOW's own dual licence, the Images super-ontology, software (SPDX / SBOM exports via gmeow:spdxLicenseId), and the mail corpus; the Employment / publication block; generated machine-readable projections (queries/projections/odrl.rq, cc.rq, schema-org.rq) for ODRL policies, CC REL licences, and the schema.org rights cluster; public-facing licence, copyright-notice, attribution, and trademark surfaces (schema.org JSON-LD, Wikidata); and the privacy / consent / redaction facility driving disclosure control over personal data."@x-gmeow-english .

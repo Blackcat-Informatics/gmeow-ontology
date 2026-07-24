@@ -16,7 +16,10 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     gmeow:sliceConsumer "Every slice and consumer that needs mathematical identity, quantities, dimensions, typed expressions, category-theoretic structure, probability, statistics, or projection-preservation judgments. The preservation vocabulary and denotation seam come from the co-foundational `logic:` slice; expression rendering composes with the general `lang:Rendering` theory rather than forking a private display vocabulary. Observation slices qualify the math-owned `math:Quantity` with unit/frame, determinacy, uncertainty, and provenance instead of minting parallel quantity classes."@x-gmeow-english ;

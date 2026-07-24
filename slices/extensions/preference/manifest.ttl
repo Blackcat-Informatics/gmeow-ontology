@@ -25,9 +25,10 @@
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/inference> ,
-        <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
         <https://blackcatinformatics.ca/gmeow/slices/learning> ,
         <https://blackcatinformatics.ca/gmeow/slices/ai> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ;
+        <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
+        <https://blackcatinformatics.ca/gmeow/slices/norms> ,
+        <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     gmeow:sliceConsumer "lillith_decodes — the cross-organ proof-carrying preference ADR (Principle 15): it records contextual comparisons among complete candidate sets, keeps conflicting evaluators as coexisting vantage-indexed observations, and compiles them into Cl(12) bundles over E8-structured 4096-d spaces (dim Cl(12) = 2^12 = 4096; the E8 math:RootSystem/math:WeylGroup/math:Lattice organizes the base), needing every derived ranking, model delta, and promotion receipt auditable back to its evidence, honestly loss-ledgered, and never silently a global winner. This slice is the vocabulary; the compiled RDF 1.2 preference instance data — the actual candidate embeddings, comparison complexes, sections, and obstructions of a running analysis — lives in lillith_decodes."@x-gmeow-english .

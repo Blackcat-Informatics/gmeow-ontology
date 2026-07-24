@@ -19,5 +19,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "The flagship (P14): the gmeow PyPI client's Memory store, the MCP store/recall/revise triad, the hallucination-resistant KG pattern + gmeow audit (EvidenceSpan audit machinery), the claim-extraction eval suite, and Project Lillith via extensions/graphrag."@x-gmeow-english.

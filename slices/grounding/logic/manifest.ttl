@@ -17,6 +17,21 @@
     dcterms:title "GMEOW Logic"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
+        <https://blackcatinformatics.ca/gmeow/slices/deception> ,
+        <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ,
+        <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/expertise> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/organization> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
+        <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the production reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction, and it anchors the co-foundational grounding kernel (docs/GROUNDING.md) as the semantic target of the `lang:` denotation seam and the `math:` compilation seam."@x-gmeow-english ;

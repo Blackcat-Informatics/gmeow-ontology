@@ -19,10 +19,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/graphrag> ,
-        <https://blackcatinformatics.ca/gmeow/slices/notation> ,
         <https://blackcatinformatics.ca/gmeow/slices/gts> ,
-        <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
-        <https://blackcatinformatics.ca/gmeow/slices/math> ,
-        <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceProfile "purremb" ;
     gmeow:sliceConsumer "Project Lillith's bookshelf/document environment — the .purremb embedding-projection packages that ship a bookshelf's vectors as content-addressed, sensitivity-guarded ontology payloads beside the documents they embed, so 'which exact vectors, over which vector space, from which certified source, at what get-leg determinism?' is auditable provenance rather than an opaque sidecar (P12, P15)."@x-gmeow-english .
