@@ -116,10 +116,18 @@ use session_common::*;
 /// (`rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/`physical/seminaive.rs`/
 /// `physical/builtin_eval.rs` are members of both source lists), so the raw source-content
 /// digest moves on both axes. The fixed edge-only input authors no `logic:Constraint`, so
-/// no new rule ever fires and no reasoning verdict on this fixed input changes. (Value below
-/// is the post-`cargo fmt` state of the branch.)
+/// no new rule ever fires and no reasoning verdict on this fixed input changes.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require EXACTLY one target for each functional dimension/Gram/vector cell property
+/// (the new `exactly_one_iri_object`) rather than silently taking the first of a
+/// multi-valued cell: `builtin_eval.rs` is folded via `include_str!` into both
+/// `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`, so the
+/// raw source-content digest moves on both axes. The change only makes an already-malformed
+/// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
+/// well-formed input — including this fixed edge-only input, which authors no dimension
+/// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "b9503cb4301bf310bf98d8382edfa38e472d85261935705f5f6b3324a5bf30df";
+    "773d6bb9a332306e9c70ef7d5c4827f8c45d19b581bf96c9f049b3a2e66e6a0c";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -163,8 +171,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// identity axes and moves with the changed `rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/
 /// `physical/seminaive.rs`/`relational_core.rs` engine source, while the fixed edge-only
 /// input (authoring no `logic:Constraint`) has an unchanged reasoning verdict.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require exactly one target per functional cell property (see the engine-descriptor
+/// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
+/// session identity moves with it, while the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "281bfae60deabef30bc020d67b6f3be484b65b8d4262ca13dbb4a308386034f7";
+    "fb1f5e8271ccdf6d82e6db41b05c9e17ccd76972a64c4fc96f78c93a5af3d688";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

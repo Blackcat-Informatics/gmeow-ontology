@@ -1026,6 +1026,23 @@ pub(crate) trait MathTriples {
     fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128>;
 }
 
+/// Read the single IRI object of `(subject, predicate)`, requiring EXACTLY one.
+///
+/// A well-formed cell names one target for each of its functional object properties
+/// (a dimension exponent's `math:exponentOfDimension` base, a Gram entry's
+/// `math:entryValue`, a vector component's `math:componentValue`). Zero or MULTIPLE
+/// targets is malformed, so this declines to `None` rather than silently taking the
+/// first — which would decode a multi-valued cell to a possibly-wrong value and mask the
+/// malformed-data signal the dimension gate exists to catch.
+fn exactly_one_iri_object(src: &dyn MathTriples, subject: &str, predicate: &str) -> Option<String> {
+    let mut targets = src.math_iri_objects(subject, predicate).into_iter();
+    let only = targets.next()?;
+    if targets.next().is_some() {
+        return None;
+    }
+    Some(only)
+}
+
 /// Read one `math:RationalValue`'s `numerator`/`denominator` into a [`Rational`].
 ///
 /// A missing property or an invalid (zero-denominator / overflowing) construction
@@ -1057,10 +1074,7 @@ pub(crate) fn load_gram_cells(
             "matrix column",
         )
         .ok()?;
-        let value_iri = src
-            .math_iri_objects(&entry, MATH_ENTRY_VALUE)
-            .into_iter()
-            .next()?;
+        let value_iri = exactly_one_iri_object(src, &entry, MATH_ENTRY_VALUE)?;
         cells.push((row, col, load_rational_value(src, &value_iri)?));
     }
     Some(cells)
@@ -1082,10 +1096,7 @@ pub(crate) fn load_vector_dense(src: &dyn MathTriples, vector_iri: &str) -> Opti
             "vector index",
         )
         .ok()?;
-        let value_iri = src
-            .math_iri_objects(&component, MATH_COMPONENT_VALUE)
-            .into_iter()
-            .next()?;
+        let value_iri = exactly_one_iri_object(src, &component, MATH_COMPONENT_VALUE)?;
         cells.push((idx, load_rational_value(src, &value_iri)?));
     }
     let dim = cells.iter().map(|(i, _)| *i).max().map(|m| m + 1)?;
@@ -1123,10 +1134,7 @@ pub(crate) fn load_dimension_cells(src: &dyn MathTriples, dim_iri: &str) -> Opti
     }
     let mut v = DimVector::zero();
     for cell in src.math_iri_objects(dim_iri, MATH_BASE_DIMENSION_EXPONENT) {
-        let base = src
-            .math_iri_objects(&cell, MATH_EXPONENT_OF_DIMENSION)
-            .into_iter()
-            .next()?;
+        let base = exactly_one_iri_object(src, &cell, MATH_EXPONENT_OF_DIMENSION)?;
         let base_index = base_dimension_index(&base)?;
         let num = src.math_literal_i128(&cell, MATH_EXPONENT_NUMERATOR)?;
         let den = src.math_literal_i128(&cell, MATH_EXPONENT_DENOMINATOR)?;
@@ -1566,6 +1574,83 @@ mod tests {
 
     fn cmp(lhs: QTerm, op: CmpOp, rhs: QTerm) -> QBuiltin {
         QBuiltin::Compare { lhs, op, rhs }
+    }
+
+    /// A minimal in-memory [`MathTriples`] for the dimension-cell loader tests: flat
+    /// `(subject, predicate, iri-object)` and `(subject, predicate, i128-literal)`
+    /// lists, queried exactly as a store-backed resolver would be.
+    struct FakeTriples {
+        iri: Vec<(String, String, String)>,
+        lit: Vec<(String, String, i128)>,
+    }
+
+    impl FakeTriples {
+        fn new() -> Self {
+            Self {
+                iri: Vec::new(),
+                lit: Vec::new(),
+            }
+        }
+        fn iri(mut self, s: &str, p: &str, o: &str) -> Self {
+            self.iri.push((s.to_owned(), p.to_owned(), o.to_owned()));
+            self
+        }
+        fn lit(mut self, s: &str, p: &str, o: i128) -> Self {
+            self.lit.push((s.to_owned(), p.to_owned(), o));
+            self
+        }
+    }
+
+    impl MathTriples for FakeTriples {
+        fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+            self.iri
+                .iter()
+                .filter(|(s, p, _)| s == subject && p == predicate)
+                .map(|(_, _, o)| o.clone())
+                .collect()
+        }
+        fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+            self.lit
+                .iter()
+                .find(|(s, p, _)| s == subject && p == predicate)
+                .map(|(_, _, o)| *o)
+        }
+    }
+
+    #[test]
+    fn dimension_cell_with_duplicate_exponent_of_dimension_declines_not_mis_decodes() {
+        const DIM: &str = "https://blackcatinformatics.ca/math/customDim";
+        const CELL: &str = "https://blackcatinformatics.ca/math/cell1";
+        const LENGTH: &str = "https://blackcatinformatics.ca/math/lengthDimension";
+        const MASS: &str = "https://blackcatinformatics.ca/math/massDimension";
+
+        // Control: a well-formed single-target cell resolves (customDim = L¹).
+        let ok = FakeTriples::new()
+            .iri(DIM, RDF_TYPE, MATH_DERIVED_DIMENSION_CLASS)
+            .iri(DIM, MATH_BASE_DIMENSION_EXPONENT, CELL)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, LENGTH)
+            .lit(CELL, MATH_EXPONENT_NUMERATOR, 1)
+            .lit(CELL, MATH_EXPONENT_DENOMINATOR, 1);
+        assert!(
+            load_dimension_cells(&ok, DIM).is_some(),
+            "a single-target exponent cell must resolve to a dimension vector"
+        );
+
+        // The SAME cell with a SECOND `math:exponentOfDimension` target is malformed:
+        // the loader must DECLINE (None), never silently take the first target and decode
+        // the dimension to a possibly-wrong ℚ⁷ vector — which would mask the
+        // `math:MalformedDimension` signal the dimension gate depends on.
+        let dup = FakeTriples::new()
+            .iri(DIM, RDF_TYPE, MATH_DERIVED_DIMENSION_CLASS)
+            .iri(DIM, MATH_BASE_DIMENSION_EXPONENT, CELL)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, LENGTH)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, MASS)
+            .lit(CELL, MATH_EXPONENT_NUMERATOR, 1)
+            .lit(CELL, MATH_EXPONENT_DENOMINATOR, 1);
+        assert!(
+            load_dimension_cells(&dup, DIM).is_none(),
+            "a cell with two math:exponentOfDimension targets must decline, not mis-decode"
+        );
     }
 
     /// A generator outcome binding `var` to `Value::Int(value)` — the integer
