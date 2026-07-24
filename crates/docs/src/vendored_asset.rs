@@ -298,6 +298,16 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             needle: "export function validate(data: string, format: string, gts: Uint8Array, namespace: string, origin: string): string",
             hint: "vendored .d.ts lacks the validate type signature",
         },
+        ExportCheck {
+            file: "gmeow_validate_wasm.js",
+            needle: "export function bundle_dataset(gts)",
+            hint: "vendored bindings lack the bundle_dataset export (the browser bundle-read surface)",
+        },
+        ExportCheck {
+            file: "gmeow_validate_wasm.d.ts",
+            needle: "export function bundle_dataset(gts: Uint8Array): string",
+            hint: "vendored .d.ts lacks the bundle_dataset type signature",
+        },
     ],
     refresh_target: "maint-refresh-validate-asset",
     bless_env: "GMEOW_VALIDATE_BLESS",

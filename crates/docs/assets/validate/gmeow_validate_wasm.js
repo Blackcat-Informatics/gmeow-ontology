@@ -1,6 +1,47 @@
 /* @ts-self-types="./gmeow_validate_wasm.d.ts" */
 
 /**
+ * Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
+ * in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+ * bundle the pipeline shipped — the browser source of truth for the documentation
+ * playground and bundle explorer, replacing any second curated data path.
+ *
+ * - `gts` — the `gmeow.gts` bundle bytes (the single canonical browser-query
+ *   bundle; the container is read, not re-embedded).
+ *
+ * Returns N-Quads (`application/n-quads`) covering every named graph in the bundle
+ * (the graph component of each quad is retained — the query surface sees the
+ * bundle's real graph structure, not a flattened union).
+ *
+ * # Errors
+ *
+ * Throws a JS exception if the container cannot be read, the statement layer cannot
+ * be folded, or the dataset cannot be serialized.
+ * @param {Uint8Array} gts
+ * @returns {string}
+ */
+export function bundle_dataset(gts) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passArray8ToWasm0(gts, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.bundle_dataset(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
  * Run Tier-1 conformance of `data` (RDF text in `format`) against the SHACL shapes
  * and OntoUML disciplines carried in the `gts` bundle bytes, returning the
  * diagnostics `Report` as a JSON string.

@@ -7,7 +7,11 @@
 // this wrapper adds the one-time async wasm instantiation the synchronous wasm
 // boundary cannot express, matching the `web` target's init contract.
 
-import init, { validate, version } from "./pkg/gmeow_validate_wasm.js";
+import init, {
+  bundle_dataset,
+  validate,
+  version,
+} from "./pkg/gmeow_validate_wasm.js";
 
 let _ready = false;
 
@@ -33,4 +37,4 @@ export async function ready(wasmBytesOrUrl) {
   _ready = true;
 }
 
-export { validate, version };
+export { bundle_dataset, validate, version };

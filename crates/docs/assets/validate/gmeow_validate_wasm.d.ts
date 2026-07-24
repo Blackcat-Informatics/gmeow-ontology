@@ -2,6 +2,26 @@
 /* eslint-disable */
 
 /**
+ * Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
+ * in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+ * bundle the pipeline shipped — the browser source of truth for the documentation
+ * playground and bundle explorer, replacing any second curated data path.
+ *
+ * - `gts` — the `gmeow.gts` bundle bytes (the single canonical browser-query
+ *   bundle; the container is read, not re-embedded).
+ *
+ * Returns N-Quads (`application/n-quads`) covering every named graph in the bundle
+ * (the graph component of each quad is retained — the query surface sees the
+ * bundle's real graph structure, not a flattened union).
+ *
+ * # Errors
+ *
+ * Throws a JS exception if the container cannot be read, the statement layer cannot
+ * be folded, or the dataset cannot be serialized.
+ */
+export function bundle_dataset(gts: Uint8Array): string;
+
+/**
  * Run Tier-1 conformance of `data` (RDF text in `format`) against the SHACL shapes
  * and OntoUML disciplines carried in the `gts` bundle bytes, returning the
  * diagnostics `Report` as a JSON string.
@@ -37,13 +57,14 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly bundle_dataset: (a: number, b: number) => [number, number, number, number];
     readonly validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly version: () => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
-    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_start: () => void;
 }
 

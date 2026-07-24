@@ -132,6 +132,43 @@ pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     })
 }
 
+/// Read a `gmeow.gts` bundle's bytes into **graph-preserving** N-Quads text — every
+/// base quad keeps its named-graph component (unlike [`dataset_from_gts`], which
+/// folds them into the default graph). This is the browser bundle-read primitive:
+/// the wasm shim (`gmeow-validate-wasm::bundle_dataset`) hands the resulting N-Quads
+/// to the in-page purrdf RDF engine so the documentation playground/explorer query
+/// the SAME bundle the pipeline shipped, rather than a second curated data path.
+///
+/// Uses the oxigraph-free container reader (`read_all_segments` →
+/// `dataset_from_gts_graph`, which retains each quad's graph) and the native
+/// N-Quads serializer over the full dataset selection; both are wasm-clean (no
+/// reasoner, no filesystem).
+///
+/// # Errors
+///
+/// Returns `Err` if the GTS container cannot be read, the statement layer cannot be
+/// folded, or the dataset cannot be serialized.
+pub fn dataset_nquads_from_gts(bytes: &[u8]) -> gmeow_errors::Result<String> {
+    let to_diag = |e: purrdf::RdfDiagnostic| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    };
+    let graph = purrdf::gts::read_all_segments(bytes).map_err(to_diag)?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(to_diag)?;
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .map_err(to_diag)?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("bundle N-Quads is not valid UTF-8: {e}"),
+        })
+    })
+}
+
 /// Render a resolved subject term the way the legacy `_ox_term_display` did:
 /// IRI → its value; blank → `_:b`.
 ///
@@ -424,6 +461,47 @@ mod tests {
             }
             other => panic!("object must be a literal, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn dataset_nquads_from_gts_preserves_named_graph() {
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
+
+        // The same one-quad-in-a-named-graph bundle, but read through the
+        // graph-PRESERVING browser primitive: the emitted N-Quads MUST carry the
+        // named-graph IRI as the fourth term (a flatten would drop it to the default
+        // graph and the assertion would fail).
+        let mut graph = purrdf::gts::model::Graph::default();
+        for value in [
+            "https://example.org/s",
+            "https://example.org/p",
+            "https://example.org/o",
+            "https://blackcatinformatics.ca/gmeow/graph/metadata",
+        ] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        graph.quads.push((0, 1, 2, Some(3)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let nquads = dataset_nquads_from_gts(&writer.to_bytes())
+            .expect("graph-preserving bundle N-Quads must serialize");
+        assert!(
+            nquads.contains("https://blackcatinformatics.ca/gmeow/graph/metadata"),
+            "bundle N-Quads must retain the named-graph component (graph-preserving), got:\n{nquads}"
+        );
+        assert!(
+            nquads.contains("https://example.org/s") && nquads.contains("https://example.org/o"),
+            "bundle N-Quads must carry the quad's subject and object:\n{nquads}"
+        );
     }
 
     #[test]
