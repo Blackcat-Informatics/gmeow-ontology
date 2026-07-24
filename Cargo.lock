@@ -1564,6 +1564,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-gmn-wasm"
+version = "0.2.0"
+dependencies = [
+ "gmeow-lang-bridge",
+ "purrdf",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-lang-bridge"
 version = "0.2.0"
 dependencies = [

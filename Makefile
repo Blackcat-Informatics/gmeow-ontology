@@ -425,7 +425,16 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				exit 1; \
 			fi; \
 		done; \
-		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner build for wasm32 (dep trees are native-runtime-free)"; \
+		echo "== GMN codec proof: gmeow-gmn-wasm (GMN-0<->GMN-1 transcode) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-gmn-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring; do \
+			if $(WASM_CARGO) tree -p gmeow-gmn-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-gmn-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-gmn-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec build for wasm32 (dep trees are native-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \
@@ -471,6 +480,24 @@ maint-refresh-reason-asset: reason-wasm-pkg ## Re-vendor the gmeow-reason-wasm e
 	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm.d.ts  crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm.d.ts
 	GMEOW_REASON_BLESS=1 cargo test -p gmeow-docs --test reason_asset
 	@echo "OK: re-vendored gmeow-reason-wasm into crates/docs/assets/reason/ (DIGESTS.blake3 re-pinned)"
+
+gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
+		--out-dir crates/gmn-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	wasm-opt -Oz -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
+	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
+
+maint-refresh-gmn-asset: gmn-wasm-pkg ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest.
+	mkdir -p crates/docs/assets/gmn
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.js            crates/docs/assets/gmn/gmeow_gmn_wasm.js
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm       crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.d.ts          crates/docs/assets/gmn/gmeow_gmn_wasm.d.ts
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm.d.ts  crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm.d.ts
+	GMEOW_GMN_BLESS=1 cargo test -p gmeow-docs --test gmn_asset
+	@echo "OK: re-vendored gmeow-gmn-wasm into crates/docs/assets/gmn/ (DIGESTS.blake3 re-pinned)"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
