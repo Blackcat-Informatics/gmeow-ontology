@@ -120,6 +120,22 @@ struct Candidate {
 
 /// Produce every engine-warranted abductive advisory over `reasoned`.
 ///
+/// `reasoned` must be the graph the caller has already threaded with whatever reasoning
+/// its surface can carry — the producer reads types/relata with `GraphMatch::Any`, so a
+/// subject/relatum is discovered whether it is ASSERTED or ENTAILED, but only if the
+/// caller actually supplies the entailed triples. The two live callers do:
+///   * the pipeline `stage-validate` feeds the UNION of the authored source graph (the
+///     A-Box/TBox individuals + their asserted types/relata) AND the derived closure read
+///     off the consumed `stage-reason` product's typed Reasoning handle — so entailed-only
+///     subjects/relata are seen (the maximal-ontological-use surface);
+///   * the `gmeow` CLI feeds the dataset it built: a validated `gmeow.gts` bundle carries
+///     the folded reasoned closure (entailed), while a raw-source run carries only the
+///     asserted graph (no reasoner is fabricated for loose files — that surface is honestly
+///     asserted-only, never a silently-degraded stand-in for entailment).
+///
+/// The authored half is mandatory on every surface: without the asserted A-Box the schema
+/// guards match ZERO subjects, so a closure-only input would find nothing.
+///
 /// Deterministic: schemas are discovered in byte-sorted order, candidates are enumerated
 /// byte-sorted, all witness/world IRIs are content-addressed, and the returned vector is
 /// finally sorted by `(advisory.code, advisory.subject_iri)`. Same input twice ⇒ identical
@@ -168,7 +184,11 @@ fn discover_schemas(reasoned: &RdfDataset) -> Vec<DiscoveredSchema> {
         let (Some(term), Some(strategy), Some(completeness)) = (
             first_object(reasoned, &schema_iri, &format!("{LOGIC}formalizes")),
             first_object(reasoned, &schema_iri, &format!("{LOGIC}repairStrategy")),
-            first_object(reasoned, &schema_iri, &format!("{LOGIC}completenessFormula")),
+            first_object(
+                reasoned,
+                &schema_iri,
+                &format!("{LOGIC}completenessFormula"),
+            ),
         ) else {
             // A schema missing any required edge is honest absence, never a partial guess.
             continue;
@@ -325,9 +345,7 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
     let mut candidates = Vec::new();
     for subject in subjects_of_type(reasoned, &schema.guard_type) {
         // Bare ⇒ holds none of the offered sortal types.
-        let already_specialized = types
-            .iter()
-            .any(|t| has_type(reasoned, &subject, t));
+        let already_specialized = types.iter().any(|t| has_type(reasoned, &subject, t));
         if already_specialized {
             continue;
         }
@@ -376,13 +394,15 @@ fn warrant(
             let Some(value) = ground_value(reasoned, candidate, relation) else {
                 return false;
             };
-            let formula = ground_relatum_formula(&candidate.subject, &schema.guard_type, relation, &value);
+            let formula =
+                ground_relatum_formula(&candidate.subject, &schema.guard_type, relation, &value);
             corroborates(reasoned, &scenario_world, &formula, &assume, budget)
         }),
         // Disjunctive completeness: the Horn implication for the candidate's own disjunct
         // must corroborate (adding the type is consistent → ∨-introduction).
         ConsShape::Disjunctive(_) => {
-            let formula = sortal_disjunct_formula(&candidate.subject, &schema.guard_type, &candidate.object);
+            let formula =
+                sortal_disjunct_formula(&candidate.subject, &schema.guard_type, &candidate.object);
             corroborates(reasoned, &scenario_world, &formula, &assume, budget)
         }
     };
@@ -390,7 +410,12 @@ fn warrant(
         return None;
     }
 
-    Some(build_suggestion(reasoned, schema, candidate, &scenario_world))
+    Some(build_suggestion(
+        reasoned,
+        schema,
+        candidate,
+        &scenario_world,
+    ))
 }
 
 /// `true` iff the native conjecture engine lands the formula in
@@ -468,7 +493,10 @@ fn build_suggestion(
 ) -> AbductiveSuggestion {
     let discipline = code_local(&schema.term);
     let digest = candidate_digest(candidate);
-    let advice_code = format!("{}abductive.{discipline}.{digest}", crate::codes::ADVICE_FAMILY);
+    let advice_code = format!(
+        "{}abductive.{discipline}.{digest}",
+        crate::codes::ADVICE_FAMILY
+    );
     let warrant_code = format!(
         "{}abductive.warrant.{discipline}.{digest}",
         crate::codes::ADVICE_FAMILY
@@ -633,7 +661,10 @@ fn term_id(reasoned: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
 /// A content-addressed witness IRI for a `(subject, predicate)` addition — a stable
 /// SHA-256 digest, never a clock/random source.
 fn witness_iri(subject: &str, predicate: &str) -> String {
-    format!("{WITNESS_BASE}{}", hex_digest(&format!("{subject}\u{1f}{predicate}"), 16))
+    format!(
+        "{WITNESS_BASE}{}",
+        hex_digest(&format!("{subject}\u{1f}{predicate}"), 16)
+    )
 }
 
 /// A content-addressed isolated scenario-world IRI for a candidate.

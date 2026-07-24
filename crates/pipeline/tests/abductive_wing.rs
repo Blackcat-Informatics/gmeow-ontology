@@ -230,6 +230,15 @@ fn emitted() -> &'static Emitted {
             );
         }
 
+        // The D5 abductive tier consumes stage-reason's reasoned closure. This fixture drives
+        // the advisory wiring, not entailment, so the reasoned upstream is an empty-EDB reason
+        // product (an empty closure ⇒ the reasoned union is exactly the authored base graph).
+        upstream.insert(
+            "stage-reason".to_string(),
+            gmeow_pipeline::stages::reason::reason_product(b"")
+                .expect("stage-reason fixture product"),
+        );
+
         let output = ValidateStage::new()
             .run(StageInput {
                 root: repo.path(),
@@ -265,6 +274,158 @@ fn emitted() -> &'static Emitted {
     })
 }
 
+/// Build a base graph = kernel + logic modules (schemas + meta-rules) + `abox_ttl`, and
+/// drive the REAL `ValidateStage::run` with `reason` as the `stage-reason` upstream.
+/// Returns every quad of the emitted `graph/diagnostics`. Mirrors `emitted()`'s upstream
+/// wiring but is parameterized on the A-Box and the reasoned upstream so a test can vary
+/// the closure the abductive tier reads.
+fn run_with_reason(abox_ttl: &str, reason: StageProduct) -> Vec<RdfQuad> {
+    let repo = mock_repo();
+
+    let mut builder = RdfDatasetBuilder::new();
+    for module in [
+        "slices/core/kernel/module.ttl",
+        "slices/grounding/logic/module.ttl",
+    ] {
+        let text = std::fs::read_to_string(repo_root().join(module)).expect("read module");
+        let dataset =
+            purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).expect("module parses");
+        builder.push_dataset(dataset.as_ref());
+    }
+    let abox_ds =
+        purrdf::parse_dataset(abox_ttl.as_bytes(), "text/turtle", None).expect("abox parses");
+    builder.push_dataset(abox_ds.as_ref());
+    let base = builder.freeze().expect("merge base graph");
+    let base_nq =
+        purrdf::serialize_dataset_to_format(base.as_ref(), purrdf::NativeRdfFormat::NQuads, None)
+            .expect("serialize base graph")
+            .bytes;
+
+    let empty = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+    let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    artifacts.insert(BASE_GRAPH_PATH.to_string(), base_nq);
+    let span_blob = serde_json::to_vec(&SpanIndex::new()).expect("encode span index");
+    let bundle = bundle_from_artifacts_over_with_rep_blob(
+        empty,
+        artifacts,
+        DatasetProvenance::new(),
+        REP_SPAN_TABLE,
+        "application/json",
+        span_blob,
+    );
+    let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+    upstream.insert(
+        "stage-source-load".to_string(),
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+    );
+    use gmeow_pipeline::stages::{
+        compile_logic::{PROCEDURAL_CONSTRAINTS_PATH, VALIDATION_SHAPES_TTL_PATH},
+        constraint_shapes::CONSTRAINT_SHAPES_PATH,
+        frame_shapes::FRAME_SHAPES_PATH,
+        result_shapes::RESULT_SHAPES_PATH,
+    };
+    for (producer, rels) in [
+        (
+            "stage-compile-logic",
+            &[VALIDATION_SHAPES_TTL_PATH, PROCEDURAL_CONSTRAINTS_PATH][..],
+        ),
+        (
+            "stage-export-constraint-shapes",
+            &[CONSTRAINT_SHAPES_PATH][..],
+        ),
+        ("stage-export-frame-shapes", &[FRAME_SHAPES_PATH][..]),
+        ("stage-export-result-shapes", &[RESULT_SHAPES_PATH][..]),
+    ] {
+        let members: BTreeMap<String, Vec<u8>> = rels
+            .iter()
+            .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+            .collect();
+        upstream.insert(
+            producer.to_string(),
+            StageProduct::from_artifacts(producer, members),
+        );
+    }
+    upstream.insert("stage-reason".to_string(), reason);
+
+    let output = ValidateStage::new()
+        .run(StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        })
+        .expect("validate stage run");
+    output
+        .product
+        .dataset()
+        .project_named_graph(GRAPH_DIAGNOSTICS)
+        .owned_quads()
+        .collect()
+}
+
+/// The reasoned closure is GENUINELY threaded into the abductive tier: an Item-completion
+/// advisory fires on a subject whose `gmeow:Item` guard type is ENTAILED-ONLY (present in
+/// stage-reason's closure, absent from the authored source graph). This proves the fix is
+/// not a silent no-op — the union with the derived closure is what surfaces the advice.
+///
+/// `<urn:esub>` is authored `a ex:Widget` with `ex:Widget rdfs:subClassOf gmeow:Item`, but
+/// NOT `a gmeow:Item`. The reasoner derives `<urn:esub> a gmeow:Item` (EL type
+/// propagation); only when that closure is unioned in does the Item schema (missing
+/// `gmeow:exemplifies`) fire for `<urn:esub>`. The contrast run with an EMPTY reasoned
+/// closure emits NO advice for `<urn:esub>` — the authored graph alone cannot see the type.
+#[test]
+fn entailed_only_guard_type_surfaces_abductive_advice() {
+    const ESUB: &str = "urn:esub";
+    let abox = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix ex: <https://example.test/> .\n\
+         ex:Widget rdfs:subClassOf gmeow:Item .\n\
+         <{ESUB}> a ex:Widget .\n"
+    );
+    // The reasoned EDB that derives `<urn:esub> a gmeow:Item` by type propagation.
+    let reason_edb = format!(
+        "<{ESUB}> <{RDF_TYPE}> <https://example.test/Widget> .\n\
+         <https://example.test/Widget> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <{GMEOW}Item> .\n"
+    );
+    let reason = gmeow_pipeline::stages::reason::reason_product(reason_edb.as_bytes())
+        .expect("stage-reason product over the derivation EDB");
+
+    let diagnostics = run_with_reason(&abox, reason);
+    // The Item-completion advice for `<urn:esub>` (its suggestion names gmeow:exemplifies)
+    // is present ONLY because the entailed `a gmeow:Item` was unioned in from the closure.
+    let item_advice_for_esub: Vec<&str> = diagnostics
+        .iter()
+        .filter(|q| q.predicate.as_str() == FINDING_SUGGESTION)
+        .filter_map(|q| {
+            let subject = as_iri(&q.subject)?;
+            let text = as_literal(&q.object)?;
+            (text.contains(ESUB) && text.contains("gmeow:exemplifies")).then_some(subject)
+        })
+        .collect();
+    assert!(
+        !item_advice_for_esub.is_empty(),
+        "the entailed-only gmeow:Item type must surface an Item-completion advisory for \
+         <{ESUB}> (via the reasoned-closure union); diagnostics carried none"
+    );
+
+    // Contrast: with an EMPTY reasoned closure the union is the authored graph alone, which
+    // never carries `<urn:esub> a gmeow:Item` — so NO Item advice for `<urn:esub>` fires.
+    let empty_reason =
+        gmeow_pipeline::stages::reason::reason_product(b"").expect("empty stage-reason product");
+    let diagnostics_authored_only = run_with_reason(&abox, empty_reason);
+    let item_advice_authored_only = diagnostics_authored_only
+        .iter()
+        .filter(|q| q.predicate.as_str() == FINDING_SUGGESTION)
+        .any(|q| {
+            as_literal(&q.object)
+                .is_some_and(|text| text.contains(ESUB) && text.contains("gmeow:exemplifies"))
+        });
+    assert!(
+        !item_advice_authored_only,
+        "with an empty reasoned closure the authored graph alone must NOT surface Item advice \
+         for <{ESUB}> — proving the closure union is load-bearing"
+    );
+}
+
 // ── quad helpers ─────────────────────────────────────────────────────────────────────
 
 /// The IRI string of a term, or `None` for a literal / blank node.
@@ -287,9 +448,7 @@ fn as_literal(term: &RdfTerm) -> Option<&str> {
 fn objects<'a>(quads: &'a [RdfQuad], subject: &str, predicate: &str) -> Vec<&'a RdfTerm> {
     quads
         .iter()
-        .filter(|q| {
-            as_iri(&q.subject) == Some(subject) && q.predicate.as_str() == predicate
-        })
+        .filter(|q| as_iri(&q.subject) == Some(subject) && q.predicate.as_str() == predicate)
         .map(|q| &q.object)
         .collect()
 }
@@ -345,8 +504,16 @@ fn four_cases_emit_the_note_advisory_and_the_deontic_recommendation() {
 
     // (subject, discipline, a substring the suggestion must name).
     let cases: [(&str, &str, &[&str]); 4] = [
-        (SUBJ_COMMITMENT, "Commitment", &["gmeow:commitmentBeneficiary"]),
-        (SUBJ_ITEM, "Item", &["gmeow:exemplifies", "gmeow:Manifestation"]),
+        (
+            SUBJ_COMMITMENT,
+            "Commitment",
+            &["gmeow:commitmentBeneficiary"],
+        ),
+        (
+            SUBJ_ITEM,
+            "Item",
+            &["gmeow:exemplifies", "gmeow:Manifestation"],
+        ),
         (SUBJ_EXPRESSION, "Expression", &["gmeow:hasReferenceFrame"]),
         (SUBJ_ENTITY, "Entity", &["gmeow:Agent"]),
     ];
@@ -373,8 +540,7 @@ fn four_cases_emit_the_note_advisory_and_the_deontic_recommendation() {
                 objects(diagnostics, finding_iri, FINDING_SUGGESTION)
                     .iter()
                     .any(|obj| {
-                        as_literal(obj)
-                            .is_some_and(|s| needles.iter().all(|n| s.contains(n)))
+                        as_literal(obj).is_some_and(|s| needles.iter().all(|n| s.contains(n)))
                     })
             })
             .collect();
@@ -440,7 +606,12 @@ fn four_cases_emit_the_note_advisory_and_the_deontic_recommendation() {
             .filter_map(as_literal)
     })
     .collect();
-    for sortal in ["gmeow:Agent", "gmeow:InformationObject", "gmeow:PhysicalObject", "gmeow:SocialObject"] {
+    for sortal in [
+        "gmeow:Agent",
+        "gmeow:InformationObject",
+        "gmeow:PhysicalObject",
+        "gmeow:SocialObject",
+    ] {
         assert!(
             entity_suggestions.iter().any(|s| s.contains(sortal)),
             "the bare gmeow:Entity case must emit a specialization suggestion naming {sortal}: \
@@ -498,10 +669,9 @@ fn warrant_edge_closes_finding_to_finding_on_a_present_fingerprint() {
     );
     // The warrant fingerprint really is a present finding subject (the graph closes).
     assert!(
-        diagnostics
-            .iter()
-            .any(|q| as_iri(&q.subject) == Some(warrant_iri)
-                && q.predicate.as_str() == FINDING_CODE),
+        diagnostics.iter().any(
+            |q| as_iri(&q.subject) == Some(warrant_iri) && q.predicate.as_str() == FINDING_CODE
+        ),
         "the antecedent fingerprint {warrant_iri} must be a present warrant finding subject"
     );
 }
@@ -634,8 +804,7 @@ fn abductive_additions_never_touch_the_base_abox() {
     let beneficiary = format!("{GMEOW}commitmentBeneficiary");
     assert!(
         !emitted.all.iter().any(|q| {
-            as_iri(&q.subject) == Some(SUBJ_COMMITMENT)
-                && q.predicate.as_str() == beneficiary
+            as_iri(&q.subject) == Some(SUBJ_COMMITMENT) && q.predicate.as_str() == beneficiary
         }),
         "the abductive candidate <{SUBJ_COMMITMENT}> gmeow:commitmentBeneficiary … must NOT be \
          auto-asserted (R4): it lives only in the borrowed scenario world"

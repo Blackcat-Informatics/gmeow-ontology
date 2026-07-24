@@ -865,6 +865,14 @@ impl ValidationRun {
         // conjecture engine over an ISOLATED scenario world per candidate; `dataset` is only
         // READ, never mutated. Both wings ride the same dual-projection loop → the `gmeow` CLI
         // surfaces D5 with closed warrant edges.
+        //
+        // `dataset` IS the reasoned surface the producer's `reasoned` parameter names: when a
+        // `gmeow.gts` bundle is validated it is `dataset_from_gts`, which already carries the
+        // reason stage's folded closure (entailed types/relata), so the abductive tier sees
+        // entailment. A raw-source run has no reasoner, so `dataset` is the merged
+        // asserted graph only — an HONEST asserted-only surface (no fabricated reasoning), the
+        // exact contract the producer doc records. There is no authored-only surface masquerading
+        // as reasoned: the pipeline path unions the real closure, this path passes the real bundle.
         let abductive_budget = gmeow_logic::query_ir::Budget {
             max_answers: None,
             max_steps: Some(5_000_000),
