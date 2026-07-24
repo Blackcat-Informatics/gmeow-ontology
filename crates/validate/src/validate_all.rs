@@ -873,11 +873,9 @@ impl ValidationRun {
         // asserted graph only — an HONEST asserted-only surface (no fabricated reasoning), the
         // exact contract the producer doc records. There is no authored-only surface masquerading
         // as reasoned: the pipeline path unions the real closure, this path passes the real bundle.
-        let abductive_budget = gmeow_logic::query_ir::Budget {
-            max_answers: None,
-            max_steps: Some(5_000_000),
-        };
-        for suggestion in crate::abductive::abductive_advisories(&dataset, &abductive_budget) {
+        let abductive_outcome =
+            crate::abductive::abductive_advisories(&dataset, &crate::abductive::abductive_budget());
+        for suggestion in abductive_outcome.suggestions {
             let warrant_ref =
                 advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
             let projection = suggestion.advisory.project();
@@ -887,6 +885,14 @@ impl ValidationRun {
             );
             advisory_claims.push(projection.claim);
             report.add_rule(suggestion.advisory.rule());
+        }
+        // A candidate whose warrant test was cut short by budget exhaustion is NEVER a
+        // silent drop (G6 Part B): its could-not-decide diagnostic rides the SAME ledger as
+        // the warrant/advisory Diags, so a dropped-because-exhausted subject stays
+        // observable in graph/diagnostics rather than vanishing indistinguishably from a
+        // genuine `Open`/non-corroboration.
+        for exhausted in abductive_outcome.exhausted {
+            advisory_ledger.attach(exhausted, StageId::new("validate.advisory"));
         }
         // Flat findings after the ledger is fully attached (findings("validate") reads the batch).
         for note in advisory_ledger.findings("validate") {

@@ -15,7 +15,9 @@ use std::sync::Arc;
 
 use gmeow_errors::Severity;
 use gmeow_logic::query_ir::Budget;
-use gmeow_validate::abductive::{AbductiveSuggestion, abductive_advisories};
+use gmeow_validate::abductive::{
+    ABDUCTIVE_MAX_STEPS, AbductiveSuggestion, abductive_advisories, abductive_budget,
+};
 use purrdf::{RdfDataset, RdfDatasetBuilder};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -49,9 +51,22 @@ fn reasoned(abox_ttl: &str) -> Arc<RdfDataset> {
 }
 
 fn budget() -> Budget {
+    abductive_budget()
+}
+
+/// A budget too tiny to let the native engine reach a conclusive verdict on the sortal
+/// disjointness check below (empirically: `entity_refuting_one_sortal_…`'s fixture needs
+/// somewhere between 50 and 100 committed derivations to fully resolve every disjunct's
+/// `owl:disjointWith` consistency check; `10` sits deep inside the always-exhausted zone,
+/// with wide margin on both sides) — used by the exhaustion tests below. Deliberately NOT
+/// `0`: a `Corroborated` ground-Horn candidate can need literally zero new derivations (it
+/// is redundant with the EDB as-is), so `0` alone would not distinguish "genuinely
+/// exhausted" from "trivially already decided" for every fixture; `10` forces the engine to
+/// actually attempt (and fail to complete) real DL consistency-checking work.
+fn tiny_budget() -> Budget {
     Budget {
         max_answers: None,
-        max_steps: Some(5_000_000),
+        max_steps: Some(10),
     }
 }
 
@@ -82,8 +97,8 @@ fn mediation_missing_beneficiary_yields_one_suggestion() {
          <urn:c1> a gmeow:Commitment ; gmeow:committedAgent <urn:agentA> ; gmeow:intentionGoal <urn:goalG> .\n\
          <urn:agentA> a gmeow:Agent .\n"
     ));
-    let suggestions = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&suggestions, "urn:c1");
+    let outcome = abductive_advisories(ds.as_ref(), &budget());
+    let mine = for_subject(&outcome.suggestions, "urn:c1");
 
     assert_eq!(mine.len(), 1, "exactly one mediation suggestion: {mine:?}");
     let sug = mine[0];
@@ -128,7 +143,7 @@ fn item_missing_exemplifies_yields_one_suggestion() {
         "@prefix gmeow: <{GMEOW}> .\n<urn:i1> a gmeow:Item .\n"
     ));
     let mine_owned = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&mine_owned, "urn:i1");
+    let mine = for_subject(&mine_owned.suggestions, "urn:i1");
     assert_eq!(mine.len(), 1, "exactly one WEMI suggestion: {mine:?}");
     assert_eq!(mine[0].advisory.severity, Severity::Note);
     assert!(
@@ -148,7 +163,7 @@ fn expression_missing_frame_yields_one_suggestion() {
         "@prefix gmeow: <{GMEOW}> .\n<urn:x1> a gmeow:Expression .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&all, "urn:x1");
+    let mine = for_subject(&all.suggestions, "urn:x1");
     assert_eq!(mine.len(), 1, "exactly one frame suggestion: {mine:?}");
     assert_eq!(mine[0].advisory.severity, Severity::Note);
     assert!(
@@ -170,7 +185,7 @@ fn bare_entity_yields_no_suggestion_a_nondiscriminating_menu_is_suppressed() {
         "@prefix gmeow: <{GMEOW}> .\n<urn:e1> a gmeow:Entity .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&all, "urn:e1");
+    let mine = for_subject(&all.suggestions, "urn:e1");
     assert!(
         mine.is_empty(),
         "a bare entity with nothing refuted yields zero sortal suggestions (honest absence, \
@@ -193,7 +208,7 @@ fn entity_refuting_one_sortal_yields_suggestions_for_the_corroborated_remainder(
          <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&all, "urn:e2");
+    let mine = for_subject(&all.suggestions, "urn:e2");
 
     assert!(
         !mine
@@ -250,6 +265,7 @@ fn producer_is_deterministic() {
     let ds = reasoned(&abox);
     let run = |ds: &RdfDataset| -> Vec<(String, Option<String>, Vec<String>)> {
         abductive_advisories(ds, &budget())
+            .suggestions
             .into_iter()
             .map(|s| {
                 (
@@ -286,9 +302,9 @@ fn already_complete_subjects_yield_zero_suggestions() {
     let all = abductive_advisories(ds.as_ref(), &budget());
     for subject in ["urn:cFull", "urn:eAgent", "urn:iFull", "urn:xFull"] {
         assert!(
-            for_subject(&all, subject).is_empty(),
+            for_subject(&all.suggestions, subject).is_empty(),
             "an already-complete {subject} yields zero suggestions: {:?}",
-            for_subject(&all, subject)
+            for_subject(&all.suggestions, subject)
         );
     }
 }
@@ -305,7 +321,7 @@ fn two_missing_relata_each_yield_their_own_corroborated_suggestion() {
         "@prefix gmeow: <{GMEOW}> .\n<urn:c3> a gmeow:Commitment ; gmeow:committedAgent <urn:aA> .\n"
     ));
     let all = abductive_advisories(ds.as_ref(), &budget());
-    let mine = for_subject(&all, "urn:c3");
+    let mine = for_subject(&all.suggestions, "urn:c3");
 
     assert_eq!(
         mine.len(),
@@ -355,13 +371,122 @@ fn producer_does_not_mutate_the_base_graph() {
          <urn:e1> a gmeow:Entity .\n"
     ));
     let before = quad_count(ds.as_ref());
-    let suggestions = abductive_advisories(ds.as_ref(), &budget());
-    assert!(!suggestions.is_empty());
+    let outcome = abductive_advisories(ds.as_ref(), &budget());
+    assert!(!outcome.suggestions.is_empty());
     // The witness / scenario-world IRIs the producer mints live only in the borrowed
     // scenario EDB, never in the base graph — the byte count is unchanged.
     assert_eq!(
         before,
         quad_count(ds.as_ref()),
         "the base graph is never mutated by the producer"
+    );
+}
+
+// ── G6 Part A: one named budget constant, shared by both call sites ───────────────────
+
+/// `abductive_budget()` is built from the one named [`ABDUCTIVE_MAX_STEPS`] constant — the
+/// SAME item `crates/pipeline/src/stages/validate.rs` and
+/// `crates/validate/src/validate_all.rs` both call (proved at the source level: neither
+/// call site carries the `5_000_000` literal any more — see the crate-level grep in the
+/// G6 verification notes). This test proves the constructor's OWN value is exactly the
+/// named constant, not a second, independently-drifting literal.
+#[test]
+fn abductive_budget_is_built_from_the_named_constant() {
+    let b = abductive_budget();
+    assert_eq!(
+        b.max_steps,
+        Some(ABDUCTIVE_MAX_STEPS),
+        "abductive_budget() must carry exactly the named ABDUCTIVE_MAX_STEPS ceiling"
+    );
+    assert_eq!(
+        b.max_answers, None,
+        "the answer-count axis is not the abductive warrant's discriminator"
+    );
+}
+
+// ── G6 Part B: budget exhaustion is OBSERVABLE, never a silent drop ───────────────────
+
+/// A candidate warrant test cut short by a deliberately tiny budget surfaces an honest
+/// "could-not-decide (budget exhausted)" diagnostic in [`AbductiveOutcome::exhausted`] —
+/// NEVER a silent empty result indistinguishable from a genuine `Open`/non-corroboration,
+/// and NEVER a false advisory.
+///
+/// Reuses `entity_refuting_one_sortal_yields_suggestions_for_the_corroborated_remainder`'s
+/// OWN fixture: under the production budget, every one of the four offered sortal
+/// disjuncts resolves conclusively (one `RefutedInStandpoint` via `owl:disjointWith`, three
+/// `Corroborated`). Under [`tiny_budget`] every disjunct's `owl:disjointWith` consistency
+/// check is cut short before it can conclude — a genuine, non-trivial DL derivation the
+/// zero-derivation-redundant ground-Horn case (see `tiny_budget`'s doc) cannot exercise.
+#[test]
+fn sortal_candidate_exhausted_by_a_tiny_budget_surfaces_an_exhaustion_diagnostic() {
+    let ds = reasoned(&format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+    ));
+    let outcome = abductive_advisories(ds.as_ref(), &tiny_budget());
+
+    // No false advisory: an exhausted subject must NOT yield a (dishonest) suggestion —
+    // neither the eventually-refuted gmeow:Agent disjunct nor the eventually-corroborated
+    // remainder, since NONE of the four disjuncts reached a conclusive verdict.
+    assert!(
+        for_subject(&outcome.suggestions, "urn:e2").is_empty(),
+        "a budget-exhausted subject must never surface a false advisory: {:?}",
+        for_subject(&outcome.suggestions, "urn:e2")
+    );
+
+    // Not a silent drop: an honest could-not-decide diagnostic is present per disjunct.
+    assert_eq!(
+        outcome.exhausted.len(),
+        4,
+        "all four offered sortal disjuncts must surface their own could-not-decide \
+         diagnostic, not vanish silently: exhausted = {:?}",
+        outcome.exhausted
+    );
+    for diag in &outcome.exhausted {
+        assert_eq!(
+            diag.grade().severity,
+            Severity::Note,
+            "the exhaustion diagnostic is a Note (mirrors the warrant Diag's own grade)"
+        );
+        assert!(
+            diag.message().contains("exhausted") && diag.message().contains("could-not-decide"),
+            "the exhaustion diagnostic must honestly name budget exhaustion, never a false \
+             advisory: {}",
+            diag.message()
+        );
+        assert!(
+            diag.message().contains("urn:e2"),
+            "the exhaustion diagnostic must name the dropped subject: {}",
+            diag.message()
+        );
+    }
+}
+
+/// The exhaustion path is deterministic under repeated runs, exactly like the corroborated
+/// path (`producer_is_deterministic`): the SAME input twice yields the SAME exhaustion
+/// diagnostics, sorted by their content-addressed code.
+#[test]
+fn exhaustion_diagnostics_are_deterministic() {
+    let ds = reasoned(&format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         <urn:notAnAgent> a owl:Class ; owl:disjointWith gmeow:Agent .\n\
+         <urn:e2> a gmeow:Entity , <urn:notAnAgent> .\n"
+    ));
+    let run = |ds: &RdfDataset| -> Vec<String> {
+        abductive_advisories(ds, &tiny_budget())
+            .exhausted
+            .into_iter()
+            .map(|d| d.message().to_owned())
+            .collect()
+    };
+    let a = run(ds.as_ref());
+    let b = run(ds.as_ref());
+    assert_eq!(a, b, "same input ⇒ identical exhaustion diagnostics");
+    assert!(
+        !a.is_empty(),
+        "a tiny budget must exhaust at least one disjunct in the sortal fixture"
     );
 }

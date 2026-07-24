@@ -450,14 +450,11 @@ impl Stage for ValidateStage {
             source_dataset.as_ref(),
             closure_dataset.as_ref(),
         ]));
-        let abductive_budget = gmeow_logic::query_ir::Budget {
-            max_answers: None,
-            max_steps: Some(5_000_000),
-        };
-        for suggestion in gmeow_validate::abductive::abductive_advisories(
+        let abductive_outcome = gmeow_validate::abductive::abductive_advisories(
             reasoned_dataset.as_ref(),
-            &abductive_budget,
-        ) {
+            &gmeow_validate::abductive::abductive_budget(),
+        );
+        for suggestion in abductive_outcome.suggestions {
             let warrant_ref =
                 advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
             let projection = suggestion.advisory.project();
@@ -467,6 +464,14 @@ impl Stage for ValidateStage {
             );
             advisory_claims.push(projection.claim);
             report.add_rule(suggestion.advisory.rule());
+        }
+        // A candidate whose warrant test was cut short by budget exhaustion is NEVER a
+        // silent drop (G6 Part B): its could-not-decide diagnostic rides the SAME ledger as
+        // the warrant/advisory Diags, so a dropped-because-exhausted subject stays
+        // observable in graph/diagnostics rather than vanishing indistinguishably from a
+        // genuine `Open`/non-corroboration.
+        for exhausted in abductive_outcome.exhausted {
+            advisory_ledger.attach(exhausted, StageId::new("validate.advisory"));
         }
         // The flat findings are added after the ledger is fully attached (findings("validate")
         // reads the whole batch), keeping their genuine ledger identity.

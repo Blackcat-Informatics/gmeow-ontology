@@ -10,8 +10,12 @@
 //! subject, and asks the native conjecture engine
 //! ([`gmeow_logic::conjecture::conjecture_test`]) whether a candidate addition makes
 //! the discipline's completeness condition hold in an ISOLATED, consistent scenario
-//! world. Only a `Corroborated` verdict warrants the emitted advisory — an `Open`,
-//! `RefutedInStandpoint`, or budget-exhausted answer is honest absence (no suggestion).
+//! world. Only a `Corroborated` verdict warrants the emitted advisory — an `Open` or
+//! `RefutedInStandpoint` answer is honest absence (no suggestion). A verdict cut short by
+//! BUDGET EXHAUSTION is neither: it is a genuinely inconclusive could-not-decide, distinct
+//! from a decided `Open`, so it never silently vanishes — [`abductive_advisories`] returns
+//! it as its own [`AbductiveOutcome::exhausted`] diagnostic (Part B of G6), never folded
+//! into the same honest absence as a real non-corroboration.
 //!
 //! There is NO hardcoded discipline list and NO hardcoded predicate string: the guard
 //! type, the required relata predicates, and the candidate sortal types are all read
@@ -45,7 +49,8 @@
 //! A sortal specialization (a disjunction) is warranted PER SUBJECT, across every offered
 //! disjunct together, never per candidate in isolation. Each disjunct `τ_Entity(s) → τ_T(s)`
 //! lands one of `Corroborated` (adding `T` is consistent), `RefutedInStandpoint` (adding `T`
-//! clashes with `s`'s other assertions), or `Open`/`BudgetExhausted` (honest absence). A bare
+//! clashes with `s`'s other assertions), `Open` (honest absence), or budget-exhausted (its
+//! own could-not-decide diagnostic, see above). A bare
 //! subject typed nothing but its guard class corroborates EVERY offered sortal — advising a
 //! "specialize to X" menu across all of them is then non-discriminating noise, not advice,
 //! so it is SUPPRESSED entirely (honest absence, not a same-weight N-way menu). Only when the
@@ -58,6 +63,7 @@
 use gmeow_errors::{Diag, register_code};
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::query_ir::Budget;
+use gmeow_logic::result::EvaluationStatus;
 use gmeow_logic_compile::frontend::reconstruct_formula;
 use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
@@ -87,6 +93,28 @@ const WITNESS_BASE: &str = "https://blackcatinformatics.ca/gmeow/abductive/witne
 /// Base IRI for the content-addressed isolated scenario world a candidate is tested in.
 const SCENARIO_WORLD_BASE: &str = "https://blackcatinformatics.ca/gmeow/abductive/scenario/";
 
+/// The abductive engine's step ceiling — ONE named constant shared by both live callers
+/// (the pipeline `stage-validate` and the `gmeow` CLI's `validate_all`), never a
+/// duplicated magic literal. Each `conjecture_test` runs over an ISOLATED, per-candidate
+/// scenario world (`KB ∪ {one guard atom, one candidate relatum/sortal atom}`) — the
+/// SAME kernel+logic KB closure every time, so the marginal chase this ceiling bounds is
+/// tiny relative to the limit: generous headroom for the worst case, never a tuned-to-fit
+/// number.
+pub const ABDUCTIVE_MAX_STEPS: u64 = 5_000_000;
+
+/// The shared abductive-engine [`Budget`] — construct it here so both call sites reference
+/// the SAME named item (see [`ABDUCTIVE_MAX_STEPS`]) rather than duplicating the literal.
+/// `max_answers: None` — the answer-count axis is not the discriminator for a per-candidate
+/// warrant test (a single ground/Horn candidate, never an open-ended answer set); only the
+/// step ceiling bounds the chase.
+#[must_use]
+pub fn abductive_budget() -> Budget {
+    Budget {
+        max_answers: None,
+        max_steps: Some(ABDUCTIVE_MAX_STEPS),
+    }
+}
+
 /// One abductive suggestion: the engine-corroborated warrant [`Diag`] paired with the
 /// dual-projection-ready [`Advisory`]. The two carry the SAME content-addressed digest
 /// in their codes, so a consumer can join the warrant to the advice it warrants.
@@ -96,6 +124,22 @@ pub struct AbductiveSuggestion {
     pub warrant: Diag,
     /// The best-practice advisory recommending the concrete addition.
     pub advisory: Advisory,
+}
+
+/// The full output of [`abductive_advisories`]: every engine-corroborated suggestion AND,
+/// when a candidate/subject's warrant test was cut short by budget exhaustion (as opposed
+/// to a genuine `Open`/`RefutedInStandpoint` verdict), an honest "could-not-decide (budget
+/// exhausted)" [`Diag`] — so a subject dropped because its warrant ran out of budget stays
+/// OBSERVABLE in `graph/diagnostics`, never a silent vanish indistinguishable from genuine
+/// non-corroboration. Deterministic: `exhausted` is sorted by its content-addressed code,
+/// exactly like `suggestions` is sorted by `(advisory.code, advisory.subject_iri)`.
+#[derive(Debug, Default)]
+pub struct AbductiveOutcome {
+    /// Every engine-corroborated candidate addition, byte-sorted (see [`abductive_advisories`]).
+    pub suggestions: Vec<AbductiveSuggestion>,
+    /// One diagnostic per candidate/subject whose warrant test exhausted its budget before
+    /// reaching a conclusive verdict.
+    pub exhausted: Vec<Diag>,
 }
 
 /// A discovered `logic:AbductiveSchema` and the completeness structure read off its
@@ -155,20 +199,29 @@ struct Candidate {
 /// finally sorted by `(advisory.code, advisory.subject_iri)`. Same input twice ⇒ identical
 /// output. `reasoned` is only READ; the base graph is never mutated.
 #[must_use]
-pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> Vec<AbductiveSuggestion> {
-    let mut out = Vec::new();
+pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> AbductiveOutcome {
+    let mut suggestions = Vec::new();
+    // Keyed by the same content-addressed code the diag itself carries, so the final sort
+    // is deterministic without re-deriving the key from the (registry-order-dependent)
+    // `Diag::code()` handle.
+    let mut exhausted: Vec<(String, Diag)> = Vec::new();
     for schema in discover_schemas(reasoned) {
         match schema.strategy.as_str() {
             // The sortal/disjunctive strategy is gated PER SUBJECT across all its offered
             // disjuncts together (the non-discriminating-menu suppression), so it builds its
             // own suggestions rather than going through the generic per-candidate `warrant`.
             STRATEGY_SORTAL => {
-                out.extend(sortal_suggestions(reasoned, &schema, budget));
+                let (subject_suggestions, subject_exhausted) =
+                    sortal_suggestions(reasoned, &schema, budget);
+                suggestions.extend(subject_suggestions);
+                exhausted.extend(subject_exhausted);
             }
             STRATEGY_RELATUM | STRATEGY_CHAIN | STRATEGY_FRAME => {
                 for candidate in relatum_candidates(reasoned, &schema) {
-                    if let Some(suggestion) = warrant(reasoned, &schema, &candidate, budget) {
-                        out.push(suggestion);
+                    match warrant(reasoned, &schema, &candidate, budget) {
+                        WarrantOutcome::Corroborated(suggestion) => suggestions.push(*suggestion),
+                        WarrantOutcome::Exhausted(key, diag) => exhausted.push((key, diag)),
+                        WarrantOutcome::Other => {}
                     }
                 }
             }
@@ -176,13 +229,17 @@ pub fn abductive_advisories(reasoned: &RdfDataset, budget: &Budget) -> Vec<Abduc
             _ => {}
         }
     }
-    out.sort_by(|a, b| {
+    suggestions.sort_by(|a, b| {
         a.advisory
             .code
             .cmp(&b.advisory.code)
             .then_with(|| a.advisory.subject_iri.cmp(&b.advisory.subject_iri))
     });
-    out
+    exhausted.sort_by(|a, b| a.0.cmp(&b.0));
+    AbductiveOutcome {
+        suggestions,
+        exhausted: exhausted.into_iter().map(|(_, diag)| diag).collect(),
+    }
 }
 
 // ── Schema discovery (SPARQL) ────────────────────────────────────────────────────────
@@ -388,11 +445,26 @@ fn sortal_candidates(reasoned: &RdfDataset, schema: &DiscoveredSchema) -> Vec<Ca
 
 // ── The engine warrant ───────────────────────────────────────────────────────────────
 
+/// The three-way disposition a single candidate's warrant test lands in.
+enum WarrantOutcome {
+    /// The formula was `Corroborated` — the paired warrant + advisory. Boxed: at ~240 bytes
+    /// this variant otherwise dwarfs its siblings (clippy::large_enum_variant).
+    Corroborated(Box<AbductiveSuggestion>),
+    /// The engine's budget was exhausted before it reached a conclusive verdict — the
+    /// content-addressed sort key (mirrors [`Advisory::code`]) paired with the honest
+    /// "could-not-decide" [`Diag`].
+    Exhausted(String, Diag),
+    /// `Open` / `RefutedInStandpoint` / an engine error — honest absence, no diagnostic.
+    Other,
+}
+
 /// Test `candidate` against ITS OWN per-conjunct ground-head Horn (relator mediation /
 /// WEMI chain / reference frame) in an isolated, content-addressed scenario world, and
 /// build the paired warrant + advisory when the native engine corroborates that single
-/// conjunct. `None` on any non-corroborating verdict (Open / RefutedInStandpoint /
-/// BudgetExhausted) or engine error — honest absence, no panic.
+/// conjunct. A verdict cut short by budget exhaustion surfaces as
+/// [`WarrantOutcome::Exhausted`] (an honest could-not-decide diagnostic, never a false
+/// advisory); any other non-corroborating verdict (Open / RefutedInStandpoint) or engine
+/// error is [`WarrantOutcome::Other`] — honest absence, no panic.
 ///
 /// Per-conjunct completeness: the candidate's own predicate/object IS the ground value for
 /// the relatum being added, so only `τ_guard(subject) → predicate(subject, object)` is
@@ -409,9 +481,9 @@ fn warrant(
     schema: &DiscoveredSchema,
     candidate: &Candidate,
     budget: &Budget,
-) -> Option<AbductiveSuggestion> {
+) -> WarrantOutcome {
     let ConsShape::Conjunctive(_) = &schema.cons else {
-        return None;
+        return WarrantOutcome::Other;
     };
     let scenario_world = scenario_world_iri(candidate);
     let assume = vec![(
@@ -426,16 +498,19 @@ fn warrant(
         &candidate.predicate,
         &candidate.object,
     );
-    if !corroborates(reasoned, &scenario_world, &formula, &assume, budget) {
-        return None;
+    match engine_verdict(reasoned, &scenario_world, &formula, &assume, budget) {
+        EngineVerdict::Corroborated => WarrantOutcome::Corroborated(Box::new(build_suggestion(
+            reasoned,
+            schema,
+            candidate,
+            &scenario_world,
+        ))),
+        EngineVerdict::Exhausted => {
+            let (key, diag) = exhaustion_diag(schema, candidate, &scenario_world);
+            WarrantOutcome::Exhausted(key, diag)
+        }
+        EngineVerdict::Refuted | EngineVerdict::Other => WarrantOutcome::Other,
     }
-
-    Some(build_suggestion(
-        reasoned,
-        schema,
-        candidate,
-        &scenario_world,
-    ))
 }
 
 /// Sortal-specialization suggestions, gated PER SUBJECT across every offered disjunct
@@ -445,42 +520,46 @@ fn warrant(
 /// choice at all, so a same-weight N-way "specialize to X" menu would be noise and is
 /// SUPPRESSED entirely (honest absence). When AT LEAST ONE disjunct is refuted, the
 /// completeness disjunction genuinely discriminates: advice is emitted for the
-/// `Corroborated` remainder only (the refuted — and any merely `Open`/exhausted —
-/// disjuncts are excluded).
+/// `Corroborated` remainder only (the refuted — and any merely `Open` — disjuncts are
+/// excluded). A disjunct whose own warrant test was budget-exhausted ALWAYS surfaces its
+/// own could-not-decide diagnostic (the second return element), independent of whether the
+/// subject's menu suppression fires — an exhausted candidate must never vanish silently.
 fn sortal_suggestions(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     budget: &Budget,
-) -> Vec<AbductiveSuggestion> {
+) -> (Vec<AbductiveSuggestion>, Vec<(String, Diag)>) {
     let candidates = sortal_candidates(reasoned, schema);
-    let mut out = Vec::new();
+    let mut suggestions = Vec::new();
+    let mut exhausted = Vec::new();
     let mut start = 0;
     while start < candidates.len() {
         let mut end = start + 1;
         while end < candidates.len() && candidates[end].subject == candidates[start].subject {
             end += 1;
         }
-        out.extend(sortal_suggestions_for_subject(
-            reasoned,
-            schema,
-            &candidates[start..end],
-            budget,
-        ));
+        let (subject_suggestions, subject_exhausted) =
+            sortal_suggestions_for_subject(reasoned, schema, &candidates[start..end], budget);
+        suggestions.extend(subject_suggestions);
+        exhausted.extend(subject_exhausted);
         start = end;
     }
-    out
+    (suggestions, exhausted)
 }
 
 /// The per-subject sortal gate: test every disjunct in `candidates` (all for the SAME
 /// subject) and emit the `Corroborated` remainder only when at least one disjunct is
 /// `RefutedInStandpoint`; otherwise (nothing refuted — a non-discriminating menu, or every
-/// disjunct merely `Open`/exhausted) return empty, honest absence.
+/// disjunct merely `Open`) return no suggestions, honest absence. Independently, every
+/// disjunct whose OWN test was budget-exhausted contributes its own could-not-decide
+/// diagnostic (the second return element) regardless of the suggestion gate's outcome.
 fn sortal_suggestions_for_subject(
     reasoned: &RdfDataset,
     schema: &DiscoveredSchema,
     candidates: &[Candidate],
     budget: &Budget,
-) -> Vec<AbductiveSuggestion> {
+) -> (Vec<AbductiveSuggestion>, Vec<(String, Diag)>) {
+    let mut exhausted = Vec::new();
     let verdicts: Vec<EngineVerdict> = candidates
         .iter()
         .map(|candidate| {
@@ -506,15 +585,20 @@ fn sortal_suggestions_for_subject(
             let Some(rehomed) = rehome_into_world(reasoned, &scenario_world) else {
                 return EngineVerdict::Other;
             };
-            engine_verdict(rehomed.as_ref(), &scenario_world, &formula, &assume, budget)
+            let verdict =
+                engine_verdict(rehomed.as_ref(), &scenario_world, &formula, &assume, budget);
+            if verdict == EngineVerdict::Exhausted {
+                exhausted.push(exhaustion_diag(schema, candidate, &scenario_world));
+            }
+            verdict
         })
         .collect();
 
     if !verdicts.contains(&EngineVerdict::Refuted) {
-        return Vec::new();
+        return (Vec::new(), exhausted);
     }
 
-    candidates
+    let suggestions = candidates
         .iter()
         .zip(verdicts.iter())
         .filter(|(_, verdict)| **verdict == EngineVerdict::Corroborated)
@@ -522,7 +606,8 @@ fn sortal_suggestions_for_subject(
             let scenario_world = scenario_world_iri(candidate);
             build_suggestion(reasoned, schema, candidate, &scenario_world)
         })
-        .collect()
+        .collect();
+    (suggestions, exhausted)
 }
 
 /// Copy every quad of `reasoned` into the named graph `world`, dropping each quad's
@@ -545,9 +630,9 @@ fn rehome_into_world(reasoned: &RdfDataset, world: &str) -> Option<Arc<RdfDatase
     builder.freeze().ok()
 }
 
-/// The three-way projection of a conjecture verdict the sortal gate needs — a bare bool
-/// loses exactly the `RefutedInStandpoint` vs. `Open`/`BudgetExhausted` distinction the
-/// per-subject gate counts refutations over.
+/// The four-way projection of a conjecture verdict the producer needs — a bare bool loses
+/// exactly the `RefutedInStandpoint` vs. `Open` vs. `BudgetExhausted` distinctions the
+/// per-subject sortal gate counts refutations over and the exhaustion path (below) reports.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EngineVerdict {
     /// The formula was `Corroborated` — the candidate addition is consistent (and warrants).
@@ -555,13 +640,23 @@ enum EngineVerdict {
     /// The formula was `RefutedInStandpoint` — the candidate addition clashes with the
     /// subject's other assertions (a genuine discriminator).
     Refuted,
-    /// `Open` / `BudgetExhausted` / an engine error — honest absence, neither corroborates
-    /// nor refutes.
+    /// The engine's budget was exhausted before it reached a conclusive verdict — an honest
+    /// could-not-decide, NEVER folded into `Other` (a genuine `Open`/non-corroboration):
+    /// silently conflating the two would drop a completable subject with no trace.
+    Exhausted,
+    /// `Open` (a genuine, budget-unconstrained non-corroboration) / an engine error — honest
+    /// absence, neither corroborates, refutes, nor was cut short by budget.
     Other,
 }
 
-/// Run `formula` through the native conjecture engine and project its lifecycle to an
-/// [`EngineVerdict`]. An engine error is [`EngineVerdict::Other`] (honest absence, no panic).
+/// Run `formula` through the native conjecture engine and project its verdict, evaluation
+/// status, and lifecycle to an [`EngineVerdict`]. Budget exhaustion is read off
+/// `answer.verdict.evaluation` (the axis [`gmeow_logic::conjecture::conjecture_test`]
+/// actually carries it on — `lifecycle_of`'s own invariant guarantees an exhausted run is
+/// ALWAYS `Open`, so checking `evaluation` first is what makes exhaustion distinguishable
+/// from a genuine `Open` at all) BEFORE the lifecycle match, so it is never folded into
+/// [`EngineVerdict::Other`]. An engine error is [`EngineVerdict::Other`] (honest absence, no
+/// panic — a hard reasoning failure is not itself an exhaustion).
 fn engine_verdict(
     reasoned: &RdfDataset,
     scenario_world: &str,
@@ -577,6 +672,9 @@ fn engine_verdict(
         assume,
         budget,
     ) {
+        Ok(answer) if answer.verdict.evaluation == EvaluationStatus::BudgetExhausted => {
+            EngineVerdict::Exhausted
+        }
         Ok(answer) => match answer.lifecycle {
             ConjectureLifecycleState::Corroborated => EngineVerdict::Corroborated,
             ConjectureLifecycleState::RefutedInStandpoint => EngineVerdict::Refuted,
@@ -588,17 +686,39 @@ fn engine_verdict(
     }
 }
 
-/// `true` iff the native conjecture engine lands the formula in
-/// [`ConjectureLifecycleState::Corroborated`]. Any other lifecycle or an engine error is
-/// `false` (honest absence).
-fn corroborates(
-    reasoned: &RdfDataset,
+/// Build the "could-not-decide (budget exhausted)" diagnostic for a candidate whose warrant
+/// test was cut short by the engine's budget before reaching a conclusive verdict — an
+/// HONEST could-not-decide note (Note severity, mirrors the warrant [`Diag`]'s own grade),
+/// never a false advisory and never a silent drop indistinguishable from a genuine
+/// `Open`/non-corroboration. Returns the content-addressed sort key alongside the diag (see
+/// [`AbductiveOutcome::exhausted`]'s determinism note).
+fn exhaustion_diag(
+    schema: &DiscoveredSchema,
+    candidate: &Candidate,
     scenario_world: &str,
-    formula: &Formula,
-    assume: &[(String, String, String)],
-    budget: &Budget,
-) -> bool {
-    engine_verdict(reasoned, scenario_world, formula, assume, budget) == EngineVerdict::Corroborated
+) -> (String, Diag) {
+    let discipline = code_local(&schema.term);
+    let digest = candidate_digest(candidate);
+    let code = format!(
+        "{}abductive.exhausted.{discipline}.{digest}",
+        crate::codes::ADVICE_FAMILY
+    );
+    let subject_q = qname(&candidate.subject);
+    let predicate_q = qname(&candidate.predicate);
+    let object_q = qname(&candidate.object);
+    let diag = Diag::note(
+        register_code(&code),
+        format!(
+            "abductive warrant inconclusive: the native conjecture engine's budget was \
+             exhausted before it could decide whether adding {predicate_q} {object_q} to \
+             {subject_q} completes the {} completeness formula ({discipline}) in a consistent, \
+             isolated scenario world <{scenario_world}> from standpoint \
+             <{BEST_PRACTICE_STANDPOINT_IRI}> — this is a could-not-decide (budget exhausted), \
+             NOT a genuine non-corroboration; no advisory is emitted for this candidate.",
+            qname(&schema.term),
+        ),
+    );
+    (code, diag)
 }
 
 /// The engine-evaluable ground-head Horn `τ_guard(subject) → relation(subject, value)` —
