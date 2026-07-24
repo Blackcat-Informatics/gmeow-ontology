@@ -741,6 +741,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_recipe_not_found", "Recipe not found."),
     ("body_recipes", "Recipes"),
     ("body_related_terms", "Related terms"),
+    ("body_run_validation", "Run Tier-1 validation"),
     ("body_schema_fragment", "Use this term without RDF"),
     ("body_slice_not_found", "Slice not found."),
     ("body_slices", "Slices"),
@@ -1123,10 +1124,10 @@ mod tests {
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 158 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 159 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog
         // (incl. the pipeline-stage attach surface: body_pipeline_attaches[_blob]).
-        assert_eq!(UI_TEMPLATES.len(), 218);
+        assert_eq!(UI_TEMPLATES.len(), 219);
     }
 
     #[test]

@@ -311,5 +311,10 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     ],
     refresh_target: "maint-refresh-validate-asset",
     bless_env: "GMEOW_VALIDATE_BLESS",
-    witness_attestation: None,
+    // The native↔wasm parity attestation (`WITNESS.validate.json`): the byte-identical
+    // Tier-1 findings the native validator produced and the wasm engine must
+    // reproduce (proven by `crates/validate-wasm/js/tests/witness.test.mjs` +
+    // `crates/validate/tests/witness_parity.rs`). Task 14 consumes it to gate the
+    // interactive validate Capability.
+    witness_attestation: Some("WITNESS.validate.json"),
 };

@@ -1937,6 +1937,36 @@ fn synthesize_composed_quickstart(model: &DocsModel, term_curies: &[String]) -> 
     out
 }
 
+/// Standard Base64 (RFC 4648, `+`/`/`, `=` padding) — used to carry a fixture's
+/// Turtle verbatim inside a `data-` attribute for the in-browser "run validation"
+/// control, so newlines/quotes/`<` in the RDF never break the HTML. Small, dep-free,
+/// and deterministic.
+fn base64_encode(bytes: &[u8]) -> String {
+    const A: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let b = [
+            chunk[0],
+            *chunk.get(1).unwrap_or(&0),
+            *chunk.get(2).unwrap_or(&0),
+        ];
+        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
+        out.push(A[((n >> 18) & 63) as usize] as char);
+        out.push(A[((n >> 12) & 63) as usize] as char);
+        out.push(if chunk.len() > 1 {
+            A[((n >> 6) & 63) as usize] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            A[(n & 63) as usize] as char
+        } else {
+            '='
+        });
+    }
+    out
+}
+
 fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
         let mut out = String::new();
@@ -2159,6 +2189,30 @@ fn term_developer_surface(
                 &format!("- **{label}:** `{}`", code_escape(&fixture.logical_path)),
             );
             push_fixture_binding_bullets(&mut out, model, &from, fixture);
+            // Live "run validation" control (W1): a counter-example is meant to
+            // VIOLATE, so the reader can run the REAL Tier-1 validator in-browser
+            // over it and see the actual unified-diagnostics findings (each linking
+            // through its helpUri into the constraint catalog). Only when the browser
+            // validate asset + bundle ship (`has_bundle()`); the fixture Turtle rides
+            // base64 in a data-attribute so its RDF never breaks the HTML.
+            if exec.has_bundle()
+                && matches!(fixture.kind, crate::model::DocFixtureKind::CounterExample)
+            {
+                blank(&mut out);
+                push_line(
+                    &mut out,
+                    &format!(
+                        "<div class=\"gmeow-validation\"><button class=\"gmeow-run-validation\" \
+                         data-turtle=\"{}\" data-origin=\"{}\" data-catalog-href=\"{}index.html\">{}</button>\
+                         <div class=\"gmeow-validation-results\"></div></div>",
+                        base64_encode(fixture.text.as_bytes()),
+                        fixture.logical_path.replace('&', "&amp;").replace('"', "&quot;"),
+                        rel(&from, &Page::ConstraintCatalog.dir()),
+                        model.ui("body_run_validation"),
+                    ),
+                );
+                blank(&mut out);
+            }
         }
         let fixture_index_href = rel(&from, &Page::FixtureIndex.dir());
         push_line(

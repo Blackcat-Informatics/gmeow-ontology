@@ -13,6 +13,9 @@
 // ./playground.trig.
 
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
+import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
+
+const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
 
 const FORMATS = [
   ["turtle", "Turtle"],
@@ -59,6 +62,85 @@ export async function loadCoreBundle() {
  * source), resolved relative to this module. */
 export function fullBundleUrl() {
   return new URL("./gmeow.gts", import.meta.url);
+}
+
+// ── Live Tier-1 validation (W1) ─────────────────────────────────────────────
+// Each counter-example fixture on a term page ships a "run validation" button
+// carrying the fixture's base64-encoded Turtle. On click we load the FULL gmeow.gts
+// bundle (its shapes-archive), run the REAL Tier-1 validator (gmeow-validate-wasm)
+// entirely in-browser, and render the unified-diagnostics findings — each linking
+// through its helpUri into the constraint catalog. This is the SAME validator the
+// on-gate authority runs; the native↔wasm parity witness lane proves they agree.
+let _validatorReady = null;
+async function ensureValidator() {
+  if (!_validatorReady) {
+    _validatorReady = validateInit(
+      new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
+    );
+  }
+  await _validatorReady;
+}
+
+let _bundleBytes = null;
+async function fullBundleBytes() {
+  if (!_bundleBytes) {
+    _bundleBytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
+  }
+  return _bundleBytes;
+}
+
+/** Run Tier-1 conformance of `turtle` against the bundle shapes, returning the
+ * canonical diagnostics report `{ tool, findings: [...] }`. */
+export async function runFixtureValidation(turtle, origin) {
+  await ensureValidator();
+  const bundle = await fullBundleBytes();
+  return JSON.parse(wasmValidate(turtle, "turtle", bundle, GMEOW_NS, origin || "fixture.ttl"));
+}
+
+function renderFindings(container, report, catalogHref) {
+  const findings = report.findings ?? [];
+  container.replaceChildren();
+  if (findings.length === 0) {
+    container.textContent = "Conforms — no Tier-1 findings.";
+    return;
+  }
+  const ul = document.createElement("ul");
+  // Stable sort so the rendered order is deterministic (native/wasm comparable).
+  for (const f of [...findings].sort((a, b) =>
+    `${a.code} ${a.message}`.localeCompare(`${b.code} ${b.message}`),
+  )) {
+    const li = document.createElement("li");
+    // The finding `code` IS the constraint-catalog anchor (the validator's helpUri
+    // slug); link into the catalog when a base href is supplied.
+    const code = catalogHref
+      ? Object.assign(document.createElement("a"), {
+          href: `${catalogHref}#${f.code}`,
+          textContent: f.code,
+        })
+      : Object.assign(document.createElement("code"), { textContent: f.code });
+    li.append(`${f.severity ?? "error"}: `, code, ` — ${f.message ?? ""}`);
+    ul.append(li);
+  }
+  container.replaceChildren(ul);
+}
+
+for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
+  btn.addEventListener("click", async () => {
+    const results = btn.parentElement.querySelector(".gmeow-validation-results");
+    results.textContent = "Validating…";
+    try {
+      const turtle = new TextDecoder().decode(
+        Uint8Array.from(atob(btn.dataset.turtle), (c) => c.charCodeAt(0)),
+      );
+      renderFindings(
+        results,
+        await runFixtureValidation(turtle, btn.dataset.origin),
+        btn.dataset.catalogHref,
+      );
+    } catch (e) {
+      results.textContent = `Validation failed: ${e.message ?? e}`;
+    }
+  });
 }
 
 const form = document.getElementById("gmeow-sparql");
