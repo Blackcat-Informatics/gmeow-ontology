@@ -15765,6 +15765,527 @@ logic:certifiesNoOrphanIntent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
+# === Enactment layer: refinement — decomposition methods, episodes,       === #
+# === closed candidate sets, pinned subgraphs, and capability gaps         === #
+# =========================================================================== #
+#
+# Turning an abstract step into something executable is HTN decomposition, and
+# the load-bearing part is the METHOD: a named, versioned, applicability-gated
+# schema for how a task decomposes. Without methods every refinement is a
+# one-off, so a continuing cluster RECORDS its history without ever USING it -
+# which guts the point of continuity. A pinned subgraph is one instantiation of
+# a method, never a substitute for having one.
+
+logic:DecompositionMethod
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Decomposition Method"@x-gmeow-english ;
+    skos:definition "A named, versioned, content-addressed schema for decomposing one abstract task into a subplan, gated by an applicability condition. It is the reusable unit means-end search selects among: a curriculum's course-into-modules rule, a control plan's phase-into-steps rule, an organizational guide's policy-into-procedure rule. Typed APART from logic:PinnedExecutableSubgraph, which is one committed INSTANTIATION of a method against one situation; the method is the schema and outlives every pin made from it."@x-gmeow-english ;
+    skos:example "ex:ocrByPagePartition a logic:DecompositionMethod ; logic:methodDecomposes ex:ocrTask ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare a reusable way of decomposing an abstract task, so refinement can select among alternatives rather than improvising."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inlining a decomposition into a single episode with no reusable schema, and avoid mutating a landed method in place."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:methodDecomposes, logic:methodApplicability and logic:methodYields; version it like a prescription and supersede rather than edit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:methodDecomposes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method decomposes"@x-gmeow-english ;
+    skos:definition "Relates a logic:DecompositionMethod to the abstract task it knows how to break down. Range an abstract plan step (stated in prose). Functional: one method decomposes one task type, and several methods for the same task are the alternatives search chooses between."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:methodApplicability
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method applicability"@x-gmeow-english ;
+    skos:definition "The condition under which a logic:DecompositionMethod may be applied, as a logic:Formula over the situation. It is what makes the candidate roster DERIVED rather than asserted: a method whose applicability does not hold is not a candidate, and the rejection carries that formula as its witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:methodYields
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method yields"@x-gmeow-english ;
+    skos:definition "Relates a logic:DecompositionMethod to a subtask its decomposition produces. Range a plan step or action schema (stated in prose). Multi-valued and ORDERED through the yielded steps' own flow edges rather than by list position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:methodDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method digest"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address of a logic:DecompositionMethod's frozen form, so a pin made from it can name the exact method version it instantiated and a later method revision cannot silently re-interpret an existing pin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RefinementEpisode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refinement Episode"@x-gmeow-english ;
+    skos:definition "One bounded, attributed attempt to turn an abstract step into something executable, against a stated world snapshot and under a declared resource policy. Boundedness is definitional: means-end search is undecidable in general, so an episode that cannot report the budget it ran under cannot report an honest closed roster either. Typed APART from logic:Enactment, which carries out a plan; an episode PRODUCES the plan fragment an enactment will later carry out."@x-gmeow-english ;
+    skos:example "ex:ocrRefinement a logic:RefinementEpisode ; logic:refinesStep ex:ocrTask ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an abstract step must be made executable and the reasoning that did so must stay auditable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an unbounded episode, and avoid one that reports candidates without reporting what it searched under."@x-gmeow-english ;
+    gmeow:howToUse "Bind the step, the served goal, the world snapshot and a resource policy; produce a closed candidate set and either a pin or a capability-gap proposal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:refinesStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refines step"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementEpisode to the abstract step it is trying to make executable. Range a plan step (stated in prose). Functional: one episode refines one step, so a multi-step refinement is several episodes and each carries its own budget and outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementServesGoal
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement serves goal"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementEpisode to the goal the refined step contributes to. Range a goal expression (stated in prose). Naming it explicitly keeps a decomposition answerable to WHY it was undertaken, not merely to whether it produced runnable steps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementWorldSnapshot
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:InputSnapshot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement world snapshot"@x-gmeow-english ;
+    skos:definition "The closed generation of world, policy and capability facts the episode reasoned over. Without it a roster's closedness is unfalsifiable, because a later reader cannot tell which facts were visible when the search ran."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementBudget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement budget"@x-gmeow-english ;
+    skos:definition "The declared resource policy the episode's search ran under, reusing the engine's existing budget vocabulary rather than minting a second one. A cut against this budget yields an honest incomplete result, never a roster claimed closed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RefinementCandidateSet
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refinement Candidate Set"@x-gmeow-english ;
+    skos:definition "The roster of subplans and action schemas a logic:RefinementEpisode found applicable — CLOSED, meaning the episode ran to saturation within its budget and nothing applicable was omitted. Closedness is a claim that must be earned by a saturation witness, never asserted: a roster produced under a budget cut is incomplete and must say so, because presenting a truncated roster as complete is how a system silently picks a worse action."@x-gmeow-english ;
+    skos:example "ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the alternatives a refinement found, together with whether the roster is complete."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming closure without a saturation witness, and avoid omitting rejected candidates (their rejections are the audit trail)."@x-gmeow-english ;
+    gmeow:howToUse "Bind every applicable candidate and every rejection; carry the episode's completeness status alongside."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:refinementCandidate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementCandidateSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement candidate"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementCandidateSet to one applicable subplan or action schema. Range a subplan or action schema (stated in prose). Multi-valued; membership means applicability held, not that the candidate was selected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:producedCandidateSet
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:RefinementCandidateSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "produced candidate set"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementEpisode to the roster it produced. Functional: one episode yields one roster, so two rosters for one step are two episodes with their own budgets and snapshots."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RejectionKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rejection Kind"@x-gmeow-english ;
+    skos:definition "The closed vocabulary of WHY a refinement candidate was rejected: an unmet precondition, an absent capability, an unavailable resource, or a missing authorization. Typing the reason is what lets an operator projection say why an option is unavailable and what would make it available, instead of reporting a bare absence."@x-gmeow-english ;
+    skos:example "ex:tesseractRejection logic:rejectionKind logic:RejectedCapability ."@x-gmeow-english ;
+    gmeow:useWhen "Use to type the reason a candidate did not survive."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an untyped rejection and avoid using it for a candidate that was applicable but simply not preferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member together with the witness that established it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RejectedPrecondition a owl:NamedIndividual , logic:RejectionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejected on precondition"@x-gmeow-english ;
+    skos:definition "The candidate's precondition did not hold in the episode's world snapshot. Remediable by changing the world; distinguished from a capability rejection, which no change of world state resolves."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RejectedCapability a owl:NamedIndividual , logic:RejectionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejected on capability"@x-gmeow-english ;
+    skos:definition "No actor available to the episode holds the capability the candidate requires. This is the rejection that yields a capability-gap proposal rather than a retry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RejectedResource a owl:NamedIndividual , logic:RejectionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejected on resource"@x-gmeow-english ;
+    skos:definition "A resource the candidate consumes is exhausted or unavailable. Distinguished from a capability rejection: the ability exists, the means to exercise it does not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RejectedApproval a owl:NamedIndividual , logic:RejectionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejected on approval"@x-gmeow-english ;
+    skos:definition "The candidate requires an authorization that is absent, undetached or expired. Distinguished from the other three: nothing about the world or the actor is lacking, only the permission."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RefinementRejection
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refinement Rejection"@x-gmeow-english ;
+    skos:definition "The record that a specific candidate was considered and did not survive, carrying its typed logic:RejectionKind and the witness that established it. Rejections are retained rather than discarded because 'why is this option not available?' is the question an operator actually asks, and a roster that lists only survivors cannot answer it."@x-gmeow-english ;
+    skos:example "ex:tesseractRejection a logic:RefinementRejection ; logic:rejectionKind logic:RejectedCapability ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a considered-and-declined candidate with its typed reason."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid discarding rejections, and avoid recording one without the witness that justifies it."@x-gmeow-english ;
+    gmeow:howToUse "Bind the rejected candidate, the kind, and the witness; hang it off the candidate set the episode produced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:rejectionKind
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection ;
+    rdfs:range logic:RejectionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection kind"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementRejection to its exactly-one typed reason. Functional: a candidate blocked on two grounds yields two rejections, so each remedy is separately actionable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:rejectedCandidate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejected candidate"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementRejection to the candidate it declined. Range a subplan or action schema (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:rejectionWitness
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementRejection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementRejection to the evidence that established it — the unsatisfied formula, the absent capability, the exhausted resource. Range a witness node (stated in prose). A rejection without a witness is an opinion, not a finding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasRejection
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementCandidateSet ;
+    rdfs:range logic:RefinementRejection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has rejection"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementCandidateSet to a candidate it considered and declined. Multi-valued; together with logic:refinementCandidate it makes the roster's full deliberation readable rather than only its outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PreparationStep
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Preparation Step"@x-gmeow-english ;
+    skos:definition "Work carried out to make a selected action ready that is not itself the action — staging inputs, warming a cache, acquiring a lease, obtaining an authorization. Typed APART from the action it prepares for: preparation may complete while the action never runs, and conflating the two would report readiness work as the work itself."@x-gmeow-english ;
+    skos:example "ex:stageForOcr a logic:PreparationStep ; logic:preparationOf ex:ocrStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use for work done before an action becomes ready, when that work must be visible and separately auditable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding preparation into the prepared action, and avoid preparation with no named beneficiary."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:preparationOf and emit a logic:PreparationReceipt when it completes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:preparationOf
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PreparationStep ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "preparation of"@x-gmeow-english ;
+    skos:definition "Relates a logic:PreparationStep to the step or enactment it prepares for. Range a plan step or enactment (stated in prose). Functional. It is the seam a domain slice specializes to bind preparation to its own activity vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PreparationReceipt
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Preparation Receipt"@x-gmeow-english ;
+    skos:definition "The durable record that a logic:PreparationStep completed and what it produced, so a resumed enactment does not redo preparation it already paid for. Typed APART from logic:ExternalEffectReceipt, which records an outcome observed OUTSIDE the system: a preparation receipt records internal readiness work whose outcome is not in doubt."@x-gmeow-english ;
+    skos:example "ex:stagedForOcr a logic:PreparationReceipt ; logic:receiptOfPreparation ex:stageForOcr ."@x-gmeow-english ;
+    gmeow:useWhen "Use to make completed preparation survive a pause or crash."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for an external outcome, and avoid emitting one for preparation that did not finish."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:receiptOfPreparation; a restore reads it to skip already-completed readiness work."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:receiptOfPreparation
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PreparationReceipt ;
+    rdfs:range logic:PreparationStep ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receipt of preparation"@x-gmeow-english ;
+    skos:definition "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Functional: one receipt per completed preparation step."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PinnedExecutableSubgraph
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Pinned Executable Subgraph"@x-gmeow-english ;
+    skos:definition "The immutable, content-addressed plan fragment a refinement committed to — one instantiation of a logic:DecompositionMethod against one situation, frozen so that what was authorized is exactly what runs. Immutability is a SECURITY property, not tidiness: a mutable pin means an approval was granted against a moving target, and the authorized argument set could differ from the dispatched one."@x-gmeow-english ;
+    skos:example "ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a refinement is selected and the resulting fragment must be exactly what executes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid editing a landed pin, and avoid pinning without recording which method version produced it."@x-gmeow-english ;
+    gmeow:howToUse "Content-address the fragment, bind the method version it instantiates, and carry the proof term that authorized it on logic:pinAuthority."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:pinInstantiatesMethod
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:range logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin instantiates method"@x-gmeow-english ;
+    skos:definition "Relates a logic:PinnedExecutableSubgraph to the logic:DecompositionMethod it instantiates. Functional. Naming the method version keeps a later method revision from silently re-interpreting an existing pin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pinAuthority
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin authority"@x-gmeow-english ;
+    skos:definition "Relates a logic:PinnedExecutableSubgraph to what authorized the pin — a checkable proof term establishing that the pin was licensed, not a bare reference to whoever asked. Range an authorization proof (stated in prose). A logic:Advisory may never occupy this position: advice can motivate a pin but cannot license one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pinDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pin digest"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address of the pinned fragment — the value an approval binds to and a dispatch is checked against, so a revised fragment cannot satisfy an authorization issued for its predecessor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:selectedPin
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:PinnedExecutableSubgraph ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "selected pin"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementEpisode to the pin it committed to, when a candidate was authorized. Functional and OPTIONAL: an episode that found no authorized candidate produces a capability-gap proposal instead, and producing neither is an incomplete episode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:OperationalCapabilityGap
+    a owl:Class ;
+    owl:disjointWith gmeow:CapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Operational Capability Gap"@x-gmeow-english ;
+    skos:definition "The finding that no available actor holds a capability an otherwise-applicable action requires — a missing tool, an unprovisioned provider, an uncertified operator. It is DISJOINT from the reasoner-conformance capability-gap notion, which grades a divergence case the native reasoner could not classify: that one is about what the ENGINE can decide, this one about what the WORLD can do. Overloading either for the other makes a provisioning problem look like a reasoning defect."@x-gmeow-english ;
+    skos:example "ex:noOcrProvider a logic:OperationalCapabilityGap ; logic:gapBlockedStep ex:ocrStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an action is blocked because no actor can perform it, not because the engine could not reason about it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating with reasoner-fragment gaps, and avoid recording one without a proposal that says what would close it."@x-gmeow-english ;
+    gmeow:howToUse "Bind the blocked step and pair it with a logic:CapabilityGapProposal naming what provisioning it would take."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:gapBlockedStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:OperationalCapabilityGap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gap blocked step"@x-gmeow-english ;
+    skos:definition "Relates a logic:OperationalCapabilityGap to the step it blocks. Range a plan step (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CapabilityGapProposal
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Capability Gap Proposal"@x-gmeow-english ;
+    skos:definition "The complete, actionable statement of what would close a logic:OperationalCapabilityGap: the missing capability, the contract it must satisfy, its expected inputs, outputs and effects, how its correctness would be verified, what security and lifecycle handling it needs, and the step it unblocks. All eight are mandatory, because a proposal missing any one of them is a complaint rather than a request — and the whole point of surfacing a gap instead of substituting a weaker tool is that the gap comes with its own remedy."@x-gmeow-english ;
+    skos:example "ex:ocrProposal a logic:CapabilityGapProposal ; logic:proposalMissingCapability ex:pdfOcr ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a capability gap blocks an action, so the blockage carries its own remedy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an incomplete proposal, and avoid substituting a weaker capability in place of raising one."@x-gmeow-english ;
+    gmeow:howToUse "Bind all eight fields; the completeness constraint rejects a proposal that omits any."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:proposalMissingCapability
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal missing capability"@x-gmeow-english ;
+    skos:definition "Field one of eight: the capability that is absent. Range a capability (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalRequiredContract
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal required contract"@x-gmeow-english ;
+    skos:definition "Field two of eight: the contract a provider of the missing capability must satisfy. Range a contract descriptor (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalExpectedInputs
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal expected inputs"@x-gmeow-english ;
+    skos:definition "Field three of eight: the inputs a provider would consume. Range an input descriptor (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalExpectedOutputs
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal expected outputs"@x-gmeow-english ;
+    skos:definition "Field four of eight: the outputs a provider would produce. Range an output descriptor (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalExpectedEffects
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal expected effects"@x-gmeow-english ;
+    skos:definition "Field five of eight: the world changes a provider would cause. Range an effect descriptor (stated in prose). Functional. Stated separately from outputs because an effect may be irreversible where an output is merely returned."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalVerificationMethod
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal verification method"@x-gmeow-english ;
+    skos:definition "Field six of eight: how a candidate provider's correctness would be established. Range a verification descriptor (stated in prose). Functional. Without it a gap can be closed by something that merely claims the capability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalSecurityLifecycle
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal security and lifecycle needs"@x-gmeow-english ;
+    skos:definition "Field seven of eight: the credential, isolation, retention and decommissioning handling a provider would require. Range a security-lifecycle descriptor (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:proposalBlockedStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CapabilityGapProposal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proposal blocked step"@x-gmeow-english ;
+    skos:definition "Field eight of eight: the step that would be unblocked. Range a plan step (stated in prose). Functional. It is what makes a proposal answerable to a concrete blockage rather than a general wish."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:Advisory
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Advisory"@x-gmeow-english ;
+    skos:definition "A model-generated decomposition, recommendation, summary or draft: attributed evidence that may inform a decision and may never constitute one. It is structurally barred from authorizing a pin, deciding an approval, or carrying a proof. Typed APART from logic:AdviceGuidance, which is authored usage prose attached to a TERM for a human author's benefit; an Advisory is generated content about a SITUATION, with a different subject, lifetime and consumer."@x-gmeow-english ;
+    skos:example "ex:suggestedOcrPlan a logic:Advisory ; logic:advisoryAbout ex:ocrTask ."@x-gmeow-english ;
+    gmeow:useWhen "Use for anything a model produced that a reader might otherwise mistake for a decision or a derivation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting an Advisory authorize, decide or prove; avoid confusing it with authored term guidance."@x-gmeow-english ;
+    gmeow:howToUse "Attribute it, bind what it is about, and keep it out of every authority position; the advisory constraint rejects the alternative."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:advisoryAbout
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Advisory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "advisory about"@x-gmeow-english ;
+    skos:definition "Relates a logic:Advisory to what it advises on. Range any subject of advice (stated in prose). Multi-valued; one advisory may bear on several steps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:SearchFragment
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Search Fragment"@x-gmeow-english ;
+    skos:definition "The declared decidable fragment a means-end search runs within. Hierarchical decomposition is undecidable in general, so a search that names no fragment cannot honestly report completeness. Declaring the fragment is what separates two different honest answers that would otherwise collapse together: a budget cut (the search was correct but ran out) and an out-of-fragment method set (the search was never entitled to terminate)."@x-gmeow-english ;
+    skos:example "ex:ocrRefinement logic:searchFragment logic:FragmentAcyclicMethod ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare which decidable fragment a refinement search was admitted under."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an undeclared fragment, and avoid reporting an out-of-fragment method set as a budget exhaustion."@x-gmeow-english ;
+    gmeow:howToUse "Select one member per episode; a method set outside it yields a typed unsupported refusal, not an incomplete result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FragmentTotallyOrdered a owl:NamedIndividual , logic:SearchFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "totally-ordered fragment"@x-gmeow-english ;
+    skos:definition "Every method yields a totally ordered subtask sequence, so search never interleaves alternatives. The most restrictive admitted fragment and the cheapest to certify."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FragmentAcyclicMethod a owl:NamedIndividual , logic:SearchFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "acyclic-method fragment"@x-gmeow-english ;
+    skos:definition "The method-application graph is acyclic, so no task can decompose into itself transitively. Admits partial order among subtasks, unlike the totally-ordered fragment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FragmentBoundedDepth a owl:NamedIndividual , logic:SearchFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bounded-depth fragment"@x-gmeow-english ;
+    skos:definition "Decomposition is admitted to a declared maximum depth, which terminates even where the method graph has cycles. The depth bound is part of the fragment declaration, not a budget: exceeding it is an out-of-fragment refusal, not an exhaustion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:searchFragment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RefinementEpisode ;
+    rdfs:range logic:SearchFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "search fragment"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefinementEpisode to the decidable fragment its search ran within. Functional; an episode without one cannot claim a complete roster."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CapabilityGapProposalCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a capability-gap proposal binds all eight fields"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CapabilityGapProposal that omits any of its eight mandatory fields. A partial proposal reports a blockage without its remedy, which is exactly the outcome raising a gap instead of substituting a weaker capability is meant to avoid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CapabilityGapProposal must bind all eight fields: missing capability, required contract, expected inputs, expected outputs, expected effects, verification method, security and lifecycle needs, and the blocked step." ;
+    logic:integrity logic:cgpForall .
+logic:cgpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cgpImpl .
+logic:cgpImpl a logic:Formula ; logic:antecedent logic:cgpGuard ; logic:consequent logic:cgpCons .
+logic:cgpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CapabilityGapProposal ] .
+logic:cgpCons a logic:Formula ; logic:and logic:cgpCap , logic:cgpContract , logic:cgpIn , logic:cgpOut , logic:cgpEff , logic:cgpVerify , logic:cgpSec , logic:cgpStep .
+logic:cgpCap a logic:Formula ; logic:relation logic:proposalMissingCapability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cap" ] .
+logic:cgpContract a logic:Formula ; logic:relation logic:proposalRequiredContract ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] .
+logic:cgpIn a logic:Formula ; logic:relation logic:proposalExpectedInputs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "inputs" ] .
+logic:cgpOut a logic:Formula ; logic:relation logic:proposalExpectedOutputs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "outputs" ] .
+logic:cgpEff a logic:Formula ; logic:relation logic:proposalExpectedEffects ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "effects" ] .
+logic:cgpVerify a logic:Formula ; logic:relation logic:proposalVerificationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "verify" ] .
+logic:cgpSec a logic:Formula ; logic:relation logic:proposalSecurityLifecycle ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sec" ] .
+logic:cgpStep a logic:Formula ; logic:relation logic:proposalBlockedStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+
+logic:AdvisoryNeverAuthorityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an advisory never occupies an authority position"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:Advisory that authorizes a pin. Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:Advisory may not authorize a pin: model-generated advice is evidence, never authority." ;
+    logic:integrity logic:anaForall .
+logic:anaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:anaImpl .
+logic:anaImpl a logic:Formula ; logic:antecedent logic:anaGuard ; logic:consequent logic:anaCons .
+logic:anaGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Advisory ] .
+logic:anaCons a logic:Formula ; logic:not logic:anaAuthorizes .
+logic:anaAuthorizes a logic:Formula ; logic:relation logic:pinAuthority ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+logic:RefinementCandidateSetClosureConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a refinement episode declares its search fragment"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:RefinementEpisode that produced a candidate set must declare its logic:searchFragment; otherwise the roster's completeness cannot be judged." ;
+    logic:integrity logic:rcsForall .
+logic:rcsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:rcsImpl .
+logic:rcsImpl a logic:Formula ; logic:antecedent logic:rcsGuard ; logic:consequent logic:rcsCons .
+logic:rcsGuard a logic:Formula ; logic:relation logic:producedCandidateSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:rcsCons a logic:Formula ; logic:relation logic:searchFragment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
+
+# =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
 # This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
