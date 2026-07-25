@@ -338,7 +338,9 @@ crates/gmeow-cli/         The native Rust `gmeow` consumer CLI; gmeow-dev-cli/ i
 generated/                EVERY committed generated artifact — one root, every
                           path owned by a registered generator (drift-, orphan-,
                           and internal-tag-leak-gated):
-                          mappings/ (SSSOM) · projections/ (EDOAL+FnO) ·
+                          mappings/ (SSSOM) · projections/ (EDOAL+FnO ·
+                          lang/ EBNF/ABNF/GBNF/Lark grammars + the GMN-1
+                          ecosystem under gmn1/v*/) ·
                           queries/ (projection CONSTRUCTs) · statements/
                           (RDF 1.2 lead + OWL downcast) · schemas/ · lpg/ ·
                           metadata/ (VoID+DCAT) · apache/ · module-status.md
@@ -453,6 +455,7 @@ examples lives in
 | **BOT** | <https://w3id.org/bot> | Building-topology projection of indoor places — `bot:Zone`/`Element`/`hasSpace` |
 | **RDF Data Cube** | <https://www.w3.org/TR/vocab-data-cube/> | Well-formed `qb:Observation` + `qb:DataSet` + `qb:DataStructureDefinition` — a statistical-cube projection of spatial aggregations (IC-1, IC-2) |
 | **OntoLex-Lemon** | <https://www.w3.org/2016/05/ontolex/> | `ontolex:LexicalEntry`/`Form`/`writtenRep` from appellations and language data |
+| **GMN-1** (token-compact model notation) | [`docs/projections.md`](./docs/projections.md#gmn-1--the-token-compact-model-notation-projection) | The `lang:` token-compact serialization for LLM producers + constrained decoding: EBNF/ABNF + GBNF/Lark grammars, a token-metric 7-vector, GMN↔NL verbalizations, and a proof-carrying training corpus, version-keyed under `generated/projections/lang/gmn1/v*/**` |
 | **W3C Web Annotation** | <https://www.w3.org/TR/annotation-vocab/> | `oa:Annotation` body/target projection (tags, standpoints) |
 | **Standpoint projections** | [`docs/standpoints.md`](./docs/standpoints.md) | Five frame-preserving exports of contested claims: **CRMinf**, **PROV-O**, **schema:Claim**, **Web Annotation**, **Standpoint-OWL 2** — never one that picks a winner |
 

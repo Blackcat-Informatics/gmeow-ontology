@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-gmn-cost-matrix"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+# The maint-lane entrypoint: the FULL five-family matrix (o200k + cl100k embedded,
+# Qwen vendored, Llama + Gemma fetched-at-maint-time). It is a LEAF binary — nothing
+# depends on it, so the heavy `tokenizers` dependency never reaches `gmeow-cli`.
+[[bin]]
+name = "gmn-cost-matrix"
+path = "src/bin/gmn-cost-matrix.rs"
+
+[dependencies]
+# The two OpenAI BPE vocabularies (o200k_base + cl100k_base) are COMPILED IN via
+# tiktoken-rs's `include_str!` assets (no network, no filesystem read) — the SAME pinned,
+# embedded, deterministic dependency `gmeow-lang-bridge` already uses for the on-gate
+# glyph-cost primitive. Reused, not rebuilt.
+tiktoken-rs = "0.12"
+# The HuggingFace tokenizer loader for the Qwen / Llama / Gemma `tokenizer.json` assets.
+# `default-features = false` drops the C (`onig`/oniguruma) and C++ (`esaxx-rs`) build
+# deps and the `indicatif` progress bar; `fancy-regex` is the pure-Rust regex engine
+# (the same one HuggingFace's own `unstable_wasm` build selects) that drives the
+# byte-level pre-tokenizer split — so this crate builds with no C/C++ toolchain surprise.
+tokenizers = { version = "0.22", default-features = false, features = ["fancy-regex"] }
+# blake3 verifies each vendored/fetched tokenizer asset against its committed pin — the
+# SAME digest primitive the GMN codebook Merkle root folds with, so a corrupted vendored
+# file or a drifted fetch is a HARD FAIL, never silently tokenized.
+blake3 = "1"
+# The GMN-0 → GMN-1 codec, the pinned glyph registry, and the Turtle/JSON-LD
+# serializers all come from the ONE canonical lang bridge — the matrix runs the five
+# tokenizer families over the SAME emitted GMN / Turtle / JSON-LD bytes the on-gate
+# Task-7 estimator measures, never a re-derived surface.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The ONE canonical RDF parser + Turtle/JSON-LD serializers (never a second, hand-rolled
+# path), matching every other crate's `purrdf` dependency.
+purrdf.workspace = true

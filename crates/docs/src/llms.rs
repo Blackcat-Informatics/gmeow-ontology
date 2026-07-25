@@ -32,6 +32,16 @@ pub const LLMS_NOTE_CAP: usize = 200;
 /// DISCLOSE the elided remainder (never silently drop it).
 pub const LLMS_FULL_TOKEN_BUDGET: usize = 200_000;
 
+/// The token budget for the GMN-1 teachability primer (`crate::gmn1_primer`): a fixed
+/// ~500-token cap (no configurable knob — project no-optionality doctrine) sized to the
+/// EPIC scenario-7 teachability contract ("a fresh model given ONLY the generated
+/// ~500-token primer"). The primer emits its graph-derived rows (sigil table, operator
+/// glyph table, repair-loop cards) in a deterministic total order until the running
+/// [`estimate_tokens`] would exceed this budget, then DISCLOSES the elided remainder
+/// (never silently drops it) — the same disclose-don't-truncate discipline the
+/// [`LLMS_FULL_TOKEN_BUDGET`] elision uses.
+pub const GMN1_PRIMER_TOKEN_BUDGET: usize = 500;
+
 /// A deterministic, model-agnostic token estimate for `text`: one token per ~4
 /// characters (the standard rough byte-pair ratio), rounded up. Dependency-free
 /// and reproducible from source — no tokenizer model — so the budget elision
