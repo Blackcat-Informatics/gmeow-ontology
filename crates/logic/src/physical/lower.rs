@@ -2084,4 +2084,376 @@ mod tests {
             "exactly 8 distinct failure-class buckets: {distinct_classes:?}"
         );
     }
+
+    // ── structural_digest: alpha-equivalence, injectivity, and interning properties ────
+    //
+    // These properties exercise `structural_digest`/`lower_math_expression` at the
+    // property level (Task 7a of the #1443 hardening plan): alpha-equivalent inputs
+    // (differing ONLY in a bound-variable declaration's IRI/label) must share one
+    // digest; structurally distinct inputs must never collide; and interning one
+    // expression's alpha-variants into a SHARED dag must add nodes for the distinct
+    // structure only, never once per variant. The final property reconciles the
+    // `math:structuralKey` values authored in `reference-ast-act.ttl` against the
+    // real, recomputed digest.
+
+    const ALPHA_PAIR_A: &str = include_str!(
+        "../../../../slices/grounding/math/tests/conformance-fixtures/alpha-equivalent-pair-a.ttl"
+    );
+    const ALPHA_PAIR_B: &str = include_str!(
+        "../../../../slices/grounding/math/tests/conformance-fixtures/alpha-equivalent-pair-b.ttl"
+    );
+    const ALPHA_SHADOWING: &str = include_str!(
+        "../../../../slices/grounding/math/tests/conformance-fixtures/alpha-equivalent-shadowing.ttl"
+    );
+    const REFERENCE_AST_ACT: &str =
+        include_str!("../../../../slices/grounding/math/examples/reference-ast-act.ttl");
+
+    /// `math:structuralKey`'s full predicate IRI — read-only in these tests (this
+    /// module never authors it; [`crate::math_expression`] owns the reasoned-graph
+    /// drift gate that DOES).
+    const M_STRUCTURAL_KEY: &str = "https://blackcatinformatics.ca/math/structuralKey";
+
+    /// Build a one-variable-binder `math:` expression `∀x. p(x)` whose every
+    /// declaration/occurrence/slot subject is suffixed by `suffix` — a family of
+    /// alpha-variants differing ONLY in the bound-variable declaration's IRI (and its
+    /// `rdfs:label`) can therefore be generated programmatically instead of
+    /// hand-authoring near-duplicate fixtures.
+    fn one_var_binder_variant_ttl(suffix: &str) -> String {
+        format!(
+            "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix op: <https://blackcatinformatics.ca/logic/dag/op/> .\n\
+             ex:binder{suffix} a math:BindingExpression ;\n\
+             \x20 math:operator op:forall ;\n\
+             \x20 math:boundVariable ex:decl{suffix} ;\n\
+             \x20 math:argumentSlot ex:bodySlot{suffix} .\n\
+             ex:decl{suffix} a math:VariableDeclaration ; rdfs:label \"{suffix}\"@en .\n\
+             ex:bodySlot{suffix} a math:ArgumentSlot ; math:slotIndex 0 ; \
+             math:slotExpression ex:app{suffix} .\n\
+             ex:app{suffix} a math:ApplicationExpression ; math:operator ex:p ; \
+             math:argumentSlot ex:s0{suffix} .\n\
+             ex:s0{suffix} a math:ArgumentSlot ; math:slotIndex 0 ; \
+             math:slotExpression ex:occ{suffix} .\n\
+             ex:occ{suffix} a math:VariableExpression ; math:variableOccurrence ex:o{suffix} .\n\
+             ex:o{suffix} a math:VariableOccurrence ; math:declaredVariable ex:decl{suffix} .\n"
+        )
+    }
+
+    fn one_var_binder_variant_root(suffix: &str) -> String {
+        format!("https://example.org/binder{suffix}")
+    }
+
+    // ── 1. Alpha-equivalence: several α-variants of one expression share ONE digest ───
+
+    #[test]
+    fn alpha_variants_share_one_structural_digest() {
+        // A handful of PROGRAMMATICALLY generated α-variants (a distinct declaration
+        // IRI/label choice each) of the SAME one-variable-binder shape (∀x. p(x), the
+        // `math:VariableExpression`-wrapped shape `lower_math_node_dispatch` supports)
+        // all share the SAME digest — not just a hand-picked pair.
+        let mut dag = TermDag::new();
+        let mut digests = Vec::new();
+        for suffix in ["P", "Q", "N42", "SomeLongerName", "Z"] {
+            let ttl = one_var_binder_variant_ttl(suffix);
+            let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("variant parses");
+            let variant_root = one_var_binder_variant_root(suffix);
+            let node =
+                lower_math_expression(&mut dag, &graph, &variant_root).expect("variant lowers");
+            digests.push(structural_digest(&dag, node));
+        }
+        assert!(
+            digests.windows(2).all(|w| w[0] == w[1]),
+            "all one-variable-binder α-variants share one digest: {digests:?}"
+        );
+
+        // Nested-shadowing case: an inner binder reusing the outer's "i" label at a
+        // DISTINCT declaration IRI, in the CORRECT (`VariableExpression`-wrapped) shape
+        // — ∑ᵢ (i + ∑ᵢ i), mirroring the shadowing case the committed fixture documents
+        // in prose. It must lower at all (not hard-fail merely because the label is
+        // shared) and its digest must be deterministic across two independent lowerings
+        // of the same graph.
+        let shadow_ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix op: <https://blackcatinformatics.ca/logic/dag/op/> .\n\
+             ex:outerSum a math:BindingExpression ;\n\
+             \x20 math:operator math:summationBinder ;\n\
+             \x20 math:boundVariable ex:outerIDecl ;\n\
+             \x20 math:argumentSlot ex:outerBodySlot .\n\
+             ex:outerIDecl a math:VariableDeclaration ; rdfs:label \"i\"@en .\n\
+             ex:outerBodySlot a math:ArgumentSlot ; math:slotIndex 0 ; \
+             math:slotExpression ex:additionExpr .\n\
+             ex:additionExpr a math:ApplicationExpression ; math:operator op:add ; \
+             math:argumentSlot ex:outerOperandSlot , ex:innerSumSlot .\n\
+             ex:outerOperandSlot a math:ArgumentSlot ; math:slotIndex 0 ; \
+             math:slotExpression ex:outerIOcc .\n\
+             ex:outerIOcc a math:VariableExpression ; math:variableOccurrence ex:outerIOccurrence .\n\
+             ex:outerIOccurrence a math:VariableOccurrence ; math:declaredVariable ex:outerIDecl .\n\
+             ex:innerSumSlot a math:ArgumentSlot ; math:slotIndex 1 ; \
+             math:slotExpression ex:innerSum .\n\
+             ex:innerSum a math:BindingExpression ;\n\
+             \x20 math:operator math:summationBinder ;\n\
+             \x20 math:boundVariable ex:innerIDecl ;\n\
+             \x20 math:argumentSlot ex:innerBodySlot .\n\
+             ex:innerIDecl a math:VariableDeclaration ; rdfs:label \"i\"@en .\n\
+             ex:innerBodySlot a math:ArgumentSlot ; math:slotIndex 0 ; \
+             math:slotExpression ex:innerIOcc .\n\
+             ex:innerIOcc a math:VariableExpression ; math:variableOccurrence ex:innerIOccurrence .\n\
+             ex:innerIOccurrence a math:VariableOccurrence ; math:declaredVariable ex:innerIDecl .\n";
+        let shadow_graph = MathGraph::from_turtle(shadow_ttl.as_bytes()).expect("shadowing parses");
+        let shadow_root = "https://example.org/outerSum";
+        let mut dag3 = TermDag::new();
+        let shadow_node_1 = lower_math_expression(&mut dag3, &shadow_graph, shadow_root)
+            .expect("shadowing lowers (1)");
+        let digest_1 = structural_digest(&dag3, shadow_node_1);
+        let mut dag4 = TermDag::new();
+        let shadow_node_2 = lower_math_expression(&mut dag4, &shadow_graph, shadow_root)
+            .expect("shadowing lowers (2)");
+        let digest_2 = structural_digest(&dag4, shadow_node_2);
+        assert_eq!(
+            digest_1, digest_2,
+            "the shadowing expression's digest is deterministic across separate lowerings"
+        );
+        // Sanity: NOT alpha-equivalent to the bare one-variable binder — guards against a
+        // vacuous "everything hashes the same" bug slipping the equality checks above.
+        assert_ne!(
+            digest_1, digests[0],
+            "the shadowing (nested) expression is not alpha-equivalent to a bare ∀x. p(x)"
+        );
+    }
+
+    /// The three committed `tests/conformance-fixtures/alpha-equivalent-*.ttl` fixtures
+    /// now use the `math:VariableExpression`-wrapped occurrence shape (corrected: they
+    /// originally pointed a `math:slotExpression` directly at a bare
+    /// `math:VariableOccurrence`, which is not itself a `math:MathematicalExpression`
+    /// per its own class definition — a type error, not merely a lowering-grammar gap —
+    /// and silently degraded to an opaque IRI leaf). This asserts the REAL properties
+    /// the fixtures document in their own header comments: pair-a and pair-b are
+    /// genuinely α-equivalent (share one digest), and the shadowing fixture is
+    /// deterministic and distinct from a bare one-variable binder.
+    #[test]
+    fn committed_alpha_equivalence_fixtures_are_genuinely_alpha_equivalent() {
+        let sum_root = "http://example.org/math/sumBinder";
+        let graph_a = MathGraph::from_turtle(ALPHA_PAIR_A.as_bytes()).expect("pair-a parses");
+        let mut dag_a = TermDag::new();
+        let node_a = lower_math_expression(&mut dag_a, &graph_a, sum_root).expect("pair-a lowers");
+        let digest_a = structural_digest(&dag_a, node_a);
+
+        let graph_b = MathGraph::from_turtle(ALPHA_PAIR_B.as_bytes()).expect("pair-b parses");
+        let mut dag_b = TermDag::new();
+        let node_b = lower_math_expression(&mut dag_b, &graph_b, sum_root).expect("pair-b lowers");
+        let digest_b = structural_digest(&dag_b, node_b);
+
+        assert_eq!(
+            digest_a, digest_b,
+            "alpha-equivalent-pair-a.ttl and alpha-equivalent-pair-b.ttl differ only in \
+             their bound-variable declaration IRI and must share one structural digest"
+        );
+
+        let shadowing_root = "http://example.org/math/outerSum";
+        let graph_shadow =
+            MathGraph::from_turtle(ALPHA_SHADOWING.as_bytes()).expect("shadowing parses");
+        let mut dag_shadow = TermDag::new();
+        let node_shadow = lower_math_expression(&mut dag_shadow, &graph_shadow, shadowing_root)
+            .expect("shadowing fixture lowers");
+        let digest_shadow_1 = structural_digest(&dag_shadow, node_shadow);
+        let mut dag_shadow_2 = TermDag::new();
+        let node_shadow_2 = lower_math_expression(&mut dag_shadow_2, &graph_shadow, shadowing_root)
+            .expect("shadowing fixture lowers (second pass)");
+        let digest_shadow_2 = structural_digest(&dag_shadow_2, node_shadow_2);
+        assert_eq!(
+            digest_shadow_1, digest_shadow_2,
+            "the committed shadowing fixture's digest is deterministic across separate lowerings"
+        );
+        assert_ne!(
+            digest_shadow_1, digest_a,
+            "the shadowing (nested binder) fixture is not alpha-equivalent to the bare \
+             one-variable summation of pair-a/pair-b"
+        );
+    }
+
+    // ── 2. Injectivity: structurally DISTINCT expressions get DIFFERENT digests ───────
+
+    #[test]
+    fn structurally_distinct_expressions_get_distinct_digests() {
+        let mut dag = TermDag::new();
+
+        // f(a, b) vs f(b, a): swapped slot indexes at the same operator — operand order
+        // is always identity-bearing for a `math:ApplicationExpression`.
+        let fab = MathGraph::from_turtle(application_ttl(&[(0, "ex:a"), (1, "ex:b")]).as_bytes())
+            .expect("parse f(a,b)");
+        let fba = MathGraph::from_turtle(application_ttl(&[(0, "ex:b"), (1, "ex:a")]).as_bytes())
+            .expect("parse f(b,a)");
+        let n_fab =
+            lower_math_expression(&mut dag, &fab, "https://example.org/app").expect("f(a,b)");
+        let n_fba =
+            lower_math_expression(&mut dag, &fba, "https://example.org/app").expect("f(b,a)");
+
+        // A DIFFERENT operator entirely, over the SAME operands/shape as f(a,b).
+        let ttl_g = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:app a math:ApplicationExpression ; math:operator ex:g ; \
+             math:argumentSlot ex:s0 , ex:s1 .\n\
+             ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:a .\n\
+             ex:s1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:b .\n";
+        let g_graph = MathGraph::from_turtle(ttl_g.as_bytes()).expect("parse g(a,b)");
+        let n_g =
+            lower_math_expression(&mut dag, &g_graph, "https://example.org/app").expect("g(a,b)");
+
+        // A different binder sort/domain over an otherwise identical binder shape.
+        let untyped = MathGraph::from_turtle(binder_ttl(None).as_bytes()).expect("parse untyped");
+        let typed =
+            MathGraph::from_turtle(binder_ttl(Some("ex:Reals")).as_bytes()).expect("parse typed");
+        let n_untyped = lower_math_expression(&mut dag, &untyped, "https://example.org/binder")
+            .expect("untyped binder");
+        let n_typed = lower_math_expression(&mut dag, &typed, "https://example.org/binder")
+            .expect("typed binder");
+
+        let labeled_digests = [
+            ("f(a,b)", structural_digest(&dag, n_fab)),
+            ("f(b,a)", structural_digest(&dag, n_fba)),
+            ("g(a,b)", structural_digest(&dag, n_g)),
+            ("untyped binder", structural_digest(&dag, n_untyped)),
+            ("typed binder", structural_digest(&dag, n_typed)),
+        ];
+        for i in 0..labeled_digests.len() {
+            for j in (i + 1)..labeled_digests.len() {
+                let (name_i, digest_i) = &labeled_digests[i];
+                let (name_j, digest_j) = &labeled_digests[j];
+                assert_ne!(
+                    digest_i, digest_j,
+                    "{name_i} and {name_j} are structurally distinct and must get distinct \
+                     digests"
+                );
+            }
+        }
+    }
+
+    // ── 3. Interning: α-variants of ONE expression add nodes for the distinct ─────────
+    // ──    structure only, never once per variant ─────────────────────────────────────
+
+    #[test]
+    fn alpha_variants_of_one_expression_intern_to_a_fixed_node_count() {
+        let mut dag = TermDag::new();
+        let len_before = dag.len();
+
+        // A single one-variable-binder expression is built from exactly 6 distinct
+        // constituent nodes (its `forall` op leaf, the untyped-individual sort leaf,
+        // `p`'s op leaf, the bound occurrence, the `App` node, the `Binder` node
+        // itself) — so this family must be STRICTLY larger than 6 for "grew by far
+        // fewer nodes than variants lowered" to be a meaningful (non-vacuous) claim.
+        let variants = [
+            "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa",
+        ];
+        let mut nodes = Vec::new();
+        for suffix in variants {
+            let ttl = one_var_binder_variant_ttl(suffix);
+            let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("variant parses");
+            let root = one_var_binder_variant_root(suffix);
+            let node = lower_math_expression(&mut dag, &graph, &root).expect("variant lowers");
+            nodes.push(node);
+        }
+
+        // Every variant interns to the SAME node (hash-consing under alpha-equivalence).
+        assert!(
+            nodes.windows(2).all(|w| w[0] == w[1]),
+            "all α-variants intern to one NodeId: {nodes:?}"
+        );
+
+        // The dag grew by the FIXED, small number of distinct constituent nodes a single
+        // one-variable-binder expression is built from (its `forall` op leaf, the
+        // untyped-individual sort leaf, `p`'s op leaf, the bound occurrence, the App
+        // node, the Binder node) — strictly fewer nodes than the number of α-variants
+        // lowered, never one new node per variant.
+        let distinct_nodes_added = dag.len() - len_before;
+        assert!(
+            distinct_nodes_added > 0,
+            "the dag actually grew by lowering the first variant"
+        );
+        assert!(
+            distinct_nodes_added < variants.len(),
+            "{distinct_nodes_added} distinct nodes added for {} α-variants of ONE expression — \
+             must intern to far fewer nodes than variants lowered, never grow linearly with N",
+            variants.len()
+        );
+
+        // Re-lowering the SAME shapes a second time must add ZERO new nodes at all (pure
+        // re-interning) — proving the count above was not an accident of some
+        // sub-structure not being fully shared.
+        let stable_len = dag.len();
+        for suffix in variants {
+            let ttl = one_var_binder_variant_ttl(suffix);
+            let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("variant re-parses");
+            let root = one_var_binder_variant_root(suffix);
+            let _ = lower_math_expression(&mut dag, &graph, &root).expect("variant re-lowers");
+        }
+        assert_eq!(
+            dag.len(),
+            stable_len,
+            "re-lowering the same α-variants a second time adds ZERO new nodes"
+        );
+    }
+
+    // ── 4. Contract-unchanged: the authored math:structuralKey is the REAL digest ─────
+
+    #[test]
+    fn reference_ast_act_structural_key_matches_recomputed_digest() {
+        const NS: &str = "https://blackcatinformatics.ca/gmeow/examples/math/reference-act/";
+        let dataset =
+            purrdf::parse_dataset(REFERENCE_AST_ACT.as_bytes(), "text/turtle", None).expect("parse");
+        let keys = math_expression_structural_keys(&dataset);
+
+        let ast_root = format!("{NS}matrixProductAst");
+        let normal_root = format!("{NS}matrixProductNormalForm");
+        let ast_digest = keys
+            .get(&ast_root)
+            .expect("matrixProductAst is a root")
+            .as_ref()
+            .expect("matrixProductAst lowers")
+            .clone();
+        let normal_digest = keys
+            .get(&normal_root)
+            .expect("matrixProductNormalForm is a root")
+            .as_ref()
+            .expect("matrixProductNormalForm lowers")
+            .clone();
+
+        // The two are declared `math:structuralNormalization`-equivalent (same
+        // operator, same operand slots) — they really are the same structure, so the
+        // same digest.
+        assert_eq!(
+            ast_digest, normal_digest,
+            "matrixProductAst and matrixProductNormalForm must share one structural digest"
+        );
+
+        // The authored `math:structuralKey` on BOTH expressions must be the REAL,
+        // recomputed digest — never the known placeholder.
+        let graph = MathGraph::from_turtle(REFERENCE_AST_ACT.as_bytes()).expect("parse graph");
+        let authored_ast_key = graph
+            .first_lit_typed(&ast_root, M_STRUCTURAL_KEY)
+            .expect("matrixProductAst carries a math:structuralKey")
+            .0
+            .to_owned();
+        let authored_normal_key = graph
+            .first_lit_typed(&normal_root, M_STRUCTURAL_KEY)
+            .expect("matrixProductNormalForm carries a math:structuralKey")
+            .0
+            .to_owned();
+
+        assert_ne!(
+            authored_ast_key, "placeholder-alpha-equivalent-digest-v1",
+            "the authored math:structuralKey must be the REAL digest, not the known placeholder"
+        );
+        assert_eq!(
+            authored_ast_key, ast_digest,
+            "the authored math:structuralKey on matrixProductAst must match the recomputed \
+             digest"
+        );
+        assert_eq!(
+            authored_normal_key, normal_digest,
+            "the authored math:structuralKey on matrixProductNormalForm must match the \
+             recomputed digest"
+        );
+    }
 }

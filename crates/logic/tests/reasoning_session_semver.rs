@@ -134,8 +134,16 @@ use session_common::*;
 /// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves.
 /// No lowering behavior changes (only an attribute), so no reasoning verdict on any
 /// input — including the fixed edge-only input below — changes.
+/// Re-blessed once more for the #1443 hardening task's `structural_digest`/
+/// `lower_math_expression` property tests (`interning_tests`-shaped additions to the
+/// existing `physical::lower::tests` module — alpha-equivalence, injectivity, and
+/// interning coverage, plus the `reference-ast-act.ttl` `math:structuralKey` placeholder
+/// reconciliation): `physical/lower.rs` is a member of `BACKWARD_SOURCE`, folded via
+/// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves
+/// even though only `#[cfg(test)]` content was added — no lowering behavior changes, so
+/// no reasoning verdict on any input, including the fixed edge-only input below, changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f10ca74e18b808ddf43ec57ef011a9a9ceb2364a293b2eb3090e6652f1644b0e";
+    "f177bcdb9aec707490c33dcd2af69e952d599dac7b36fae11b5904aecb5b8445";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -189,8 +197,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// identity axes and moves with the changed `physical/lower.rs` engine source
 /// (a dropped `#[allow(dead_code)]`, no behavior change), while the fixed edge-only
 /// input's reasoning verdict is unchanged.
+/// Re-blessed once more for the #1443 hardening task's `structural_digest`/
+/// `lower_math_expression` property tests (see the engine-descriptor golden above): the
+/// native contract hash is one of the seven folded identity axes and moves with the
+/// changed `physical/lower.rs` engine source (test-only content), while the fixed
+/// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f983d1ae3d6f3dc4603d02b6d51ff4decf00cc42fbf1da5abf7e48395e63e1d6";
+    "116b57177a47ce31713a8833e136e239b014791934b43cc4d5c410d4e74743f1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
