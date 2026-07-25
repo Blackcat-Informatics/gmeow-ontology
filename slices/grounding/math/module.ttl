@@ -11739,7 +11739,7 @@ math:ProjectionDroppedParameterization
 
 math:MissingPreservationKind
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Missing Preservation Kind"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ProjectionRecord declares no logic:preservationKind — the record has entered the loss ledger without saying whether its lowering is exact, sound-but-incomplete, or complete-but-unsound. Every math: projection reuses the logic: loss-ledger vocabulary VERBATIM (Principle 17): a projection with an undeclared preservation judgment cannot be queried alongside every other GMEOW lowering, so it is ill-formed. Mirrors lang:MissingPreservationKind one stratum over."@x-gmeow-english ;
@@ -11751,7 +11751,7 @@ math:MissingPreservationKind
 
 math:UndeclaredUnsupportedConstruct
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Undeclared Unsupported Construct"@x-gmeow-english ;
     skos:definition "The failure raised when a LOSSY math:ProjectionRecord (a declared logic:preservationKind other than logic:ExactPreservation) enumerates no logic:unsupportedConstruct — the record claims a completeness its own preservation kind denies. A lossy projection either drops nothing (and so should declare logic:ExactPreservation) or names everything it drops; silently declaring lossiness with no enumerated residue hides the loss from the ledger. Mirrors lang:UndeclaredUnsupportedConstruct one stratum over."@x-gmeow-english ;
@@ -11763,7 +11763,7 @@ math:UndeclaredUnsupportedConstruct
 
 math:UnrecordedProjectionLoss
     a owl:Class ;
-    rdfs:subClassOf math:MathConformanceFailure ;
+    logic:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unrecorded Projection Loss"@x-gmeow-english ;
     skos:definition "The failure raised when a LOSSY math:ProjectionRecord whose math:projectionSource is a math:MathematicalExpression — a structured AST, not a bare display string — flattens that expression to its string-only external target (math:projectionTargetName) without recording the flattening among its logic:unsupportedConstruct entries. Collapsing an expression's argument-slot/operator/symbol structure to an opaque string is exactly the kind of loss the ledger exists to make queryable; a projection that performs the flattening silently, rather than naming it as dropped structure, is ill-formed."@x-gmeow-english ;
@@ -15199,6 +15199,9 @@ math:NaturalNumber a logic:AbstractIndividualType .
 math:Neighbourhood a logic:AbstractIndividualType .
 math:NeuralLayer a logic:AbstractIndividualType .
 math:Norm a logic:AbstractIndividualType .
+math:NormalizationDeclaration a logic:Role .
+math:NormalizationProcedure a logic:AbstractIndividualType .
+math:NormalizationStrength a logic:AbstractIndividualType .
 math:NullHypothesis a logic:AbstractIndividualType .
 math:Number a logic:AbstractIndividualType .
 math:NumberLiteral a logic:AbstractIndividualType .
