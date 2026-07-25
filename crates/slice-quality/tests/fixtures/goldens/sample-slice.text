@@ -18,7 +18,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisDocMaturity: Maximal (1.00)
     axisFlagshipCounterExampleDepth: Maximal (1.00)
   ranked uplift advice (17):
-    1. [slice-quality.axis-advice] axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping "=" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).
+    1. [slice-quality.axis-advice] axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping "=" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).
     2. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
     3. [slice-quality.axis-advice] axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA).
     4. [slice-quality.testing.no-cells] the slice ships no test cells or competency queries (SLICE_QA).

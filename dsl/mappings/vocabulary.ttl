@@ -33,12 +33,14 @@
     rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by the registered mappings generator."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Cell types — the two authoring units
+# Cell types — the authoring units
 # --------------------------------------------------------------------------- #
-
-gmeow:TermEquivalence a owl:Class ;
-    rdfs:label "term equivalence"@x-gmeow-english ;
-    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It compiles both to a single SSSOM row and to a first-class logic:Correspondence in the shipped graph/correspondence-laws carrier, with logic:sourceEndpoint and logic:targetEndpoint retained; it has no executable projection branch. Ordinary cells may derive their law-spine defaults from the SSSOM predicate. A cell additionally typed logic:GroundingCorrespondence is a co-foundational commitment rather than an ordinary consumer alignment and must explicitly author logic:morphismClass, logic:morphismKind, and logic:preservationKind."@x-gmeow-english .
+#
+# A cross-ontology term alignment is authored as a native RDF-1.2 asserting
+# annotation on the match triple itself — `S <match-predicate> O {| gmeow:sssomFile
+# "…" ; … |}` (skos:*Match / owl:equivalent* / owl:sameAs / rdfs:sub*Of) — with the
+# `gmeow:sssomFile` discriminator marking the reifier as an alignment cell. It has
+# no reified class of its own; the annotation fields below are its surface.
 
 gmeow:ProjectionMapping a owl:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;
@@ -57,18 +59,13 @@ gmeow:ProfileBinding a owl:Class ;
     skos:definition "The per-target-profile face of a projection mapping: the target term it emits for one profile, the EDOAL relation, the transform, the confidence, the SSSOM predicate, and the profile-specific lossy drops. One mapping fans out to several bindings (one source -> different target terms across schema.org / vCard / FOAF)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Alignment fields (both cell types)
+# Alignment fields (the annotation surface of a native alignment cell)
 # --------------------------------------------------------------------------- #
+#
+# The subject, predicate, and object of an alignment are the reified match triple
+# itself (`S <match-predicate> O`), not authored properties. The fields below are the
+# `{| … |}` annotation coat carried on the reifier.
 
-gmeow:alignSubject a owl:ObjectProperty ;
-    rdfs:label "alignment subject"@x-gmeow-english ;
-    skos:definition "The term on the subject side of a term equivalence (either a GMEOW or an external term — mappings are authored in whichever direction is honest, e.g. geo:Feature skos:closeMatch gmeow:Place)."@x-gmeow-english .
-gmeow:alignPredicate a owl:ObjectProperty ;
-    rdfs:label "alignment predicate"@x-gmeow-english ;
-    skos:definition "The mapping predicate of a term equivalence (owl:equivalentClass, owl:equivalentProperty, skos:exactMatch, skos:closeMatch, rdfs:subClassOf, …)."@x-gmeow-english .
-gmeow:alignObject a owl:ObjectProperty ;
-    rdfs:label "alignment object"@x-gmeow-english ;
-    skos:definition "The term on the object side of a term equivalence (either a GMEOW or an external term — see gmeow:alignSubject)."@x-gmeow-english .
 gmeow:confidence a owl:DatatypeProperty ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@x-gmeow-english .
@@ -113,7 +110,7 @@ gmeow:sssomPredicate a owl:ObjectProperty ;
 
 gmeow:DeclinedCorrespondence a owl:Class ;
     rdfs:label "declined correspondence"@x-gmeow-english ;
-    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from gmeow:TermEquivalence (a live, resolvable link): a decline has no gmeow:alignObject, precisely because no resolvable object exists."@x-gmeow-english ;
+    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from a live native alignment cell (a resolvable link with a `gmeow:sssomFile`-annotated match triple): a decline has no resolvable alignment target at all, precisely because no resolvable object exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:declinedTarget a owl:DatatypeProperty ;
@@ -771,17 +768,9 @@ gmeow:ProjectionMapping rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/m
 
 gmeow:SeqPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:TermEquivalence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
 gmeow:ZeroOrMorePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:ZeroOrOnePath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignPredicate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-
-gmeow:alignSubject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:anchor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
@@ -998,12 +987,8 @@ gmeow:ProfileBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ProjectionMapping gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:SeqPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:TermEquivalence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrMorePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ZeroOrOnePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:alignObject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignPredicate gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:alignSubject gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:anchor gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:atom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bind gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

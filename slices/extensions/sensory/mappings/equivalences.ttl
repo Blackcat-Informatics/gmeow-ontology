@@ -22,62 +22,37 @@ gmeow:mapsetSensory a gmeow:MappingSet ;
 # AFO 1.1 — timbre & sensory features
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSens001 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimbre ↔ AFO AudioFeature"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timbre observable property to AFO AudioFeature."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimbre ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afo:AudioFeature ;
+gmeow:observablePropertyTimbre skos:closeMatch afo:AudioFeature {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "AFO 1.1 AudioFeature is the abstract superclass for all audio features, including timbral ones." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFO 1.1 AudioFeature is the abstract superclass for all audio features, including timbral ones."
+|} .
 
-gmeow:eqSens002 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimbre ↔ AFV TimbreDistribution"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timbre observable property to AFV TimbreDistribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimbre ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject afv:TimbreDistribution ;
+gmeow:observablePropertyTimbre skos:relatedMatch afv:TimbreDistribution {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "AFV TimbreDistribution is a concrete distributional feature model; the GMEOW observable property is the broader perceptual category." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV TimbreDistribution is a concrete distributional feature model; the GMEOW observable property is the broader perceptual category."
+|} .
 
-gmeow:eqSens003 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyLoudness ↔ AFV Loudness"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW loudness observable property to AFV Loudness."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyLoudness ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afv:Loudness ;
+gmeow:observablePropertyLoudness skos:closeMatch afv:Loudness {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "AFV Loudness is the closest computational counterpart to the perceptual loudness observable property." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Loudness is the closest computational counterpart to the perceptual loudness observable property."
+|} .
 
-gmeow:eqSens004 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyRoughness ↔ AFV Roughness"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW roughness observable property to AFV Roughness."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyRoughness ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject afv:Roughness ;
+gmeow:observablePropertyRoughness skos:closeMatch afv:Roughness {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "AFV Roughness is a direct computational correlate of the perceptual roughness observable property." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Roughness is a direct computational correlate of the perceptual roughness observable property."
+|} .
 
-gmeow:eqSens005 a gmeow:TermEquivalence ;
-    rdfs:label "observablePropertyTimingDeviation ↔ AFV Onset"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW timing-deviation observable property to AFV Onset."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
-    gmeow:alignSubject gmeow:observablePropertyTimingDeviation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject afv:Onset ;
+gmeow:observablePropertyTimingDeviation skos:relatedMatch afv:Onset {|
+    gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "AFV Onset is an onset detection function; timing deviation is a derived perceptual/computational property relative to a reference grid." ;
-    gmeow:sssomFile "gmeow-sensory.sssom.tsv" .
+    gmeow:comment "AFV Onset is an onset detection function; timing deviation is a derived perceptual/computational property relative to a reference grid."
+|} .

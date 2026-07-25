@@ -17,367 +17,285 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject foaf:Agent ;
+gmeow:Agent owl:equivalentClass foaf:Agent {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0
+|} .
+
+gmeow:Agent owl:equivalentClass prov:Agent {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+prov:Entity skos:closeMatch gmeow:Entity {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7
+|} .
+
+gmeow:Determinacy skos:closeMatch gufo:QualityValue {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "gmeow:Determinacy is declared rdfs:subClassOf gufo:QualityValue in the ontology; the alignment makes the dependency explicit in the mapping layer"
+|} .
 
-gmeow:eqClasses008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject prov:Agent ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject prov:Entity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:Entity ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqDeterminacy001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Determinacy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:QualityValue ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:comment "gmeow:Determinacy is declared rdfs:subClassOf gufo:QualityValue in the ontology; the alignment makes the dependency explicit in the mapping layer" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
-
-gmeow:eqDeterminacy002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Determinacy ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject bfo:BFO_0000019 ;
+gmeow:Determinacy skos:relatedMatch bfo:BFO_0000019 {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "BFO 'quality' is a high-level ontological category, not a value individual type; only a loose relatedMatch is warranted" ;
     gmeow:objectLabel "quality" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+    gmeow:comment "BFO 'quality' is a high-level ontological category, not a value individual type; only a loose relatedMatch is warranted"
+|} .
 
-gmeow:eqDeterminacy003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:determinacyFuzzy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1055058 ;
+gmeow:determinacyFuzzy skos:closeMatch wd:Q1055058 {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "fuzzy set" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+    gmeow:objectLabel "fuzzy set"
+|} .
 
-gmeow:eqDeterminacy004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:determinacyVague ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1411921 ;
+gmeow:determinacyVague skos:closeMatch wd:Q1411921 {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "vagueness" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+    gmeow:objectLabel "vagueness"
+|} .
 
-gmeow:eqDeterminacy005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:determinacyProbabilistic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q9492 ;
+gmeow:determinacyProbabilistic skos:closeMatch wd:Q9492 {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:objectLabel "probability" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+    gmeow:objectLabel "probability"
+|} .
 
-gmeow:eqDeterminacy006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:determinacyDisputed ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q18912752 ;
+gmeow:determinacyDisputed skos:closeMatch wd:Q18912752 {|
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'disputed' sourcing qualifier; the closest structured external term for a contested/undecided value" ;
     gmeow:objectLabel "disputed" ;
-    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+    gmeow:comment "Wikidata 'disputed' sourcing qualifier; the closest structured external term for a contested/undecided value"
+|} .
 
-gmeow:eqDcType008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PhysicalObject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:PhysicalObject ;
+gmeow:PhysicalObject skos:closeMatch dcmitype:PhysicalObject {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "A GMEOW PhysicalObject is a DCMI PhysicalObject" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW PhysicalObject is a DCMI PhysicalObject"
+|} .
 
-gmeow:eqDcTerms004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:hasPart ;
+gmeow:hasPart skos:closeMatch dcterms:hasPart {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:confidence 0.75
+|} .
 
-gmeow:eqDcTerms005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isPartOf ;
+gmeow:partOf skos:closeMatch dcterms:isPartOf {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:confidence 0.75
+|} .
 
-gmeow:eqPrivacy001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensitivityLevel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:SensitivityLevel ;
+gmeow:SensitivityLevel skos:closeMatch dpv:SensitivityLevel {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DPV's SensitivityLevel is scoped to its process/entity model; GMEOW's is a universal QualityValue facet" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV's SensitivityLevel is scoped to its process/entity model; GMEOW's is a universal QualityValue facet"
+|} .
 
-gmeow:eqPrivacy002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensitivityLevel ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:QualityValue ;
+gmeow:SensitivityLevel skos:closeMatch gufo:QualityValue {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "gmeow:SensitivityLevel is declared rdfs:subClassOf gufo:QualityValue in the ontology" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "gmeow:SensitivityLevel is declared rdfs:subClassOf gufo:QualityValue in the ontology"
+|} .
 
-gmeow:eqPrivacy003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSensitivity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:hasSensitivityLevel ;
+gmeow:hasSensitivity skos:closeMatch dpv:hasSensitivityLevel {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DPV hasSensitivityLevel is scoped to processes/entities; GMEOW hasSensitivity is universal and domain-free" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV hasSensitivityLevel is scoped to processes/entities; GMEOW hasSensitivity is universal and domain-free"
+|} .
 
-gmeow:eqPrivacy004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sensitivitySensitivePersonal ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:SensitivePersonalData ;
+gmeow:sensitivitySensitivePersonal skos:closeMatch dpv:SensitivePersonalData {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "the special-category personal-data tier in both vocabularies" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the special-category personal-data tier in both vocabularies"
+|} .
 
-gmeow:eqPrivacy005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sensitivitySensitivePersonal ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2796 ;
+gmeow:sensitivitySensitivePersonal skos:closeMatch wd:Q2796 {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "personal data" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:objectLabel "personal data"
+|} .
 
-gmeow:eqPrivacy006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sensitivityConfidential ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q188475 ;
+gmeow:sensitivityConfidential skos:closeMatch wd:Q188475 {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "confidentiality" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:objectLabel "confidentiality"
+|} .
 
-gmeow:eqPrivacy017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ProjectionContext ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dpv:Recipient ;
+gmeow:ProjectionContext skos:relatedMatch dpv:Recipient {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DPV Recipient is the party receiving data; GMEOW ProjectionContext is the consumer/audience of a projection" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV Recipient is the party receiving data; GMEOW ProjectionContext is the consumer/audience of a projection"
+|} .
 
-gmeow:eqPrivacy018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DisclosurePolicy ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dpv:ProcessingContext ;
+gmeow:DisclosurePolicy skos:relatedMatch dpv:ProcessingContext {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DPV ProcessingContext is a broad context class; GMEOW DisclosurePolicy is a claim-scoped classification" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV ProcessingContext is a broad context class; GMEOW DisclosurePolicy is a claim-scoped classification"
+|} .
 
-gmeow:eqPrivacy019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DisclosurePolicy ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:Policy ;
+gmeow:DisclosurePolicy skos:relatedMatch odrl:Policy {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "ODRL Policy is a full deontic expression; GMEOW DisclosurePolicy is a lighter-weight claim-scoped classification" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "ODRL Policy is a full deontic expression; GMEOW DisclosurePolicy is a lighter-weight claim-scoped classification"
+|} .
 
-gmeow:eqPrivacy020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eligibleForConsumer ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:audience ;
+gmeow:eligibleForConsumer skos:relatedMatch schema:audience {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema.org audience is the intended consumer of a CreativeWork; GMEOW eligibleForConsumer is universal and claim-scoped" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "schema.org audience is the intended consumer of a CreativeWork; GMEOW eligibleForConsumer is universal and claim-scoped"
+|} .
 
-gmeow:eqPrivacy021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDisclosurePolicy ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dpv:hasProcessingContext ;
+gmeow:hasDisclosurePolicy skos:relatedMatch dpv:hasProcessingContext {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "DPV hasProcessingContext links a process to its context; GMEOW hasDisclosurePolicy is domain-free" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "DPV hasProcessingContext links a process to its context; GMEOW hasDisclosurePolicy is domain-free"
+|} .
 
-gmeow:eqPrivacy022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:policyPublicOnlyWithIndependentSource ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject odrl:purpose ;
+gmeow:policyPublicOnlyWithIndependentSource skos:relatedMatch odrl:purpose {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "the conditional independent-source requirement is a purpose-like constraint on disclosure" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:comment "the conditional independent-source requirement is a purpose-like constraint on disclosure"
+|} .
 
-gmeow:eqPrivacy023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:consumerWikidata ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2013 ;
+gmeow:consumerWikidata skos:closeMatch wd:Q2013 {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:objectLabel "Wikidata" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:objectLabel "Wikidata"
+|} .
 
-gmeow:eqPrivacy024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:consumerWikipedia ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q52 ;
+gmeow:consumerWikipedia skos:closeMatch wd:Q52 {|
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:objectLabel "Wikipedia" ;
-    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+    gmeow:objectLabel "Wikipedia"
+|} .
 
-gmeow:eqProperties043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000050 ;
+gmeow:partOf skos:closeMatch bfo:BFO_0000050 {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "part of" ;
-    gmeow:comment "BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules"
+|} .
 
-gmeow:eqProperties044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bfo:BFO_0000051 ;
+gmeow:hasPart skos:closeMatch bfo:BFO_0000051 {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "has part" ;
-    gmeow:comment "BFO has-part is the OBO hub; GMEOW hasPart is broader and keeps specialized subproperties for precise semantics" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "BFO has-part is the OBO hub; GMEOW hasPart is broader and keeps specialized subproperties for precise semantics"
+|} .
 
-gmeow:eqProperties045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:isComponentOf ;
+gmeow:partOf skos:closeMatch gufo:isComponentOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
-    gmeow:comment "gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader"
+|} .
 
-gmeow:eqProperties046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:isCollectionMemberOf ;
+gmeow:partOf skos:closeMatch gufo:isCollectionMemberOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.55 ;
-    gmeow:comment "gUFO collection membership is intransitive member-to-collection parthood; a narrower case of the GMEOW universal spine" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "gUFO collection membership is intransitive member-to-collection parthood; a narrower case of the GMEOW universal spine"
+|} .
 
-gmeow:eqProperties047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:isSubCollectionOf ;
+gmeow:partOf skos:closeMatch gufo:isSubCollectionOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine"
+|} .
 
-gmeow:eqProperties048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gufo:TemporaryParthoodSituation ;
+gmeow:partOf skos:closeMatch gufo:TemporaryParthoodSituation {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Intentional cross-category closeMatch: gUFO's TemporaryParthoodSituation class is the reified reference pattern for mutable endurant parthood; GMEOW partOf remains the flat property shortcut, not an OWL property equivalence" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "Intentional cross-category closeMatch: gUFO's TemporaryParthoodSituation class is the reified reference pattern for mutable endurant parthood; GMEOW partOf remains the flat property shortcut, not an OWL property equivalence"
+|} .
 
-gmeow:eqProperties049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:isPartOf ;
+gmeow:partOf skos:closeMatch schema:isPartOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqProperties050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:hasPart ;
+gmeow:hasPart skos:closeMatch schema:hasPart {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqProperties051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isPartOf ;
+gmeow:partOf skos:closeMatch dcterms:isPartOf {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.75
+|} .
 
-gmeow:eqProperties052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:hasPart ;
+gmeow:hasPart skos:closeMatch dcterms:hasPart {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75
+|} .
+
+gmeow:partOf skos:closeMatch crm:P46i_forms_part_of {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf"
+|} .
 
-gmeow:eqProperties053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:partOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P46i_forms_part_of ;
+gmeow:hasPart skos:closeMatch crm:P46_is_composed_of {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "CIDOC CRM P46 is composed of — narrower than GMEOW universal hasPart"
+|} .
 
-gmeow:eqProperties054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P46_is_composed_of ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "CIDOC CRM P46 is composed of — narrower than GMEOW universal hasPart" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:coarsenTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dpv:Generalisation ;
+gmeow:coarsenTo skos:closeMatch dpv:Generalisation {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN"
+|} .
 
-gmeow:eqProperties056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:coarserThan ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject skos:broader ;
+gmeow:coarserThan skos:closeMatch skos:broader {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan"
+|} .
 
-gmeow:eqWikidata053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q24229398 ;
+gmeow:Agent skos:closeMatch wd:Q24229398 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "agent" ;
-    gmeow:comment "Wikidata 'agent' is a very abstract philosophical concept; GMEOW Agent is the actor in provenance and trust assertions. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:comment "Wikidata 'agent' is a very abstract philosophical concept; GMEOW Agent is the actor in provenance and trust assertions. Directional lossy projection."
+|} .

@@ -659,6 +659,12 @@ fn try_match(
             }
             // A structured term never appears in a probabilistic (flat) program.
             QTerm::Struct(_) => return None,
+            // A ground quoted-triple matches only its own canonical surface.
+            QTerm::Triple { .. } => {
+                if crate::query_ir::qterm_display(term) != *comp {
+                    return None;
+                }
+            }
         }
     }
     Some(b)
@@ -675,6 +681,8 @@ fn instantiate_head(head: &QAtom, binding: &BTreeMap<String, String>) -> Option<
             QTerm::Var(v) => comps.push(binding.get(v)?.clone()),
             QTerm::Num(n) => comps.push(n.to_string()),
             QTerm::Struct(_) => return None,
+            // A ground quoted-triple is a valid ground head component (its canonical surface).
+            QTerm::Triple { .. } => comps.push(crate::query_ir::qterm_display(term)),
         }
     }
     Some((head.pred.clone(), comps[0].clone(), comps[1].clone()))
@@ -715,6 +723,8 @@ fn ground_atom_to_fact(atom: &QAtom) -> Option<Fact> {
             // non-ground/invalid term for fact conversion.
             QTerm::Num(_) => return None,
             QTerm::Struct(_) => return None,
+            // A ground quoted-triple is itself a ground value (its canonical surface).
+            QTerm::Triple { .. } => comps.push(crate::query_ir::qterm_display(term)),
         }
     }
     if comps.len() != 2 {

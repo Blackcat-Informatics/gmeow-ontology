@@ -10,93 +10,71 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ContactPoint ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:ContactPoint ;
+gmeow:ContactPoint owl:equivalentClass schema:ContactPoint {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PostalAddress ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:PostalAddress ;
+gmeow:PostalAddress owl:equivalentClass schema:PostalAddress {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject vcard:Address ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:PostalAddress ;
+vcard:Address skos:closeMatch gmeow:PostalAddress {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProperties004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:email ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:email ;
+gmeow:email owl:equivalentProperty schema:email {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:email ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:mbox ;
+gmeow:email skos:closeMatch foaf:mbox {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "foaf:mbox is an IRI; close not equivalent" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "foaf:mbox is an IRI; close not equivalent"
+|} .
 
-gmeow:eqProperties006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:email ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:hasEmail ;
+gmeow:email skos:closeMatch vcard:hasEmail {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProperties007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:telephone ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:telephone ;
+gmeow:telephone owl:equivalentProperty schema:telephone {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:telephone ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:hasTelephone ;
+gmeow:telephone skos:closeMatch vcard:hasTelephone {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqProperties009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasContactPoint ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:contactPoint ;
+gmeow:hasContactPoint owl:equivalentProperty schema:contactPoint {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqWikidata043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:TelephoneNumber ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q214291 ;
+gmeow:TelephoneNumber skos:closeMatch wd:Q214291 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "telephone number" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "telephone number"
+|} .
 
-gmeow:eqWikidata044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EmailAddress ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q29934200 ;
+gmeow:EmailAddress skos:closeMatch wd:Q29934200 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "email address" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "email address"
+|} .

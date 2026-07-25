@@ -171,7 +171,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
 
     // Alignment linkage (external + relations for the disagreement check).
     let view = DslView::new(&ds);
-    let cells = equivalence_cells(&view);
+    let cells = equivalence_cells(&view)?;
     let mut ext_by_subject: BTreeMap<String, Vec<ExtCell>> = BTreeMap::new();
     let mut by_ext_target: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut related: BTreeSet<(String, String)> = BTreeSet::new();
@@ -408,7 +408,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
 }
 
 /// One external-mapped alignment cell for a covered term (the external half of a
-/// `gmeow:TermEquivalence`).
+/// native alignment cell).
 struct ExtCell {
     obj: String,
     predicate: String,

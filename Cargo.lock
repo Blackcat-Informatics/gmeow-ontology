@@ -1736,6 +1736,7 @@ dependencies = [
  "hashbrown 0.15.5",
  "iai-callgrind",
  "insta",
+ "memmap2",
  "petgraph",
  "proptest",
  "purrdf",
@@ -1745,6 +1746,7 @@ dependencies = [
  "sha1",
  "sha2",
  "smallvec",
+ "tempfile",
 ]
 
 [[package]]
@@ -5886,6 +5888,7 @@ name = "xtask"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-logic-compile",
 ]
 
 [[package]]

@@ -27,7 +27,7 @@ three — not expressivity alone.
   becomes the richer local source of truth. Requires permissive licensing *and* liftable structure.
 - **Project (P)** — generate a lossy lowering *out* to it, carrying a `logic:preservationKind` in
   the loss ledger. GMEOW is canonical; the target is a consumer surface.
-- **Link (L)** — align by reference (`gmeow:TermEquivalence` → `logic:Correspondence`) or carry a
+- **Link (L)** — align by reference (a native alignment cell → `logic:Correspondence`) or carry a
   bare external identifier/QID. No content is imported; identity is anchored.
 - **Reference (R)** — cite as theory, engine, prior art, or definitional authority. Not aligned as
   data; often forced by a restrictive license or the absence of a machine-readable form.

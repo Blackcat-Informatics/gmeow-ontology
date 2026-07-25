@@ -257,6 +257,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-pipeline.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/scores.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/skos/gmeow-skos.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/projections/activitystreams.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/bibframe.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/bibo.edoal",

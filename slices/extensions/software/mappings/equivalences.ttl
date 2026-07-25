@@ -30,244 +30,176 @@ gmeow:mapsetSoftware a gmeow:MappingSet ;
 # DOAP — lossy closeMatch because DOAP conflates project, product, repo, history
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:Project ;
+gmeow:SoftwareProject skos:closeMatch doap:Project {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DOAP conflates endeavour, product, repo and history; GMEOW SoftwareProject is the endeavour facet only." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "DOAP conflates endeavour, product, repo and history; GMEOW SoftwareProject is the endeavour facet only."
+|} .
 
-gmeow:eqSw002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Repository ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:Repository ;
+gmeow:Repository skos:closeMatch doap:Repository {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DOAP Repository ≈ GMEOW Repository (location facet)." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "DOAP Repository ≈ GMEOW Repository (location facet)."
+|} .
 
-gmeow:eqSw003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Release ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:Version ;
+gmeow:Release skos:closeMatch doap:Version {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DOAP Version conflates release event and version string; GMEOW Release is the event facet." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "DOAP Version conflates release event and version string; GMEOW Release is the event facet."
+|} .
 
 # --------------------------------------------------------------------------- #
 # schema.org — lossy because it conflates source code, application, and project
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProduct ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:SoftwareSourceCode ;
+gmeow:SoftwareProduct skos:closeMatch schema:SoftwareSourceCode {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org conflates source code and application; GMEOW SoftwareProduct is the creative-work facet." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "schema.org conflates source code and application; GMEOW SoftwareProduct is the creative-work facet."
+|} .
 
-gmeow:eqSw005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProduct ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:SoftwareApplication ;
+gmeow:SoftwareProduct skos:closeMatch schema:SoftwareApplication {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org SoftwareApplication is the deployed/runtime view; GMEOW SoftwareProduct is the abstract creative work." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "schema.org SoftwareApplication is the deployed/runtime view; GMEOW SoftwareProduct is the abstract creative work."
+|} .
 
-gmeow:eqSw006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Repository ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:codeRepository ;
+gmeow:Repository skos:closeMatch schema:codeRepository {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema.org codeRepository is a URL literal; GMEOW Repository is a first-class entity." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "schema.org codeRepository is a URL literal; GMEOW Repository is a first-class entity."
+|} .
 
 # --------------------------------------------------------------------------- #
 # SPDX — SBOM / package identity layer
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Package ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject spdx:Package ;
+gmeow:Package skos:closeMatch spdx:Package {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "SPDX Package is the SBOM-level descriptor; GMEOW Package is the distributable unit." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "SPDX Package is the SBOM-level descriptor; GMEOW Package is the distributable unit."
+|} .
 
-gmeow:eqSw008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SourceFile ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject spdx:File ;
+gmeow:SourceFile skos:closeMatch spdx:File {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Direct correspondence: both are content-addressed files in a package." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Direct correspondence: both are content-addressed files in a package."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CodeMeta — software metadata vocabulary (schema.org extension)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProduct ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject codemeta:SoftwareSourceCode ;
+gmeow:SoftwareProduct skos:closeMatch codemeta:SoftwareSourceCode {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CodeMeta SoftwareSourceCode ≈ schema.org SoftwareSourceCode; GMEOW SoftwareProduct is the abstract creative work." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "CodeMeta SoftwareSourceCode ≈ schema.org SoftwareSourceCode; GMEOW SoftwareProduct is the abstract creative work."
+|} .
 
 # --------------------------------------------------------------------------- #
 # ForgeFed — federated forge vocabulary
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Repository ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject forgefed:Repository ;
+gmeow:Repository skos:closeMatch forgefed:Repository {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "ForgeFed Repository is the ActivityPub representation of a code repository." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "ForgeFed Repository is the ActivityPub representation of a code repository."
+|} .
 
-gmeow:eqSw011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Commit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject forgefed:Commit ;
+gmeow:Commit skos:closeMatch forgefed:Commit {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "ForgeFed Commit is the federated representation of a VCS commit." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "ForgeFed Commit is the federated representation of a VCS commit."
+|} .
 
-gmeow:eqSw012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Issue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject forgefed:Ticket ;
+gmeow:Issue skos:closeMatch forgefed:Ticket {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "ForgeFed Ticket ≈ GMEOW Issue (both are tracked work items)." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "ForgeFed Ticket ≈ GMEOW Issue (both are tracked work items)."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Software Heritage — informal concept URIs (no standard RDF ontology published)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqSw013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Blob ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Content ;
+gmeow:Blob skos:closeMatch swh:Content {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Software Heritage Content is content-addressed file content; GMEOW Blob is the raw content facet (bytes only, no name)." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Content is content-addressed file content; GMEOW Blob is the raw content facet (bytes only, no name)."
+|} .
 
-gmeow:eqSw014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SourceFile ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Content ;
+gmeow:SourceFile skos:closeMatch swh:Content {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Software Heritage Content is also the closest match for GMEOW SourceFile, which adds the named-in-tree aspect on top of raw content." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Content is also the closest match for GMEOW SourceFile, which adds the named-in-tree aspect on top of raw content."
+|} .
 
-gmeow:eqSw015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SourceTree ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Directory ;
+gmeow:SourceTree skos:closeMatch swh:Directory {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Software Heritage Directory is a content-addressed tree of files and subdirectories; direct correspondence to GMEOW SourceTree." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Directory is a content-addressed tree of files and subdirectories; direct correspondence to GMEOW SourceTree."
+|} .
 
-gmeow:eqSw016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Commit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Revision ;
+gmeow:Commit skos:closeMatch swh:Revision {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Software Heritage Revision is a commit/revision with author, committer, timestamp, and tree; direct correspondence to GMEOW Commit." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Revision is a commit/revision with author, committer, timestamp, and tree; direct correspondence to GMEOW Commit."
+|} .
 
-gmeow:eqSw017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Release ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Release ;
+gmeow:Release skos:closeMatch swh:Release {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Software Heritage Release is a named revision (tag); direct correspondence to GMEOW Release." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Release is a named revision (tag); direct correspondence to GMEOW Release."
+|} .
 
-gmeow:eqSw018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Repository ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject swh:Origin ;
+gmeow:Repository skos:closeMatch swh:Origin {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Software Heritage Origin is a repository origin URL; GMEOW Repository is the location/hosting facet, which may carry additional metadata." ;
-    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+    gmeow:comment "Software Heritage Origin is a repository origin URL; GMEOW Repository is the location/hosting facet, which may carry additional metadata."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:Project ;
+doap:GitRepository rdfs:subClassOf gmeow:Repository {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:SoftwareSourceCode ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:SoftwareProduct ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:SoftwareApplication ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:SoftwareProduct ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject doap:GitRepository ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:Repository ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqDcType006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcmitype:Software ;
+gmeow:SoftwareProject skos:closeMatch dcmitype:Software {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "A GMEOW SoftwareProject is a DCMI Software" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "A GMEOW SoftwareProject is a DCMI Software"
+|} .
 
-gmeow:eqProperties016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasRepository ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:repository ;
+gmeow:hasRepository skos:closeMatch doap:repository {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqWikidata004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareProject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q7397 ;
+gmeow:SoftwareProject skos:closeMatch wd:Q7397 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:objectLabel "software" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "software"
+|} .

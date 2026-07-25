@@ -10,7 +10,7 @@
 //! library never picks a scoring authority — both callers inject [`exemplar_tiers`],
 //! whose eligibility is GATED by SHACL per-term conformance and ordered by coat
 //! completeness), the term's cross-ontology grounding
-//! (SSSOM `gmeow:TermEquivalence` alignments), and its cross-lingual grounding
+//! (SSSOM native alignment cells), and its cross-lingual grounding
 //! (`fr`/`zh` translations JOINed from the per-slice `.po` catalogs). A missing
 //! translation or external mapping is a RECORDED explicit "absent" cell, never a
 //! silent blank; a batch request out of range is a HARD FAIL.

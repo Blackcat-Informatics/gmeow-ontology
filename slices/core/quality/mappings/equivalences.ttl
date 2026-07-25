@@ -46,106 +46,86 @@ gmeow:mapsetQuality a gmeow:MappingSet ;
 # W3C DQV alignments
 # --------------------------------------------------------------------------- #
 
-gmeow:eqQuality001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:QualityAssessment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dqv:QualityMeasurement ;
+gmeow:QualityAssessment skos:closeMatch dqv:QualityMeasurement {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Both are reified quality assessments carrying a numeric or categorical result. GMEOW uses math:Quantity for dimensioned numeric results; categorical conformance statements remain valid. DQV uses dqv:value with an expectedDataType on the Metric." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "Both are reified quality assessments carrying a numeric or categorical result. GMEOW uses math:Quantity for dimensioned numeric results; categorical conformance statements remain valid. DQV uses dqv:value with an expectedDataType on the Metric."
+|} .
 
-gmeow:eqQuality002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:QualityDimension ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dqv:Dimension ;
+gmeow:QualityDimension skos:closeMatch dqv:Dimension {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Both are quality dimensions — criteria for assessing data quality. GMEOW models dimensions as value individuals (gufo:QualityValue), not as OWL classes." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "Both are quality dimensions — criteria for assessing data quality. GMEOW models dimensions as value individuals (gufo:QualityValue), not as OWL classes."
+|} .
 
-gmeow:eqQuality003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:assessedEntity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dqv:computedOn ;
+gmeow:assessedEntity skos:closeMatch dqv:computedOn {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "The entity whose quality is assessed. DQV's dqv:computedOn is generally scoped to dcat:Dataset/Distribution; GMEOW's assessedEntity is universal (any gmeow:Entity)." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "The entity whose quality is assessed. DQV's dqv:computedOn is generally scoped to dcat:Dataset/Distribution; GMEOW's assessedEntity is universal (any gmeow:Entity)."
+|} .
 
-gmeow:eqQuality004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:qualityDimension ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dqv:isMeasurementOf ;
+gmeow:qualityDimension skos:closeMatch dqv:isMeasurementOf {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "GMEOW flattens the DQV chain: qualityDimension points directly to QualityDimension, bypassing the intermediate dqv:Metric node. The metric is solver-computed and lives outside the OWL core (Principle 12)." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "GMEOW flattens the DQV chain: qualityDimension points directly to QualityDimension, bypassing the intermediate dqv:Metric node. The metric is solver-computed and lives outside the OWL core (Principle 12)."
+|} .
 
-gmeow:eqQuality005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:QualityAssessment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject dqv:QualityAnnotation ;
+gmeow:QualityAssessment skos:relatedMatch dqv:QualityAnnotation {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DQV QualityAnnotation (a subclass of oa:Annotation) is broader — it covers ratings, certificates, and feedback, not only structured measurements. A GMEOW QualityAssessment MAY be projected to a DQV QualityAnnotation when the result is categorical or subjective." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "DQV QualityAnnotation (a subclass of oa:Annotation) is broader — it covers ratings, certificates, and feedback, not only structured measurements. A GMEOW QualityAssessment MAY be projected to a DQV QualityAnnotation when the result is categorical or subjective."
+|} .
 
 # --------------------------------------------------------------------------- #
 # GeoDCAT-AP / ISO 19157 pathway alignments
 # --------------------------------------------------------------------------- #
 
-gmeow:eqQuality006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:QualityAssessment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject oa:Annotation ;
+gmeow:QualityAssessment skos:relatedMatch oa:Annotation {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "GeoDCAT-AP represents quality statements as dcat:qualityAnnotation pointing to oa:Annotation. GMEOW's structured QualityAssessment can be projected to an OA Annotation when targeting GeoDCAT-AP consumers." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "GeoDCAT-AP represents quality statements as dcat:qualityAnnotation pointing to oa:Annotation. GMEOW's structured QualityAssessment can be projected to an OA Annotation when targeting GeoDCAT-AP consumers."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O lineage bridge
 # --------------------------------------------------------------------------- #
 
-gmeow:eqQuality007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:qualityDimensionLineage ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:qualityDimensionLineage skos:relatedMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Lineage is provenance viewed through a quality lens. GMEOW records structural lineage via wasDerivedFrom / wasGeneratedBy / ImportActivity (provenance module); the qualityDimensionLineage value marks an assessment that evaluates lineage completeness or correctness." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "Lineage is provenance viewed through a quality lens. GMEOW records structural lineage via wasDerivedFrom / wasGeneratedBy / ImportActivity (provenance module); the qualityDimensionLineage value marks an assessment that evaluates lineage completeness or correctness."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata alignments for dimension seeds
 # --------------------------------------------------------------------------- #
 
-gmeow:eqQuality008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:qualityDimensionPositionalAccuracy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2401740 ;
+gmeow:qualityDimensionPositionalAccuracy skos:closeMatch wd:Q2401740 {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "spatial resolution" ;
-    gmeow:comment "Wikidata 'spatial resolution' is the closest structured term for positional accuracy; it is broader (includes granularity) but captures the same spatial-quality axis." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "Wikidata 'spatial resolution' is the closest structured term for positional accuracy; it is broader (includes granularity) but captures the same spatial-quality axis."
+|} .
 
-gmeow:eqQuality009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:qualityDimensionCompleteness ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q194041 ;
+gmeow:qualityDimensionCompleteness skos:closeMatch wd:Q194041 {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:objectLabel "completeness" ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:objectLabel "completeness"
+|} .
 
-gmeow:eqQuality010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:qualityDimensionLineage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q13411553 ;
+gmeow:qualityDimensionLineage skos:closeMatch wd:Q13411553 {|
+    gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "provenance" ;
-    gmeow:comment "Wikidata 'provenance' is the closest structured term for lineage; lineage is a quality-lens view of provenance." ;
-    gmeow:sssomFile "gmeow-quality.sssom.tsv" .
+    gmeow:comment "Wikidata 'provenance' is the closest structured term for lineage; lineage is a quality-lens view of provenance."
+|} .

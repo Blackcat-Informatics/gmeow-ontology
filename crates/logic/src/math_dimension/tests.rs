@@ -4,6 +4,11 @@
 //! Reasoned-graph tests for the `math:` measure-and-dimension gate. Each drives
 //! [`check_math_dimension_findings`] over a frozen dataset — the same read substrate
 //! the reason-verify pass hands it — and asserts the typed `math:` failure class.
+//!
+//! Dimensional homogeneity and integral-composition coverage now lives with the
+//! reasoner-derived `verify()` acceptance harness (`crates/logic/tests/dimension_gate.rs`);
+//! this module covers only the failure classes this native sweep still decides:
+//! malformed dimensions (drift / zero-denominator) and Gram positive-definiteness.
 
 use super::*;
 use gmeow_errors::Severity;
@@ -11,12 +16,6 @@ use gmeow_errors::Severity;
 const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
      @prefix math: <https://blackcatinformatics.ca/math/> .\n\
      @prefix ex: <https://example.org/> .\n";
-
-/// Two pure-time quantities (dimension T) and one length quantity (dimension L),
-/// used across the homogeneity tests.
-const QUANTITIES: &str = "ex:t1 a math:Quantity ; math:hasDimension math:timeDimension .\n\
-     ex:t2 a math:Quantity ; math:hasDimension math:timeDimension .\n\
-     ex:len a math:Quantity ; math:hasDimension math:lengthDimension .\n";
 
 fn dataset(turtle: &str) -> std::sync::Arc<RdfDataset> {
     purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("valid Turtle")
@@ -35,144 +34,6 @@ fn count_class(findings: &[Finding], needle: &str) -> usize {
 
 fn has_class(findings: &[Finding], needle: &str) -> bool {
     count_class(findings, needle) >= 1
-}
-
-// ── Homogeneity across every construct kind ─────────────────────────────────
-
-#[test]
-fn inhomogeneous_addition_is_flagged() {
-    // A summand-of-an-addition construct mixing T and L.
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:addition a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n"
-    ));
-    assert!(
-        has_class(&f, "math:DimensionalInhomogeneity"),
-        "an inhomogeneous addition must be flagged: {f:?}"
-    );
-}
-
-#[test]
-fn inhomogeneous_equation_is_flagged() {
-    // A side-of-an-equation construct mixing T and L.
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:equation a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n"
-    ));
-    assert!(
-        has_class(&f, "math:DimensionalInhomogeneity"),
-        "an inhomogeneous equation must be flagged: {f:?}"
-    );
-}
-
-#[test]
-fn inhomogeneous_comparison_is_flagged() {
-    // A term-of-a-comparison construct mixing T and L.
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:comparison a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n"
-    ));
-    assert!(
-        has_class(&f, "math:DimensionalInhomogeneity"),
-        "an inhomogeneous comparison must be flagged: {f:?}"
-    );
-}
-
-#[test]
-fn every_construct_kind_is_covered_in_one_bundle() {
-    // All three construct kinds present at once → three distinct inhomogeneity findings,
-    // proving the gate fires across every construct kind and not just once per bundle.
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:addition a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n\
-         ex:equation a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n\
-         ex:comparison a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:len .\n"
-    ));
-    assert_eq!(
-        count_class(&f, "math:DimensionalInhomogeneity"),
-        3,
-        "each of the three inhomogeneous constructs must yield its own finding: {f:?}"
-    );
-}
-
-#[test]
-fn homogeneous_expression_passes() {
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:ok a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:t2 .\n"
-    ));
-    assert!(
-        f.iter().all(|x| x.severity != Severity::Error),
-        "a homogeneous expression must pass cleanly: {f:?}"
-    );
-}
-
-#[test]
-fn undimensioned_operand_is_flagged() {
-    let f = findings(&format!(
-        "{PREFIXES}{QUANTITIES}\
-         ex:mystery a math:Quantity .\n\
-         ex:bad a math:DimensionalExpression ; math:homogeneousOperand ex:t1 , ex:mystery .\n"
-    ));
-    assert!(
-        has_class(&f, "math:DimensionalInhomogeneity")
-            && f.iter()
-                .any(|x| x.message.contains("undimensioned operand")),
-        "an undimensioned operand must raise math:DimensionalInhomogeneity: {f:?}"
-    );
-}
-
-// ── Integral dimensional composition ────────────────────────────────────────
-
-/// Energy = ∫ (energy-density) d(volume): M·L⁻¹·T⁻² times L³ = M·L²·T⁻².
-const ENERGY_INTEGRAL: &str = "\
-     ex:energyDim a math:DerivedDimension ;\n\
-       math:baseDimensionExponent ex:mE1 , ex:lE2 , ex:tEm2 .\n\
-     ex:mE1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;\n\
-       math:exponentNumerator 1 ; math:exponentDenominator 1 .\n\
-     ex:lE2 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-       math:exponentNumerator 2 ; math:exponentDenominator 1 .\n\
-     ex:tEm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-       math:exponentNumerator -2 ; math:exponentDenominator 1 .\n\
-     ex:densityDim a math:DerivedDimension ;\n\
-       math:baseDimensionExponent ex:mD1 , ex:lDm1 , ex:tDm2 .\n\
-     ex:mD1 a math:DimensionExponent ; math:exponentOfDimension math:massDimension ;\n\
-       math:exponentNumerator 1 ; math:exponentDenominator 1 .\n\
-     ex:lDm1 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-       math:exponentNumerator -1 ; math:exponentDenominator 1 .\n\
-     ex:tDm2 a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ;\n\
-       math:exponentNumerator -2 ; math:exponentDenominator 1 .\n\
-     ex:volumeDim a math:DerivedDimension ; math:baseDimensionExponent ex:lV3 .\n\
-     ex:lV3 a math:DimensionExponent ; math:exponentOfDimension math:lengthDimension ;\n\
-       math:exponentNumerator 3 ; math:exponentDenominator 1 .\n\
-     ex:density a math:MeasurableFunction ; math:hasDimension ex:densityDim .\n\
-     ex:vol a math:Measure ; math:hasDimension ex:volumeDim .\n";
-
-#[test]
-fn integral_with_composed_dimensions_passes() {
-    let f = findings(&format!(
-        "{PREFIXES}{ENERGY_INTEGRAL}\
-         ex:energy a math:Integral ; math:integrand ex:density ;\n\
-           math:withRespectTo ex:vol ; math:hasDimension ex:energyDim .\n"
-    ));
-    assert!(
-        !has_class(&f, "math:DimensionalInhomogeneity"),
-        "a correctly-composed integral must pass: {f:?}"
-    );
-}
-
-#[test]
-fn integral_with_mismatched_result_dimension_is_flagged() {
-    // Declare the result as time (T) instead of energy — the parameters do not compose.
-    let f = findings(&format!(
-        "{PREFIXES}{ENERGY_INTEGRAL}\
-         ex:energy a math:Integral ; math:integrand ex:density ;\n\
-           math:withRespectTo ex:vol ; math:hasDimension math:timeDimension .\n"
-    ));
-    assert!(
-        has_class(&f, "math:DimensionalInhomogeneity"),
-        "a mismatched integral composition must be flagged: {f:?}"
-    );
 }
 
 // ── Malformed dimension ─────────────────────────────────────────────────────
@@ -361,17 +222,17 @@ fn gram_not_claimed_positive_definite_is_out_of_scope() {
     );
 }
 
-// ── The GMN dimension round-trip scene + its falsifying counter-example ──────
+// ── The GMN dimension round-trip scene ────────────────────────────────────────
 // The force = ∫ a dm homomorphism law dim(acceleration) ⊕ dim(mass) = dim(force) is
-// authored as a shipped math example and made FALSIFIABLE by a counter-example with one
-// perturbed exponent. Both are driven through the real gate here, over the fixture bytes
-// on disk (include_str! keeps the test in lockstep with the authored scenes).
+// authored as a shipped math example. Driven through the real gate here, over the
+// fixture bytes on disk (include_str! keeps the test in lockstep with the authored
+// scene) — this sweep must not raise math:MalformedDimension over it. The falsifying
+// counter-example (a perturbed exponent) is now covered by the reasoner-derived
+// `verify()` acceptance harness (`crates/logic/tests/dimension_gate.rs`), since the
+// composition law itself is decided there, not by this native sweep.
 
 const DIMENSION_ROUNDTRIP_SCENE: &str =
     include_str!("../../../../slices/grounding/math/examples/gmn-dimension-roundtrip.ttl");
-const DIMENSION_INHOMOGENEOUS_COUNTER: &str = include_str!(
-    "../../../../slices/grounding/math/tests/counter-examples/force-dimension-inhomogeneous.ttl"
-);
 
 #[test]
 fn gmn_dimension_roundtrip_scene_is_clean() {
@@ -408,22 +269,5 @@ fn real_math_module_force_dimension_is_clean_under_the_reasoned_gate() {
         f.iter().all(|x| x.severity != Severity::Error),
         "the real math module (incl. the canonical math:forceDimension) must pass the ℚ⁷ \
          dimension gate cleanly in the production read substrate: {f:?}"
-    );
-}
-
-#[test]
-fn gmn_dimension_perturbed_exponent_falsifies_the_law() {
-    // The counter-example perturbs the force result's time exponent (−2 → −3), so the
-    // integral composition dim(accel) ⊕ dim(mass) ≠ dim(result): EXACTLY
-    // math:DimensionalInhomogeneity fires, and no other dimension failure class.
-    let f = findings(DIMENSION_INHOMOGENEOUS_COUNTER);
-    assert_eq!(
-        count_class(&f, "math:DimensionalInhomogeneity"),
-        1,
-        "the perturbed force dimension must raise exactly one math:DimensionalInhomogeneity: {f:?}"
-    );
-    assert!(
-        !has_class(&f, "math:MalformedDimension"),
-        "the perturbed exponent is a well-formed cell, so no math:MalformedDimension: {f:?}"
     );
 }

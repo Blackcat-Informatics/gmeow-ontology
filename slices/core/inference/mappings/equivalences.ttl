@@ -25,95 +25,75 @@ gmeow:mapsetInference a gmeow:MappingSet ;
         BY PROSE ONLY (no stable resolvable RDF namespace suitable for SSSOM rows): Peirce's original tetrad (CP 2.619ff); Toulmin's warrant/backing/rebuttal model (gmeow:warrant, gmeow:Attack); Gentner's Structure-Mapping Engine / systematicity principle (gmeow:Analogy, gmeow:systematicity); Pollock's rebutting/undercutting defeater distinction, now the three-way typed gmeow:AttackKind (undermine/undercut/rebut); AIF / ASPIC+ / Dung abstract argumentation (gmeow:Argument, gmeow:Attack, gmeow:Support, gmeow:ArgumentEvaluation), referenced for the solver-layer acceptability function but lacking a stable SSSOM-suitable namespace.""" .
 
 # PROV-O — the reasoning episode is an activity; derivation links premises to conclusion.
-gmeow:eqInference001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InferenceProcess ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:InferenceProcess skos:relatedMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "an occurrent inference episode is a provenance activity; the epistemic/Peircean semantics are GMEOW-specific and not entailed by PROV-O" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "an occurrent inference episode is a provenance activity; the epistemic/Peircean semantics are GMEOW-specific and not entailed by PROV-O"
+|} .
 
-gmeow:eqInference002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:inferredFrom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:inferredFrom skos:closeMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "gmeow:inferredFrom (conclusion-claim to premise) is the epistemic face of prov:wasDerivedFrom; GMEOW adds the inference mode and defeasibility PROV-O does not carry" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "gmeow:inferredFrom (conclusion-claim to premise) is the epistemic face of prov:wasDerivedFrom; GMEOW adds the inference mode and defeasibility PROV-O does not carry"
+|} .
 
 # CRMinf — inference making (event) and argumentation (structure).
-gmeow:eqInference003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InferenceProcess ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I5_Inference_Making ;
+gmeow:InferenceProcess skos:closeMatch crminf:I5_Inference_Making {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "the occurrent gmeow:InferenceProcess is CRMinf's I5 Inference Making — the reasoning event that produces a belief" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "the occurrent gmeow:InferenceProcess is CRMinf's I5 Inference Making — the reasoning event that produces a belief"
+|} .
 
-gmeow:eqInference004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InferenceCommitment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I1_Argumentation ;
+gmeow:InferenceCommitment skos:closeMatch crminf:I1_Argumentation {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "the endurant gmeow:InferenceCommitment (premises, conclusion, warrant, defeaters) is CRMinf's I1 Argumentation; acceptability is computed externally (Principle 12)" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "the endurant gmeow:InferenceCommitment (premises, conclusion, warrant, defeaters) is CRMinf's I1 Argumentation; acceptability is computed externally (Principle 12)"
+|} .
 
 # Wikidata — Peirce's tetrad (the four InferenceMode values).
-gmeow:eqInference005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modeDeduction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q484284 ;
+gmeow:modeDeduction skos:closeMatch wd:Q484284 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'deductive reasoning' (Q484284) — reasoning from premises understood to be true to a necessarily-true conclusion" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'deductive reasoning' (Q484284) — reasoning from premises understood to be true to a necessarily-true conclusion"
+|} .
 
-gmeow:eqInference006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modeInduction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q484511 ;
+gmeow:modeInduction skos:closeMatch wd:Q484511 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'inductive reasoning' (Q484511) — reasoning in which a body of observations is synthesised into a general principle" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'inductive reasoning' (Q484511) — reasoning in which a body of observations is synthesised into a general principle"
+|} .
 
-gmeow:eqInference007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modeAbduction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q308495 ;
+gmeow:modeAbduction skos:closeMatch wd:Q308495 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'abductive reasoning' (Q308495) — logical inference seeking the best (most likely) explanation for an observation" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'abductive reasoning' (Q308495) — logical inference seeking the best (most likely) explanation for an observation"
+|} .
 
-gmeow:eqInference008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:modeAnalogical ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q185816 ;
+gmeow:modeAnalogical skos:closeMatch wd:Q185816 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'analogy' (Q185816) — inference or argument from one particular to another. GMEOW grounds the transfer in Gentner structure-mapping (gmeow:Analogy / gmeow:systematicity), which the bare concept does not entail" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'analogy' (Q185816) — inference or argument from one particular to another. GMEOW grounds the transfer in Gentner structure-mapping (gmeow:Analogy / gmeow:systematicity), which the bare concept does not entail"
+|} .
 
 # Wikidata — the umbrella concept and the defeasibility machinery.
-gmeow:eqInference009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:InferenceProcess ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q408386 ;
+gmeow:InferenceProcess skos:relatedMatch wd:Q408386 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'inference' (Q408386) — the act or process of deriving logical conclusions from premises; related to the occurrent gmeow:InferenceProcess that carries it out" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'inference' (Q408386) — the act or process of deriving logical conclusions from premises; related to the occurrent gmeow:InferenceProcess that carries it out"
+|} .
 
-gmeow:eqInference010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Attack ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q840067 ;
+gmeow:Attack skos:relatedMatch wd:Q840067 {|
+    gmeow:sssomFile "gmeow-inference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'defeasible reasoning' (Q840067) — reasoning that is rationally compelling but not deductively valid; gmeow:Attack is the typed structural conflict (undermine/undercut/rebut) that makes inductive/abductive/analogical inference defeasible" ;
-    gmeow:sssomFile "gmeow-inference.sssom.tsv" .
+    gmeow:comment "Wikidata 'defeasible reasoning' (Q840067) — reasoning that is rationally compelling but not deductively valid; gmeow:Attack is the typed structural conflict (undermine/undercut/rebut) that makes inductive/abductive/analogical inference defeasible"
+|} .

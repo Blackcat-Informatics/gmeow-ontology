@@ -99,6 +99,7 @@ mod store;
 // generic evaluator's index selection (`generic`).
 #[allow(unused_imports)]
 pub(crate) use binding_pattern::BindingPattern;
+pub(crate) use magic::qterm_to_value;
 
 // The arity-generic positive-Datalog forward evaluator: the predicate-as-data n-ary
 // core the OWL 2 RL/RDF meta-rules need (variable property position). Consumed by

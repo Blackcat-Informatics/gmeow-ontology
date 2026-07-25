@@ -382,6 +382,7 @@ mod tests {
             rule_iri: format!("{SM}{name}"),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         };
         vec![
             rule("inSet", "outSet", "ruleInSet"),

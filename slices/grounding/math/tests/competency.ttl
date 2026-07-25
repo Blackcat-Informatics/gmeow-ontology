@@ -302,7 +302,7 @@ ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/named-constants-and-anchors.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A named constant reports the external anchor reached through its gmeow:TermEquivalence alignment; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
+    gmeow:cqRationale "A named constant reports the external anchor reached through its fixture-local anchor record; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqConstantsShape ;
     gmeow:cqExpectRow ex:rowPiAnchor .
