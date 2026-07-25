@@ -548,6 +548,25 @@ gmeow:instantiatesWork
     gmeow:howToUse "Do not assert it: model the three WEMI R-relations (gmeow:exemplifies, gmeow:embodies, gmeow:realizes) and let the cross-slice derivation rule surface the Item→Work link; consume it for a direct 'which Work is this copy of' answer without traversing the spine."@x-gmeow-english ;
     gmeow:useWhen "Use to read the abstract gmeow:Work a concrete gmeow:Item instantiates — the copy-to-Work shortcut composed over the full WEMI spine — when a consumer needs Item→Work reach without walking Manifestation and Expression by hand."@x-gmeow-english .
 
+# --- Worked A-Box fixture: a deliberately UNDER-SPECIFIED gmeow:Item -----------
+# A single copy that has not yet been linked to the edition it exemplifies — the
+# bottom WEMI tier is present (gmeow:Item) but its gmeow:exemplifies →
+# gmeow:Manifestation link is missing. This is SHACL-conforming (gmeow:exemplifies
+# carries only an allValuesFrom type restriction + closed-world closure, NOT a
+# min-count requiredness — contrast gmeow:Manifestation's DisjunctiveRequiredness
+# constraint on gmeow:embodies below), so the copy is an INCOMPLETE-but-legal model.
+# It is the on-bundle DEMONSTRATOR for the D5 constructive-advice (abductive) wing:
+# the WEMI-chain schema (logic:WemiChainAbductiveSchema) reads its missing relatum
+# and emits an `advice.abductive.Item.*` Note recommending the addition of a
+# gmeow:exemplifies link to a fresh gmeow:Manifestation. Carries gmeow:boxABox so
+# the wing (which scopes to genuine A-Box individuals) considers it.
+gmeow:fixtureUnlinkedItem
+    a gmeow:Item ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "unlinked copy fixture"@x-gmeow-english ;
+    skos:definition "A deliberately-minimal, under-specified worked fixture: a single gmeow:Item (one copy) that does not yet gmeow:exemplifies any gmeow:Manifestation, so its WEMI realization chain is incomplete. It is legal (gmeow:exemplifies is not min-count required) but under-specified, and exists to demonstrate the constructive-advice (abductive) wing on the shipped bundle — the wing recommends adding the missing gmeow:exemplifies link to a gmeow:Manifestation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:formatAudiobook
     a gmeow:ManifestationFormat ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;

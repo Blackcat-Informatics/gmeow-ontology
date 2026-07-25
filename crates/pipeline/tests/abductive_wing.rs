@@ -64,6 +64,7 @@ const FINDING_STANDPOINT: &str = "https://blackcatinformatics.ca/gmeow/findingSt
 const FINDING_ANTECEDENT: &str = "https://blackcatinformatics.ca/gmeow/findingAntecedent";
 const FINDING_ROOT_CAUSE: &str = "https://blackcatinformatics.ca/gmeow/findingRootCause";
 const SEVERITY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/severityNote";
+const SEVERITY_ERROR: &str = "https://blackcatinformatics.ca/gmeow/severityError";
 const STANDPOINT_ADVISORY: &str = "https://blackcatinformatics.ca/gmeow/standpointAdvisory";
 
 // Norm-claims predicates (crates/validate/src/advisory.rs::project_compliance_assessment).
@@ -479,6 +480,91 @@ fn unit_bearing_value_surfaces_measurement_frame_advice_through_the_stage() {
         !for_m2,
         "a value already declaring its logic:referenceFrame must NOT surface measurement-frame \
          advice (honest absence)"
+    );
+}
+
+// ── Case 1c: the shipped-bundle WEMI-chain DEMONSTRATOR fixture ──────────────────────
+
+/// The on-bundle abductive DEMONSTRATOR fires through the REAL `ValidateStage`. The
+/// authored fixture `gmeow:fixtureUnlinkedItem` (a deliberately under-specified
+/// `gmeow:Item` with NO `gmeow:exemplifies`, carrying `gmeow:graphBoxRole gmeow:boxABox`
+/// in `slices/core/creative-works/module.ttl`) is the exact A-Box this test rebuilds. It
+/// asserts:
+///   * exactly ONE `advice.abductive.Item.*` advisory finding is emitted for the fixture,
+///     its `gmeow:findingSuggestion` naming both `gmeow:exemplifies` and
+///     `gmeow:Manifestation` (the WEMI-chain missing relatum + its target class); AND
+///   * the run introduces NO hard `gmeow:severityError` finding — the fixture is an
+///     under-specified-but-legal model (`gmeow:exemplifies` carries only an allValuesFrom
+///     restriction, not a min-count requiredness), so the corpus stays SHACL-conforming and
+///     the advice is a never-gating Note.
+///
+/// This proves the demonstrator authored into the base graph genuinely lights the D5
+/// constructive-advice wing on the production surface without degrading conformance.
+#[test]
+fn underspecified_item_fixture_surfaces_wemi_chain_advice_without_a_hard_error() {
+    const FIXTURE: &str = "https://blackcatinformatics.ca/gmeow/fixtureUnlinkedItem";
+    // The QName the advisory suggestion renders the fixture subject as (abductive.rs::qname
+    // maps the gmeow: namespace to the `gmeow:` prefix).
+    const FIXTURE_Q: &str = "gmeow:fixtureUnlinkedItem";
+    // The EXACT authored fixture triples (creative-works/module.ttl): a bare gmeow:Item
+    // A-Box individual with no gmeow:exemplifies link.
+    let abox = format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         <{FIXTURE}> a gmeow:Item ; gmeow:graphBoxRole gmeow:boxABox ; \
+             rdfs:label \"unlinked copy fixture\"@x-gmeow-english ; \
+             skos:definition \"A deliberately-minimal, under-specified worked fixture.\"@x-gmeow-english .\n"
+    );
+    let empty_reason =
+        gmeow_pipeline::stages::reason::reason_product(b"").expect("empty stage-reason product");
+    let diagnostics = run_with_reason(&abox, empty_reason);
+
+    // Exactly one advice.abductive.Item.* advisory finding for the fixture, whose suggestion
+    // names both gmeow:exemplifies and gmeow:Manifestation.
+    let want = format!("{ADVICE_ABDUCTIVE_PREFIX}Item.");
+    let item_findings: Vec<(&str, &str)> =
+        subjects_by_literal(&diagnostics, FINDING_CODE, |code| {
+            code.starts_with(&want) && !code.starts_with(ADVICE_WARRANT_PREFIX)
+        })
+        .into_iter()
+        .filter(|(finding_iri, _)| {
+            objects(&diagnostics, finding_iri, FINDING_SUGGESTION)
+                .iter()
+                .any(|o| as_literal(o).is_some_and(|s| s.contains(FIXTURE_Q)))
+        })
+        .collect();
+    assert_eq!(
+        item_findings.len(),
+        1,
+        "the under-specified gmeow:Item fixture must emit exactly one advice.abductive.Item.* \
+         advisory through the shipped ValidateStage: {item_findings:?}"
+    );
+    let (finding_iri, _) = item_findings[0];
+    let suggestion_hits: Vec<&str> = objects(&diagnostics, finding_iri, FINDING_SUGGESTION)
+        .into_iter()
+        .filter_map(|o| as_literal(o))
+        .filter(|s| s.contains("gmeow:exemplifies") && s.contains("gmeow:Manifestation"))
+        .collect();
+    assert!(
+        !suggestion_hits.is_empty(),
+        "the fixture's abductive advisory must suggest adding a gmeow:exemplifies link to a \
+         gmeow:Manifestation; suggestions = {:?}",
+        objects(&diagnostics, finding_iri, FINDING_SUGGESTION)
+    );
+
+    // The demonstrator introduces NO hard Error finding — the corpus stays SHACL-conforming.
+    let errors: Vec<&str> = diagnostics
+        .iter()
+        .filter(|q| {
+            q.predicate.as_str() == FINDING_SEVERITY && as_iri(&q.object) == Some(SEVERITY_ERROR)
+        })
+        .filter_map(|q| as_iri(&q.subject))
+        .collect();
+    assert!(
+        errors.is_empty(),
+        "the under-specified Item fixture must NOT introduce any gmeow:severityError finding \
+         (advisory, not a hard cardinality violation); error findings = {errors:?}"
     );
 }
 
