@@ -115,7 +115,7 @@ jobs:
       # Update mode runs the superset, declared-inventory completeness, fanout-
       # bijection, drift, orphan, and internal-tag-leak gates while materializing.
       - name: Cold-materialize the generated product
-        run: make sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
+        run: make regen GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
         run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev CHECK_SYNC_MODE=check

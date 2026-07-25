@@ -71,7 +71,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
-	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
+	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
@@ -96,7 +96,7 @@ help: ## Show the task plan.
 
 install: ## Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
 	$(MAKE) producer-build
-	$(MAKE) sync
+	$(MAKE) regen
 	$(MAKE) cli-build
 	$(MAKE) lsp-release
 
@@ -155,7 +155,7 @@ producer-build: ## Build ONLY the gmeow-dev producer release binary and stage it
 	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
 	@echo "gmeow-dev producer release binary staged at dist/bin/gmeow-dev"
 
-cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make sync' first on a clean clone).
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make regen' first on a clean clone).
 	cargo build -p gmeow-cli -p gmeow-dev-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
@@ -194,7 +194,7 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 
 ##@ Generated Artifacts And Outputs
 
-sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+regen: ## Materialize generated outputs from sources (NOT a gate — `make check` runs its own sync pass, so do not run this before/after `make check`). Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. This is the standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -203,7 +203,7 @@ sync: ## Run one cached update/check pipeline and make all outputs (CI defaults 
 	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
 	@# it alone needs an explicit materialize-then-build prerequisite here.
 	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
-		$(MAKE) sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) regen SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
 		$(MAKE) build; \
 	fi
 	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
@@ -211,7 +211,7 @@ sync: ## Run one cached update/check pipeline and make all outputs (CI defaults 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
-commit: sync ## Synchronize artifacts, stage generator-owned outputs, and commit.
+commit: regen ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
 	for p in $${REGENERATED_PATHS}; do \
 	  if [ -e "$$p" ]; then git add "$$p"; fi; \
@@ -238,7 +238,7 @@ release: ## Materialize from source (update mode), native-reason, build, report,
 	# checkout has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check`
 	# forces CHECK_SYNC_MODE=update) instead of inheriting gmeow-dev's CI default of Check,
 	# which would hard-fail the superset gate ("no carrier representative") on the absent tree.
-	$(MAKE) sync SYNC_MODE=update
+	$(MAKE) regen SYNC_MODE=update
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
 	$(MAKE) lsp-release
@@ -288,7 +288,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
-	$(MAKE) sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(MAKE) regen SYNC_MODE=update SYNC_OUTPUTS=docs
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
