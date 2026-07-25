@@ -702,6 +702,18 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 x: rename_term(x, suffix),
                 y: rename_term(y, suffix),
             },
+            // LOWERING-ONLY (`crate::relational_core::lower_constraint_violation_rules`),
+            // never authored on the `.logic` query surface this SLD reference oracle
+            // reads — carried for exhaustiveness with the same renaming treatment.
+            QBuiltin::DimEqual { d1, d2 } => QBuiltin::DimEqual {
+                d1: rename_term(d1, suffix),
+                d2: rename_term(d2, suffix),
+            },
+            QBuiltin::DimProduct { d_f, d_m, d_r } => QBuiltin::DimProduct {
+                d_f: rename_term(d_f, suffix),
+                d_m: rename_term(d_m, suffix),
+                d_r: rename_term(d_r, suffix),
+            },
         }
     }
 

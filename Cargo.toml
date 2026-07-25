@@ -31,6 +31,12 @@ members = [
     # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
     # budget report + six lossy projections; the consumer child of EPICs #358/#364.
     "crates/foundation-corpus",
+    # Off-gate GMN token-cost matrix: runs the five mandated tokenizer families
+    # (o200k/cl100k embedded, Qwen vendored, Llama/Gemma fetched-at-maint-time) over the
+    # emitted GMN/Turtle/JSON-LD serializations of the grounding corpus and flags
+    # byte-fragmenting glyphs per vocab. A LEAF crate — nothing depends on it, so the heavy
+    # `tokenizers` dependency never reaches gmeow-cli. Driven by `make maint-gmn-cost-matrix`.
+    "crates/gmn-cost-matrix",
     # The consumer/wheel-only `gmeow` command surface (runs without the repo).
     "crates/gmeow-cli",
     # The repo-maintenance `gmeow-dev` command surface (needs the working tree).

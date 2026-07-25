@@ -38,6 +38,10 @@ htmlcov/
 # Toolchain temp directories (hard-kill leftovers)
 .gmeow-tmp-*/
 
+# Maint-lane scratch: fetched-at-maint-time external assets (e.g. the restricted-license
+# Llama/Gemma tokenizer.json the token-cost-matrix lane curls in) — never committed.
+/.tmp/
+
 # Rust build artifacts
 /target/
 

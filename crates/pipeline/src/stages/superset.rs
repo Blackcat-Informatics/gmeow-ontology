@@ -1574,7 +1574,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            393,
+            398,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1762,7 +1762,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             13,
             "research-objects family membership drifted"
         );
-        assert_eq!(lang.len(), 30, "lang-projections family membership drifted");
+        assert_eq!(lang.len(), 35, "lang-projections family membership drifted");
         // These families are genuinely mixed (not all RDF), the reason they are authored-only.
         assert!(
             research.iter().any(|p| p.ends_with(".json"))

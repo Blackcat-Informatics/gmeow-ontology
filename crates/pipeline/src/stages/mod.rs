@@ -59,6 +59,10 @@ pub mod projection_ceilings;
 // `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
 // `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
 pub mod gmn1_gate;
+// The rejection-sampled, proof-carrying GMN training-corpus emitter: a productive functor
+// over the glyph signature that enumerates well-typed GMN terms, filters each through five
+// verifiers, and folds the certified corpus (+ typed rejections) as graph/gmn-training-corpus.
+pub mod gmn_training_corpus;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;
@@ -138,6 +142,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register(
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),
+    );
+    registry.register(
+        "gmn-training-corpus",
+        Arc::new(gmn_training_corpus::GmnTrainingCorpusStage::new()),
     );
     registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));

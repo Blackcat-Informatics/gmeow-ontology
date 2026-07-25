@@ -20,8 +20,8 @@ use std::sync::Arc;
 use gmeow_errors::{Finding, Location, Report, Severity};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
-    TermValue,
+    DatasetMut, MutableDataset, QuadValues, RdfDataset, RdfQuad, RdfTerm, SparqlEngine,
+    SparqlRequest, SparqlResult, TermValue,
 };
 
 use crate::reason::dl::gaps_from_unsupported;
@@ -171,6 +171,14 @@ pub fn verify_with_reasoning_result(
     // *derived* (not merely asserted) is a violation.
     let mut derived_predicates: std::collections::BTreeSet<String> =
         std::collections::BTreeSet::new();
+    // The DL-derived (non-EDB) edges, retained as quads so the reasoner-derived math
+    // dimension gate below chases the SAME reasoned closure the verify queries do — not
+    // merely the raw asserted EDB. A dimension-relevant triple (`math:hasDimension`,
+    // `math:homogeneousOperand`, `math:integrand`, `math:withRespectTo`, or an `rdf:type`
+    // classifying a dimension node) that is *derived* rather than asserted must still
+    // reach the hard-fail gate; the native closure only materializes all-IRI edges, so
+    // these carry no literal terms.
+    let mut derived_edges: Vec<RdfQuad> = Vec::new();
     for ax in result.inferred() {
         if ax.is_edb {
             continue;
@@ -183,6 +191,36 @@ pub fn verify_with_reasoning_result(
             s: TermValue::iri(subject),
             p: TermValue::iri(predicate),
             o: TermValue::iri(object),
+            g: None,
+        });
+        derived_edges.push(RdfQuad::new(
+            RdfTerm::iri(subject),
+            predicate,
+            RdfTerm::iri(object),
+        ));
+    }
+
+    // The reasoner-derived `math:` dimensional-homogeneity gate: compiles the two
+    // builtin-bound-consequent `logic:Constraint`s authored in `slices/grounding/math/
+    // module.ttl` into VIOLATION-EMITTING forward rules and materializes
+    // `math:DimensionalInhomogeneity` markers from the authored laws over the SAME
+    // reasoned closure the verify queries below evaluate — the asserted EDB UNIONED with
+    // the DL-derived edges layered into `store` just above (`derived_edges`), never the
+    // raw pre-inference graph — so a dimension edge that is *derived* rather than
+    // asserted is gated too. The gate runs its own literal-preserving forward chase (the
+    // typed EDB fact stream drops the default-graph literal exponent cells the ℚ⁷
+    // dimension builtins read on demand), but over this reasoned input. Always-on (no
+    // flag); the marker is an ordinary `rdf:type` triple spliced into `store` before the
+    // freeze below, so the `dimensional-inhomogeneity.rq` verify query (and every
+    // obligation check below) renders it like any other row — never a Rust side-channel
+    // finding.
+    for (subject, failure_class) in
+        crate::reason::math_gate::dimension_gate_markers(edb, &derived_edges)?
+    {
+        store.insert(QuadValues {
+            s: TermValue::iri(subject),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(failure_class),
             g: None,
         });
     }

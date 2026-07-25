@@ -578,6 +578,7 @@ fn ground_rule(source: &EvalRule, solution: &Solution) -> gmeow_errors::Result<E
         rule_iri: source.rule_iri.clone(),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        constraint_tag: None,
     })
 }
 

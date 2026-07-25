@@ -25,6 +25,7 @@ pub mod error;
 pub mod exec;
 pub mod fixture;
 pub mod formats;
+pub mod gmn1_primer;
 pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;

@@ -875,6 +875,7 @@ fn oracle_eval_rule(idx: usize, clause: &Formula) -> gmeow_errors::Result<EvalRu
         rule_iri: format!("{GMEOW}goal-directed/oracle-rule/{idx}"),
         distinct_pairs: Vec::new(),
         builtins: Vec::new(),
+        constraint_tag: None,
     })
 }
 

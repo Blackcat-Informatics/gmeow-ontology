@@ -105,13 +105,35 @@ use session_common::*;
 /// arm — all folded via `include_str!` into `backward_source_hash()`, so the raw
 /// source-content digest moves. The fixed edge-only input carries no triple term, so the new
 /// arm never fires and no reasoning verdict changes.
-// Re-blessed for this branch's ADDITIVE engine-source changes: the W4b browser-reasoner work added
-// `reason::reason_closure_dataset` (the browser reasoner's entry, wrapping the unchanged
-// native chase) and the W4 conjecture playground added `conjecture_eval` (conjecture-evaluation orchestration). The
-// descriptor is a source-fingerprint over the engine's backward + forward contract, so an
-// additive entry point moves it even with no change to the reasoning rules.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate:
+/// `EvalRule` gains `constraint_tag` (`rule_ir.rs`), `QBuiltin` gains `DimEqual`/
+/// `DimProduct` (`query_ir.rs`), `physical/plan.rs`'s `hash_builtin`/`canonical_rule_hash`
+/// gain the new discriminators, `physical/seminaive.rs`'s `apply_builtins` gains the
+/// constraint-tagged violation-emitting Filter inversion, `physical/builtin_eval.rs` gains
+/// the dimension-resolving `CellResolver::dimension` probe, and `relational_core.rs` gains
+/// the `logic:Constraint` → violation-`EvalRule` lowering — all folded via `include_str!`
+/// into BOTH `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`
+/// (`rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/`physical/seminaive.rs`/
+/// `physical/builtin_eval.rs` are members of both source lists), so the raw source-content
+/// digest moves on both axes. The fixed edge-only input authors no `logic:Constraint`, so
+/// no new rule ever fires and no reasoning verdict on this fixed input changes.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require EXACTLY one target for each functional dimension/Gram/vector cell property
+/// (the new `exactly_one_iri_object`) rather than silently taking the first of a
+/// multi-valued cell: `builtin_eval.rs` is folded via `include_str!` into both
+/// `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`, so the
+/// raw source-content digest moves on both axes. The change only makes an already-malformed
+/// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
+/// well-formed input — including this fixed edge-only input, which authors no dimension
+/// cell — changes.
+/// Re-blessed for the origin/main merge into this branch: this branch's ADDITIVE engine
+/// sources — the W4b browser reasoner `reason::reason_closure_dataset` (wrapping the
+/// unchanged native chase) and the W4 `conjecture_eval` orchestration module — combine with
+/// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
+/// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
+/// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "76a6fe1c2099716376c9359c0fe3f87caf496d7770b8875452f771fb7a1aebda";
+    "cbfd938bdd5c449089cbaf373e86e18cd44c748cc65b6b88235a883192d77169";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -150,8 +172,18 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the backward-source digest is one of the seven folded
 /// axes and moves with the changed `query_ir`/`physical` source, while the fixed edge-only
 /// input's reasoning verdict is unchanged.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate (see
+/// the engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/
+/// `physical/seminaive.rs`/`relational_core.rs` engine source, while the fixed edge-only
+/// input (authoring no `logic:Constraint`) has an unchanged reasoning verdict.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require exactly one target per functional cell property (see the engine-descriptor
+/// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
+/// session identity moves with it, while the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "61983f8e6058631d3495cba299f7b31d45feabac8da2fccc88ef0a36ed432c14";
+    "2cf35a8bfa43ca5d2a2b6830e464bd2252c9715c9099b2cdb95f5e2fe93a4e1a";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

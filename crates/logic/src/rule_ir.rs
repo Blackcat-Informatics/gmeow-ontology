@@ -163,9 +163,20 @@ pub(crate) struct EvalRule {
     /// keys).  Evaluated as a post-join constraint stage: a generator (`is` with a
     /// free target) binds its target before the head is grounded, a filter prunes
     /// the solution. Empty for ordinary forward rules — populated solely by the
-    /// backward magic transform ([`crate::physical::magic`]), the only path that
-    /// carries arithmetic.
+    /// backward magic transform ([`crate::physical::magic`]) and a constraint
+    /// violation-rule lowering (see [`Self::constraint_tag`]).
     pub(crate) builtins: Vec<QBuiltin>,
+    /// `Some(constraint_iri)` when this rule was lowered from a `logic:Constraint`'s
+    /// `logic:integrity` formula whose consequent names a BUILTIN-BOUND reflection
+    /// relation ([`crate::relational_core::lower_constraint_violation_rules`]) —
+    /// `None` for every ordinary DL/Horn/formula-derived forward rule.
+    ///
+    /// The ONLY provenance tag that licenses a builtin inside the forward semi-naive
+    /// chase (`physical::seminaive`'s `builtin_gap` invariant is keyed on it, never on
+    /// "is this a Dim builtin") and that inverts a builtin's `Filter` outcome to
+    /// VIOLATION-EMITTING semantics: the head marker materializes when the law's
+    /// consequent builtin does NOT hold, and is suppressed when it does.
+    pub(crate) constraint_tag: Option<String>,
 }
 
 impl EvalRule {
@@ -176,6 +187,7 @@ impl EvalRule {
             rule_iri: rule_iri.to_owned(),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         }
     }
 }

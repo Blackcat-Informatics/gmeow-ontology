@@ -43,7 +43,7 @@
 //! ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
-use gmeow_math::dimension::{BASE_DIMENSION_COUNT, DimVector};
+use gmeow_math::dimension::{BASE_DIMENSION_COUNT, DimVector, base_dimension_index};
 use gmeow_math::{InnerProductSpace, Rational, bounded_index};
 use std::borrow::Cow;
 
@@ -82,6 +82,32 @@ pub(crate) const MATH_CELL_PREDICATES: &[&str] = &[
     MATH_COMPONENT_VALUE,
     MATH_NUMERATOR,
     MATH_DENOMINATOR,
+];
+
+/// The `rdf:type` predicate — read generically through [`MathTriples::math_iri_objects`]
+/// to decide a dimension node's class membership (no dedicated type-probe method is
+/// needed on the trait).
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The `math:` cell predicates [`load_dimension_cells`] walks to derive a dimension
+/// IRI's exact ℚ⁷ exponent vector: `math:baseDimensionExponent` → (`exponentOfDimension`,
+/// `exponentNumerator`, `exponentDenominator`), plus the `math:Dimensionless` /
+/// `math:DerivedDimension` class markers the algorithm branches on.
+const MATH_DIMENSIONLESS_INDIVIDUAL: &str = "https://blackcatinformatics.ca/math/dimensionless";
+const MATH_DIMENSIONLESS_CLASS: &str = "https://blackcatinformatics.ca/math/Dimensionless";
+const MATH_DERIVED_DIMENSION_CLASS: &str = "https://blackcatinformatics.ca/math/DerivedDimension";
+const MATH_BASE_DIMENSION_EXPONENT: &str =
+    "https://blackcatinformatics.ca/math/baseDimensionExponent";
+const MATH_EXPONENT_OF_DIMENSION: &str = "https://blackcatinformatics.ca/math/exponentOfDimension";
+const MATH_EXPONENT_NUMERATOR: &str = "https://blackcatinformatics.ca/math/exponentNumerator";
+const MATH_EXPONENT_DENOMINATOR: &str = "https://blackcatinformatics.ca/math/exponentDenominator";
+
+/// Every `math:` predicate [`load_dimension_cells`] reads, beyond `rdf:type` — the
+/// dimension-gate twin of [`MATH_CELL_PREDICATES`] for the magic/demand source plan.
+pub(crate) const MATH_DIMENSION_PREDICATES: &[&str] = &[
+    MATH_BASE_DIMENSION_EXPONENT,
+    MATH_EXPONENT_OF_DIMENSION,
+    MATH_EXPONENT_NUMERATOR,
+    MATH_EXPONENT_DENOMINATOR,
 ];
 
 /// Re-badge a `gmeow_math` overflow / domain [`gmeow_errors::Diag`] as the tower's
@@ -364,6 +390,15 @@ pub(crate) fn render_builtin_op(builtin: &QBuiltin) -> String {
             render_term(gram),
             render_term(x),
             render_term(y)
+        ),
+        QBuiltin::DimEqual { d1, d2 } => {
+            format!("dimEqual({}, {})", render_term(d1), render_term(d2))
+        }
+        QBuiltin::DimProduct { d_f, d_m, d_r } => format!(
+            "dimProduct({}, {}, {})",
+            render_term(d_f),
+            render_term(d_m),
+            render_term(d_r)
         ),
     }
 }
@@ -950,6 +985,20 @@ pub(crate) trait CellResolver {
     /// The dense, zero-completed exact-rational coordinate vector of the `math:`
     /// vector named `iri` (bare IRI), or `None` when it names no well-formed vector.
     fn vector(&self, iri: &str) -> Option<Vec<Rational>>;
+    /// The exact ℚ⁷ SI dimension exponent vector of the dimension named `iri` (bare
+    /// IRI), or `None` when it names no resolvable dimension (undimensioned,
+    /// malformed, or not a dimension node at all) — the substrate the `math:`
+    /// dimension-gate builtins ([`QBuiltin::DimEqual`](crate::query_ir::QBuiltin::DimEqual) /
+    /// [`QBuiltin::DimProduct`](crate::query_ir::QBuiltin::DimProduct)) probe.
+    ///
+    /// Defaults to `None`: these builtins are LOWERING-ONLY, emitted solely by the
+    /// `logic:Constraint` violation-rule lowering that runs through the forward
+    /// semi-naive engine's own [`crate::physical::seminaive`] resolver — every other
+    /// substrate (the declarative reference oracle, the in-memory bilinear-distance
+    /// test doubles) never evaluates them, so it never needs to override this.
+    fn dimension(&self, _iri: &str) -> Option<DimVector> {
+        None
+    }
 }
 
 /// The zero-capability resolver: names no cells. Scalar-only (`Is`/`Compare`) callers
@@ -975,6 +1024,23 @@ pub(crate) trait MathTriples {
     fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String>;
     /// The first literal object of `(subject, predicate)` parsed as an `i128`, if any.
     fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128>;
+}
+
+/// Read the single IRI object of `(subject, predicate)`, requiring EXACTLY one.
+///
+/// A well-formed cell names one target for each of its functional object properties
+/// (a dimension exponent's `math:exponentOfDimension` base, a Gram entry's
+/// `math:entryValue`, a vector component's `math:componentValue`). Zero or MULTIPLE
+/// targets is malformed, so this declines to `None` rather than silently taking the
+/// first — which would decode a multi-valued cell to a possibly-wrong value and mask the
+/// malformed-data signal the dimension gate exists to catch.
+fn exactly_one_iri_object(src: &dyn MathTriples, subject: &str, predicate: &str) -> Option<String> {
+    let mut targets = src.math_iri_objects(subject, predicate).into_iter();
+    let only = targets.next()?;
+    if targets.next().is_some() {
+        return None;
+    }
+    Some(only)
 }
 
 /// Read one `math:RationalValue`'s `numerator`/`denominator` into a [`Rational`].
@@ -1008,10 +1074,7 @@ pub(crate) fn load_gram_cells(
             "matrix column",
         )
         .ok()?;
-        let value_iri = src
-            .math_iri_objects(&entry, MATH_ENTRY_VALUE)
-            .into_iter()
-            .next()?;
+        let value_iri = exactly_one_iri_object(src, &entry, MATH_ENTRY_VALUE)?;
         cells.push((row, col, load_rational_value(src, &value_iri)?));
     }
     Some(cells)
@@ -1033,10 +1096,7 @@ pub(crate) fn load_vector_dense(src: &dyn MathTriples, vector_iri: &str) -> Opti
             "vector index",
         )
         .ok()?;
-        let value_iri = src
-            .math_iri_objects(&component, MATH_COMPONENT_VALUE)
-            .into_iter()
-            .next()?;
+        let value_iri = exactly_one_iri_object(src, &component, MATH_COMPONENT_VALUE)?;
         cells.push((idx, load_rational_value(src, &value_iri)?));
     }
     let dim = cells.iter().map(|(i, _)| *i).max().map(|m| m + 1)?;
@@ -1045,6 +1105,43 @@ pub(crate) fn load_vector_dense(src: &dyn MathTriples, vector_iri: &str) -> Opti
         vector[idx] = value;
     }
     Some(vector)
+}
+
+/// Load the exact ℚ⁷ SI dimension exponent vector of `dim_iri` — the store-native
+/// mirror of [`gmeow_math::dimension::load_dimension_vector`], over the
+/// substrate-neutral [`MathTriples`] (exactly as [`load_gram_cells`] /
+/// [`load_vector_dense`] mirror `gmeow_math::load_gram`/`load_vector`): a base
+/// dimension is a unit basis vector, `math:dimensionless` (or any `math:Dimensionless`
+/// individual) is the zero vector, and a `math:DerivedDimension` sums `power · e_base`
+/// over its `math:baseDimensionExponent` cells. Every structural fault — a node that is
+/// not a recognizable dimension, a cell naming a non-base target, a missing
+/// numerator/denominator, a zero-denominator power, or an exact-rational overflow —
+/// declines to `None` rather than raising: the dimension-gate builtins route an
+/// unresolved dimension to a declared mode gap, never a wrong answer (the malformed
+/// case is separately caught by the retained native `math:MalformedDimension` scan).
+pub(crate) fn load_dimension_cells(src: &dyn MathTriples, dim_iri: &str) -> Option<DimVector> {
+    if let Some(v) = DimVector::base_unit(dim_iri) {
+        return Some(v);
+    }
+    let types = src.math_iri_objects(dim_iri, RDF_TYPE);
+    if dim_iri == MATH_DIMENSIONLESS_INDIVIDUAL
+        || types.iter().any(|t| t == MATH_DIMENSIONLESS_CLASS)
+    {
+        return Some(DimVector::zero());
+    }
+    if !types.iter().any(|t| t == MATH_DERIVED_DIMENSION_CLASS) {
+        return None;
+    }
+    let mut v = DimVector::zero();
+    for cell in src.math_iri_objects(dim_iri, MATH_BASE_DIMENSION_EXPONENT) {
+        let base = exactly_one_iri_object(src, &cell, MATH_EXPONENT_OF_DIMENSION)?;
+        let base_index = base_dimension_index(&base)?;
+        let num = src.math_literal_i128(&cell, MATH_EXPONENT_NUMERATOR)?;
+        let den = src.math_literal_i128(&cell, MATH_EXPONENT_DENOMINATOR)?;
+        let power = Rational::new(num, den).ok()?;
+        v.add_exponent(base_index, power).ok()?;
+    }
+    Some(v)
 }
 
 /// Compute the exact bilinear-form squared distance `(x − y)ᵀ G (x − y)` in exact ℚ.
@@ -1234,6 +1331,45 @@ pub(crate) fn eval<'a>(
                     None => BuiltinOutcome::Filter(false),
                 },
                 QTerm::Struct(_) | QTerm::Triple { .. } => BuiltinOutcome::Filter(false),
+            }
+        }
+        QBuiltin::DimEqual { d1, d2 } => {
+            // Both dimension-IRI operands must resolve to a well-formed ℚ⁷ exponent
+            // vector to decide the law; an unresolved (undimensioned/malformed)
+            // operand is undefinedness, not a violation, so it declines to `Unbound`
+            // — the constraint-tagged forward rule then simply does not fire.
+            let (Some(d1_iri), Some(d2_iri)) = (
+                resolve_iri_operand(d1, lookup),
+                resolve_iri_operand(d2, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            match (resolver.dimension(&d1_iri), resolver.dimension(&d2_iri)) {
+                (Some(v1), Some(v2)) => BuiltinOutcome::Filter(v1.commensurable(&v2)),
+                _ => BuiltinOutcome::Unbound,
+            }
+        }
+        QBuiltin::DimProduct { d_f, d_m, d_r } => {
+            let (Some(f_iri), Some(m_iri), Some(r_iri)) = (
+                resolve_iri_operand(d_f, lookup),
+                resolve_iri_operand(d_m, lookup),
+                resolve_iri_operand(d_r, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            let (Some(fv), Some(mv), Some(rv)) = (
+                resolver.dimension(&f_iri),
+                resolver.dimension(&m_iri),
+                resolver.dimension(&r_iri),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            // An exact-rational overflow composing dF ⊕ dM is undefinedness (per the
+            // dimension-gate contract), never a raised domain error — decline to
+            // `Unbound` exactly like an unresolved operand.
+            match fv.add(&mv) {
+                Ok(composed) => BuiltinOutcome::Filter(composed == rv),
+                Err(_) => BuiltinOutcome::Unbound,
             }
         }
     }
@@ -1438,6 +1574,83 @@ mod tests {
 
     fn cmp(lhs: QTerm, op: CmpOp, rhs: QTerm) -> QBuiltin {
         QBuiltin::Compare { lhs, op, rhs }
+    }
+
+    /// A minimal in-memory [`MathTriples`] for the dimension-cell loader tests: flat
+    /// `(subject, predicate, iri-object)` and `(subject, predicate, i128-literal)`
+    /// lists, queried exactly as a store-backed resolver would be.
+    struct FakeTriples {
+        iri: Vec<(String, String, String)>,
+        lit: Vec<(String, String, i128)>,
+    }
+
+    impl FakeTriples {
+        fn new() -> Self {
+            Self {
+                iri: Vec::new(),
+                lit: Vec::new(),
+            }
+        }
+        fn iri(mut self, s: &str, p: &str, o: &str) -> Self {
+            self.iri.push((s.to_owned(), p.to_owned(), o.to_owned()));
+            self
+        }
+        fn lit(mut self, s: &str, p: &str, o: i128) -> Self {
+            self.lit.push((s.to_owned(), p.to_owned(), o));
+            self
+        }
+    }
+
+    impl MathTriples for FakeTriples {
+        fn math_iri_objects(&self, subject: &str, predicate: &str) -> Vec<String> {
+            self.iri
+                .iter()
+                .filter(|(s, p, _)| s == subject && p == predicate)
+                .map(|(_, _, o)| o.clone())
+                .collect()
+        }
+        fn math_literal_i128(&self, subject: &str, predicate: &str) -> Option<i128> {
+            self.lit
+                .iter()
+                .find(|(s, p, _)| s == subject && p == predicate)
+                .map(|(_, _, o)| *o)
+        }
+    }
+
+    #[test]
+    fn dimension_cell_with_duplicate_exponent_of_dimension_declines_not_mis_decodes() {
+        const DIM: &str = "https://blackcatinformatics.ca/math/customDim";
+        const CELL: &str = "https://blackcatinformatics.ca/math/cell1";
+        const LENGTH: &str = "https://blackcatinformatics.ca/math/lengthDimension";
+        const MASS: &str = "https://blackcatinformatics.ca/math/massDimension";
+
+        // Control: a well-formed single-target cell resolves (customDim = L¹).
+        let ok = FakeTriples::new()
+            .iri(DIM, RDF_TYPE, MATH_DERIVED_DIMENSION_CLASS)
+            .iri(DIM, MATH_BASE_DIMENSION_EXPONENT, CELL)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, LENGTH)
+            .lit(CELL, MATH_EXPONENT_NUMERATOR, 1)
+            .lit(CELL, MATH_EXPONENT_DENOMINATOR, 1);
+        assert!(
+            load_dimension_cells(&ok, DIM).is_some(),
+            "a single-target exponent cell must resolve to a dimension vector"
+        );
+
+        // The SAME cell with a SECOND `math:exponentOfDimension` target is malformed:
+        // the loader must DECLINE (None), never silently take the first target and decode
+        // the dimension to a possibly-wrong ℚ⁷ vector — which would mask the
+        // `math:MalformedDimension` signal the dimension gate depends on.
+        let dup = FakeTriples::new()
+            .iri(DIM, RDF_TYPE, MATH_DERIVED_DIMENSION_CLASS)
+            .iri(DIM, MATH_BASE_DIMENSION_EXPONENT, CELL)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, LENGTH)
+            .iri(CELL, MATH_EXPONENT_OF_DIMENSION, MASS)
+            .lit(CELL, MATH_EXPONENT_NUMERATOR, 1)
+            .lit(CELL, MATH_EXPONENT_DENOMINATOR, 1);
+        assert!(
+            load_dimension_cells(&dup, DIM).is_none(),
+            "a cell with two math:exponentOfDimension targets must decline, not mis-decode"
+        );
     }
 
     /// A generator outcome binding `var` to `Value::Int(value)` — the integer

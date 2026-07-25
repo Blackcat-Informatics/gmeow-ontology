@@ -2508,6 +2508,144 @@ math:IntegralDimensionCompositionConstraint
     logic:message "A math:Integral's declared result dimension must equal dim(integrand) ⊕ dim(measure) (exponent-vector addition); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on any undimensioned part or mismatch." ;
     logic:integrity math:integralDimensionCompositionLaw .
 
+# --- Coverage: the operands the homogeneity/composition laws reason over must     --- #
+# --- themselves carry a dimension (closes the gap the math:Quantity-scoped        --- #
+# --- math:hasDimension min-1 restriction alone does not reach)                    --- #
+#
+# math:Quantity ⊑ hasDimension min 1 (above, near math:UndimensionedQuantity) only reaches
+# a node explicitly typed math:Quantity. A math:homogeneousOperand or an integral's
+# math:integrand / math:withRespectTo target need NOT be a math:Quantity (it may be a
+# math:MeasurableFunction or a math:Measure), so that restriction alone does not cover
+# them. Each of these three cardinality obligations closes one such gap. They cannot be
+# authored as a class-level EL restriction on math:DimensionalExpression / math:Integral:
+# both classes are already committed to a DIFFERENT single gmeow:enforcesFailureClass
+# (math:MalformedDimension, math:IncompleteIntegral respectively — the frontend hard-fails
+# a class carrying two distinct failure classes), so each is instead a closed-world
+# logic:Constraint targeting the OPERAND itself (the P(_, this) — ObjectsOf — shape),
+# never a hand-authored SHACL/SPARQL shape.
+
+math:HomogeneousOperandDimensionedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Homogeneous operand carries a dimension"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint requiring every math:homogeneousOperand of any math:DimensionalExpression to itself carry a math:hasDimension — a math:homogeneousOperand target need not be a math:Quantity (it may be a math:MeasurableFunction or another dimensioned expression), so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UndimensionedQuantity ;
+    logic:severity "Violation" ;
+    logic:message "Every math:homogeneousOperand of a math:DimensionalExpression must itself carry a math:hasDimension; an operand with no dimension raises math:UndimensionedQuantity." ;
+    logic:integrity math:homogeneousOperandDimensionedLaw .
+
+math:homogeneousOperandDimensionedLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "a homogeneous operand carries a dimension"@x-gmeow-english ;
+    skos:definition "∀o,E: homogeneousOperand(E,o) → ∃d. hasDimension(o,d) — every homogeneous operand of any dimensional expression itself carries at least one dimension."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "o" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "E" ] ;
+    logic:forall math:homogeneousOperandDimensionedImpl .
+
+math:homogeneousOperandDimensionedImpl a logic:Formula ;
+    logic:antecedent math:homogeneousOperandDimensionedAnte ;
+    logic:consequent math:homogeneousOperandDimensionedCons .
+
+math:homogeneousOperandDimensionedAnte a logic:Formula ; logic:relation math:homogeneousOperand ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "E" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+math:homogeneousOperandDimensionedCons
+    a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:homogeneousOperandDimensionedExists .
+
+math:homogeneousOperandDimensionedExists a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+math:IntegrandDimensionedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional integral's integrand carries a dimension"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint requiring the math:integrand of a DIMENSIONAL math:Integral — one that declares a result math:hasDimension, and is therefore subject to the dimensional-composition law dim(result) = dim(integrand) ⊕ dim(measure) — to itself carry a math:hasDimension. An integrand is a math:MeasurableFunction, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A purely framed math:Integral that declares no result dimension carries no dimensional obligation, so its integrand need not be dimensioned. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UndimensionedQuantity ;
+    logic:severity "Violation" ;
+    logic:message "The math:integrand of a math:Integral that declares a result math:hasDimension must itself carry a math:hasDimension; a dimensional integral with an undimensioned integrand raises math:UndimensionedQuantity." ;
+    logic:integrity math:integrandDimensionedLaw .
+
+math:integrandDimensionedLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "a dimensional integral's integrand carries a dimension"@x-gmeow-english ;
+    skos:definition "∀f,I,dR: integrand(I,f) ∧ hasDimension(I,dR) → ∃d. hasDimension(f,d) — the integrand of any integral that declares a result dimension itself carries at least one dimension. A framed integral with no declared result dimension is unconstrained."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "dR" ] ;
+    logic:forall math:integrandDimensionedImpl .
+
+math:integrandDimensionedImpl a logic:Formula ;
+    logic:antecedent math:integrandDimensionedAnte ;
+    logic:consequent math:integrandDimensionedCons .
+
+math:integrandDimensionedAnte a logic:Formula ;
+    logic:and math:integrandDimensionedA1 , math:integrandDimensionedA2 .
+
+math:integrandDimensionedA1 a logic:Formula ; logic:relation math:integrand ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+
+math:integrandDimensionedA2 a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+
+math:integrandDimensionedCons
+    a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:integrandDimensionedExists .
+
+math:integrandDimensionedExists a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+math:WithRespectToDimensionedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Dimensional integral's measure carries a dimension"@x-gmeow-english ;
+    skos:definition "The closed-world integrity constraint requiring the math:withRespectTo measure of a DIMENSIONAL math:Integral — one that declares a result math:hasDimension, and is therefore subject to the dimensional-composition law dim(result) = dim(integrand) ⊕ dim(measure) — to itself carry a math:hasDimension. A measure is a math:Measure, never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction alone does not reach it. A purely framed math:Integral that declares no result dimension carries no dimensional obligation, so its measure need not be dimensioned. A violation raises math:UndimensionedQuantity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UndimensionedQuantity ;
+    logic:severity "Violation" ;
+    logic:message "The math:withRespectTo measure of a math:Integral that declares a result math:hasDimension must itself carry a math:hasDimension; a dimensional integral with an undimensioned measure raises math:UndimensionedQuantity." ;
+    logic:integrity math:withRespectToDimensionedLaw .
+
+math:withRespectToDimensionedLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "a dimensional integral's measure carries a dimension"@x-gmeow-english ;
+    skos:definition "∀mu,I,dR: withRespectTo(I,mu) ∧ hasDimension(I,dR) → ∃d. hasDimension(mu,d) — the measure of any integral that declares a result dimension itself carries at least one dimension. A framed integral with no declared result dimension is unconstrained."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "mu" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "dR" ] ;
+    logic:forall math:withRespectToDimensionedImpl .
+
+math:withRespectToDimensionedImpl a logic:Formula ;
+    logic:antecedent math:withRespectToDimensionedAnte ;
+    logic:consequent math:withRespectToDimensionedCons .
+
+math:withRespectToDimensionedAnte a logic:Formula ;
+    logic:and math:withRespectToDimensionedA1 , math:withRespectToDimensionedA2 .
+
+math:withRespectToDimensionedA1 a logic:Formula ; logic:relation math:withRespectTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "mu" ] .
+
+math:withRespectToDimensionedA2 a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "I" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
+
+math:withRespectToDimensionedCons
+    a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:withRespectToDimensionedExists .
+
+math:withRespectToDimensionedExists a logic:Formula ; logic:relation math:hasDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mu" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
 # =========================================================================== #
 # Mathematical-core expression AST (EXPRESSIONS charter)
 #

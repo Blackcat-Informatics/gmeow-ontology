@@ -30,9 +30,12 @@ use std::sync::Arc;
 
 use gmeow_cli_core::Reporter;
 use gmeow_lang_bridge::{
-    CurrentCodebook, Gmn0Model, Gmn1Document, GmnDictionary, codebook_digest, content_digest,
-    gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf, idempotence_check,
-    pack_root_from_grammar_leaf, per_claim_round_trip_check, resolve_current_codebook,
+    CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, GmnMigration,
+    RingLattice, codebook_digest, consume_project, content_digest, derive_target_inventory,
+    extract_operators, gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf,
+    header_schema_major, idempotence_check, pack_root_from_grammar_leaf,
+    per_claim_round_trip_check, reemit_migrated_document, resolve_current_codebook,
+    source_operator_table,
 };
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -52,6 +55,17 @@ const GMN_CODEBOOK_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnCodeb
 const GMN_GRAMMAR: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammar";
 const GMN_GRAMMAR_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammarDigest";
 const ENFORCES_FAILURE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+// The four ecosystem-view Merkle-leaf `<subject, predicate>` pairs the pack pins into the bundle,
+// so `gmn verify` recomputes the whole-ecosystem pack root from the bundle alone (Task 15).
+const GMN_GBNF: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnf";
+const GMN_GBNF_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnfDigest";
+const GMN_LARK: &str = "https://blackcatinformatics.ca/gmeow/gmnLark";
+const GMN_LARK_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnLarkDigest";
+const GMN_TOKEN_METRICS: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsCurrent";
+const GMN_TOKEN_METRICS_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnTokenMetricsDigest";
+const GMN_VERBALIZATIONS: &str = "https://blackcatinformatics.ca/gmeow/gmnVerbalizationsCurrent";
+const GMN_VERBALIZATIONS_DIGEST: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnVerbalizationsDigest";
 
 /// The `gmn digest` output serialization.
 #[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
@@ -308,6 +322,106 @@ pub fn decode(
     }
 }
 
+// ── gmn project ──────────────────────────────────────────────────────────────────
+
+/// The `gmeow:` namespace base — a bare `--ring` token is resolved under it.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// Resolve a `--ring` argument to a full ring IRI: a `http(s)://…` value is used verbatim,
+/// otherwise the token is treated as a `gmeow:` local name (e.g. `gmnRingCore`).
+fn resolve_ring_arg(ring: &str) -> String {
+    if ring.starts_with("http://") || ring.starts_with("https://") {
+        ring.to_owned()
+    } else {
+        format!("{GMEOW_NS}{ring}")
+    }
+}
+
+/// `gmeow gmn project --ring <ring> [--budget N] <input.ttl>` — the consume-path
+/// security-ring filter on the shipped surface: canonicalize → SECURITY-RING FILTER → GMN-1 →
+/// token-budget fit. The ring-tagged input dataset (each content subject carrying a
+/// `gmeow:gmnSecurityRing`) is filtered to exactly the content ADMISSIBLE into `<ring>` under
+/// the DERIVED `gmeow:gmnRingWithin` product-order (computed checkout-free from the bundle's
+/// authored ring coordinates), projected to GMN-1 on stdout, and fitted to `--budget` tokens
+/// with the elided remainder DISCLOSED on stderr — never a silent truncation.
+///
+/// HARD-FAILS (non-zero) on a leakage violation (`lang:GmnRingLeak`): unclassified content, an
+/// admitted claim referencing out-of-ring content, or entangled shared structure — the
+/// serializer refuses to emit a projection that would leak the boundary. An unresolvable target
+/// ring hard-fails `lang:GmnRingLatticeMalformed`.
+pub fn project(
+    reporter: &dyn Reporter,
+    input: &Path,
+    ring: &str,
+    budget: Option<u64>,
+    lang_module: Option<&Path>,
+) -> i32 {
+    let (_codebook, dict) = match load_codebook_and_dict(reporter, lang_module) {
+        Ok(pair) => pair,
+        Err(code) => return code,
+    };
+    // The ring lattice coordinates are resolved from the SAME source as the codebook/dictionary:
+    // the embedded bundle by default, or the `--lang-module` override.
+    let lattice_ds = match lang_module {
+        Some(path) => match file_dataset(reporter, path) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+        None => match bundle_dataset(reporter) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+    };
+    let lattice = RingLattice::from_dataset(&lattice_ds);
+    let target = resolve_ring_arg(ring);
+    if !lattice.contains(&target) {
+        return fail(
+            reporter,
+            "gmeow-cli.gmn.project.unknown-ring",
+            format!(
+                "target ring <{target}> is not a resolvable gmeow:GmnSecurityRing in the lattice \
+                 (the shipped rings are gmeow:gmnRingCore / gmnRingTrusted / gmnRingRestricted / \
+                 gmnRingNato); pass a full IRI or a gmeow: local name via --ring"
+            ),
+        );
+    }
+
+    let model = match model_from_ttl(reporter, input) {
+        Ok(m) => m,
+        Err(code) => return code,
+    };
+
+    match consume_project(&model, &lattice, &target, budget, &dict) {
+        Ok(projection) => {
+            // stdout carries ONLY the ring-filtered, budget-fit GMN-1 payload (pipeable to
+            // `gmn decode`); the admission summary and any elision disclosure go to stderr.
+            print!("{}", projection.text);
+            eprintln!(
+                "gmn project: target <{}> admitted {}/{} claims, excluded {}, emitted {} \
+                 ({} tokens)",
+                projection.target,
+                projection.admitted_claims,
+                projection.input_claims,
+                projection.excluded_claims,
+                projection.emitted_claims,
+                projection.tokens,
+            );
+            if let Some(disclosure) = &projection.disclosure {
+                eprintln!("gmn project: {disclosure}");
+            }
+            0
+        }
+        Err(e) => fail(
+            reporter,
+            "gmeow-cli.gmn.project.leak",
+            format!(
+                "cannot project {} into ring <{target}>: {e}",
+                input.display()
+            ),
+        ),
+    }
+}
+
 // ── gmn verify ─────────────────────────────────────────────────────────────────
 
 /// `gmeow gmn verify` — the conformance driver an external GMN-1 implementation runs against the
@@ -315,9 +429,10 @@ pub fn decode(
 /// reproduces the frozen `.gmn` byte-for-byte and that the reconstructed document reads back
 /// canonically equal AND passes the per-claim inversion + idempotence witnesses; for every
 /// CODEC-tier negative, that the recorded `lang:` failure class is raised; and that the recomputed
-/// codebook digest + `pack_root` (from the embedded bundle's codebook, dictionary, and grammar
-/// leaf) equal what the corpus manifest and the shipped bundle declare. Any failure prints a
-/// diagnostic and EXITS NON-ZERO.
+/// codebook digest + whole-ecosystem `pack_root` (from the embedded bundle's codebook, dictionary,
+/// grammar leaf, AND the four pinned ecosystem-view leaves — gbnf / lark / token-metrics /
+/// verbalizations) equal what the corpus manifest and the shipped bundle declare — so a perturbation
+/// of ANY ecosystem surface reds verify. Any failure prints a diagnostic and EXITS NON-ZERO.
 ///
 /// The codebook / dictionary / grammar leaf / pack root come from the EMBEDDED bundle (checkout-free),
 /// overridable by `--lang-module` / `--grammar` / `--pack`. The corpus is a test artifact (never in
@@ -523,7 +638,43 @@ pub fn verify(
         )),
         Err(code) => return code,
     }
-    let recomputed_root = pack_root_from_grammar_leaf(&recomputed_digest, &dict, &grammar_leaf_hex);
+    // The four ecosystem-view Merkle leaves come from the bundle's pinned digests (gbnf / lark /
+    // token-metrics / verbalizations), exactly as the grammar leaf does — so the recomputed pack
+    // root certifies the WHOLE GMN ecosystem from the bundle alone. A missing pinned leaf is a
+    // CONFORMANCE failure (accumulated, non-zero exit — never a silent pass), and a perturbed leaf
+    // makes the recomputed root disagree with the pinned root, so verify reds (Task 15).
+    let ecosystem = EcosystemLeaves {
+        gbnf: match bundle_view_leaf(reporter, &bundle, GMN_GBNF, GMN_GBNF_DIGEST, &mut failures) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        lark: match bundle_view_leaf(reporter, &bundle, GMN_LARK, GMN_LARK_DIGEST, &mut failures) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        token_metrics: match bundle_view_leaf(
+            reporter,
+            &bundle,
+            GMN_TOKEN_METRICS,
+            GMN_TOKEN_METRICS_DIGEST,
+            &mut failures,
+        ) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+        verbalizations: match bundle_view_leaf(
+            reporter,
+            &bundle,
+            GMN_VERBALIZATIONS,
+            GMN_VERBALIZATIONS_DIGEST,
+            &mut failures,
+        ) {
+            Ok(leaf) => leaf,
+            Err(code) => return code,
+        },
+    };
+    let recomputed_root =
+        pack_root_from_grammar_leaf(&recomputed_digest, &dict, &grammar_leaf_hex, &ecosystem);
     let declared_root = match pack {
         Some(path) => pinned_literal(reporter, path, GMN_PACK_ROOT),
         None => pinned_literal_of(reporter, &bundle, GMN_PACK_CURRENT, GMN_PACK_ROOT).map(Some),
@@ -563,6 +714,170 @@ pub fn verify(
             format!("gmn conformance FAILED with {} failure(s)", failures.len()),
         )
     }
+}
+
+// ── gmn migrate ────────────────────────────────────────────────────────────────
+
+/// `gmeow gmn migrate --correspondence <IRI> --migrations <FILE> <input.gmn>` — the
+/// production entry point for the GMN version-migration executor
+/// ([`gmeow_lang_bridge::GmnMigration::migrate`]): re-emit a STORED GMN-1 document at the
+/// target dialect major across an authored inter-version correspondence.
+///
+/// Every operator vocabulary is GRAPH-DERIVED, never hardcoded: the dictionary / registry
+/// come from the EMBEDDED bundle (or a `--lang-module` override), and the migration leg — the
+/// `logic:Correspondence`, its `gmeow:GmnMigrationRewrite`s, and the target major's
+/// `gmeow:gmnVersionDefinesOperator` native inventory — from the `--migrations` TTL. The flow:
+///
+/// 1. project the stored document to its operator surface ([`source_operator_table`] +
+///    [`extract_operators`]) — source glyphs mapped back to version-stable terms;
+/// 2. derive the target major's native operator inventory ([`derive_target_inventory`]);
+/// 3. run the executor; an unbridged glyph drop (or any migration error) is a HARD FAIL,
+///    surfacing the named `lang:GmnUnbridgedGlyphDrop` class and a non-zero exit — never a
+///    silent repair;
+/// 4. re-emit the migrated document at the target major on stdout ([`reemit_migrated_document`]),
+///    reporting the crossing's preservation JUDGMENT (never a boolean) on stderr.
+///
+/// A missing/unreadable input, a document with no `@gmn{v: …}` header, an out-of-window source
+/// major, an unloadable dictionary, or a malformed migration leg are each a HARD FAIL (exit 1).
+pub fn migrate(
+    reporter: &dyn Reporter,
+    input: &Path,
+    correspondence: &str,
+    migrations: &Path,
+    lang_module: Option<&Path>,
+) -> i32 {
+    // 1. The dictionary / registry + operator precedences: the embedded bundle by default, or
+    //    the `--lang-module` override — the SAME source the sibling legs resolve.
+    let base_ds = match lang_module {
+        Some(path) => match file_dataset(reporter, path) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+        None => match bundle_dataset(reporter) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+    };
+    let dict = match GmnDictionary::from_dataset(&base_ds) {
+        Ok(dict) => dict,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.dictionary",
+                format!("cannot load gmeow:gmnDictV3: {}", e.0),
+            );
+        }
+    };
+
+    // 2. The authored migration leg: correspondence + rewrites + target inventory.
+    let mig_ds = match file_dataset(reporter, migrations) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let migration = match GmnMigration::from_dataset(&mig_ds, correspondence) {
+        Ok(migration) => migration,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.leg",
+                format!(
+                    "cannot load migration correspondence <{correspondence}> from {}: {e}",
+                    migrations.display()
+                ),
+            );
+        }
+    };
+
+    // 3. The stored source-major GMN-1 document.
+    let text = match std::fs::read_to_string(input) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.input-read",
+                format!("cannot read {}: {e}", input.display()),
+            );
+        }
+    };
+
+    // 4. Header presence + source-major-in-window: both HARD FAILS (no migrating on a guess).
+    let header_major = match header_schema_major(&text) {
+        Some(major) => major,
+        None => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.malformed",
+                format!(
+                    "{} carries no @gmn{{v: …}} header; a migratable GMN-1 document must pin its \
+                     source dialect major",
+                    input.display()
+                ),
+            );
+        }
+    };
+    if header_major != migration.from_version() {
+        return fail(
+            reporter,
+            "gmeow-cli.gmn.migrate.version",
+            format!(
+                "{} pins dialect major {header_major:?} but migration <{correspondence}> migrates \
+                 FROM major {:?}; the stored document is outside the crossing's source window",
+                input.display(),
+                migration.from_version()
+            ),
+        );
+    }
+
+    // 5. Project the document to its operator surface — every glyph graph-resolved to its term.
+    let table = source_operator_table(&dict, &migration, &base_ds);
+    let record_set = extract_operators(&text, &table);
+
+    // 6. The target major's native operator inventory, graph-derived from the migration leg.
+    let target_inventory = match derive_target_inventory(&mig_ds, correspondence) {
+        Ok(inventory) => inventory,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.leg",
+                format!(
+                    "cannot derive the target-major operator inventory for <{correspondence}>: {e}"
+                ),
+            );
+        }
+    };
+
+    // 7. Run the executor. An unbridged glyph drop (or any migration error) is a HARD FAIL that
+    //    surfaces the named lang: conformance class — never a silent repair or degrade.
+    let migrated = match migration.migrate(&record_set, &target_inventory) {
+        Ok(migrated) => migrated,
+        Err(e) => {
+            let class = e.failure_class().unwrap_or("(none)");
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.unbridged",
+                format!(
+                    "migration <{correspondence}> cannot re-emit {} at major {}: {e} [{class}]",
+                    input.display(),
+                    migration.to_version()
+                ),
+            );
+        }
+    };
+
+    // 8. Re-emit at the target major on stdout; report the preservation JUDGMENT on stderr.
+    print!(
+        "{}",
+        reemit_migrated_document(&text, &record_set, &migrated, migration.to_version())
+    );
+    eprintln!(
+        "gmn migrate: <{correspondence}> major {} -> {}, preservation logic:{}, {} operator(s) \
+         migrated",
+        migration.from_version(),
+        migration.to_version(),
+        migrated.preservation.as_str(),
+        migrated.operators.len(),
+    );
+    0
 }
 
 // ── small structural helpers ───────────────────────────────────────────────────
@@ -758,16 +1073,17 @@ fn pinned_literal(
     Ok(found.into_iter().next())
 }
 
-/// The single literal value declared on `<subject> <predicate>` in a dataset — the checkout-free
-/// bundle read. Filters by BOTH subject and predicate (a digest predicate like
+/// The single literal value declared on `<subject> <predicate>` in a dataset, if present — the
+/// checkout-free bundle read. Filters by BOTH subject and predicate (a digest predicate like
 /// `gmeow:gmnCodebookDigest` also appears on example envelopes, so a predicate-only scan would be
-/// ambiguous). HARD-FAILS when the count is not exactly one.
-fn pinned_literal_of(
+/// ambiguous). `Ok(None)` when the pair is absent; HARD-FAILS (exit 1) only when AMBIGUOUS (more
+/// than one distinct literal).
+fn pinned_literal_of_opt(
     reporter: &dyn Reporter,
     ds: &RdfDataset,
     subject: &str,
     predicate: &str,
-) -> Result<String, i32> {
+) -> Result<Option<String>, i32> {
     let mut found: Vec<String> = ds
         .owned_quads()
         .filter(|q| q.predicate == predicate)
@@ -780,7 +1096,8 @@ fn pinned_literal_of(
     found.sort();
     found.dedup();
     match found.len() {
-        1 => Ok(found.into_iter().next().expect("len==1")),
+        0 => Ok(None),
+        1 => Ok(Some(found.into_iter().next().expect("len==1"))),
         n => Err(fail(
             reporter,
             "gmeow-cli.gmn.verify.pinned",
@@ -788,5 +1105,49 @@ fn pinned_literal_of(
                 "bundle declares {n} distinct <{subject}> <{predicate}> literals; exactly one is required"
             ),
         )),
+    }
+}
+
+/// The single literal value declared on `<subject> <predicate>` — [`pinned_literal_of_opt`] with
+/// an ABSENT pair promoted to a HARD fail (the codebook / grammar leaf are mandatory bundle pins).
+fn pinned_literal_of(
+    reporter: &dyn Reporter,
+    ds: &RdfDataset,
+    subject: &str,
+    predicate: &str,
+) -> Result<String, i32> {
+    match pinned_literal_of_opt(reporter, ds, subject, predicate)? {
+        Some(value) => Ok(value),
+        None => Err(fail(
+            reporter,
+            "gmeow-cli.gmn.verify.pinned",
+            format!(
+                "bundle declares 0 distinct <{subject}> <{predicate}> literals; exactly one is required"
+            ),
+        )),
+    }
+}
+
+/// Read ONE pinned ecosystem-view Merkle leaf (`<subject> <predicate>`) off the bundle for the
+/// whole-ecosystem pack-root recomputation. A MISSING declaration is a conformance failure —
+/// accumulated into `failures` (non-zero exit at the end, never a silent pass) — and returns an
+/// empty leaf so the recomputed root still forms and DISAGREES with the pinned root, so verify reds.
+/// An AMBIGUOUS declaration hard-fails (exit 1). This mirrors the grammar-leaf bundle read.
+fn bundle_view_leaf(
+    reporter: &dyn Reporter,
+    ds: &RdfDataset,
+    subject: &str,
+    predicate: &str,
+    failures: &mut Vec<String>,
+) -> Result<String, i32> {
+    match pinned_literal_of_opt(reporter, ds, subject, predicate)? {
+        Some(leaf) => Ok(leaf),
+        None => {
+            failures.push(format!(
+                "bundle declares no <{subject}> <{predicate}> ecosystem-view Merkle leaf; the pack \
+                 root cannot certify that surface from the bundle alone"
+            ));
+            Ok(String::new())
+        }
     }
 }

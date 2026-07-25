@@ -84,7 +84,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
-	maint-chasebench-corpus
+	maint-chasebench-corpus maint-gmn-cost-matrix
 
 ##@ Core Workflows
 
@@ -194,7 +194,21 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 
 ##@ Generated Artifacts And Outputs
 
-regen: ## Materialize generated outputs from sources (NOT a gate — `make check` runs its own sync pass, so do not run this before/after `make check`). Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. This is the standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
+regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessary — `make check` already syncs then gates. Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. The standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
+	@# Steering banner on DIRECT invocation only (MAKELEVEL=0). `make check`'s own
+	@# regeneration runs the `check-sync` target via xtask, NOT this `regen` target, so
+	@# this banner never fires inside `make check`; and the sub-make `regen` calls from
+	@# install/build/docs/recursion run at MAKELEVEL>=1, so they stay quiet too.
+	@if [ "$(MAKELEVEL)" = "0" ]; then \
+		printf '\033[1;33m%s\033[0m\n' \
+		  "──────────────────────────────────────────────────────────────────────" \
+		  "NOTE: 'make regen' only REGENERATES generated/ + the bundle — it does NOT" \
+		  "run any gate. You almost never need it directly: 'make check' ALREADY" \
+		  "syncs (CHECK_SYNC_MODE=update) and THEN runs the full gate, so 'make regen'" \
+		  "before 'make check' just regenerates twice. Run 'make regen' alone ONLY for" \
+		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
+		  "──────────────────────────────────────────────────────────────────────" >&2; \
+	fi
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -402,13 +416,15 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				exit 1; \
 			fi; \
 		done; \
-		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm build for wasm32 =="; \
+		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree =="; \
+		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree (incl. the GMN-1 codec path) =="; \
 		: "rayon is intentionally NOT forbidden — it cross-compiles to wasm32 and degrades to sequential when threads are unavailable (wasm-safe data-parallelism, not a reasoner/native-only crate); purrdf's RDF/SHACL core uses it and the wasm build links cleanly"; \
+		: "gmeow-logic is the native DL reasoning runtime — it must NEVER reach the GMN-1 (or Tier-1) wasm validator; tiktoken-rs is the native-only glyph-cost BPE vocabulary that gmn_validate does not use. Both are forbidden here so a future leak into the GMN path (e.g. an un-gated gmn_symbology import) hard-fails."; \
 		for vpkg in gmeow-validate gmeow-validate-wasm; do \
-			for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring; do \
+			for forbidden in gmeow-logic oxigraph oxrocksdb tokio pyo3 ureq duckdb ring tiktoken-rs; do \
 				if $(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 					echo "FAIL: $$vpkg leaked $$forbidden into its wasm dependency tree:"; \
 					$(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
@@ -884,6 +900,54 @@ maint-chasebench-corpus: ## (maintainer) Fetch dbunibas/chasebench, check its li
 	  echo "  runnable bench corpus."; \
 	  echo "remediation: obtain an explicitly licensed upstream corpus before adding any runnable conversion."; \
 	  exit 1; \
+	'
+
+# The token-cost-matrix fetch sources. o200k/cl100k are embedded (tiktoken-rs) and Qwen is
+# vendored (Apache-2.0, blake3-pinned in-repo). Llama (Meta Llama 3 Community License) and
+# Gemma (Gemma Terms of Use) are AGPL-INCOMPATIBLE restricted licenses, so — exactly like
+# maint-tptp-corpus / maint-ontouml-corpus — their tokenizer.json assets are FETCHED here at
+# maint-time into the git-ignored .tmp/, blake3-verified against the committed pins, used
+# in-process, and NEVER committed. Defaults point at ungated faithful re-hosts of Meta's /
+# Google's exact tokenizers (identical bytes => identical pin). To fetch from the canonical
+# GATED repos (meta-llama / google) instead, override the URL and export HF_TOKEN (the fetched
+# bytes must still match the pinned blake3, or the lane HARD-FAILS).
+LLAMA_TOKENIZER_URL ?= https://huggingface.co/NousResearch/Meta-Llama-3-8B/resolve/main/tokenizer.json
+GEMMA_TOKENIZER_URL ?= https://huggingface.co/unsloth/gemma-2-2b/resolve/main/tokenizer.json
+
+maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix over the emitted GMN/Turtle/JSON-LD grounding serializations; flags byte-fragmenting glyphs per vocab. OFF-gate (INFORMS; never in `make check`).
+	@# Runs the five mandated tokenizer families (o200k_base + cl100k_base embedded via
+	@# tiktoken-rs; Qwen vendored + blake3-pinned; Llama + Gemma fetched-at-maint-time) over the
+	@# SAME emitted GMN / Turtle / JSON-LD serializations of the grounding corpus the on-gate
+	@# Task-7 byte-fallback estimator gates, and writes dist/bench/gmn-token-cost-matrix.md.
+	@# NOT a `make check` (CHECK_DAG) target: it INFORMS the S2-S4 glyph/tokenizer co-design; the
+	@# on-gate teeth remain `compute_token_metrics`. HARD-FAILS if ANY of the five families cannot
+	@# be fetched/verified (no silent three-family degrade), and re-checks byte-identity across two
+	@# runs like maint-bench-cost-baseline.
+	@#
+	@# Llama/Gemma license note: their licenses are non-free and AGPL-incompatible, so the assets
+	@# are NEVER committed — fetched here, verified, and discarded, mirroring the repo's other
+	@# restricted-license Lane-B corpora. See crates/gmn-cost-matrix/assets/vocab/PROVENANCE.md.
+	bash -euo pipefail -c '\
+	  dir=.tmp/gmn-cost-matrix; mkdir -p "$$dir"; \
+	  if [ -n "$${HF_TOKEN:-}" ]; then AUTH=(-H "Authorization: Bearer $$HF_TOKEN"); else AUTH=(); fi; \
+	  echo "-> fetching Llama tokenizer.json ($(LLAMA_TOKENIZER_URL))"; \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(LLAMA_TOKENIZER_URL)" -o "$$dir/llama.json" || { \
+	    echo "ERROR: Llama tokenizer.json fetch failed. Override LLAMA_TOKENIZER_URL or (for the"; \
+	    echo "  gated meta-llama repo) export HF_TOKEN. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> fetching Gemma tokenizer.json ($(GEMMA_TOKENIZER_URL))"; \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(GEMMA_TOKENIZER_URL)" -o "$$dir/gemma.json" || { \
+	    echo "ERROR: Gemma tokenizer.json fetch failed. Gemma is gated:manual on google/gemma-2-2b —"; \
+	    echo "  accept its license and export HF_TOKEN, or override GEMMA_TOKENIZER_URL to an authorized"; \
+	    echo "  source. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> running the full five-family matrix (blake3-verifies each fetched asset)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json"; \
+	  echo "-> determinism re-check (second run must be byte-identical)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json" --out "$$dir/recheck.md"; \
+	  if ! diff -q dist/bench/gmn-token-cost-matrix.md "$$dir/recheck.md" >/dev/null; then \
+	    echo "ERROR: the token-cost matrix drifted between two runs — non-deterministic render."; exit 1; fi; \
+	  echo "✓ wrote dist/bench/gmn-token-cost-matrix.md (five families, byte-identical across two runs)"; \
 	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)

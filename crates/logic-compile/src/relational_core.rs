@@ -49,7 +49,8 @@ use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use crate::ir::{
-    Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term,
+    ConstraintIr, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule, PreservationKind,
+    Term,
 };
 
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
@@ -653,6 +654,125 @@ pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>
     let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     rules.retain(|rc| seen.insert(rc.key()));
     (rules, residue.into_iter().collect())
+}
+
+// --------------------------------------------------------------------------- //
+// Constraint violation-rule lowering: logic:Constraint → RcConstraintRule
+// --------------------------------------------------------------------------- //
+//
+// A GENERAL lowering, distinct from the ordinary Horn-clause formula lowering above: a
+// `logic:Constraint` whose `logic:integrity` formula is `∀ vars. antecedent →
+// consequent`, where `consequent`'s relation is registered as BUILTIN-BOUND (never an
+// ordinary derivable predicate — its truth is decided by exact-rational arithmetic, not
+// stored data), lowers to a VIOLATION-EMITTING rule shape: the antecedent becomes an
+// ordinary positive Horn body (reusing the same per-atom reification the formula lane
+// uses), and the consequent's relation + argument terms are carried STRUCTURALLY (never
+// reified as stored triples — the builtin call has no fact-table home) for the engine
+// adapter to bind to the registered builtin and materialize the constraint's
+// `gmeow:enforcesFailureClass` marker when the builtin's law fails to hold.
+
+/// One `logic:Constraint` lowered to a violation-emitting rule shape: an ordinary
+/// positive Horn body plus the STRUCTURAL (unreified) consequent the engine adapter
+/// binds to a registered builtin.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcConstraintRule {
+    /// The source `logic:Constraint` individual's IRI (provenance / rule-tag identity).
+    pub constraint_iri: String,
+    /// The antecedent, lowered to ordinary positive [`RcAtom`]s (the same per-atom Horn
+    /// reification an ordinary formula's body uses).
+    pub body: Vec<RcAtom>,
+    /// The consequent's relation IRI — always a member of the caller-supplied
+    /// `builtin_relations` registry that selected this constraint for this lowering.
+    pub consequent_relation: String,
+    /// The consequent's argument terms, in authored order (arity-agnostic; the two
+    /// currently-registered `math:` relations are arity 2 and 3 respectively).
+    pub consequent_args: Vec<RcTerm>,
+    /// The constraint's `∀` focus variable (`vars[0]` of the integrity formula) as an
+    /// [`RcTerm::Var`] — the violation marker's subject.
+    pub subject: RcTerm,
+    /// The constraint's `gmeow:enforcesFailureClass` IRI — the violation marker's
+    /// `rdf:type` object.
+    pub failure_class: String,
+}
+
+/// Lower every `program.constraints` whose integrity formula's consequent relation is
+/// registered in `builtin_relations` into a [`RcConstraintRule`]. A constraint whose
+/// consequent is NOT builtin-bound is silently out of scope for this lowering — it is
+/// handled by whatever OTHER projection owns ordinary constraints (this is an ADDITIVE
+/// lowering, never the total-legalization one [`lower_formulas_to_rc`] is, so it never
+/// pushes residue).
+///
+/// Returns the matched rules in `program.constraints`' canonical (IRI-sorted) order.
+#[must_use]
+pub fn lower_constraints_to_rc(
+    program: &LogicProgram,
+    builtin_relations: &BTreeSet<String>,
+) -> Vec<RcConstraintRule> {
+    program
+        .constraints
+        .iter()
+        .filter_map(|constraint| lower_one_constraint(constraint, builtin_relations))
+        .collect()
+}
+
+/// Lower one constraint, or `None` when its consequent is not builtin-bound (out of
+/// scope for this lowering) or its `gmeow:enforcesFailureClass` is absent (a
+/// builtin-bound-consequent constraint the dimension-gate laws never author without one,
+/// but this lowering never fabricates a failure class).
+fn lower_one_constraint(
+    constraint: &ConstraintIr,
+    builtin_relations: &BTreeSet<String>,
+) -> Option<RcConstraintRule> {
+    let Formula::Forall { vars, body } = &constraint.integrity else {
+        return None;
+    };
+    let focus = vars.first()?;
+    let Formula::Implies(antecedent, consequent) = body.as_ref() else {
+        return None;
+    };
+    let Formula::Atom {
+        relation: Term::Iri(rel),
+        args: cons_args,
+    } = consequent.as_ref()
+    else {
+        return None;
+    };
+    if !builtin_relations.contains(rel) {
+        return None;
+    }
+    let failure_class = constraint.failure_class.clone()?;
+
+    let mut ante_atoms: Vec<&Formula> = Vec::new();
+    flatten_and(antecedent, &mut ante_atoms);
+    let mut body_rc: Vec<RcAtom> = Vec::with_capacity(ante_atoms.len());
+    for atom in &ante_atoms {
+        body_rc.extend(formula_atom_to_rc_atoms(atom, AtomPosition::Body).ok()?);
+    }
+    body_rc.sort_by_cached_key(rc_atom_sort_key);
+
+    let consequent_args: Vec<RcTerm> = cons_args
+        .iter()
+        .map(|t| formula_term_to_rc(t, true))
+        .collect::<Result<_, _>>()
+        .ok()?;
+
+    Some(RcConstraintRule {
+        constraint_iri: constraint.iri.clone(),
+        body: body_rc,
+        consequent_relation: rel.clone(),
+        consequent_args,
+        subject: RcTerm::Var(format!("?{focus}")),
+        failure_class,
+    })
+}
+
+/// Flatten a (possibly nested) conjunction into its flat list of conjuncts. A bare
+/// (non-`And`) formula is a one-element flattening.
+fn flatten_and<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
+    match f {
+        Formula::And(fs) => fs.iter().for_each(|x| flatten_and(x, out)),
+        other => out.push(other),
+    }
 }
 
 /// Lower a top-level (already NNF + Skolemized) formula: peel the universal closure, flatten

@@ -64,7 +64,7 @@ use rayon::prelude::*;
 
 use crate::physical::builtin_eval::{
     BuiltinGap, BuiltinOutcome, CellResolver, MathTriples, emit_surface, eval as eval_builtin,
-    load_gram_cells, load_vector_dense,
+    load_dimension_cells, load_gram_cells, load_vector_dense,
 };
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::{RowId, TermId};
@@ -1336,7 +1336,13 @@ fn join_body_leapfrog(
 
     if !rule.builtins.is_empty() {
         let resolver = RelationCellResolver { store: accumulated };
-        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
+        solutions = apply_builtins(
+            &rule.builtins,
+            solutions,
+            gap,
+            &resolver,
+            rule.constraint_tag.is_some(),
+        );
     }
     if !plan.negated().is_empty() {
         solutions.retain(|solution| {
@@ -1436,7 +1442,13 @@ fn join_body_binary(
     // a generator-bound variable sees the binding.
     if !rule.builtins.is_empty() {
         let resolver = RelationCellResolver { store: accumulated };
-        solutions = apply_builtins(&rule.builtins, solutions, gap, &resolver);
+        solutions = apply_builtins(
+            &rule.builtins,
+            solutions,
+            gap,
+            &resolver,
+            rule.constraint_tag.is_some(),
+        );
     }
 
     if !negated.is_empty() {
@@ -1499,22 +1511,46 @@ impl CellResolver for RelationCellResolver<'_> {
     fn vector(&self, iri: &str) -> Option<Vec<gmeow_math::Rational>> {
         load_vector_dense(self, iri)
     }
+    fn dimension(&self, iri: &str) -> Option<gmeow_math::dimension::DimVector> {
+        // The ONLY substrate the `math:` dimension-gate builtins (`DimEqual`/
+        // `DimProduct`) ever probe: a constraint-tagged violation rule's forward
+        // chase seeds its `RelationStore` from the FULL asserted quad set (via
+        // `WorldStore::load_dataset`, never the literal-dropping typed-EDB fact
+        // stream), so a dimension's `math:baseDimensionExponent` cells — numerator
+        // and denominator literals included — are present here to walk.
+        load_dimension_cells(self, iri)
+    }
 }
 
 /// Evaluate a rule's arithmetic/comparison builtins against each candidate
 /// solution, in body order, via the shared moded evaluator.
 ///
 /// A generator extends the solution's bindings with the computed value in the
-/// canonical typed-integer surface; a filter keeps or prunes the solution. An
-/// operand that is still unbound, or a domain/precision error (÷0, overflow),
-/// sets `gap` and drops the solution — the caller then surfaces a typed refusal for
-/// the WHOLE program rather than present an incomplete native answer, so a dropped
-/// solution is never a wrong answer.
+/// canonical typed-integer surface. For an ORDINARY (untagged) rule a filter keeps
+/// or prunes the solution as usual, and an operand that is still unbound, or a
+/// domain/precision error (÷0, overflow), sets `gap` and drops the solution — the
+/// caller then surfaces a typed refusal for the WHOLE program rather than present
+/// an incomplete native answer, so a dropped solution is never a wrong answer.
+///
+/// `constraint_tagged` — `true` for a `logic:Constraint`-derived VIOLATION-EMITTING
+/// rule ([`EvalRule::constraint_tag`](crate::rule_ir::EvalRule::constraint_tag))
+/// — INVERTS the filter semantics: a builtin `Filter(true)` (the law's consequent
+/// HOLDS) prunes the solution (no violation, no marker), while `Filter(false)` (the
+/// law's consequent does NOT hold) KEEPS it so the caller's head grounding
+/// materializes the constraint's failure-class marker. Undefinedness (`Unbound` — an
+/// operand's dimension could not be resolved) is likewise NOT a violation for a
+/// tagged rule: it silently prunes ONLY that one candidate solution — never the
+/// whole batch, and never a ledgered gap — exactly mirroring the missing/malformed
+/// dimension being delegated elsewhere (the retained native malformed-dimension
+/// scan). `Error` never arises from a dimension-gate builtin by construction (an
+/// unresolvable operand or a ⊕ overflow both decline to `Unbound`), but is handled
+/// identically for safety.
 fn apply_builtins(
     builtins: &[QBuiltin],
     sols: Vec<Solution>,
     gap: &mut Vec<BuiltinGap>,
     resolver: &dyn CellResolver,
+    constraint_tagged: bool,
 ) -> Vec<Solution> {
     let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
     'next_sol: for mut sol in sols {
@@ -1527,12 +1563,28 @@ fn apply_builtins(
                 eval_builtin(b, &lookup, resolver)
             };
             match outcome {
-                BuiltinOutcome::Filter(true) => {}
-                BuiltinOutcome::Filter(false) => continue 'next_sol,
+                BuiltinOutcome::Filter(holds) => {
+                    if holds == constraint_tagged {
+                        // Ordinary rule, filter false → prune; OR constraint-tagged
+                        // rule, the law's consequent HOLDS → the law is satisfied,
+                        // no violation → prune.
+                        continue 'next_sol;
+                    }
+                    // Ordinary rule, filter true → keep (fall through); OR
+                    // constraint-tagged rule, the consequent does NOT hold → keep,
+                    // so the head materializes the violation marker.
+                }
                 BuiltinOutcome::Generate { var, value } => {
                     sol.bindings.push((var, emit_surface(&value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
+                    if constraint_tagged {
+                        // Undefinedness is NOT a violation: skip ONLY this candidate
+                        // solution, never poison the rest of the batch, and never
+                        // record a ledgered gap (the missing/malformed dimension is
+                        // handled elsewhere).
+                        continue 'next_sol;
+                    }
                     // A single unbound operand / domain error refuses the WHOLE program,
                     // so the remaining solutions cannot change the outcome — capture the
                     // typed gap (KIND + operation + antecedent operands) and stop
@@ -1921,8 +1973,12 @@ fn eval_world_stratified_with_trace(
     let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
-    // Ordinary forward materialization carries no arithmetic builtins (the ontology
-    // corpus has none), so this stays empty; assert that invariant below.
+    // An ORDINARY forward materialization rule carries no arithmetic builtins (the
+    // ontology corpus has none); only a `logic:Constraint`-derived, `constraint_tag`-
+    // licensed violation rule may — this stays empty for every untagged rule, and a
+    // tagged rule's `apply_builtins` never appends to it either (undefinedness is
+    // silently skipped, per-solution, never a ledgered gap), so it stays empty
+    // regardless; asserted below.
     let mut builtin_gap: Vec<BuiltinGap> = Vec::new();
     for k in 0..total {
         if exe.stratum_is_empty(k) {
@@ -1961,9 +2017,22 @@ fn eval_world_stratified_with_trace(
         }
     }
 
+    // A genuinely GAPPING builtin (an unbound operand / domain error on an ORDINARY,
+    // untagged rule — e.g. an authored `.logic` program rule carrying `is`/
+    // `bilinearSqDist`) still refuses the whole program via `apply_builtins`'s
+    // untagged branch (unchanged), so this stays a real bug-catcher. A
+    // `constraint_tag`-licensed violation rule NEVER reaches this vector: its
+    // Unbound/Error path is a silently-skipped per-solution undefinedness, not a
+    // ledgered gap (`apply_builtins`'s tagged branch) — the invariant is therefore
+    // keyed on the OUTCOME (a real gap fired), never on "is this rule tagged" or "is
+    // this a Dim builtin" (an ordinary rule legitimately carrying a builtin, e.g. a
+    // `bilinearSqDist` query program lowered straight into forward materialization,
+    // is not itself a bug).
     debug_assert!(
         builtin_gap.is_empty(),
-        "forward materialization rules carry no arithmetic builtins"
+        "a forward materialization rule's builtin produced an unresolved operand / domain \
+         error outside a constraint-tagged violation rule's silently-skipped undefinedness \
+         path"
     );
 
     Ok(Budgeted {

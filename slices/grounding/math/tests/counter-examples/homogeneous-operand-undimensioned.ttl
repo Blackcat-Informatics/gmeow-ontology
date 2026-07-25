@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:HomogeneousOperandDimensionedConstraint: a
+# math:DimensionalExpression whose second math:homogeneousOperand is a
+# math:MeasurableFunction (NOT a math:Quantity, so the math:Quantity-scoped
+# math:hasDimension min-1 restriction never reaches it) that carries no
+# math:hasDimension at all. The closed-world logic:Constraint
+# ∀o,E: homogeneousOperand(E,o) → ∃d. hasDimension(o,d) then fails for that
+# operand, so validation MUST emit shacl.SPARQLConstraintComponent
+# (math:UndimensionedQuantity). The first operand IS dimensioned, so the
+# expression still carries its required two math:homogeneousOperand (no
+# math:MalformedDimension), and the reasoner-derived homogeneity law
+# (dimEqual) never fires — its antecedent needs BOTH operands' dimensions
+# bound, so an undimensioned operand yields no math:DimensionalInhomogeneity,
+# isolating the single violation.
+# Bound by tests/example-conformance.ttl (ex:ecHomogeneousOperandUndimensioned).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:mixedExpression a math:DimensionalExpression ;
+    math:homogeneousOperand ex:dimensionedOperand , ex:undimensionedOperand .
+
+ex:dimensionedOperand a math:Quantity ;
+    math:hasDimension math:timeDimension .
+
+ex:undimensionedOperand a math:MeasurableFunction .
