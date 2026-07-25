@@ -16,7 +16,8 @@ use std::sync::Arc;
 use gmeow_lang_bridge::gmn1_codec::resolve_dialect_acceptance;
 use gmeow_lang_bridge::{
     GmnDictionary, GmnMigrateError, GmnMigration, GmnRecordSet, OperatorOccurrence,
-    PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
+    PRED_GMN_SCHEMA_VERSION, derive_target_inventory, extract_operators, header_schema_major,
+    reemit_migrated_document, resolved_schema_version, source_operator_table, tag_schema_version,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm, parse_dataset};
@@ -159,6 +160,123 @@ ex:noLegMigration a logic:Correspondence ;
     assert_eq!(migrated.operators.len(), 1);
     assert_eq!(migrated.operators[0].glyph, "^");
     assert!(migrated.operators[0].rewritten);
+}
+
+// ── Document-level migration helpers (the `gmeow gmn migrate` plumbing) ──────────────
+
+/// A stored source-major GMN-1 document exercising all three non-failing branches: logic:not
+/// (¬, rewritten), logic:subClassOf (⊑, native survivor), and the retired xor operator (⊻,
+/// resolved through the migration leg's own rewrite, since it is not in the current registry).
+const STORED_V1_DOC: &str = "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n\
+     @ℒ{s:ex__a,p:ex__rel,o:¬}\n\
+     @ℒ{s:ex__b,p:ex__rel,o:⊑}\n\
+     @ℒ{s:ex__c,p:ex__rel,o:⊻}\n";
+
+const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+
+fn lang_dictionary() -> GmnDictionary {
+    GmnDictionary::from_dataset(&lang_module_dataset()).expect("dict loads from the lang module")
+}
+
+/// The source operator surface table is GRAPH-DERIVED — the dictionary's executable registry
+/// (with precedence read off each operator's denoted form) UNIONED with the migration leg's
+/// authored rewrites (which carry the source surface of the bridged/retired ⊻ the current
+/// registry no longer lists). [`extract_operators`] then projects a stored document's tokens
+/// back to their version-stable terms, in document order.
+#[test]
+fn source_table_and_extract_are_graph_derived() {
+    let dict = lang_dictionary();
+    let migration = demonstrator_migration();
+    let table = source_operator_table(&dict, &migration, &lang_module_dataset());
+
+    // ¬ resolves to logic:not with the leg's authored source precedence 90; ⊑ resolves to
+    // logic:subClassOf via the registry; ⊻ resolves to the retired xor operator via the leg.
+    assert_eq!(
+        table.get("¬"),
+        Some(&OperatorOccurrence::new(LOGIC_NOT, "¬", Some(90)))
+    );
+    let sub = table.get("⊑").expect("⊑ resolves via the registry");
+    assert_eq!(sub.term, LOGIC_SUBCLASS_OF);
+    assert!(
+        sub.precedence.is_some(),
+        "the survivor's source precedence is read off its denoted form"
+    );
+    assert_eq!(
+        table.get("⊻"),
+        Some(&OperatorOccurrence::new(
+            format!("{EX}gmnLegacyXorOp"),
+            "⊻",
+            None
+        ))
+    );
+
+    let record_set = extract_operators(STORED_V1_DOC, &table);
+    let terms: Vec<&str> = record_set
+        .operators
+        .iter()
+        .map(|o| o.term.as_str())
+        .collect();
+    assert_eq!(
+        terms,
+        vec![LOGIC_NOT, LOGIC_SUBCLASS_OF, &format!("{EX}gmnLegacyXorOp")],
+        "the operators are the distinct terms used, in document order"
+    );
+}
+
+/// The target major's native operator inventory is READ FROM THE GRAPH — the
+/// `gmeow:gmnVersionDefinesOperator` set on the correspondence's `gmeow:gmnMigratesTo` version
+/// entity — never a Rust constant. The demonstrator declares logic:subClassOf as the survivor.
+#[test]
+fn target_inventory_is_read_from_the_graph() {
+    let inventory = derive_target_inventory(
+        &demonstrator_dataset(),
+        &format!("{EX}gmnMigrationVSrcToVTgt"),
+    )
+    .expect("the target inventory reads off the authored leg");
+    let expected: BTreeSet<String> = [LOGIC_SUBCLASS_OF.to_owned()].into_iter().collect();
+    assert_eq!(inventory, expected);
+}
+
+/// Re-emitting the migrated document substitutes each operator's source glyph with its
+/// target-major glyph (¬→!, the ⊻→^ bridge) and re-stamps the `@gmn{v: …}` header to the target
+/// major, while the ⊑ native survivor and every non-operator byte are preserved verbatim.
+#[test]
+fn reemit_substitutes_glyphs_and_restamps_header() {
+    let dict = lang_dictionary();
+    let migration = demonstrator_migration();
+    let table = source_operator_table(&dict, &migration, &lang_module_dataset());
+    let record_set = extract_operators(STORED_V1_DOC, &table);
+
+    let inventory = derive_target_inventory(
+        &demonstrator_dataset(),
+        &format!("{EX}gmnMigrationVSrcToVTgt"),
+    )
+    .expect("target inventory");
+    let migrated = migration
+        .migrate(&record_set, &inventory)
+        .expect("every source operator is bridged or survives");
+
+    let reemitted = reemit_migrated_document(STORED_V1_DOC, &record_set, &migrated, "2");
+    assert_eq!(
+        reemitted,
+        "@gmn{v: 2, aliases: dict-v3, glyphs: 2}\n\
+         @ℒ{s:ex__a,p:ex__rel,o:!}\n\
+         @ℒ{s:ex__b,p:ex__rel,o:⊑}\n\
+         @ℒ{s:ex__c,p:ex__rel,o:^}\n",
+        "the ¬→! rename, the ⊑ survivor, the ⊻→^ bridge, and the 1→2 header re-stamp"
+    );
+}
+
+/// [`header_schema_major`] reads the `v:` coordinate off the leading `@gmn{…}` header, and a
+/// document with no such header is a malformed input (None), never migrated on a guess.
+#[test]
+fn header_schema_major_reads_the_v_coordinate() {
+    assert_eq!(header_schema_major(STORED_V1_DOC).as_deref(), Some("1"));
+    assert_eq!(
+        header_schema_major("@ℒ{s:ex__a,p:ex__rel,o:¬}\n"),
+        None,
+        "a headerless document pins no source major"
+    );
 }
 
 /// A tagged record carries exactly one `gmeow:gmnSchemaVersion` matching the resolved codebook

@@ -49,6 +49,11 @@ const PRED_GMN_REWRITE_FROM_PRECEDENCE: &str =
     "https://blackcatinformatics.ca/gmeow/gmnRewriteFromPrecedence";
 const PRED_GMN_REWRITE_TO_PRECEDENCE: &str =
     "https://blackcatinformatics.ca/gmeow/gmnRewriteToPrecedence";
+const PRED_GMN_VERSION_DEFINES_OPERATOR: &str =
+    "https://blackcatinformatics.ca/gmeow/gmnVersionDefinesOperator";
+const PRED_DENOTED_FORM: &str = "https://blackcatinformatics.ca/lang/denotedForm";
+const PRED_DENOTATION_TARGET: &str = "https://blackcatinformatics.ca/lang/denotationTarget";
+const PRED_GMN_PRECEDENCE: &str = "https://blackcatinformatics.ca/gmeow/gmnPrecedence";
 const PRED_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
 const PRED_MNEMOMORPHIC: &str = "https://blackcatinformatics.ca/logic/mnemomorphic";
 const PRED_OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
@@ -96,6 +101,25 @@ impl GmnMigrateError {
         }
     }
 }
+
+impl std::fmt::Display for GmnMigrateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            // A leg-authoring precondition error (not a conformance class), mirroring the
+            // codec's `DictionaryError` — the detail names the structural defect.
+            Self::MalformedLeg(detail) => write!(f, "malformed migration leg: {detail}"),
+            // The one runtime conformance failure — named exactly as its `lang:` class so the
+            // shipped `failure_class()` and the human message never drift apart.
+            Self::UnbridgedGlyphDrop { term, glyph } => write!(
+                f,
+                "lang:GmnUnbridgedGlyphDrop: operator {term} (source glyph {glyph:?}) is absent \
+                 from the target major's inventory with no covering gmeow:GmnMigrationRewrite"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for GmnMigrateError {}
 
 /// One operator-grain rewrite leg of a version migration — the in-memory carrier of a
 /// `gmeow:GmnMigrationRewrite`. Anchored on the version-STABLE denoted term, it carries the
@@ -510,6 +534,292 @@ pub fn tag_schema_version(record: &str, dict: &GmnDictionary) -> RdfQuad {
             direction: None,
         }),
     )
+}
+
+// ── Document-level migration (the production `gmeow gmn migrate` plumbing) ───────────
+//
+// The executor above works over the operator-surface projection ([`GmnRecordSet`]); the CLI
+// leg needs three graph-derived steps around it: PROJECT a stored GMN-1 document to that
+// surface, DERIVE the target major's native operator inventory, and RE-EMIT the document at
+// the target major. Every step reads its operator vocabulary FROM THE GRAPH — the dictionary's
+// executable glyph registry and the migration leg's own authored rewrites — never a hardcoded
+// glyph/term/version table.
+//
+// The surface scan (not `gmn1_read`) is deliberate: a migration exists precisely to carry
+// operators whose glyph the CURRENT dictionary no longer lists (a retired/bridged operator like
+// the demonstrator's ⊻), so `gmn1_read` would reject the very documents this leg must migrate.
+// The scan is still exact — it matches ONLY whole delimiter-bounded tokens against the
+// graph-derived source glyph table — so every non-operator byte is passed through untouched.
+
+/// A GMN-1 surface delimiter (mirroring the codec's record grammar): an operator/value token
+/// is a maximal run of characters that are neither whitespace nor one of these delimiters.
+fn is_gmn_delimiter(c: char) -> bool {
+    c.is_whitespace() || matches!(c, '{' | '}' | '[' | ']' | ',' | ':' | '(' | ')')
+}
+
+/// The delimiter-and-whitespace-split value/operator tokens of a GMN-1 document, in document
+/// order (empty tokens dropped).
+fn surface_tokens(text: &str) -> impl Iterator<Item = &str> {
+    text.split(is_gmn_delimiter)
+        .filter(|token| !token.is_empty())
+}
+
+/// The source operator surface table: source glyph → its [`OperatorOccurrence`] (denoted term
+/// + source binding strength), derived ENTIRELY from the graph. It unions two authored sources:
+///
+/// * the dictionary's executable glyph registry — every operator the SOURCE major defines
+///   natively ([`GmnGlyphRegistry::bindings`]), its source precedence read off the operator's
+///   `lang:denotedForm` `gmeow:gmnPrecedence` in `ds`; and
+/// * the migration leg's own rewrites — whose `gmeow:gmnRewriteFromGlyph` /
+///   `gmeow:gmnRewriteFromPrecedence` carry the source surface of the bridged/renamed operators
+///   the current registry no longer lists. These OVERRIDE the registry, because the leg is the
+///   graph authority for the source surface of an operator its crossing rewrites.
+///
+/// Never a hardcoded glyph table: removing a Denotation or a rewrite from the graph removes the
+/// glyph from this table.
+#[must_use]
+pub fn source_operator_table(
+    dict: &GmnDictionary,
+    migration: &GmnMigration,
+    ds: &RdfDataset,
+) -> BTreeMap<String, OperatorOccurrence> {
+    let mut glyph_terms = BTreeMap::<String, BTreeSet<String>>::new();
+    for (_sigil, glyph, _fixity, _arity, term) in dict.glyph_registry().bindings() {
+        glyph_terms.entry(glyph).or_default().insert(term);
+    }
+    let precedences = operator_precedences(ds);
+    let mut table = BTreeMap::<String, OperatorOccurrence>::new();
+    for (glyph, terms) in glyph_terms {
+        // A glyph denoting more than one term across sigil scopes cannot be resolved by a
+        // scope-free surface scan; such a token is passed through as ordinary content (the
+        // migration's own rewrites, keyed unambiguously by term, still bridge it below).
+        if terms.len() == 1 {
+            let term = terms
+                .into_iter()
+                .next()
+                .expect("the singleton term set is non-empty");
+            let precedence = precedences.get(&term).copied();
+            table.insert(
+                glyph.clone(),
+                OperatorOccurrence::new(term, glyph, precedence),
+            );
+        }
+    }
+    for rewrite in migration.rewrites() {
+        table.insert(
+            rewrite.from_glyph.clone(),
+            OperatorOccurrence::new(
+                rewrite.term.clone(),
+                rewrite.from_glyph.clone(),
+                rewrite.from_precedence,
+            ),
+        );
+    }
+    table
+}
+
+/// Operator term IRI → its source-major `gmeow:gmnPrecedence`, read off each operator's
+/// `lang:Denotation` → `lang:denotedForm` → `gmeow:gmnPrecedence` chain in `ds`. A term with no
+/// authored precedence (or whose glyph carries no denoted form) is simply absent.
+fn operator_precedences(ds: &RdfDataset) -> BTreeMap<String, i64> {
+    let mut den_target = BTreeMap::<String, String>::new();
+    let mut den_form = BTreeMap::<String, String>::new();
+    let mut form_precedence = BTreeMap::<String, i64>::new();
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            PRED_DENOTATION_TARGET => {
+                if let RdfTerm::Iri(target) = &quad.object {
+                    den_target.insert(subject.clone(), target.clone());
+                }
+            }
+            PRED_DENOTED_FORM => {
+                if let RdfTerm::Iri(form) = &quad.object {
+                    den_form.insert(subject.clone(), form.clone());
+                }
+            }
+            PRED_GMN_PRECEDENCE => {
+                if let RdfTerm::Literal(lit) = &quad.object
+                    && let Ok(value) = lit.lexical_form.parse::<i64>()
+                {
+                    form_precedence.insert(subject.clone(), value);
+                }
+            }
+            _ => {}
+        }
+    }
+    let mut out = BTreeMap::<String, i64>::new();
+    for (denotation, target) in den_target {
+        if let Some(form) = den_form.get(&denotation)
+            && let Some(precedence) = form_precedence.get(form)
+        {
+            out.insert(target, *precedence);
+        }
+    }
+    out
+}
+
+/// Project the operator occurrences a stored source-major GMN-1 document uses into a
+/// [`GmnRecordSet`] — graph-derived: every surface token equal to a known source operator glyph
+/// (via [`source_operator_table`]) maps back to its version-stable term + source precedence.
+/// Distinct terms, in first-occurrence document order.
+#[must_use]
+pub fn extract_operators(
+    doc_text: &str,
+    table: &BTreeMap<String, OperatorOccurrence>,
+) -> GmnRecordSet {
+    let mut seen = BTreeSet::<String>::new();
+    let mut operators = Vec::new();
+    for token in surface_tokens(doc_text) {
+        if let Some(occurrence) = table.get(token)
+            && seen.insert(occurrence.term.clone())
+        {
+            operators.push(occurrence.clone());
+        }
+    }
+    GmnRecordSet { operators }
+}
+
+/// The operator terms the migration's TARGET major defines NATIVELY, read from the graph: the
+/// `gmeow:gmnVersionDefinesOperator` inventory authored on the correspondence's
+/// `gmeow:gmnMigratesTo` version entity. NEVER a Rust constant. An operator absent from this set
+/// with no covering rewrite is the unbridged-drop HARD FAIL [`GmnMigration::migrate`] raises.
+///
+/// # Errors
+/// [`GmnMigrateError::MalformedLeg`] when the correspondence names no/many `gmeow:gmnMigratesTo`
+/// entity (the same exactly-one discipline [`GmnMigration::from_dataset`] applies).
+pub fn derive_target_inventory(
+    ds: &RdfDataset,
+    correspondence: &str,
+) -> Result<BTreeSet<String>, GmnMigrateError> {
+    let mut migrates_to = BTreeSet::<String>::new();
+    let mut defines = BTreeMap::<String, BTreeSet<String>>::new();
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        if subject == correspondence
+            && quad.predicate.as_str() == PRED_GMN_MIGRATES_TO
+            && let RdfTerm::Iri(entity) = &quad.object
+        {
+            migrates_to.insert(entity.clone());
+        }
+        if quad.predicate.as_str() == PRED_GMN_VERSION_DEFINES_OPERATOR
+            && let RdfTerm::Iri(term) = &quad.object
+        {
+            defines
+                .entry(subject.clone())
+                .or_default()
+                .insert(term.clone());
+        }
+    }
+    let target = exactly_one(&migrates_to, correspondence, "gmeow:gmnMigratesTo")?;
+    Ok(defines.get(&target).cloned().unwrap_or_default())
+}
+
+/// Re-emit a stored source-major GMN-1 document at the target major: substitute each migrated
+/// operator's SOURCE glyph with its target-major glyph (from `migrated`) and re-stamp the leading
+/// `@gmn{v: …}` header to `to_major`. Deterministic and faithful — a single left-to-right pass
+/// replaces ONLY whole tokens equal to a source operator glyph, so every non-operator byte
+/// (record structure, references, literals, delimiters, whitespace) is preserved verbatim.
+///
+/// `source` and `migrated` are the two ends of one [`GmnMigration::migrate`] call, so their
+/// operators are the same terms in the same order; pairing them by position recovers each
+/// operator's `source glyph → target glyph` edge.
+#[must_use]
+pub fn reemit_migrated_document(
+    doc_text: &str,
+    source: &GmnRecordSet,
+    migrated: &MigratedRecordSet,
+    to_major: &str,
+) -> String {
+    let mut glyph_map = BTreeMap::<String, String>::new();
+    for (occurrence, operator) in source.operators.iter().zip(migrated.operators.iter()) {
+        glyph_map.insert(occurrence.glyph.clone(), operator.glyph.clone());
+    }
+    let substituted = substitute_tokens(doc_text, &glyph_map);
+    restamp_header_major(&substituted, to_major)
+}
+
+/// The `v:` dialect-major coordinate declared in the leading `@gmn{…}` header, if present.
+/// `None` when the text carries no `@gmn{` header or that header pins no `v:` coordinate — a
+/// malformed input the migrate leg treats as a HARD FAIL rather than migrating on a guess.
+#[must_use]
+pub fn header_schema_major(doc_text: &str) -> Option<String> {
+    let header = doc_text
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())?;
+    if !header.starts_with("@gmn{") {
+        return None;
+    }
+    header_version_span(header).map(|(start, end)| header[start..end].to_owned())
+}
+
+/// The byte range `(start, end)` of the `v:` value token inside an `@gmn{…}` header line.
+fn header_version_span(header: &str) -> Option<(usize, usize)> {
+    let after_colon = header.find("v:")? + "v:".len();
+    let rest = &header[after_colon..];
+    let leading_ws = rest.len() - rest.trim_start().len();
+    let value_start = after_colon + leading_ws;
+    let value_rest = &header[value_start..];
+    let value_len = value_rest
+        .find(is_gmn_delimiter)
+        .unwrap_or(value_rest.len());
+    (value_len > 0).then_some((value_start, value_start + value_len))
+}
+
+/// Re-stamp the leading `@gmn{v: …}` header's dialect major to `to_major`, preserving every
+/// other byte. A text with no re-stampable header is returned unchanged (the caller validates
+/// header presence up front via [`header_schema_major`]).
+fn restamp_header_major(text: &str, to_major: &str) -> String {
+    let (first, rest) = match text.find('\n') {
+        Some(nl) => (&text[..nl], &text[nl..]),
+        None => (text, ""),
+    };
+    if !first.trim_start().starts_with("@gmn{") {
+        return text.to_owned();
+    }
+    let Some((start, end)) = header_version_span(first) else {
+        return text.to_owned();
+    };
+    let mut out = String::with_capacity(text.len() + to_major.len());
+    out.push_str(&first[..start]);
+    out.push_str(to_major);
+    out.push_str(&first[end..]);
+    out.push_str(rest);
+    out
+}
+
+/// Replace every whole delimiter-bounded token equal to a key of `map` with its value,
+/// preserving all delimiters and whitespace exactly.
+fn substitute_tokens(text: &str, map: &BTreeMap<String, String>) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut token = String::new();
+    for c in text.chars() {
+        if is_gmn_delimiter(c) {
+            flush_token(&mut token, map, &mut out);
+            out.push(c);
+        } else {
+            token.push(c);
+        }
+    }
+    flush_token(&mut token, map, &mut out);
+    out
+}
+
+/// Emit the pending token — its `map` substitution when one exists, else the token verbatim —
+/// and clear it.
+fn flush_token(token: &mut String, map: &BTreeMap<String, String>, out: &mut String) {
+    if !token.is_empty() {
+        match map.get(token.as_str()) {
+            Some(replacement) => out.push_str(replacement),
+            None => out.push_str(token),
+        }
+        token.clear();
+    }
 }
 
 // ── Small graph-read helpers (mirroring gmn1_codec's exactly-one discipline) ─────────

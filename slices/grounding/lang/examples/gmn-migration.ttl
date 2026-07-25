@@ -41,7 +41,16 @@ ex:gmnDialectVSrc
 ex:gmnDialectVTgt
     a gmeow:InformationObject ;
     rdfs:label "synthetic GMN dialect major 2 (migration target)"@x-gmeow-english ;
-    owl:versionInfo "2" .
+    owl:versionInfo "2" ;
+    # The target major's NATIVE operator inventory, authored graph-natively with
+    # gmeow:gmnVersionDefinesOperator so the migrate executor derives target_inventory
+    # from the graph, never a Rust constant. logic:subClassOf is a NATIVE SURVIVOR the
+    # target keeps unchanged: it carries NO rewrite, so its membership here is precisely
+    # what lets it survive the crossing rather than drop. logic:not needs no entry (its
+    # rewrite bridges it, so membership is never consulted). Any operator absent here with
+    # no covering rewrite (e.g. math:pi) is the lang:GmnUnbridgedGlyphDrop hard fail the
+    # executor refuses to silently apply.
+    gmeow:gmnVersionDefinesOperator logic:subClassOf .
 
 # --- The judged version-migration crossing ---------------------------------- #
 # A section/retraction with exact preservation and a mnemomorphic witness: the

@@ -3755,6 +3755,19 @@ gmeow:gmnRewriteToPrecedence
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to declare the target-major binding strength a migration rewrite rewrites to."@x-gmeow-english .
 
+gmeow:gmnVersionDefinesOperator
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn version defines operator"@x-gmeow-english ;
+    skos:definition "Relates a GMN dialect major (the version entity a gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo edge points at) to a version-STABLE operator term the major defines NATIVELY — a class, property, or individual IRI (an operator's lang:denotationTarget, the same anchor gmeow:gmnRewriteTerm uses). Domain the dialect version entity, range any GMEOW term (stated in prose, deliberately unconstrained). This is the graph-native operator inventory the migration executor reads for the target major: a source operator absent from the target major's inventory with NO covering gmeow:GmnMigrationRewrite is the lang:GmnUnbridgedGlyphDrop hard fail, and a source operator present here with no rewrite SURVIVES the crossing unchanged. Authored, never a Rust constant."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a glyph string or a version-specific surface token — the inventory is keyed on the version-stable denoted term — and avoid using it to re-state operators a rewrite already bridges; a rewrite's gmeow:gmnRewriteTerm carries those, and this inventory is consulted only for operators WITHOUT a covering rewrite."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On the target dialect version entity, name each operator term the major defines natively; the migration executor treats an un-rewritten source operator as a survivor exactly when its term appears here, and as an unbridged drop otherwise."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the version-stable operator terms a GMN dialect major defines natively, so the migration executor can derive the target-major inventory from the graph."@x-gmeow-english .
+
 gmeow:gmnAcceptWindow
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;

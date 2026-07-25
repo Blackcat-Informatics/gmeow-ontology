@@ -625,6 +625,26 @@ pub enum GmnCommands {
         #[arg(long = "pack")]
         pack: Option<PathBuf>,
     },
+    /// Re-emit a STORED GMN-1 document at a target dialect major across an authored
+    /// inter-version correspondence (the version-migration executor's production entry
+    /// point). Hard-fails with the named `lang:GmnUnbridgedGlyphDrop` class (exit 1) on an
+    /// operator the target major drops with no covering rewrite — never a silent repair.
+    Migrate {
+        /// The stored source-major GMN-1 (`.gmn`) document to migrate.
+        input: PathBuf,
+        /// The migration `logic:Correspondence` IRI (the `gmeow:gmnMigratesFrom` /
+        /// `gmeow:gmnMigratesTo` leg to apply).
+        #[arg(long = "correspondence")]
+        correspondence: String,
+        /// The Turtle file authoring the correspondence, its `gmeow:GmnMigrationRewrite`s, and the
+        /// target major's `gmeow:gmnVersionDefinesOperator` native inventory.
+        #[arg(long = "migrations")]
+        migrations: PathBuf,
+        /// Override the embedded bundle's codebook/dictionary + operator registry with a lang
+        /// `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+    },
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -1368,6 +1388,18 @@ pub fn run() -> i32 {
                 lang_module.as_deref(),
                 grammar.as_deref(),
                 pack.as_deref(),
+            ),
+            GmnCommands::Migrate {
+                input,
+                correspondence,
+                migrations,
+                lang_module,
+            } => gmn::migrate(
+                reporter,
+                &input,
+                &correspondence,
+                &migrations,
+                lang_module.as_deref(),
             ),
         },
         Commands::HybridQuery {

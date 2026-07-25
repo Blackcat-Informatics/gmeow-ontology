@@ -30,10 +30,12 @@ use std::sync::Arc;
 
 use gmeow_cli_core::Reporter;
 use gmeow_lang_bridge::{
-    CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, RingLattice,
-    codebook_digest, consume_project, content_digest, gmn0_canonically_equal, gmn1_read,
-    gmn1_write, grammar_leaf, idempotence_check, pack_root_from_grammar_leaf,
-    per_claim_round_trip_check, resolve_current_codebook,
+    CurrentCodebook, EcosystemLeaves, Gmn0Model, Gmn1Document, GmnDictionary, GmnMigration,
+    RingLattice, codebook_digest, consume_project, content_digest, derive_target_inventory,
+    extract_operators, gmn0_canonically_equal, gmn1_read, gmn1_write, grammar_leaf,
+    header_schema_major, idempotence_check, pack_root_from_grammar_leaf,
+    per_claim_round_trip_check, reemit_migrated_document, resolve_current_codebook,
+    source_operator_table,
 };
 use purrdf::{RdfDataset, RdfTerm};
 
@@ -712,6 +714,170 @@ pub fn verify(
             format!("gmn conformance FAILED with {} failure(s)", failures.len()),
         )
     }
+}
+
+// ── gmn migrate ────────────────────────────────────────────────────────────────
+
+/// `gmeow gmn migrate --correspondence <IRI> --migrations <FILE> <input.gmn>` — the
+/// production entry point for the GMN version-migration executor
+/// ([`gmeow_lang_bridge::GmnMigration::migrate`]): re-emit a STORED GMN-1 document at the
+/// target dialect major across an authored inter-version correspondence.
+///
+/// Every operator vocabulary is GRAPH-DERIVED, never hardcoded: the dictionary / registry
+/// come from the EMBEDDED bundle (or a `--lang-module` override), and the migration leg — the
+/// `logic:Correspondence`, its `gmeow:GmnMigrationRewrite`s, and the target major's
+/// `gmeow:gmnVersionDefinesOperator` native inventory — from the `--migrations` TTL. The flow:
+///
+/// 1. project the stored document to its operator surface ([`source_operator_table`] +
+///    [`extract_operators`]) — source glyphs mapped back to version-stable terms;
+/// 2. derive the target major's native operator inventory ([`derive_target_inventory`]);
+/// 3. run the executor; an unbridged glyph drop (or any migration error) is a HARD FAIL,
+///    surfacing the named `lang:GmnUnbridgedGlyphDrop` class and a non-zero exit — never a
+///    silent repair;
+/// 4. re-emit the migrated document at the target major on stdout ([`reemit_migrated_document`]),
+///    reporting the crossing's preservation JUDGMENT (never a boolean) on stderr.
+///
+/// A missing/unreadable input, a document with no `@gmn{v: …}` header, an out-of-window source
+/// major, an unloadable dictionary, or a malformed migration leg are each a HARD FAIL (exit 1).
+pub fn migrate(
+    reporter: &dyn Reporter,
+    input: &Path,
+    correspondence: &str,
+    migrations: &Path,
+    lang_module: Option<&Path>,
+) -> i32 {
+    // 1. The dictionary / registry + operator precedences: the embedded bundle by default, or
+    //    the `--lang-module` override — the SAME source the sibling legs resolve.
+    let base_ds = match lang_module {
+        Some(path) => match file_dataset(reporter, path) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+        None => match bundle_dataset(reporter) {
+            Ok(ds) => ds,
+            Err(code) => return code,
+        },
+    };
+    let dict = match GmnDictionary::from_dataset(&base_ds) {
+        Ok(dict) => dict,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.dictionary",
+                format!("cannot load gmeow:gmnDictV3: {}", e.0),
+            );
+        }
+    };
+
+    // 2. The authored migration leg: correspondence + rewrites + target inventory.
+    let mig_ds = match file_dataset(reporter, migrations) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let migration = match GmnMigration::from_dataset(&mig_ds, correspondence) {
+        Ok(migration) => migration,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.leg",
+                format!(
+                    "cannot load migration correspondence <{correspondence}> from {}: {e}",
+                    migrations.display()
+                ),
+            );
+        }
+    };
+
+    // 3. The stored source-major GMN-1 document.
+    let text = match std::fs::read_to_string(input) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.input-read",
+                format!("cannot read {}: {e}", input.display()),
+            );
+        }
+    };
+
+    // 4. Header presence + source-major-in-window: both HARD FAILS (no migrating on a guess).
+    let header_major = match header_schema_major(&text) {
+        Some(major) => major,
+        None => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.malformed",
+                format!(
+                    "{} carries no @gmn{{v: …}} header; a migratable GMN-1 document must pin its \
+                     source dialect major",
+                    input.display()
+                ),
+            );
+        }
+    };
+    if header_major != migration.from_version() {
+        return fail(
+            reporter,
+            "gmeow-cli.gmn.migrate.version",
+            format!(
+                "{} pins dialect major {header_major:?} but migration <{correspondence}> migrates \
+                 FROM major {:?}; the stored document is outside the crossing's source window",
+                input.display(),
+                migration.from_version()
+            ),
+        );
+    }
+
+    // 5. Project the document to its operator surface — every glyph graph-resolved to its term.
+    let table = source_operator_table(&dict, &migration, &base_ds);
+    let record_set = extract_operators(&text, &table);
+
+    // 6. The target major's native operator inventory, graph-derived from the migration leg.
+    let target_inventory = match derive_target_inventory(&mig_ds, correspondence) {
+        Ok(inventory) => inventory,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.leg",
+                format!(
+                    "cannot derive the target-major operator inventory for <{correspondence}>: {e}"
+                ),
+            );
+        }
+    };
+
+    // 7. Run the executor. An unbridged glyph drop (or any migration error) is a HARD FAIL that
+    //    surfaces the named lang: conformance class — never a silent repair or degrade.
+    let migrated = match migration.migrate(&record_set, &target_inventory) {
+        Ok(migrated) => migrated,
+        Err(e) => {
+            let class = e.failure_class().unwrap_or("(none)");
+            return fail(
+                reporter,
+                "gmeow-cli.gmn.migrate.unbridged",
+                format!(
+                    "migration <{correspondence}> cannot re-emit {} at major {}: {e} [{class}]",
+                    input.display(),
+                    migration.to_version()
+                ),
+            );
+        }
+    };
+
+    // 8. Re-emit at the target major on stdout; report the preservation JUDGMENT on stderr.
+    print!(
+        "{}",
+        reemit_migrated_document(&text, &record_set, &migrated, migration.to_version())
+    );
+    eprintln!(
+        "gmn migrate: <{correspondence}> major {} -> {}, preservation logic:{}, {} operator(s) \
+         migrated",
+        migration.from_version(),
+        migration.to_version(),
+        migrated.preservation.as_str(),
+        migrated.operators.len(),
+    );
+    0
 }
 
 // ── small structural helpers ───────────────────────────────────────────────────

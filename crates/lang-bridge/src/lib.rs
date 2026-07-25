@@ -72,7 +72,9 @@ pub use gmn_consume::{
 pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
 pub use gmn_migrate::{
     GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,
-    OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
+    OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, derive_target_inventory, extract_operators,
+    header_schema_major, reemit_migrated_document, resolved_schema_version, source_operator_table,
+    tag_schema_version,
 };
 #[cfg(not(target_arch = "wasm32"))]
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};

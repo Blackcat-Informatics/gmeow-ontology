@@ -790,6 +790,16 @@ impl GmnGlyphRegistry {
         Self::binding_rows(&self.fallback_to_term)
     }
 
+    /// The executable glyph bindings as `(sigil, glyph, fixity, arity, term)` rows in stable
+    /// key order (fixity/arity flattened to `""` when the operator carries no signature) — the
+    /// public view of the SAME graph-derived table the codebook digest folds. The GMN version
+    /// migration executor reads this to map a stored document's source glyphs back to the
+    /// version-stable terms they denote, never a hardcoded symbol table.
+    #[must_use]
+    pub fn bindings(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.glyph_to_term)
+    }
+
     fn binding_rows(
         table: &BTreeMap<(String, String, GmnGlyphSignature), String>,
     ) -> Vec<(String, String, String, String, String)> {
