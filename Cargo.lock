@@ -228,6 +228,12 @@ checksum = "be5eb007b7cacc6c660343e96f650fedf4b5a77512399eb952ca6642cf8d13f7"
 
 [[package]]
 name = "base64"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
@@ -392,6 +398,15 @@ name = "cast"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
+
+[[package]]
+name = "castaway"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dec551ab6e7578819132c713a93c022a05d60159dc86e7a7050223577484c55a"
+dependencies = [
+ "rustversion",
+]
 
 [[package]]
 name = "cc"
@@ -585,6 +600,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "compact_str"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9dfdd1c2274d9aa354115b09dc9a901d6c5576818cdf70d14cae2bdb47df00ab"
+dependencies = [
+ "castaway",
+ "cfg-if",
+ "itoa",
+ "rustversion",
+ "ryu",
+ "serde",
+ "static_assertions",
+]
+
+[[package]]
 name = "console"
 version = "0.15.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -677,7 +707,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "is-terminal",
- "itertools",
+ "itertools 0.10.5",
  "num-traits",
  "once_cell",
  "oorandom",
@@ -696,7 +726,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
 dependencies = [
  "cast",
- "itertools",
+ "itertools 0.10.5",
 ]
 
 [[package]]
@@ -830,6 +860,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d00b9596d185e565c2207a0b01f8bd1a135483d02d9b7b0a54b11da8d53412e"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.20.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
+dependencies = [
+ "darling_core",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "dary_heap"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b1e3a325bc115f096c8b77bbf027a7c2592230e70be2d985be950d3d5e60ebe"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -868,6 +942,37 @@ name = "deranged"
 version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
+
+[[package]]
+name = "derive_builder"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "507dfb09ea8b7fa618fcf76e953f4f5e192547945816d5358edffe39f6f94947"
+dependencies = [
+ "derive_builder_macro",
+]
+
+[[package]]
+name = "derive_builder_core"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d5bcf7b024d6835cfb3d473887cd966994907effbe9227e8c8219824d06c4e8"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "derive_builder_macro"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
+dependencies = [
+ "derive_builder_core",
+ "syn",
+]
 
 [[package]]
 name = "derive_more"
@@ -1048,6 +1153,12 @@ dependencies = [
  "libc",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "esaxx-rs"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d817e038c30374a4bcb22f94d0a8a0e216958d4c3dcde369b1439fec4bdda6e6"
 
 [[package]]
 name = "escape8259"
@@ -1527,6 +1638,7 @@ version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-errors",
+ "gmeow-lang-bridge",
  "gmeow-logic-compile",
  "gmeow-validate",
  "insta",
@@ -1561,6 +1673,17 @@ dependencies = [
  "serde_json",
  "tempfile",
  "unicode-normalization",
+]
+
+[[package]]
+name = "gmeow-gmn-cost-matrix"
+version = "0.2.0"
+dependencies = [
+ "blake3",
+ "gmeow-lang-bridge",
+ "purrdf",
+ "tiktoken-rs",
+ "tokenizers",
 ]
 
 [[package]]
@@ -1795,7 +1918,11 @@ dependencies = [
 name = "gmeow-validate-wasm"
 version = "0.2.0"
 dependencies = [
+ "blake3",
+ "gmeow-lang-bridge",
  "gmeow-validate",
+ "purrdf",
+ "serde_json",
  "wasm-bindgen",
 ]
 
@@ -2182,6 +2309,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1e52775179941363cc594e49ce99284d13d6948928d8e72c755f55e98caa1eb"
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "idna"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2310,6 +2443,15 @@ name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -2505,6 +2647,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "macro_rules_attribute"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65049d7923698040cd0b1ddcced9b0eb14dd22c5f86ae59c3740eab64a676520"
+dependencies = [
+ "macro_rules_attribute-proc_macro",
+ "paste",
+]
+
+[[package]]
+name = "macro_rules_attribute-proc_macro"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "670fdfda89751bc4a84ac13eaa63e205cf0fd22b4c9a5fbfa085b63c1f1d3a30"
+
+[[package]]
 name = "matchers"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2561,6 +2719,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minimal-lexical"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
 name = "miniz_oxide"
 version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2568,6 +2732,28 @@ checksum = "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316"
 dependencies = [
  "adler2",
  "simd-adler32",
+]
+
+[[package]]
+name = "monostate"
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3341a273f6c9d5bef1908f17b7267bbab0e95c9bf69a0d4dcf8e9e1b2c76ef67"
+dependencies = [
+ "monostate-impl",
+ "serde",
+ "serde_core",
+]
+
+[[package]]
+name = "monostate-impl"
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4db6d5580af57bf992f59068d4ea26fd518574ff48d7639b255a36f9de6e7e9"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2591,6 +2777,16 @@ name = "mutate_once"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
+
+[[package]]
+name = "nom"
+version = "7.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
+]
 
 [[package]]
 name = "normalize-line-endings"
@@ -2911,7 +3107,7 @@ version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da1d65da6dd5d1e44199ac0f58712d241c0f439f80adea8924d832384087f85"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "indexmap",
  "quick-xml 0.41.0",
  "serde",
@@ -3136,8 +3332,8 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 
 [[package]]
 name = "purrdf"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-columnar",
  "purrdf-entail",
@@ -3157,8 +3353,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-columnar"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-core",
  "structured-zstd",
@@ -3166,8 +3362,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-core"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "ahash",
  "csv",
@@ -3181,8 +3377,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-entail"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "ahash",
  "hashbrown 0.15.5",
@@ -3192,13 +3388,13 @@ dependencies = [
 
 [[package]]
 name = "purrdf-events"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 
 [[package]]
 name = "purrdf-gts"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "aes-gcm",
  "ahash",
@@ -3219,13 +3415,13 @@ dependencies = [
 
 [[package]]
 name = "purrdf-iri"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 
 [[package]]
 name = "purrdf-rdf"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "ahash",
  "ciborium",
@@ -3252,8 +3448,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shapes"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-iri",
  "purrdf-rdf",
@@ -3270,8 +3466,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shex"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3283,8 +3479,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-slice"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "hex",
  "petgraph",
@@ -3299,8 +3495,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-algebra"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "memchr",
  "purrdf-iri",
@@ -3310,8 +3506,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-eval"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "ahash",
  "getrandom 0.3.4",
@@ -3332,16 +3528,16 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-results"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-core",
 ]
 
 [[package]]
 name = "purrdf-validate"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3353,8 +3549,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-xsd"
-version = "0.8.2"
-source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.2#9a70cc5292ad5be49a706e2f8101c29c2c10bbc2"
+version = "0.8.3"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?tag=rust-v0.8.3#64dda6c43dd2bdef70647a9c9a112d2d32152b25"
 
 [[package]]
 name = "pxfm"
@@ -3494,6 +3690,17 @@ checksum = "fb39b166781f92d482534ef4b4b1b2568f42613b53e5b6c160e24cfbfa30926d"
 dependencies = [
  "either",
  "rayon-core",
+]
+
+[[package]]
+name = "rayon-cond"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2964d0cf57a3e7a06e8183d14a8b527195c706b7983549cd5462d5aa3747438f"
+dependencies = [
+ "either",
+ "itertools 0.14.0",
+ "rayon",
 ]
 
 [[package]]
@@ -4064,6 +4271,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "spm_precompiled"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5851699c4033c63636f7ea4cf7b7c1f1bf06d0cc03cfb42e711de5a5c46cf326"
+dependencies = [
+ "base64 0.13.1",
+ "nom",
+ "serde",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4317,7 +4536,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "027853bbf8c7763b77c5c595f1c271c7d536ced7d6f83452911b944621e57fc2"
 dependencies = [
  "anyhow",
- "base64",
+ "base64 0.22.1",
  "bstr",
  "fancy-regex 0.17.0",
  "lazy_static",
@@ -4427,6 +4646,39 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tokenizers"
+version = "0.22.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b238e22d44a15349529690fb07bd645cf58149a1b1e44d6cb5bd1641ff1a6223"
+dependencies = [
+ "ahash",
+ "aho-corasick",
+ "compact_str",
+ "dary_heap",
+ "derive_builder",
+ "esaxx-rs",
+ "fancy-regex 0.14.0",
+ "getrandom 0.3.4",
+ "itertools 0.14.0",
+ "log",
+ "macro_rules_attribute",
+ "monostate",
+ "paste",
+ "rand 0.9.4",
+ "rayon",
+ "rayon-cond",
+ "regex",
+ "regex-syntax",
+ "serde",
+ "serde_json",
+ "spm_precompiled",
+ "thiserror 2.0.18",
+ "unicode-normalization-alignments",
+ "unicode-segmentation",
+ "unicode_categories",
+]
 
 [[package]]
 name = "toml"
@@ -4819,7 +5071,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a78718a94c28b5ed5e9ee9826fa995004a81abbcc1c9d0e88a7e87656cbec5a4"
 dependencies = [
  "arrayvec",
- "base64",
+ "base64 0.22.1",
  "bytemuck",
  "comemo",
  "ecow",
@@ -4864,7 +5116,7 @@ version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "674c8e5cb94015c9f870c48bace6b64eb706075766643f3b1f67606c6b03feae"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "comemo",
  "ecow",
  "flate2",
@@ -4998,6 +5250,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "unicode-normalization-alignments"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43f613e4fa046e69818dd287fdc4bc78175ff20331479dab6e1b0f98d57062de"
+dependencies = [
+ "smallvec",
+]
+
+[[package]]
 name = "unicode-properties"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5038,6 +5299,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
 
 [[package]]
+name = "unicode_categories"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
 name = "universal-hash"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5071,7 +5338,7 @@ version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dea7109cdcd5864d4eeb1b58a1648dc9bf520360d7af16ec26d0a9354bafcfc0"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "flate2",
  "log",
  "percent-encoding",
@@ -5088,7 +5355,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e994ba84b0bd1b1b0cf92878b7ef898a5c1760108fe7b6010327e274917a808c"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "http",
  "httparse",
  "log",
@@ -5113,7 +5380,7 @@ version = "0.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6803057b5cbb426e9fb8ce2216f3a9b4ca1dd2c705ba3cbebc13006e437735fd"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "data-url",
  "flate2",
  "fontdb",
