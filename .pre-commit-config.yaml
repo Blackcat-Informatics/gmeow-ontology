@@ -28,6 +28,10 @@ repos:
             crates/lang-bridge/tests/fixtures/.*|
             crates/gmn-cost-matrix/assets/vocab/.*|
             crates/slice-quality/tests/fixtures/goldens/.*|
+            crates/docs/assets/purrdf/.*|
+            crates/docs/assets/validate/.*|
+            crates/docs/assets/reason/.*|
+            crates/docs/assets/gmn/.*|
             .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer
