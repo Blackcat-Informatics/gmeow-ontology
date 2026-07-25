@@ -244,6 +244,37 @@ impl Tier1Shapes {
                 advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
                 report.add_rule(advisory.rule());
             }
+
+            // D5 abductive tier (consumer-path twin of the pipeline / `validate_all` wiring):
+            // the constructive "what to ADD" wing. The producer is ENGINE-FREE (the relatum
+            // path warrants by construction, the sortal path by a sound class-disjointness
+            // lookup) and only READS the graph, so it never mutates the base graph nor gates
+            // the pass — every suggestion is a `Severity::Note` advisory.
+            //
+            // ASSERTED-VS-REASONED CONTRACT (validate_all.rs:869): a raw `gmeow validate <rdf>`
+            // run is honestly ASSERTED-ONLY for the user's individuals — no reasoner is run over
+            // the user graph. The producer still needs its authored `logic:AbductiveSchema`
+            // vocabulary and the TBox disjointness/subclass/howToUse axioms, which live in the
+            // bundle, so the abductive input is the user's parsed A-Box UNIONED with the bundle
+            // ontology (`self.ontology`, the bundle's already-folded reason-stage closure). This
+            // supplies the vocabulary WITHOUT fabricating any entailment over the user's data.
+            let abductive_input = union_for_abductive(&self.ontology, &dataset)?;
+            for suggestion in crate::abductive::abductive_advisories(&abductive_input) {
+                // Attach the warrant Diag first, capturing its DiagRef, then attach the advisory
+                // Diag carrying a genuine finding→finding antecedent to that warrant — the same
+                // dual projection `validate_all` performs, so the abductive findings carry real
+                // ledger identity (finding_iri/anchor + the findingAntecedent warrant edge) and
+                // the warrant join resolves non-DARK.
+                let warrant_ref =
+                    advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+                let projection = suggestion.advisory.project();
+                advisory_ledger.attach(
+                    projection.diag.with_antecedents([warrant_ref]),
+                    StageId::new("validate.advisory"),
+                );
+                report.add_rule(suggestion.advisory.rule());
+            }
+
             for note in advisory_ledger.findings("validate") {
                 report.add_finding(note);
             }
@@ -684,6 +715,29 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<Rd
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Dataset {
             detail: format!("flatten data graph to default graph: {e}"),
+        })
+    })
+}
+
+/// Build the abductive producer's input graph: the bundle `ontology` (its authored
+/// `logic:AbductiveSchema` vocabulary + the TBox disjointness/subclass/howToUse axioms,
+/// carrying the folded reason-stage closure) UNIONED with the user's parsed A-Box
+/// `data` graph. The union supplies the producer the vocabulary it needs to discover
+/// schemas and refute sortals WITHOUT running any reasoner over the user's data — the
+/// honest ASSERTED-ONLY consumer surface (validate_all.rs:869). Each side is pushed
+/// under a fresh blank scope; the frozen result is only READ by the producer.
+#[cfg(not(target_arch = "wasm32"))]
+fn union_for_abductive(
+    ontology: &RdfDataset,
+    data: &RdfDataset,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    use purrdf::RdfDatasetBuilder;
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(ontology);
+    builder.push_dataset(data);
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!("union bundle ontology with user data for the abductive tier: {e}"),
         })
     })
 }

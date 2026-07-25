@@ -1784,6 +1784,14 @@ mod tests {
             "stage-export-result-shapes".to_string(),
             result_shapes.product,
         );
+        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure.
+        // This harness drives the docs diagnostics-to-term join, not abductive entailment, so
+        // it supplies an empty-EDB reason product (empty closure ⇒ the reasoned union is the
+        // authored source graph alone) rather than paying for a full reasoner run.
+        with_source.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
 
         let validate = crate::stages::validate::ValidateStage::new()
             .run(StageInput {
