@@ -15,6 +15,8 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Every language-tagged literal (x-gmeow-*); names' romanizations; software's languages (P16 slim core)."@x-gmeow-english .

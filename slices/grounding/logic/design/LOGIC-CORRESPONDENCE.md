@@ -118,6 +118,27 @@ This orientation is also an ownership rule: grounding catalogs live in `lang:`, 
 For the formal grounding catalog, gUFO, BFO, OBO/RO, SUMO, OWL/RDFS, and SHACL are therefore views
 of `logic:`, never sources from which `logic:` is defined.
 
+### The quantity boundary — a peer-owned source endpoint
+
+A catalog is selected by its **external** surface, but a row's GMEOW-side endpoint is selected by
+**which slice owns the concept**, and for one row the two land in different slices. SUMO is an
+upper ontology, so its boundary is `logic:`-owned and its rows live in
+[`mappings/grounding-bridges.ttl`](../mappings/grounding-bridges.ttl). SUMO nonetheless carries a
+`Quantity` class, and the [`GROUNDING.md`](../../../../docs/GROUNDING.md) tier rule fixes
+`math:Quantity` as the sole class authority for dimensioned magnitude: `logic:` may not mint a
+rival. The honest row is therefore `math:Quantity skos:broadMatch sumo:Quantity` — a
+`logic:BridgeView` / `logic:CommitmentShiftingBridge` at `logic:ValidationOnly`, because SUMO's
+`Quantity` broadly admits numbers and quantifiable entities while `math:Quantity` requires exactly
+one explicit `math:Dimension`. A `logic:Quantity → sumo:Quantity` row is the rejected alternative,
+and the foundational-bridging conformance suite pins that rejection so it cannot creep back.
+
+This is the single place `logic:` names a grounding peer's term structurally, and it is registered
+as such: the **quantity-boundary seam** (`logic:` → `math:`, carrying exactly `math:Quantity`) in
+the seam registry of [`../manifest.ttl`](../manifest.ttl). The seam carries one term on purpose —
+it sanctions naming the peer-owned quantity authority as a bridge row's source endpoint, and
+nothing else. Any further `logic:` → peer reference needs its own registration or, more usually,
+belongs in the peer that owns the term.
+
 ## The ordered law-spine
 
 A correspondence is classified by **how much invertibility it can lawfully claim**, on one ordered

@@ -7632,6 +7632,74 @@ mod tests {
         );
     }
 
+    /// NON-VACUITY, over the REAL repository: the seams actually authored in the
+    /// grounding manifests render into a page the drift gate reads back with zero
+    /// drift. The two tests above prove the markup/parser contract on a hand-built
+    /// two-seam fixture; this one proves it over the live registry, so a newly
+    /// registered seam whose carrying terms or direction legs the renderer cannot
+    /// project (or the gate cannot parse) fails HERE, at authoring time, rather than
+    /// in a `make sync SYNC_OUTPUTS=docs` run nobody has done yet. It needs the
+    /// `slices/` tree but no `generated/` tree.
+    #[test]
+    fn the_real_seam_registry_renders_into_a_drift_free_page() {
+        use crate::model::{DocSeam, DocSeamDirection};
+
+        let slices_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../slices")
+            .canonicalize()
+            .expect("the real slices/ tree");
+        let records = gmeow_validate::authoring_integrity::seam_registry_of_slices(&slices_dir)
+            .expect("read the authored gmeow:Seam registry");
+        assert!(
+            records.len() >= 6,
+            "the authored registry must be non-vacuous; got {}",
+            records.len()
+        );
+
+        let mut model = seam_model();
+        model.seams = records
+            .iter()
+            .map(|r| {
+                let mut directions: Vec<DocSeamDirection> = r
+                    .directions
+                    .iter()
+                    .map(|(from, to)| DocSeamDirection {
+                        from: from.clone(),
+                        to: to.clone(),
+                    })
+                    .collect();
+                directions.sort_by(|a, b| (&a.from, &a.to).cmp(&(&b.from, &b.to)));
+                directions.dedup();
+                DocSeam {
+                    iri: r.iri.clone(),
+                    label: Some(r.name.clone()),
+                    definition: None,
+                    directions,
+                    carrying_terms: r.carrying_term_iris.iter().cloned().collect(),
+                    owning_docs: r.owning_docs.iter().cloned().collect(),
+                }
+            })
+            .collect();
+
+        let page = md_seam_registry(&model);
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        let findings =
+            gmeow_validate::authoring_integrity::detect_seam_registry_drift(&records, &page);
+        assert!(
+            findings.is_empty(),
+            "the authored seam registry must render into a page the drift gate reads back \
+             cleanly:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+
     /// The "What GMEOW enforces" page renders the advice
     /// recommendation tier as a DISTINCT section from the compliance rules, headed by
     /// the single `#advice-` anchor and carrying each realized term's verbatim

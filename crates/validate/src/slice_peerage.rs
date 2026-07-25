@@ -7,8 +7,11 @@
 //! not automatically an ownership violation — Principle 19's peerage grant
 //! deliberately lets the three grounding slices reference each other — but that
 //! grant is not a blank cheque either: docs/GROUNDING.md's "seam registry" is the
-//! CLOSED set of six sanctioned cross-grounding reference channels, and every
-//! peered crossing must land on one of them.
+//! CLOSED set of sanctioned cross-grounding reference channels, and every peered
+//! crossing must land on one of them. (The registry's SIZE is governance data
+//! this engine never hard-codes — it reads whatever the manifests authorize; the
+//! deliberate-change gate on that size is
+//! `crates/pipeline/src/stages/carrier.rs`.)
 //!
 //! [`classify`] joins each undeclared *semantic* [`OwnershipDiagnostic`] to its
 //! computed [`DependencyEdge`] (evidence + reconciliation) and to the seam

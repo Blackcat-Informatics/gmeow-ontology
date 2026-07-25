@@ -40,16 +40,18 @@
 # --------------------------------------------------------------------------- #
 # The grounding seam registry.
 #
-# `logic:` references neither peer structurally (docs/GROUNDING.md, "The seam
-# registry"): it is the neutral registrar that hosts the closed set of six
+# `logic:` is the neutral registrar that hosts the closed set of eight
 # sanctioned cross-grounding reference channels between `lang:`, `math:`, and
-# `logic:` as canonical gmeow:Seam individuals. This registry is governance
-# data, never object-level reasoned: a Manifest-role reference such as
-# gmeow:seamCarryingTerm or gmeow:seamFromSlice/gmeow:seamToSlice is not a
-# semantic dependency edge, so naming `lang:`/`math:` term IRIs here does not
-# trip the cross-slice grounding gate. Every peered cross-slice reference
-# among the grounding slices must land on one of these six seams rather than
-# riding free on the gmeow:sliceCoFoundationalWith peerage grant.
+# `logic:` as canonical gmeow:Seam individuals (docs/GROUNDING.md, "The seam
+# registry"). This registry is governance data, never object-level reasoned: a
+# Manifest-role reference such as gmeow:seamCarryingTerm or
+# gmeow:seamFromSlice/gmeow:seamToSlice is not a semantic dependency edge, so
+# naming `lang:`/`math:` term IRIs here does not trip the cross-slice grounding
+# gate. Every peered cross-slice reference among the grounding slices must land
+# on one of these eight seams rather than riding free on the
+# gmeow:sliceCoFoundationalWith peerage grant. Seven of the eight are outbound
+# from `lang:` or `math:`; `logic:` makes exactly ONE structural reference into
+# a peer, the quantity-boundary seam, and its narrowness is the point.
 # --------------------------------------------------------------------------- #
 
 <https://blackcatinformatics.ca/gmeow/seam/denotation>
@@ -125,8 +127,52 @@
         gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
         gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
     ] ;
-    gmeow:seamCarryingTerm math:Quantity , math:hasDimension , math:quantityValue ;
+    gmeow:seamCarryingTerm math:Quantity , math:hasDimension , math:quantityValue ,
+        math:dimensionless ;
     gmeow:seamOwningDoc "MATHEMATICS-MEASURE-AND-DIMENSION.md" , "LANG-GMN.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane>
+    a gmeow:Seam ;
+    rdfs:label "GMN mathematical-plane seam"@x-gmeow-english ;
+    skos:definition "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
+    ] ;
+    gmeow:seamCarryingTerm lang:denotationTarget , gmeow:gmnCandidateTarget ,
+        gmeow:gmnDictionaryEntryTerm ,
+        math:MathematicalExpression ,
+        math:Addition , math:BoundaryOperator , math:CartesianProduct , math:CoboundaryOperator ,
+        math:Complement , math:ComplexNumber , math:DerivedDimension , math:DirectSumDecomposition ,
+        math:Division , math:Entropy , math:Exponentiation , math:ExtendedRealLine ,
+        math:ExteriorProduct , math:GeometricProduct , math:GradeProjection , math:HodgeLaplacian ,
+        math:Integer , math:KullbackLeiblerDivergence , math:LeftContraction , math:Measure ,
+        math:Morphism , math:Multiplication , math:MutualInformation , math:NaturalNumber ,
+        math:NaturalTransformation , math:Negation , math:NegativeInfinity , math:NerveComplex ,
+        math:PositiveInfinity , math:RationalNumber , math:RealNumber , math:Reversion ,
+        math:SetOperation , math:SheafLaplacian , math:Subtraction , math:VectorBinding ,
+        math:VectorBundling , math:VectorUnbinding ,
+        math:amountOfSubstanceDimension , math:closedEndpoint , math:complexNumbers ,
+        math:electricCurrentDimension , math:eulerMascheroni , math:functionComposition ,
+        math:greaterOrEqualRel , math:greaterThanRel , math:hasElement , math:integers ,
+        math:lengthDimension , math:lessOrEqualRel , math:lessThanRel ,
+        math:luminousIntensityDimension , math:massDimension , math:naturalNumbers ,
+        math:openEndpoint , math:pi , math:rationalNumbers , math:realNumbers , math:subsetOf ,
+        math:supersetRel , math:temperatureDimension , math:timeDimension ;
+    gmeow:seamOwningDoc "LANG-GMN.md" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+<https://blackcatinformatics.ca/gmeow/seam/quantity-boundary>
+    a gmeow:Seam ;
+    rdfs:label "Quantity boundary seam"@x-gmeow-english ;
+    skos:definition "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer."@x-gmeow-english ;
+    gmeow:seamDirection [
+        gmeow:seamFromSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+        gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/math>
+    ] ;
+    gmeow:seamCarryingTerm math:Quantity ;
+    gmeow:seamOwningDoc "LOGIC-CORRESPONDENCE.md" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #

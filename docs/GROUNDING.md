@@ -117,10 +117,12 @@ reference directions (who names whose terms) — is **canonical governance
 data**, not hand-maintained prose. Each seam is a `gmeow:Seam` individual
 (`gmeow:seamDirection`, `gmeow:seamCarryingTerm`, `gmeow:seamOwningDoc`)
 authored in a grounding slice's `manifest.ttl` (today, `logic:`'s registers
-all six, as the neutral registrar); the vocabulary is defined in
+all eight, as the neutral registrar); the vocabulary is defined in
 `slices/vocabulary.ttl`. A new seam requires a new `gmeow:Seam` individual
 here before the first referencing triple is authored — never a new row typed
-into this document.
+into this document. The registry's size is itself gated: the shipped-graph
+non-vacuity check in `crates/pipeline/src/stages/carrier.rs` pins the closed
+count, so a seam is added or dropped deliberately, never discovered by drift.
 
 That data reaches two projections, both derived from the manifests and never
 hand-maintained:
@@ -142,9 +144,17 @@ hand-maintained:
   projection of the same data, and a validator gate keeps it from drifting out
   of sync with the manifests.
 
-`logic:` references neither peer structurally. Prose in `logic:` definitions
-does not name `lang:`/`math:` terms; illustrative examples belong in the
-peer's own documents.
+`logic:` reaches into a peer exactly once, and the registry says where: the
+**quantity-boundary seam** carries the single term `math:Quantity`, because
+`logic:` owns the SUMO boundary while the tier rule fixes `math:Quantity` as
+the sole authority for dimensioned magnitude, so the honest bridge row has a
+peer-owned source endpoint (`LOGIC-CORRESPONDENCE.md`, "The quantity
+boundary"). Everything else `logic:` might be tempted to say about a peer's
+term belongs in the peer: a `logic:PropertyCharacteristicAssertion` about a
+`lang:`-owned property is a fact about `lang:`'s own term and is authored in
+`lang:`'s `module.ttl`, exactly as it is for a non-grounding slice. Prose in
+`logic:` definitions does not name `lang:`/`math:` terms; illustrative
+examples belong in the peer's own documents.
 
 ## Shared disciplines
 

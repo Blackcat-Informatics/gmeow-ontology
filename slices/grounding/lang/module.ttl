@@ -9947,3 +9947,258 @@ lang:UnroutedAmbiguousDenotation a logic:Situation .
 lang:UnsituatedForm a logic:Situation .
 lang:UntypedMorphology a logic:Situation .
 lang:UnwiredFlagshipScenario a logic:Situation .
+
+# =========================================================================== #
+# logic: assertion carriers for this slice's own terms                        #
+# =========================================================================== #
+# The canonical logic: carriers for the characteristics of the terms THIS slice
+# owns. Each record names one of this slice's own properties through a logic:
+# RBox predicate; the native coherence gate joins the record to enforce the
+# condition, and the OWL grounding view projects owl:FunctionalProperty from it.
+# Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and `logic:` references neither grounding
+# peer structurally (docs/GROUNDING.md, the seam rule): the logic: assertion
+# vocabulary is CONSUMED here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:glossaryConceptFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryConcept is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryConcept is functional: each glossary entry's source evokes exactly one lexical concept, the single sense-aware key the term-consistency invariant groups on, so an entry resolving to two concepts could never be judged for divergent renderings."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryConcept ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryConcept ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossaryLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryLanguage is functional: a glossary renders into exactly one BCP-47 target-language tag, because French and Mandarin consistency are separate functions and each language is its own glossary rather than two tags folded onto one."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryLanguage ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossaryPredicateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryPredicate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryPredicate is functional: each entry renders the literal of exactly one annotation predicate whose CURIE is half of the catalog msgctxt key, so two predicates on one entry would name two different catalog entries."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryPredicate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryPredicate ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossarySenseFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossarySense is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossarySense is functional: each entry carries exactly one lang:Sense — the middle corner of its OntoLex Frege triangle, minted once from the (term, source-skeleton) pair independently of target language — so a second sense would fracture the entry's single way of meaning."@x-gmeow-english ;
+    logic:characterizes gmeow:glossarySense ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossarySense ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossarySliceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossarySlice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossarySlice is functional: a glossary gathers the terminology of exactly one slice, the single owl:Ontology whose i18n/*.po catalog it projects, so an unscoped or dual-scoped glossary would belong to no coherent catalog."@x-gmeow-english ;
+    logic:characterizes gmeow:glossarySlice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossarySlice ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossarySourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossarySource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossarySource is functional: each entry renders exactly one English source literal — the single @x-gmeow-english value the catalog msgid carries — from which the projection mints the entry's one concept."@x-gmeow-english ;
+    logic:characterizes gmeow:glossarySource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossarySource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossaryTermFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryTerm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryTerm is functional: each entry renders the localizable literal of exactly one GMEOW term, the single term the projected catalog msgctxt names, so an entry cannot render a literal for two terms at once."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryTerm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryTerm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossaryTranslationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryTranslation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryTranslation is functional: each entry binds its English source to exactly one non-fuzzy target-language msgstr, so a single entry cannot carry two competing renderings of one term — divergence between distinct entries of one concept is the gated inconsistency case, not two values on one entry."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryTranslation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryTranslation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:glossaryUnitFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "glossaryUnit is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:glossaryUnit is functional: each entry attaches to exactly one lang:TranslationUnit, the single law-spine carrying its logic:Correspondence and preservation judgment, so the entry reuses one honest preservation grade rather than shadowing a second."@x-gmeow-english ;
+    logic:characterizes gmeow:glossaryUnit ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:glossaryUnit ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnArityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnArity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnArity is functional: an operator form or symbol candidate has exactly one non-negative operand count, so a glyph naming both unary and binary operations (notably minus) is split into distinct arity-bearing constructors rather than carrying two arities on one form."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnArity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnArity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnAsciiFallbackFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnAsciiFallback is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnAsciiFallback is functional: each audited symbol has exactly one ASCII rendering, since its single pinned BPE cost is the fixed comparator a token-cost disposition measures the Unicode glyph against."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnAsciiFallback ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnAsciiFallback ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateDenotationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnCandidateDenotation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnCandidateDenotation is functional: an adopted-glyph or named-key candidate points at exactly one lang:Denotation binding its form to its semantic target, so the candidate-to-sign-to-meaning chain resolves to a single denotation record."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnCandidateDenotation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnCandidateDenotation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateGlyphFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnCandidateGlyph is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnCandidateGlyph is functional: each symbol audit considers exactly one canonical NFC Unicode rendering, the single measured proposal whose BPE cost and rejection evidence must stay reproducible even when it loses."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnCandidateGlyph ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnCandidateGlyph ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnCandidateTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnCandidateTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnCandidateTarget is functional: a candidate proposes to render exactly one grounding-plane term, so distinct semantic terms take separate candidates even when they propose the same visible symbol, keeping each decision record bound to a single audited meaning."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnCandidateTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnCandidateTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDenotationGraphemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnDenotationGrapheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnDenotationGrapheme is functional: each executable denotation binds to exactly one lang:Grapheme rendering its denoted form — the single glyph the writer and reader load — so the graph join is an unambiguous symbol binding with no hard-coded symbol table."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnDenotationGrapheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnDenotationGrapheme ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDictionaryEntryAliasFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnDictionaryEntryAlias is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnDictionaryEntryAlias is functional: each dictionary entry mints exactly one compact alias string, the single token a conforming GMN-1 writer emits in place of the full IRI, which underpins the per-dictionary injectivity of the alias table."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnDictionaryEntryAlias ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnDictionaryEntryAlias ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDictionaryEntryTermFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnDictionaryEntryTerm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnDictionaryEntryTerm is functional: each dictionary entry aliases exactly one full GMEOW term, so the entry's alias stands for a single unambiguous IRI when a writer expands it."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnDictionaryEntryTerm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnDictionaryEntryTerm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDispositionBasisFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnDispositionBasis is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnDispositionBasis is functional: a symbol disposition records exactly one machine-readable evidence category — token cost, ambiguity, confusability, or semantic mismatch — so the machine-auditable reason stays a single unambiguous value while the detailed argument lives in the rationale."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnDispositionBasis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnDispositionBasis ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnDispositionRationaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnDispositionRationale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnDispositionRationale is functional: each symbol ruling carries exactly one evidence-bearing explanation, the single falsifiable statement of the measured cost comparison or semantic boundary that complements its typed basis and citation."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnDispositionRationale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnDispositionRationale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnRingLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnRingLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnRingLevel is functional: each GMN security ring sits at exactly one classification-level coordinate, the single lattice axis gmeow:gmnRingWithin's derivation reads, so the ring is one well-formed lattice point the lattice gate accepts."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnRingLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnRingLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSpokenLabelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnSpokenLabel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnSpokenLabel is functional: each audited symbol has exactly one spoken label, the single concise phrase a screen reader or speech interface should voice in place of an opaque codepoint name."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnSpokenLabel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnSpokenLabel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:gmnSymbolDispositionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmnSymbolDisposition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gmnSymbolDisposition is functional: each audited candidate resolves to exactly one of the four disposition outcomes — adopted glyph, named key, structured constructor, or semantic rejection — so uncertainty is confined to the rationale and the audit records a single unambiguous ruling."@x-gmeow-english ;
+    logic:characterizes gmeow:gmnSymbolDisposition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gmnSymbolDisposition ;
+    gmeow:graphBoxRole gmeow:boxABox .
