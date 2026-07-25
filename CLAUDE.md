@@ -4,7 +4,7 @@ Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech sta
 
 The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
 
-"make sync" is VERY expensive - you make ONLY run it if required or as part of stage3.
+"make regen" is VERY expensive - you make ONLY run it if required or as part of stage3.
 "make check" is VERY expensive - run it ONLY when you have to - ideally once in each stage.
 
 Rust optimization and advanced-language-feature work is governed by
@@ -33,8 +33,8 @@ and the no-debug-symbol policy intact.
 
 ## Regenerate & gates
 
-* Synchronize with `make sync`. The target delegates one **single, idempotent pass** to `gmeow-dev sync`; local runs default to update mode and all outputs, while CI defaults to strict read-only checking. The Rust command uses every available CPU unless `--jobs N` is explicitly supplied. A clean whole-run manifest skips a fixed-point run; an input miss executes the pipeline once. Use `make sync SYNC_VERBOSE=1` to stream live DAG stages during a miss. There is no separate diagnostics or docs pipeline.
-* `generated/dist/gmeow.gts` is now a git-ignored local product (not tracked, no merge driver); after integrating `main`, run `make sync` once to re-materialize it from the merged sources. A stale local bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle projection + the declared inventory against the materialized tree semantically because it is CBOR and cannot use a byte-only comparison.
+* Synchronize with `make regen`. The target delegates one **single, idempotent pass** to `gmeow-dev sync`; local runs default to update mode and all outputs, while CI defaults to strict read-only checking. The Rust command uses every available CPU unless `--jobs N` is explicitly supplied. A clean whole-run manifest skips a fixed-point run; an input miss executes the pipeline once. Use `make regen SYNC_VERBOSE=1` to stream live DAG stages during a miss. There is no separate diagnostics or docs pipeline.
+* `generated/dist/gmeow.gts` is now a git-ignored local product (not tracked, no merge driver); after integrating `main`, run `make regen` once to re-materialize it from the merged sources. A stale local bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle projection + the declared inventory against the materialized tree semantically because it is CBOR and cannot use a byte-only comparison.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
 
 ## Canonical sources & forward direction
@@ -52,8 +52,8 @@ and the no-debug-symbol policy intact.
 * Run format: `make fmt`
 * Run lint: `make lint`
 * Validate Turtle & SHACL: `make validate`
-* Regenerate generated artifacts: `make sync`
-* Check generated artifacts: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
+* Regenerate generated artifacts: `make regen`
+* Check generated artifacts: `make check-sync`
 * Run native reasoning: `make reason`
 * Run native verification: `make verify`
 * Run native reasoning + verification together: `make reason-verify`
@@ -67,7 +67,7 @@ and the no-debug-symbol policy intact.
 
 ## Generated and Release Outputs
 
-* Regenerate docs: `make sync SYNC_OUTPUTS=docs`
+* Regenerate docs: `make regen SYNC_OUTPUTS=docs`
 * Build dist serializations: `make build`
 * Run release build: `make release`
 * Sign a release GTS: `make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts`

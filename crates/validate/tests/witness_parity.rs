@@ -44,10 +44,10 @@ fn native_tier1_validation_matches_the_witness_attestation() {
     let bundle = match std::fs::read(&bundle_path) {
         Ok(b) => b,
         // The bundle is a generated artifact; without it (a bare checkout that has
-        // not run `make sync`) the parity witness cannot run. That is unfinished
+        // not run `make regen`) the parity witness cannot run. That is unfinished
         // work for the sync gate, not a pass — surface it loudly.
         Err(e) => panic!(
-            "witness needs the generated bundle {} (run `make sync`): {e}",
+            "witness needs the generated bundle {} (run `make regen`): {e}",
             bundle_path.display()
         ),
     };

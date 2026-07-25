@@ -288,7 +288,7 @@ mod tests {
         let root = repo_root();
         let fresh = render_skos_surface(&root).expect("render");
         let committed = std::fs::read_to_string(root.join(SKOS_SURFACE_PATH))
-            .expect("materialized generated/skos/gmeow-skos.ttl (run `make sync` first)");
+            .expect("materialized generated/skos/gmeow-skos.ttl (run `make regen` first)");
         let triple_keys = |ttl: &str| -> BTreeSet<String> {
             let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
                 .expect("skos surface parses as valid Turtle");

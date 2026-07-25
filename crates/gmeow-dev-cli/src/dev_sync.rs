@@ -31,7 +31,7 @@ const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
 /// lock instead of the machine-wide one). Must match the `xtask` copy.
 const HOST_LOCK_ENV: &str = "GMEOW_TASK_HOST_LOCK";
 
-/// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check` / `make sync`) runs on
+/// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check` / `make regen`) runs on
 /// the entire host at a time, regardless of worktree, so sibling-worktree gates cannot
 /// interfere. Byte-identical to `crates/xtask/src/main.rs::host_lock_path` so both the
 /// `xtask` check runner and this `gmeow-dev sync` writer contend on the SAME file.
@@ -88,7 +88,7 @@ impl TaskLock {
         }
 
         // HOST-GLOBAL lock: at most one GMEOW gate runs on the whole host at a time, so a
-        // standalone `make sync` here cannot interfere with a `make check`/`make sync` in
+        // standalone `make regen` here cannot interfere with a `make check`/`make regen` in
         // ANY sibling worktree. (Re-entrant descendants of a running check skip this via
         // the token check above.)
         use std::os::unix::fs::PermissionsExt;

@@ -94,9 +94,9 @@ fn target_recipe(source: &str, target: &str) -> String {
 fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
-        source.contains("run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        source.contains("run: make regen SYNC_MODE=update SYNC_OUTPUTS=docs"),
         "AC3 (source-backed export): .github/workflows/pages.yml must render the \
-         Pages site from canonical sources via the exact step `run: make sync SYNC_MODE=update \
+         Pages site from canonical sources via the exact step `run: make regen SYNC_MODE=update \
          SYNC_OUTPUTS=docs` — it must never publish a stale or hand-copied tree"
     );
     assert!(
@@ -112,12 +112,13 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
 }
 
 #[test]
-fn ac3_makefile_sync_delegates_to_gmeow_dev_sync() {
+fn ac3_makefile_regen_delegates_to_gmeow_dev_sync() {
     let source = makefile();
-    let recipe = target_recipe(&source, "sync");
+    // `make sync` was removed; the standalone regenerate lane is `make regen`.
+    let recipe = target_recipe(&source, "regen");
     assert!(
         recipe.contains("$(GMEOW_DEV) sync"),
-        "AC3: the standalone Makefile `sync:` recipe must delegate to the single \
+        "AC3: the standalone Makefile `regen:` recipe must delegate to the single \
          `$(GMEOW_DEV) sync` producer binary invocation; recipe was: {recipe:?}"
     );
 }
@@ -539,7 +540,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
         panic!(
             "cannot read the shipped bundle {} ({e}); materialize it first with \
-             `make sync SYNC_OUTPUTS=generated`",
+             `make regen SYNC_OUTPUTS=generated`",
             bundle_path.display()
         )
     });
@@ -552,7 +553,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
 
 /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
 /// source (a pure function of committed, tracked sources — no dependency on a prior
-/// `make sync` materializing the git-ignored `generated/` tree) and fold it into a
+/// `make regen` materializing the git-ignored `generated/` tree) and fold it into a
 /// minimal synthetic GTS snapshot carrying just the `queries-archive` blob, exactly
 /// as the real bundle carries it. Mirrors the equivalent private test helper in
 /// `crates/pipeline/src/docs_distribution.rs`, built here from ONLY the public API

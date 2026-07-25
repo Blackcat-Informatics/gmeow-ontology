@@ -174,13 +174,13 @@ pub fn blake3_of(bytes: &[u8]) -> String {
 /// publish path attaches as a content-addressed asset).
 ///
 /// No-optionality: a missing `dir` or an empty tree is a HARD FAIL — the caller
-/// must materialize the docs distribution first (`make sync SYNC_OUTPUTS=docs`);
+/// must materialize the docs distribution first (`make regen SYNC_OUTPUTS=docs`);
 /// this function never silently produces an empty archive.
 pub fn package_docs_dir(dir: &Path) -> Result<(Vec<u8>, String), Diag> {
     if !dir.is_dir() {
         return Err(err(format!(
             "docs distribution directory {} is missing — materialize it first with \
-             `make sync SYNC_MODE=update SYNC_OUTPUTS=docs`",
+             `make regen SYNC_MODE=update SYNC_OUTPUTS=docs`",
             dir.display()
         )));
     }
@@ -432,7 +432,7 @@ pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>
     if catalog.is_empty() {
         return Err(err(format!(
             "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
-             distribution catalog is missing; re-materialize the bundle with `make sync`"
+             distribution catalog is missing; re-materialize the bundle with `make regen`"
         )));
     }
 
@@ -569,7 +569,7 @@ pub fn verify_docs_distribution(
     let bytes = std::fs::read(&manifest_path).map_err(|e| {
         err(format!(
             "read the DCAT distribution manifest {}: {e} — materialize it first with \
-             `make sync SYNC_MODE=update SYNC_OUTPUTS=docs`",
+             `make regen SYNC_MODE=update SYNC_OUTPUTS=docs`",
             manifest_path.display()
         ))
     })?;
@@ -684,7 +684,7 @@ mod tests {
 
     /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
     /// source (a pure function of committed, tracked sources — no dependency on a
-    /// prior `make sync` materializing the git-ignored `generated/` tree) and fold it
+    /// prior `make regen` materializing the git-ignored `generated/` tree) and fold it
     /// into a minimal synthetic GTS snapshot carrying just the `queries-archive` blob,
     /// exactly as the real bundle carries it (`REP_QUERIES`, basename-keyed member
     /// `dcat.rq`). This is the same fixture-construction idiom
@@ -947,7 +947,7 @@ mod tests {
     // ── read_distribution_matrix ────────────────────────────────────────────────
 
     /// Fold the REAL [`crate::stages::distribution_catalog::build_distribution_catalog`]
-    /// output (a pure function of committed sources — no `make sync` dependency) into a
+    /// output (a pure function of committed sources — no `make regen` dependency) into a
     /// minimal synthetic GTS snapshot carrying just that named graph, exactly as the
     /// real bundle carries it.
     fn synthetic_gts_with_catalog() -> Vec<u8> {
