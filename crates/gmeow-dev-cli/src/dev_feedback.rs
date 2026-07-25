@@ -459,9 +459,9 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 .analyze()
                 .map_err(error::feedback)?;
             let mut r = Report::new("slice-ownership");
-            for finding in
-                gmeow_validate::slice_peerage::peerage_aware_ownership_findings(&analysis, &catalog)?
-            {
+            for finding in gmeow_validate::slice_peerage::peerage_aware_ownership_findings(
+                &analysis, &catalog,
+            )? {
                 r.add_finding(finding);
             }
             Ok(r)

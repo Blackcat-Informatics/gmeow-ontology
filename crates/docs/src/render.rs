@@ -3298,7 +3298,10 @@ fn md_seam_registry(model: &DocsModel) -> String {
         return out;
     }
 
-    push_line(&mut out, "| Seam | Direction | Carrying terms | Owning doc |");
+    push_line(
+        &mut out,
+        "| Seam | Direction | Carrying terms | Owning doc |",
+    );
     push_line(&mut out, "| --- | --- | --- | --- |");
     for seam in &model.seams {
         let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));

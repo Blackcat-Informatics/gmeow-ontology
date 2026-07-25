@@ -596,7 +596,12 @@ impl Stage for SourceLoadStage {
         // narrowing of the whole authored corpus compile-logic reads — so compile-logic
         // consumes it as a typed entity and a documentation-only edit no longer busts the
         // compiler's cache.
-        "source_load.v5-logic-compile-inputs"
+        // v6: attach the `graph/grounding-seams` named graph — the authored `gmeow:Seam`
+        // registry re-projected losslessly off the SAME slice catalog the slice-analysis
+        // graph reads. A `manifest.ttl` never enters the composed fold, so this graph is
+        // the only path by which the closed set of sanctioned cross-grounding reference
+        // channels reaches `gmeow.gts`.
+        "source_load.v6-grounding-seams"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored

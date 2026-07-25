@@ -41,8 +41,9 @@ fn the_peerage_aware_dependency_gate_is_clean_on_the_real_corpus() {
         .analyze()
         .expect("analyze slice ownership over the real corpus");
 
-    let findings = gmeow_validate::slice_peerage::peerage_aware_ownership_findings(&report, &catalog)
-        .expect("peerage-aware ownership projection must not hard-fail (join totality holds)");
+    let findings =
+        gmeow_validate::slice_peerage::peerage_aware_ownership_findings(&report, &catalog)
+            .expect("peerage-aware ownership projection must not hard-fail (join totality holds)");
 
     let errors: Vec<&gmeow_errors::Finding> = findings
         .iter()

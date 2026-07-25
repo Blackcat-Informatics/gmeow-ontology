@@ -231,7 +231,7 @@ gmeow:attachesGraph
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "attaches graph"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:PipelineStage to a named-graph IRI it ATTACHES to the in-memory carrier — a graph present in its output product bundle but NOT in its assembled input (its attach DELTA, PIPELINE_SPINE §3 rule 3). Multi-valued: a stage may attach several graphs (e.g. gmeow:stage-source-load attaches the seven self-description graphs; gmeow:stage-snapshot attaches the per-file fanout / EDOAL reconstruction graphs). The range is the IRI of a carrier named graph, not a stage. The Rust Stage's attaches_graphs() must agree with this declaration exactly (Rust/RDF agreement, proved at load), and the scheduler HARD-fails if the stage's actual run-time delta diverges from it in either direction (gmeow:attachesGraph is the run-verified contract, not documentation)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PipelineStage to a named-graph IRI it ATTACHES to the in-memory carrier — a graph present in its output product bundle but NOT in its assembled input (its attach DELTA, PIPELINE_SPINE §3 rule 3). Multi-valued: a stage may attach several graphs (e.g. gmeow:stage-source-load attaches the self-description graphs; gmeow:stage-snapshot attaches the per-file fanout / EDOAL reconstruction graphs). The range is the IRI of a carrier named graph, not a stage. The Rust Stage's attaches_graphs() must agree with this declaration exactly (Rust/RDF agreement, proved at load), and the scheduler HARD-fails if the stage's actual run-time delta diverges from it in either direction (gmeow:attachesGraph is the run-verified contract, not documentation)."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> ."@x-gmeow-english ;
     gmeow:useWhen "Declare a named graph a build stage contributes to the carrier, so the dependency order is derivable and the superset gate can map every output to its producer — and so the scheduler can verify at run time that the stage attaches exactly what it declares (no undeclared or unfulfilled attachment)."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT list a graph the stage merely carries forward from an upstream product (that is the upstream's attach, not this stage's — the delta subtracts the assembled input). Do NOT use it for the byte-artifact lane (logical paths) or blob-representation lanes; those are gmeow:attachesBlobRep."@x-gmeow-english ;
@@ -1127,6 +1127,7 @@ gmeow:stage-gts-sink
 gmeow:stage-source-load
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/authored-default> ,
+        <https://blackcatinformatics.ca/gmeow/graph/grounding-seams> ,
         <https://blackcatinformatics.ca/gmeow/graph/imports> ,
         <https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs> ,
         <https://blackcatinformatics.ca/gmeow/graph/metadata> ,

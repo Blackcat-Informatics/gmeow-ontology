@@ -3257,15 +3257,16 @@ fn extract_seams(store: &Store) -> Vec<DocSeam> {
         let definition = first_literal(store, &iri, SKOS_DEFINITION)
             .or_else(|| first_literal(store, &iri, RDFS_COMMENT));
 
-        let mut directions: Vec<DocSeamDirection> = blank_objects(store, &iri, GMEOW_SEAM_DIRECTION)
-            .into_iter()
-            .filter_map(|blank| {
-                let node = Node::Blank(blank);
-                let from = first_named_of_node(store, &node, GMEOW_SEAM_FROM_SLICE)?;
-                let to = first_named_of_node(store, &node, GMEOW_SEAM_TO_SLICE)?;
-                Some(DocSeamDirection { from, to })
-            })
-            .collect();
+        let mut directions: Vec<DocSeamDirection> =
+            blank_objects(store, &iri, GMEOW_SEAM_DIRECTION)
+                .into_iter()
+                .filter_map(|blank| {
+                    let node = Node::Blank(blank);
+                    let from = first_named_of_node(store, &node, GMEOW_SEAM_FROM_SLICE)?;
+                    let to = first_named_of_node(store, &node, GMEOW_SEAM_TO_SLICE)?;
+                    Some(DocSeamDirection { from, to })
+                })
+                .collect();
         directions.sort();
         directions.dedup();
 
@@ -4621,7 +4622,10 @@ ex:elProjectionReport a gmeow:InformationObject ;
         let seams = extract_seams(&store);
         assert_eq!(seams.len(), 1);
         let seam = &seams[0];
-        assert_eq!(seam.iri, "https://blackcatinformatics.ca/gmeow/seam/denotation");
+        assert_eq!(
+            seam.iri,
+            "https://blackcatinformatics.ca/gmeow/seam/denotation"
+        );
         assert_eq!(seam.label.as_deref(), Some("Denotation seam"));
         assert_eq!(seam.definition.as_deref(), Some("The lang -> logic seam."));
         assert_eq!(

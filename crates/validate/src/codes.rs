@@ -188,8 +188,7 @@ pub const SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE: &str = "slice-discipline.asymmetr
 /// A slice's `gmeow:GroundingSlice` typing disagrees with its location under
 /// `slices/grounding/*`: a slice under that directory not typed
 /// `gmeow:GroundingSlice`, or a slice typed `gmeow:GroundingSlice` outside it.
-pub const SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT: &str =
-    "slice-discipline.grounding-marker-drift";
+pub const SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT: &str = "slice-discipline.grounding-marker-drift";
 /// Family base for `slice-discipline.*`.
 pub const SLICE_DISCIPLINE_FAMILY: &str = "slice-discipline.";
 

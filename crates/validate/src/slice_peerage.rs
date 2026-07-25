@@ -183,25 +183,41 @@ pub(crate) fn seam_term_curie(iri: &str) -> String {
 }
 
 /// One `gmeow:Seam` individual's canonical data, read directly off a grounding
-/// slice's `manifest.ttl` — the single reader both the R7 seam-registry drift
-/// gate (`crate::authoring_integrity`) and this peerage-coverage engine share.
-pub(crate) struct SeamRecord {
+/// slice's `manifest.ttl` — the single reader the R7 seam-registry drift gate
+/// (`crate::authoring_integrity`), this peerage-coverage engine, and the shipped
+/// `graph/grounding-seams` bundle graph
+/// (`crates/pipeline/src/stages/carrier.rs::grounding_seams_turtle`) all share.
+///
+/// The field set is LOSSLESS over the authored registry: label (with its language
+/// tag), directed legs, carrying terms, and owning docs — so the bundle graph the
+/// pipeline emits from these records reconstructs the whole registry, and the gate
+/// and the shipped data can never disagree about what a seam says.
+/// Field order is load-bearing for the derived [`Ord`]: `iri` leads, so sorting a
+/// registry orders it by seam IRI first (what the shipped-graph emitter relies on)
+/// while still totalling over the whole record.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct SeamRecord {
     /// The seam's own IRI (`a gmeow:Seam` subject).
-    pub(crate) iri: String,
+    pub iri: String,
     /// `rdfs:label` (lexically-lowest, deterministic), falling back to the
-    /// seam's CURIE when unlabeled.
-    pub(crate) name: String,
+    /// seam's CURIE when unlabeled. A convenience projection of the first
+    /// [`SeamRecord::labels`] entry — never a second read.
+    pub name: String,
+    /// EVERY `rdfs:label` of the seam as a `(lexical form, language tag)` pair,
+    /// sorted and deduped. Carried in full (not collapsed to [`SeamRecord::name`])
+    /// so a re-emission of this record loses no authored label and no language tag.
+    pub labels: Vec<(String, Option<String>)>,
     /// `gmeow:seamCarryingTerm` objects, reduced to `family:Local` CURIEs (for
     /// the R7 page-drift text comparison ONLY).
-    pub(crate) carrying_terms: BTreeSet<String>,
+    pub carrying_terms: BTreeSet<String>,
     /// `gmeow:seamCarryingTerm` objects, as raw term IRIs — the exact-IRI set
     /// [`classify`] matches a crossing's referenced term against.
-    pub(crate) carrying_term_iris: BTreeSet<String>,
+    pub carrying_term_iris: BTreeSet<String>,
     /// `gmeow:seamDirection` legs, each a `(from_slice_iri, to_slice_iri)` pair,
     /// sorted and deduped.
-    pub(crate) directions: Vec<(String, String)>,
+    pub directions: Vec<(String, String)>,
     /// `gmeow:seamOwningDoc` literal values.
-    pub(crate) owning_docs: BTreeSet<String>,
+    pub owning_docs: BTreeSet<String>,
 }
 
 /// The IRI object of `<subject> <pred> ?o`, where `subject` is a blank node (a
@@ -245,7 +261,7 @@ fn parse_err(path: &Path, e: &str) -> Diag {
 /// `gmeow_docs::model::extract_seams`'s discovery gate; today only `logic:`'s
 /// manifest carries the registry, but a future seam authored in `lang:`/`math:`
 /// is picked up without a code change).
-pub(crate) fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecord>> {
+pub fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecord>> {
     let mut out = Vec::new();
     let grounding = ds
         .subjects_of_type(GMEOW_GROUNDING_SLICE)
@@ -257,15 +273,25 @@ pub(crate) fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecor
         .subjects_of_type(GMEOW_SEAM)
         .map_err(|e| parse_err(path, &e.to_string()))?
     {
-        let name = ds
+        // EVERY authored `rdfs:label`, with its language tag, sorted so the
+        // lexically-lowest lexical form leads (the historical, deterministic
+        // `name`) and so a re-emission of the record is byte-stable.
+        let mut labels: Vec<(String, Option<String>)> = ds
             .objects(&seam_iri, RDFS_LABEL_TERM)
             .map_err(|e| parse_err(path, &e.to_string()))?
             .into_iter()
             .filter_map(|o| match o {
-                Object::Literal { value, .. } => Some(value),
+                Object::Literal {
+                    value, language, ..
+                } => Some((value, language)),
                 _ => None,
             })
-            .min()
+            .collect();
+        labels.sort();
+        labels.dedup();
+        let name = labels
+            .first()
+            .map(|(value, _)| value.clone())
             .unwrap_or_else(|| seam_term_curie(&seam_iri));
         let carrying_term_iris: BTreeSet<String> = ds
             .object_iris(&seam_iri, GMEOW_SEAM_CARRYING_TERM)
@@ -304,6 +330,7 @@ pub(crate) fn seam_records_of(ds: &Dataset, path: &Path) -> Result<Vec<SeamRecor
         out.push(SeamRecord {
             iri: seam_iri,
             name,
+            labels,
             carrying_terms,
             carrying_term_iris,
             directions,
@@ -384,13 +411,22 @@ fn tier_priorities(catalog: &SliceCatalog) -> BTreeMap<SliceIri, u8> {
         .collect()
 }
 
-/// Every `gmeow:Seam` individual across every grounding manifest in `catalog`.
-fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
+/// Every `gmeow:Seam` individual across every grounding manifest in `catalog`,
+/// sorted by seam IRI.
+///
+/// This is the SINGLE catalog-scoped seam reader: [`classify`]'s coverage join
+/// reads it, and `crates/pipeline`'s `graph/grounding-seams` emitter reads it to
+/// build the shipped registry graph — so the gate and the bundle data can never
+/// disagree about what the registry contains. The sort makes the returned order a
+/// function of the authored data alone (never of catalog discovery order), which
+/// the emitter's byte determinism rests on.
+pub fn seam_registry(catalog: &SliceCatalog) -> Result<Vec<SeamRecord>> {
     let mut out = Vec::new();
     for record in catalog.records() {
         let ds = manifest_dataset(record);
         out.extend(seam_records_of(&ds, &record.manifest_path())?);
     }
+    out.sort();
     Ok(out)
 }
 
@@ -537,11 +573,17 @@ impl ReferencePredicateIndex {
                 let mut term_predicates: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
                 ds.for_each_quad(|_s, p, o, _g| {
                     if let Object::Named(iri) = o {
-                        term_predicates.entry(iri).or_default().insert(p.to_string());
+                        term_predicates
+                            .entry(iri)
+                            .or_default()
+                            .insert(p.to_string());
                     }
                 });
                 by_artifact.insert(
-                    (record.manifest.slice_iri.clone(), artifact.logical_path.clone()),
+                    (
+                        record.manifest.slice_iri.clone(),
+                        artifact.logical_path.clone(),
+                    ),
                     (artifact.role.clone(), term_predicates),
                 );
             }
@@ -842,7 +884,10 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
 /// `sliceDependsOn` with no semantic backing) is a distinct, orthogonal
 /// concern this function does not touch: there is no term-usage evidence to
 /// classify, so it is judged on tier alone exactly as before.
-fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Vec<Finding>> {
+fn forbidden_tier_findings(
+    report: &OwnershipReport,
+    catalog: &SliceCatalog,
+) -> Result<Vec<Finding>> {
     let tiers = tier_priorities(catalog);
     let all_slice_iris = slice_iris(catalog);
     let reference_predicates = ReferencePredicateIndex::build(catalog)?;
@@ -1134,7 +1179,11 @@ mod tests {
     /// exercise Class 4 (`ArtifactRole::CompetencyQuery`) and Class 5
     /// (`ArtifactRole::Mapping`), which [`artifact_evidence`]'s hard-coded
     /// `Module`/`module.ttl` cannot represent.
-    fn artifact_evidence_with(slice: &str, role: ArtifactRole, logical_path: &str) -> ArtifactEvidence {
+    fn artifact_evidence_with(
+        slice: &str,
+        role: ArtifactRole,
+        logical_path: &str,
+    ) -> ArtifactEvidence {
         ArtifactEvidence {
             slice: slice.to_string(),
             role,
@@ -1711,7 +1760,9 @@ mod tests {
                         ArtifactRole::CompetencyQuery,
                         "queries/competency/can-quality-answer.rq",
                     ),
-                    referenced_term: nn("https://blackcatinformatics.ca/gmeow/widgetCompetencyTerm"),
+                    referenced_term: nn(
+                        "https://blackcatinformatics.ca/gmeow/widgetCompetencyTerm",
+                    ),
                 }],
                 ReconciliationStatus::Undeclared,
             )],
@@ -1931,7 +1982,10 @@ mod tests {
 
         let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
         assert_eq!(findings.len(), 1, "{findings:?}");
-        assert_eq!(findings[0].code, crate::codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY);
+        assert_eq!(
+            findings[0].code,
+            crate::codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY
+        );
         assert_eq!(findings[0].severity, Severity::Error);
         assert!(findings[0].message.contains(TIER_CORE_SLICE));
         assert!(findings[0].message.contains(TIER_EXT_A));

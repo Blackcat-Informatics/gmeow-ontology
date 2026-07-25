@@ -428,7 +428,10 @@ pub fn peerage_discipline_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
 }
 
 /// The pure peerage-discipline logic over already-parsed manifests.
-fn detect_peerage_discipline(manifests: &[(PathBuf, Dataset)], root: &Path) -> Result<Vec<Finding>> {
+fn detect_peerage_discipline(
+    manifests: &[(PathBuf, Dataset)],
+    root: &Path,
+) -> Result<Vec<Finding>> {
     use std::collections::BTreeSet;
 
     let mut findings = Vec::new();
@@ -1563,10 +1566,8 @@ mod tests {
 
     #[test]
     fn peerage_discipline_flags_non_grounding_slice_declaring_peerage() {
-        let a = ds(
-            "ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
-             gmeow:sliceCoFoundationalWith ex:two .",
-        );
+        let a = ds("ex:one a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
+             gmeow:sliceCoFoundationalWith ex:two .");
         let b = ds("ex:two a gmeow:Slice ; gmeow:sliceTier gmeow:tierCore ; \
              gmeow:sliceCoFoundationalWith ex:one .");
         let findings = detect_peerage_discipline(
@@ -1585,7 +1586,11 @@ mod tests {
         // relation IS mutually symmetric — only the non-grounding-peerage gate
         // fires (twice, once per non-grounding declarer), never the asymmetry
         // gate.
-        assert_eq!(non_grounding.len(), 2, "both non-grounding peers flagged: {findings:?}");
+        assert_eq!(
+            non_grounding.len(),
+            2,
+            "both non-grounding peers flagged: {findings:?}"
+        );
         assert!(
             findings
                 .iter()
@@ -1913,7 +1918,8 @@ mod tests {
     // ── R7: grounding seam-registry drift ────────────────────────────────────
 
     fn sample_seam_manifest() -> Dataset {
-        ds("<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .\n\
+        ds(
+            "<https://blackcatinformatics.ca/gmeow/slices/logic> a gmeow:Slice, gmeow:GroundingSlice .\n\
             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
             @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
             <https://blackcatinformatics.ca/gmeow/seam/denotation>\n\
@@ -1924,7 +1930,8 @@ mod tests {
                     gmeow:seamToSlice <https://blackcatinformatics.ca/gmeow/slices/logic>\n\
                 ] ;\n\
                 gmeow:seamCarryingTerm lang:denotationTarget , lang:denotationKind ;\n\
-                gmeow:seamOwningDoc \"LANG-MEANING.md\" .\n")
+                gmeow:seamOwningDoc \"LANG-MEANING.md\" .\n",
+        )
     }
 
     #[test]
@@ -1951,8 +1958,10 @@ mod tests {
     fn seam_records_of_ignores_a_non_grounding_slice_manifest() {
         // A gmeow:Seam authored on a slice NOT typed gmeow:GroundingSlice must not
         // be picked up (mirrors gmeow_docs::model::is_grounding_slice's gate).
-        let d = ds("<https://blackcatinformatics.ca/gmeow/slices/plain> a gmeow:Slice .\n\
-                    <https://blackcatinformatics.ca/gmeow/seam/rogue> a gmeow:Seam ; rdfs:label \"Rogue\"@x-gmeow-english .\n");
+        let d = ds(
+            "<https://blackcatinformatics.ca/gmeow/slices/plain> a gmeow:Slice .\n\
+                    <https://blackcatinformatics.ca/gmeow/seam/rogue> a gmeow:Seam ; rdfs:label \"Rogue\"@x-gmeow-english .\n",
+        );
         let records = seam_records_of(&d, Path::new("manifest.ttl")).unwrap();
         assert!(records.is_empty());
     }

@@ -105,10 +105,27 @@ authored in a grounding slice's `manifest.ttl` (today, `logic:`'s registers
 all six, as the neutral registrar); the vocabulary is defined in
 `slices/vocabulary.ttl`. A new seam requires a new `gmeow:Seam` individual
 here before the first referencing triple is authored — never a new row typed
-into this document. The rendered, always-current table (seam, direction,
-carrying terms, owning design doc) is the generated seam-registry page, a
-direct projection of that data that a validator gate keeps from drifting out
-of sync with it.
+into this document.
+
+That data reaches two projections, both derived from the manifests and never
+hand-maintained:
+
+- **The shipped graph.** `gmeow.gts` carries the whole registry as its own
+  queryable named graph,
+  `https://blackcatinformatics.ca/gmeow/graph/grounding-seams` — one
+  `gmeow:Seam` per authored seam with its `rdfs:label`, its
+  `gmeow:seamDirection` legs (`gmeow:seamFromSlice` / `gmeow:seamToSlice`),
+  every `gmeow:seamCarryingTerm`, and every `gmeow:seamOwningDoc`. It is
+  lossless, so a consumer holding only the bundle can reconstruct the registry
+  without the repository. Like `graph/correspondence-laws`, it is governance
+  data and stays outside object-level closure.
+- **The rendered table.** The always-current human table (seam, direction,
+  carrying terms, owning design doc) is the generated seam-registry page
+  `ontology-docs/seams/index.md`, rendered on demand by
+  `make sync SYNC_OUTPUTS=docs` (`ontology-docs/` is a git-ignored local
+  product, so the page exists only after that render). It is a direct
+  projection of the same data, and a validator gate keeps it from drifting out
+  of sync with the manifests.
 
 `logic:` references neither peer structurally. Prose in `logic:` definitions
 does not name `lang:`/`math:` terms; illustrative examples belong in the
