@@ -143,7 +143,7 @@ use session_common::*;
 /// even though only `#[cfg(test)]` content was added — no lowering behavior changes, so
 /// no reasoning verdict on any input, including the fixed edge-only input below, changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "f177bcdb9aec707490c33dcd2af69e952d599dac7b36fae11b5904aecb5b8445";
+    "931694de24e589ecdb0689744324cf229951c627eb8a6a69ec243b41c940b92a";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -203,7 +203,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// changed `physical/lower.rs` engine source (test-only content), while the fixed
 /// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "116b57177a47ce31713a8833e136e239b014791934b43cc4d5c410d4e74743f1";
+    "7241501fba6b0ca4c3ec8b69df45bdf1e4bd9c72131da9e9c39b44c70ebb0ac4";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
