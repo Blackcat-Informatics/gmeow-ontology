@@ -134,7 +134,7 @@ use session_common::*;
 /// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves.
 /// No lowering behavior changes (only an attribute), so no reasoning verdict on any
 /// input — including the fixed edge-only input below — changes.
-/// Re-blessed once more for the #1443 hardening task's `structural_digest`/
+/// Re-blessed once more for the math: expressions hardening task's `structural_digest`/
 /// `lower_math_expression` property tests (`interning_tests`-shaped additions to the
 /// existing `physical::lower::tests` module — alpha-equivalence, injectivity, and
 /// interning coverage, plus the `reference-ast-act.ttl` `math:structuralKey` placeholder
@@ -142,8 +142,15 @@ use session_common::*;
 /// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves
 /// even though only `#[cfg(test)]` content was added — no lowering behavior changes, so
 /// no reasoning verdict on any input, including the fixed edge-only input below, changes.
+/// Re-blessed once more for the whole-matrix conformance reconciliation task: widening
+/// `reason::math_gate`'s module visibility and `dimension_gate_markers`' fn visibility from
+/// `pub(crate)` to `pub` (so the completeness harness in `crates/pipeline` can call it
+/// directly) changes those files' raw bytes, and both are `BACKWARD_SOURCE` members folded
+/// into `backward_source_hash()`; a trivial `cargo fmt` rewrap of one test line in
+/// `physical/lower.rs` (also a `BACKWARD_SOURCE` member) moves it further. No reasoning
+/// behavior changes on any input — attribute/whitespace-only source moves.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "931694de24e589ecdb0689744324cf229951c627eb8a6a69ec243b41c940b92a";
+    "2a30e586f7682ce4b299b7f7494d4a48550ec9e8fed1d266007cdf5a04a63124";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -197,13 +204,18 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// identity axes and moves with the changed `physical/lower.rs` engine source
 /// (a dropped `#[allow(dead_code)]`, no behavior change), while the fixed edge-only
 /// input's reasoning verdict is unchanged.
-/// Re-blessed once more for the #1443 hardening task's `structural_digest`/
+/// Re-blessed once more for the math: expressions hardening task's `structural_digest`/
 /// `lower_math_expression` property tests (see the engine-descriptor golden above): the
 /// native contract hash is one of the seven folded identity axes and moves with the
 /// changed `physical/lower.rs` engine source (test-only content), while the fixed
 /// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the whole-matrix conformance reconciliation task (see the
+/// engine-descriptor golden above): the native contract hash folds the changed
+/// `reason/math_gate.rs`/`reason/mod.rs` (visibility widening) and `physical/lower.rs`
+/// (fmt rewrap) engine source, while the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "7241501fba6b0ca4c3ec8b69df45bdf1e4bd9c72131da9e9c39b44c70ebb0ac4";
+    "6b1b2c7cb91acd7f85e6bc96cbf3147bcee68c89454557d6a74952fadb5014ba";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
