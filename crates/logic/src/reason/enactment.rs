@@ -1,16 +1,26 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The reasoner-derived enactment-kernel gate.
+//! The enactment-kernel gate.
 //!
-//! Compiles the `logic:Constraint` laws the enactment kernel authors in
-//! `slices/grounding/logic/module.ttl` into VIOLATION-EMITTING forward `EvalRule`s
-//! ([`crate::relational_core::lower_constraint_violation_rules`]) and drives them through
-//! the native forward semi-naive chase over the SAME dataset `verify()` is checking, so a
-//! kernel finding is REASONER-derived from the authored laws rather than a Rust
-//! side-channel decision. The module mirrors [`super::math_gate`] deliberately: same
-//! promotion into one scratch world, same plan-cache discipline, same loud-on-authoring-bug
-//! posture.
+//! # What is implemented here today
+//!
+//! The observed-not-derived guard, and nothing else. [`reject_banned_heads`] is live and
+//! is enforced on the real `verify()` path. [`enactment_gate_markers`] is a seam: it
+//! compiles no laws and derives no markers yet, so it returns an empty marker set.
+//!
+//! The frontier derivation, the dispatch/reconciliation/compensation classifications and
+//! the typed-outcome fold are NOT implemented. When they are, they follow
+//! [`super::math_gate`]: compile the authored `logic:Constraint` laws into
+//! violation-emitting forward `EvalRule`s
+//! ([`crate::relational_core::lower_constraint_violation_rules`]) and drive them through
+//! the native forward semi-naive chase over the SAME dataset `verify()` checks, so a
+//! kernel finding is reasoner-derived from the authored laws rather than a Rust
+//! side-channel decision.
+//!
+//! Saying this plainly matters more than usual here: a gate that returns an empty finding
+//! set is indistinguishable, from the caller's side, from a gate that ran and found
+//! nothing.
 //!
 //! # The one thing this module may never do
 //!
@@ -118,8 +128,8 @@ fn is_banned_effect_subject(iri: &str) -> bool {
 
 /// The kernel's authored constraint laws, compiled once per process.
 ///
-/// Empty until the frontier and gating derivations are wired through it; the compilation
-/// path itself is shared with [`super::math_gate`] and is exercised by that gate today.
+/// EMPTY TODAY. No law is compiled yet, so the gate derives nothing. The compilation path
+/// this will use is shared with [`super::math_gate`] and is exercised by that gate.
 fn compiled_rules() -> &'static [EvalRule] {
     static RULES: OnceLock<Vec<EvalRule>> = OnceLock::new();
     RULES.get_or_init(Vec::new)
@@ -133,8 +143,10 @@ fn enactment_gate_err(detail: String) -> gmeow_errors::Diag {
 /// The enactment-kernel gate entry point.
 ///
 /// Returns the reasoner-derived kernel findings over the dataset `verify()` is checking.
-/// The banned-head guard runs over every derived row before anything is returned, so the
-/// observed-not-derived boundary holds even if a future law is authored carelessly.
+///
+/// Returns an EMPTY set today: no law is compiled yet (see [`compiled_rules`]), so this
+/// derives nothing. The caller still runs the banned-head guard over whatever comes back,
+/// so the observed-not-derived boundary holds once laws are wired in.
 ///
 /// # Errors
 ///

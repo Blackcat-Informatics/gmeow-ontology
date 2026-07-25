@@ -1925,3 +1925,24 @@ in an authored triple, which is what the ceiling is asking for ("author the new
 logic as `logic:` and project it, do not hand-author obi"). That is a real piece of
 correspondence-authoring work, not a mechanical re-key, which is why it is recorded
 here rather than done inline.
+
+**The native derivation contracts (RQ1-RQ11) are not implemented.**
+`crates/logic/src/reason/enactment.rs` ships the observed-not-derived guard —
+live, tested, and enforced on the real `verify()` path — but
+`enactment_gate_markers` compiles no laws and returns an empty marker set. The
+frontier derivation (RQ1), the pin validation (RQ4), the dispatch/reconciliation/
+compensation classifications (RQ5-RQ7), the operational-vs-profile capability-gap
+distinction (RQ9), the typed-outcome fold (RQ10) and the no-heuristic-as-proof
+check (RQ11) are all absent, as are the bounded means-end search (RQ2/RQ3), the
+preference-contextual comparison (RQ8), and the CLI/MCP/bundle surface that would
+expose them.
+
+The vocabulary those derivations range over is complete and gate-green, so this
+is unimplemented behaviour rather than a blocked design. The forward path is the
+`math_gate` precedent the module's own doc comment names: compile the authored
+`logic:Constraint` laws into violation-emitting forward rules and drive them
+through the native chase over the same dataset `verify()` checks.
+
+Recorded here because a gate returning an empty finding set is indistinguishable,
+from the caller's side, from a gate that ran and found nothing — which is exactly
+the shape of a silent capability gap.
