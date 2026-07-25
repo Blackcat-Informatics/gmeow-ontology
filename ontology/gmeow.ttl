@@ -82,7 +82,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ,
-        <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     owl:versionIRI gmeow:0.1.0 ;
     owl:versionInfo "0.1.0" ;
     skos:definition "Root ontology document for GMEOW — the Global Metadata and Entity Ontology for the Web, grounding document metadata, entity descriptions, legal agreements, contacts, and person-centric data (Principle 1)."@x-gmeow-english ;
