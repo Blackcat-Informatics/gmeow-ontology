@@ -1053,7 +1053,7 @@ mod tests {
             has_grammar,
             "docs_source_files must include the lang slice's grammars/*.ebnf files"
         );
-        // A recursively-discovered per-slice `design/*.md` — the #1628 soundness
+        // A recursively-discovered per-slice `design/*.md` — the canonical-Markdown soundness
         // fix: editing a design doc must bust the docs cache, exactly as editing the
         // top-level `docs.md` does. Before this, only the top-level `docs.md` was
         // declared, so a `design/*.md` edit silently missed the key.

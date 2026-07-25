@@ -46,7 +46,7 @@ pub const MDBOOK_BOOT_JS_PATH: &str = "mdbook-boot.js";
 /// book only when the render is bundle-backed.
 const MDBOOK_EXPLORER_CHAPTER: &str = "explorer";
 
-/// The book chapter dir hosting the conjecture playground (issue #1406 W4: browser
+/// The book chapter dir hosting the conjecture playground (the WASM-interactive docs W4 deliverable: browser
 /// symmetric proof / counterproof over the curated demo library). Emitted into the book
 /// only when the render is conjecture-backed (`has_conjectures()`).
 const MDBOOK_CONJECTURE_CHAPTER: &str = "conjectures";

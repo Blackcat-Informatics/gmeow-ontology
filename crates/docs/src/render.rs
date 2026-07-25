@@ -225,7 +225,7 @@ pub enum Page {
     /// the object-level core bundle. Emitted only when the bundle assets ship
     /// (`has_bundle()`).
     BundleExplorer,
-    /// The conjecture playground (`conjectures/index`, issue #1406 W4) — the browser
+    /// The conjecture playground (`conjectures/index`, the WASM-interactive docs W4 deliverable) — the browser
     /// symmetric conjecture / anti-conjecture engine over the curated demo library, run
     /// client-side by the SAME native `logic:` reasoner via the vendored wasm
     /// `conjecture` export. Emitted only when the conjecture demo asset + bundle ship
@@ -1179,7 +1179,7 @@ gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
     out
 }
 
-/// The conjecture playground page (issue #1406 W4): the browser SYMMETRIC conjecture /
+/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser SYMMETRIC conjecture /
 /// anti-conjecture engine. The controller (`gmeow-docs.js`) fetches + byte-verifies the
 /// curated demo library, loads the core bundle as the KB, and — on submit — runs the
 /// vendored wasm `conjecture` export (the SAME native `logic:` reasoner, proven

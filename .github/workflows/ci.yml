@@ -643,12 +643,13 @@ jobs:
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
           /tmp/binaryen/bin/wasm-opt --version
 
-      # ubuntu-latest ships a current Node; `make validate-wasm-pkg-test` builds gmeow's
-      # Tier-1 validator npm package and runs its Node round-trip suite against the real
-      # wasm (validating a sample dataset against the committed gmeow.gts). The purrdf
-      # RDF/wasm engine ships + tests its own npm package on purrdf's CI.
-      - name: Build the validator npm package + Node real-execution round-trip
-        run: make validate-wasm-pkg-test
+      # ubuntu-latest ships a current Node; `make wasm-parity` is the CHECK_DAG task that
+      # builds all three gmeow-owned wasm engine npm packages (validate / reason / gmn)
+      # and runs their Node native↔wasm parity witness lanes against the real wasm over the
+      # materialized bundle — the "every gmeow surface proven native≡wasm" contract. The
+      # purrdf RDF/wasm engine ships + tests its own npm package on purrdf's CI.
+      - name: Native≡wasm parity — all three gmeow engines (make wasm-parity)
+        run: make wasm-parity
 
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel

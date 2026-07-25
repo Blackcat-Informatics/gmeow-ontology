@@ -8,7 +8,7 @@
 //! transcode widget turns authored RDF into the token-compact GMN-1 surface — and
 //! back — client-side, using the SAME codec + glyph symbology the on-gate authority
 //! ships. GMN-2 (lossy compaction) and the zstd-dictionary transport are NOT here —
-//! that notation is still being built in epic #1371.
+//! that notation is still being built in a later notation epic.
 //!
 //! Thin shim: all codec logic lives in `gmeow-lang-bridge` (native-tested with the
 //! byte-exact round-trip witness); this only marshals across the JS boundary.
@@ -44,8 +44,8 @@ fn codebook_dict() -> Result<GmnDictionary, JsError> {
 /// Returns a `JsError` (thrown to JS at the boundary) if the RDF cannot be parsed or the
 /// GMN-1 write fails.
 pub fn transcode_to_gmn1(data: &str, format: &str) -> Result<String, JsError> {
-    let ds =
-        purrdf::parse_dataset(data.as_bytes(), format, None).map_err(|e| JsError::new(&e.to_string()))?;
+    let ds = purrdf::parse_dataset(data.as_bytes(), format, None)
+        .map_err(|e| JsError::new(&e.to_string()))?;
     let model = Gmn0Model::from_dataset(&ds);
     let doc = gmn1_write(&model, &codebook_dict()?).map_err(|e| JsError::new(&e.to_string()))?;
     Ok(doc.text)
