@@ -184,15 +184,20 @@ struct Candidate {
 /// `reasoned` must be the graph the caller has already threaded with whatever reasoning
 /// its surface can carry — the producer reads types/relata with `GraphMatch::Any`, so a
 /// subject/relatum is discovered whether it is ASSERTED or ENTAILED, but only if the
-/// caller actually supplies the entailed triples. The two live callers do:
+/// caller actually supplies the entailed triples. The live callers do:
 ///   * the pipeline `stage-validate` feeds the UNION of the authored source graph (the
 ///     A-Box/TBox individuals + their asserted types/relata) AND the derived closure read
 ///     off the consumed `stage-reason` product's typed Reasoning handle — so entailed-only
 ///     subjects/relata are seen (the maximal-ontological-use surface);
-///   * the `gmeow` CLI feeds the dataset it built: a validated `gmeow.gts` bundle carries
-///     the folded reasoned closure (entailed), while a raw-source run carries only the
-///     asserted graph (no reasoner is fabricated for loose files — that surface is honestly
-///     asserted-only, never a silently-degraded stand-in for entailment).
+///   * the `gmeow-dev` slice gate (`validate_all::ValidationRun::run`) feeds the merged
+///     bundle+slices dataset it built: a validated `gmeow.gts` bundle carries the folded
+///     reasoned closure (entailed), so the abductive tier sees entailment;
+///   * the consumer `gmeow validate <rdf>` CLI (`data_validate::Tier1Shapes::validate`,
+///     the repo-free external-file path) feeds the user's parsed A-Box UNIONED with the
+///     bundle ontology (its `logic:AbductiveSchema` vocabulary + TBox axioms). This is
+///     Tier-1 (no reasoner over the user data), so it is honestly ASSERTED-ONLY for the
+///     user's individuals: no entailment is fabricated for a loose file — the union only
+///     supplies the authored schema/TBox the producer needs, never a stand-in closure.
 ///
 /// The authored half is mandatory on every surface: without the asserted A-Box the schema
 /// guards match ZERO subjects, so a closure-only input would find nothing.
