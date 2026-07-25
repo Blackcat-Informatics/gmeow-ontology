@@ -258,6 +258,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Error,
         Enforcement::Governance,
     ),
+    (
+        codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
     // ── Ontology-surface authoring gates ──
     (
         codes::AUTHORING_SHAPE_IRI_COLLISION,
@@ -609,6 +614,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
         "Remove the tier-forbidden reference: a core slice must not depend on an extension, and an extension must not depend on another extension.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
+        "Reverse the direction: move the grounding concept into the grounding slice so it owns it, and have the non-grounding slice consume the grounding term — then drop the grounding slice's gmeow:sliceDependsOn declaration on it. A grounding slice is foundational by construction and must not depend on any consumer.",
     ),
     (
         codes::SLICE_OWNERSHIP_FAMILY,

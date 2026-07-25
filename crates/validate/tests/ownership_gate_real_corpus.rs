@@ -5,14 +5,16 @@
 //! real authored `slices/` tree must carry ZERO gating (`Severity::Error`)
 //! ownership findings. This encodes the "zero violations at flip time" contract
 //! — an undeclared cross-slice reference, a stale declaration, a tier-forbidden
-//! crossing, or a peered reference off any registered seam each produces an
-//! `Error` here and fails this test.
+//! crossing, a grounding slice depending on a non-grounding slice, or a peered
+//! reference off any registered seam each produces an `Error` here and fails
+//! this test.
 //!
 //! It drives the SAME production surface `make validate` folds
 //! (`slice_peerage::peerage_aware_ownership_findings` over the on-disk
 //! `SliceCatalog` + `OwnershipReport`), but needs no `generated/` tree, so it is
 //! a fast standalone regression gate: any future edit that reintroduces an
-//! undeclared/stale/forbidden/off-seam cross-slice edge reds this test directly.
+//! undeclared/stale/forbidden/grounding-downward/off-seam cross-slice edge reds
+//! this test directly.
 
 use std::path::Path;
 
@@ -53,8 +55,9 @@ fn the_peerage_aware_dependency_gate_is_clean_on_the_real_corpus() {
     assert!(
         errors.is_empty(),
         "the real slices/ tree carries {} gating slice-dependency error(s) — each is an \
-         undeclared/stale/forbidden/off-seam cross-slice edge that must be declared, removed, \
-         covered by a registered seam, or resolved to a legal tier:\n{}",
+         undeclared/stale/tier-forbidden/grounding-downward/off-seam cross-slice edge that must \
+         be declared, removed, covered by a registered seam, resolved to a legal tier, or \
+         reversed so the grounding slice owns the concept:\n{}",
         errors.len(),
         errors
             .iter()

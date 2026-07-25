@@ -136,6 +136,19 @@ pub const SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM: &str =
 /// authored `gmeow:sliceDependsOn` declaration between a forbidden tier pair is
 /// still architecturally forbidden — declaring it does not license it).
 pub const SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY: &str = "slice-ownership.forbidden-dependency";
+/// `crates/validate/src/slice_peerage.rs` — a slice typed `gmeow:GroundingSlice`
+/// depends on a slice that is not (`docs/GROUNDING.md`, the tier rule: "a
+/// grounding slice never depends on a non-grounding slice … the grounding slice
+/// owns the concept and the non-grounding slice consumes it"). Invisible to
+/// [`SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY`], because all three grounding slices
+/// are authored `gmeow:tierCore`, so a `logic: → cognition` crossing reads as an
+/// ordinary legal core→core edge; this code keys on the `gmeow:GroundingSlice`
+/// marker instead. Fires on a DECLARED `gmeow:sliceDependsOn` as well as a
+/// computed edge — a grounding manifest that authors the crossing has already
+/// broken the doctrine. Grounding→grounding peer crossings are the Principle 19
+/// peerage grant and never fire here.
+pub const SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY: &str =
+    "slice-ownership.grounding-downward-dependency";
 /// Family base for `slice-ownership.*`.
 pub const SLICE_OWNERSHIP_FAMILY: &str = "slice-ownership.";
 
@@ -297,6 +310,7 @@ pub const ALL_CODES: &[&str] = &[
     SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
     SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
     SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+    SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
     CRATE_LAYERING_VIOLATION,
     CRATE_LAYERING_OBSERVATION,
     REPO_STATIC_VIOLATION,
