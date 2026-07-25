@@ -15350,6 +15350,421 @@ logic:prescriptionKindRepeatableGuide
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
+# === Enactment layer: the seven orthogonal lifecycle axes                 === #
+# =========================================================================== #
+#
+# SEVEN axes, deliberately not collapsed into one status slot. FIVE closed value
+# classes are minted here. The SIXTH is carried by the property
+# logic:effectKnowledge over the EXISTING logic:InformationState - the epistemic
+# reading of whether an external effect committed - and mints nothing. The
+# SEVENTH reuses logic:GoalEvaluationStatus unchanged and mints nothing.
+#
+# Protocol position and commitment knowledge are the pair most often conflated:
+# an attempt can sit at protocol position "receipted" while its commitment
+# knowledge is InfoBoth (the provider reports committed, the local ledger does
+# not). They are independent, and logic:LifecycleAxisNonConflationConstraint
+# rejects a property carrying values drawn from two axes.
+
+logic:EnactmentState
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enactment State"@x-gmeow-english ;
+    skos:definition "Axis one of seven: the closed lifecycle position of a whole logic:Enactment. It says where the OCCURRENCE stands, never whether its goal is met (that is the goal-evaluation axis) and never whether an external effect committed (that is the commitment-knowledge axis). Its members are individuals, never subclasses; a completed enactment of a maintenance prescription leaves its goal open."@x-gmeow-english ;
+    skos:example "ex:adrReviewW12 logic:enactmentState logic:EnactmentRunning ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where one occurrence stands as a whole."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a completed state as goal satisfaction, and avoid using it for a single step."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member; transitions are governed by the axis transition law rather than by free assignment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentPending a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment pending"@x-gmeow-english ;
+    skos:definition "The enactment exists and has pinned its prescription version and input snapshot, but no step has begun. Distinguished from running, where at least one step has started."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentRunning a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment running"@x-gmeow-english ;
+    skos:definition "At least one step has begun and the enactment has neither paused nor reached a terminal position. Distinguished from paused, which is a deliberate suspension with a checkpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentPaused a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment paused"@x-gmeow-english ;
+    skos:definition "The enactment is suspended at a durable checkpoint and may be resumed as the SAME enactment. Distinguished from cancelled, which is terminal, and from waiting at a step, which is a step-level position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentCompleted a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment completed"@x-gmeow-english ;
+    skos:definition "Every step reached a terminal position and the prescription was carried out. Terminal. It does NOT assert that the governing goal is satisfied: a successful occurrence of a maintenance prescription leaves the goal open by construction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentCancelled a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment cancelled"@x-gmeow-english ;
+    skos:definition "The enactment was deliberately stopped before completing. Terminal. Cancellation while an effect is still unresolved is a distinct and harder position than cancellation from a quiescent state, and the frontier labels it separately."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EnactmentFailed a owl:NamedIndividual , logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment failed"@x-gmeow-english ;
+    skos:definition "The enactment stopped because a step failed terminally and no continuation is available. Terminal. Distinguished from cancelled, which is a decision rather than a failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:enactmentState
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:EnactmentState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment state"@x-gmeow-english ;
+    skos:definition "Relates a logic:Enactment to its exactly-one lifecycle position on axis one. Carrying a value from any other axis here is the conflation the non-conflation constraint rejects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:StepState
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Step State"@x-gmeow-english ;
+    skos:definition "Axis two of seven: the closed lifecycle position of ONE step within an enactment. Kept separate from the enactment axis because a running enactment contains steps in many different positions at once, and collapsing the two loses exactly the information a next-action frontier is derived from."@x-gmeow-english ;
+    skos:example "ex:ocrStep logic:stepState logic:StepWaiting ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where a single prescribed step stands."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting one step's state to the enactment, and avoid using it to express approval or effect position."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member per step per enactment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepPending a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step pending"@x-gmeow-english ;
+    skos:definition "The step is part of the enactment but its preconditions have not been evaluated as met. Distinguished from ready, where they have."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepReady a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step ready"@x-gmeow-english ;
+    skos:definition "Preconditions are met and the step could begin. Readiness is a step-state claim only; whether it may ALSO dispatch depends on the independent approval and effect axes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepRunning a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step running"@x-gmeow-english ;
+    skos:definition "The step has begun and has not reached a terminal position. Distinguished from waiting, in which it has begun but is blocked on an external signal, time or input."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepWaiting a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step waiting"@x-gmeow-english ;
+    skos:definition "The step is blocked pending an event, a time, or an input that has not arrived. Load-bearing: a waiting step is NOT a failed step, and the distinction is what lets a run be resumed rather than restarted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepCompleted a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step completed"@x-gmeow-english ;
+    skos:definition "The step carried out its prescribed work and reached a terminal position. Terminal. It asserts nothing about whether an external effect the step dispatched actually committed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepSkipped a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step skipped"@x-gmeow-english ;
+    skos:definition "The step was deliberately not executed, and a typed reason records why. Terminal. Distinguished from cancelled, which stops a step already begun, and from pending, which has simply not started."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepCancelled a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step cancelled"@x-gmeow-english ;
+    skos:definition "A step that had begun was deliberately stopped. Terminal. If it had already dispatched an external effect, the effect's commitment knowledge is unaffected by the cancellation and must still be resolved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepFailed a owl:NamedIndividual , logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step failed"@x-gmeow-english ;
+    skos:definition "The step attempted its work and terminally failed. Terminal. Distinguished from waiting, which is an unresolved but non-failing position, and from an unknown external outcome, which is an epistemic position rather than a failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:stepState
+    a owl:ObjectProperty ;
+    rdfs:range logic:StepState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step state"@x-gmeow-english ;
+    skos:definition "Relates a step occurrence within an enactment to its exactly-one position on axis two. Domain a step occurrence (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ApprovalState
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Approval State"@x-gmeow-english ;
+    skos:definition "Axis three of seven: the closed lifecycle of an authorization treated as a social commitment rather than a boolean flag. Modelling approval as a commitment with a DETACHMENT lifecycle is what makes revocation, delegation, escalation and expiry first-class instead of absent, and what turns exact-binding into a detachment condition rather than a comparison."@x-gmeow-english ;
+    skos:example "ex:ocrApproval logic:approvalState logic:ApprovalDetached ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where an authorization stands in its own lifecycle, independently of whether the work it authorizes has begun."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing to approved/not-approved, and avoid reading a detached commitment as a completed one."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member; a commitment moves null to created to detached, then to exactly one of the four terminal positions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalNull a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval null"@x-gmeow-english ;
+    skos:definition "No commitment exists. The absence of an authorization, made explicit so that 'unapproved' is a recorded position rather than missing data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalCreated a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval created"@x-gmeow-english ;
+    skos:definition "A commitment exists but its antecedent has not yet been met, so it authorizes nothing yet. Distinguished from detached, at which point it does."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalDetached a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval detached"@x-gmeow-english ;
+    skos:definition "The commitment's antecedent is met and the authorization is live for the exact intent it names. Detachment is the moment an approval starts authorizing; an intent whose digest differs from the one named never detaches this commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalDischarged a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval discharged"@x-gmeow-english ;
+    skos:definition "The authorized act occurred and the commitment is satisfied. Terminal. It does not authorize a second act: a repeat needs its own commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalExpired a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval expired"@x-gmeow-english ;
+    skos:definition "The validity window closed before the authorized act occurred. Terminal. Expiry is evaluated against an attributed clock, so a dispatch whose expiry check names no clock source is refused."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalViolated a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval violated"@x-gmeow-english ;
+    skos:definition "The authorized act was not performed although the commitment was live and its window open, or an act was performed outside what it authorized. Terminal, and a finding rather than a routine outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalCancelled a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval cancelled"@x-gmeow-english ;
+    skos:definition "The authorizing party withdrew the commitment before it was discharged. Terminal. Distinguished from released, in which the party who BENEFITED from the commitment gave it up."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ApprovalReleased a owl:NamedIndividual , logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval released"@x-gmeow-english ;
+    skos:definition "The party the commitment was owed to gave it up, so it lapses without being discharged or violated. Terminal. Distinguished from cancelled, which is withdrawal by the authorizing party."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:approvalState
+    a owl:ObjectProperty ;
+    rdfs:range logic:ApprovalState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval state"@x-gmeow-english ;
+    skos:definition "Relates an authorization record to its exactly-one position on axis three. Domain an authorization record (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:EffectProtocolPosition
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Effect Protocol Position"@x-gmeow-english ;
+    skos:definition "Axis four of seven: WHERE an external-effect exchange stands in its protocol - intended, attempted, receipted, reconciling, reconciled, compensating, compensated, abandoned. It is a position in a labelled transition system and says nothing about whether the effect actually committed; that is axis five. The pair is the most consequential non-conflation in the kernel: an exchange can be receipted while its commitment knowledge is contradictory."@x-gmeow-english ;
+    skos:example "ex:payDispatch logic:effectProtocolPosition logic:EffectReconciling ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how far an external exchange has proceeded through its protocol."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a position as evidence that the effect committed, and avoid using it to express epistemic state."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member and carry the epistemic reading separately on logic:effectKnowledge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectIntended a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect intended"@x-gmeow-english ;
+    skos:definition "A dispatch intent is durably recorded but no attempt has been made. The position that makes crash-at-the-boundary analyzable: an intent with no attempt is recoverable without ambiguity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectAttempted a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect attempted"@x-gmeow-english ;
+    skos:definition "An attempt was made against the provider but no authoritative receipt has been durably recorded. This is the position at which commitment knowledge is characteristically undetermined."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectReceipted a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect receipted"@x-gmeow-english ;
+    skos:definition "An authoritative receipt was durably recorded. Being receipted does NOT by itself settle commitment knowledge: a receipt that contradicts the local ledger moves knowledge to the contradictory value rather than to supported."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectReconciling a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect reconciling"@x-gmeow-english ;
+    skos:definition "A probe is in flight to establish whether the effect committed. Reconciliation is the only knowledge-increasing move available from an undetermined position; retrying the effect is not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectReconciled a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect reconciled"@x-gmeow-english ;
+    skos:definition "A probe returned an authoritative verdict and commitment knowledge advanced. Distinguished from receipted, which is the provider's own report at dispatch time rather than an after-the-fact determination."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectCompensating a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect compensating"@x-gmeow-english ;
+    skos:definition "A compensating action is in flight against a forward effect known to have committed. Compensation is a new action with its own preconditions and its own possible failure, not an erasure of the forward effect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectCompensated a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect compensated"@x-gmeow-english ;
+    skos:definition "A compensating action completed and produced its own receipt. The forward effect remains recorded as having committed; the history is corrected forward rather than rewritten."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EffectAbandoned a owl:NamedIndividual , logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect abandoned"@x-gmeow-english ;
+    skos:definition "The exchange was given up without an authoritative determination, because no reconciliation semantics remain available. Terminal and deliberately uncomfortable: it records an unresolved external state rather than pretending to a verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:effectProtocolPosition
+    a owl:ObjectProperty ;
+    rdfs:range logic:EffectProtocolPosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect protocol position"@x-gmeow-english ;
+    skos:definition "Relates an external-effect exchange record to its exactly-one position on axis four. Domain an effect exchange record (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:effectKnowledge
+    a owl:ObjectProperty ;
+    rdfs:range logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect knowledge"@x-gmeow-english ;
+    skos:definition "Axis five of seven, carried by a PROPERTY rather than a new value class: what is KNOWN about whether an external effect committed, read off the existing logic:InformationState rather than a second status enum. It admits logic:InfoSupported, logic:InfoOpposed, logic:InfoBoth, logic:InfoUndetermined and logic:InfoNotEvaluated. logic:InfoNeither is BANNED here and the ban is enforced by constraint: that value is the conclusive closed-world reading, and external commitment is never closed-world, so admitting it would let a consumer read 'conclusively no effect' from a provider that was merely unreachable. Domain an effect exchange record (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RecurrenceState
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Recurrence State"@x-gmeow-english ;
+    skos:definition "Axis seven of seven as counted in the charter, and the last minted value class: the position of a recurring prescription's SCHEDULE, distinct from the position of any occurrence it generates. A suspended schedule with a running occurrence is an ordinary state, which is why the two cannot share a slot. Kept distinct from calendar-level task status and from occurrence-exception typing, which classify the scheduled event rather than the generating schedule."@x-gmeow-english ;
+    skos:example "ex:weeklyAdrSchedule logic:recurrenceState logic:RecurrenceActive ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a recurring prescription is still generating occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating with the state of a generated occurrence, and avoid using it to record that one occurrence was skipped."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member to the schedule; a skipped occurrence is recorded on the occurrence, not by suspending the schedule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RecurrenceScheduled a owl:NamedIndividual , logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence scheduled"@x-gmeow-english ;
+    skos:definition "The recurrence is defined and will generate occurrences, but none has been generated yet. Distinguished from active, where at least one has."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RecurrenceActive a owl:NamedIndividual , logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence active"@x-gmeow-english ;
+    skos:definition "The recurrence is generating occurrences on schedule. It says nothing about the state of any particular occurrence it generated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RecurrenceSkipped a owl:NamedIndividual , logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence skipped"@x-gmeow-english ;
+    skos:definition "A scheduled generation point passed without producing an occurrence, and the omission is recorded rather than silent. Distinguished from suspended, which stops generation until resumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RecurrenceSuspended a owl:NamedIndividual , logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence suspended"@x-gmeow-english ;
+    skos:definition "Generation is deliberately paused and may resume. Distinguished from ended, which is terminal, and from skipped, which concerns a single generation point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RecurrenceEnded a owl:NamedIndividual , logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence ended"@x-gmeow-english ;
+    skos:definition "The recurrence will generate no further occurrences. Terminal. Occurrences it already generated keep their own states and remain readable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:recurrenceState
+    a owl:ObjectProperty ;
+    rdfs:range logic:RecurrenceState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence state"@x-gmeow-english ;
+    skos:definition "Relates a recurring prescription's schedule to its exactly-one position on the recurrence axis. Domain a schedule record (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:knowledgePrecedes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:InformationState ;
+    rdfs:range logic:InformationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "knowledge precedes"@x-gmeow-english ;
+    skos:definition "The explicit knowledge order the kernel's monotonicity law ranges over: a is below b when b settles strictly more than a does. Authored explicitly because the runtime enumeration order of logic:InformationState is DECLARATION order, not the knowledge order, and reading one for the other inverts the lattice. The admitted chain is logic:InfoNotEvaluated below logic:InfoUndetermined below each of logic:InfoSupported and logic:InfoOpposed, both below logic:InfoBoth. A reconciliation may only move effect knowledge upward along it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:AxisTransitionLaw
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Axis Transition Law"@x-gmeow-english ;
+    skos:definition "The authored, machine-checkable statement of which transitions one lifecycle axis admits, carried as a logic:Formula rather than as prose. Making the admitted relation data is what lets deadlock-freedom and reachability be PROVED over an axis instead of asserted about it. Typed APART from logic:Constraint, which rejects an ill-formed record: a transition law describes the legal moves, and a constraint enforces one."@x-gmeow-english ;
+    skos:example "ex:enactmentStateLaw a logic:AxisTransitionLaw ; logic:lawGovernsAxis logic:EnactmentState ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the admitted transitions of a closed lifecycle axis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stating the transitions only in prose, and avoid one law spanning two axes."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:lawGovernsAxis and carry the admitted relation as a logic:Formula through logic:lawAdmits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:lawGovernsAxis
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "law governs axis"@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisTransitionLaw to the closed value class whose transitions it governs. Range a lifecycle axis value class (stated in prose). Functional: one law per axis, so the admitted relation is unambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lawAdmits
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AxisTransitionLaw ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "law admits"@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisTransitionLaw to the logic:Formula stating its admitted transition relation. Carrying the relation as a formula rather than as a table is what makes the liveness certificate derivable rather than hand-maintained."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:LivenessCertificate
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Liveness Certificate"@x-gmeow-english ;
+    skos:definition "The record that the authored transition laws were checked for PROGRESS, not merely for safety: that every non-terminal axis tuple has at least one enabled next move (deadlock-freedom), that no state is unreachable and every state can reach a terminal one (reachability), and that no dispatch intent can sit past its deadline with no attempt, receipt or reconciliation (no orphan intent). Safety constraints alone prove that bad transitions are rejected; only this proves the system cannot get stuck, which is the dominant real failure of long-running work."@x-gmeow-english ;
+    skos:example "ex:kernelLiveness a logic:LivenessCertificate ; logic:certifiesDeadlockFreedom true ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that the axis transition relations were proved live, with the property that was checked named."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting liveness without a check, and avoid treating a safety constraint set as evidence of progress."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per checked axis set, binding the three property flags; a false flag names the offending state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:certifiesDeadlockFreedom
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "certifies deadlock freedom"@x-gmeow-english ;
+    skos:definition "True when every non-terminal tuple of axis positions has at least one enabled next move under the authored transition laws. False names a stuck tuple rather than merely reporting failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:certifiesReachability
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "certifies reachability"@x-gmeow-english ;
+    skos:definition "True when no axis value is unreachable from an initial position and every value can reach a terminal one. An unreachable value is dead vocabulary; a value that cannot reach a terminal is a trap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:certifiesNoOrphanIntent
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:LivenessCertificate ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "certifies no orphan intent"@x-gmeow-english ;
+    skos:definition "True when no dispatch intent can remain past its deadline with no attempt, no receipt and no reconciliation. An orphan intent is the silent form of an unresolved external effect and is the case a purely per-record safety check does not catch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
 # This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
