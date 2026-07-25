@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoned-graph math: expression-identity gate
+# (crates/logic/src/math_expression.rs, check_surface_leak_in_normal_form): ex:src is
+# the math:normalizes source of a math:NormalizationDeclaration and directly carries
+# math:rendersAs — a surface-stratum (rendered) predicate leaking into a computation
+# that must stay structural. The gate MUST raise math:SurfaceLeakInNormalForm (and
+# neither of its two siblings math:StructuralKeyDrift /
+# math:StructuralKeyOnRejectedExpression).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:decl a math:NormalizationDeclaration ;
+    math:normalizes ex:src ;
+    math:normalizesTo ex:tgt .
+
+ex:src a math:NumberLiteral ;
+    math:literalValue 1 ;
+    math:rendersAs ex:rendered .
+
+ex:tgt a math:NumberLiteral ;
+    math:literalValue 1 .

@@ -484,6 +484,39 @@ fn native_lint_tripped(fixture: &Path, conformance_modules: &Arc<RdfDataset>) ->
         .collect()
 }
 
+/// The `math:` classes the two REASONED-GRAPH native gates raise over `fixture` merged with
+/// the three co-foundational grounding modules — `gmeow_logic::math_expression::
+/// check_math_expression_findings` (`math:StructuralKeyDrift`, `math:SurfaceLeakInNormalForm`,
+/// `math:StructuralKeyOnRejectedExpression`) and the reasoner-derived dimensional-homogeneity
+/// gate (`gmeow_logic::reason::math_gate::dimension_gate_markers`, `math:
+/// DimensionalInhomogeneity`) — neither of which the pre-fold structural lint or the
+/// generated-SHACL surface can reach: both are genuine computations over the merged dataset
+/// itself (no actual DL closure is needed for either gate's own asserted-fact reading, so
+/// `dimension_gate_markers` is called with an empty derived-edge slice), the charter's own
+/// documented "SAME architectural shape" as the measure-and-dimension reasoned gate. Credited
+/// under the ordinary `rust-validator` channel below (the charter declares both this way), not
+/// a distinct channel kind.
+fn reasoned_tripped(fixture: &Path, conformance_modules: &Arc<RdfDataset>) -> BTreeSet<String> {
+    let fixture_ds = gmeow_slicetest::native_query::dataset_from_file(fixture)
+        .unwrap_or_else(|e| panic!("parse counter-example {}: {e}", fixture.display()));
+    let ds = gmeow_slicetest::native_query::union(&[Arc::clone(conformance_modules), fixture_ds]);
+    let mut classes = BTreeSet::new();
+
+    let expr_messages: Vec<String> =
+        gmeow_logic::math_expression::check_math_expression_findings(&ds)
+            .into_iter()
+            .map(|f| f.message)
+            .collect();
+    classes.extend(native_failure_classes(&expr_messages, "math"));
+
+    if let Ok(markers) = gmeow_logic::reason::math_gate::dimension_gate_markers(&ds, &[]) {
+        for (_, class_iri) in markers {
+            classes.insert(local_name(&class_iri));
+        }
+    }
+    classes
+}
+
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Execution discharge: the SHACL channels (`generated/` DEPENDENT — attempted once, best
 // effort; unavailability degrades to a labeled "unverified" bucket, never a silent pass).
@@ -763,6 +796,21 @@ fn total_math_conformance_matrix_is_discharged() {
                 .entry(class.clone())
                 .or_default()
                 .entry(credited)
+                .or_default()
+                .insert(name.clone());
+            fixture_used.insert(name.clone());
+        }
+
+        // The reasoned-graph channel: `math:StructuralKeyDrift`, `math:SurfaceLeakInNormalForm`,
+        // `math:StructuralKeyOnRejectedExpression`, and `math:DimensionalInhomogeneity` are each
+        // declared `rust-validator` in the charter and are credited there directly (no
+        // tier-selection ambiguity — unlike the native-lint fallback above, the charter names
+        // exactly one channel for each of these four).
+        for class in reasoned_tripped(fixture, &conformance_modules) {
+            class_channel_fixtures
+                .entry(class)
+                .or_default()
+                .entry(Channel::RustValidator)
                 .or_default()
                 .insert(name.clone());
             fixture_used.insert(name.clone());

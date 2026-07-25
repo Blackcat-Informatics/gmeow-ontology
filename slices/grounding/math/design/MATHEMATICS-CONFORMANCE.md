@@ -59,8 +59,8 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL-SPARQL (`math:FormalVerificationResultVantageGroundingConstraint`, a conditional-existence rule over the grounding observation and its vantage) | `math:UngroundedVerificationResult` |
 | A `math:Theorem` (or a statement carrying `math:statementRole math:roleTheorem`) carries a theory context (`math:roleInTheory`) and is warranted by an in-graph `math:Proof` (`math:provesStatement`) or a declared `math:externalWarrant` — theorem-hood is a role held under a named, versioned theory with a proof or external warrant, never a fact read off the type | SHACL-SPARQL (`math:TheoremWarrantConstraint`, a disjunctive existence over the proof and warrant arms) | `math:UngroundedTheoremClaim` |
-| Every `math:ArithmeticOperation` carries its signature — a `math:operatorDomain` and a `math:operatorCodomain`, each a `math:NumberSystem` (the required-exactly-one restriction targets the class, so all eight operators are framed) | SHACL Core (OWL-axiom tier) | `math:UnframedOperator` |
-| A `math:ClosedFormFunction` names both its body (`math:definingExpression`) and its formal argument (`math:formalArgument`); its `math:functionParameter`s are unconstrained (0..n), and its `math:domain`/`math:codomain` come from the inherited `math:Function` gate | SHACL Core (OWL-axiom tier) | `math:UnboundClosedForm` |
+| Every `math:ArithmeticOperation` carries its signature — a `math:operatorDomain` and a `math:operatorCodomain`, each a `math:NumberSystem` (the required-exactly-one restriction targets the class, so all eight operators are framed) | SHACL Core (OWL-axiom tier) + Rust validator (native twin, no `generated/` dependency) | `math:UnframedOperator` |
+| A `math:ClosedFormFunction` names both its body (`math:definingExpression`) and its formal argument (`math:formalArgument`); its `math:functionParameter`s are unconstrained (0..n), and its `math:domain`/`math:codomain` come from the inherited `math:Function` gate | SHACL Core (OWL-axiom tier) + Rust validator (native twin, no `generated/` dependency) | `math:UnboundClosedForm` |
 
 ### Normalization identity rules
 
@@ -97,13 +97,13 @@ carries a backing `logic:Constraint`.
 | A `math:Number` declares the number system it belongs to | SHACL Core | `math:UnsituatedNumber` |
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
-| A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL Core | `math:MalformedExtendedReal` |
+| A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL Core + Rust validator (native twin, no `generated/` dependency) | `math:MalformedExtendedReal` |
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
 | A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
-| A `math:Interval` names both endpoints and both endpoint inclusions (inclusion is never silently omitted) | SHACL Core | `math:UnderspecifiedInterval` |
+| A `math:Interval` names both endpoints and both endpoint inclusions (inclusion is never silently omitted) | SHACL Core + Rust validator (native twin, no `generated/` dependency) | `math:UnderspecifiedInterval` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
-| A `math:PiecewiseFunction` declares at least one `math:hasPiece`, and every `math:FunctionPiece` names exactly one `math:pieceDomain` (a `math:Interval`) | SHACL Core | `math:UnderspecifiedPiecewiseFunction` |
+| A `math:PiecewiseFunction` declares at least one `math:hasPiece`, and every `math:FunctionPiece` names exactly one `math:pieceDomain` (a `math:Interval`) | SHACL Core + Rust validator (native twin, no `generated/` dependency) | `math:UnderspecifiedPiecewiseFunction` |
 
 ### Algebra rules
 
@@ -139,8 +139,8 @@ Lean mathlib (structural, by reference).
 |---|---|---|
 | A `math:Measure` declares its measurable space and total mass (a non-negative number or `math:PositiveInfinity`) | SHACL Core | `math:IncompleteMeasure` |
 | A `math:ProbabilityMeasure` has total mass one | SHACL Core | `math:ProbabilityMeasureMassViolation` |
-| A `math:MeasureEvaluation` names all three of its evaluated measure, measured subset, and result (so μ(A) is comparable, not a display string) | SHACL Core | `math:UnderspecifiedMeasureEvaluation` |
-| A `math:MeasureEvaluation`'s `math:measureResult` is non-negative — a finite non-negative number or `math:PositiveInfinity`, never `math:NegativeInfinity` (a measure is non-negative) | SHACL-SPARQL (`math:MeasureResultNonNegativeConstraint`, the `logic:` forbidden-value gate) | `math:UnderspecifiedMeasureEvaluation` |
+| A `math:MeasureEvaluation` names all three of its evaluated measure, measured subset, and result (so μ(A) is comparable, not a display string) | SHACL Core + Rust validator (native twin, no `generated/` dependency) | `math:UnderspecifiedMeasureEvaluation` |
+| A `math:MeasureEvaluation`'s `math:measureResult` is non-negative — a finite non-negative number or `math:PositiveInfinity`, never `math:NegativeInfinity` (a measure is non-negative) | SHACL-SPARQL (`math:MeasureResultNonNegativeConstraint`, the `logic:` forbidden-value gate) + Rust validator (native twin) | `math:UnderspecifiedMeasureEvaluation` |
 | A `math:Integral` names its integrand, domain, and the measure it integrates against | SHACL Core | `math:IncompleteIntegral` |
 | Every `math:Quantity` carries a `math:Dimension` | SHACL Core | `math:UndimensionedQuantity` |
 | A `math:DerivedDimension` declares a non-empty exponent structure, each cell raising a `math:BaseDimension` to an exact-rational power, and a `math:DimensionalExpression` combines at least two operands | SHACL Core | `math:MalformedDimension` |
@@ -238,14 +238,14 @@ silent prose.
 | A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
 | A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
-| A `math:LimitResult` names its `math:limitOutcome`, and its `math:limitResultValue` agrees with that outcome (a finite value for `math:convergesFinitely`; `math:PositiveInfinity`/`math:NegativeInfinity` for the divergent poles; none for `math:divergesWithoutLimit`) | SHACL Core (missing outcome); SHACL-SPARQL (`math:LimitResultOutcomeValueConstraint`, the outcome↔value agreement) | `math:UnderspecifiedLimitResult` |
+| A `math:LimitResult` names its `math:limitOutcome`, and its `math:limitResultValue` agrees with that outcome (a finite value for `math:convergesFinitely`; `math:PositiveInfinity`/`math:NegativeInfinity` for the divergent poles; none for `math:divergesWithoutLimit`) | SHACL Core (missing outcome); SHACL-SPARQL (`math:LimitResultOutcomeValueConstraint`, the outcome↔value agreement) + Rust validator (native twin of both halves, no `generated/` dependency) | `math:UnderspecifiedLimitResult` |
 | Continuity/connectedness/separation(T0–T4) are declared, not assumed — each backed by a first-order `logic:Formula` law; compactness backed by a `logic:SecondOrder` boundary record | SHACL Core (backed by `math:continuityLaw`/`math:connectednessLaw`/the separation laws; `math:compactnessBoundary`) | `math:UndeclaredTopologicalProperty` |
-| Every `math:AnalyticProperty` resolves through `math:definingLaw` to a real first-order `logic:Formula` (`math:nonAffinityLaw`, `math:convexityLaw`, `math:boundednessLaw`) or an honest `logic:SecondOrder` boundary record (`math:smoothnessBoundary`) — a monotonicity/analytic claim is never a bare flag | SHACL-SPARQL (`math:AnalyticPropertyBackedConstraint`, a class-guarded existence of `math:definingLaw`) | `math:UnbackedAnalyticProperty` |
+| Every `math:AnalyticProperty` resolves through `math:definingLaw` to a real first-order `logic:Formula` (`math:nonAffinityLaw`, `math:convexityLaw`, `math:boundednessLaw`) or an honest `logic:SecondOrder` boundary record (`math:smoothnessBoundary`) — a monotonicity/analytic claim is never a bare flag | SHACL-SPARQL (`math:AnalyticPropertyBackedConstraint`, a class-guarded existence of `math:definingLaw`) + Rust validator (native twin, no `generated/` dependency) | `math:UnbackedAnalyticProperty` |
 | A `math:Manifold` declares its dimension and its structure kind | SHACL Core | `math:UnderspecifiedManifold` |
 | A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |
 | A chart's target space (and a tangent space) has the same dimension as its manifold | SHACL-SPARQL | `math:DimensionMismatch` |
 | A `math:MetricSignature`'s `p + q` equals the manifold's dimension, and its `(p, q)` split agrees with the structure kind (Riemannian ⇒ `q = 0`; Lorentzian ⇒ exactly one timelike) | SHACL-SPARQL | `math:DimensionMismatch` |
-| A `math:Compactification` names all four roles (original space, compactifying map, compactified space, boundary at infinity); a `math:ConformalCompactification` additionally names its conformal factor | SHACL Core | `math:UnderspecifiedCompactification` |
+| A `math:Compactification` names all four roles (original space, compactifying map, compactified space, boundary at infinity); a `math:ConformalCompactification` additionally names its conformal factor | SHACL Core + Rust validator (native twin, no `generated/` dependency) | `math:UnderspecifiedCompactification` |
 | **A `math:Complement` names its ambient space and its complement-semantics** | SHACL Core | `math:UnqualifiedComplement` |
 | A `math:PersistentHomology` activity names its input, one filtration, and a persistence-diagram output | SHACL Core derived from OWL restrictions | `math:IncompletePersistentHomologyAnalysis` |
 | A `math:HamiltonianSystem` names its smooth state space, symplectic form, Hamiltonian function, and generated flow | SHACL Core derived from OWL restrictions | `math:IncompleteHamiltonianSystem` |
@@ -364,7 +364,7 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | An inference/analysis *process* is a `gmeow:Activity`, not typed as an `Observation` | OWL axiom (disjointness) | `math:ProcessObservationConflation` |
-| A held statistical/probabilistic *result claim* is an `Observation` with a vantage | SHACL Core | `math:UngroundedResultClaim` |
+| A held statistical/probabilistic *result claim* is an `Observation` with a vantage | Rust validator (a cross-node obligation over `gmeow:Observation`/`gmeow:observationResult`/`gmeow:vantage`, none of which is `math:`-specific, so it carries no `generated/`-dependent SHACL twin) | `math:UngroundedResultClaim` |
 | The structured *result object* (estimate, p-value, posterior) is neither the process nor the claim | OWL axiom | `math:ResultRoleConflation` |
 
 ### Projection rules

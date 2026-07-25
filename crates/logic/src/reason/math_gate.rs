@@ -279,7 +279,7 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// are (unexpectedly) not stratifiable, or if the native forward chase declines the
 /// program — every case a genuine internal-invariant failure, never a silent empty result
 /// standing in for an error.
-pub(crate) fn dimension_gate_markers(
+pub fn dimension_gate_markers(
     edb: &RdfDataset,
     derived: &[RdfQuad],
 ) -> gmeow_errors::Result<Vec<(String, String)>> {

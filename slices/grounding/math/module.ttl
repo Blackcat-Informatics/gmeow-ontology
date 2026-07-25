@@ -6829,6 +6829,10 @@ math:IngestRun owl:disjointWith gmeow:Observation .
 math:PCAAnalysis owl:disjointWith gmeow:Observation .
 math:ProofCheckActivity owl:disjointWith gmeow:Observation .
 math:InferenceRun owl:disjointWith gmeow:Observation .
+# The class carrying the disjointness annotation for reconciliation purposes — any one of
+# the four disjoint subjects above would do; math:InferenceRun is picked because (unlike
+# math:IngestRun and math:PCAAnalysis) it carries no OTHER gmeow:enforcesFailureClass.
+math:InferenceRun gmeow:enforcesFailureClass math:ProcessObservationConflation .
 
 # --- Result-object / observation disjointness (result object is never the claim) - #
 # The OWL-axiom gate backing math:ResultRoleConflation for the statistical result
@@ -6849,6 +6853,10 @@ math:BayesianResult owl:disjointWith gmeow:Observation .
 math:Estimate owl:disjointWith gmeow:Observation .
 math:EffectSize owl:disjointWith gmeow:Observation .
 math:Estimand owl:disjointWith gmeow:Observation .
+# The class carrying the disjointness annotation for reconciliation purposes — math:Estimand
+# is picked because (unlike math:Estimate/math:EffectSize, each already committed to their
+# own distinct gmeow:enforcesFailureClass) it carries no other one.
+math:Estimand gmeow:enforcesFailureClass math:ResultRoleConflation .
 
 # --- Bridge failure classes -------------------------------------------------- #
 
@@ -10494,7 +10502,8 @@ math:Interval rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:lowerEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:upperEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:lowerInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] ,
-    [ a owl:Restriction ; owl:onProperty math:upperInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+    [ a owl:Restriction ; owl:onProperty math:upperInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedInterval .
 
 math:Function rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:domain ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10514,7 +10523,8 @@ math:Function rdfs:subClassOf
 # min-qualified siblings in the appendix below (exact-one; missing → math:UnboundClosedForm).
 math:ClosedFormFunction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:definingExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalExpression ] ,
-    [ a owl:Restriction ; owl:onProperty math:formalArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VariableDeclaration ] .
+    [ a owl:Restriction ; owl:onProperty math:formalArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VariableDeclaration ] ;
+    gmeow:enforcesFailureClass math:UnboundClosedForm .
 
 # A math:ArithmeticOperation carries a signature over number systems: exactly one
 # math:operatorDomain and exactly one math:operatorCodomain, each a math:NumberSystem.
@@ -10523,7 +10533,8 @@ math:ClosedFormFunction rdfs:subClassOf
 # operator is math:UnframedOperator. The min-qualified siblings are in the appendix below.
 math:ArithmeticOperation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operatorDomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] ,
-    [ a owl:Restriction ; owl:onProperty math:operatorCodomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] .
+    [ a owl:Restriction ; owl:onProperty math:operatorCodomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] ;
+    gmeow:enforcesFailureClass math:UnframedOperator .
 
 math:AlgebraicStructure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:underlyingSet ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10570,7 +10581,8 @@ math:Measure rdfs:subClassOf
 math:MeasureEvaluation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:evaluatedMeasure ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Measure ] ,
     [ a owl:Restriction ; owl:onProperty math:measuredSubset ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableSet ] ,
-    [ a owl:Restriction ; owl:onProperty math:measureResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:measureResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation .
 
 # A probability measure is exactly a measure of total mass one — a typed value-equality
 # obligation on the inherited math:totalMass, derived to sh:hasValue 1.
@@ -10670,7 +10682,8 @@ math:Limit rdfs:subClassOf
 
 math:LimitResult rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:limitOutcome ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LimitOutcome ] ,
-    [ a owl:Restriction ; owl:onProperty math:limitResultValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:limitResultValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedLimitResult .
 
 math:Convergence rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10716,10 +10729,12 @@ math:Compactification rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:originalSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:compactifyingMap ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:compactifiedSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:boundaryAtInfinity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] .
+    [ a owl:Restriction ; owl:onProperty math:boundaryAtInfinity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedCompactification .
 
 math:ConformalCompactification rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:conformalFactor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:conformalFactor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedCompactification .
 
 math:OrthogonalComplement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
@@ -10821,7 +10836,8 @@ math:ConfidenceInterval rdfs:subClassOf
 # math:UnderspecifiedPiecewiseFunction. Authored as a bare min-qualified restriction
 # exactly like math:Series/math:seriesTerm, so it needs no N-Triples max sibling.
 math:PiecewiseFunction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:hasPiece ; owl:minQualifiedCardinality 1 ; owl:onClass math:FunctionPiece ] .
+    [ a owl:Restriction ; owl:onProperty math:hasPiece ; owl:minQualifiedCardinality 1 ; owl:onClass math:FunctionPiece ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPiecewiseFunction .
 
 # A math:FunctionPiece requires EXACTLY ONE math:pieceDomain (a math:Interval — the
 # sub-domain the piece governs) and AT MOST ONE math:pieceExpression. The pieceDomain
@@ -11721,10 +11737,46 @@ math:ProjectionDroppedParameterization
     skos:definition "The failure raised when a projection silently drops a math:Distribution's parameterization — emitting a bare family label without its math:DistributionParameterization and roles, so which conventional form was meant is lost. A projection must declare such a drop as recorded loss rather than perform it silently; a silent drop is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:MissingPreservationKind
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missing Preservation Kind"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProjectionRecord declares no logic:preservationKind — the record has entered the loss ledger without saying whether its lowering is exact, sound-but-incomplete, or complete-but-unsound. Every math: projection reuses the logic: loss-ledger vocabulary VERBATIM (Principle 17): a projection with an undeclared preservation judgment cannot be queried alongside every other GMEOW lowering, so it is ill-formed. Mirrors lang:MissingPreservationKind one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:ProjectionRecord carries no logic:preservationKind at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:ExactPreservationViolated (a preservation claim that is present but false); this failure is about an ABSENT preservation judgment, not a wrong one."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a math:ProjectionRecord declares no logic:preservationKind; declare one (logic:ExactPreservation, logic:SoundUnderApproximation, or logic:CompleteOverApproximation) to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; math:projectionSource exf:someExpr ; math:projectionTargetName \"OWL annotation surface\" . # no logic:preservationKind -> math:MissingPreservationKind"@x-gmeow-english .
+
+math:UndeclaredUnsupportedConstruct
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Unsupported Construct"@x-gmeow-english ;
+    skos:definition "The failure raised when a LOSSY math:ProjectionRecord (a declared logic:preservationKind other than logic:ExactPreservation) enumerates no logic:unsupportedConstruct — the record claims a completeness its own preservation kind denies. A lossy projection either drops nothing (and so should declare logic:ExactPreservation) or names everything it drops; silently declaring lossiness with no enumerated residue hides the loss from the ledger. Mirrors lang:UndeclaredUnsupportedConstruct one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a lossy math:ProjectionRecord (preservation kind other than logic:ExactPreservation) names no logic:unsupportedConstruct entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a record declaring logic:ExactPreservation (nothing to enumerate) or for one that already lists at least one dropped construct."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a lossy math:ProjectionRecord names no logic:unsupportedConstruct; enumerate every construct the lowering drops to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; logic:preservationKind logic:SoundUnderApproximation . # no logic:unsupportedConstruct -> math:UndeclaredUnsupportedConstruct"@x-gmeow-english .
+
+math:UnrecordedProjectionLoss
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unrecorded Projection Loss"@x-gmeow-english ;
+    skos:definition "The failure raised when a LOSSY math:ProjectionRecord whose math:projectionSource is a math:MathematicalExpression — a structured AST, not a bare display string — flattens that expression to its string-only external target (math:projectionTargetName) without recording the flattening among its logic:unsupportedConstruct entries. Collapsing an expression's argument-slot/operator/symbol structure to an opaque string is exactly the kind of loss the ledger exists to make queryable; a projection that performs the flattening silently, rather than naming it as dropped structure, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a lossy math:ProjectionRecord's math:projectionSource is a math:MathematicalExpression whose AST structure is not named among the record's logic:unsupportedConstruct entries."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an exact (non-lossy) projection, nor for one whose source is not itself a math:MathematicalExpression (e.g. a bare math:Number or math:Distribution, covered by the sibling projection gates)."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a lossy math:ProjectionRecord's math:MathematicalExpression source's structural flattening is not named among its logic:unsupportedConstruct entries; record the flattened AST as dropped structure to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; math:projectionSource exf:sumExpr ; logic:preservationKind logic:SoundUnderApproximation . # exf:sumExpr a math:MathematicalExpression, no logic:unsupportedConstruct naming it -> math:UnrecordedProjectionLoss"@x-gmeow-english .
+
 # --- Projection loss carrier ------------------------------------------------ #
 # The bundle-data carrier for a math: projection's lowering into an external target,
 # reusing the logic: loss-ledger vocabulary VERBATIM (logic:preservationKind,
-# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The two
+# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The five
 # projection-side failure classes above are join-requiring NATIVE gates over these
 # records; the carrier deliberately takes no sh:targetClass shape and is referenced by
 # no sh:class, exactly like the four lang: native projection gates.
@@ -11734,7 +11786,7 @@ math:ProjectionRecord
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Projection Record"@x-gmeow-english ;
-    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
+    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently; a lossy projection whose source is a math:MathematicalExpression enumerates its structural flattening rather than silently collapsing the AST to a string. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization, math:MissingPreservationKind, math:UndeclaredUnsupportedConstruct, math:UnrecordedProjectionLoss) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:projectionSource
@@ -12742,6 +12794,7 @@ math:AnalyticPropertyBackedConstraint
     logic:triggerValue math:AnalyticProperty ;
     logic:requires math:definingLaw ;
     logic:formalizes math:AnalyticProperty ;
+    gmeow:enforcesFailureClass math:UnbackedAnalyticProperty ;
     logic:message "A math:AnalyticProperty must resolve to a real first-order logic:Formula or an honest logic:expressivenessBoundary through math:definingLaw; an analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty)." .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
@@ -13519,6 +13572,7 @@ math:MeasureResultNonNegativeConstraint
     logic:forbiddenPredicate math:measureResult ;
     logic:forbiddenValue math:NegativeInfinity ;
     logic:formalizes math:MeasureEvaluation ;
+    gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation ;
     logic:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." .
 
 # A math:RationalValue's math:denominator must be non-zero: p/0 is undefined
@@ -13909,6 +13963,7 @@ math:ExtendedRealValueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: the object of math:extendedRealValue — a value on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞} — is a literal (its finite numeric branch) or one of the two poles math:PositiveInfinity / math:NegativeInfinity; a non-literal object that is neither pole is not a point of ℝ̄."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:MalformedExtendedReal ;
     logic:formalizes math:extendedRealValue ;
     logic:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
     logic:integrity math:erForall .
@@ -13946,6 +14001,7 @@ math:LimitResultOutcomeValueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:LimitResult's math:limitResultValue agrees with its math:limitOutcome — a finite (literal) value for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value at all for math:divergesWithoutLimit."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:UnderspecifiedLimitResult ;
     logic:formalizes math:LimitResult ;
     logic:message "A math:LimitResult's math:limitResultValue must agree with its math:limitOutcome: a finite numeric literal for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value for math:divergesWithoutLimit; a value that disagrees with the declared outcome is ill-formed (math:UnderspecifiedLimitResult)." ;
     logic:integrity math:lrvForall .
@@ -15446,6 +15502,9 @@ math:ProbabilityScaleConflation a logic:Situation .
 math:ProcessObservationConflation a logic:Situation .
 math:ProjectionConfidenceAsProbability a logic:Situation .
 math:ProjectionDroppedParameterization a logic:Situation .
+math:MissingPreservationKind a logic:Situation .
+math:UndeclaredUnsupportedConstruct a logic:Situation .
+math:UnrecordedProjectionLoss a logic:Situation .
 math:ResidualMeaningAsProperty a logic:Situation .
 math:ResultRoleConflation a logic:Situation .
 math:StringOnlyComputableExpression a logic:Situation .

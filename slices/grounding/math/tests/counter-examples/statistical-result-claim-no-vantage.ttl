@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:UngroundedResultClaim gate
+# (crates/validate/src/lint.rs, check_ungrounded_result_claim): a gmeow:Observation
+# names a result object through gmeow:observationResult but carries no gmeow:vantage —
+# a held statistical/probabilistic result claim floats free of the standpoint that
+# holds it. The native gate MUST emit math:UngroundedResultClaim.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:bareResultClaim a gmeow:Observation ;
+    gmeow:observationResult ex:someEstimate .
+
+ex:someEstimate a math:Estimate .

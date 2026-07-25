@@ -2400,8 +2400,8 @@ mod tests {
     #[test]
     fn reference_ast_act_structural_key_matches_recomputed_digest() {
         const NS: &str = "https://blackcatinformatics.ca/gmeow/examples/math/reference-act/";
-        let dataset =
-            purrdf::parse_dataset(REFERENCE_AST_ACT.as_bytes(), "text/turtle", None).expect("parse");
+        let dataset = purrdf::parse_dataset(REFERENCE_AST_ACT.as_bytes(), "text/turtle", None)
+            .expect("parse");
         let keys = math_expression_structural_keys(&dataset);
 
         let ast_root = format!("{NS}matrixProductAst");

@@ -1604,3 +1604,70 @@ ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
 # lang:SurfaceLeakInContentKey, lang:FabricatedEquivalence, and lang:AssertedRollup
 # carry no example-conformance cell in the lang: slice.
 # =========================================================================== #
+
+# === Rule: a math:ArgumentSlot names exactly one index and one expression ==== #
+
+ex:ecArgumentSlotMalformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-malformed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:ArgumentSlot names its math:slotIndex but no math:slotExpression (sh:minCount 1 on math:ArgumentSlotShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
+
+# === Rule: a math:Chain names its math:chainOf complex ======================= #
+
+ex:ecChainUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/chain-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:Chain names no math:chainOf complex (sh:minCount 1 on math:ChainShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedChain)." .
+
+# === Rule: a math:Cycle names its math:cycleOf complex ======================= #
+
+ex:ecCycleUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cycle-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:Cycle carries a math:chainOf value (isolating the cycle-specific violation) but names no math:cycleOf complex (sh:minCount 1 on math:CycleShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedCycle)." .
+
+# === Rule: a math:GlobalSection names its overSheaf carrier and section region === #
+
+ex:ecGlobalSectionIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/global-section-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:GlobalSection names neither its math:overSheaf carrier nor its math:sectionRegion (sh:minCount 1 on math:GlobalSectionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteGlobalSection)." .
+
+# === Rule: a math:RestrictionImage names its source and target values ======== #
+
+ex:ecRestrictionImageIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/restriction-image-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:RestrictionImage names neither its math:imageSourceValue nor its math:imageTargetValue (sh:minCount 1 on math:RestrictionImageShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteRestrictionImage)." .
+
+# === Rule: a math:MultiparameterFiltration names its index poset and a stage === #
+
+ex:ecMultiparameterFiltrationIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/multiparameter-filtration-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:MultiparameterFiltration names neither its math:filtrationIndexPoset nor any math:hasFiltrationStage (sh:minCount 1 on math:MultiparameterFiltrationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteMultiparameterFiltration)." .
+
+# === Rule: a math:Chart names its domain, coordinate map, and target space === #
+
+ex:ecChartUnderspecified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/chart-underspecified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:Chart names none of its math:chartDomain, math:coordinateMap, or math:targetCoordinateSpace (sh:minCount 1 on math:ChartShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedChart)." .
+
+# =========================================================================== #
+# Measure-and-dimension reasoned-gate carve-out: math:DimensionalInhomogeneity is
+# decided by the reasoner-derived forward chase over the authored
+# math:dimensionalHomogeneityLaw / math:integralDimensionCompositionLaw
+# (crates/logic/src/reason/math_gate.rs), never a flat SHACL/Datalog join, so it is
+# discharged by the whole-matrix execution-discharge harness's own reasoned-graph
+# channel (crates/pipeline/tests/math_conformance_discharge.rs) rather than a bound
+# gmeow:ExampleConformance cell here — exactly as the expression-identity native-gate
+# carve-out above.
+# =========================================================================== #

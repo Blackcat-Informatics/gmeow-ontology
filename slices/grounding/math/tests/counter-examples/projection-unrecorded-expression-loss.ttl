@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:UnrecordedProjectionLoss gate
+# (crates/validate/src/lint.rs, check_math_unrecorded_projection_loss): a LOSSY
+# math:ProjectionRecord (logic:preservationKind logic:SoundUnderApproximation) projects
+# a math:MathematicalExpression source — a structured AST, not a bare display string —
+# but its logic:unsupportedConstruct enumeration names an UNRELATED drop, never the
+# expression's own structural flattening. Collapsing the AST to
+# math:projectionTargetName's string-only external target is exactly the loss the
+# ledger exists to record. The native gate MUST emit math:UnrecordedProjectionLoss (and
+# NOT math:UndeclaredUnsupportedConstruct, since a construct IS enumerated — just not
+# the flattened expression).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:sumExpr a math:MathematicalExpression .
+
+ex:exprProjection a math:ProjectionRecord ;
+    math:projectionSource ex:sumExpr ;
+    math:projectionTargetName "OWL annotation (string only)" ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "irrelevant-other-drop" .
