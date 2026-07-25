@@ -375,31 +375,11 @@ gmeow:assessedNorm
     gmeow:howToUse "Assert gmeow:assessedNorm once from the assessment to its gmeow:Norm, paired with gmeow:assessedEvent and gmeow:complianceVerdict."@x-gmeow-english ;
     gmeow:useWhen "Use on a ComplianceAssessment to name the single norm against which the event is judged."@x-gmeow-english .
 
-gmeow:assessmentScoreValue
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment score value"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The numeric score, on the scale the criterion or rubric declares. Functional and mandatory (SHACL). A datatype twin of observationResult (which is entity-valued — the claimModality pattern); zeros are scores, never absences (false positives are worse than zeros)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentScoreValue 0.9 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory) and avoid dropping a zero — a zero is a score, never an absence (false positives are worse than zeros)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentScoreValue once per assessment as a decimal on the declared gmeow:ScoreScale; it is the datatype twin of observationResult under the claimModality pattern."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry an Assessment's numeric score on the scale its criterion or rubric declares."@x-gmeow-english .
-
-gmeow:assessmentTarget
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment target"@x-gmeow-english ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
-    skos:definition "What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one assessment, one target."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentTarget ex:chapter3 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one target per assessment (it is functional) and avoid naming the criterion or rubric here (those are gmeow:assessmentCriterion / gmeow:assessmentRubric)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentTarget once from the assessment to its target; it specializes gmeow:observedFeature, and scoring-density expectations read the target's kernel gmeow:hasGranularity."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name what is being scored — a work, expression, content segment, or chunk — the observation's feature of interest."@x-gmeow-english .
+# gmeow:assessmentTarget and gmeow:assessmentScoreValue are NOT minted here. They
+# are core-owned by the observations slice alongside gmeow:Assessment,
+# gmeow:assessmentCriterion, and gmeow:assessmentRubric — see
+# slices/core/observations/module.ttl. This slice reuses them on
+# gmeow:ComplianceAssessment as an ordinary extension → core dependency.
 
 gmeow:authorityAbsolute
     a gmeow:AuthorityLevel ;
@@ -1265,10 +1245,9 @@ gmeow:Persona rdfs:subClassOf
 gmeow:StyleGuide rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:styleGuideFor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
-# gmeow:Assessment is core-owned (observations); this cardinality-restriction axiom stays
-# authored here because two of its restricted properties — gmeow:assessmentTarget and
-# gmeow:assessmentScoreValue — remain norms-domain properties (a norms->observations edge
-# on the Assessment subject, legal; an observations->norms edge would not be).
+# gmeow:Assessment and every property restricted below are core-owned (observations).
+# This cardinality-restriction axiom is a norms -> observations reference (an extension
+# constraining a core class it consumes, the legal direction); the reverse would not be.
 gmeow:Assessment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentScoreValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,

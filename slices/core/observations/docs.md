@@ -125,7 +125,7 @@ schema:MonetaryAmount and the FIBO monetary amount.
 
 ## The evaluative-primitive vocabulary
 
-### gmeow:Assessment · gmeow:assessmentCriterion · gmeow:assessmentRubric
+### gmeow:Assessment · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentTarget · gmeow:assessmentScoreValue
 
 Promoted to core from the norms extension (Principle 16): scoring a target against a
 criterion or rubric is a genuinely cross-domain need (the preference extension reuses it
@@ -133,9 +133,17 @@ too), not norms-domain-specific. `Assessment ⊑ Observation` — vantage = the 
 model; two disagreeing judges are coexisting cells, no winner (Principle 9).
 `assessmentCriterion` / `assessmentRubric` play the `observationMethod` ROLE but are
 deliberately not its subproperties (observationMethod is functional with a QualityValue
-range; Criterion and Rubric are Entities — the claimModality axiom pattern). The
-norms-resident `assessmentTarget` and `assessmentScoreValue` facets stay in the norms
-module (they are not reused outside it).
+range; Criterion and Rubric are Entities — the claimModality axiom pattern).
+
+`assessmentTarget` (⊑ `observedFeature` — the observation-spine bridge idiom) and
+`assessmentScoreValue` (the datatype twin of `observationResult`) are core-owned here too.
+They were briefly left behind in norms on the premise that they were "not reused outside
+it"; that premise was false — the preference extension's hard-versus-soft competency query
+reads `assessmentTarget`, and an extension may not reach into a sibling extension
+(Principle 16). Their domain is this slice's `Assessment`, their superproperty is this
+slice's `observedFeature`, and `Assessment`'s own `howToUse` mandates them, so the whole
+property cluster belongs together in core. Their schema.org review-cluster alignments moved
+with them into `mappings/equivalences.ttl`.
 
 ### gmeow:Criterion · gmeow:Condition · gmeow:EvaluationVerdict · gmeow:Rubric
 

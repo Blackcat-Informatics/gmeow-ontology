@@ -557,3 +557,28 @@ gmeow:currency skos:closeMatch schema:currency {|
     gmeow:confidence 0.8 ;
     gmeow:comment "the currency of a monetary amount; GMEOW uses a ReferenceFrame individual, schema.org uses a string code"
 |} .
+
+# --------------------------------------------------------------------------- #
+# schema.org review cluster — the Assessment scoring facets
+# --------------------------------------------------------------------------- #
+# Relocated here from slices/extensions/norms/mappings/equivalences.ttl together
+# with the two properties themselves: an alignment belongs to the slice that owns
+# the term it aligns, and gmeow:assessmentTarget / gmeow:assessmentScoreValue are
+# core-owned here alongside gmeow:Assessment, gmeow:assessmentCriterion, and
+# gmeow:assessmentRubric. The Assessment relator is per-review — its vantage is
+# the review author — so the schema.org review idiom carries coexisting verdicts
+# faithfully (Principle 9).
+
+gmeow:assessmentTarget skos:closeMatch schema:itemReviewed {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the assessed target is what a schema review reviews; closeMatch — itemReviewed scopes to Review acts where assessmentTarget covers any scored observation (PROV activity alignment: declares the per-review ClaimReview projection)"
+|} .
+
+gmeow:assessmentScoreValue skos:closeMatch schema:ratingValue {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the score literal as schema's rating value; closeMatch — ratingValue rides a Rating node where the score sits on the Assessment (PROV activity alignment)"
+|} .

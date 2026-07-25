@@ -123,7 +123,7 @@ rather than here.
   winner (P9). `assessmentCriterion`/`assessmentRubric` (also core) play the
   `observationMethod` role **without** the subproperty axiom (functional
   QualityValue range vs Entity values — the `claimModality` pattern);
-  `assessmentScoreValue` (norms-resident) is the datatype twin of `observationResult`.
+  `assessmentScoreValue` (also core) is the datatype twin of `observationResult`.
   Zeros are scores, never absences. Scoring-density guidance by target
   granularity reuses kernel `hasGranularity`.
 - **Deferred to the compiler-arc window**: EARL (EDOAL — Assertion ↔
@@ -287,15 +287,16 @@ the closed trichotomy positive / negative / cautionary, carried by the functiona
 `exemplarPolarity`; `exemplarRedirect` sends a cautionary case to the criterion it actually evidences;
 `exemplarRationale` is the localizable judgement prose.
 
-### gmeow:Assessment (core, observations) · gmeow:assessmentTarget · gmeow:assessmentCriterion (core) · gmeow:assessmentRubric (core) · gmeow:assessmentScoreValue
+### gmeow:Assessment · gmeow:assessmentTarget · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentScoreValue (all core, observations)
 
 `Assessment ⊑ Observation` — core-owned by observations, reused by reference here (Principle 16) —
 scores a target against a criterion or whole rubric — vantage = the judge;
 an LLM judge is just a vantage and disagreeing models are coexisting cells. `assessmentTarget`
-(`⊑ observedFeature`, norms-resident) names what is scored; `assessmentCriterion` / `assessmentRubric`
-(also core-owned by observations) play the
+(`⊑ observedFeature`) names what is scored; `assessmentCriterion` / `assessmentRubric` play the
 `observationMethod` role without the subproperty axiom (claimModality pattern); `assessmentScoreValue`
-(norms-resident) is the mandatory numeric twin of `observationResult` — zeros are scores, never absences.
+is the mandatory numeric twin of `observationResult` — zeros are scores, never absences. The whole
+property cluster is core-owned: this slice consumes it on `ComplianceAssessment` and constrains it
+(cardinality restrictions on the core `Assessment`), which is the legal extension → core direction.
 
 ### gmeow:Persona · gmeow:personaBearer · gmeow:personaRegister · gmeow:activatedIn · gmeow:expressesNorm
 

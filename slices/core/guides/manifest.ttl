@@ -6,6 +6,15 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+# gmeow:sliceDependsOn lists ONLY the slices this module's own axioms depend on.
+# The pedagogy pointers do NOT belong in it: gmeow:usesExamplePath and
+# gmeow:followsGuidePath are path STRINGS, and gmeow:usesTerm is an open
+# documentation index (rdfs:range rdfs:Resource — "a guide may point at any
+# documented term across any slice"). A recipe that indexes an extension's term
+# asserts nothing about it — no subclass, domain, range, or constraint — so it is
+# not a build dependency, and declaring one from this CORE slice would be a
+# tier-forbidden crossing (Principle 16) with no semantics behind it.
+
 <https://blackcatinformatics.ca/gmeow/slices/guides>
     a gmeow:Slice ;
     rdfs:label "guides"@x-gmeow-english ;
@@ -23,13 +32,11 @@
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
-        <https://blackcatinformatics.ca/gmeow/slices/graphrag> ,
         <https://blackcatinformatics.ca/gmeow/slices/gts> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/software> ,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceProfile "claims" ;

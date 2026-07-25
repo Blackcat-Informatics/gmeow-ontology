@@ -332,7 +332,7 @@ ex:cqCrossSliceComposeModelServing a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeModelServingShape ;
-    gmeow:cqRationale "GMEOW must answer 'does the preference slice compose the model-serving gmeow:ModelArtifact by reference?' (Principle 16). The model-delta-worked scene joins the delta to its base checkpoint typed gmeow:ModelArtifact via gmeow:deltaBaseArtifact; the asserted answer is exactly that one row." ;
+    gmeow:cqRationale "GMEOW must answer 'does the preference slice compose an externally-supplied, content-addressed base model artifact by reference?' (Principle 16). The model-delta-worked scene joins the delta to its base checkpoint (ex:baseCkpt, typed gmeow:ModelArtifact by the model-serving slice in the fixture) via gmeow:deltaBaseArtifact, and the query binds it on the CORE seam the reuse rides — gmeow:contentDigest, without which the delta's identity tuple is not reproducible (AC5). The query must NOT name gmeow:ModelArtifact: a competency query is a semantic dependency edge (purrdf EdgeKind::Query), so naming a sibling extension's class would be the forbidden extension -> extension crossing. The asserted answer is exactly that one row." ;
     gmeow:cqExpectRow ex:cqCrossSliceComposeModelServingRow .
 ex:cqCrossSliceComposeModelServingShape a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "delta" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;

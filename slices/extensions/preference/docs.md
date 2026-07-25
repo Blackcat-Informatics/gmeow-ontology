@@ -37,12 +37,23 @@ embeddings, comparison complexes, sections, obstructions, and model deltas of a
 running analysis — lives in the consumer `lillith_decodes`, not here.
 
 Cross-slice reuse obeys Principle 16 (DAG): axioms anchor **only** on core +
-`logic`/`math` grounding. Norms (`Assessment`/`Rubric`/`Criterion`/`EvaluationVerdict`/
-`Condition`), model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology,
-and embedding-projection (`VectorSpaceContract`) are **extensions** and are reused
-**only** at the instance level (Principle 5) and named by-reference as
-a native alignment cell in `mappings/equivalences.ttl` — never a subclass/domain/range
-axiom.
+`logic`/`math` grounding. `Assessment`/`Rubric`/`Criterion`/`EvaluationVerdict`/
+`Condition` (with `assessmentTarget` and `assessmentScoreValue`) are **core**, owned by
+the observations slice, so this slice names them by-reference as native alignment cells in
+`mappings/equivalences.ttl` — never a subclass/domain/range axiom.
+
+model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology, and
+embedding-projection (`VectorSpaceContract`) are **sibling extensions**, and the tier model
+is stricter about them than "no subclass/range axiom": a mapping cell and a competency query
+are each a *semantic dependency edge*, so naming a sibling extension's term in either would
+BE the forbidden extension → extension crossing however carefully it is phrased. Those reuses
+are therefore confined to `examples/` and `tests/`, which are not dependency edges — the
+worked scene types `ex:baseCkpt` a `gmeow:ModelArtifact` and the counter-example corpus
+guards the no-re-mint ban — while the shipped semantic artifacts compose the same content
+through the core/grounding seam (`gmeow:contentDigest` for the delta's base-artifact leg;
+`math:GlobalSection` / `math:GluingObstruction` for the H0/H1 apparatus semantic-topology
+also composes). The mapping set records the two omitted correspondences, with reasons, in its
+`gmeow:setTrailer`.
 
 ## The pipeline
 

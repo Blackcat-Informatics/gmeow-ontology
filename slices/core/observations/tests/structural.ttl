@@ -352,12 +352,15 @@ ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:Assessment rdfs:subClassOf gmeow:Observation .
+    gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:assessmentScoreValue a owl:DatatypeProperty .
     FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
     FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
 }""" ;
-    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, and gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod — they play the observationMethod ROLE without the subproperty axiom (the claimModality pattern, since Criterion and Rubric are Entities, not QualityValues)." .
+    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation; gmeow:assessmentTarget MUST specialize gmeow:observedFeature (the observation-spine bridge idiom) and gmeow:assessmentScoreValue MUST be a datatype property — the whole Assessment property cluster is core-owned here, not split across an extension; and gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod — they play the observationMethod ROLE without the subproperty axiom (the claimModality pattern, since Criterion and Rubric are Entities, not QualityValues)." .
 
 # --- 26. Three EvaluationVerdict seeds exist (MUST) -------------------------
 ex:saEvaluationVerdictSeeds a gmeow:StructuralAssertion ;

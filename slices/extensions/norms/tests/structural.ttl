@@ -468,13 +468,12 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:exemplarSubject MUST be an owl:ObjectProperty with no rdfs:range and MUST NOT be functional, so entity-pattern exemplars stay open and may coexist with selector-pinned exemplars." .
 
-# --- 43. Assessment's norms-resident facets: target, score, anchor/exemplar (MUST / MUST-NOT)
-# gmeow:Assessment itself (subclass of Observation) and gmeow:assessmentCriterion /
-# gmeow:assessmentRubric (not subproperties of observationMethod) are core-owned
-# by observations and checked there; this cell pins the norms-resident
-# gmeow:assessmentTarget, gmeow:assessmentScoreValue, gmeow:anchorMeaning, and
-# gmeow:exemplarRationale facets.
-ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
+# --- 43. The localizable-prose calibration facets stay plural (MUST / MUST-NOT)
+# The whole gmeow:Assessment property cluster — gmeow:Assessment itself,
+# gmeow:assessmentCriterion, gmeow:assessmentRubric, gmeow:assessmentTarget, and
+# gmeow:assessmentScoreValue — is core-owned by observations and checked there.
+# This cell pins the genuinely norms-owned calibration prose facets.
+ex:saCalibrationProseFacetsArePlural a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -482,12 +481,12 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:anchorMeaning a owl:DatatypeProperty .
+    gmeow:exemplarRationale a owl:DatatypeProperty .
     FILTER NOT EXISTS { ?rec logic:characterizes gmeow:anchorMeaning ; logic:characteristicSort logic:functionalProperty }
     FILTER NOT EXISTS { ?rec2 logic:characterizes gmeow:exemplarRationale ; logic:characteristicSort logic:functionalProperty }
-    gmeow:assessmentScoreValue a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property — the norms-resident facets of the core observations gmeow:Assessment." .
+    gmeow:saRationale "gmeow:anchorMeaning and gmeow:exemplarRationale MUST be datatype properties and MUST NOT be functional — they carry localizable calibration/judgement prose, one value per language tag, so a French and an English calibration coexist (the localizable-prose convention)." .
 
 # --- 44. Persona expression machinery is open and plural (MUST / MUST-NOT)
 ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;
