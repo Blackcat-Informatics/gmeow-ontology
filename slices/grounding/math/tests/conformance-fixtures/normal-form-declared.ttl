@@ -8,13 +8,16 @@
 # (a structural-strength claim needs no procedure/attribution).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ex:declaredSource a math:MathematicalExpression ;
     math:normalForm ex:declaredTarget ;
-    math:structuralKey "sum-x-y-v1" .
+    math:structuralKey "sum-x-y-v1" ;
+    math:literalValue "1"^^xsd:integer .
 
 ex:declaredTarget a math:MathematicalExpression ;
-    math:structuralKey "sum-x-y-v1" .
+    math:structuralKey "sum-x-y-v1" ;
+    math:literalValue "1"^^xsd:integer .
 
 ex:declaredNormalization a math:NormalizationDeclaration ;
     math:normalizes ex:declaredSource ;

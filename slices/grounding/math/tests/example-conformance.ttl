@@ -1523,8 +1523,8 @@ ex:ecFreeVariableTyped a gmeow:ExampleConformance ;
 ex:ecFreeVariableUntyped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/free-variable-untyped.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The math:FreeVariableDeclaration has no math:variableDomain value of class math:Set, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UntypedFreeVariable)." .
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The math:FreeVariableDeclaration has no math:variableDomain value at all; the restriction's owl:onClass is owl:Thing, which the SHACL compiler simplifies to a plain, unqualified minCount, so the exact-one typed minimum MUST emit exactly one shacl.MinCountConstraintComponent finding (math:UntypedFreeVariable)." .
 
 # === Rule: a math:MathematicalStatement's statement role is scoped to a named theory === #
 
@@ -1618,24 +1618,24 @@ ex:ecArgumentSlotMalformed a gmeow:ExampleConformance ;
 ex:ecChainUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/chain-ungrounded.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:Chain names no math:chainOf complex (sh:minCount 1 on math:ChainShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedChain)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:Chain names no math:chainOf complex (sh:qualifiedMinCount 1 on math:ChainShape, qualified by owl:onClass math:ChainComplex), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UngroundedChain)." .
 
 # === Rule: a math:Cycle names its math:cycleOf complex ======================= #
 
 ex:ecCycleUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/cycle-ungrounded.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:Cycle carries a math:chainOf value (isolating the cycle-specific violation) but names no math:cycleOf complex (sh:minCount 1 on math:CycleShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedCycle)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:Cycle carries a math:chainOf value (isolating the cycle-specific violation) but names no math:cycleOf complex (sh:qualifiedMinCount 1 on math:CycleShape, qualified by owl:onClass math:ChainComplex), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UngroundedCycle)." .
 
 # === Rule: a math:GlobalSection names its overSheaf carrier and section region === #
 
 ex:ecGlobalSectionIncomplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/global-section-incomplete.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:GlobalSection names neither its math:overSheaf carrier nor its math:sectionRegion (sh:minCount 1 on math:GlobalSectionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteGlobalSection)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:GlobalSection names neither its math:overSheaf carrier nor its math:sectionRegion (sh:qualifiedMinCount 1 on math:GlobalSectionShape, qualified by owl:onClass math:CellularSheaf/math:CellComplex), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteGlobalSection)." .
 
 # === Rule: a math:RestrictionImage names its source and target values ======== #
 
@@ -1650,8 +1650,8 @@ ex:ecRestrictionImageIncomplete a gmeow:ExampleConformance ;
 ex:ecMultiparameterFiltrationIncomplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/multiparameter-filtration-incomplete.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:MultiparameterFiltration names neither its math:filtrationIndexPoset nor any math:hasFiltrationStage (sh:minCount 1 on math:MultiparameterFiltrationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteMultiparameterFiltration)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:MultiparameterFiltration names neither its math:filtrationIndexPoset nor any math:hasFiltrationStage (sh:qualifiedMinCount 1 on math:MultiparameterFiltrationShape, qualified by owl:onClass math:MathematicalObject/math:FiltrationStage), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:IncompleteMultiparameterFiltration). With zero stages, math:CollapsedMultiparameterFiltrationConstraint's own stage-existence guard conjunct keeps it from vacuously double-firing, so this is the sole finding." .
 
 # === Rule: a math:Chart names its domain, coordinate map, and target space === #
 

@@ -78,9 +78,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_errors::Diag;
 use gmeow_errors::code::register_code;
 use gmeow_errors::grade::{FindingCategory, Grade, Severity, Standpoint};
-use gmeow_errors::Diag;
 use gmeow_validate::lint::structural_lint_dataset;
 use gmeow_validate::store::shacl_validate_dataset;
 use purrdf::shapes::shapes::{Constraint, Shape, Shapes};

@@ -7,13 +7,16 @@
 # the digests agree.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ex:equalKeySource a math:MathematicalExpression ;
     math:normalForm ex:equalKeyTarget ;
-    math:structuralKey "product-a-b-v1" .
+    math:structuralKey "product-a-b-v1" ;
+    math:literalValue "2"^^xsd:integer .
 
 ex:equalKeyTarget a math:MathematicalExpression ;
-    math:structuralKey "product-a-b-v1" .
+    math:structuralKey "product-a-b-v1" ;
+    math:literalValue "2"^^xsd:integer .
 
 ex:equalKeyDecl a math:NormalizationDeclaration ;
     math:normalizes ex:equalKeySource ;

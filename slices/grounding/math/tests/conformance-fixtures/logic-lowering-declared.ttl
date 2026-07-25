@@ -15,7 +15,11 @@ ex:pythagoreanEq a math:MathematicalExpression ;
     rdfs:label "Pythagorean equation lowered to a logic: formula"@x-gmeow-english ;
     math:denotationKind math:denotesProposition ;
     math:compilesToLogicFormula ex:pythagoreanFormula ;
-    math:logicLoweringPreservation logic:ExactPreservation .
+    math:logicLoweringPreservation logic:ExactPreservation ;
+    math:hasMathematicalSymbol ex:pythagoreanEqSymbol .
+
+ex:pythagoreanEqSymbol a math:MathematicalSymbol ;
+    rdfs:label "the Pythagorean equation, as a named symbol"@x-gmeow-english .
 
 ex:pythagoreanFormula a logic:Formula ;
     rdfs:label "Pythagorean logic: formula target of the lowering"@x-gmeow-english ;

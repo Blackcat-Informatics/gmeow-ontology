@@ -13278,18 +13278,24 @@ math:CollapsedMultiparameterFiltrationConstraint
     rdfs:label "Collapsed-multiparameter-filtration constraint (a stage must carry a multi-index)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint enforcing non-collapse of a math:MultiparameterFiltration: for every multiparameter filtration there MUST exist a math:hasFiltrationStage whose math:multiIndex names a tuple in the parameter poset. A filtration whose stages carry only a single real math:filtrationThreshold and no math:multiIndex has collapsed to the one-parameter case (math:CollapsedMultiparameterFiltration). A positive existential consequent modelled on math:BoundarySquareZeroConstraint; the missing-frame case (no poset, no stage) is math:IncompleteMultiparameterFiltration."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint enforcing non-collapse of a math:MultiparameterFiltration: for every multiparameter filtration that already has at least one math:hasFiltrationStage, there MUST exist a math:hasFiltrationStage whose math:multiIndex names a tuple in the parameter poset. A filtration whose stages carry only a single real math:filtrationThreshold and no math:multiIndex has collapsed to the one-parameter case (math:CollapsedMultiparameterFiltration). A positive existential consequent modelled on math:BoundarySquareZeroConstraint; the missing-frame case (no poset, no stage) is math:IncompleteMultiparameterFiltration. This constraint only applies once at least one stage exists; a filtration with zero stages is exclusively covered by math:IncompleteMultiparameterFiltration — the guard's own stage-existence conjunct keeps this constraint from vacuously double-firing on a zero-stage filtration."@x-gmeow-english ;
     logic:formalizes math:MultiparameterFiltration ;
     gmeow:enforcesFailureClass math:CollapsedMultiparameterFiltration ;
     logic:severity "Violation" ;
-    logic:message "A math:MultiparameterFiltration must have at least one math:hasFiltrationStage carrying a math:multiIndex tuple; a filtration whose every stage is a bare one-parameter math:filtrationThreshold has collapsed to one parameter (math:CollapsedMultiparameterFiltration)." ;
+    logic:message "A math:MultiparameterFiltration that already has at least one math:hasFiltrationStage must have one carrying a math:multiIndex tuple; a filtration whose every stage is a bare one-parameter math:filtrationThreshold has collapsed to one parameter (math:CollapsedMultiparameterFiltration). This constraint only applies once at least one stage exists; a filtration with zero stages is exclusively covered by math:IncompleteMultiparameterFiltration." ;
     logic:integrity math:cmfForall .
 math:cmfForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall math:cmfImpl .
 math:cmfImpl a logic:Formula ; logic:antecedent math:cmfGuard ; logic:consequent math:cmfExists .
-math:cmfGuard a logic:Formula ; logic:relation rdf:type ;
+math:cmfGuard a logic:Formula ; logic:and math:cmfTypeGuard , math:cmfStageExistsGuard .
+math:cmfTypeGuard a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MultiparameterFiltration ] .
+math:cmfStageExistsGuard a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "anyStage" ] ;
+    logic:exists math:cmfStageExistsAtom .
+math:cmfStageExistsAtom a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "anyStage" ] .
 math:cmfExists a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] ;
     logic:exists math:cmfBody .

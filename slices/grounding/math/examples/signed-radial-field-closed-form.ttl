@@ -134,19 +134,25 @@ ex:radialFieldDomain a math:Set ;
 
 # The formal argument x (the abstraction variable the field is OF).
 ex:xDecl a math:FreeVariableDeclaration ;
+    math:variableDomain ex:radialFieldDomain ;
     rdfs:label "x — the formal argument (compactified radius)"@x-gmeow-english .
 
 # The five fitted parameters, each > 0 (stated in prose): A, B, C scale/offset,
 # p, q the two divergence exponents.
 ex:aDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers ;
     rdfs:label "A — the central-well scale (> 0)"@x-gmeow-english .
 ex:bDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers ;
     rdfs:label "B — the far-field barrier scale (> 0)"@x-gmeow-english .
 ex:cDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers ;
     rdfs:label "C — the baseline offset (> 0)"@x-gmeow-english .
 ex:pDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers ;
     rdfs:label "p — the centre divergence exponent (> 0)"@x-gmeow-english .
 ex:qDecl a math:FreeVariableDeclaration ;
+    math:variableDomain math:realNumbers ;
     rdfs:label "q — the infinity divergence exponent (> 0)"@x-gmeow-english .
 
 # --- The defining-expression AST — T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C -------------- #
