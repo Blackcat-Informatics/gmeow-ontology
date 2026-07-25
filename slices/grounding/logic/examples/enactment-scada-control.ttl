@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GENERALITY PROOF, 2 of 3: the kernel enacting a SCADA CONTROL PLAN.
+#
+# This is the domain where the kernel's hardest commitments become literal. The
+# lease is exclusive control of a physical actuator and its fencing identity is
+# what stops a paused controller writing after its lease lapsed. The goal is a
+# maintenance goal over a setpoint, so a successful run never closes it. And the
+# unknown-outcome boundary is a valve command that may or may not have been
+# actuated - the one case where guessing is worst.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/scada/> .
+
+ex:refluxControl a logic:Plan ;
+    rdfs:label "column reflux control"@en ;
+    logic:prescriptionKind logic:prescriptionKindControlPlan ;
+    logic:planGoal ex:refluxSetpoint .
+
+# A maintenance goal: satisfied only WHILE the condition holds. A successful
+# control session therefore never closes it - the loop keeps running by design.
+ex:refluxSetpoint a logic:GoalExpression ;
+    rdfs:label "reflux ratio held within band"@en ;
+    logic:goalExpressionKind logic:MaintenanceGoal .
+
+ex:refluxV3 a logic:PrescriptionVersion ;
+    logic:prescriptionOf ex:refluxControl ;
+    logic:prescriptionDigest "blake3:5e21ab" .
+
+ex:nightSession a logic:Enactment ;
+    rdfs:label "the night control session"@en ;
+    logic:enactsPrescriptionVersion ex:refluxV3 ;
+    logic:enactmentInputSnapshot ex:plantStateT0 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:plantStateT0 a logic:InputSnapshot ; logic:snapshotDigest "blake3:117acc" .
+
+# Exclusive control of a physical actuator. The fencing identity is the whole
+# mechanism: expiry alone cannot stop a paused controller from writing.
+ex:valveLease a logic:ResourceLease ;
+    rdfs:label "exclusive control of valve FV-101"@en ;
+    logic:leaseOwner ex:nightSession ;
+    logic:leaseScope ex:valveFV101 ;
+    logic:fencingIdentity 47 ;
+    logic:leaseExpiry "2026-07-25T04:30:00Z"^^xsd:dateTime .
+
+ex:valveFV101 a logic:ActionSchema ; rdfs:label "valve FV-101 setpoint command"@en .
+
+# The boundary case: the command went out, the acknowledgement did not come
+# back. The valve may or may not have moved.
+ex:setpointIntent a logic:DispatchIntent ;
+    rdfs:label "command FV-101 to 42% open"@en ;
+    logic:intentOfEnactment ex:nightSession ;
+    logic:intentDigest "blake3:aa71bc" ;
+    logic:expectedJournalHead "blake3:head-19" .
+
+ex:setpointAttempt a logic:EffectAttempt ;
+    logic:attemptOfIntent ex:setpointIntent ;
+    logic:providerCorrelationId "plc-seq-88213" ;
+    logic:effectProtocolPosition logic:EffectAttempted ;
+    logic:effectKnowledge logic:InfoUndetermined .
+
+# Undetermined, NOT "conclusively did not happen". Retrying a valve command
+# that may already have been actuated is the worst available move.
+ex:setpointUnknown a logic:ExternalOutcomeUnknown ;
+    logic:unknownOfAttempt ex:setpointAttempt .
+
+ex:setpointProbe a logic:ReconciliationProbe ;
+    rdfs:label "read back the valve position"@en ;
+    logic:probesAttempt ex:setpointAttempt .

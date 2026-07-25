@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GENERALITY PROOF, 1 of 3: the kernel enacting a CURRICULUM.
+#
+# Not one work-orchestration term appears. A course is a logic:Plan whose
+# success criterion is competency attainment; a module decomposition is a
+# logic:DecompositionMethod; a prerequisite is a logic:PriorEnactmentRequirement
+# over another plan's enactment; one learner's enrolment is one logic:Enactment;
+# an accommodation is a logic:Deviation. If any of these needed a work-cluster
+# concept to be sayable, the kernel would not be general.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/curriculum/> .
+
+ex:calculus2 a logic:Plan ;
+    rdfs:label "Calculus II"@en ;
+    logic:prescriptionKind logic:prescriptionKindCurriculum ;
+    logic:planGoal ex:calculus2Competency .
+
+ex:calculus2Competency a logic:GoalExpression ;
+    rdfs:label "the learner can integrate by parts and by substitution"@en .
+
+# A prerequisite is a condition on ANOTHER plan's enactment history, not on
+# world state - which is exactly what logic:PriorEnactmentRequirement is for.
+ex:calculus1Prereq a logic:PriorEnactmentRequirement ;
+    rdfs:label "Calculus I must have been completed"@en ;
+    logic:requiredPriorPrescription ex:calculus1 ;
+    logic:requiredPriorState logic:EnactmentCompleted .
+
+ex:calculus1 a logic:Plan ;
+    rdfs:label "Calculus I"@en ;
+    logic:prescriptionKind logic:prescriptionKindCurriculum .
+
+# Course-into-modules is a decomposition METHOD, so the same course can be
+# decomposed differently for an intensive term without editing the course.
+ex:byWeeklyModules a logic:DecompositionMethod ;
+    rdfs:label "decompose the course into weekly modules"@en ;
+    logic:methodDecomposes ex:calculus2 ;
+    logic:methodYields ex:moduleIntegrationByParts , ex:moduleSubstitution .
+
+ex:moduleIntegrationByParts a logic:ActionSchema ; rdfs:label "integration by parts"@en .
+ex:moduleSubstitution a logic:ActionSchema ; rdfs:label "integration by substitution"@en .
+
+ex:calculus2Autumn a logic:PrescriptionVersion ;
+    rdfs:label "Calculus II, autumn syllabus"@en ;
+    logic:prescriptionOf ex:calculus2 ;
+    logic:prescriptionDigest "blake3:c2a17f" .
+
+# One learner's enrolment is one enactment. A cohort groups the siblings.
+ex:enrolment014 a logic:Enactment ;
+    rdfs:label "learner 014's enrolment"@en ;
+    logic:enactsPrescriptionVersion ex:calculus2Autumn ;
+    logic:enactmentInputSnapshot ex:autumnRoster ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:autumnRoster a logic:InputSnapshot ; logic:snapshotDigest "blake3:9d40e1" .
+
+ex:autumnCohort a logic:EnactmentCohort ;
+    rdfs:label "the autumn cohort"@en ;
+    logic:cohortMember ex:enrolment014 .
+
+# An accommodation is a sanctioned departure, not a constraint violation.
+ex:extendedTimeAccommodation a logic:Deviation ;
+    rdfs:label "extended time on the assessment"@en ;
+    logic:deviationFromStep ex:moduleSubstitution .

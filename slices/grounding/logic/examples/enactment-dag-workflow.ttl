@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GENERALITY PROOF, 3 of 3: the kernel enacting a DAG WORKFLOW.
+#
+# The plainest reading, included because it is the one most likely to be assumed
+# as THE reading. Stages are action schemas ordered by control-flow edges; a run
+# is an enactment against a pinned input generation; resume and repeat are
+# distinguished rather than both being "run it again".
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/dag/> .
+
+ex:nightlyBuild a logic:Plan ;
+    rdfs:label "nightly build pipeline"@en ;
+    logic:prescriptionKind logic:prescriptionKindCiBuild ;
+    logic:planFlowEdge ex:compileToTest , ex:testToPublish .
+
+ex:compile a logic:ActionSchema ; rdfs:label "compile"@en .
+ex:test    a logic:ActionSchema ; rdfs:label "test"@en .
+ex:publish a logic:ActionSchema ; rdfs:label "publish"@en .
+
+ex:compileToTest a logic:ControlFlowEdge ;
+    logic:flowFrom ex:compile ; logic:flowTo ex:test .
+ex:testToPublish a logic:ControlFlowEdge ;
+    logic:flowFrom ex:test ; logic:flowTo ex:publish .
+
+ex:buildV7 a logic:PrescriptionVersion ;
+    logic:prescriptionOf ex:nightlyBuild ;
+    logic:prescriptionDigest "blake3:71bd0e" .
+
+ex:runMonday a logic:Enactment ;
+    logic:enactsPrescriptionVersion ex:buildV7 ;
+    logic:enactmentInputSnapshot ex:mondayCommit ;
+    logic:enactmentState logic:EnactmentCompleted .
+
+ex:mondayCommit a logic:InputSnapshot ; logic:snapshotDigest "blake3:ba01cd" .
+
+# Tuesday is a REPEAT: same prescription version, new input generation, a new
+# enactment. Not a resume, which would continue Monday's run against Monday's
+# inputs, and not a revise, which would change the pipeline itself.
+ex:runTuesday a logic:Enactment ;
+    logic:enactsPrescriptionVersion ex:buildV7 ;
+    logic:enactmentInputSnapshot ex:tuesdayCommit ;
+    logic:enactmentState logic:EnactmentRunning ;
+    logic:continuationKind logic:ContinuationRepeat .
+
+ex:tuesdayCommit a logic:InputSnapshot ; logic:snapshotDigest "blake3:cd12ef" .
+
+# What changed between the two generations - the construct that makes
+# "what is new since last time?" answerable without diffing whole snapshots.
+ex:mondayToTuesday a logic:SnapshotDelta ;
+    logic:deltaAddition ex:newTestCase .
+ex:newTestCase a logic:ActionSchema ; rdfs:label "a newly added test case"@en .
