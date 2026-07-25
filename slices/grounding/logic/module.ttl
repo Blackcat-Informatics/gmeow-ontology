@@ -16286,6 +16286,885 @@ logic:rcsCons a logic:Formula ; logic:relation logic:searchFragment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
 
 # =========================================================================== #
+# === Enactment layer: the external-effect commitment layer (the saga)     === #
+# =========================================================================== #
+#
+# Everything here exists because the boundary between "we intended an effect" and
+# "the world changed" is not crossable by assertion. The layer records intent,
+# attempt, receipt, reconciliation and compensation as separate durable facts,
+# keeps PROTOCOL POSITION apart from COMMITMENT KNOWLEDGE, and never lets the
+# reasoner conclude that an effect happened.
+#
+# The engine describes, validates, derives and certifies these records. A
+# consumer-owned organ performs persistence and physical dispatch: no derivation
+# in this layer may ever emit an attempt or a receipt.
+
+logic:DispatchIntent
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dispatch Intent"@x-gmeow-english ;
+    skos:definition "The durable pre-effect record: what is about to be done to the world, bound tightly enough that nothing else can be substituted for it. Nine bindings are mandatory - the enactment, the step, the action-schema version, the exactly normalized arguments, the target, the governing policy, the approval requirement, the content digest, and the journal head it is applied against. The digest is what an approval binds to; the journal head is what makes a resubmission after an interruption structurally detectable rather than a matter of remembering."@x-gmeow-english ;
+    skos:example "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \"blake3:7f21\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use before any effect leaves the system, so a crash at the boundary leaves an analyzable record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dispatching without one, and avoid reusing an intent for a second dispatch (a repeat mints a new intent)."@x-gmeow-english ;
+    gmeow:howToUse "Bind all nine fields and persist before attempting; the completeness constraint rejects a partial intent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:intentOfEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent of enactment"@x-gmeow-english ;
+    skos:definition "Binding one of nine: the logic:Enactment the intent belongs to. Functional. It is what stops an authorization issued for one run from licensing an effect in another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentOfStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent of step"@x-gmeow-english ;
+    skos:definition "Binding two of nine: the step the intent realizes. Range a plan step (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentActionSchemaVersion
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent action schema version"@x-gmeow-english ;
+    skos:definition "Binding three of nine: the exact action-schema version being invoked. Range a versioned action schema (stated in prose). Functional. Naming the version, not the schema, stops a later schema revision from re-interpreting an authorized intent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentNormalizedArguments
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:ArgumentNormalization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent normalized arguments"@x-gmeow-english ;
+    skos:definition "Binding four of nine: the arguments under the pinned normalization recipe. Functional. Normalization is part of the binding rather than an implementation detail: two normalizations of the same arguments would let an approval be obtained for one serialization and an effect dispatched under another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent target"@x-gmeow-english ;
+    skos:definition "Binding five of nine: the external resource or provider the effect is aimed at. Range a target descriptor (stated in prose). Functional. An approval for one target authorizes nothing against another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentPolicy
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent policy"@x-gmeow-english ;
+    skos:definition "Binding six of nine: the policy governing whether this dispatch is permitted. Range a governing policy (stated in prose). Functional. A domain slice specializes this to its own normative vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentApprovalRequired
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent approval required"@x-gmeow-english ;
+    skos:definition "Binding seven of nine: whether this dispatch needs an authorization before it may proceed. Functional. Recorded ON the intent so the requirement is fixed at intent time and cannot be relaxed afterwards by re-reading policy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent digest"@x-gmeow-english ;
+    skos:definition "Binding eight of nine: the algorithm-prefixed content address over the whole intent. This is the value an authorization binds to, so a revised intent has a different digest and detaches no existing commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:expectedJournalHead
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "expected journal head"@x-gmeow-english ;
+    skos:definition "Binding nine of nine: the journal head this intent is applied against. It is what makes no-blind-retry a property of the hash chain rather than a rule someone must remember to author - a resubmission after an interruption carries a head the journal has already advanced past, and is refused because it is stale rather than because a seen-set recognized it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ArgumentNormalization
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Argument Normalization"@x-gmeow-english ;
+    skos:definition "The pinned recipe by which effect arguments are canonicalized before being digested, together with the resulting canonical form. Pinning it is a SECURITY requirement: with two normalizations in play an approval can be obtained for a benign serialization and a materially different one dispatched under the same digest. Only resolved surfaces enter the digest; runtime handles never do."@x-gmeow-english ;
+    skos:example "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \"canonical-nt-sorted\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever effect arguments are digested for authorization or idempotency."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an unpinned recipe, and avoid admitting a runtime handle into a digested surface."@x-gmeow-english ;
+    gmeow:howToUse "Name the recipe under a domain tag; semantically equal arguments must digest equal and materially different ones must not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:normalizationRecipe
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ArgumentNormalization ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "normalization recipe"@x-gmeow-english ;
+    skos:definition "The named, domain-tagged canonicalization the arguments were reduced under. Functional. Recording the recipe rather than only its output is what lets a verifier recompute the digest instead of trusting it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:EffectAttempt
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Effect Attempt"@x-gmeow-english ;
+    skos:definition "The record that a dispatch was actually made against a provider, carrying the provider's own correlation identity so a later probe can ask about THIS attempt rather than about the intent in general. An attempt is ASSERTED by the organ that performed it and may never be derived: a reasoner that could conclude an attempt happened could conclude the world changed, which is precisely the inference this layer exists to forbid."@x-gmeow-english ;
+    skos:example "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \"txn-9f21ab\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an effect left the system, at the moment it left."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving one, and avoid recording an attempt with no correlation identity (an uncorrelatable attempt cannot be reconciled)."@x-gmeow-english ;
+    gmeow:howToUse "Bind the intent and the provider's correlation identity; the observed-not-derived constraint rejects an attempt carrying derivation provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:attemptOfIntent
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EffectAttempt ;
+    rdfs:range logic:DispatchIntent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "attempt of intent"@x-gmeow-english ;
+    skos:definition "Relates a logic:EffectAttempt to the logic:DispatchIntent it carried out. Functional. Several attempts of one intent are legal only where the idempotency contract licenses them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:providerCorrelationId
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:EffectAttempt ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "provider correlation identity"@x-gmeow-english ;
+    skos:definition "The identity the provider itself assigned to this attempt, by which a later reconciliation probe asks about it. Functional. Without it an unknown outcome is unresolvable in principle, not merely in practice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ExternalEffectReceipt
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Effect Receipt"@x-gmeow-english ;
+    skos:definition "The durably recorded, authoritative report of what an attempt achieved, with the evidence supporting it. Like an attempt it is OBSERVED, never derived. A receipt settles the protocol position; it does not by itself settle commitment knowledge, because a receipt that contradicts the local ledger moves knowledge to the contradictory value rather than to supported."@x-gmeow-english ;
+    skos:example "ex:payReceipt a logic:ExternalEffectReceipt ; logic:receiptOfAttempt ex:payAttempt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a provider has authoritatively reported an outcome and the report is durably stored."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a receipt with no attempt behind it, and avoid deriving one."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt and the evidence; a receipt without an attempt is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:receiptOfAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalEffectReceipt ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receipt of attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:ExternalEffectReceipt to the logic:EffectAttempt it reports on. Functional and MANDATORY: a receipt with no attempt asserts an outcome nobody caused."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:receiptEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalEffectReceipt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receipt evidence"@x-gmeow-english ;
+    skos:definition "Relates a logic:ExternalEffectReceipt to the evidence supporting its report — a provider response, a signed acknowledgement, an observed state change. Range an evidence node (stated in prose). Multi-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ExternalOutcomeUnknown
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Outcome Unknown"@x-gmeow-english ;
+    skos:definition "The crash-or-timeout boundary: a dispatch may have occurred and no authoritative outcome is known. It is the effect-boundary reading of an UNDETERMINED epistemic state - the engine did not reach a verdict - and never of the conclusive no-support reading, which is banned here because external commitment is never closed-world. Treating this as an ordinary failure and retrying is the single most damaging move available, which is why retry from here requires a discharged idempotency contract or a reconciliation verdict."@x-gmeow-english ;
+    skos:example "ex:payUnknown a logic:ExternalOutcomeUnknown ; logic:unknownOfAttempt ex:payAttempt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an attempt was made and neither commitment nor non-commitment can be established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a failure, and avoid retrying from it without a licence."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt; the frontier derives reconciliation as the next action, never redispatch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:unknownOfAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ExternalOutcomeUnknown ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unknown of attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:ExternalOutcomeUnknown to the attempt whose outcome is undetermined. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ReconciliationImpossible
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reconciliation Impossible"@x-gmeow-english ;
+    skos:definition "The state in which no reconciliation semantics remain available: the provider is gone, exposes no query interface, or its retention window has elapsed. Distinct from an unknown outcome, which is not-yet-probed and still resolvable - this is the NOT-EVALUATED reading, where the engine could not look at all. It demands a different next action (escalation) and must never be silently folded into the resolvable case."@x-gmeow-english ;
+    skos:example "ex:payUnresolvable a logic:ReconciliationImpossible ; logic:impossibleOfAttempt ex:payAttempt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the means of determining what happened no longer exist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating with an unknown outcome, and avoid using it merely because a probe failed once."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt and record why reconciliation is foreclosed; the frontier surfaces it for escalation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:impossibleOfAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationImpossible ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "impossible of attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReconciliationImpossible to the attempt whose outcome can no longer be determined. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:DeliverySemantics
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Delivery Semantics"@x-gmeow-english ;
+    skos:definition "What a provider actually guarantees about duplicate delivery. A retry licence is only sound RELATIVE to this: the same idempotency contract means something different against an at-most-once provider than against an at-least-once one, and assuming exactly-once where the provider offers at-least-once is how duplicate effects happen."@x-gmeow-english ;
+    skos:example "ex:payProvider logic:deliverySemantics logic:DeliveryAtLeastOnce ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare what a provider guarantees before relying on any retry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming exactly-once, and avoid omitting it from an idempotency contract."@x-gmeow-english ;
+    gmeow:howToUse "Select one member per provider contract; the retry law reads it together with the retention window."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DeliveryAtMostOnce a owl:NamedIndividual , logic:DeliverySemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "at most once"@x-gmeow-english ;
+    skos:definition "The provider may drop but never duplicate. A retry is safe from a duplication standpoint but may silently lose the effect entirely."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DeliveryAtLeastOnce a owl:NamedIndividual , logic:DeliverySemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "at least once"@x-gmeow-english ;
+    skos:definition "The provider may duplicate but never drop. A retry is only safe under a live idempotency key, which is why the retention window is load-bearing rather than informational."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DeliveryExactlyOnce a owl:NamedIndividual , logic:DeliverySemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "exactly once"@x-gmeow-english ;
+    skos:definition "The provider guarantees neither loss nor duplication for a given key within its retention window. The guarantee lapses with the window, so it is not a standing property of the provider."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IdempotencyContract
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Idempotency Contract"@x-gmeow-english ;
+    skos:definition "The declared basis on which a repeated dispatch is safe: its scope, its key, its retention window, what the provider does with a duplicate, and the evidence that the provider actually supports it. All five are mandatory, and the retention window is not decoration - a retry after the provider has forgotten the key is exactly a duplicate effect, which is the classic production failure this record exists to prevent."@x-gmeow-english ;
+    skos:example "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \"P1D\"^^xsd:duration ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever a retry might occur, before any retry occurs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting one without provider evidence, and avoid relying on it past its retention window."@x-gmeow-english ;
+    gmeow:howToUse "Bind all five fields; the retry law reads the retention window and the delivery semantics together."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:idempotencyScope
+    a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "idempotency scope"@x-gmeow-english ;
+    skos:definition "Field one of five: the scope within which the key is unique. Range a scope descriptor (stated in prose). Functional. A key unique per account means something different from one unique per tenant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:idempotencyKey
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "idempotency key"@x-gmeow-english ;
+    skos:definition "Field two of five: the key the provider deduplicates on. Functional. Derived from the delta content address rather than assigned, so two submissions of the same change carry the same key by construction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:idempotencyRetention
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range xsd:duration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "idempotency retention"@x-gmeow-english ;
+    skos:definition "Field three of five: how long the provider remembers the key. Functional and LOAD-BEARING: past this window a retry is a duplicate effect, so the retry law reads it rather than treating the contract as timeless."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:idempotencyDuplicateSemantics
+    a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:range logic:DeliverySemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "idempotency duplicate semantics"@x-gmeow-english ;
+    skos:definition "Field four of five: what the provider guarantees about duplicates. Functional. It is what makes the contract's safety claim relative to a real provider rather than an assumption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:idempotencyProviderEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain logic:IdempotencyContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "idempotency provider evidence"@x-gmeow-english ;
+    skos:definition "Field five of five: the evidence that the provider actually implements this contract — documentation, a conformance probe, a signed statement. Range an evidence node (stated in prose). Functional. Without it the contract records a hope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intentIdempotency
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DispatchIntent ;
+    rdfs:range logic:IdempotencyContract ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intent idempotency"@x-gmeow-english ;
+    skos:definition "Relates a logic:DispatchIntent to the contract under which a repeat of it would be safe. Optional: an intent with no idempotency contract simply may not be retried."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ReconciliationVerdict
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reconciliation Verdict"@x-gmeow-english ;
+    skos:definition "The closed three-valued outcome of asking a provider what actually happened: committed, not committed, or still unknown. The third value is not a failure of the probe but a real answer, and keeping it means an unresolved effect stays visible instead of collapsing into one of the two comfortable answers."@x-gmeow-english ;
+    skos:example "ex:payProbe1 logic:reconciliationVerdict logic:ReconciledCommitted ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a reconciliation probe established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a still-unknown result into committed or not-committed."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member to the probe result; still-unknown leaves the effect in its prior epistemic position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReconciledCommitted a owl:NamedIndividual , logic:ReconciliationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "committed"@x-gmeow-english ;
+    skos:definition "The provider confirms the effect took place. This is the verdict that makes compensation eligible and retry forbidden."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReconciledNotCommitted a owl:NamedIndividual , logic:ReconciliationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "not committed"@x-gmeow-english ;
+    skos:definition "The provider confirms the effect did not take place. This is the verdict that makes a fresh dispatch safe and compensation meaningless."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReconciledStillUnknown a owl:NamedIndividual , logic:ReconciliationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "still unknown"@x-gmeow-english ;
+    skos:definition "The probe completed and the provider could not say. A real answer, not a probe failure: it leaves the effect exactly where it was and licenses neither retry nor compensation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReconciliationProbe
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reconciliation Probe"@x-gmeow-english ;
+    skos:definition "A query to a provider asking what became of a specific attempt, addressed by that attempt's correlation identity. It is the only knowledge-increasing move available from an undetermined position - retrying the effect is a truth-order move the epistemic position does not license."@x-gmeow-english ;
+    skos:example "ex:payProbe1 a logic:ReconciliationProbe ; logic:probesAttempt ex:payAttempt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to resolve an unknown outcome before considering any retry or compensation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid probing without a correlation identity, and avoid substituting a retry for a probe."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt; record the outcome as a logic:ReconciliationResult carrying one verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:probesAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationProbe ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "probes attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReconciliationProbe to the attempt it is asking about. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ReconciliationResult
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reconciliation Result"@x-gmeow-english ;
+    skos:definition "What a logic:ReconciliationProbe established, carrying exactly one logic:ReconciliationVerdict. A result may only move commitment knowledge UP the knowledge order; a probe that appears to move it down has not disproved the earlier reading but contradicted it, which is a real-world disagreement to adjudicate rather than a record to correct."@x-gmeow-english ;
+    skos:example "ex:payProbe1Result a logic:ReconciliationResult ; logic:reconciliationVerdict logic:ReconciledCommitted ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a probe's answer and the knowledge move it licenses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recording a downward knowledge move as a correction; route disagreement to adjudication."@x-gmeow-english ;
+    gmeow:howToUse "Bind the probe and one verdict; the monotonicity constraint governs the resulting knowledge move."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:resultOfProbe
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationResult ;
+    rdfs:range logic:ReconciliationProbe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "result of probe"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReconciliationResult to the probe that produced it. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:reconciliationVerdict
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ReconciliationResult ;
+    rdfs:range logic:ReconciliationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reconciliation verdict"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReconciliationResult to its exactly-one verdict. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ContradictionAdjudication
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Contradiction Adjudication"@x-gmeow-english ;
+    skos:definition "The attributed operator decision that resolves a contradictory commitment state — the provider reporting committed where the local ledger reports otherwise. It exists because that state is REACHABLE and would otherwise be a trap: compensation requires proof of commitment, retry requires proof of non-commitment, and a contradictory reading supplies neither. Adjudication is a standpoint-indexed decision, never a derivation."@x-gmeow-english ;
+    skos:example "ex:payAdjudication a logic:ContradictionAdjudication ; logic:adjudicatesAttempt ex:payAttempt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when commitment knowledge is contradictory and an authorized human must decide which reading governs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving an adjudication, and avoid resolving a contradiction by discarding one side silently."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt and the resolved reading; keep both original observations, since the adjudication settles what governs, not what was observed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:adjudicatesAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ContradictionAdjudication ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "adjudicates attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:ContradictionAdjudication to the attempt whose contradictory commitment state it resolves. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CompensationAttempt
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Compensation Attempt"@x-gmeow-english ;
+    skos:definition "A NEW action taken to counteract a forward effect known to have committed — with its own preconditions, its own effects, its own attempt and receipt, and its own possibility of failing. It is emphatically NOT an undo: the forward effect remains in the record, history is corrected forward rather than rewritten, and a compensation that fails leaves the system in a genuinely inconsistent state that needs escalation rather than retry."@x-gmeow-english ;
+    skos:example "ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex:payReceipt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to counteract a committed forward effect, when the forward effect is proved to have committed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a guaranteed inverse, avoid marking it successful without its own receipt, and avoid compensating an effect not known to have committed."@x-gmeow-english ;
+    gmeow:howToUse "Bind the exact forward receipt it addresses; emit its own attempt and receipt as any other effect would."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:compensatesEffect
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationAttempt ;
+    rdfs:range logic:ExternalEffectReceipt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensates effect"@x-gmeow-english ;
+    skos:definition "Relates a logic:CompensationAttempt to the EXACT forward receipt it addresses — not the action schema, not the intent. Functional. Binding to the receipt is what stops one compensation from being read as covering every effect of its kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CompensationOutcome
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Compensation Outcome"@x-gmeow-english ;
+    skos:definition "What a logic:CompensationAttempt achieved, established by its own receipt exactly as a forward effect's outcome is. A compensation may not be recorded as successful on the strength of having been attempted: the asymmetry between attempting and achieving is the whole reason the saga exists, and it does not stop applying just because the action is corrective."@x-gmeow-english ;
+    skos:example "ex:refundOutcome a logic:CompensationOutcome ; logic:outcomeOfCompensation ex:refundAttempt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a compensation actually achieved, with its receipt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring success from attempt, and avoid omitting the receipt."@x-gmeow-english ;
+    gmeow:howToUse "Bind the compensation attempt and its receipt; a failed compensation over a committed forward effect escalates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:outcomeOfCompensation
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationOutcome ;
+    rdfs:range logic:CompensationAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "outcome of compensation"@x-gmeow-english ;
+    skos:definition "Relates a logic:CompensationOutcome to the compensation attempt it records. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compensationReceipt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CompensationOutcome ;
+    rdfs:range logic:ExternalEffectReceipt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensation receipt"@x-gmeow-english ;
+    skos:definition "Relates a logic:CompensationOutcome to the receipt establishing what the compensation achieved. Functional and MANDATORY for a successful outcome: without it the record asserts an achievement nobody observed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ResourceLease
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Resource Lease"@x-gmeow-english ;
+    skos:definition "Time-bounded exclusive claim on a resource, carrying an owner, a scope, a monotonically increasing fencing identity and an expiry. The fencing identity is what makes the lease actually safe: a holder whose lease expired while it was paused can still attempt a write, and only a fencing check at the resource rejects it. In a control plan this is literal exclusive control of an actuator; in a curriculum a seat; in a workflow a distributed lock."@x-gmeow-english ;
+    skos:example "ex:valveLease a logic:ResourceLease ; logic:fencingIdentity 47 ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever concurrent enactments could otherwise act on one resource at once."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a lease without a fencing identity, and avoid treating expiry alone as sufficient protection."@x-gmeow-english ;
+    gmeow:howToUse "Bind owner, scope, fencing identity and expiry; the resource rejects any write bearing a fencing identity below the one it has seen."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:leaseOwner
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lease owner"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResourceLease to the enactment or actor holding it. Range an enactment or actor (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:leaseScope
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lease scope"@x-gmeow-english ;
+    skos:definition "Relates a logic:ResourceLease to the resource and extent it covers. Range a resource descriptor (stated in prose). Functional. Exclusivity is asserted within the scope, not globally."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:fencingIdentity
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "fencing identity"@x-gmeow-english ;
+    skos:definition "The monotonically increasing token a lease carries, which the resource compares against the highest it has seen. Functional. Monotonicity is the whole mechanism: expiry alone cannot stop a paused holder from writing after its lease lapsed, but a stale token can be rejected at the resource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:leaseExpiry
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ResourceLease ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lease expiry"@x-gmeow-english ;
+    skos:definition "When the lease lapses, evaluated against an attributed clock. Functional. Skew between the holder's clock and the resource's is the canonical lease failure, which is why the clock source is recorded rather than assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ClockAttribution
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Clock Attribution"@x-gmeow-english ;
+    skos:definition "The record of WHOSE clock a time-bounded judgment was made against. Expiry, validity windows and retention are all evaluated against somebody's notion of now, and provider-consumer skew is the canonical failure of every one of them. A dispatch whose expiry evaluation names no clock source is refused, because an unattributed 'still valid' is unfalsifiable."@x-gmeow-english ;
+    skos:example "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \"2026-07-25T04:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever an expiry, window or retention judgment is made."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid evaluating a window against an unattributed clock."@x-gmeow-english ;
+    gmeow:howToUse "Bind the source and the observed instant; the dispatch gate reads it before honouring any validity window."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:clockSource
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ClockAttribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "clock source"@x-gmeow-english ;
+    skos:definition "Relates a logic:ClockAttribution to whose clock was read. Range a clock-bearing agent or service (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:clockObservedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ClockAttribution ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "clock observed at"@x-gmeow-english ;
+    skos:definition "The instant the attributed clock reported. Functional. Recorded rather than inferred so a later reader can detect skew instead of inheriting it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ApprovalCommitment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Approval Commitment"@x-gmeow-english ;
+    skos:definition "An authorization modelled as a social commitment with a detachment lifecycle rather than as a boolean. Six bindings are mandatory: the exact dispatch-intent digest, the enactment and step, the authorized operator identity, the governing policy, the decision, and the validity window. Exact binding then falls out as a DETACHMENT condition — an intent whose digest differs simply never detaches this commitment — and revocation, delegation, escalation and quorum become expressible instead of absent."@x-gmeow-english ;
+    skos:example "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \"blake3:7f21\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever an effect requires authorization before dispatch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a boolean approved flag, and avoid an approval bound to anything looser than the exact intent digest."@x-gmeow-english ;
+    gmeow:howToUse "Bind all six fields and carry a checkable authorization proof; the completeness constraint rejects a partial commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:approvalIntentDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval intent digest"@x-gmeow-english ;
+    skos:definition "Binding one of six: the exact logic:intentDigest this commitment authorizes. Functional. A revised intent digests differently and detaches nothing, which is what makes approval-for-one-thing unable to license another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:approvalEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval enactment"@x-gmeow-english ;
+    skos:definition "Binding two of six: the enactment and, through it, the step the authorization is scoped to. Functional. An approval does not travel to another run."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:approvalOperator
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval operator"@x-gmeow-english ;
+    skos:definition "Binding three of six: the identity authorized to make this decision. Range an operator identity (stated in prose). Functional. A different operator-policy binding is a different commitment, not the same one exercised by somebody else."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:approvalPolicy
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval policy"@x-gmeow-english ;
+    skos:definition "Binding four of six: the policy under which the authorization is granted. Range a governing policy (stated in prose). Functional. A domain slice specializes this onto its own normative vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:approvalDecision
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval decision"@x-gmeow-english ;
+    skos:definition "Binding five of six: the decision reached. Range a decision value (stated in prose). Functional. A logic:Advisory may never occupy this position: model output can inform a decision and can never be one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:approvalValidityWindow
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ApprovalCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval validity window"@x-gmeow-english ;
+    skos:definition "Binding six of six: the interval within which the authorization is live, evaluated against an attributed clock. Range a time interval (stated in prose). Functional. An expired request authorizes nothing even where every other binding matches."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:AuthorizationProof
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Authorization Proof"@x-gmeow-english ;
+    skos:definition "A checkable proof term establishing that a dispatch or a pin was licensed — one whose stated conclusion is RECOMPUTED by the checker rather than trusted. This is strictly stronger than a faithfulness check over cited evidence: a fabricated authorization citing entirely real identifiers passes the weaker check and fails this one. It is what makes 'advice is never authority' an unforgeable property rather than a convention."@x-gmeow-english ;
+    skos:example "ex:payAuthProof a logic:AuthorizationProof ; logic:proofEstablishes ex:payIntent ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever an authorization decision must be verifiable after the fact by someone who does not trust its author."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a citation list for a proof term, and avoid accepting a proof whose conclusion was not recomputed."@x-gmeow-english ;
+    gmeow:howToUse "Bind what it establishes; the checker re-derives the conclusion from the premises and rejects a mismatch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:proofEstablishes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:AuthorizationProof ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "proof establishes"@x-gmeow-english ;
+    skos:definition "Relates a logic:AuthorizationProof to the intent or pin whose licensing it establishes. Range an intent or pin (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ApprovalBindingFault
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Approval Binding Fault"@x-gmeow-english ;
+    skos:definition "The closed vocabulary of WHY an authorization failed to detach: a digest mismatch, a different enactment, an elapsed window, or a different operator-policy binding. Typing the fault separately for each is what lets a conformance corpus prove the four are detected independently rather than collapsing into one undifferentiated refusal."@x-gmeow-english ;
+    skos:example "ex:payRefusal logic:approvalBindingFault logic:FaultDigestMismatch ."@x-gmeow-english ;
+    gmeow:useWhen "Use to type why an approval did not authorize a dispatch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid one undifferentiated refusal code for the four cases."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member to the refusal record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultDigestMismatch a owl:NamedIndividual , logic:ApprovalBindingFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "digest mismatch"@x-gmeow-english ;
+    skos:definition "The intent presented digests differently from the one authorized — a revised intent. The commitment never detaches."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultDifferentEnactment a owl:NamedIndividual , logic:ApprovalBindingFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "different enactment"@x-gmeow-english ;
+    skos:definition "The intent belongs to a different run from the one the authorization is scoped to. Authorizations do not travel between occurrences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultExpiredWindow a owl:NamedIndividual , logic:ApprovalBindingFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "expired window"@x-gmeow-english ;
+    skos:definition "The validity window closed before dispatch, judged against an attributed clock. Every other binding may match and the authorization still licenses nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultOperatorPolicyMismatch a owl:NamedIndividual , logic:ApprovalBindingFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "operator-policy mismatch"@x-gmeow-english ;
+    skos:definition "The operator or the governing policy differs from the one the commitment names. A different operator-policy pairing is a different commitment, not the same one exercised elsewhere."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:approvalBindingFault
+    a owl:ObjectProperty ;
+    rdfs:range logic:ApprovalBindingFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval binding fault"@x-gmeow-english ;
+    skos:definition "Relates a refusal record to the typed reason an authorization did not detach. Domain a refusal record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:DeadlineConsumption
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Deadline Consumption"@x-gmeow-english ;
+    skos:definition "How much of a declared deadline an enactment has used and whether it is exhausted — the time-shaped sibling of the engine's existing step and budget accounting, which this layer reuses rather than duplicating for every other resource. Recorded so that 'we ran out of time' is a derivable state with a witness rather than an operator's impression."@x-gmeow-english ;
+    skos:example "ex:reviewDeadline a logic:DeadlineConsumption ; logic:deadlineExhausted true ."@x-gmeow-english ;
+    gmeow:useWhen "Use where an enactment or dispatch is bounded by wall-clock time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating step or answer budgets here; those already have carriers."@x-gmeow-english ;
+    gmeow:howToUse "Bind the consuming enactment and the exhaustion flag; evaluate against an attributed clock."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:deadlineOfEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DeadlineConsumption ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deadline of enactment"@x-gmeow-english ;
+    skos:definition "Relates a logic:DeadlineConsumption to the enactment consuming the deadline. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deadlineExhausted
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:DeadlineConsumption ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deadline exhausted"@x-gmeow-english ;
+    skos:definition "Whether the declared deadline has elapsed. Functional. Exhaustion blocks dispatch rather than merely annotating it, so an orphaned intent past its deadline is a detectable finding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ReceiptRequiresAttemptConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a receipt names the attempt it reports on"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ExternalEffectReceipt with no logic:receiptOfAttempt. A receipt without an attempt asserts an outcome nobody caused, which is the shape a fabricated or mis-imported effect record takes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ExternalEffectReceipt must name the logic:EffectAttempt it reports on; a receipt with no attempt asserts an outcome nobody caused." ;
+    logic:integrity logic:rraForall .
+logic:rraForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:rraImpl .
+logic:rraImpl a logic:Formula ; logic:antecedent logic:rraGuard ; logic:consequent logic:rraCons .
+logic:rraGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ExternalEffectReceipt ] .
+logic:rraCons a logic:Formula ; logic:relation logic:receiptOfAttempt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "attempt" ] .
+
+logic:CompensationSuccessRequiresReceiptConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a compensation outcome carries its own receipt"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CompensationOutcome with no receipt. Compensation is a new action, so the gap between attempting and achieving applies to it exactly as to a forward effect; recording success on the strength of having tried is the failure this constraint exists to prevent. Coded separately from the not-an-inverse constraint because the two are independent obligations and a corpus must be able to trip each alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CompensationOutcome must carry its own logic:compensationReceipt; a compensation is not successful merely because it was attempted." ;
+    logic:integrity logic:csrForall .
+logic:csrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:csrImpl .
+logic:csrImpl a logic:Formula ; logic:antecedent logic:csrGuard ; logic:consequent logic:csrCons .
+logic:csrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CompensationOutcome ] .
+logic:csrCons a logic:Formula ; logic:relation logic:compensationReceipt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "receipt" ] .
+
+logic:CompensationBindsExactForwardEffectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a compensation names the exact forward receipt"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CompensationAttempt must bind the EXACT forward logic:ExternalEffectReceipt it addresses, never an action schema or an intent." ;
+    logic:integrity logic:cbeForall .
+logic:cbeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cbeImpl .
+logic:cbeImpl a logic:Formula ; logic:antecedent logic:cbeGuard ; logic:consequent logic:cbeCons .
+logic:cbeGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CompensationAttempt ] .
+logic:cbeCons a logic:Formula ; logic:relation logic:compensatesEffect ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "receipt" ] .
+
+logic:DispatchIntentCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a dispatch intent binds all nine fields"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:DispatchIntent that omits any of its nine mandatory bindings. The journal head is gated alongside the other eight deliberately: it is the field that makes no-blind-retry structural, so leaving it optional would quietly demote that law back to a rule someone must remember."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:DispatchIntent must bind all nine fields: enactment, step, action-schema version, normalized arguments, target, policy, approval requirement, content digest, and expected journal head." ;
+    logic:integrity logic:diForall .
+logic:diForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:diImpl .
+logic:diImpl a logic:Formula ; logic:antecedent logic:diGuard ; logic:consequent logic:diCons .
+logic:diGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:DispatchIntent ] .
+logic:diCons a logic:Formula ; logic:and logic:diEnact , logic:diStep , logic:diSchema , logic:diArgs , logic:diTarget , logic:diPolicy , logic:diApproval , logic:diDigest , logic:diHead .
+logic:diEnact a logic:Formula ; logic:relation logic:intentOfEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+logic:diStep a logic:Formula ; logic:relation logic:intentOfStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+logic:diSchema a logic:Formula ; logic:relation logic:intentActionSchemaVersion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "schema" ] .
+logic:diArgs a logic:Formula ; logic:relation logic:intentNormalizedArguments ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "args" ] .
+logic:diTarget a logic:Formula ; logic:relation logic:intentTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:diPolicy a logic:Formula ; logic:relation logic:intentPolicy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "policy" ] .
+logic:diApproval a logic:Formula ; logic:relation logic:intentApprovalRequired ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "approval" ] .
+logic:diDigest a logic:Formula ; logic:relation logic:intentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:diHead a logic:Formula ; logic:relation logic:expectedJournalHead ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "head" ] .
+
+logic:IdempotencyContractCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an idempotency contract binds all five fields"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:IdempotencyContract that omits any of its five fields. Provider evidence and the retention window are gated alongside the rest because a contract asserting safety without evidence records a hope, and one without a window claims a guarantee that in reality lapses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:IdempotencyContract must bind all five fields: scope, key, retention window, duplicate semantics, and provider support evidence." ;
+    logic:integrity logic:icForall .
+logic:icForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:icImpl .
+logic:icImpl a logic:Formula ; logic:antecedent logic:icGuard ; logic:consequent logic:icCons .
+logic:icGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:IdempotencyContract ] .
+logic:icCons a logic:Formula ; logic:and logic:icScope , logic:icKey , logic:icRetention , logic:icDup , logic:icEvidence .
+logic:icScope a logic:Formula ; logic:relation logic:idempotencyScope ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] .
+logic:icKey a logic:Formula ; logic:relation logic:idempotencyKey ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "key" ] .
+logic:icRetention a logic:Formula ; logic:relation logic:idempotencyRetention ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "retention" ] .
+logic:icDup a logic:Formula ; logic:relation logic:idempotencyDuplicateSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dup" ] .
+logic:icEvidence a logic:Formula ; logic:relation logic:idempotencyProviderEvidence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "evidence" ] .
+
+logic:ApprovalCommitmentCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an approval commitment binds all six fields"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ApprovalCommitment that omits any of its six bindings. Each omission is a distinct way an authorization could authorize more than it was meant to, which is why they are gated together rather than individually optional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ApprovalCommitment must bind all six fields: exact intent digest, enactment, authorized operator, governing policy, decision, and validity window." ;
+    logic:integrity logic:acForall .
+logic:acForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:acImpl .
+logic:acImpl a logic:Formula ; logic:antecedent logic:acGuard ; logic:consequent logic:acCons .
+logic:acGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCommitment ] .
+logic:acCons a logic:Formula ; logic:and logic:acDigest , logic:acEnact , logic:acOperator , logic:acPolicy , logic:acDecision , logic:acWindow .
+logic:acDigest a logic:Formula ; logic:relation logic:approvalIntentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:acEnact a logic:Formula ; logic:relation logic:approvalEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+logic:acOperator a logic:Formula ; logic:relation logic:approvalOperator ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "operator" ] .
+logic:acPolicy a logic:Formula ; logic:relation logic:approvalPolicy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "policy" ] .
+logic:acDecision a logic:Formula ; logic:relation logic:approvalDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "decision" ] .
+logic:acWindow a logic:Formula ; logic:relation logic:approvalValidityWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "window" ] .
+
+logic:EffectRecordsAreObservedNotDerivedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect attempts and receipts are observed, never derived"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:EffectAttempt that carries derivation provenance. The engine describes, validates, derives and certifies effect records; it never causes them. Carrying a derivation identifier is exactly what a record produced by inference rather than by observation looks like, so that is what the constraint keys on — and a reasoner that could conclude an attempt happened could conclude the world changed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:EffectAttempt must be asserted by the organ that performed it, never derived: an attempt carrying derivation provenance means the engine concluded an external effect occurred." ;
+    logic:integrity logic:eodForall .
+logic:eodForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:eodImpl .
+logic:eodImpl a logic:Formula ; logic:antecedent logic:eodGuard ; logic:consequent logic:eodCons .
+logic:eodGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectAttempt ] .
+logic:eodCons a logic:Formula ; logic:not logic:eodDerived .
+logic:eodDerived a logic:Formula ; logic:relation logic:derivationIdentifier ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "derivation" ] .
+
+logic:derivationIdentifier
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derivation identifier"@x-gmeow-english ;
+    skos:definition "The identifier a derived record carries naming the derivation that produced it. Domain any derived record (stated in prose). Its PRESENCE on an effect attempt or receipt is what the observed-not-derived constraint rejects: it is the machine-checkable difference between a record the world produced and one the engine did."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:LeaseExclusivityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a lease carries a fencing identity"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ResourceLease must carry a logic:fencingIdentity; expiry alone cannot stop a paused holder from writing after its lease lapsed." ;
+    logic:integrity logic:lexForall .
+logic:lexForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:lexImpl .
+logic:lexImpl a logic:Formula ; logic:antecedent logic:lexGuard ; logic:consequent logic:lexCons .
+logic:lexGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ResourceLease ] .
+logic:lexCons a logic:Formula ; logic:relation logic:fencingIdentity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fence" ] .
+
+# =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
 # This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
