@@ -14,11 +14,24 @@ use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_errors::{DiagLedger, Finding, Report, Severity, StageId};
+use gmeow_logic::result_rdf::GRAPH_REASONING;
 use purrdf::provenance::DatasetProvenance;
 use serde_json::json;
 
+use crate::bundle::PipelineHandle;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::BASE_GRAPH_PATH;
+
+/// Strip a leading `<` / trailing `>` off a reasoned-axiom term string. The EL closure's
+/// [`InferredAxiom`](gmeow_logic::reason::el::InferredAxiom) subject/predicate/object are
+/// stored as bare or angle-wrapped IRIs; the reason stage's own closure serializer treats
+/// them uniformly as IRIs, so this mirrors that when re-projecting the derived rows.
+fn bare_iri(value: &str) -> &str {
+    value
+        .strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .unwrap_or(value)
+}
 
 /// Committed JSON projection of the DAG SHACL diagnostics report.
 pub const SHACL_JSON_PATH: &str = "generated/diagnostics/shacl.json";
@@ -171,6 +184,17 @@ impl ValidateStage {
     /// carries a graph of the same name); byte-level cache soundness for the
     /// OPT-lifted shape surface is restored by declaring the compiler's non-authored
     /// raw sources in [`Stage::input_files`].
+    ///
+    /// It also consumes `stage-reason`, narrowed to the single `graph/reasoning`
+    /// named graph (the typed Reasoning handle's backing graph, mirroring
+    /// [`crate::stages::goal_directed::GoalDirectedStage`]): the D5 abductive tier
+    /// reads the REASONED graph, so the stage feeds the producer the union of the
+    /// authored source graph and the derived closure read off that handle. The
+    /// narrowing is faithful for cache soundness — `graph/reasoning` reifies EVERY
+    /// derived axiom, so its digest changes exactly when the closure this stage reads
+    /// changes — and it keeps this stage's `graph/diagnostics` attachment a genuine
+    /// DELTA (the reason product also carries a `graph/diagnostics`, which the whole
+    /// product would fold into this stage's input set and mask the attach).
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -178,12 +202,19 @@ impl ValidateStage {
                 "stage-export-constraint-shapes".to_string(),
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
+                "stage-reason".to_string(),
                 "stage-source-load".to_string(),
             ],
-            entities: vec![(
-                "stage-compile-logic".to_string(),
-                crate::stages::compile_logic::carrier_entity_list(),
-            )],
+            entities: vec![
+                (
+                    "stage-compile-logic".to_string(),
+                    crate::stages::compile_logic::carrier_entity_list(),
+                ),
+                (
+                    "stage-reason".to_string(),
+                    vec![GRAPH_REASONING.to_string()],
+                ),
+            ],
         }
     }
 }
@@ -345,6 +376,92 @@ impl Stage for ValidateStage {
             advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
             advisory_claims.push(projection.claim);
             report.add_rule(advisory.rule());
+        }
+        // D5 abductive tier: the constructive "what to ADD" wing. Each corroborated candidate
+        // is a WARRANT-as-Finding (attached first so it earns a real fingerprint_iri, its
+        // DiagRef captured) plus an advisory whose diag carries a genuine finding→finding
+        // `findingAntecedent` to that warrant — so the root-cause meta-fold resolves the warrant
+        // join non-DARK (ledger identity), not a bare string. The producer runs the native
+        // conjecture engine over an ISOLATED scenario world per candidate; `source_dataset` is
+        // only READ, never mutated (nothing is auto-asserted). Both wings ride the SAME
+        // advisory dual-projection loop below: flat Note advisory + warrant findings →
+        // `graph/diagnostics`, `deonticRecommendation` claim → `graph/norm-claims`.
+        // The D5 abductive tier reads the REASONED graph ("asserted OR entailed"), so it is
+        // fed the UNION of the authored source graph (its A-Box/TBox individuals + asserted
+        // types/relata — without which the schema guards match ZERO subjects) AND the derived
+        // closure read off the consumed `stage-reason` product's typed Reasoning handle (the
+        // entailed-only types/relata that let the producer catch a subject/relatum only an
+        // inference makes true). HARD-fail if the reason product or its Reasoning handle is
+        // missing — never a silent fall back to the authored-only graph (the
+        // silent-capability-degradation violation): a validate run without its reasoned
+        // upstream is an incomplete build, not licence for a weaker abductive pass.
+        let reason_product = input.upstream.get("stage-reason").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: "missing stage-reason product — the D5 abductive tier requires the \
+                          reasoned closure (asserted OR entailed), never the authored graph alone"
+                    .to_owned(),
+            })
+        })?;
+        let reasoning_entry = reason_product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "stage-reason product carries no typed Reasoning handle at \
+                         <{GRAPH_REASONING}>"
+                    ),
+                })
+            })?;
+        let PipelineHandle::Reasoning(reasoning) = &reasoning_entry.payload else {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("the handle at <{GRAPH_REASONING}> is not the Reasoning arm"),
+            }));
+        };
+        // Reconstruct the derived (non-EDB) closure triples off the live handle — the same
+        // rows `build_inferred_closure_ttl` serializes, minus the reifier provenance the
+        // abductive readers never match. Every EL-closure term is an IRI (the reason stage's
+        // `axiom_triple` uses `iri_term` for subject/predicate/object), so a bare N-Triples
+        // projection is faithful; the abductive readers query with `GraphMatch::Any`, so the
+        // default-graph landing is visible.
+        let mut closure_nt = String::new();
+        for axiom in reasoning.inferred().iter().filter(|axiom| !axiom.is_edb) {
+            use std::fmt::Write as _;
+            let _ = writeln!(
+                closure_nt,
+                "<{}> <{}> <{}> .",
+                bare_iri(&axiom.subject),
+                bare_iri(&axiom.predicate),
+                bare_iri(&axiom.object),
+            );
+        }
+        let closure_dataset =
+            purrdf::parse_dataset(closure_nt.as_bytes(), "application/n-triples", None).map_err(
+                |e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!("reasoned closure parse (abductive union): {e}"),
+                    })
+                },
+            )?;
+        let reasoned_dataset = Arc::new(purrdf::RdfDataset::union(&[
+            source_dataset.as_ref(),
+            closure_dataset.as_ref(),
+        ]));
+        let abductive_suggestions =
+            gmeow_validate::abductive::abductive_advisories(reasoned_dataset.as_ref());
+        for suggestion in abductive_suggestions {
+            let warrant_ref =
+                advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));
+            let projection = suggestion.advisory.project();
+            advisory_ledger.attach(
+                projection.diag.with_antecedents([warrant_ref]),
+                StageId::new("validate.advisory"),
+            );
+            advisory_claims.push(projection.claim);
+            report.add_rule(suggestion.advisory.rule());
         }
         // The flat findings are added after the ledger is fully attached (findings("validate")
         // reads the whole batch), keeping their genuine ledger identity.
@@ -632,6 +749,12 @@ ex:RequiredShape a sh:NodeShape ;
                 StageProduct::from_artifacts(producer, artifacts),
             );
         }
+        // The D5 abductive tier consumes stage-reason's reasoned closure; an empty-EDB
+        // fixture yields an empty closure (the reasoned union is the authored graph alone).
+        upstream.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
         let input = StageInput {
             root: repo.path(),
             upstream: &upstream,
@@ -745,6 +868,13 @@ ex:RequiredShape a sh:NodeShape ;
                 StageProduct::from_artifacts(producer, artifacts),
             );
         }
+        // The D5 abductive tier consumes stage-reason's reasoned closure. A fixture with an
+        // empty EDB yields an empty closure, so the reasoned union is exactly the authored
+        // source graph — this harness exercises the advisory wiring, not entailment.
+        upstream.insert(
+            "stage-reason".to_string(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
+        );
         let input = StageInput {
             root: repo.path(),
             upstream: &upstream,
@@ -969,5 +1099,78 @@ ex:RequiredShape a sh:NodeShape ;\n\
             .dataset()
             .project_named_graph(crate::stages::carrier::GRAPH_NORM_CLAIMS);
         assert_compliance_assessment_present(&norm_claims);
+    }
+
+    /// The D5 abductive tier reads the REASONED graph, so `ValidateStage::run` HARD-FAILS
+    /// when its `stage-reason` upstream is absent — it never silently falls back to the
+    /// authored-only source graph (the silent-capability-degradation violation this fix
+    /// forbids). Falsifiable: restoring an authored-graph fallback in place of the
+    /// stage-reason `ok_or_else` makes this expect-err assertion fail.
+    #[test]
+    fn stage_validate_hard_fails_without_the_reasoned_upstream() {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo("# no shapes\n");
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        let span_blob =
+            serde_json::to_vec(&crate::ingest::SpanIndex::new()).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-source-load".to_string(),
+            StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+        );
+        // Every generated-shape producer is present, so the stage reaches the abductive
+        // tier — but stage-reason is deliberately OMITTED.
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
+        let err = match ValidateStage::new().run(StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        }) {
+            Ok(_) => panic!("validate must hard-fail without stage-reason, never authored-only"),
+            Err(e) => e,
+        };
+        assert!(
+            format!("{err:?}").contains("stage-reason"),
+            "the hard-fail must name the missing stage-reason upstream: {err:?}"
+        );
     }
 }
