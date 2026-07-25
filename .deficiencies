@@ -1901,3 +1901,34 @@ suggestions/guidance.
   literal-object quads under an explicit profile) so the gate — and any future
   builtin-bound `logic:Constraint` gate — threads through the single `reason_program`
   path instead of a private chase.
+
+## 2026-07-24 — #764 (D5 abductive advice — new vocab doc coverage scoped down)
+
+- SCOPED-DOWN DOC COVERAGE (report-only, non-gating): the 14 new `logic:` abductive-schema
+  terms shipped this branch (`logic:AbductiveSchema`, `logic:AbductiveRepairStrategy`, the
+  four `logic:Strategy*` individuals, `logic:repairsDiscipline`, `logic:repairStrategy`,
+  `logic:completenessFormula`, and the five `*AbductiveSchema` instances) carry a full
+  `rdfs:label` + `skos:definition` and complete fr/zh translations, but are NOT yet
+  documented across the fuller doc-quality axes — they raised the coverage-ratchet baseline
+  by +5 on each of `docs/missing-example`, `missing-fixture-pair`, `missing-worked-instance`,
+  `missing-usage-advice`, `missing-scope-note`, `missing-competency-rationale`,
+  `missing-annotation-coat`, `missing-prose-quality`, and `missing-test-reach`. These are
+  report-only WARNING counts (the slice-quality gate stays green; `make check` is 18/18), and
+  the vocabulary is fully functional and demonstrated (the abductive wing fires on the real
+  `gmeow validate` CLI over an under-specified A-Box), so the shortfall is documentation
+  completeness, not capability. FORWARD PATH: author `gmeow:example` / worked-instance
+  fixtures, usage-advice, scope-notes, and competency-rationale for the `logic:AbductiveSchema`
+  family so those nine axes are covered and the ratchet baseline burns back down.
+
+- DEMONSTRATOR-ON-BUNDLE IMPOSSIBILITY (recorded, not a defect): the D5 abductive wing is a
+  constructive-repair advisor, so its targets are exactly the under-specified individuals that
+  the detective SHACL/verify constraints reject as invalid (`gmeow:exemplifies`,
+  `gmeow:committedAgent`/`gmeow:commitmentBeneficiary` are hard `sh:minCount 1`; a frame-less
+  measurement is "ill-formed"; the top sortals partition `gmeow:Entity` so no valid bare-Entity
+  refutes). A persistent, SHACL-conforming on-bundle demonstrator therefore cannot exist without
+  making the shipped `gmeow.gts` invalid. The capability is instead demonstrated where its input
+  legitimately lives: the wing fires on the real `gmeow validate` CLI over a user's
+  under-specified RDF (verified by the stage-2 completion adversary), and the shipped valid
+  bundle correctly emits zero abductive advice (nothing to repair). No forward path — this is the
+  correct behavior of a repair advisor, recorded to pre-empt a "the bundle shows zero abductive
+  output" misreading.
