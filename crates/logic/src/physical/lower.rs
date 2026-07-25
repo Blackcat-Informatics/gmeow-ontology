@@ -358,11 +358,23 @@ fn lower_logic_binder(
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The `math:` namespace root, used to tell a `math:`-authored (but unrecognized) type
+/// apart from a foreign/absent type when deciding whether a fallback node is a genuine
+/// bare constant operand (see [`lower_math_node_dispatch`]'s trailing branch).
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
 const M_APPLICATION: &str = "https://blackcatinformatics.ca/math/ApplicationExpression";
 const M_BINDING: &str = "https://blackcatinformatics.ca/math/BindingExpression";
 const M_VARIABLE_EXPRESSION: &str = "https://blackcatinformatics.ca/math/VariableExpression";
 const M_FREE_DECLARATION: &str = "https://blackcatinformatics.ca/math/FreeVariableDeclaration";
 const M_NUMBER_LITERAL: &str = "https://blackcatinformatics.ca/math/NumberLiteral";
+/// A symbol-occurrence leaf ([`math:SymbolReference`](https://blackcatinformatics.ca/math/SymbolReference)):
+/// resolves through exactly one `math:hasMathematicalSymbol` edge to a local
+/// `math:MathematicalSymbol` per its own class definition. This lowering does not (yet)
+/// walk that edge — it interns the reference's own IRI, exactly like any other bare
+/// constant leaf — so it is a RECOGNIZED constant-operand type or [`lower_math_node_dispatch`]'s
+/// fallback would wrongly reject every committed `math:SymbolReference` leaf (e.g.
+/// `slices/grounding/math/examples/reference-ast-act.ttl`'s `ex:leftMatrixRef`).
+const M_SYMBOL_REFERENCE: &str = "https://blackcatinformatics.ca/math/SymbolReference";
 const M_OPERATOR: &str = "https://blackcatinformatics.ca/math/operator";
 const M_ARGUMENT_SLOT: &str = "https://blackcatinformatics.ca/math/argumentSlot";
 const M_SLOT_INDEX: &str = "https://blackcatinformatics.ca/math/slotIndex";
@@ -421,8 +433,14 @@ pub(crate) enum MathLoweringError {
     /// A `math:NumberLiteral` node has no `math:literalValue`.
     NumberLiteralMissingValue { node: String },
     /// An expression node has no recognized `math:` expression type and is not a bare
-    /// IRI constant.
-    UnrecognizedExpressionType { node: String },
+    /// IRI constant: either it is a blank node (which never has an identity outside this
+    /// graph to serve as a bare constant), or it is a named node carrying one or more
+    /// `math:` types — `types` — none of which is a recognized expression type
+    /// (`math:ApplicationExpression` / `math:BindingExpression` /
+    /// `math:VariableExpression` / `math:NumberLiteral`) or the recognized
+    /// constant-operand type `math:SymbolReference`. A NODE WITH NO `math:` TYPE AT ALL
+    /// is not this variant — it is accepted as a bare external constant.
+    UnrecognizedExpressionType { node: String, types: Vec<String> },
     /// A `math:ArgumentSlot` has no `math:slotIndex`.
     ArgumentSlotMissingIndex { slot: String },
     /// A `math:ArgumentSlot` carries more than one `math:slotIndex` value.
@@ -491,11 +509,21 @@ impl std::fmt::Display for MathLoweringError {
             Self::NumberLiteralMissingValue { node } => {
                 write!(f, "math:NumberLiteral {node} missing math:literalValue")
             }
-            Self::UnrecognizedExpressionType { node } => write!(
+            Self::UnrecognizedExpressionType { node, types } if node.starts_with("_:") => write!(
                 f,
-                "math expression node {node} has no recognized expression type \
+                "math expression blank node {node} has no recognized expression type \
                  (math:ApplicationExpression / math:BindingExpression / \
-                 math:VariableExpression / math:NumberLiteral) and is not an IRI constant"
+                 math:VariableExpression / math:NumberLiteral); types found: {types:?} — a \
+                 blank node never qualifies as a bare constant operand (it has no identity \
+                 outside this graph)"
+            ),
+            Self::UnrecognizedExpressionType { node, types } => write!(
+                f,
+                "math expression node {node} carries math: type(s) {types:?}, none of which \
+                 is a recognized expression type (math:ApplicationExpression / \
+                 math:BindingExpression / math:VariableExpression / math:NumberLiteral) or \
+                 the recognized constant-operand type math:SymbolReference — and it is not a \
+                 bare untyped IRI constant"
             ),
             Self::ArgumentSlotMissingIndex { slot } => {
                 write!(f, "math:ArgumentSlot {slot} missing math:slotIndex")
@@ -727,6 +755,40 @@ impl MathGraph {
         gmeow_math::has_type(&self.index, subject, class)
     }
 
+    /// The IRIs of EVERY node typed `math:ApplicationExpression` / `math:BindingExpression`
+    /// / `math:VariableExpression` / `math:NumberLiteral` in this graph, referenced or
+    /// not — the full candidate population [`expression_roots`](Self::expression_roots)
+    /// filters down to the unreferenced ones, and
+    /// [`math_expression_structural_keys`] walks again (against the roots' combined
+    /// reachability) to seed the rootless nodes a purely referenced-based filter can never
+    /// find: a fully closed cyclic component (every member typed here AND referenced by
+    /// another member of the SAME component) has no unreferenced member at all.
+    fn expression_typed_nodes(&self) -> BTreeSet<String> {
+        gmeow_math::subjects(&self.index)
+            .filter(|subject| {
+                self.has_type(subject, M_APPLICATION)
+                    || self.has_type(subject, M_BINDING)
+                    || self.has_type(subject, M_VARIABLE_EXPRESSION)
+                    || self.has_type(subject, M_NUMBER_LITERAL)
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// The IRIs of every node this graph's `math:slotExpression` edges name as SOME
+    /// node's operand or binder body (an `math:ArgumentSlot`'s `math:slotExpression`
+    /// object) — the "has an incoming reference" half of
+    /// [`expression_roots`](Self::expression_roots)'s root test.
+    fn slot_expression_referenced_nodes(&self) -> BTreeSet<String> {
+        let mut referenced: BTreeSet<String> = BTreeSet::new();
+        for subject in gmeow_math::subjects(&self.index) {
+            for object in self.refs(subject, M_SLOT_EXPRESSION) {
+                referenced.insert(object);
+            }
+        }
+        referenced
+    }
+
     /// The IRIs of every "root" expression node in this graph: a node typed
     /// `math:ApplicationExpression` / `math:BindingExpression` / `math:VariableExpression`
     /// / `math:NumberLiteral` that is not itself referenced as any other node's
@@ -734,24 +796,42 @@ impl MathGraph {
     /// child expression node is reached through). [`math_expression_structural_keys`]
     /// lowers each independently, so one bad root's error never blinds another root's
     /// result.
+    ///
+    /// This is NOT the full expression-typed population: a node in a fully closed cyclic
+    /// component (every member is BOTH candidate-typed and referenced by another member
+    /// of the SAME component) has no unreferenced member and is invisible here by
+    /// construction — [`math_expression_structural_keys`] seeds it separately from
+    /// [`expression_typed_nodes`](Self::expression_typed_nodes).
     fn expression_roots(&self) -> BTreeSet<String> {
-        let mut candidates: BTreeSet<String> = BTreeSet::new();
-        let mut referenced: BTreeSet<String> = BTreeSet::new();
-        for subject in gmeow_math::subjects(&self.index) {
-            if self.has_type(subject, M_APPLICATION)
-                || self.has_type(subject, M_BINDING)
-                || self.has_type(subject, M_VARIABLE_EXPRESSION)
-                || self.has_type(subject, M_NUMBER_LITERAL)
-            {
-                candidates.insert(subject.clone());
-            }
-            for object in self.refs(subject, M_SLOT_EXPRESSION) {
-                referenced.insert(object);
-            }
-        }
+        let referenced = self.slot_expression_referenced_nodes();
+        let mut candidates = self.expression_typed_nodes();
         candidates.retain(|node| !referenced.contains(node));
         candidates
     }
+}
+
+/// The IRIs of every node transitively reachable from `start` via the
+/// `math:argumentSlot` → `math:slotExpression` edge (INCLUDING `start` itself) — the
+/// structural edge [`lower_math_node`]'s cycle guard walks. Used purely to compute
+/// coverage (which nodes a root's lowering attempt already visits), so a malformed slot
+/// family never aborts the walk early: unlike the real lowering, a missing/duplicate
+/// `math:slotIndex` is simply skipped rather than raised, and a cycle terminates the walk
+/// through the same insert-returns-false check the real cycle guard uses, never looping
+/// forever.
+fn reachable_expression_nodes(graph: &MathGraph, start: &str) -> BTreeSet<String> {
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut stack = vec![start.to_owned()];
+    while let Some(node) = stack.pop() {
+        if !seen.insert(node.clone()) {
+            continue;
+        }
+        for slot in graph.refs(&node, M_ARGUMENT_SLOT) {
+            if let Some(child) = graph.first_ref(&slot, M_SLOT_EXPRESSION) {
+                stack.push(child);
+            }
+        }
+    }
+    seen
 }
 
 /// Lower the `math:` expression rooted at `root` in `graph` into `dag`, returning its node
@@ -794,11 +874,34 @@ pub(crate) fn math_expression_structural_keys(
 ) -> BTreeMap<String, MathResult<String>> {
     let graph = MathGraph::from_dataset(ds);
     let mut out = BTreeMap::new();
+    // `visited` accumulates every node any processed root's expression graph already
+    // covers, so the rootless pass below seeds a component AT MOST once — never re-
+    // reports the same closed cycle once via one of its own members.
+    let mut visited: BTreeSet<String> = BTreeSet::new();
     for root in graph.expression_roots() {
+        visited.extend(reachable_expression_nodes(&graph, &root));
         let mut dag = TermDag::new();
         let result =
             lower_math_expression(&mut dag, &graph, &root).map(|id| structural_digest(&dag, id));
         out.insert(root, result);
+    }
+    // A fully closed cyclic component (every member typed as a `math:` expression AND
+    // referenced by another member of the SAME component through `math:slotExpression`)
+    // has no member `expression_roots()` can find — its root-seeded traversal above
+    // never touches it, `lower_math_expression` never runs over it, and
+    // `math:CyclicExpressionGraph` never fires. Seed any STILL-unvisited expression-typed
+    // node (sorted — `expression_typed_nodes` returns a `BTreeSet` — so which member
+    // represents the component is deterministic) as an orphan root, so every closed
+    // component is reached and its cycle guard actually fires at least once.
+    for node in graph.expression_typed_nodes() {
+        if visited.contains(&node) {
+            continue;
+        }
+        visited.extend(reachable_expression_nodes(&graph, &node));
+        let mut dag = TermDag::new();
+        let result =
+            lower_math_expression(&mut dag, &graph, &node).map(|id| structural_digest(&dag, id));
+        out.insert(node, result);
     }
     out
 }
@@ -901,13 +1004,39 @@ fn lower_math_node_dispatch(
             None => TermValue::typed_literal(lexical.to_owned(), datatype.to_owned()),
         };
         Ok(dag.intern_leaf(tv))
-    } else if !node.starts_with("_:") {
-        // A bare IRI constant operand (a mathematical symbol / individual): a leaf.
-        Ok(dag.intern_leaf(TermValue::iri(node.to_owned())))
     } else {
-        Err(MathLoweringError::UnrecognizedExpressionType {
-            node: node.to_owned(),
-        })
+        // Neither a blank node nor a named node carrying one of the four expression
+        // types dispatched above. A leaf is accepted here ONLY when `node` is POSITIVELY
+        // a constant operand:
+        //   - it carries NO `math:`-namespaced type at all (a bare external constant/
+        //     individual referenced from an operator or symbol position — e.g. an
+        //     arithmetic-operator IRI filling `math:operator`, or an untyped external
+        //     constant such as a Wikidata-anchored individual), or
+        //   - it carries the recognized `math:SymbolReference` constant-operand type (a
+        //     symbol-occurrence leaf; this lowering interns its own IRI rather than
+        //     walking its `math:hasMathematicalSymbol` edge, exactly like any other bare
+        //     constant leaf).
+        //
+        // A blank node NEVER qualifies (it has no identity outside this graph to serve as
+        // a bare constant), and a named node carrying one or more `math:` types NONE of
+        // which is recognized — a typo'd class, a `math:MathematicalStatement`, a bare
+        // `math:VariableOccurrence` used where an expression belongs, ... — is a HARD
+        // FAIL rather than a silently-degraded opaque leaf: letting an ill-typed AST
+        // through here would mean `math:StructuralKeyOnRejectedExpression` never fires
+        // and `math:StructuralKeyDrift` compares a declared key against a digest computed
+        // over garbage.
+        let math_types: Vec<&String> = types.iter().filter(|t| t.starts_with(MATH_NS)).collect();
+        let is_constant_operand = !node.starts_with("_:")
+            && (math_types.is_empty()
+                || math_types.iter().any(|t| t.as_str() == M_SYMBOL_REFERENCE));
+        if is_constant_operand {
+            Ok(dag.intern_leaf(TermValue::iri(node.to_owned())))
+        } else {
+            Err(MathLoweringError::UnrecognizedExpressionType {
+                node: node.to_owned(),
+                types,
+            })
+        }
     }
 }
 
@@ -1794,6 +1923,54 @@ mod tests {
         );
     }
 
+    // ── G3: a ROOTLESS (fully closed) cyclic component is still reached and rejected ──
+
+    /// A fully closed 2-node cycle — `ex:a`'s argument slot points at `ex:b`, whose
+    /// argument slot points back at `ex:a`, and NEITHER is referenced from outside the
+    /// cycle — has NO node satisfying [`MathGraph::expression_roots`]'s "not referenced"
+    /// test: EVERY member is both candidate-typed AND referenced by the OTHER member of
+    /// the SAME component. Before the `expression_typed_nodes` orphan-seeding pass,
+    /// [`math_expression_structural_keys`] therefore NEVER lowered either node at all —
+    /// `lower_math_expression` was never called, so `math:CyclicExpressionGraph` could
+    /// never fire and this case was silently invisible (zero entries, zero findings, ZERO
+    /// coverage) rather than a rejected root. This asserts the CAPABILITY: the closed
+    /// component is discovered and its cycle guard actually fires.
+    #[test]
+    fn math_expression_structural_keys_reaches_a_rootless_cyclic_component() {
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:a a math:ApplicationExpression ; math:operator ex:p ; math:argumentSlot ex:sa .\n\
+             ex:sa a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:b .\n\
+             ex:b a math:ApplicationExpression ; math:operator ex:q ; math:argumentSlot ex:sb .\n\
+             ex:sb a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:a .\n";
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+
+        // Confirm the premise: NEITHER ex:a nor ex:b is a root under the pure
+        // "not referenced" test — the closed cycle has no unreferenced member.
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse graph");
+        assert!(
+            graph.expression_roots().is_empty(),
+            "a fully closed cycle has NO unreferenced member: {:?}",
+            graph.expression_roots()
+        );
+
+        let results = math_expression_structural_keys(&dataset);
+        assert!(
+            !results.is_empty(),
+            "the closed cyclic component must still be SEEDED and lowered at least once, \
+             not silently skipped: {results:?}"
+        );
+        // Every entry must be the SAME typed rejection: the cycle guard actually fires,
+        // never a silent Ok (accepting a cyclic node as an opaque leaf) and never some
+        // OTHER unrelated rejection reason.
+        for (node, result) in &results {
+            match result {
+                Err(MathLoweringError::CyclicExpressionGraph { .. }) => {}
+                other => panic!("{node}: expected CyclicExpressionGraph, got {other:?}"),
+            }
+        }
+    }
+
     // ── math: a pathologically deep application chain hard-fails on depth ─────────────
 
     #[test]
@@ -1931,6 +2108,7 @@ mod tests {
             },
             MathLoweringError::UnrecognizedExpressionType {
                 node: "n".to_owned(),
+                types: vec!["https://blackcatinformatics.ca/math/SomeUnrecognizedType".to_owned()],
             },
             MathLoweringError::ArgumentSlotMissingIndex {
                 slot: "s".to_owned(),
@@ -2224,14 +2402,16 @@ mod tests {
     }
 
     /// The three committed `tests/conformance-fixtures/alpha-equivalent-*.ttl` fixtures
-    /// now use the `math:VariableExpression`-wrapped occurrence shape (corrected: they
-    /// originally pointed a `math:slotExpression` directly at a bare
-    /// `math:VariableOccurrence`, which is not itself a `math:MathematicalExpression`
-    /// per its own class definition — a type error, not merely a lowering-grammar gap —
-    /// and silently degraded to an opaque IRI leaf). This asserts the REAL properties
-    /// the fixtures document in their own header comments: pair-a and pair-b are
-    /// genuinely α-equivalent (share one digest), and the shadowing fixture is
-    /// deterministic and distinct from a bare one-variable binder.
+    /// use the `math:VariableExpression`-wrapped occurrence shape: a `math:slotExpression`
+    /// pointed directly at a bare `math:VariableOccurrence` is a type error (a
+    /// `math:VariableOccurrence` is not itself a `math:MathematicalExpression` per its own
+    /// class definition — it enters the tree only through a `math:VariableExpression`'s
+    /// `math:variableOccurrence` edge), so the fallback leaf branch now HARD-FAILS with
+    /// [`MathLoweringError::UnrecognizedExpressionType`] on that shape rather than
+    /// silently degrading it to an opaque IRI leaf. This asserts the REAL properties the
+    /// fixtures document in their own header comments: pair-a and pair-b are genuinely
+    /// α-equivalent (share one digest), and the shadowing fixture is deterministic and
+    /// distinct from a bare one-variable binder.
     #[test]
     fn committed_alpha_equivalence_fixtures_are_genuinely_alpha_equivalent() {
         let sum_root = "http://example.org/math/sumBinder";
@@ -2270,6 +2450,100 @@ mod tests {
             digest_shadow_1, digest_a,
             "the shadowing (nested binder) fixture is not alpha-equivalent to the bare \
              one-variable summation of pair-a/pair-b"
+        );
+    }
+
+    // ── G5: the leaf fallback HARD-FAILS an ill-typed node, never degrades it ─────────
+
+    /// A `math:slotExpression` pointed directly at a bare `math:VariableOccurrence` (the
+    /// SHAPE the committed alpha-equivalence fixtures originally used, before they were
+    /// corrected to the `math:VariableExpression`-wrapped shape) is a genuine type error —
+    /// `math:VariableOccurrence` is not itself a `math:MathematicalExpression`. It must be
+    /// REJECTED, never silently accepted as an opaque IRI leaf keyed on the occurrence's
+    /// own subject (which would let two non-alpha-equivalent expressions collide, or let
+    /// an authored `math:structuralKey` claim an identity for a thing the grammar itself
+    /// refutes).
+    #[test]
+    fn bare_variable_occurrence_as_slot_expression_hard_fails() {
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:app a math:ApplicationExpression ; math:operator ex:p ; \
+             math:argumentSlot ex:s0 .\n\
+             ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:occ .\n\
+             ex:occ a math:VariableOccurrence ; math:declaredVariable ex:decl .\n\
+             ex:decl a math:VariableDeclaration .\n";
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
+        let mut dag = TermDag::new();
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
+            .expect_err("a bare math:VariableOccurrence slot target must hard-fail");
+        match &err {
+            MathLoweringError::UnrecognizedExpressionType { node, types } => {
+                assert_eq!(node, "https://example.org/occ");
+                assert_eq!(
+                    types,
+                    &vec!["https://blackcatinformatics.ca/math/VariableOccurrence".to_owned()]
+                );
+            }
+            other => panic!("expected UnrecognizedExpressionType, got {other:?}"),
+        }
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/MalformedArgumentSlot"
+        );
+    }
+
+    /// A node carrying a genuinely UNKNOWN/typo'd `math:` type (never authored anywhere
+    /// in the `math:` vocabulary) used as a slot operand must hard-fail exactly the same
+    /// way — the fallback is not merely a denylist of the classes this file happens to
+    /// know about.
+    #[test]
+    fn typo_math_type_as_slot_expression_hard_fails() {
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:app a math:ApplicationExpression ; math:operator ex:p ; \
+             math:argumentSlot ex:s0 .\n\
+             ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:bogus .\n\
+             ex:bogus a math:MathematicalSttaement .\n";
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
+        let mut dag = TermDag::new();
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
+            .expect_err("a typo'd math: class on a slot target must hard-fail, never silently \
+                         degrade to an opaque leaf");
+        assert!(
+            matches!(err, MathLoweringError::UnrecognizedExpressionType { .. }),
+            "{err:?}"
+        );
+    }
+
+    /// A `math:SymbolReference` leaf (the RECOGNIZED constant-operand type, e.g.
+    /// `slices/grounding/math/examples/reference-ast-act.ttl`'s `ex:leftMatrixRef`) is
+    /// still accepted through the fallback, interning its own IRI exactly like an
+    /// untyped external constant — the stricter fallback rejects UNRECOGNIZED `math:`
+    /// types, never every `math:` type whatsoever.
+    #[test]
+    fn symbol_reference_leaf_still_lowers() {
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:app a math:ApplicationExpression ; math:operator ex:p ; \
+             math:argumentSlot ex:s0 .\n\
+             ex:s0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:ref .\n\
+             ex:ref a math:SymbolReference ; math:hasMathematicalSymbol ex:sym .\n\
+             ex:sym a math:MathematicalSymbol .\n";
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
+        let mut dag = TermDag::new();
+        let node = lower_math_expression(&mut dag, &graph, "https://example.org/app")
+            .expect("a math:SymbolReference slot target must still lower");
+
+        // The SAME shape, hand-built: `p(ref)` where `ref` is a leaf keyed on the
+        // `math:SymbolReference` node's OWN IRI (its `math:hasMathematicalSymbol` edge is
+        // NOT walked — this lowering treats it exactly like any other bare constant leaf).
+        let op = dag.intern_leaf(TermValue::iri("https://example.org/p".to_owned()));
+        let arg = dag.intern_leaf(TermValue::iri("https://example.org/ref".to_owned()));
+        let hand_built = dag.intern_app(op, vec![arg]);
+        assert_eq!(
+            node, hand_built,
+            "a math:SymbolReference slot target interns to the SAME node as a by-hand \
+             application over a leaf keyed on the reference's own IRI"
         );
     }
 

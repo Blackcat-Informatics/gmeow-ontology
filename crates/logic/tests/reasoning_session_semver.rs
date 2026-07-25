@@ -152,8 +152,23 @@ use session_common::*;
 /// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
 /// (also a `BACKWARD_SOURCE` member, so its raw bytes move again): comment-only, no
 /// reasoning behavior change on any input.
+/// Re-blessed once more for the `math:` expressions hardening task's two lowering-
+/// correctness fixes in `physical/lower.rs` (a `BACKWARD_SOURCE` member): (1) the leaf
+/// fallback in `lower_math_node_dispatch` no longer silently accepts a named node
+/// carrying an unrecognized `math:` type as an opaque IRI leaf — it now HARD-FAILS with
+/// `MathLoweringError::UnrecognizedExpressionType` (which gained a `types: Vec<String>`
+/// field) unless the node carries NO `math:` type at all or the recognized
+/// `math:SymbolReference` constant-operand type; and (2)
+/// `math_expression_structural_keys` now seeds any still-unvisited `math:`-expression-
+/// typed node after the root-seeded traversal (`MathGraph::expression_typed_nodes` /
+/// `reachable_expression_nodes`), so a fully closed cyclic component with no externally
+/// referenced member is still reached and its `math:CyclicExpressionGraph` guard fires.
+/// Both DO change reasoning verdicts on `math:`-authored inputs that hit these paths
+/// (a previously-silently-accepted ill-typed leaf or rootless cycle is now soundly
+/// rejected), but NOT on this fixed edge-only input (which authors no `math:` expression
+/// graph at all), so the fixed-input session verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "622dd241264eb1414bd500e784ea0b952ee95fb4181d8f7597bbd0dee749a248";
+    "597796a6b726faa4fdb457e3bf778132e073dd9f9bbf16dbd22de18697e20dde";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -220,8 +235,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
 /// (see the engine-descriptor golden above): comment-only source move, no reasoning
 /// verdict change.
+/// Re-blessed once more for the `math:` expressions hardening task's two lowering-
+/// correctness fixes (see the engine-descriptor golden above): the native contract hash
+/// is one of the seven folded identity axes and moves with the changed `physical/lower.rs`
+/// engine source, while the fixed edge-only input (authoring no `math:` expression graph)
+/// has an unchanged reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "c27677ded11bf55af5579e08596a9adbdab1ddc1cbc9454635f561d683e4a897";
+    "b167cadbe234ea2a2dbb9860ff71bfa526d044bf8e6d2686f575de03f99fc914";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
