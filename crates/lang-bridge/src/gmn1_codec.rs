@@ -153,6 +153,19 @@ const DIALECT_VERSION: &str = "1";
 const DICTIONARY_VERSION: &str = "3";
 const GLYPH_VERSION: &str = "2";
 
+// ── The GMN dialect version lineage (graph-resolved acceptance) ──────────────────────
+// The `gmeow:gmnDialectVersions` gmeow:VersionSet and its gmeow:VersionMembership relators:
+// the latest major is read off the `gmeow:roleLatest` member's `owl:versionInfo`, and the
+// acceptance window off the set's `gmeow:gmnAcceptWindow`. Version identity comes from the
+// GRAPH — these IRIs are the query keys, never a source of the version value itself.
+const GMN_DIALECT_VERSIONS_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnDialectVersions";
+const PRED_VERSION_SET: &str = "https://blackcatinformatics.ca/gmeow/versionSet";
+const PRED_VERSION_MEMBER: &str = "https://blackcatinformatics.ca/gmeow/versionMember";
+const PRED_VERSION_ROLE: &str = "https://blackcatinformatics.ca/gmeow/versionRole";
+const ROLE_LATEST_IRI: &str = "https://blackcatinformatics.ca/gmeow/roleLatest";
+const PRED_OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+const PRED_GMN_ACCEPT_WINDOW: &str = "https://blackcatinformatics.ca/gmeow/gmnAcceptWindow";
+
 // ── GMN-0: the canonical quad-set normal form ───────────────────────────────────────
 
 /// GMN-0: the RDFC-1.0 canonically blank-node-labeled, content-sorted quad set this
@@ -777,6 +790,16 @@ impl GmnGlyphRegistry {
         Self::binding_rows(&self.fallback_to_term)
     }
 
+    /// The executable glyph bindings as `(sigil, glyph, fixity, arity, term)` rows in stable
+    /// key order (fixity/arity flattened to `""` when the operator carries no signature) — the
+    /// public view of the SAME graph-derived table the codebook digest folds. The GMN version
+    /// migration executor reads this to map a stored document's source glyphs back to the
+    /// version-stable terms they denote, never a hardcoded symbol table.
+    #[must_use]
+    pub fn bindings(&self) -> Vec<(String, String, String, String, String)> {
+        Self::binding_rows(&self.glyph_to_term)
+    }
+
     fn binding_rows(
         table: &BTreeMap<(String, String, GmnGlyphSignature), String>,
     ) -> Vec<(String, String, String, String, String)> {
@@ -877,6 +900,22 @@ impl GmnGlyphRegistry {
             .iter()
             .filter_map(|((sigil, term, _), glyph)| {
                 (term == iri).then_some((sigil.as_str(), glyph.as_str()))
+            })
+            .collect()
+    }
+
+    /// Every `(sigil, ascii_fallback)` READ binding for one denoted term, in stable key
+    /// order — the keyboard-typable spelling a glyph accepts as an alias on input (the
+    /// glyph table's `alias` column). Mirrors [`Self::bindings_for_term`] over the
+    /// ASCII-fallback table; the GMN-1 primer joins each operator's glyph to its alias
+    /// through this so a fresh model that cannot emit the Unicode glyph still has the
+    /// typable form to fall back to.
+    #[must_use]
+    pub fn fallbacks_for_term(&self, iri: &str) -> Vec<(&str, &str)> {
+        self.fallback_to_term
+            .iter()
+            .filter_map(|((sigil, fallback, _), term)| {
+                (term == iri).then_some((sigil.as_str(), fallback.as_str()))
             })
             .collect()
     }
@@ -1105,6 +1144,176 @@ pub fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, Glyp
     })
 }
 
+/// The graph-resolved GMN dialect acceptance policy: the latest major and the accept
+/// window, both READ FROM THE GRAPH (`gmeow:gmnDialectVersions`) — never a Rust constant.
+/// The latest major is the `owl:versionInfo` of the lineage's `gmeow:roleLatest` member; the
+/// window is the set's `gmeow:gmnAcceptWindow`. A reader accepts the latest major plus the
+/// `accept_window` majors immediately behind it (each of which enters only through a judged
+/// migration crossing), and never a future major beyond the latest.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DialectAcceptance {
+    latest_major: u32,
+    accept_window: u32,
+}
+
+impl DialectAcceptance {
+    /// The lineage's latest major (the `gmeow:roleLatest` member's `owl:versionInfo`).
+    #[must_use]
+    pub fn latest_major(&self) -> u32 {
+        self.latest_major
+    }
+
+    /// The lineage acceptance window (`gmeow:gmnAcceptWindow` on the version set).
+    #[must_use]
+    pub fn accept_window(&self) -> u32 {
+        self.accept_window
+    }
+
+    /// The latest major rendered as the version-key string (`"1"`): the coordinate the
+    /// artifact path `gmn1/v<major>/…` and the `@gmn{v: …}` header pin.
+    #[must_use]
+    pub fn latest_major_key(&self) -> String {
+        self.latest_major.to_string()
+    }
+
+    /// Whether `major` is inside the accept window: the latest major, or one of the
+    /// `accept_window` majors behind it — never a future major beyond the latest.
+    #[must_use]
+    pub fn accepts(&self, major: u32) -> bool {
+        major <= self.latest_major && self.latest_major - major <= self.accept_window
+    }
+
+    /// The codec's own default acceptance for a fixture-scale dataset that carries NO
+    /// `gmeow:gmnDialectVersions` lineage (the shipped carrier always carries it, so this is
+    /// never the resolution the real projection/gate path takes): the codec's pinned major
+    /// with the charter window of 1. A PRESENT lineage always overrides this.
+    fn codec_default() -> Self {
+        Self {
+            latest_major: DIALECT_VERSION
+                .parse()
+                .expect("the codec DIALECT_VERSION constant is a u32 major"),
+            accept_window: 1,
+        }
+    }
+}
+
+/// Resolve the GMN dialect acceptance policy FROM THE GRAPH. Follows the version lineage
+/// `gmeow:gmnDialectVersions`: its `gmeow:roleLatest` `gmeow:VersionMembership` names the
+/// latest `gmeow:versionMember`, whose `owl:versionInfo` is the latest major, and its
+/// `gmeow:gmnAcceptWindow` is the window. Version identity is read off the graph, never a
+/// Rust constant.
+///
+/// Returns `Ok(None)` when the dataset carries no `gmeow:gmnDialectVersions` lineage at all
+/// (a fixture-scale dataset) so a caller can fall back to [`DialectAcceptance::codec_default`];
+/// a PRESENT-but-malformed lineage (no/many latest membership, a member with no/many
+/// `owl:versionInfo`, a non-integer major, no/many `gmeow:gmnAcceptWindow`) is a hard error,
+/// never a silent default.
+///
+/// # Errors
+/// A [`GlyphRegistryError`] when the lineage is present but malformed.
+pub fn resolve_dialect_acceptance(
+    ds: &RdfDataset,
+) -> Result<Option<DialectAcceptance>, GlyphRegistryError> {
+    let mut lineage_present = false;
+    let mut accept_windows = BTreeSet::<String>::new();
+    // membership IRI → its versionSet / versionMember / versionRole
+    let mut mem_set = BTreeMap::<String, String>::new();
+    let mut mem_member = BTreeMap::<String, String>::new();
+    let mut mem_role = BTreeMap::<String, String>::new();
+    let mut version_infos = BTreeMap::<String, BTreeSet<String>>::new();
+
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        if subject == GMN_DIALECT_VERSIONS_IRI {
+            lineage_present = true;
+        }
+        match quad.predicate.as_str() {
+            PRED_GMN_ACCEPT_WINDOW => {
+                if subject == GMN_DIALECT_VERSIONS_IRI
+                    && let RdfTerm::Literal(window) = &quad.object
+                {
+                    accept_windows.insert(window.lexical_form.clone());
+                }
+            }
+            PRED_VERSION_SET => {
+                if let RdfTerm::Iri(set) = &quad.object {
+                    mem_set.insert(subject.clone(), set.clone());
+                }
+            }
+            PRED_VERSION_MEMBER => {
+                if let RdfTerm::Iri(member) = &quad.object {
+                    mem_member.insert(subject.clone(), member.clone());
+                }
+            }
+            PRED_VERSION_ROLE => {
+                if let RdfTerm::Iri(role) = &quad.object {
+                    mem_role.insert(subject.clone(), role.clone());
+                }
+            }
+            PRED_OWL_VERSION_INFO => {
+                if let RdfTerm::Literal(info) = &quad.object {
+                    version_infos
+                        .entry(subject.clone())
+                        .or_default()
+                        .insert(info.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    if !lineage_present {
+        return Ok(None);
+    }
+
+    // The `gmeow:roleLatest` membership(s) OF THIS lineage.
+    let latest_members = mem_set
+        .iter()
+        .filter(|(membership, set)| {
+            set.as_str() == GMN_DIALECT_VERSIONS_IRI
+                && mem_role.get(*membership).map(String::as_str) == Some(ROLE_LATEST_IRI)
+        })
+        .filter_map(|(membership, _)| mem_member.get(membership).cloned())
+        .collect::<BTreeSet<_>>();
+    if latest_members.len() != 1 {
+        return Err(GlyphRegistryError(format!(
+            "GMN dialect lineage {GMN_DIALECT_VERSIONS_IRI} must have exactly one gmeow:roleLatest \
+             member, found {}",
+            latest_members.len()
+        )));
+    }
+    let latest_member = latest_members
+        .into_iter()
+        .next()
+        .expect("the exactly-one latest-member set is non-empty");
+    let latest_major_lex = exactly_one_literal(
+        version_infos.get(&latest_member),
+        &format!("latest GMN dialect version {latest_member} owl:versionInfo"),
+    )?;
+    let latest_major = latest_major_lex.parse::<u32>().map_err(|_| {
+        GlyphRegistryError(format!(
+            "latest GMN dialect version {latest_member} owl:versionInfo {latest_major_lex:?} is \
+             not an integer major"
+        ))
+    })?;
+    let window_lex = exactly_one_literal(
+        Some(&accept_windows),
+        &format!("GMN dialect lineage {GMN_DIALECT_VERSIONS_IRI} gmeow:gmnAcceptWindow"),
+    )?;
+    let accept_window = window_lex.parse::<u32>().map_err(|_| {
+        GlyphRegistryError(format!(
+            "GMN dialect lineage gmeow:gmnAcceptWindow {window_lex:?} is not an integer"
+        ))
+    })?;
+
+    Ok(Some(DialectAcceptance {
+        latest_major,
+        accept_window,
+    }))
+}
+
 fn exactly_one_typed_reference(
     references: &BTreeSet<String>,
     types: &BTreeMap<String, BTreeSet<String>>,
@@ -1287,6 +1496,10 @@ pub struct GmnDictionary {
     term_to_alias: BTreeMap<String, String>,
     alias_to_term: BTreeMap<String, String>,
     glyphs: GmnGlyphRegistry,
+    /// The graph-resolved dialect acceptance policy (latest major + accept window), loaded
+    /// from the SAME carrier dataset as the alias/glyph tables so the header's schema-major
+    /// gate reads the lineage the shipped ontology pins, never the codec's own constant.
+    acceptance: DialectAcceptance,
 }
 
 /// An explicit empty dictionary at the codec's current coordinates. This exists for
@@ -1299,6 +1512,7 @@ impl Default for GmnDictionary {
             term_to_alias: BTreeMap::new(),
             alias_to_term: BTreeMap::new(),
             glyphs: GmnGlyphRegistry::default(),
+            acceptance: DialectAcceptance::codec_default(),
         }
     }
 }
@@ -1401,12 +1615,35 @@ impl GmnDictionary {
             }
         }
 
+        // The dialect acceptance policy comes from the SAME carrier dataset. The shipped
+        // lang module always carries the `gmeow:gmnDialectVersions` lineage; a fixture-scale
+        // dataset that omits it falls back to the codec default (a PRESENT lineage always wins).
+        let acceptance = resolve_dialect_acceptance(ds)
+            .map_err(|error| DictionaryError(error.0))?
+            .unwrap_or_else(DialectAcceptance::codec_default);
+
         Ok(Self {
             version: codebook.dictionary_version,
             term_to_alias,
             alias_to_term,
             glyphs,
+            acceptance,
         })
+    }
+
+    /// The graph-resolved dialect acceptance policy carried by this dictionary — the
+    /// header's schema-major gate and the writer's `@gmn{v: …}` coordinate both read it.
+    #[must_use]
+    pub fn acceptance(&self) -> DialectAcceptance {
+        self.acceptance
+    }
+
+    /// The current schema major as the version-key string (`"1"`) — the coordinate the
+    /// writer pins in `@gmn{v: …}` and the projection keys artifact paths under. Sourced
+    /// from the graph-resolved [`Self::acceptance`], never the codec's own constant.
+    #[must_use]
+    pub fn schema_major(&self) -> String {
+        self.acceptance.latest_major_key()
     }
 
     fn alias_for(&self, iri: &str) -> Option<&str> {
@@ -3057,6 +3294,286 @@ fn repair_record_to_quads(
     Ok(quads)
 }
 
+// ── The in-band repair resolver: the effective / materialized store ─────────────────
+
+/// A repair whose materialization into the effective store failed. Distinct from the
+/// codec's surface [`Gmn1Error`] (round-trip/grammar failures): this is a SEMANTIC
+/// integrity failure of the append-only repair log, raised only by [`resolve_effective`].
+/// Each variant is a named, diagnosable class — a dangling or malformed repair is a HARD
+/// FAIL, never a silent drop.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Gmn1RepairError {
+    /// A `@patch`/`@retract` names a stable target record id absent from the base
+    /// (non-repair) record set. The append-only log stays intact, but the effective view
+    /// cannot be materialized: there is nothing to restate or withdraw. `kind` is the
+    /// repair sigil (`@patch`/`@retract`); `target` is the offending `gmnRepairId` value.
+    DanglingRepairTarget { kind: &'static str, target: String },
+    /// A repair-typed record (`GmnPatch`/`GmnRetract`) names no single stable target — it
+    /// carries zero, or more than one, `gmnRepairId`, or a `gmnRepairId` that is not a
+    /// literal. `subject` is the repair record's own stable id; `detail` says which.
+    MalformedRepairRecord { subject: String, detail: String },
+}
+
+impl Gmn1RepairError {
+    /// The `lang:` failure-class IRI this repair failure resolves to. A dangling or
+    /// malformed repair is a structural incoherence of the materialized store, so it
+    /// REUSES the codec's one structural-residual class (`lang:GmnNonDecodableGrammar`)
+    /// rather than minting a rival vocabulary (GREENFIELD, one classifier).
+    #[must_use]
+    pub fn failure_class(&self) -> &'static str {
+        Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR
+    }
+}
+
+impl std::fmt::Display for Gmn1RepairError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DanglingRepairTarget { kind, target } => write!(
+                f,
+                "lang:GmnNonDecodableGrammar: repair {kind} names target record id \
+                 {target:?}, which is absent from the base record set (nothing to \
+                 restate or withdraw)"
+            ),
+            Self::MalformedRepairRecord { subject, detail } => write!(
+                f,
+                "lang:GmnNonDecodableGrammar: repair record {subject} names no single \
+                 stable target: {detail}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for Gmn1RepairError {}
+
+/// The three in-band repair kinds, resolved from a record's single repair-class `rdf:type`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RepairKind {
+    /// `@err` — a report ABOUT a rejected record; contributes nothing to the effective
+    /// store and never requires or removes a target.
+    Err,
+    /// `@patch` — restates named fields of its target record.
+    Patch,
+    /// `@retract` — withdraws its target record.
+    Retract,
+}
+
+impl RepairKind {
+    /// The repair kind a group's `rdf:type` object selects, or `None` when the object is
+    /// not one of the three repair classes.
+    fn from_class(class: &str) -> Option<Self> {
+        match class {
+            CLASS_GMN_ERR => Some(Self::Err),
+            CLASS_GMN_PATCH => Some(Self::Patch),
+            CLASS_GMN_RETRACT => Some(Self::Retract),
+            _ => None,
+        }
+    }
+
+    /// The repair sigil (for diagnostics).
+    fn sigil(self) -> &'static str {
+        match self {
+            Self::Err => SIGIL_ERR,
+            Self::Patch => SIGIL_PATCH,
+            Self::Retract => SIGIL_RETRACT,
+        }
+    }
+
+    /// The application-order rank: every `@patch` (0) is applied before every `@retract`
+    /// (1) over the SAME target, so a record both patched and retracted is withdrawn
+    /// regardless of authoring order. `@err` never mutates, so its rank is unused.
+    fn order_rank(self) -> u8 {
+        match self {
+            Self::Patch => 0,
+            Self::Retract | Self::Err => 1,
+        }
+    }
+}
+
+/// A base (non-repair) record: its subject term plus the quads asserted on it. The record's
+/// STABLE ID is `term_sort_string(&subject)`.
+#[derive(Debug, Clone)]
+struct BaseRecord {
+    subject: RdfTerm,
+    quads: Vec<RdfQuad>,
+}
+
+/// One resolved `@patch`/`@retract` operation over a stable target id.
+#[derive(Debug, Clone)]
+struct RepairOp {
+    kind: RepairKind,
+    /// The stable id of the repair record itself — the deterministic tie-breaker between
+    /// two repairs over the same target.
+    repair_id: String,
+    /// The stable target id the repair addresses (its `gmnRepairId` value).
+    target: String,
+    /// For a `@patch`, the restated `(predicate, object)` fields (empty for `@retract`).
+    fields: Vec<(String, RdfTerm)>,
+}
+
+/// Materialize the EFFECTIVE (as-corrected) view of a GMN-0 model that MAY carry in-band
+/// `@patch`/`@retract`/`@err` repair records.
+///
+/// The input `model` is APPEND-ONLY and is NEVER mutated: every original record — base or
+/// repair — survives in `model`. This returns a NEW model, the effective store, in which:
+///
+/// * each base (non-repair) record survives unless withdrawn;
+/// * each `@patch(T){P := v, …}` RESTATES field `P` of its target record `T` — the
+///   target's existing `T P *` quads are replaced by the patch's `T P v`, leaving every
+///   OTHER field of `T` intact;
+/// * each `@retract(T)` WITHDRAWS its target record `T` (all `T * *` quads drop);
+/// * each `@err` is a report ABOUT a rejected record and contributes nothing to the
+///   effective store (the rejected record it names may legitimately be absent — a reader
+///   rejected it — so an `@err` never requires or removes a target);
+/// * the repair records THEMSELVES are claims-about-claims (meta), not base data, so they
+///   are consumed here and do not appear in the effective store.
+///
+/// A record's STABLE ID is its subject term's canonical string ([`term_sort_string`]); a
+/// repair names its target by carrying that string as its `gmnRepairId` value (a stable id,
+/// not a document position). Repairs apply in a canonical deterministic order over
+/// `(target id, kind rank, repair-record id)` — every patch before every retract over one
+/// target, so a record both patched and retracted is withdrawn regardless of order.
+///
+/// HARD-FAILS ([`Gmn1RepairError`]) — never silently drops — when a `@patch`/`@retract`
+/// names a target absent from the base record set, or a repair record names no single
+/// stable target.
+pub fn resolve_effective(model: &Gmn0Model) -> Result<Gmn0Model, Gmn1RepairError> {
+    // 1. Partition every quad into records keyed by the subject's stable id. The model's
+    //    quads are already content-sorted, so each subject's quads are contiguous, but a
+    //    BTreeMap keeps the partition deterministic regardless.
+    let mut groups: BTreeMap<String, (RdfTerm, Vec<RdfQuad>)> = BTreeMap::new();
+    for quad in &model.quads {
+        let key = term_sort_string(&quad.subject);
+        groups
+            .entry(key)
+            .or_insert_with(|| (quad.subject.clone(), Vec::new()))
+            .1
+            .push(quad.clone());
+    }
+
+    // 2. Classify each group as a base record or a repair record, and collect the repair
+    //    operations. Iteration is over the BTreeMap, i.e. sorted by stable id.
+    let mut base: BTreeMap<String, BaseRecord> = BTreeMap::new();
+    let mut ops: Vec<RepairOp> = Vec::new();
+    for (id, (subject, quads)) in groups {
+        // A group is a repair record iff it carries exactly one repair-class rdf:type.
+        let repair_kind = quads
+            .iter()
+            .filter(|q| q.predicate == RDF_TYPE)
+            .find_map(|q| match &q.object {
+                RdfTerm::Iri(class) => RepairKind::from_class(class),
+                _ => None,
+            });
+        let Some(kind) = repair_kind else {
+            base.insert(id.clone(), BaseRecord { subject, quads });
+            continue;
+        };
+
+        // An `@err` reports a rejected record; it never mutates the effective store and its
+        // target may legitimately be absent, so it is consumed without a target check.
+        if kind == RepairKind::Err {
+            continue;
+        }
+
+        // A `@patch`/`@retract` MUST name exactly one literal stable target id.
+        let mut target_ids = quads
+            .iter()
+            .filter(|q| q.predicate == PRED_GMN_REPAIR_ID)
+            .map(|q| &q.object);
+        let target = match (target_ids.next(), target_ids.next()) {
+            (Some(RdfTerm::Literal(lit)), None) => lit.lexical_form.clone(),
+            (Some(_), None) => {
+                return Err(Gmn1RepairError::MalformedRepairRecord {
+                    subject: id,
+                    detail: "its gmnRepairId is not a literal target id".to_owned(),
+                });
+            }
+            (None, _) => {
+                return Err(Gmn1RepairError::MalformedRepairRecord {
+                    subject: id,
+                    detail: "it carries no gmnRepairId".to_owned(),
+                });
+            }
+            (Some(_), Some(_)) => {
+                return Err(Gmn1RepairError::MalformedRepairRecord {
+                    subject: id,
+                    detail: "it carries more than one gmnRepairId".to_owned(),
+                });
+            }
+        };
+
+        // A `@patch` restates every field OTHER than its own type and repair-id; a
+        // `@retract` restates nothing.
+        let fields = if kind == RepairKind::Patch {
+            quads
+                .iter()
+                .filter(|q| q.predicate != RDF_TYPE && q.predicate != PRED_GMN_REPAIR_ID)
+                .map(|q| (q.predicate.clone(), q.object.clone()))
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        ops.push(RepairOp {
+            kind,
+            repair_id: id,
+            target,
+            fields,
+        });
+    }
+
+    // 3. Every `@patch`/`@retract` target MUST exist in the base record set, checked
+    //    against the ORIGINAL ids (before any retraction removes one). Reported in the
+    //    canonical `(target, kind, repair id)` order, so the failure is deterministic.
+    ops.sort_by(|a, b| {
+        a.target
+            .cmp(&b.target)
+            .then_with(|| a.kind.order_rank().cmp(&b.kind.order_rank()))
+            .then_with(|| a.repair_id.cmp(&b.repair_id))
+    });
+    let base_ids: BTreeSet<&String> = base.keys().collect();
+    for op in &ops {
+        if !base_ids.contains(&op.target) {
+            return Err(Gmn1RepairError::DanglingRepairTarget {
+                kind: op.kind.sigil(),
+                target: op.target.clone(),
+            });
+        }
+    }
+
+    // 4. Apply the repairs in canonical order. A patch removes then restates its fields
+    //    (so a multi-value restate is atomic); a retract withdraws the whole record.
+    for op in ops {
+        match op.kind {
+            RepairKind::Patch => {
+                if let Some(record) = base.get_mut(&op.target) {
+                    let restated: BTreeSet<&String> =
+                        op.fields.iter().map(|(pred, _)| pred).collect();
+                    record.quads.retain(|q| !restated.contains(&q.predicate));
+                    for (pred, object) in &op.fields {
+                        record.quads.push(RdfQuad::new(
+                            record.subject.clone(),
+                            pred.clone(),
+                            object.clone(),
+                        ));
+                    }
+                }
+            }
+            RepairKind::Retract => {
+                base.remove(&op.target);
+            }
+            RepairKind::Err => unreachable!("@err was consumed before op collection"),
+        }
+    }
+
+    // 5. Emit the effective store in the SAME content-sorted, de-duplicated normal form
+    //    `Gmn0Model::from_dataset` produces — the repair records are gone, the surviving
+    //    base records carry their restated fields.
+    let mut quads: Vec<RdfQuad> = base.into_values().flat_map(|record| record.quads).collect();
+    quads.sort_by_key(quad_sort_key);
+    quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
+    Ok(Gmn0Model { quads })
+}
+
 // ── The prefix registry adapter ─────────────────────────────────────────────────────
 
 /// Supplemental `(namespace, prefix)` pairs this codec adds ON TOP OF the pipeline-wide
@@ -3161,7 +3678,8 @@ pub fn gmn1_write(model: &Gmn0Model, dict: &GmnDictionary) -> Result<Gmn1Documen
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        "@gmn{{v: {}, aliases: {}, glyphs: {}}}",
+        dict.schema_major(),
         dict.aliases_id(),
         dict.glyphs.version()
     )];
@@ -3190,7 +3708,8 @@ pub fn gmn1_write_tabular(
     let records = quads_to_records(&model.quads, dict, &ns_to_prefix, &mut refs)?;
 
     let mut lines = vec![format!(
-        "@gmn{{v: {DIALECT_VERSION}, aliases: {}, glyphs: {}}}",
+        "@gmn{{v: {}, aliases: {}, glyphs: {}}}",
+        dict.schema_major(),
         dict.aliases_id(),
         dict.glyphs.version()
     )];
@@ -3395,7 +3914,7 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
         .ok_or_else(|| Gmn1Error::UndeclaredDialectVersion {
             detail: format!("GMN-1 text must open with an @gmn{{...}} header, got: {line}"),
         })?;
-    let mut version_ok = false;
+    let mut schema_major: Option<String> = None;
     let mut aliases_ok = false;
     let mut glyphs_ok = false;
     for pair in body.split(',') {
@@ -3406,7 +3925,7 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
             })?;
         let (k, v) = (k.trim(), v.trim());
         match k {
-            "v" => version_ok = v == DIALECT_VERSION,
+            "v" => schema_major = Some(v.to_owned()),
             "aliases" => aliases_ok = v == dict.aliases_id(),
             "glyphs" => glyphs_ok = v == dict.glyphs.version(),
             other => {
@@ -3416,10 +3935,39 @@ fn parse_header(line: &str, dict: &GmnDictionary) -> Result<(), Gmn1Error> {
             }
         }
     }
-    if !version_ok || !aliases_ok || !glyphs_ok {
+
+    // The schema major must be pinned AND inside the GRAPH-RESOLVED accept window. A header
+    // declaring a major outside the window — a future major beyond the latest, or a prior
+    // further back than the lineage's gmeow:gmnAcceptWindow admits — is REFUSED here (never
+    // silently tolerated): the reader does not decode a version the lineage does not accept.
+    // The window comes from gmeow:gmnDialectVersions, never the codec's own constant.
+    let acceptance = dict.acceptance();
+    let Some(major_lex) = schema_major else {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!("@gmn header does not pin a schema version: {line}"),
+        });
+    };
+    let Ok(major) = major_lex.parse::<u32>() else {
         return Err(Gmn1Error::UndeclaredDialectVersion {
             detail: format!(
-                "@gmn header does not pin the expected schema/dictionary/glyph-table version: {line}"
+                "@gmn header schema version {major_lex:?} is not an integer major: {line}"
+            ),
+        });
+    };
+    if !acceptance.accepts(major) {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!(
+                "@gmn header schema major {major} is outside the GMN dialect accept window \
+                 (latest {}, window {}): {line}",
+                acceptance.latest_major(),
+                acceptance.accept_window()
+            ),
+        });
+    }
+    if !aliases_ok || !glyphs_ok {
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!(
+                "@gmn header does not pin the expected dictionary/glyph-table version: {line}"
             ),
         });
     }
@@ -3786,6 +4334,78 @@ mod tests {
         GmnDictionary::from_dataset(&lang_module_dataset()).expect("dictionary loads")
     }
 
+    /// A synthetic GMN dialect lineage with a given latest major + accept window, used to
+    /// prove the acceptance policy is READ OFF THE GRAPH (roleLatest → owl:versionInfo, the
+    /// set's gmnAcceptWindow) rather than from any Rust constant.
+    fn synthetic_lineage_dataset(latest: u32, window: u32) -> Arc<RdfDataset> {
+        let ttl = format!(
+            r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+gmeow:gmnDialectVersions a gmeow:VersionSet ; gmeow:gmnAcceptWindow {window} .
+gmeow:vLatest a gmeow:InformationObject ; owl:versionInfo "{latest}" .
+gmeow:mLatest a gmeow:VersionMembership ;
+    gmeow:versionMember gmeow:vLatest ;
+    gmeow:versionSet gmeow:gmnDialectVersions ;
+    gmeow:versionRole gmeow:roleLatest .
+"#
+        );
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("synthetic lineage parses")
+    }
+
+    /// The GMN dialect acceptance policy is resolved FROM THE GRAPH, and a header declaring a
+    /// schema major outside the resolved accept window is hard-rejected with the named
+    /// `lang:GmnUndeclaredDialectVersion` class, while the in-window current major is accepted.
+    #[test]
+    fn out_of_window_envelope_header_is_rejected() {
+        let dict = real_dict();
+        let acceptance = dict.acceptance();
+        // The dict's acceptance is exactly what the resolver reads off the lineage graph.
+        let resolved = resolve_dialect_acceptance(&lang_module_dataset())
+            .expect("resolve dialect acceptance")
+            .expect("lang module carries the gmeow:gmnDialectVersions lineage");
+        assert_eq!(
+            acceptance, resolved,
+            "the dictionary carries the graph-resolved dialect acceptance"
+        );
+        let latest = acceptance.latest_major();
+
+        // In-window: the latest major, pinned against the current alias/glyph tables.
+        let in_window = format!(
+            "@gmn{{v: {latest}, aliases: {}, glyphs: {}}}",
+            dict.aliases_id(),
+            dict.glyphs.version()
+        );
+        assert!(
+            parse_header(&in_window, &dict).is_ok(),
+            "the in-window current major must be accepted"
+        );
+
+        // Out-of-window: a future major beyond latest + window is REJECTED (hard fail),
+        // classified as lang:GmnUndeclaredDialectVersion (the reader's version-refusal class).
+        let future = latest + acceptance.accept_window() + 1;
+        let out_of_window = format!(
+            "@gmn{{v: {future}, aliases: {}, glyphs: {}}}",
+            dict.aliases_id(),
+            dict.glyphs.version()
+        );
+        let err = parse_header(&out_of_window, &dict)
+            .expect_err("an out-of-accept-window schema major must be rejected");
+        assert_eq!(
+            err.failure_class(),
+            Gmn1Error::CLASS_UNDECLARED_DIALECT_VERSION,
+            "out-of-window rejection classifies as lang:GmnUndeclaredDialectVersion"
+        );
+
+        // Falsifiability of graph-resolution: a synthetic lineage (latest 5, window 2) accepts
+        // 3..=5 and rejects 2 and 6 — the acceptance follows the GRAPH, not a constant.
+        let synth = resolve_dialect_acceptance(&synthetic_lineage_dataset(5, 2))
+            .expect("resolve synthetic acceptance")
+            .expect("synthetic lineage present");
+        assert_eq!((synth.latest_major(), synth.accept_window()), (5, 2));
+        assert!(synth.accepts(5) && synth.accepts(4) && synth.accepts(3));
+        assert!(!synth.accepts(6) && !synth.accepts(2));
+    }
+
     fn glyph_registry_fixture(rows: &str, version: &str) -> Arc<RdfDataset> {
         let ttl = format!(
             r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -3988,6 +4608,284 @@ ex:c2 a gmeow:GmnSymbolCandidate ; gmeow:gmnCandidateDenotation ex:d2 ; gmeow:gm
         let error = GmnGlyphRegistry::from_dataset(&confusable)
             .expect_err("a UTS #39 skeleton collision rejects");
         assert!(error.0.contains("UTS #39-confusable"), "{}", error.0);
+    }
+
+    /// A first-class, STANDALONE structural audit: run the UTS #39 `skeleton()` over EVERY
+    /// shipped `lang:Denotation` glyph in the real `lang` module and assert no two glyphs
+    /// in one sigil scope share a skeleton. This is a genuine inventory sweep — it walks
+    /// the shipped graph directly and computes skeletons itself, so it would red on a
+    /// real confusable pair even if the registry builder ever stopped checking; it is NOT
+    /// incidental to a successful `GmnGlyphRegistry::from_dataset`. It enforces the same
+    /// invariant as `lang:GmnConfusableGlyphConstraint` (`module.ttl`) over live data.
+    #[test]
+    fn every_shipped_denotation_glyph_is_uts39_confusable_free_within_scope() {
+        let ds = lang_module_dataset();
+
+        // Walk the shipped graph: the graphemes each lang:Denotation binds, and every
+        // grapheme's canonical codepoints and (optional) sigil scope.
+        let mut denotation_graphemes: BTreeSet<String> = BTreeSet::new();
+        let mut is_denotation: BTreeSet<String> = BTreeSet::new();
+        let mut grapheme_codepoints: BTreeMap<String, String> = BTreeMap::new();
+        let mut grapheme_scope: BTreeMap<String, String> = BTreeMap::new();
+        for quad in ds.owned_quads() {
+            match quad.predicate.as_str() {
+                RDF_TYPE => {
+                    if matches!(&quad.object, RdfTerm::Iri(cls) if cls == CLASS_DENOTATION)
+                        && let RdfTerm::Iri(s) = &quad.subject
+                    {
+                        is_denotation.insert(s.clone());
+                    }
+                }
+                PRED_GMN_DENOTATION_GRAPHEME => {
+                    if let (RdfTerm::Iri(s), RdfTerm::Iri(g)) = (&quad.subject, &quad.object) {
+                        // Keyed by the denotation so we can filter to denotation glyphs.
+                        grapheme_scope.entry(g.clone()).or_default();
+                        denotation_graphemes.insert(format!("{s}\u{1f}{g}"));
+                    }
+                }
+                PRED_GMN_CODEPOINTS => {
+                    if let (RdfTerm::Iri(g), RdfTerm::Literal(lit)) = (&quad.subject, &quad.object)
+                    {
+                        grapheme_codepoints.insert(g.clone(), lit.lexical_form.clone());
+                    }
+                }
+                PRED_GMN_SIGIL_SCOPE => {
+                    if let (RdfTerm::Iri(g), RdfTerm::Iri(scope)) = (&quad.subject, &quad.object) {
+                        grapheme_scope.insert(g.clone(), scope.clone());
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // The distinct denotation glyphs actually shipped: a grapheme bound by a node
+        // typed lang:Denotation, carrying canonical codepoints.
+        let mut graphemes: BTreeSet<String> = BTreeSet::new();
+        for pair in &denotation_graphemes {
+            let (den, grapheme) = pair.split_once('\u{1f}').expect("den\u{1f}grapheme");
+            if is_denotation.contains(den) {
+                graphemes.insert(grapheme.to_owned());
+            }
+        }
+        assert!(
+            graphemes.len() >= 5,
+            "expected the shipped lang module to carry a real denotation-glyph inventory, got {}",
+            graphemes.len()
+        );
+
+        // Compute the UTS #39 skeleton of each glyph and assert per-scope uniqueness.
+        let mut skeleton_to_glyph: BTreeMap<(String, String), String> = BTreeMap::new();
+        let mut audited = 0usize;
+        for grapheme in &graphemes {
+            let Some(codepoints) = grapheme_codepoints.get(grapheme) else {
+                continue;
+            };
+            let glyph = decode_codepoint_sequence(codepoints)
+                .unwrap_or_else(|e| panic!("shipped glyph {grapheme} decodes: {}", e.0));
+            let scope = grapheme_scope.get(grapheme).cloned().unwrap_or_default();
+            let skeleton_key = (scope.clone(), skeleton(&glyph).collect::<String>());
+            if let Some(prior) = skeleton_to_glyph.insert(skeleton_key, glyph.clone()) {
+                assert_eq!(
+                    prior, glyph,
+                    "shipped denotation glyphs {prior:?} and {glyph:?} share a UTS #39 \
+                     skeleton within scope {scope:?}"
+                );
+            }
+            audited += 1;
+        }
+        assert!(
+            audited >= 5,
+            "the confusable-freeness audit ran over too few glyphs ({audited}) to be meaningful"
+        );
+    }
+
+    // ── The in-band repair resolver (`@patch`/`@retract` → effective store) ──────────
+
+    const EX: &str = "https://example.test/";
+
+    fn iri(local: &str) -> RdfTerm {
+        RdfTerm::Iri(format!("{EX}{local}"))
+    }
+
+    fn lit(text: &str) -> RdfTerm {
+        RdfTerm::Literal(RdfLiteral::typed(text, XSD_STRING))
+    }
+
+    fn quad(s: RdfTerm, p: &str, o: RdfTerm) -> RdfQuad {
+        RdfQuad::new(s, format!("{EX}{p}"), o)
+    }
+
+    /// AC (a): a `@patch` over a stable target id restates ONLY the named field in the
+    /// effective store, leaves the target's other fields intact, drops the reified patch
+    /// record from the materialized view, and never mutates the append-only input.
+    #[test]
+    fn patch_over_stable_id_is_reflected_in_effective_store() {
+        let r1 = iri("r1");
+        let model = Gmn0Model {
+            quads: {
+                let mut quads = vec![
+                    quad(r1.clone(), "fieldA", lit("oldA")),
+                    quad(r1.clone(), "fieldB", lit("keepB")),
+                    // The reified @patch: its own identity, naming r1, restating fieldA.
+                    RdfQuad::new(
+                        iri("patch1"),
+                        RDF_TYPE,
+                        RdfTerm::Iri(CLASS_GMN_PATCH.to_owned()),
+                    ),
+                    RdfQuad::new(iri("patch1"), PRED_GMN_REPAIR_ID, lit(&format!("{EX}r1"))),
+                    quad(iri("patch1"), "fieldA", lit("newA")),
+                ];
+                quads.sort_by_key(quad_sort_key);
+                quads
+            },
+        };
+
+        let effective = resolve_effective(&model).expect("patch materializes");
+
+        // fieldA is RESTATED; fieldB (an unpatched field of the same record) survives.
+        assert!(
+            effective.quads.iter().any(|q| q.subject == r1
+                && q.predicate.ends_with("fieldA")
+                && q.object == lit("newA")),
+            "effective r1.fieldA must be the restated value"
+        );
+        assert!(
+            !effective.quads.iter().any(|q| q.object == lit("oldA")),
+            "the pre-patch fieldA value must be gone from the effective store"
+        );
+        assert!(
+            effective.quads.iter().any(|q| q.subject == r1
+                && q.predicate.ends_with("fieldB")
+                && q.object == lit("keepB")),
+            "an unpatched field of r1 must survive"
+        );
+        // The reified patch record is meta — consumed, not present as base data.
+        assert!(
+            !effective
+                .quads
+                .iter()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(i) if i == CLASS_GMN_PATCH)),
+            "the reified @patch record must not appear in the effective store"
+        );
+
+        // Append-only: the ORIGINAL model still carries r1's old value AND the patch record.
+        assert!(
+            model.quads.iter().any(|q| q.object == lit("oldA")),
+            "the input model is append-only — the original r1.fieldA survives"
+        );
+        assert!(
+            model
+                .quads
+                .iter()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(i) if i == CLASS_GMN_PATCH)),
+            "the input model still carries the unchanged @patch record"
+        );
+    }
+
+    /// AC (b): a `@retract` over a stable target id withdraws its whole target from the
+    /// effective store while leaving sibling records and the append-only input intact.
+    #[test]
+    fn retract_over_stable_id_removes_from_effective_store() {
+        let r1 = iri("r1");
+        let s1 = iri("s1");
+        let model = Gmn0Model {
+            quads: {
+                let mut quads = vec![
+                    quad(r1.clone(), "fieldA", lit("valA")),
+                    quad(r1.clone(), "fieldB", lit("valB")),
+                    quad(s1.clone(), "fieldC", lit("valC")),
+                    RdfQuad::new(
+                        iri("ret1"),
+                        RDF_TYPE,
+                        RdfTerm::Iri(CLASS_GMN_RETRACT.to_owned()),
+                    ),
+                    RdfQuad::new(iri("ret1"), PRED_GMN_REPAIR_ID, lit(&format!("{EX}r1"))),
+                ];
+                quads.sort_by_key(quad_sort_key);
+                quads
+            },
+        };
+
+        let effective = resolve_effective(&model).expect("retract materializes");
+
+        assert!(
+            !effective.quads.iter().any(|q| q.subject == r1),
+            "the retracted record r1 must be gone from the effective store"
+        );
+        assert!(
+            effective.quads.iter().any(|q| q.subject == s1),
+            "an unrelated sibling record must survive the retraction"
+        );
+        // Append-only: the input still carries r1 and the retract record.
+        assert!(
+            model.quads.iter().any(|q| q.subject == r1),
+            "the input model is append-only — the withdrawn record survives in it"
+        );
+        assert!(
+            model
+                .quads
+                .iter()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(i) if i == CLASS_GMN_RETRACT)),
+            "the input model still carries the unchanged @retract record"
+        );
+    }
+
+    /// AC (c): a repair naming a target id absent from the base record set is a HARD FAIL
+    /// with a named failure class — never a silent drop — for both `@patch` and `@retract`.
+    #[test]
+    fn repair_naming_unknown_target_hard_fails() {
+        for (class, sigil) in [
+            (CLASS_GMN_PATCH, SIGIL_PATCH),
+            (CLASS_GMN_RETRACT, SIGIL_RETRACT),
+        ] {
+            let model = Gmn0Model {
+                quads: {
+                    let mut quads = vec![
+                        quad(iri("r1"), "fieldA", lit("valA")),
+                        RdfQuad::new(iri("repair1"), RDF_TYPE, RdfTerm::Iri(class.to_owned())),
+                        RdfQuad::new(
+                            iri("repair1"),
+                            PRED_GMN_REPAIR_ID,
+                            lit(&format!("{EX}does-not-exist")),
+                        ),
+                    ];
+                    quads.sort_by_key(quad_sort_key);
+                    quads
+                },
+            };
+
+            let error = resolve_effective(&model)
+                .expect_err("a repair naming an absent target must hard-fail");
+            assert_eq!(
+                error,
+                Gmn1RepairError::DanglingRepairTarget {
+                    kind: sigil,
+                    target: format!("{EX}does-not-exist"),
+                }
+            );
+            assert_eq!(
+                error.failure_class(),
+                Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR
+            );
+        }
+    }
+
+    /// The resolver is a no-op fixed point on a model with no repair records — the
+    /// effective store is canonically equal to the input.
+    #[test]
+    fn effective_store_is_identity_on_a_repair_free_model() {
+        let model = Gmn0Model {
+            quads: {
+                let mut quads = vec![
+                    quad(iri("r1"), "fieldA", lit("valA")),
+                    quad(iri("s1"), "fieldB", lit("valB")),
+                ];
+                quads.sort_by_key(quad_sort_key);
+                quads
+            },
+        };
+        let effective = resolve_effective(&model).expect("repair-free model resolves");
+        assert!(gmn0_canonically_equal(&model, &effective));
     }
 
     #[test]

@@ -23,7 +23,7 @@
 //! (`∃` under `∀`), a genuinely unbounded sequence-marker atom, or an n-ary head argument the
 //! body does not bind — is carried as flagged residue, never mis-lowered.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
@@ -31,6 +31,7 @@ use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
 
 use crate::facts::sha1_hex;
+use crate::query_ir::{QBuiltin, QTerm};
 use crate::result::PreservationClaim;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 
@@ -122,6 +123,7 @@ fn rc_rule_to_eval(rc: &RcRule) -> gmeow_errors::Result<EvalRule> {
         distinct_pairs: rc.distinct_pairs.clone(),
         // The relational-core lowering carries no arithmetic builtins.
         builtins: Vec::new(),
+        constraint_tag: None,
     })
 }
 
@@ -186,6 +188,193 @@ fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> gmeow_errors::Result<EvalT
         RcTerm::Blank(label) => Err(rc_err(format!(
             "relational-core blank node {label:?} in a formula-derived rule — the clausifier \
              mints Skolem constants, never blanks (no-optionality)"
+        ))),
+    }
+}
+
+// --------------------------------------------------------------------------- //
+// Constraint violation-rule lowering: logic:Constraint → EvalRule (R5/R6 crux)
+// --------------------------------------------------------------------------- //
+//
+// A `logic:Constraint` whose `logic:integrity` formula's consequent names a relation
+// registered here as BUILTIN-BOUND compiles to a VIOLATION-EMITTING forward [`EvalRule`]:
+// the antecedent becomes the ordinary positive body (bridged from its HiLog reflection
+// relations to the real object-level properties asserted data carries, via `rdfs:seeAlso`),
+// and the consequent is bound to the registered native builtin
+// ([`crate::query_ir::QBuiltin::DimEqual`] / [`crate::query_ir::QBuiltin::DimProduct`]) that
+// decides the law by exact-rational arithmetic. The rule is stamped with
+// [`EvalRule::constraint_tag`], the ONLY provenance a builtin needs to run inside the
+// forward semi-naive chase and to carry VIOLATION-EMITTING (rather than pruning) `Filter`
+// semantics (`crate::physical::seminaive::apply_builtins`).
+
+/// Which native builtin a registered consequent relation binds to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DimBuiltinKind {
+    /// `math:dimensionEqualityRel(d1, d2)` — the Dim `=:=` commensurability builtin.
+    Equal,
+    /// `math:dimensionProductRel(dF, dM, dR)` — the Dim `⊕` composition builtin.
+    Product,
+}
+
+/// Namespace root for the `math:` measure-and-dimension vocabulary — the owner of the
+/// two currently-registered builtin-bound consequent relations.
+const MATH: &str = "https://blackcatinformatics.ca/math/";
+
+/// The registered BUILTIN-BOUND consequent relations this lowering recognizes — a small,
+/// explicit table (never a hardcoded single-relation path): a future non-`math:` law
+/// registers here the same way, keyed on its own reflection relation.
+fn builtin_consequent_registry() -> BTreeMap<String, DimBuiltinKind> {
+    [
+        (format!("{MATH}dimensionEqualityRel"), DimBuiltinKind::Equal),
+        (
+            format!("{MATH}dimensionProductRel"),
+            DimBuiltinKind::Product,
+        ),
+    ]
+    .into_iter()
+    .collect()
+}
+
+/// `rdf:type` — the marker triple's predicate.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// Lower every builtin-bound-consequent `logic:Constraint` in `program` into a
+/// VIOLATION-EMITTING [`EvalRule`], `constraint_tag`-stamped with the source constraint's
+/// IRI.
+///
+/// `see_also` bridges each antecedent atom's HiLog reflection relation to the real
+/// object-level property the asserted data carries (`rdfs:seeAlso`), read from the same
+/// source graph the program was compiled from — the lowered body atoms then match real
+/// triples (`math:homogeneousOperand`, …) rather than a second, never-asserted
+/// reflection-relation-keyed data source. A relation absent from `see_also` (the
+/// consequent relations themselves, which are never a body predicate) is left unchanged.
+///
+/// # Errors
+///
+/// Returns `Err` if a matched constraint's consequent argument count does not match its
+/// registered builtin's arity, or if a consequent/antecedent term is not a variable or
+/// IRI (a literal/blank dimension operand — never authored by the two dimension-gate
+/// laws) — an internal-invariant hard-fail, never a silent skip.
+pub(crate) fn lower_constraint_violation_rules(
+    program: &LogicProgram,
+    see_also: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Vec<EvalRule>> {
+    let registry = builtin_consequent_registry();
+    let relations: BTreeSet<String> = registry.keys().cloned().collect();
+    let rc_rules =
+        gmeow_logic_compile::relational_core::lower_constraints_to_rc(program, &relations);
+
+    let mut rules = Vec::with_capacity(rc_rules.len());
+    for rc in &rc_rules {
+        let kind = *registry.get(&rc.consequent_relation).ok_or_else(|| {
+            rc_err(format!(
+                "constraint {} lowered a consequent relation {} outside the builtin \
+                 registry — lower_constraints_to_rc must only return registered relations",
+                rc.constraint_iri, rc.consequent_relation
+            ))
+        })?;
+        let body = rc
+            .body
+            .iter()
+            .map(|atom| rc_atom_to_eval_bridged(atom, see_also))
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        let head = EvalAtom {
+            subject: rc_term_to_eval(&rc.subject, false)?,
+            predicate: RDF_TYPE.to_owned(),
+            object: EvalTerm::ConstNamed(rc.failure_class.clone()),
+            negated: false,
+        };
+        let builtin = dim_builtin(kind, &rc.consequent_relation, &rc.consequent_args)?;
+        let rule_iri = format!(
+            "{LOGIC_NAMESPACE}constraint-violation-rule/{}",
+            sha1_hex(&rc.constraint_iri)
+        );
+        rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins: vec![builtin],
+            constraint_tag: Some(rc.constraint_iri.clone()),
+        });
+    }
+    Ok(rules)
+}
+
+/// Map one antecedent [`RcAtom`] to an [`EvalAtom`], bridging its predicate through
+/// `see_also` when it names a HiLog reflection relation.
+fn rc_atom_to_eval_bridged(
+    atom: &RcAtom,
+    see_also: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<EvalAtom> {
+    let subject = rc_term_to_eval(&atom.subject, false)?;
+    let object = rc_term_to_eval(&atom.object, true)?;
+    let predicate = see_also
+        .get(&atom.predicate)
+        .cloned()
+        .unwrap_or_else(|| atom.predicate.clone());
+    Ok(EvalAtom {
+        subject,
+        predicate,
+        object,
+        negated: atom.negated,
+    })
+}
+
+/// Bind a registered consequent relation's structural arguments to its native
+/// [`QBuiltin`], hard-failing on an arity mismatch or a non-variable/IRI operand.
+fn dim_builtin(
+    kind: DimBuiltinKind,
+    relation: &str,
+    args: &[RcTerm],
+) -> gmeow_errors::Result<QBuiltin> {
+    match kind {
+        DimBuiltinKind::Equal => {
+            let [d1, d2] = args else {
+                return Err(rc_err(format!(
+                    "{relation} consequent must have exactly 2 arguments (dimEqual(d1, d2)), \
+                     got {}",
+                    args.len()
+                )));
+            };
+            Ok(QBuiltin::DimEqual {
+                d1: rc_term_to_qterm(d1)?,
+                d2: rc_term_to_qterm(d2)?,
+            })
+        }
+        DimBuiltinKind::Product => {
+            let [d_f, d_m, d_r] = args else {
+                return Err(rc_err(format!(
+                    "{relation} consequent must have exactly 3 arguments \
+                     (dimProduct(dF, dM, dR)), got {}",
+                    args.len()
+                )));
+            };
+            Ok(QBuiltin::DimProduct {
+                d_f: rc_term_to_qterm(d_f)?,
+                d_m: rc_term_to_qterm(d_m)?,
+                d_r: rc_term_to_qterm(d_r)?,
+            })
+        }
+    }
+}
+
+/// Map a lane [`RcTerm`] to a [`QTerm`] builtin operand: a variable stays a variable
+/// (already `?`-prefixed, matching the body atoms' [`EvalTerm::Var`] keys), an IRI
+/// constant becomes a canonical `<iri>` surface (matching `resolve_iri_operand`'s
+/// expected `Const` shape). A blank node or literal is a hard error — no dimension-gate
+/// consequent argument is ever authored as either.
+fn rc_term_to_qterm(term: &RcTerm) -> gmeow_errors::Result<QTerm> {
+    match term {
+        RcTerm::Var(v) => Ok(QTerm::Var(v.clone())),
+        RcTerm::Iri(i) => Ok(QTerm::Const(format!("<{i}>"))),
+        RcTerm::Blank(label) => Err(rc_err(format!(
+            "dimension-gate consequent argument is a blank node {label:?} — only a \
+             variable or IRI is a legal dimEqual/dimProduct operand"
+        ))),
+        RcTerm::Literal(lex) => Err(rc_err(format!(
+            "dimension-gate consequent argument is a literal {lex:?} — only a variable or \
+             IRI is a legal dimEqual/dimProduct operand"
         ))),
     }
 }

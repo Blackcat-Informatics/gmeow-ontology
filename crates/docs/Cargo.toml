@@ -41,6 +41,12 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # stamps into a finding's `helpUri` fragment — so a finding's help link resolves to
 # its rule entry. Pure-Rust rlib; acyclic (validate does not depend on docs).
 gmeow-validate = { path = "../validate" }
+# The GMN-1 codec + glyph registry + operator-form resolver: the graph-derived
+# source of the GMN-1 teachability primer's glyph table (glyph / fixity / alias per
+# operator) and its held-out-task AST-validity check. Pure-Rust rlib; acyclic
+# (lang-bridge does not depend on docs — docs sits DOWNSTREAM of it, the same edge
+# gmn_metrics.rs's `estimate_tokens` re-declaration note describes).
+gmeow-lang-bridge = { path = "../lang-bridge" }
 # Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
 # build scripts, deterministic rendering); pulldown-cmark converts the per-page
 # Markdown body to HTML. Both are self-contained — no network assets are pulled.

@@ -232,6 +232,18 @@ fn builtin_of(b: &QBuiltin) -> QBuiltin {
             x: prefix_builtin_term(x),
             y: prefix_builtin_term(y),
         },
+        // LOWERING-ONLY (`crate::relational_core::lower_constraint_violation_rules`),
+        // never authored on the `.logic` query surface this backward transform reads —
+        // carried for exhaustiveness with the same operand-prefixing treatment.
+        QBuiltin::DimEqual { d1, d2 } => QBuiltin::DimEqual {
+            d1: prefix_builtin_term(d1),
+            d2: prefix_builtin_term(d2),
+        },
+        QBuiltin::DimProduct { d_f, d_m, d_r } => QBuiltin::DimProduct {
+            d_f: prefix_builtin_term(d_f),
+            d_m: prefix_builtin_term(d_m),
+            d_r: prefix_builtin_term(d_r),
+        },
     }
 }
 
@@ -489,7 +501,14 @@ fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
             } => {
                 bound.insert(v.clone());
             }
-            QBuiltin::Is { .. } | QBuiltin::Compare { .. } | QBuiltin::BilinearSqDist { .. } => {}
+            // A pure filter binds nothing: `Compare` and the two LOWERING-ONLY dimension-
+            // gate builtins (`DimEqual`/`DimProduct`, never authored on the query
+            // surface this backward-magic analysis covers) never generate a value.
+            QBuiltin::Is { .. }
+            | QBuiltin::Compare { .. }
+            | QBuiltin::BilinearSqDist { .. }
+            | QBuiltin::DimEqual { .. }
+            | QBuiltin::DimProduct { .. } => {}
         }
     }
     body.iter().filter(|a| a.negated).any(|neg| {
@@ -510,6 +529,7 @@ fn rule(head: EvalAtom, body: Vec<EvalAtom>, rule_iri: String) -> EvalRule {
         rule_iri,
         distinct_pairs: vec![],
         builtins: vec![],
+        constraint_tag: None,
     }
 }
 
@@ -1291,6 +1311,7 @@ pub(crate) fn prepare_incremental_query(
             body,
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         });
     }
 
@@ -1535,6 +1556,7 @@ fn evaluate_binary_under(
             rule_iri,
             distinct_pairs: Vec::new(),
             builtins,
+            constraint_tag: None,
         });
     }
 
@@ -1905,6 +1927,7 @@ where
             rule_iri,
             distinct_pairs: Vec::new(),
             builtins,
+            constraint_tag: None,
         });
     }
     if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&base_rules) {
@@ -2215,6 +2238,7 @@ mod tests {
                 rule_iri: format!("{BASE}rule/compose"),
                 distinct_pairs: vec![],
                 builtins: vec![generator],
+                constraint_tag: None,
             };
             // The `is` target binds ?D, so the negated atom is range-restricted.
             assert!(
@@ -2628,6 +2652,7 @@ mod tests {
                 rule_iri: format!("{}::rule", atom_of(&r.head).unwrap().predicate.as_str()),
                 distinct_pairs: vec![],
                 builtins: vec![],
+                constraint_tag: None,
             });
         }
         let goal = &prog.goal.atoms[0];
@@ -3153,6 +3178,7 @@ mod tests {
             rule_iri,
             distinct_pairs: vec![],
             builtins: vec![],
+            constraint_tag: None,
         }
     }
 
@@ -3618,6 +3644,7 @@ mod tests {
                     rule_iri,
                     distinct_pairs: vec![],
                     builtins: vec![],
+                    constraint_tag: None,
                 }
             })
             .collect()
@@ -4398,6 +4425,7 @@ mod tests {
                 rule_iri,
                 distinct_pairs: Vec::new(),
                 builtins,
+                constraint_tag: None,
             });
         }
         rules

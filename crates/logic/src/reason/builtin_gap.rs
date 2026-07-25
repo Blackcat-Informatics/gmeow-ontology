@@ -190,6 +190,7 @@ mod tests {
             rule_iri: "https://ex/bad::rule".to_owned(),
             distinct_pairs: Vec::new(),
             builtins: vec![builtin],
+            constraint_tag: None,
         }
     }
 
@@ -354,6 +355,7 @@ mod tests {
                 op: ArithOp::Div,
                 rhs: QTerm::Num(2),
             }],
+            constraint_tag: None,
         };
         let facts: Vec<Fact> = match evaluate(seeded_edb(), &exe(&[rule]), None).expect("evaluate")
         {

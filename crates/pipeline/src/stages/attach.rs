@@ -139,6 +139,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[],
     );
 
+    // stage-gmn-training-corpus — the enumerated + certified GMN training corpus (and the typed
+    // rejections), one bundle-internal named graph.
+    entry(
+        &mut t,
+        "stage-gmn-training-corpus",
+        &["https://blackcatinformatics.ca/gmeow/graph/gmn-training-corpus"],
+        &[],
+    );
+
     // stage-slice-brief — the per-slice authoring-packet corpus (base graph); the snapshot
     // re-roots the SAME triples into their fanout twin (below).
     entry(

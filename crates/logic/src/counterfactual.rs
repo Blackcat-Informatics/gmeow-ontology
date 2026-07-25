@@ -930,6 +930,10 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
             term(x),
             term(y)
         ),
+        QBuiltin::DimEqual { d1, d2 } => format!("dimEqual({}, {})", term(d1), term(d2)),
+        QBuiltin::DimProduct { d_f, d_m, d_r } => {
+            format!("dimProduct({}, {}, {})", term(d_f), term(d_m), term(d_r))
+        }
     }
 }
 

@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The GMN training-corpus demonstrators (requirement #21 / #20).
+#
+# A handful of AUTHORED exemplar training pairs the pipeline's
+# `stage-gmn-training-corpus` productive functor generalizes BEYOND: each is a
+# `task` / `input` / `target` triple over a well-typed GMN term. The stage
+# (crates/pipeline/src/stages/gmn_training_corpus.rs) DETERMINISTICALLY enumerates
+# many more such terms over the carrier's binary operator signature and, for each,
+# rejection-samples it through five verifiers (parses, round-trips, typechecks,
+# discharges a proof obligation, no ring leak) before emitting the machine-generated
+# corpus with its POSITIVE ACCEPTANCE CERTIFICATE into graph/gmn-training-corpus.
+#
+# These authored exemplars carry only the paired surfaces (the training datum
+# itself). The verdicts, the discharged proof-obligation derivation IRI, and the
+# gmnSchemaVersion provenance are added by the GENERATOR at run time (a hand-authored
+# certificate would be an unverified claim); the exemplars exist so the corpus shape
+# is documented, reviewable content that enters the projection universe rather than
+# living only behind a test. IRI/simple-literal only, so every triple round-trips
+# byte-exact through the GMN-1 codec (the grounding round-trip gate reads this file).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/gmn-training/> .
+
+# A single-triple (depth-1) well-typed term over a binary operator: verbalize the
+# GMN-0 subject-relation-object form as the GMN-1 operator surface.
+ex:demo-subsumes
+    a gmeow:GmnTrainingExample ;
+    rdfs:label "GMN training demonstrator: binary subsumption term"@x-gmeow-english ;
+    gmeow:gmnTrainingTask "verbalize" ;
+    gmeow:gmnTrainingInput "ex:a subClassOf ex:b" ;
+    gmeow:gmnTrainingTarget "ex:a ⊑ ex:b" .
+
+# A chained (depth-2) well-typed term: two binary operators sharing a middle atom.
+ex:demo-chain
+    a gmeow:GmnTrainingExample ;
+    rdfs:label "GMN training demonstrator: two-hop chained term"@x-gmeow-english ;
+    gmeow:gmnTrainingTask "verbalize" ;
+    gmeow:gmnTrainingInput "ex:a subClassOf ex:b ; ex:b subClassOf ex:c" ;
+    gmeow:gmnTrainingTarget "ex:a ⊑ ex:b ⊑ ex:c" .
+
+# The inverse pairing (encode): controlled surface in, GMN-0 form out — the same
+# datum viewed from the decode direction.
+ex:demo-encode
+    a gmeow:GmnTrainingExample ;
+    rdfs:label "GMN training demonstrator: encode direction"@x-gmeow-english ;
+    gmeow:gmnTrainingTask "encode" ;
+    gmeow:gmnTrainingInput "ex:a ⊑ ex:b" ;
+    gmeow:gmnTrainingTarget "ex:a subClassOf ex:b" .

@@ -52,7 +52,7 @@ use gmeow_lang_bridge::registry::{
 };
 use gmeow_lang_bridge::{
     CurrentCodebook, GmnDictionary, exact_round_trip_holds, is_exact_correspondence,
-    ntriples_sorted, resolve_current_codebook,
+    ntriples_sorted, resolve_current_codebook, resolve_dialect_acceptance, resolve_operator_forms,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -341,9 +341,19 @@ fn collect_input(
     let mut varieties: Vec<NamedSource> = Vec::new();
     let mut gmn_dictionary: Option<GmnDictionary> = None;
     let mut gmn_codebook: Option<CurrentCodebook> = None;
+    let mut gmn_dialect_major: Option<String> = None;
+    // The grounding-slice module surfaces (lang/logic/math) whose `rdfs:label`s name the GMN
+    // denotation targets the verbalizer renders — captured here and parsed once after the loop
+    // into the shared label index, so the bundle-level verbalizer resolves a term's controlled-NL
+    // nucleus from the graph rather than from any local-name convention.
+    let mut grounding_modules: Vec<Vec<u8>> = Vec::new();
     if let Some(catalog) = catalog {
         for record in catalog.records() {
+            let record_is_grounding = is_grounding_slice(&record.slice_dir);
             for artifact in &record.artifacts {
+                if record_is_grounding && artifact.logical_path == "module.ttl" {
+                    grounding_modules.push(artifact.content.clone());
+                }
                 if artifact.logical_path.ends_with(".ebnf") {
                     grammars.push(NamedSource {
                         name: grammar_stem(&artifact.logical_path),
@@ -400,6 +410,29 @@ fn collect_input(
                                     error.0
                                 ))
                             })?);
+                        // The dialect major that keys every emitted GMN artifact path is
+                        // RESOLVED FROM THE GRAPH (the gmeow:gmnDialectVersions lineage's
+                        // roleLatest member) — read from the SAME dataset as the codebook, so
+                        // the projection subtree and the codec's header pin one lineage. The
+                        // shipped lang module always carries the lineage; its absence is a hard
+                        // fail (no-optionality), never a constant default.
+                        gmn_dialect_major = Some(
+                            resolve_dialect_acceptance(&dataset)
+                                .map_err(|error| {
+                                    stage_err(format!(
+                                        "resolve grounding/lang GMN dialect version lineage: {}",
+                                        error.0
+                                    ))
+                                })?
+                                .ok_or_else(|| {
+                                    stage_err(
+                                        "grounding/lang module carries no gmeow:gmnDialectVersions \
+                                         lineage; the version-keyed GMN projection cannot default"
+                                            .to_owned(),
+                                    )
+                                })?
+                                .latest_major_key(),
+                        );
                     }
                 }
             }
@@ -427,6 +460,21 @@ fn collect_input(
             }
         }
     }
+    // Resolve the verbalizable GMN operator inventory: the carrier glyph registry's operator
+    // bindings joined to their denotation targets' `rdfs:label`s (harvested from the grounding
+    // modules). A non-injective inventory hard-fails downstream in the bundle emission; here a
+    // missing label for a selected operator is a HARD FAIL (no-optionality), never a silent skip.
+    let gmn_operator_forms = if let Some(dictionary) = &gmn_dictionary {
+        let labels = harvest_labels(&grounding_modules)?;
+        resolve_operator_forms(dictionary.glyph_registry(), &labels).map_err(|error| {
+            stage_err(format!(
+                "resolve GMN verbalizable operator forms from the carrier registry: {error}"
+            ))
+        })?
+    } else {
+        Vec::new()
+    };
+
     // Deterministic source order (independent of catalog discovery order).
     grammars.sort_by(|a, b| a.name.cmp(&b.name));
     lang_models.sort_by(|a, b| a.name.cmp(&b.name));
@@ -439,7 +487,63 @@ fn collect_input(
         gmn_dictionary,
         gmn_codebook,
         gmn_grammar_source,
+        gmn_dialect_major,
+        gmn_operator_forms,
     })
+}
+
+/// Whether a slice directory lives under the `grounding/` tree (lang/logic/math) — the source
+/// of the GMN denotation targets' `rdfs:label`s the verbalizer renders.
+fn is_grounding_slice(slice_dir: &std::path::Path) -> bool {
+    slice_dir.components().any(|c| c.as_os_str() == "grounding")
+}
+
+/// Harvest the `rdfs:label` index (`IRI → label`) from the grounding module surfaces. When an
+/// IRI carries several labels, the GMEOW-English one (`@x-gmeow-english`) wins; ties break to
+/// the lexicographically smallest lexical form, so the index is deterministic across runs.
+fn harvest_labels(
+    modules: &[Vec<u8>],
+) -> Result<std::collections::BTreeMap<String, String>, gmeow_errors::Diag> {
+    use purrdf::RdfTerm;
+    const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+    const GMEOW_ENGLISH: &str = "x-gmeow-english";
+    // (is_gmeow_english, lexical_form) per IRI — preference order for the deterministic pick.
+    let mut best: std::collections::BTreeMap<String, (bool, String)> =
+        std::collections::BTreeMap::new();
+    for module in modules {
+        let dataset = purrdf::parse_dataset(module, "text/turtle", None).map_err(|error| {
+            stage_err(format!(
+                "parse grounding module for verbalizer labels: {error}"
+            ))
+        })?;
+        for quad in dataset.owned_quads() {
+            if quad.predicate != RDFS_LABEL {
+                continue;
+            }
+            let RdfTerm::Iri(subject) = &quad.subject else {
+                continue;
+            };
+            let RdfTerm::Literal(literal) = &quad.object else {
+                continue;
+            };
+            let is_english = literal.language.as_deref() == Some(GMEOW_ENGLISH);
+            let candidate = (is_english, literal.lexical_form.clone());
+            match best.get(subject) {
+                Some((cur_english, cur_lex)) => {
+                    // Prefer the GMEOW-English label; among equals, the smallest lexical form.
+                    let better = (candidate.0, std::cmp::Reverse(candidate.1.clone()))
+                        > (*cur_english, std::cmp::Reverse(cur_lex.clone()));
+                    if better {
+                        best.insert(subject.clone(), candidate);
+                    }
+                }
+                None => {
+                    best.insert(subject.clone(), candidate);
+                }
+            }
+        }
+    }
+    Ok(best.into_iter().map(|(k, (_, v))| (k, v)).collect())
 }
 
 /// Whether a source references the `lang:` namespace — the cheap scope filter that keeps the
@@ -605,10 +709,17 @@ mod tests {
             "generated grammar does not carry the graph-derived closed production:\n{grammar}"
         );
 
+        // The GMN artifacts are keyed under the graph-resolved dialect major (gmn1/v<major>/…).
+        let major = input
+            .gmn_dialect_major
+            .as_deref()
+            .expect("grounding/lang supplies the graph-resolved GMN dialect major");
+        let surface_path =
+            format!("generated/projections/lang/gmn1/v{major}/gmn-grounding-glyphs.gmn");
         let surface = corpus
             .artifacts
             .iter()
-            .find(|(path, _)| path == "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn")
+            .find(|(path, _)| *path == surface_path)
             .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
             .expect("the grounding-glyph projection witness exists");
         for glyph in ["+", "π", "¬", "*"] {
@@ -623,6 +734,148 @@ mod tests {
             assert!(
                 !surface.contains(fallback),
                 "writer leaked prefix fallback {fallback:?}:\n{surface}"
+            );
+        }
+    }
+
+    /// The subject IRI of the `lang:ProjectionEmission` record carrying
+    /// `lang:projectionTargetName "<target>"` in the sorted N-Triples corpus.
+    fn emission_subject_for(nt: &str, target: &str) -> String {
+        let needle = format!(" <{}> \"{target}\" .", iri(LANG_NS, "projectionTargetName"));
+        let line = nt
+            .lines()
+            .find(|l| l.ends_with(&needle))
+            .unwrap_or_else(|| panic!("no projection emission for target {target:?}"));
+        line[..line.find(' ').unwrap()]
+            .trim_matches(|c| c == '<' || c == '>')
+            .to_owned()
+    }
+
+    /// The GBNF/Lark projection targets lower the SAME graph-derived `gmn` glyph-grammar bytes the
+    /// EBNF target lifts. The real `grammars/gmn.ebnf` carries a `#xD? #xA` hex terminal in its
+    /// `EOL` production — a hex codepoint terminal both surfaces render as a fixed-width char-class
+    /// escape (`[\x0D]` / `/\x0D/`) — so the WHOLE grammar is GBNF- and Lark-expressible and ships
+    /// a REAL constrained-decode artifact under `gmn1/v<major>/<surface>/gmn.<surface>`. This is
+    /// the flagship req-#12 deliverable: a genuine, usable constrained-decode grammar, never a
+    /// SoundUnder placeholder.
+    #[test]
+    fn gbnf_and_lark_project_the_graph_derived_gmn_grammar_as_real_constrained_decode_artifacts() {
+        use gmeow_lang_bridge::{Formalism, distinguished_rule, parse_grammar};
+
+        let catalog = repo_catalog();
+        let input = collect_input(Some(&catalog)).expect("collect projection input");
+        let dictionary = input
+            .gmn_dictionary
+            .as_ref()
+            .expect("grounding/lang supplies the one carrier GMN dictionary");
+        let expected_production = dictionary.glyph_registry().render_glyph_token_production();
+        let major = input
+            .gmn_dialect_major
+            .as_deref()
+            .expect("grounding/lang supplies the graph-resolved GMN dialect major");
+        let corpus = build_corpus(Some(&catalog)).expect("build projection corpus");
+        let nt = String::from_utf8(corpus.ntriples.clone()).expect("utf8");
+
+        // Positive control: the graph-derived closed glyph production DOES flow into the projected
+        // gmn grammar (the EBNF artifact carries it verbatim) — so the GBNF/Lark artifacts below
+        // are of the SAME graph-derived grammar, never a fallback-leaking one.
+        let ebnf = corpus
+            .artifacts
+            .iter()
+            .find(|(path, _)| path == "generated/projections/lang/ebnf/gmn.ebnf")
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+            .expect("the generated GMN EBNF artifact exists");
+        assert!(
+            ebnf.lines().any(|line| line == expected_production),
+            "the EBNF projection must carry the graph-derived glyph production:\n{ebnf}"
+        );
+        assert!(
+            !ebnf.contains("math__Addition"),
+            "no prefix-fallback leakage in the graph-derived production:\n{ebnf}"
+        );
+
+        // The distinguished start symbol the constrained-decode consumer resolves — derived from
+        // the SAME canonical tree the projection serializes (led-first in the artifact).
+        let source_grammar = gmeow_lang_bridge::EbnfBridge
+            .to_grammar(ebnf.as_bytes())
+            .expect("gmn EBNF re-parses");
+        let entry = distinguished_rule(&source_grammar.canonicalize());
+
+        for (surface, ext, formalism) in [
+            ("gbnf", "gbnf", Formalism::Gbnf),
+            ("lark", "lark", Formalism::Lark),
+        ] {
+            // The REAL deliverable: an ACTUAL artifact under the version-keyed subtree.
+            let versioned = format!("generated/projections/lang/gmn1/v{major}/{surface}/gmn.{ext}");
+            let artifact = corpus
+                .artifacts
+                .iter()
+                .find(|(p, _)| *p == versioned)
+                .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+                .unwrap_or_else(|| {
+                    panic!("the {surface} constrained-decode artifact must ship at {versioned}")
+                });
+
+            // It carries the graph-derived glyph production (every glyph present) and NO
+            // prefix-fallback leakage.
+            assert!(
+                artifact
+                    .lines()
+                    .any(|l| l.trim_start().starts_with("glyphToken")),
+                "the {surface} artifact must carry the glyphToken production:\n{artifact}"
+            );
+            for glyph in ["+", "π", "¬", "*"] {
+                assert!(
+                    artifact.contains(glyph),
+                    "the {surface} artifact is missing graph-derived glyph {glyph:?}:\n{artifact}"
+                );
+            }
+            assert!(
+                !artifact.contains("math__Addition"),
+                "no prefix-fallback leakage in the {surface} artifact:\n{artifact}"
+            );
+
+            // It is a valid constrained-decode grammar: the distinguished start/root rule leads
+            // the file (the entry every GBNF `root` / Lark `start` consumer resolves from).
+            let first_rule_line = artifact
+                .lines()
+                .find(|l| !l.trim().is_empty())
+                .expect("a rule line");
+            assert!(
+                first_rule_line.starts_with(&entry),
+                "the {surface} artifact must lead with the distinguished start rule {entry:?}, \
+                 got: {first_rule_line}"
+            );
+
+            // It genuinely re-parses to the SAME canonical tree as the graph-derived source — a
+            // measured round-trip, not a declared one.
+            let reparsed = parse_grammar(artifact.as_bytes(), formalism)
+                .unwrap_or_else(|d| panic!("the {surface} artifact must re-parse: {d:?}"));
+            assert_eq!(
+                reparsed.canonicalize().rules,
+                source_grammar.canonicalize().rules,
+                "the {surface} artifact must re-parse to the graph-derived canonical tree"
+            );
+
+            // The ledger records an EXACT emission with a measured-true round-trip (never a
+            // SoundUnder placeholder for the flagship deliverable).
+            let subject = emission_subject_for(&nt, surface);
+            assert!(
+                nt.contains(&triple(
+                    &subject,
+                    &iri(LOGIC_NS, "preservationKind"),
+                    &PreservationKind::Exact.iri()
+                )),
+                "the {surface} emission must record Exact preservation"
+            );
+            assert!(
+                nt.contains(&triple_typed(
+                    &subject,
+                    &iri(LANG_NS, "roundTripHolds"),
+                    "true",
+                    XSD_BOOLEAN
+                )),
+                "the {surface} emission's round-trip is measured true"
             );
         }
     }
@@ -911,6 +1164,62 @@ ex:c1 a lang:FormSlot ; lang:inAnalysis ex:aCrouch ; lang:slotIndex 1 ; lang:slo
         assert!(ttl.contains("\"en\""), "{ttl}");
         assert!(ttl.contains("\"fr\""), "{ttl}");
         assert!(ttl.contains("\"zh\""), "{ttl}");
+    }
+
+    /// The bundle-level GMN⇄controlled-NL verbalizer resolves REAL operator forms from the
+    /// carrier registry + the grounding modules' `rdfs:label`s, and ships a versioned
+    /// `verbalizations.ttl` of `lang:TranslationUnit` crossings whose N-Triples ride the corpus
+    /// graph. The resolution is genuinely graph-driven (a non-empty operator inventory with real
+    /// controlled-NL labels), injective, and byte-reproducible.
+    #[test]
+    fn verbalizer_projects_real_operator_pairs_into_the_corpus() {
+        let catalog = repo_catalog();
+        let input = collect_input(Some(&catalog)).expect("collect projection input");
+        // The real carrier resolves a non-empty operator inventory, each with a controlled-NL label.
+        assert!(
+            !input.gmn_operator_forms.is_empty(),
+            "the carrier registry must resolve verbalizable GMN operator forms"
+        );
+        assert!(
+            input
+                .gmn_operator_forms
+                .iter()
+                .all(|f| !f.term_label.is_empty() && !f.gmn_glyph.is_empty()),
+            "every resolved operator form carries a glyph surface and a controlled-NL label"
+        );
+
+        let major = input
+            .gmn_dialect_major
+            .as_deref()
+            .expect("grounding/lang supplies the graph-resolved GMN dialect major");
+        let corpus = build_corpus(Some(&catalog)).expect("build projection corpus");
+        let nt = String::from_utf8(corpus.ntriples.clone()).expect("utf8");
+
+        // The versioned verbalizations artifact ships, is valid Turtle, and carries the crossings.
+        let path = format!("generated/projections/lang/gmn1/v{major}/verbalizations.ttl");
+        let ttl = corpus
+            .artifacts
+            .iter()
+            .find(|(p, _)| *p == path)
+            .map(|(_, b)| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_else(|| panic!("the verbalizations artifact must ship at {path}"));
+        assert!(
+            ttl.contains("<https://blackcatinformatics.ca/lang/translationCorrespondence>"),
+            "verbalizations carry lang:translationCorrespondence:\n{ttl}"
+        );
+        // The crossings ride into the reasoned corpus graph (queryable, not only on disk).
+        assert!(
+            nt.contains("<https://blackcatinformatics.ca/gmeow/gmnVerbalizationsCurrent>"),
+            "the verbalization corpus subject rides the projection corpus graph"
+        );
+        // A source-driven ledger row (the verbalizer emission was folded).
+        assert!(
+            corpus
+                .ledger
+                .iter()
+                .any(|r| r.target == "gmn1:verbalizations"),
+            "the verbalizer folds a ledger row"
+        );
     }
 
     #[test]

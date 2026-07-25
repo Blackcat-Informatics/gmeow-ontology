@@ -2058,6 +2058,7 @@ fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
                     .map(|&(a, b)| (a.to_owned(), b.to_owned()))
                     .collect(),
                 builtins: Vec::new(),
+                constraint_tag: None,
             });
         }
     }

@@ -83,7 +83,7 @@ lang:GrammarFormalism
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Grammar Formalism"@x-gmeow-english ;
-    skos:definition "The formalism a grammar is expressed in. Its instances are the named individuals lang:cfgFormalism, lang:pegFormalism, lang:regularFormalism, lang:abnfFormalism, and lang:ebnfFormalism. A lang:Grammar points at one through lang:grammarFormalism."@x-gmeow-english ;
+    skos:definition "The formalism a grammar is expressed in. Its instances are the named individuals lang:cfgFormalism, lang:pegFormalism, lang:regularFormalism, lang:abnfFormalism, lang:ebnfFormalism, lang:gbnfFormalism, and lang:larkFormalism. A lang:Grammar points at one through lang:grammarFormalism."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:Modality
@@ -189,6 +189,18 @@ lang:ebnfFormalism
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "EBNF"@x-gmeow-english ;
     skos:definition "The ISO/IEC 14977 EBNF grammar-interchange formalism."@x-gmeow-english .
+
+lang:gbnfFormalism
+    a owl:NamedIndividual , lang:GrammarFormalism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GBNF"@x-gmeow-english ;
+    skos:definition "The llama.cpp GBNF constrained-decoding grammar formalism — a pure surface rendering of the shared grammar tree that a local model consumes to constrain generation. It has no set-difference operator and rejects left recursion."@x-gmeow-english .
+
+lang:larkFormalism
+    a owl:NamedIndividual , lang:GrammarFormalism ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Lark"@x-gmeow-english ;
+    skos:definition "The Lark (Earley/LALR parser) grammar formalism — a pure surface rendering of the shared grammar tree. Its parser core handles left recursion and it expresses character classes as regex terminals, so its unrepresentable-construct set is narrower than GBNF's."@x-gmeow-english .
 
 # --- Self-hosting grammar individuals --------------------------------------- #
 # The grammars of GMEOW's own serialization sign systems, held as first-class
@@ -2952,6 +2964,19 @@ gmeow:gmnSecurityRing
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to classify a GMN envelope with the boundary ring its payload was admitted under."@x-gmeow-english .
 
+gmeow:gmnContentRing
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn content ring"@x-gmeow-english ;
+    skos:definition "Classifies a GMN CONTENT subject — a payload claim, keyed by its canonical subject — with the gmeow:GmnSecurityRing it is admitted at. The claim-scoped twin of gmeow:gmnSecurityRing (which classifies the ENVELOPE crossing, never an inner claim — see its gmeow:avoidWhen): both range over the SAME open gmeow:GmnSecurityRing lattice, but gmeow:gmnContentRing is what the consume-path serialization filter reads off each claim to decide admission into a target ring. Domain a content subject, range gmeow:GmnSecurityRing (stated in prose — no rdfs:domain is asserted, so tagging a claim does NOT infer it a gmeow:GmnEnvelope). Exactly one ring per content subject: the filter admits a claim into a target ring T only when the claim's gmeow:gmnContentRing equals T or is gmeow:gmnRingWithin it (the DERIVED product-order), and HARD-FAILS lang:GmnRingLeak on a claim carrying data with no single resolvable content ring rather than leak unclassified content."@x-gmeow-english ;
+    skos:example "ex:claimAlpha gmeow:gmnContentRing gmeow:gmnRingCore ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.2.0" ;
+    gmeow:avoidWhen "Avoid using it on a gmeow:GmnEnvelope (that is gmeow:gmnSecurityRing's job — the envelope crossing, not the inner claim), avoid asserting two rings on one content subject (one admission class per claim — the filter treats zero-or-many as a lang:GmnRingLeak), and avoid pointing it at anything but a gmeow:GmnSecurityRing individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one gmeow:gmnContentRing per classified content subject, pointing at one of the shipped gmeow:GmnSecurityRing individuals (gmeow:gmnRingCore / gmnRingTrusted / gmnRingRestricted / gmnRingNato or a minted ring); the consume-path filter (`gmeow gmn project --ring`) reads it to admit the claim into a target ring under the derived gmeow:gmnRingWithin closure."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to classify an inner GMN payload claim with the security ring it is admitted at, so the consume-path serialization filter can exclude out-of-ring content when projecting to a target ring."@x-gmeow-english .
+
 gmeow:gmnRingWithin
     a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -3454,6 +3479,294 @@ gmeow:gmnMigratesTo
     gmeow:howToUse "Pair it with gmeow:gmnMigratesFrom on the migration's translation unit or correspondence; the crossing's fidelity is judged on the carried logic:Correspondence."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name the destination major of a GMN version-migration crossing."@x-gmeow-english .
+
+gmeow:GmnMigrationRewrite
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Migration Rewrite"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One operator-grain rewrite leg of a GMN version migration: the reified surface delta the migration executor applies when re-emitting a stored GMN document at the target dialect major. It anchors on the version-STABLE GMEOW term the operator denotes (gmeow:gmnRewriteTerm) and carries that operator's source-version glyph and binding strength (gmeow:gmnRewriteFromGlyph, gmeow:gmnRewriteFromPrecedence) alongside its target-version glyph and binding strength (gmeow:gmnRewriteToGlyph, gmeow:gmnRewriteToPrecedence), so a glyph RENAME (the two glyphs differ) and a precedence CHANGE (the two precedences differ) are both expressible in one record. A rewrite is NOT a rival to logic:Correspondence and carries NO preservation judgment of its own: it is structured surface data — exactly as gmeow:GmnDictionaryEntry reifies an alias binding without a judgment — while the crossing's fidelity lives on the owning logic:Correspondence (the one gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo leg aggregates its rewrites through gmeow:gmnMigrationRewrite). An operator whose term is present in the source major but absent in the target major with NO covering rewrite is an unbridged drop (lang:GmnUnbridgedGlyphDrop), a HARD FAIL at migration time, never a silent drop."@x-gmeow-english ;
+    skos:example "ex:renameOplus a gmeow:GmnMigrationRewrite ; gmeow:gmnRewriteTerm math:Addition ; gmeow:gmnRewriteFromGlyph \"+\" ; gmeow:gmnRewriteToGlyph \"⊕\" ; gmeow:gmnRewriteFromPrecedence 50 ; gmeow:gmnRewriteToPrecedence 60 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying a preservation grade on the rewrite — the judgment lives on the owning logic:Correspondence, never shadowed here — and avoid using a rewrite for within-major dictionary or glyph-table drift, which moves on the version literals, not on a migration leg."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Mint one rewrite per operator whose surface changes across the migration; set its gmeow:gmnRewriteTerm to the denoted GMEOW term and its from/to glyph and from/to precedence, and link it from the migration's logic:Correspondence through gmeow:gmnMigrationRewrite."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to reify one operator's cross-version surface delta so the migration executor can re-emit a stored GMN document at the target major and hard-fail on any unbridged drop."@x-gmeow-english .
+
+gmeow:gmnMigrationRewrite
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn migration rewrite"@x-gmeow-english ;
+    rdfs:range gmeow:GmnMigrationRewrite ;
+    skos:definition "Relates a GMN version-migration logic:Correspondence to one of the operator-grain gmeow:GmnMigrationRewrite legs it aggregates. Domain logic:Correspondence, range gmeow:GmnMigrationRewrite. Non-functional: a migration crossing carries zero or more rewrites, one per operator whose surface changes; the crossing's preservation judgment stays on the logic:Correspondence, never on a rewrite."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid hanging a rewrite off anything but the migration's own logic:Correspondence, and avoid a rewrite whose gmeow:gmnRewriteTerm names a term the migration does not actually re-surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnMigrationRewrite edge per operator surface delta the migration bridges, from the gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo correspondence to its gmeow:GmnMigrationRewrite."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the operator-grain rewrite legs of a GMN version-migration crossing."@x-gmeow-english .
+
+# --- GMN training-corpus vocabulary (requirement #10) -------------------------- #
+# The `gmn-training-corpus` pipeline stage emits, per rejection-sampled candidate,
+# either a proof-carrying gmeow:GmnTrainingExample (a KEPT pair) or a
+# gmeow:GmnRejectedCandidate (a typed, never-silent drop). These are the declared
+# terms that stage writes into the graph.
+
+gmeow:GmnTrainingExample
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Training Example"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One KEPT, proof-carrying training pair emitted by the GMN training-corpus stage: a gmeow:InformationObject that pairs a task (gmeow:gmnTrainingTask), an input surface (gmeow:gmnTrainingInput), and a target GMN-1 surface (gmeow:gmnTrainingTarget) with the five acceptance verdicts (gmeow:gmnVerdictParsed, gmeow:gmnVerdictRoundTrip, gmeow:gmnVerdictTypechecked, gmeow:gmnVerdictProofObligation, gmeow:gmnVerdictRingClean — all true on a kept pair), the discharged Curry–Howard derivation it references through gmeow:gmnTrainingProofDerivation, and the dialect coordinate it was minted under through gmeow:gmnSchemaVersion. A training example is admitted only when every verdict holds and its proof obligation is discharged: it is never a bare surface pair but the certificate that the pair survived verification."@x-gmeow-english ;
+    skos:example "ex:example-0 a gmeow:GmnTrainingExample ; gmeow:gmnTrainingTask \"verbalize\" ; gmeow:gmnTrainingInput \"…\" ; gmeow:gmnTrainingTarget \"@gmn{…}\" ; gmeow:gmnVerdictParsed true ; gmeow:gmnTrainingProofDerivation ex:deriv-0 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a training example for a pair that failed any verdict or whose proof obligation was not discharged — a rejected candidate is a gmeow:GmnRejectedCandidate, never a training example with a false verdict — and avoid a training example that carries no gmeow:gmnTrainingProofDerivation, which would be an uncertified surface pair."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:GmnTrainingExample per kept pair with its task, input, and target literals, all five verdicts set true, exactly one gmeow:gmnSchemaVersion, and a gmeow:gmnTrainingProofDerivation pointing at the discharged derivation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for a verified, proof-carrying GMN training pair the corpus stage admitted."@x-gmeow-english .
+
+gmeow:GmnRejectedCandidate
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Rejected Candidate"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One rejection-sampled candidate the GMN training-corpus stage DROPPED with a typed reason rather than silently discarding: a gmeow:InformationObject carrying the verifier stage it failed at (gmeow:gmnRejectionStage) and the typed lang: failure class it triggered (gmeow:gmnRejectionReason). Recording rejections as first-class individuals keeps the corpus construction auditable — every candidate is either a kept gmeow:GmnTrainingExample or a gmeow:GmnRejectedCandidate with a named cause, and a candidate is never dropped without a reason."@x-gmeow-english ;
+    skos:example "ex:rejected-3 a gmeow:GmnRejectedCandidate ; gmeow:gmnRejectionStage \"typecheck\" ; gmeow:gmnRejectionReason lang:GmnRingLeak ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a rejected candidate that names no gmeow:gmnRejectionReason or gmeow:gmnRejectionStage — an unexplained drop is exactly the silent discard this class exists to forbid — and avoid reusing it for a pair that actually passed verification (that is a gmeow:GmnTrainingExample)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:GmnRejectedCandidate per dropped candidate, setting gmeow:gmnRejectionStage to the verifier stage it failed at and gmeow:gmnRejectionReason to the typed lang: failure class it triggered."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a rejection-sampled candidate the corpus stage dropped, with its typed, auditable cause."@x-gmeow-english .
+
+gmeow:gmnTrainingTask
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training task"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The task label of a gmeow:GmnTrainingExample — the operation the pair demonstrates (e.g. \"verbalize\" or \"encode\"). Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: the task fixes what the input→target mapping is an instance of."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding input or target surface text into the task label — those are gmeow:gmnTrainingInput and gmeow:gmnTrainingTarget — and avoid an empty task, which leaves the pair's operation unnamed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingTask literal per training example naming the operation the input→target pair demonstrates."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to label which task a GMN training pair is an example of."@x-gmeow-english .
+
+gmeow:gmnTrainingInput
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training input"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The input surface of a gmeow:GmnTrainingExample — the source string the target is produced from. Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: paired with gmeow:gmnTrainingTarget, it is the input half of the verified mapping."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid storing the target surface here (that is gmeow:gmnTrainingTarget) and avoid an input that was never actually the source of the paired target — the pair must be the verified mapping the verdicts certified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingInput literal per training example carrying the input surface the target was produced from."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the input half of a verified GMN training pair."@x-gmeow-english .
+
+gmeow:gmnTrainingTarget
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training target"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target surface of a gmeow:GmnTrainingExample — the GMN-1 string the pair maps its input to. Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: it is the target half of the verified mapping, the surface the acceptance verdicts round-tripped and typechecked."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid storing the input surface here (that is gmeow:gmnTrainingInput) and avoid a target that did not survive every acceptance verdict — an unverified target is a gmeow:GmnRejectedCandidate, not a training example."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingTarget literal per training example carrying the GMN-1 target surface the verdicts certified."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to carry the target GMN-1 half of a verified GMN training pair."@x-gmeow-english .
+
+gmeow:gmnRejectionStage
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rejection stage"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The verifier stage a gmeow:GmnRejectedCandidate was dropped at — the pipeline checkpoint (parse, round-trip, typecheck, proof-obligation, or ring-clean) whose gate the candidate failed. Domain gmeow:GmnRejectedCandidate, range a string literal. Exactly one per rejection: it localizes WHERE the candidate failed, so the drop is auditable rather than opaque."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid conflating the stage with the reason — the typed failure class is gmeow:gmnRejectionReason — and avoid a rejection carrying no stage, which hides where verification failed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRejectionStage literal per rejected candidate naming the verifier stage whose gate it failed."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which verifier stage rejected a training candidate."@x-gmeow-english .
+
+gmeow:gmnVerdictParsed
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict parsed"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The parse verdict of a gmeow:GmnTrainingExample — true iff the candidate's GMN surface parsed under the pinned grammar. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a false parse verdict is a gmeow:GmnRejectedCandidate, never a kept example)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a failed verdict belongs to a gmeow:GmnRejectedCandidate — and avoid using it as a proxy for the other four verdicts, which are checked independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictParsed true on a kept training example once its GMN surface has parsed under the pinned grammar."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the parse acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictRoundTrip
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict round-trip"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The round-trip verdict of a gmeow:GmnTrainingExample — true iff decoding then re-encoding the candidate's GMN surface reproduced it losslessly. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a lossy round-trip is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a failed round-trip belongs to a gmeow:GmnRejectedCandidate — and avoid treating it as a proof of typechecking or ring cleanliness, which are separate verdicts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictRoundTrip true on a kept training example once its GMN surface has round-tripped losslessly."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the lossless round-trip acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictTypechecked
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict typechecked"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The typecheck verdict of a gmeow:GmnTrainingExample — true iff the decoded candidate typechecked against the ontology's constraints. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a type error is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a type error belongs to a gmeow:GmnRejectedCandidate — and avoid conflating typechecking with the discharged proof obligation, which is gmeow:gmnVerdictProofObligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictTypechecked true on a kept training example once its decoded content has typechecked."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the typecheck acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnVerdictProofObligation
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict proof obligation"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The proof-obligation verdict of a gmeow:GmnTrainingExample — true iff the candidate's Curry–Howard proof obligation was discharged by a checked derivation. Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair, and the discharged derivation it certifies is named through gmeow:gmnTrainingProofDerivation."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it true without a corresponding gmeow:gmnTrainingProofDerivation — the verdict without the derivation is an unbacked claim — and avoid asserting it false on a gmeow:GmnTrainingExample."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictProofObligation true on a kept training example whose proof obligation has been discharged, and point gmeow:gmnTrainingProofDerivation at the checked derivation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record that a GMN training pair's proof obligation was discharged."@x-gmeow-english .
+
+gmeow:gmnVerdictRingClean
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn verdict ring-clean"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "The ring-clean verdict of a gmeow:GmnTrainingExample — true iff the candidate carries no security-ring leak (no unclassified or out-of-ring content that would trip lang:GmnRingLeak). Domain gmeow:GmnTrainingExample, range a boolean literal. One of the five acceptance verdicts; true on every kept pair (a ring leak is a gmeow:GmnRejectedCandidate)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it false on a gmeow:GmnTrainingExample — a ring leak belongs to a gmeow:GmnRejectedCandidate — and avoid using it as a proxy for the other verdicts, which are checked independently."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:gmnVerdictRingClean true on a kept training example once it has been shown to carry no security-ring leak."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the security-ring cleanliness acceptance verdict of a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnTrainingProofDerivation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn training proof derivation"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:GmnTrainingExample to the checked Curry–Howard derivation that discharged its proof obligation. Domain gmeow:GmnTrainingExample, range a derivation individual (stated in prose). Exactly one per kept pair: the derivation is the evidence backing gmeow:gmnVerdictProofObligation, so a training example is never merely asserted verified but carries the derivation that verified it."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at anything but the derivation that actually discharged the pair's proof obligation, and avoid leaving it unset on a kept pair, which would leave gmeow:gmnVerdictProofObligation unbacked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnTrainingProofDerivation per kept training example, pointing at the checked derivation that discharged its proof obligation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the discharged proof derivation certifying a GMN training pair."@x-gmeow-english .
+
+gmeow:gmnRejectionReason
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rejection reason"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:GmnRejectedCandidate to the typed lang: failure class it triggered — the named cause of the drop (e.g. lang:GmnRingLeak). Domain gmeow:GmnRejectedCandidate, range a lang: failure class (stated in prose). Exactly one per rejection: the typed reason is what makes the drop auditable rather than a silent discard, the twin of gmeow:gmnRejectionStage's WHERE with the failure class's WHY."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a free-text string (the typed failure class is the anchor, not prose) and avoid a rejection carrying no reason, which is exactly the silent drop this property exists to forbid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRejectionReason per rejected candidate, pointing at the typed lang: failure class it triggered."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the typed failure class that caused a training candidate to be rejected."@x-gmeow-english .
+
+gmeow:gmnRewriteTerm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite term"@x-gmeow-english ;
+    skos:definition "The version-STABLE GMEOW term (the operator's lang:denotationTarget — a class, property, or individual IRI) one migration rewrite re-surfaces. Functional: exactly one term per rewrite. Domain gmeow:GmnMigrationRewrite, range any GMEOW term (stated in prose, deliberately unconstrained — an operator may denote a logic, math, or core term). The term is the identity anchor the executor matches a source occurrence against, precisely because the term survives the migration even when its glyph or precedence does not."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a glyph string or a version-specific surface token — the anchor is the denoted term, which is stable across the crossing — and avoid leaving it unset, which would leave the rewrite anchored to nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRewriteTerm per rewrite to the GMEOW term the operator denotes; the from/to glyph and precedence then describe how that one term's surface changes."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the version-stable denoted term a migration rewrite re-surfaces."@x-gmeow-english .
+
+gmeow:gmnRewriteFromGlyph
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite from glyph"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid setting it to the target spelling — that is gmeow:gmnRewriteToGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace, which the glyph surface discipline already forbids."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's source-version glyph so the executor can locate its occurrences before rewriting them to gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the source-major glyph a migration rewrite rewrites from."@x-gmeow-english .
+
+gmeow:gmnRewriteToGlyph
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite to glyph"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid setting it to the source spelling — that is gmeow:gmnRewriteFromGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's target-version glyph; the executor substitutes it for gmeow:gmnRewriteFromGlyph when it re-emits the document at the target major."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the target-major glyph a migration rewrite rewrites to."@x-gmeow-english .
+
+gmeow:gmnRewriteFromPrecedence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite from precedence"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The source-major binding strength (gmeow:gmnPrecedence value) of the operator a migration rewrite re-surfaces. Functional (at most one) per rewrite; omitted when the operator's binding strength is unchanged and only its glyph is renamed. Domain gmeow:GmnMigrationRewrite, range xsd:integer. A rewrite is a precedence CHANGE exactly when this is present and differs from gmeow:gmnRewriteToPrecedence; carried alongside the glyph legs so one rewrite record captures the operator's whole cross-version surface delta."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding fixity or record kind into this integer — those are gmeow:gmnFixity and gmeow:GmnSigilRole — and avoid setting it to the target strength, which is gmeow:gmnRewriteToPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's source-version gmeow:gmnPrecedence so the executor records the binding strength the source document parsed under."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the source-major binding strength a migration rewrite rewrites from."@x-gmeow-english .
+
+gmeow:gmnRewriteToPrecedence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnMigrationRewrite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn rewrite to precedence"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The target-major binding strength (gmeow:gmnPrecedence value) of the operator a migration rewrite re-surfaces — the strength the re-emitted document parses under at the target version. Functional (at most one) per rewrite; omitted when only the glyph is renamed. Domain gmeow:GmnMigrationRewrite, range xsd:integer. A rewrite is a precedence CHANGE exactly when this is present and differs from gmeow:gmnRewriteFromPrecedence."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding fixity or record kind into this integer, and avoid setting it to the source strength, which is gmeow:gmnRewriteFromPrecedence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set the operator's target-version gmeow:gmnPrecedence; the executor records it as the migrated operator's binding strength."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the target-major binding strength a migration rewrite rewrites to."@x-gmeow-english .
+
+gmeow:gmnVersionDefinesOperator
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn version defines operator"@x-gmeow-english ;
+    skos:definition "Relates a GMN dialect major (the version entity a gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo edge points at) to a version-STABLE operator term the major defines NATIVELY — a class, property, or individual IRI (an operator's lang:denotationTarget, the same anchor gmeow:gmnRewriteTerm uses). Domain the dialect version entity, range any GMEOW term (stated in prose, deliberately unconstrained). This is the graph-native operator inventory the migration executor reads for the target major: a source operator absent from the target major's inventory with NO covering gmeow:GmnMigrationRewrite is the lang:GmnUnbridgedGlyphDrop hard fail, and a source operator present here with no rewrite SURVIVES the crossing unchanged. Authored, never a Rust constant."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a glyph string or a version-specific surface token — the inventory is keyed on the version-stable denoted term — and avoid using it to re-state operators a rewrite already bridges; a rewrite's gmeow:gmnRewriteTerm carries those, and this inventory is consulted only for operators WITHOUT a covering rewrite."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On the target dialect version entity, name each operator term the major defines natively; the migration executor treats an un-rewritten source operator as a survivor exactly when its term appears here, and as an unbridged drop otherwise."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the version-stable operator terms a GMN dialect major defines natively, so the migration executor can derive the target-major inventory from the graph."@x-gmeow-english .
 
 gmeow:gmnAcceptWindow
     a owl:DatatypeProperty ;
@@ -4669,6 +4982,260 @@ gmeow:gmnUnitGmnToCompacted
     lang:translationMethod lang:methodCompositional ;
     lang:translationCorrespondence gmeow:gmnCorrGmnToCompacted .
 
+# --- GMN-1 as ONE graph-derived notation with N typed views ------------------- #
+# GMN-1 (gmeow:gmnModelNotation) is ONE graph-derived notation whose glyph
+# SIGNATURE — every operator's gmeow:gmnFixity + gmeow:gmnPrecedence +
+# gmeow:gmnArity together with its lang:Denotation — is presented through several
+# typed surface VIEWS. Each view is a satisfaction-preserving comorphism leg
+# (gmeow:GmnNotationView, a logic:InstitutionMorphism target) OUT OF that single
+# signature into one concrete surface: the GMN-1 codec, the EBNF and ABNF grammar
+# renderings, and — named now, populated as they land in later work — the GBNF
+# and Lark renderings, the NL verbalizer, and the token-metric measurement. This
+# is NOT a rival to the sign-system / correspondence vocabulary: the notation
+# stays the one gmeow:gmnModelNotation sign system and every law-spine is an
+# ordinary logic:Correspondence — a GmnNotationView only names one surface leg so
+# the fan-out is enumerable and gate-checkable rather than implicit in generator
+# code. The CROSS-SURFACE COHERENCE LAW (gmeow:gmnNotationCoherenceLaw, a
+# logic:Formula) binds the tree-producing legs (codec, ebnf, abnf, gbnf, lark):
+# for the one graph glyph-signature every grammar formalism AND the codec parse
+# back to ONE canonical RuleExpr, so any two legs commute up to declared
+# preservation (the naturality square). The tree-level commutation is DISCHARGED
+# by the executable coherence gate (crates/lang-bridge/tests/notation_coherence.rs),
+# carried here as the discharged logic:SectionLaw claim on
+# gmeow:gmnCorrNotationCoherence — never asserted on faith.
+
+gmeow:GmnNotationView
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Notation View"@x-gmeow-english ;
+    logic:formalizes gmeow:gmnNotationCoherenceLaw ;
+    skos:definition "A typed surface view of the ONE GMN-1 glyph signature: a satisfaction-preserving comorphism leg that projects the single graph-derived notation (gmeow:gmnModelNotation — every operator's gmeow:gmnFixity, gmeow:gmnPrecedence, gmeow:gmnArity, and its lang:Denotation) into one concrete surface named through gmeow:gmnViewSurface. The tree-producing legs (codec, ebnf, abnf, gbnf, lark) all parse back to ONE canonical RuleExpr tree, so any two of them commute up to declared preservation — the cross-surface coherence law gmeow:gmnNotationCoherenceLaw, whose tree-level commutation is discharged by the executable coherence gate and recorded as the logic:SectionLaw claim on gmeow:gmnCorrNotationCoherence. A view is not a rival to lang:SignSystem or logic:Correspondence: the notation stays the one gmeow:gmnModelNotation sign system, and each view's law-spine is an ordinary logic:Correspondence; a GmnNotationView only names one surface leg of that single notation so the fan-out is enumerable and gate-checkable rather than implicit in generator code."@x-gmeow-english ;
+    skos:example "gmeow:gmnViewEbnf a gmeow:GmnNotationView ; gmeow:gmnViewOf gmeow:gmnModelNotation ; gmeow:gmnViewSurface \"ebnf\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a GmnNotationView for a surface that is not a projection of the ONE gmeow:gmnModelNotation glyph signature, and avoid using it to shadow a second notation identity — the notation is the single sign system gmeow:gmnModelNotation, and a view is only one of its surface legs, never a rival canon."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one GmnNotationView per surface leg of GMN-1; point it at the notation through gmeow:gmnViewOf, name its surface through gmeow:gmnViewSurface (keyed to the crate-side registry/formalism name), and — for a tree-producing leg — bind it into the coherence law through gmeow:gmnCoheresView on gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the class of the typed surface views of GMN-1 — the enumerable comorphism legs (codec, ebnf, abnf, gbnf, lark, verbalizer, token-metric) out of the one graph-derived glyph signature."@x-gmeow-english .
+
+gmeow:gmnViewOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn view of"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:GmnNotationView to the GMN notation whose one glyph signature it presents. Domain gmeow:GmnNotationView, range lang:SignSystem — in the shipped dialect always gmeow:gmnModelNotation (stated in prose). Every view of one notation names the SAME sign system through this edge; that shared apex is exactly what makes two views' legs a naturality square rather than two unrelated surfaces."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing a view at a grammar, a grapheme, or a formalism individual — those are the view's target SURFACE (named by gmeow:gmnViewSurface), not the notation the view presents — and avoid naming two notations on one view."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnViewOf per view, pointing at gmeow:gmnModelNotation; the coherence gate reads the shared signature through this edge."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the one notation (its glyph signature) a GMN notation view is a comorphism leg out of."@x-gmeow-english .
+
+gmeow:gmnViewSurface
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn view surface"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable surface name a gmeow:GmnNotationView projects into — the machine key that binds the ontology view to its crate-side realization (\"codec\", \"ebnf\", \"abnf\", \"gbnf\", \"lark\", \"verbalizer\", \"token-metric\"). Domain gmeow:GmnNotationView, range xsd:string. Functional: one surface per view. The executable coherence gate iterates exactly these surface names, so a view named here without a landed surface is a declared-but-unpopulated leg, never a silent gap."@x-gmeow-english ;
+    skos:example "gmeow:gmnViewAbnf gmeow:gmnViewSurface \"abnf\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a free-form label here — the value is the machine key the crate-side registry/formalism name matches — and avoid two surface names on one view."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one surface string per view, byte-identical to the crate-side registry target or grammar-formalism name the coherence gate iterates."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the concrete surface a GMN notation view renders into, keyed to its crate-side realization."@x-gmeow-english .
+
+gmeow:gmnCoheresView
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn coheres view"@x-gmeow-english ;
+    skos:definition "Relates the cross-surface coherence correspondence (gmeow:gmnCorrNotationCoherence, a logic:Correspondence) to a gmeow:GmnNotationView whose leg it binds into the naturality square. Domain logic:Correspondence, range gmeow:GmnNotationView (stated in prose), multi-valued. Only the tree-producing legs (codec, ebnf, abnf, gbnf, lark) — the views that parse back to one canonical RuleExpr — are bound; a non-tree view (the NL verbalizer, the token-metric measurement) is a genuine view of the same signature but carries its own crossing's preservation on its own logic:Correspondence when it lands, never this RuleExpr-tree coherence."@x-gmeow-english ;
+    skos:example "gmeow:gmnCorrNotationCoherence gmeow:gmnCoheresView gmeow:gmnViewEbnf ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid binding a non-tree view (verbalizer, token-metric) into the RuleExpr coherence law — its crossing is judged on its own logic:Correspondence — and avoid asserting coherence over views of two different signatures."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "From gmeow:gmnCorrNotationCoherence, point gmeow:gmnCoheresView at each tree-producing view; the naturality formula gmeow:gmnNotationCoherenceLaw quantifies over exactly these bindings."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind a tree-producing GMN notation view into the cross-surface coherence law-spine."@x-gmeow-english .
+
+# --- The typed views (the enumerable comorphism legs of GMN-1) ---------------- #
+# The tree-producing legs (codec, ebnf, abnf, gbnf, lark) are bound into
+# gmeow:gmnCorrNotationCoherence; the non-tree legs (verbalizer, token-metric)
+# are named now and judged on their own crossings when they land.
+
+gmeow:gmnViewCodec
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: codec"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The GMN-1 codec view: the read/write leg (gmn1_read / gmn1_write) whose operator-precedence table IS the shared grammar-notation precedence ladder the coherence gate cross-checks. A tree-producing leg bound into gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "codec" .
+
+gmeow:gmnViewEbnf
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: EBNF"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The W3C-EBNF grammar-rendering view of the GMN-1 glyph signature — the formalism gmeow:gmnGrammar is authored in. A tree-producing leg bound into gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "ebnf" .
+
+gmeow:gmnViewAbnf
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: ABNF"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The RFC-5234 ABNF grammar-rendering view of the GMN-1 glyph signature. A tree-producing leg bound into gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "abnf" .
+
+gmeow:gmnViewGbnf
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: GBNF"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The GBNF (llama.cpp constrained-decoding) grammar-rendering view of the GMN-1 glyph signature — named now, its serializer and gate leg populated as the GBNF formalism lands. A tree-producing leg bound into gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "gbnf" .
+
+gmeow:gmnViewLark
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: Lark"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The Lark (EARLEY/LALR parser) grammar-rendering view of the GMN-1 glyph signature — named now, its serializer and gate leg populated as the Lark formalism lands. A tree-producing leg bound into gmeow:gmnCorrNotationCoherence."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "lark" .
+
+gmeow:gmnViewVerbalizer
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: verbalizer"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The natural-language verbalizer view of the GMN-1 glyph signature — the leg that renders a GMN record to English prose. A genuine view of the one signature but NOT a tree-producing leg: it is not bound into the RuleExpr coherence law, and its crossing's preservation is judged on its own logic:Correspondence when the verbalizer lands."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "verbalizer" .
+
+gmeow:gmnViewTokenMetric
+    a owl:NamedIndividual , gmeow:GmnNotationView ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN view: token-metric"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The token-metric measurement view of the GMN-1 glyph signature — the leg that measures a rendering's realized token cost against the codebook's declared rate. A genuine view of the one signature but NOT a tree-producing leg: it is not bound into the RuleExpr coherence law, and its measurement discipline is judged by the token-metric gate when it lands."@x-gmeow-english ;
+    gmeow:gmnViewOf gmeow:gmnModelNotation ;
+    gmeow:gmnViewSurface "token-metric" .
+
+# --- The cross-surface coherence law (the naturality square + its teeth) ------ #
+
+gmeow:gmnCorrNotationCoherence
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 cross-surface coherence correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The judged cross-surface coherence of GMN-1's typed views: for the ONE graph glyph-signature, every grammar formalism (ebnf, abnf, and — as they land — gbnf, lark) AND the codec parse back to ONE canonical RuleExpr, so any two tree-producing legs commute — an isomorphism with exact preservation and a retained mnemomorphic witness. The claim is DISCHARGED by execution, not declared on faith: the executable coherence gate (crates/lang-bridge/tests/notation_coherence.rs) renders the graph-derived glyph grammar and asserts canonicalize(parse via Ebnf) == canonicalize(parse via Abnf) and that the codec's operator-precedence table (grammar.rs) agrees with the grammar's precedence, so the logic:SectionLaw claim below is a running check, not prose. The naturality square it witnesses is stated as the logic:Formula gmeow:gmnNotationCoherenceLaw."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:gmnCorrNotationCoherenceGet ;
+    logic:hasLawClaim [
+        a logic:LawClaim ;
+        logic:lawClaimed logic:SectionLaw ;
+        logic:lawDischargeVerdict logic:ObligationDischarged ;
+        logic:lawDischargeCondition logic:DischargeSyntacticReachability
+    ] ;
+    gmeow:gmnCoheresView gmeow:gmnViewCodec ,
+        gmeow:gmnViewEbnf ,
+        gmeow:gmnViewAbnf ,
+        gmeow:gmnViewGbnf ,
+        gmeow:gmnViewLark .
+
+# The crossing's authored get-leg witness (the supersession-ledger pattern, as
+# gmeow:gmnCorrNormalToGtsGet): a one-step forward relation — render the
+# graph-derived glyph grammar and parse each surface leg back to the canonical
+# RuleExpr — whose commutation the coherence gate discharges by execution.
+gmeow:gmnCorrNotationCoherenceGet gmeow:path gmeow:gmnCorrNotationCoherenceStep .
+
+# The cross-surface coherence law as a canonical logic:Formula (the naturality
+# square's shared apex): any two views the coherence correspondence binds through
+# gmeow:gmnCoheresView project the SAME glyph signature, so their legs meet at one
+# apex — the graph-checkable precondition of the tree-level commutation the gate
+# discharges. Mirrors the standalone canonical-axiom pattern of
+# logic:recoveryTransformValuesAreFormulae.
+gmeow:gmnNotationCoherenceLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN-1 cross-surface coherence law"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "For every coherence correspondence and any two views it binds through gmeow:gmnCoheresView, the two views name the SAME notation through gmeow:gmnViewOf — the naturality square's shared apex, the graph-expressible precondition of the tree-level commutation (canonicalize(parse via one formalism) == canonicalize(parse via another)) that the executable coherence gate discharges and gmeow:gmnCorrNotationCoherence records as a logic:SectionLaw claim."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "law" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "v1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "v2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "sig" ] ;
+    logic:forall gmeow:gmnNclImplication .
+
+gmeow:gmnNclImplication
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — implication node"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The implication AST node of the GMN cross-surface coherence law (gmeow:gmnNotationCoherenceLaw): if the guard holds (two views are both bound into a coherence correspondence and the first names a signature) then the consequent holds (the second view names the SAME signature). Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:antecedent gmeow:gmnNclGuard ;
+    logic:consequent gmeow:gmnNclConsequent .
+
+gmeow:gmnNclGuard
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — guard conjunction"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The antecedent conjunction AST node of gmeow:gmnNotationCoherenceLaw: the law fires only when both views v1 and v2 are bound into the coherence correspondence (gmeow:gmnNclBindV1, gmeow:gmnNclBindV2) AND v1 names its signature (gmeow:gmnNclSigV1). Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:and gmeow:gmnNclBindV1 , gmeow:gmnNclBindV2 , gmeow:gmnNclSigV1 .
+
+gmeow:gmnNclBindV1
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v1 binding atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node binding the coherence correspondence (law) to its first view v1 through gmeow:gmnCoheresView, in gmeow:gmnNotationCoherenceLaw's guard. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:relation gmeow:gmnCoheresView ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "law" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "v1" ] .
+
+gmeow:gmnNclBindV2
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v2 binding atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node binding the coherence correspondence (law) to its second view v2 through gmeow:gmnCoheresView, in gmeow:gmnNotationCoherenceLaw's guard. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:relation gmeow:gmnCoheresView ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "law" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "v2" ] .
+
+gmeow:gmnNclSigV1
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — v1 signature atom"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The atom AST node stating that the first view v1 names its notation signature through gmeow:gmnViewOf, in gmeow:gmnNotationCoherenceLaw's guard — one half of the shared-apex premise. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:relation gmeow:gmnViewOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v1" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "sig" ] .
+
+gmeow:gmnNclConsequent
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN coherence law — shared-apex conclusion"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The consequent atom AST node of gmeow:gmnNotationCoherenceLaw: the second view v2 names the SAME notation signature (through gmeow:gmnViewOf) that v1 does — the naturality square's shared apex that makes two coherence-bound views' surface legs commute. Sub-formula of the law, not a free-standing term."@x-gmeow-english ;
+    logic:relation gmeow:gmnViewOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v2" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "sig" ] .
+
 # --- GMN dialect version machinery -------------------------------------------- #
 # The dialect lineage is a gmeow:VersionSet with reified memberships, per the
 # versions-slice doctrine. gmeow:membershipAuthority is optional on the relator
@@ -4855,6 +5422,14 @@ lang:GmnNonDecodableGrammar
     skos:definition "The failure raised when the GMN grammar's declared determinism contract does not hold — a grammar carrying gmeow:gmnDeterminismClass \"LL(1)\" whose rules are not deterministically decidable with one-token lookahead, so a reader cannot know from the next token which production applies and the stream is not prefix-decodable. The determinism class is a declared contract, never taken on faith: its enforcing validator is the GMN parser/writer, whose parse-table construction over the grammar's rules is the machine check the literal must survive."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:GmnUnbridgedGlyphDrop
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Unbridged Glyph Drop"@x-gmeow-english ;
+    skos:definition "The failure raised when a GMN version migration would DROP an operator glyph — a term present in the source dialect major but absent from the target major — with NO gmeow:GmnMigrationRewrite on the migration's logic:Correspondence covering it. A migration is a judged crossing like any other, so a dropped operator must be BRIDGED by an authored rewrite (renaming its glyph, or otherwise re-surfacing its version-stable gmeow:gmnRewriteTerm) or the crossing loses information silently. Distinct from lang:GmnUncoveredTerm (a token the current pinned dictionary cannot resolve at all, which a wider alias table could cover) and from lang:GmnVersionOverclaim (an envelope claiming a version its coordinates do not support): an unbridged drop is specifically a cross-major surface deletion the migration executor refuses to apply. Its enforcing validator is the GMN migration executor, which compares the source document's operator terms against the target major's inventory and hard-fails on any dropped term the migration legs do not cover — never a silent drop."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # The linguistic symbology plane of the GMN dialect                           #
 #                                                                             #
@@ -4926,6 +5501,14 @@ lang:GmnUnringedExportCrossing
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Unringed Export Crossing"@x-gmeow-english ;
     skos:definition "The failure raised when a gmeow:GmnEnvelope whose gmeow:wasGeneratedBy names an activity carrying gmeow:mentalProcessType gmeow:processExport (mentation slice) declares no gmeow:gmnSecurityRing. gmeow:processExport is the externalization/communication episode of an information-flow-controlled agent's mental timeline — the emit member of mentation's train/audit/export triple — and its disclosure semantics are governed BY REFERENCE (Principle 5) by the boundary ring the envelope it generates was admitted under. An export activity that generated an envelope with no ring crossed a serialization boundary with no admission class checked, exactly the disclosure gap the security-ring model exists to close."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnRingLeak
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Ring Leak"@x-gmeow-english ;
+    skos:definition "The RUNTIME consume-path failure raised when the security-ring serialization filter cannot admit content into a target ring without leaking out-of-ring material. Distinct from lang:GmnUnringedExportCrossing (an authoring-time gmeow:GmnEnvelope generated by a gmeow:processExport activity that declares no gmeow:gmnSecurityRing) and lang:GmnRingLatticeMalformed (a ring's AUTHORED coordinates being ill-formed): this is the executor-tier refusal when a consume request projects a ring-tagged dataset to GMN-1 for a target ring. It fires in three forms, all cases where a silent drop or a silent admission would leak the boundary the ring model exists to enforce: (1) a content subject carrying data reaches the filter with no single resolvable gmeow:gmnSecurityRing tag, so its admission class was never checked; (2) an ADMITTED claim references, in object position, another content subject whose ring is NOT admissible into the target under the DERIVED gmeow:gmnRingWithin order, so the excluded subject's identity would leak into the admitted projection; (3) a claim's shared structure is reachable from both admissible and non-admissible content, so neither dropping nor keeping it preserves the boundary. Admission is the Denning product-order the derivation encodes — content ring C is admissible into target T iff C = T or gmeow:gmnRingWithin(C, T) (C's gmeow:gmnRingLevel dominates T's AND C's gmeow:gmnRingCompartment set ⊇ T's) — never a hand-authored within edge and never a weaker proxy. Its enforcing validator is the GMN consume-path filter (the `gmeow gmn project` surface and the shared gmn_consume library function), which HARD-FAILS rather than emit a projection that admits unclassified or out-of-ring content."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- The per-glyph token-cost feed ------------------------------------------ #
@@ -9905,7 +10488,9 @@ lang:GmnNonCanonicalCodepoint a logic:Situation .
 lang:GmnNonCanonicalOrder a logic:Situation .
 lang:GmnNonDecodableGrammar a logic:Situation .
 lang:GmnRingLatticeMalformed a logic:Situation .
+lang:GmnRingLeak a logic:Situation .
 lang:GmnUnattributedPlane a logic:Situation .
+lang:GmnUnbridgedGlyphDrop a logic:Situation .
 lang:GmnUncostedScriptGlyph a logic:Situation .
 lang:GmnUncoveredTerm a logic:Situation .
 lang:GmnUndeclaredDialectVersion a logic:Situation .

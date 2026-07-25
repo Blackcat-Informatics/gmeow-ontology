@@ -1592,13 +1592,21 @@ fn llms_prose(version: &str, suffix: &str) -> Vec<String> {
     )]
 }
 
-fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
+fn write_llms_txt(
+    terms: &[Term],
+    title: &str,
+    version: &str,
+    primer: &gmeow_docs::gmn1_primer::Gmn1Primer,
+) -> Vec<u8> {
     let prose = llms_prose(
         version,
         "The RDF 1.2 grounding slices are canonical; this is a self-contained vocabulary index.",
     );
     let mut sections = llms_sections(terms, None);
     sections.push(gmeow_docs::llms::standing_reference_section());
+    // The GMN-1 teachability primer (graph-derived) rides the SAME shared section path so this
+    // dist surface and the MCP/consumer surfaces cannot silently diverge on it.
+    sections.push(primer.section());
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
@@ -1615,6 +1623,7 @@ pub(crate) fn consumer_llms_full(
     title: &str,
     version: &str,
     modeled_defs: &BTreeSet<String>,
+    primer: &gmeow_docs::gmn1_primer::Gmn1Primer,
 ) -> String {
     let prose = llms_prose(
         version,
@@ -1668,6 +1677,10 @@ pub(crate) fn consumer_llms_full(
     out.push_str(&gmeow_docs::llms::render_section(
         &gmeow_docs::llms::standing_reference_section(),
     ));
+    // The GMN-1 teachability primer (graph-derived), rendered through the SAME shared bullet
+    // path — so the complete form teaches GMN emission + the repair loop, not just the vocab.
+    out.push('\n');
+    out.push_str(&gmeow_docs::llms::render_section(&primer.section()));
     out
 }
 
@@ -2765,6 +2778,12 @@ pub(crate) fn render_all_with_languages(
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
 
+    // The GMN-1 teachability primer, built ONCE from the folded carrier and shared by both
+    // llms surfaces. A carrier that fails to yield the primer's GMN-1 codebook sources is a
+    // HARD FAIL here (no-optionality), never a silently-omitted primer.
+    let primer = gmeow_docs::gmn1_primer::build_primer(dataset)
+        .map_err(|e| err(format!("build GMN-1 teachability primer: {e}")))?;
+
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     out.extend(render_csvw(dataset)?);
     out.insert(format!("{DIST_DIR}/gmeow-terms.jsonl"), write_jsonl(&terms));
@@ -2774,11 +2793,11 @@ pub(crate) fn render_all_with_languages(
     );
     out.insert(
         format!("{DIST_DIR}/llms.txt"),
-        write_llms_txt(&terms, &title, &version),
+        write_llms_txt(&terms, &title, &version, &primer),
     );
     out.insert(
         format!("{DIST_DIR}/llms-full.txt"),
-        consumer_llms_full(&terms, &title, &version, modeled_defs).into_bytes(),
+        consumer_llms_full(&terms, &title, &version, modeled_defs, &primer).into_bytes(),
     );
     out.insert(
         format!("{DIST_DIR}/gmeow.nq"),
@@ -3086,6 +3105,14 @@ mod tests {
         (collect_terms(&view), title, version)
     }
 
+    /// The GMN-1 teachability primer over the real folded carrier — the input the
+    /// `write_llms_txt` / `consumer_llms_full` surfaces now require.
+    fn english_primer() -> gmeow_docs::gmn1_primer::Gmn1Primer {
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        gmeow_docs::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer")
+    }
+
     /// The consumer/MCP term surface resolves grounding-namespace terms (the twin of
     /// `gmeow describe`): CURIE, full IRI, and bare local name across `logic:`/
     /// `math:`/`lang:`, from the real folded bundle. Before the fix `collect_terms`
@@ -3310,7 +3337,13 @@ mod tests {
     #[test]
     fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
+        let full = consumer_llms_full(
+            &terms,
+            &title,
+            &version,
+            &repo_modeled_defs(),
+            &english_primer(),
+        );
         assert!(full.starts_with(&format!(
             "# {title}\n\n> {}\n\n",
             gmeow_docs::llms::GMEOW_SUMMARY
@@ -3365,9 +3398,10 @@ mod tests {
         let root = repo_root();
         let graph = read_fold(&root).expect("read fold");
         let doc_urls = doc_url_map(&FoldView::new(&graph));
+        let primer = gmeow_docs::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer");
 
         let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
 
         assert!(
             txt.contains("## Reference\n"),
@@ -3401,7 +3435,8 @@ mod tests {
 
         // The write_llms_txt (dist/llms.txt tarball) surface shares the same
         // section-append path — it must not silently regress either.
-        let dist_txt = String::from_utf8(write_llms_txt(&terms, &title, &version)).unwrap();
+        let dist_txt =
+            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
         assert!(dist_txt.contains("## Reference\n"));
         for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
             assert!(
@@ -3410,6 +3445,39 @@ mod tests {
             );
         }
         assert!(dist_txt.contains(note));
+    }
+
+    /// Both flat llms surfaces (`dist/llms.txt` and the shared `llms-full.txt`) carry the
+    /// GMN-1 teachability primer — appended through the SAME `gmeow_docs::gmn1_primer::section`
+    /// path so a fresh model reads GMN emission guidance inline, not just the vocabulary. The
+    /// primer heading and its graph-derived rows (a record sigil, the repair card, an operator
+    /// glyph) must survive into both surfaces.
+    #[test]
+    fn llms_surfaces_carry_the_gmn1_teachability_primer() {
+        let (terms, title, version) = english_terms();
+        let primer = english_primer();
+        let heading = format!("## {}", gmeow_docs::gmn1_primer::PRIMER_HEADING);
+
+        let dist_txt =
+            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
+
+        for surface in [&dist_txt, &full] {
+            assert!(
+                surface.contains(&heading),
+                "an llms surface must carry the GMN-1 primer heading {heading:?}"
+            );
+            // A repair-loop card (the NL→GMN→gmn_validate→@err/@patch workflow's vocabulary).
+            assert!(
+                surface.contains("gmeow:GmnErr"),
+                "the primer must teach the @err repair record"
+            );
+            // The primer body is the SAME rendered section on both surfaces.
+            assert!(
+                surface.contains(primer.rendered().trim()),
+                "the primer section must appear verbatim in the surface"
+            );
+        }
     }
 
     /// The twin-contract lock (§19 one-path): the MCP card and the

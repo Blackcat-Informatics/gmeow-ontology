@@ -37,6 +37,15 @@ unicode-security = "0.1.2"
 # is compiled in; no network, no filesystem I/O) and pure Rust (no Python binding). It is
 # both the ⟦·⟧ fragmentation benchmark and the token-cost feed the machine-compression
 # sibling consumes. Default features only — the `async-openai` feature is intentionally off.
+#
+# Native-only: the token-cost primitive feeds `gmn_symbology`/`gmn_metrics` (glyph-cost
+# analytics), which the wasm-clean GMN-1 VALIDATOR path (`gmn1_read` against the embedded
+# codebook, consumed by `gmeow-validate-wasm::gmn_validate`) never touches. tiktoken-rs
+# embeds a ~1.7 MB BPE vocabulary that would bloat the wasm image for zero validation
+# benefit, so it — and the `gmn_symbology` module that uses it — are excluded from the
+# wasm32 target (mirroring how `gmeow-validate` gates its native-only deps). Confirmed off
+# the validate path by `cargo tree` (see the `make wasm` GMN purity gate).
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tiktoken-rs = "0.12"
 
 [dev-dependencies]

@@ -208,6 +208,17 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
+        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
+        // #21/#20). A productive functor over the glyph signature: it consumes
+        // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
+        // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
+        // each through five verifiers, and attaches the certified corpus (+ typed rejections)
+        // as graph/gmn-training-corpus (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-gmn-training-corpus",
+            "gmn-training-corpus",
+            &["stage-compile-logic", "stage-mappings"],
+        ),
         // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
         // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
         // It reads the authored slice sources directly, but consumes the four
@@ -267,7 +278,9 @@ pub fn full_spec() -> PipelineSpec {
         // `generated/shapes/*.ttl` members are read off THIS run's producer products
         // (compile-logic + the three shape export leaves), never the stale committed
         // files (the stale-disk-fold class). The compile-logic edge is narrowed to
-        // the object-level graphs (see `st_validate`).
+        // the object-level graphs (see `st_validate`). It also consumes stage-reason,
+        // narrowed to graph/reasoning: the D5 abductive tier reads the reasoned closure
+        // (asserted OR entailed), so the validator is a DESCENDANT of the reasoner.
         st_validate(
             "stage-validate",
             "validate",
@@ -276,6 +289,7 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-constraint-shapes",
                 "stage-export-frame-shapes",
                 "stage-export-result-shapes",
+                "stage-reason",
                 "stage-source-load",
             ],
         ),
@@ -347,6 +361,9 @@ pub fn full_spec() -> PipelineSpec {
                 // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
                 // folded as its own graph/fanout/skos named graph.
                 "stage-export-skos-surface",
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus",
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
@@ -647,15 +664,24 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// — the program-level digest standing in for the validation-shape byte artifacts it
 /// reads off that product, and the narrowing that keeps its `graph/diagnostics`
 /// attachment a genuine delta (compile-logic's product carries a graph of the same
-/// name). Derives the SAME entity list as
+/// name). Its `stage-reason` dependency is narrowed to the single `graph/reasoning` named
+/// graph (mirroring `st_goal_directed`): the D5 abductive tier reads the reasoned closure,
+/// and that projection reifies every derived axiom, so its digest is a faithful key for the
+/// closure this stage folds. Derives the SAME entity list as
 /// [`crate::stages::validate::ValidateStage`]'s consumed_entities() so the
 /// dag_dogfood parity and the loader's bind-agreement both hold.
 fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
-    s.dataflow_entities = vec![(
-        "stage-compile-logic".to_string(),
-        crate::stages::compile_logic::carrier_entity_list(),
-    )];
+    s.dataflow_entities = vec![
+        (
+            "stage-compile-logic".to_string(),
+            crate::stages::compile_logic::carrier_entity_list(),
+        ),
+        (
+            "stage-reason".to_string(),
+            vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
+        ),
+    ];
     s
 }
 
@@ -1285,12 +1311,13 @@ fn reconcile_gmn1_digest_gates(
 
     let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
     if !pack_report.is_clean() {
-        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
-        drifted.push(focus.to_string());
+        // The finding focus is the version-keyed pack path the check resolved (gmn1/v<major>/…).
+        let focus = pack_report.pack_rel.clone();
+        drifted.push(focus.clone());
         attach_pipeline_finding(
             ledger,
             CODE_GMN1_PACK_ROOT_MISMATCH,
-            focus,
+            &focus,
             format!(
                 "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
                 pack_report.declared_root, pack_report.recomputed_root
@@ -1852,6 +1879,13 @@ ex:RequiredShape a sh:NodeShape ;
                 "stage-export-result-shapes",
                 &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
             ),
+        );
+        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure;
+        // an empty-EDB reason product yields an empty closure, so the reasoned union is the
+        // authored source graph alone (this harness drives SHACL/enrichment, not entailment).
+        upstream.insert(
+            "stage-reason".to_owned(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
         );
     }
 

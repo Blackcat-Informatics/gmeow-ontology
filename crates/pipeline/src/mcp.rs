@@ -24,6 +24,10 @@ use std::sync::{Arc, Mutex, OnceLock};
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+use gmeow_lang_bridge::{
+    Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, resolve_operator_forms,
+};
 use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
@@ -86,6 +90,31 @@ const ADVISE_ORIGIN: &str = "mcp:advise";
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
 const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// `rdfs:label` — the controlled-NL nucleus the GMN verbalizer joins each operator
+/// form to; harvested from the bundle dataset for `gmn_explain`'s gloss.
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+/// `x-gmeow-english` — the preferred label language tag (mirrors the pipeline's
+/// verbalizer label harvest: a GMEOW-English label wins, ties break to the smallest
+/// lexical form), so the gloss the tool serves is byte-identical to Task 8's.
+const GMEOW_ENGLISH: &str = "x-gmeow-english";
+/// `lang:Denotation` — the typed meaning-assignment node `gmn_explain` resolves a
+/// glyph back to (its denoted form supplies fixity/precedence/arity).
+const LANG_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
+/// `lang:denotedForm` — the Denotation → Form edge carrying the operator signature.
+const LANG_DENOTED_FORM: &str = "https://blackcatinformatics.ca/lang/denotedForm";
+/// `lang:denotationTarget` — the Denotation → denoted term (the operator's meaning).
+const LANG_DENOTATION_TARGET: &str = "https://blackcatinformatics.ca/lang/denotationTarget";
+/// `gmeow:gmnFixity` — the operator Form's fixity individual IRI.
+const GMN_FIXITY: &str = "https://blackcatinformatics.ca/gmeow/gmnFixity";
+/// `gmeow:gmnPrecedence` — the operator Form's binding-strength integer.
+const GMN_PRECEDENCE: &str = "https://blackcatinformatics.ca/gmeow/gmnPrecedence";
+/// `gmeow:gmnArity` — the operator Form's operand count.
+const GMN_ARITY: &str = "https://blackcatinformatics.ca/gmeow/gmnArity";
+/// The honest typed miss `gmn_explain` returns for an input that is not a covered GMN
+/// operator glyph — the SAME `lang:` uncovered-term class the codec raises for a term
+/// the dictionary does not mint, never a fabricated answer.
+const LANG_GMN_UNCOVERED_TERM: &str = "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
 
 /// The pre-reasoning hard ceiling on the `verify_graph` overlay size (quad count).
 /// An overlay larger than this is REFUSED before any reasoning runs, so an
@@ -912,13 +941,26 @@ impl McpView {
         })
     }
 
-    /// The complete inlined index (`llms-full.txt`) for `requested`.
-    fn llms_full_text(&self, requested: Vec<String>) -> String {
+    /// The complete inlined index (`llms-full.txt`) for `requested`, carrying the graph-derived
+    /// GMN-1 teachability primer. A carrier that fails to yield the primer's GMN-1 codebook is a
+    /// HARD FAIL (no-optionality), never a silently primer-less complete form.
+    fn llms_full_text(&self, requested: Vec<String>) -> gmeow_errors::Result<String> {
         let title = self.title.clone();
         let version = self.version.clone();
         let modeled_defs = self.modeled_defs();
-        self.with_terms(requested, |terms| {
-            export::consumer_llms_full(terms, &title, &version, &modeled_defs)
+        let primer = self.gmn1_primer()?;
+        Ok(self.with_terms(requested, |terms| {
+            export::consumer_llms_full(terms, &title, &version, &modeled_defs, &primer)
+        }))
+    }
+
+    /// The graph-derived GMN-1 teachability primer over THIS view's carrier dataset — shared by
+    /// the `llms_full` surface and the `gmeow://ontology/gmn1-primer` resource.
+    fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs::gmn1_primer::Gmn1Primer> {
+        gmeow_docs::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("build GMN-1 teachability primer: {e}"),
+            })
         })
     }
 
@@ -2126,6 +2168,41 @@ impl McpServer {
                 ],
             ),
             tool(
+                "gmn_validate",
+                "Validate a GMN-1 document (the token-compact GMEOW Model Notation surface) \
+                 against the shipped codebook dictionary + validator tier, checkout-free off the \
+                 bundle. This is an external LLM's entry to the GMN `@err` repair loop: `gmn` is \
+                 the GMN-1 document text. Returns {ok, conformant} — conformant:true for a \
+                 well-formed document, or conformant:false with the TYPED lang:Gmn*Failure class \
+                 (failure_class / failure_local_name) and message of the first defect, so the \
+                 caller repairs against the named class. A defect is a valid result, never a tool \
+                 error; an oversized payload is a hard error.",
+                &[("gmn", "string")],
+            ),
+            tool(
+                "gmn_expand",
+                "Expand a GMN-1 document to its GMN-0 normal form (the alias/glyph → full-IRI \
+                 direction) and return the canonical N-Quads, checkout-free off the bundle. `gmn` \
+                 is the GMN-1 document text. The expansion carries an internal round-trip witness \
+                 (the decoded model is re-encoded and re-read, and canonical equality asserted), \
+                 so it never returns a lossy expansion. Returns {ok, expanded_nquads, \
+                 reencoded_gmn, round_trip}. A non-conformant input, or a round-trip that does not \
+                 hold, is a hard error.",
+                &[("gmn", "string")],
+            ),
+            tool(
+                "gmn_explain",
+                "Explain a GMN operator glyph: resolve `glyph` to its lang:Denotation and its \
+                 graph-authored gmeow:gmnFixity / gmeow:gmnPrecedence / gmeow:gmnArity signature, \
+                 plus its controlled-NL gloss (the deterministic GMN⇄NL verbalizer rendering), \
+                 checkout-free off the bundle. Returns {ok, found, glyph, denotation, \
+                 denotation_target, label, fixity, fixity_local_name, precedence, arity, \
+                 gmn_surface, gloss}. An input that is not a covered operator glyph returns an \
+                 honest typed miss (found:false + lang:GmnUncoveredTerm), never a fabricated \
+                 answer.",
+                &[("glyph", "string")],
+            ),
+            tool(
                 "advise",
                 "Advise on an inline agent-authored RDF claim: return the non-gating \
                  RECOMMENDATIONS (never rejections) GMEOW harvests for it — the avoid-when \
@@ -2373,6 +2450,13 @@ impl McpServer {
                 "text/plain",
             ),
             resource(
+                "gmeow://ontology/gmn1-primer",
+                "gmn1-primer",
+                "The ~500-token graph-derived GMN-1 teachability primer (record sigils, \
+                 operator glyph table, repair loop).",
+                "text/plain",
+            ),
+            resource(
                 "gmeow://ontology/okf-index",
                 "okf-index",
                 "OKF manifest JSON envelope.",
@@ -2407,6 +2491,9 @@ impl McpServer {
             "explain_quad" => self.tool_explain_quad(args),
             "coherence_certificate" => self.tool_coherence_certificate(args),
             "validate_local" => self.tool_validate_local(args),
+            "gmn_validate" => self.tool_gmn_validate(args),
+            "gmn_expand" => self.tool_gmn_expand(args),
+            "gmn_explain" => self.tool_gmn_explain(args),
             "advise" => self.tool_advise(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
@@ -2533,7 +2620,7 @@ impl McpServer {
 
     fn tool_llms_full(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
-        Ok(self.view.llms_full_text(requested))
+        self.view.llms_full_text(requested)
     }
 
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -2763,6 +2850,160 @@ impl McpServer {
                 message: format!("validate_local: serialize enriched report: {e}"),
             })
         })
+    }
+
+    /// Resolve the shipped GMN-1 dictionary (`gmeow:gmnDictV3` + its current codebook)
+    /// straight off the bundled snapshot dataset — the SAME checkout-free source the
+    /// `gmeow gmn` CLI folds from `BUNDLE_GTS`, so the MCP verifier tools an external LLM
+    /// calls share ONE dictionary with the shipped CLI and gates. A load failure is a HARD
+    /// FAIL, never a degraded default.
+    fn gmn_dictionary(&self) -> gmeow_errors::Result<GmnDictionary> {
+        GmnDictionary::from_dataset(self.view.dataset.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn: cannot resolve gmeow:gmnDictV3 from the bundled snapshot: {}",
+                    e.0
+                ),
+            })
+        })
+    }
+
+    /// `gmn_validate` — the external LLM's entry to the GMN `@err` repair loop: read a
+    /// GMN-1 document against the shipped dictionary + validator tier and report either
+    /// conformance or the TYPED `lang:Gmn*Failure` class (+ message) of the first defect.
+    /// A defect is a VALID result (`ok:true, conformant:false`), never a tool error — the
+    /// caller repairs against the named class.
+    fn tool_gmn_validate(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let gmn = required_str(args, "gmn")?;
+        guard_gmn_size(gmn, "gmn_validate")?;
+        let dict = self.gmn_dictionary()?;
+        let doc = Gmn1Document::from_text(gmn.to_owned());
+        match gmn1_read(&doc, &dict) {
+            Ok(_model) => Ok(json!({ "ok": true, "conformant": true }).to_string()),
+            Err(error) => {
+                let class = error.failure_class();
+                Ok(json!({
+                    "ok": true,
+                    "conformant": false,
+                    "failure_class": class,
+                    "failure_local_name": iri_local_name(class),
+                    "message": error.to_string(),
+                })
+                .to_string())
+            }
+        }
+    }
+
+    /// `gmn_expand` — decode a GMN-1 document to its GMN-0 normal form (the "expand
+    /// alias/glyph → full IRI" direction) and return the canonical N-Quads. The expansion
+    /// carries an internal round-trip WITNESS: the decoded model is re-encoded and re-read,
+    /// and canonical equality is asserted, so the tool never returns an unstable expansion.
+    /// A non-conformant input, or a round-trip that does not hold, is a HARD FAIL.
+    fn tool_gmn_expand(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let gmn = required_str(args, "gmn")?;
+        guard_gmn_size(gmn, "gmn_expand")?;
+        let dict = self.gmn_dictionary()?;
+        let doc = Gmn1Document::from_text(gmn.to_owned());
+        let model = gmn1_read(&doc, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn_expand: input is not a conformant GMN-1 document (lang:{}): {error}",
+                    iri_local_name(error.failure_class())
+                ),
+            })
+        })?;
+        // Round-trip witness: re-encode the expanded model and read it back; the expansion
+        // is only sound if the reconstruction is canonically equal (no lossy expansion).
+        let reencoded = gmn1_write(&model, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_expand: re-encoding the expanded model failed: {error}"),
+            })
+        })?;
+        let back = gmn1_read(&reencoded, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_expand: re-reading the re-encoded model failed: {error}"),
+            })
+        })?;
+        if !gmn0_canonically_equal(&model, &back) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "gmn_expand: round-trip witness failed — the expanded GMN-0 normal form \
+                          is not canonically stable under re-encode/re-read (refusing a lossy \
+                          expansion)"
+                    .to_owned(),
+            }));
+        }
+        Ok(json!({
+            "ok": true,
+            "expanded_nquads": model.canonical_nquads(),
+            "reencoded_gmn": reencoded.text,
+            "round_trip": true,
+        })
+        .to_string())
+    }
+
+    /// `gmn_explain` — resolve a GMN operator glyph to its `lang:Denotation` and its
+    /// graph-authored `gmeow:gmnFixity` / `gmeow:gmnPrecedence` / `gmeow:gmnArity`
+    /// signature, plus its controlled-NL gloss (the SAME Task 8 verbalizer rendering).
+    /// An input that is not a covered operator glyph returns an HONEST typed miss
+    /// (`found:false` + `lang:GmnUncoveredTerm`), never a fabricated answer.
+    fn tool_gmn_explain(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let glyph = required_str(args, "glyph")?;
+        let dataset = self.view.dataset.as_ref();
+        let dict = self.gmn_dictionary()?;
+        let labels = harvest_dataset_labels(dataset);
+        let forms = resolve_operator_forms(dict.glyph_registry(), &labels).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn_explain: resolve GMN operator forms from the codebook: {error}"
+                ),
+            })
+        })?;
+        let Some(form) = forms.iter().find(|f| f.gmn_glyph == glyph) else {
+            return Ok(json!({
+                "ok": true,
+                "found": false,
+                "glyph": glyph,
+                "failure_class": LANG_GMN_UNCOVERED_TERM,
+                "failure_local_name": iri_local_name(LANG_GMN_UNCOVERED_TERM),
+                "message": format!(
+                    "glyph {glyph:?} is not a covered GMN operator in the current codebook"
+                ),
+            })
+            .to_string());
+        };
+        // The controlled-NL gloss is Task 8's verbalizer rendering VERBATIM: build the whole
+        // (injective, disambiguated) corpus and read off this form's rendered pair, so the
+        // gloss the LLM sees is the exact GMN⇄NL training-pair surface, not a re-derivation.
+        let pairs = build_verbalization_pairs(&forms).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_explain: render the verbalizer gloss corpus: {error}"),
+            })
+        })?;
+        let rendered = pairs.iter().find(|p| &p.form == form).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_explain: no verbalizer pair for glyph {glyph:?}"),
+            })
+        })?;
+        // Precedence + the lang:Denotation IRI are NOT carried by the glyph registry (it keys
+        // on fixity/arity only), so join them from the dataset by the (target, fixity, arity)
+        // signature the operator's denoted Form authors.
+        let (precedence, denotation) =
+            gmn_signature_join(dataset, &form.term_iri, &form.fixity, form.arity);
+        Ok(json!({
+            "ok": true,
+            "found": true,
+            "glyph": form.gmn_glyph,
+            "denotation": denotation,
+            "denotation_target": form.term_iri,
+            "label": form.term_label,
+            "fixity": form.fixity,
+            "fixity_local_name": iri_local_name(&form.fixity),
+            "precedence": precedence,
+            "arity": form.arity,
+            "gmn_surface": rendered.gmn_surface,
+            "gloss": rendered.nl,
+        })
+        .to_string())
     }
 
     /// The `advise` tool: return the non-gating RECOMMENDATIONS (never rejections) a
@@ -3543,9 +3784,14 @@ impl McpServer {
             .unwrap_or_else(|| self.startup_requested.clone());
         match base {
             "gmeow://ontology/llms.txt" => Ok(("text/plain", self.view.llms_txt_text(requested))),
-            "gmeow://ontology/llms-full.txt" => {
-                Ok(("text/plain", self.view.llms_full_text(requested)))
-            }
+            "gmeow://ontology/llms-full.txt" => self
+                .view
+                .llms_full_text(requested)
+                .map(|t| ("text/plain", t)),
+            "gmeow://ontology/gmn1-primer" => self
+                .view
+                .gmn1_primer()
+                .map(|p| ("text/plain", p.resource_text())),
             "gmeow://ontology/okf-index" => {
                 Ok(("application/json", self.view.okf_index_json(requested)))
             }
@@ -4537,6 +4783,11 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "target_iri"
                     | "data"
                     | "format"
+                    // The GMN verifier tools: `gmn_validate` / `gmn_expand` require the GMN-1
+                    // document `gmn`; `gmn_explain` requires the operator `glyph`. Enforced via
+                    // `required_str` in each handler, so the advertised schema must match.
+                    | "gmn"
+                    | "glyph"
                     | "query"
                     | "subject"
                     | "predicate"
@@ -5109,6 +5360,135 @@ fn locate_explain_target(
             }
         }
     }
+}
+
+/// HARD-FAIL a GMN document argument that exceeds the inline payload ceiling, mirroring
+/// `validate_local`'s size guard — never a silent truncation (a truncated GMN-1 document
+/// would mis-parse and mislead the repair loop).
+fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
+    if gmn.len() > MAX_VALIDATE_DATA_BYTES {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "{tool}: gmn payload is {} bytes, exceeding the {} byte ceiling; split the \
+                 document (no silent truncation)",
+                gmn.len(),
+                MAX_VALIDATE_DATA_BYTES
+            ),
+        }));
+    }
+    Ok(())
+}
+
+/// Harvest the `rdfs:label` index (`IRI → label`) from the bundle dataset — the SAME
+/// deterministic pick the pipeline verbalizer uses (a `@x-gmeow-english` label wins; ties
+/// break to the smallest lexical form), so `gmn_explain`'s gloss nucleus matches Task 8.
+fn harvest_dataset_labels(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
+    // (is_gmeow_english, lexical_form) per IRI — the preference key.
+    let mut best: BTreeMap<String, (bool, String)> = BTreeMap::new();
+    for quad in dataset.owned_quads() {
+        if quad.predicate != RDFS_LABEL {
+            continue;
+        }
+        let (RdfTerm::Iri(subject), RdfTerm::Literal(literal)) = (&quad.subject, &quad.object)
+        else {
+            continue;
+        };
+        let is_english = literal.language.as_deref() == Some(GMEOW_ENGLISH);
+        let candidate = (is_english, literal.lexical_form.clone());
+        match best.get(subject) {
+            Some((cur_english, cur_lex)) => {
+                let better = (candidate.0, Reverse(candidate.1.clone()))
+                    > (*cur_english, Reverse(cur_lex.clone()));
+                if better {
+                    best.insert(subject.clone(), candidate);
+                }
+            }
+            None => {
+                best.insert(subject.clone(), candidate);
+            }
+        }
+    }
+    best.into_iter().map(|(k, (_, v))| (k, v)).collect()
+}
+
+/// Join a resolved operator form back to the `gmeow:gmnPrecedence` integer and the
+/// `lang:Denotation` IRI the glyph registry does NOT carry (it keys on fixity/arity only),
+/// by matching the `(denotationTarget, gmnFixity, gmnArity)` signature the operator's
+/// denoted Form authors in the dataset. Returns `(precedence, denotation_iri)`, each `None`
+/// when the codebook authors no matching record (surfaced honestly, never fabricated).
+fn gmn_signature_join(
+    dataset: &purrdf::RdfDataset,
+    target: &str,
+    fixity: &str,
+    arity: u32,
+) -> (Option<i64>, Option<String>) {
+    // Form → (fixity, precedence, arity); Denotation → (form, target); Denotation typed set.
+    let mut form_fixity: BTreeMap<String, String> = BTreeMap::new();
+    let mut form_precedence: BTreeMap<String, i64> = BTreeMap::new();
+    let mut form_arity: BTreeMap<String, u32> = BTreeMap::new();
+    let mut den_form: BTreeMap<String, String> = BTreeMap::new();
+    let mut den_target: BTreeMap<String, String> = BTreeMap::new();
+    let mut is_denotation: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        match quad.predicate.as_str() {
+            RDF_TYPE => {
+                if matches!(&quad.object, RdfTerm::Iri(class) if class == LANG_DENOTATION) {
+                    is_denotation.insert(subject.clone());
+                }
+            }
+            GMN_FIXITY => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    form_fixity.insert(subject.clone(), value.clone());
+                }
+            }
+            GMN_PRECEDENCE => {
+                if let RdfTerm::Literal(literal) = &quad.object
+                    && let Ok(value) = literal.lexical_form.parse::<i64>()
+                {
+                    form_precedence.insert(subject.clone(), value);
+                }
+            }
+            GMN_ARITY => {
+                if let RdfTerm::Literal(literal) = &quad.object
+                    && let Ok(value) = literal.lexical_form.parse::<u32>()
+                {
+                    form_arity.insert(subject.clone(), value);
+                }
+            }
+            LANG_DENOTED_FORM => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    den_form.insert(subject.clone(), value.clone());
+                }
+            }
+            LANG_DENOTATION_TARGET => {
+                if let RdfTerm::Iri(value) = &quad.object {
+                    den_target.insert(subject.clone(), value.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+    // Deterministic (BTreeSet iteration): the first Denotation whose denoted Form signature
+    // matches (target, fixity, arity).
+    for denotation in &is_denotation {
+        let Some(form) = den_form.get(denotation) else {
+            continue;
+        };
+        if den_target.get(denotation).map(String::as_str) != Some(target) {
+            continue;
+        }
+        if form_fixity.get(form).map(String::as_str) != Some(fixity) {
+            continue;
+        }
+        if form_arity.get(form).copied() != Some(arity) {
+            continue;
+        }
+        return (form_precedence.get(form).copied(), Some(denotation.clone()));
+    }
+    (None, None)
 }
 
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
@@ -12168,5 +12548,268 @@ mod tests {
              whether any bad-example verify query matched: {out}"
         );
         drop(overlay_dir);
+    }
+
+    // ── GMN verifier tools: gmn_validate / gmn_expand / gmn_explain ─────────────────
+
+    /// Read a frozen GMN-1 conformance-vector file from the shipped corpus (a test
+    /// artifact, never in the bundle) by its path relative to the vector root.
+    fn gmn_vector(rel: &str) -> String {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        fs::read_to_string(
+            root.join("slices/grounding/lang/tests/gmn1-vectors")
+                .join(rel),
+        )
+        .unwrap_or_else(|e| panic!("read GMN vector {rel}: {e}"))
+    }
+
+    /// `gmn_validate` accepts a frozen conformance vector (`{ok, conformant:true}`) and
+    /// rejects a perturbed document with the TYPED `lang:Gmn*Failure` class — the external
+    /// LLM's entry to the `@err` repair loop.
+    #[test]
+    fn gmn_validate_accepts_conformant_and_rejects_perturbed() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // A frozen POSITIVE vector conforms.
+        let good = gmn_vector("claim-basic.gmn");
+        let ok = text_payload(server.call_tool_result("gmn_validate", &json!({ "gmn": good })));
+        assert_eq!(ok["ok"], true, "{ok}");
+        assert_eq!(
+            ok["conformant"], true,
+            "a frozen conformance vector must validate: {ok}"
+        );
+        assert!(
+            ok.get("failure_class").is_none(),
+            "a conformant document carries no failure class: {ok}"
+        );
+
+        // A perturbed document (a value glyph flipped to a non-canonical 3-digit fraction,
+        // the frozen negative fixture the corpus pins) raises the TYPED failure class.
+        let bad = gmn_vector("negative-codec/neg-malformed-number-frac.gmn");
+        let defect = text_payload(server.call_tool_result("gmn_validate", &json!({ "gmn": bad })));
+        assert_eq!(defect["ok"], true, "{defect}");
+        assert_eq!(
+            defect["conformant"], false,
+            "the perturbed document must be rejected: {defect}"
+        );
+        assert_eq!(
+            defect["failure_class"], "https://blackcatinformatics.ca/lang/GmnMalformedNumber",
+            "the typed lang:Gmn*Failure class names the defect: {defect}"
+        );
+        assert_eq!(
+            defect["failure_local_name"], "GmnMalformedNumber",
+            "{defect}"
+        );
+        assert!(
+            defect["message"].as_str().is_some_and(|m| !m.is_empty()),
+            "the defect carries a message: {defect}"
+        );
+    }
+
+    /// `gmn_expand` decodes a GMN-1 document to its GMN-0 normal form (alias/glyph → full
+    /// IRI) and its expansion round-trips: re-encoding equals the input under
+    /// `gmn0_canonically_equal`.
+    #[test]
+    fn gmn_expand_roundtrips() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let doc = gmn_vector("claim-basic.gmn");
+        let out =
+            text_payload(server.call_tool_result("gmn_expand", &json!({ "gmn": doc.clone() })));
+        assert_eq!(out["ok"], true, "{out}");
+        assert_eq!(
+            out["round_trip"], true,
+            "the expansion carries a holding round-trip witness: {out}"
+        );
+        let expanded = out["expanded_nquads"].as_str().expect("expanded_nquads");
+        assert!(
+            !expanded.is_empty(),
+            "the GMN-0 normal form is non-empty: {out}"
+        );
+        // The "expand alias/glyph → full IRI" direction: the compact `gmeow__gate1` token
+        // expands to its full IRI under the gmeow namespace.
+        assert!(
+            expanded.contains("https://blackcatinformatics.ca/gmeow/"),
+            "the GMN-0 normal form carries full IRIs, not compact aliases: {out}"
+        );
+
+        // Expand then re-encode equals the input under gmn0_canonically_equal.
+        let reencoded = out["reencoded_gmn"].as_str().expect("reencoded_gmn");
+        let dict = server.gmn_dictionary().expect("dictionary resolves");
+        let input_model = gmn1_read(&Gmn1Document::from_text(doc), &dict).expect("input reads");
+        let re_model = gmn1_read(&Gmn1Document::from_text(reencoded.to_owned()), &dict)
+            .expect("re-encoded reads");
+        assert!(
+            gmn0_canonically_equal(&input_model, &re_model),
+            "expand then re-encode equals the input under gmn0_canonically_equal: {out}"
+        );
+    }
+
+    /// `gmn_explain` resolves a known operator glyph (`¬` → `logic:not`) to its authored
+    /// fixity / precedence / arity and its controlled-NL gloss, and returns an HONEST typed
+    /// miss for an unknown glyph — never a fabricated answer.
+    #[test]
+    fn gmn_explain_names_fixity_and_gloss() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // ¬ is the seeded prefix operator for logic:not (precedence 90, arity 1).
+        let hit = text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": "¬" })));
+        assert_eq!(hit["ok"], true, "{hit}");
+        assert_eq!(
+            hit["found"], true,
+            "¬ is a covered GMN operator glyph: {hit}"
+        );
+        assert_eq!(hit["fixity_local_name"], "gmnFixityPrefix", "{hit}");
+        assert_eq!(
+            hit["precedence"], 90,
+            "the graph-authored binding strength: {hit}"
+        );
+        assert_eq!(hit["arity"], 1, "{hit}");
+        assert_eq!(
+            hit["denotation_target"], "https://blackcatinformatics.ca/logic/not",
+            "{hit}"
+        );
+        assert!(
+            hit["denotation"]
+                .as_str()
+                .is_some_and(|d| d.contains("blackcatinformatics.ca")),
+            "the lang:Denotation IRI is surfaced, not fabricated: {hit}"
+        );
+        // The gloss is Task 8's verbalizer rendering: the prefix template `<label> arg1`.
+        assert!(
+            hit["gloss"].as_str().is_some_and(|g| g.contains("arg1")),
+            "the controlled-NL gloss is the prefix verbalizer rendering: {hit}"
+        );
+        assert_eq!(
+            hit["gmn_surface"], "¬ arg1",
+            "the GMN operator surface arranges the glyph in prefix position: {hit}"
+        );
+
+        // An unknown glyph returns the honest typed miss, never a fabricated answer.
+        let miss = text_payload(server.call_tool_result("gmn_explain", &json!({ "glyph": "☃" })));
+        assert_eq!(miss["ok"], true, "{miss}");
+        assert_eq!(
+            miss["found"], false,
+            "an unknown glyph is not found: {miss}"
+        );
+        assert_eq!(
+            miss["failure_class"], "https://blackcatinformatics.ca/lang/GmnUncoveredTerm",
+            "the miss is the typed lang:GmnUncoveredTerm class: {miss}"
+        );
+        assert_eq!(miss["failure_local_name"], "GmnUncoveredTerm", "{miss}");
+    }
+
+    /// The three GMN verifier tools are advertised in the CONSUMER surface (served off the
+    /// bundle alone, like `validate_local`, never dev-gated) and each advertises its
+    /// required arg honestly (the `tool()` allowlist addition).
+    #[test]
+    fn gmn_tools_are_advertised_in_the_consumer_surface() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let result = consumer.tools_result();
+        let arr = result["tools"].as_array().expect("tools array");
+        for (name, req) in [
+            ("gmn_validate", "gmn"),
+            ("gmn_expand", "gmn"),
+            ("gmn_explain", "glyph"),
+        ] {
+            let tool = arr
+                .iter()
+                .find(|t| t["name"] == name)
+                .unwrap_or_else(|| panic!("{name} is advertised: {result}"));
+            let required = tool["inputSchema"]["required"]
+                .as_array()
+                .expect("required array");
+            assert!(
+                required.iter().any(|r| r == req),
+                "{name} advertises its required arg `{req}`: {tool}"
+            );
+        }
+    }
+
+    /// The GMN-1 teachability primer is exposed as a CONSUMER MCP resource
+    /// (`gmeow://ontology/gmn1-primer`, served off the bundle alone), advertised in
+    /// `resources/list` and readable through `resources/read` — a self-contained, graph-derived,
+    /// budget-bounded card carrying the record sigils, the operator glyph table, and the repair
+    /// loop. The shared `llms_full` surface carries the same primer section.
+    #[test]
+    fn gmn1_primer_resource_is_advertised_and_readable() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Advertised in the consumer resource list.
+        let list = consumer.resources_result();
+        let resources = list["resources"].as_array().expect("resources array");
+        assert!(
+            resources
+                .iter()
+                .any(|r| r["uri"] == "gmeow://ontology/gmn1-primer"),
+            "the gmn1-primer resource must be advertised: {list}"
+        );
+
+        // Readable through resources/read, with the primer heading + a repair card + an operator
+        // glyph row present (the graph-derived teaching surface).
+        let read = consumer.read_resource_result("gmeow://ontology/gmn1-primer");
+        assert!(
+            read.get("isError").is_none(),
+            "primer read must succeed: {read}"
+        );
+        let text = read["contents"][0]["text"].as_str().expect("primer text");
+        assert!(
+            text.contains(&format!("## {}", gmn1_primer_heading())),
+            "the primer resource must carry its heading: {text}"
+        );
+        assert!(
+            text.contains("gmeow:GmnErr"),
+            "the primer resource must teach the @err repair record"
+        );
+        assert!(
+            text.contains("⊑ (infix"),
+            "the primer resource must carry the operator glyph table (⊑ subsumption row)"
+        );
+
+        // The same primer section rides the shared `llms_full` surface.
+        let full = consumer
+            .view
+            .llms_full_text(vec!["en".to_string()])
+            .expect("llms_full builds with the primer");
+        assert!(
+            full.contains(&format!("## {}", gmn1_primer_heading())),
+            "llms_full must carry the primer section"
+        );
+    }
+
+    /// The primer heading constant, re-exposed for the resource test (the shared docs const).
+    fn gmn1_primer_heading() -> &'static str {
+        gmeow_docs::gmn1_primer::PRIMER_HEADING
     }
 }

@@ -4247,10 +4247,13 @@ mod tests {
          @prefix ex: <https://example.org/> .\n";
 
     /// Removal check: the validate-time sweep no longer enforces dimensional
-    /// homogeneity — that enforcement was relocated to the reason-verify native gate
-    /// (`gmeow_logic::math_dimension::check_math_dimension_findings`), which is now the
-    /// SOLE homogeneity enforcement path. An inhomogeneous expression must therefore
-    /// pass `structural_lint_dataset` clean while the reason-verify gate flags it.
+    /// homogeneity — that enforcement is now the reasoner-materialized
+    /// `math:DimensionalInhomogeneity` marker surfaced through the production
+    /// `gmeow_logic::verify::verify()` entrypoint (the native `logic:` reasoner
+    /// derives it directly from the authored `math:dimensionalHomogeneityLaw`
+    /// `logic:Formula` AST), which is now the SOLE homogeneity enforcement path. An
+    /// inhomogeneous expression must therefore pass `structural_lint_dataset` clean
+    /// while `verify()` flags it.
     #[test]
     fn dimensional_homogeneity_is_no_longer_a_validate_lint() {
         let turtle = format!(
@@ -4270,13 +4273,24 @@ mod tests {
             "the dimensional-homogeneity sweep must be retired from validate: {:?}",
             report.errors()
         );
-        // The reason-verify native gate is where it now lives.
-        let findings = gmeow_logic::math_dimension::check_math_dimension_findings(&ds);
+        // The reasoner-materialized reason-verify gate is where it now lives: the
+        // production verify() entrypoint surfaces the marker the native `logic:`
+        // reasoner derives from the authored `math:dimensionalHomogeneityLaw`
+        // `logic:Formula` AST, never a Rust sweep.
+        let report =
+            gmeow_logic::verify::verify(&ds, &gmeow_logic::verify::embedded_verify_queries())
+                .expect("verify() must not error");
         assert!(
-            findings
+            report
+                .findings
                 .iter()
-                .any(|f| f.message.contains("math:DimensionalInhomogeneity")),
-            "the reason-verify gate must be the sole homogeneity enforcement path: {findings:?}"
+                .any(|f| f.code == "verify.dimensional-inhomogeneity"),
+            "the reasoner-derived reason-verify gate must now be the sole homogeneity enforcement path: {:?}",
+            report
+                .findings
+                .iter()
+                .map(|f| f.code.as_str())
+                .collect::<Vec<_>>()
         );
     }
 
