@@ -105,8 +105,13 @@ use session_common::*;
 /// arm — all folded via `include_str!` into `backward_source_hash()`, so the raw
 /// source-content digest moves. The fixed edge-only input carries no triple term, so the new
 /// arm never fires and no reasoning verdict changes.
+// Re-blessed for this branch's ADDITIVE engine-source changes: the W4b browser-reasoner work added
+// `reason::reason_closure_dataset` (the browser reasoner's entry, wrapping the unchanged
+// native chase) and the W4 conjecture playground added `conjecture_eval` (conjecture-evaluation orchestration). The
+// descriptor is a source-fingerprint over the engine's backward + forward contract, so an
+// additive entry point moves it even with no change to the reasoning rules.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "6fc6af730340c712f9fa0ff1b4412282aede144fd15a0c75e0e09619b399cc73";
+    "76a6fe1c2099716376c9359c0fe3f87caf496d7770b8875452f771fb7a1aebda";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -146,7 +151,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// axes and moves with the changed `query_ir`/`physical` source, while the fixed edge-only
 /// input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "9aecc2d1693b573e008afc4b61c0e2ab7c8046403a648b9132d33465bda829d4";
+    "61983f8e6058631d3495cba299f7b31d45feabac8da2fccc88ef0a36ed432c14";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
