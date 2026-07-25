@@ -17,6 +17,7 @@
 # are NOT redeclared here.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -97,6 +98,7 @@ gmeow:DocumentedDocument
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "Documented Document"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
+    logic:formalizes logic:documentedDocumentSubsumption ;
     skos:definition "The documentation-projection record for one canonical slice-Markdown source (the slice's docs.md, or any recursively-discovered text/markdown file such as a design/*.md). It gmeow:documents the owning slice IRI and carries the source's gmeow:docSourcePath, gmeow:docTitle, gmeow:docRawDigest, and the gmeow:docUrl of the page the single source-to-page authority resolved it to. Distinct from the slice itself and from the gmeow:DocumentedSlice manifest record: this record stands for one rendered prose document, minted per discovered Markdown source by the docs projection."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture a gmeow:DocumentedDocument ; gmeow:documents ex:sliceZoo ; gmeow:docSourcePath \"design/ARCHITECTURE.md\" ; gmeow:docTitle \"Architecture\" ; gmeow:docUrl \"slices/zoo/documents/design/architecture/\" ."@x-gmeow-english ;
     skos:scopeNote "Scoped to canonical slice Markdown sources under a slice directory (docs.md and design/*.md). It does NOT stand for a term's per-term documentation page (that is gmeow:DocumentedTerm), nor for a repo-level document outside any slice, nor for a rendered non-Markdown artifact."@x-gmeow-english ;
@@ -104,6 +106,30 @@ gmeow:DocumentedDocument
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let the docs projection mint one per discovered slice Markdown source; follow gmeow:documents to the owning slice and gmeow:docUrl to the resolved rendered page."@x-gmeow-english ;
     gmeow:useWhen "Use to name the RDF record for one rendered slice document when querying which Markdown sources are documented and where their pages live."@x-gmeow-english .
+
+# ── Subsumption grounding (the logic: axiom the class taxonomy projects from) ───
+# gmeow:DocumentedDocument's rdfs:subClassOf gmeow:InformationObject taxonomy edge
+# is a lossy projection of the canonical logic: axiom authored here (Principle 17).
+# The class carries a logic:formalizes back-reference to this subsumption Formula, so
+# the derived rdfs: edge is grounded rather than a second source of truth. A class
+# subsumption C ⊑ D is the universally-quantified implication ∀x. C(x) → D(x),
+# realized as a logic:Formula AST (logic:forall over a logic:antecedent/consequent
+# implication whose atoms are rdf:type class-membership relations), mirroring the
+# subsumption ASTs in slices/core/guides/module.ttl.
+
+logic:documentedDocumentSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "DocumentedDocument ⊑ InformationObject"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:DocumentedDocument rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. DocumentedDocument(x) → InformationObject(x) — every documented-document record is an information object (the RDF twin of one rendered slice-Markdown source)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:documentedDocumentImpl .
+logic:documentedDocumentImpl a logic:Formula ;
+    logic:antecedent logic:documentedDocumentSub ; logic:consequent logic:documentedDocumentSuper .
+logic:documentedDocumentSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DocumentedDocument ] .
+logic:documentedDocumentSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
 
 gmeow:DocEvidence
     a logic:Kind ,
